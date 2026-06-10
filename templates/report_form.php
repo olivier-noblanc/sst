@@ -126,14 +126,37 @@ $submitBtnClass = $isEdit
             <?php endif; ?>
 
             <?php if (reportVisibilityIsAgentChoice()): ?>
-            <div class="form-group" style="grid-column: 1 / -1;">
+            <div class="form-group" style="grid-column: 1 / -1;" id="confidential-toggle">
                 <label>
                     <input type="checkbox" name="is_confidential" id="is_confidential" value="1"
                            <?php echo $val('is_confidential', '1') === '1' ? 'checked' : ''; ?>>
                     Signalement confidentiel
                 </label>
                 <span class="form-hint">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
+                <div class="confidential-warning">
+                    ⚠️ <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
+                </div>
             </div>
+            <style>
+            /* Affiche le warning uniquement quand la checkbox est décochée */
+            #confidential-toggle:not(:has(#is_confidential:checked)) .confidential-warning {
+                display: block;
+            }
+            #confidential-toggle:has(#is_confidential:checked) .confidential-warning {
+                display: none;
+            }
+            .confidential-warning {
+                display: none;
+                margin-top: 8px;
+                padding: 10px 14px;
+                background: #fffbeb;
+                border: 1px solid #fcd34d;
+                border-radius: 6px;
+                color: #92400e;
+                font-size: 13px;
+            }
+            </style>
             <?php elseif (reportVisibilityIsConfidential()): ?>
             <input type="hidden" name="is_confidential" value="1">
             <div class="form-group" style="grid-column: 1 / -1;">

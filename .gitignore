@@ -1,6 +1,35 @@
-skills/
-node_modules/
+# Dependencies (installed via Composer)
+/vendor/
+
+# Database
+/data/*.db
+/data/*.sqlite
+/data/*.log
+
+# Environment
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PHP
+composer.phar
+composer-setup.php
 
 # Binary / generated files
 *.pdf
 *.zip
+
+# Internal (not part of the project)
+skills/
+node_modules/
+download/
+upload/

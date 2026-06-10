@@ -20,7 +20,7 @@ $user = $_SESSION['user'];
 $userSiteId = (int) $user['site_id'];
 $userId = (int) $user['id'];
 $userRole = $user['role'];
-$agentVisibility = getAgentVisibility();
+$agentVisibility = getReportVisibility();
 $seeAllSites = canSeeAllSites();
 
 // Build filters from GET params
@@ -32,11 +32,15 @@ $filters = [
 
 // Apply agent visibility restrictions
 if ($agentVisibility === 'confidential') {
-    // Agent sees public signalements from their site + their own signalements (even confidential)
+    // Most restrictive: agent sees ONLY their own reports
+    $filters['force_site_id'] = $userSiteId;
+    $filters['own_only'] = $userId;
+} elseif ($agentVisibility === 'agent_choice') {
+    // Agent sees public reports from their site + their own (even confidential)
     $filters['force_site_id'] = $userSiteId;
     $filters['confidential_filter'] = $userId;
 } elseif ($agentVisibility === 'public') {
-    // Agent sees all signalements from their site only
+    // Agent sees all reports from their site only
     $filters['force_site_id'] = $userSiteId;
 }
 // else: 'all' — no restrictions (superviseur/chsct)

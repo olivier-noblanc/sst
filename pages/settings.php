@@ -258,31 +258,40 @@ $pageTitle = 'Paramètres';
         </div>
 
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--grey-200);">
-            <h4 style="margin-bottom:12px;">🔒 Visibilité des agents</h4>
-            <p class="text-muted text-small" style="margin-bottom:12px;">Détermine quels signalements les agents peuvent consulter dans les registres.</p>
+            <h4 style="margin-bottom:12px;">🔒 Visibilité des signalements</h4>
+            <p class="text-muted text-small" style="margin-bottom:12px;">Détermine quels signalements les agents peuvent consulter dans les registres. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
             <div class="form-group" style="margin-bottom:0;" id="visibility-radios">
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
-                        <input type="radio" name="app_agent_visibility" value="confidential"
-                               <?php echo getAgentVisibility() === 'confidential' ? 'checked' : ''; ?>
+                        <input type="radio" name="app_report_visibility" value="confidential"
+                               <?php echo getReportVisibility() === 'confidential' ? 'checked' : ''; ?>
                                style="margin-top:3px;width:16px;height:16px;">
                         <div>
-                            <strong>Confidentiel par défaut</strong> <span style="color:var(--grey-500);font-size:12px;">(par défaut)</span>
-                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">Les signalements sont confidentiels par défaut. L'agent peut choisir de rendre un signalement public lors de la création. Il voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements.</div>
+                            <strong>Confidentiel</strong> <span style="color:var(--grey-500);font-size:12px;">(le plus restrictif)</span>
+                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">L'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.</div>
                         </div>
                     </label>
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
-                        <input type="radio" name="app_agent_visibility" value="public"
-                               <?php echo getAgentVisibility() === 'public' ? 'checked' : ''; ?>
+                        <input type="radio" name="app_report_visibility" value="agent_choice"
+                               <?php echo getReportVisibility() === 'agent_choice' ? 'checked' : ''; ?>
+                               style="margin-top:3px;width:16px;height:16px;">
+                        <div>
+                            <strong>Choix de l'agent</strong> <span style="color:var(--grey-500);font-size:12px;">(confidentiel par défaut)</span>
+                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">L'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements.</div>
+                        </div>
+                    </label>
+                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
+                        <input type="radio" name="app_report_visibility" value="public"
+                               <?php echo getReportVisibility() === 'public' ? 'checked' : ''; ?>
                                style="margin-top:3px;width:16px;height:16px;">
                         <div>
                             <strong>Visibilité publique</strong>
-                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">Tous les signalements du site sont visibles par tous les agents du site. Conforme au principe de transparence des registres SST.</div>
+                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">Tous les signalements du site sont visibles par tous les agents du site.</div>
                         </div>
                     </label>
                 </div>
-                <div id="agentVisibilityWarning" class="agent-visibility-warning" style="margin-top:14px;padding:10px 14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;color:#92400e;font-size:12px;">
-                    ℹ️ <strong>Information :</strong> En mode « Confidentiel par défaut », chaque agent choisit la visibilité de son signalement. Les superviseurs et membres du CHSCT voient tous les signalements quel que soit le mode.
+                <div class="agent-visibility-warning" style="margin-top:14px;padding:10px 14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;color:#92400e;font-size:12px;">
+                    ℹ️ <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CHSCT voient tous les signalements, y compris les confidentiels.
                 </div>
             </div>
         </div>
@@ -295,9 +304,6 @@ $pageTitle = 'Paramètres';
 </form>
 
 <!-- Agent visibility info toggle — CSS only, no JavaScript -->
-<style>
-#visibility-radios:not(:has(input[value="confidential"]:checked)):not(:has(input[value="public"]:checked)) .agent-visibility-warning { display: none; }
-</style>
 <?php endif; ?>
 
 <?php if ($activeTab === 'manage_sites'): ?>

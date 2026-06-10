@@ -67,7 +67,7 @@ $pageTitle = 'Préambule';
     <h3 style="margin-bottom:12px;">Modalités de signalement</h3>
     <ul style="line-height:1.8; margin-left:20px;">
         <li>Tout agent peut inscrire un signalement dans le registre correspondant à la situation rencontrée.</li>
-        <li>Le signalement est confidentiel par défaut. L'agent peut toutefois choisir de le rendre public. Les superviseurs et les membres du CHSCT ont accès à tous les signalements.</li>
+        <li>Le signalement est confidentiel par défaut. Selon le paramétrage choisi par le superviseur, l'agent peut choisir de rendre son signalement public, ou celui-ci peut être visible par tous les agents du site. Les superviseurs et les membres du CHSCT ont accès à tous les signalements.</li>
         <li>Les superviseurs s'engagent à traiter chaque signalement dans les meilleurs délais.</li>
         <li>Les signalements DGI font l'objet d'une procédure d'urgence.</li>
         <li>Aucune sanction ne peut être prise à l'encontre d'un agent pour avoir signalé une situation de danger.</li>

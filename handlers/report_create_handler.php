@@ -38,10 +38,16 @@ $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
 $pourCompteNom = trim($_POST['pour_compte_nom'] ?? '');
 $pourComptePrenom = trim($_POST['pour_compte_prenom'] ?? '');
 $isConfidential = isset($_POST['is_confidential']) && $_POST['is_confidential'] === '1' ? 1 : 0;
-// If visibility mode is 'public', force is_confidential to 0
-if (agentVisibilityIsPublic()) {
+// Enforce visibility mode rules:
+// - 'public' mode → force is_confidential to 0 (all reports are public)
+// - 'confidential' mode → force is_confidential to 1 (all reports are confidential)
+// - 'agent_choice' mode → use the agent's choice (default: confidential)
+if (reportVisibilityIsPublic()) {
     $isConfidential = 0;
+} elseif (reportVisibilityIsConfidential()) {
+    $isConfidential = 1;
 }
+// agent_choice: keep the agent's selection
 
 // Validate
 $errors = [];

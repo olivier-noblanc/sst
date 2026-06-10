@@ -245,8 +245,9 @@ function migrateSchema(PDO $pdo): void {
 function migrateConfigKeys(PDO $pdo): void {
     $newKeys = [
         'app_superviseur_usernames' => ['', 'text', 'app', 'Logins Windows des superviseurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS. Utile pour une première installation.', 1],
-        'app_agent_see_only_own' => ['0', 'text', 'app', 'Si activé (1), les agents ne voient que leurs propres signalements. ⚠️ Attention : cela peut ne pas être conforme au Code du travail concernant les registres SST. (Obsolète : utilisez app_agent_visibility)', 1],
-        'app_agent_visibility' => ['confidential', 'text', 'app', 'Visibilité des agents : "confidential" (confidentiel par défaut, l\'agent choisit au cas par cas), "public" (tous les signalements du site sont visibles).', 1],
+        'app_agent_see_only_own' => ['0', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
+        'app_agent_visibility' => ['agent_choice', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
+        'app_report_visibility' => ['agent_choice', 'text', 'app', 'Visibilité des signalements : "confidential" (l\'agent ne voit que ses propres signalements), "agent_choice" (l\'agent choisit au cas par cas, confidentiel par défaut), "public" (tous les signalements du site sont visibles par tous les agents).', 1],
     ];
 
     foreach ($newKeys as $cle => $data) {
@@ -281,6 +282,26 @@ function migrateConfigKeys(PDO $pdo): void {
                 $oldValue = $stmt2->fetchColumn();
                 if ($oldValue === '1') {
                     $value = 'confidential'; // Migrate: old "see only own" → new "confidential"
+                }
+            }
+
+            // For app_report_visibility: migrate from app_agent_visibility value
+            if ($cle === 'app_report_visibility') {
+                $stmt2 = $pdo->prepare('SELECT valeur FROM config_app WHERE cle = :cle');
+                $stmt2->execute([':cle' => 'app_agent_visibility']);
+                $oldVisValue = $stmt2->fetchColumn();
+                if ($oldVisValue !== false) {
+                    // Map old 2-mode value to new 3-mode value
+                    if ($oldVisValue === 'confidential') {
+                        $value = 'agent_choice'; // old "confidential" was actually agent_choice mode
+                    } elseif ($oldVisValue === 'public') {
+                        $value = 'public';
+                    } elseif ($oldVisValue === 'site') {
+                        $value = 'public';
+                    } elseif ($oldVisValue === 'own') {
+                        $value = 'confidential'; // old "own" = truly confidential
+                    }
+                    // else: keep default 'agent_choice'
                 }
             }
 

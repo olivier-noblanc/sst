@@ -26,12 +26,12 @@ if (!$report) {
     redirect(url('home'));
 }
 
-// Access control: depends on agent visibility setting
+// Access control: depends on report visibility setting
 $user = $_SESSION['user'];
 $userSiteId = (int) $user['site_id'];
 $userId = (int) $user['id'];
 $userRole = $user['role'];
-$agentVisibility = getAgentVisibility();
+$reportVisibility = getReportVisibility();
 
 // Superviseur/CHSCT can always see everything
 if (!in_array($userRole, ['superviseur', 'chsct'])) {
@@ -40,7 +40,11 @@ if (!in_array($userRole, ['superviseur', 'chsct'])) {
         setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
         redirect(url('home'));
     }
-    if ($agentVisibility === 'confidential' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== $userId) {
+    if ($reportVisibility === 'confidential' && (int) $report['declarant_id'] !== $userId) {
+        setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
+        redirect(url('home'));
+    }
+    if ($reportVisibility === 'agent_choice' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== $userId) {
         setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
         redirect(url('home'));
     }

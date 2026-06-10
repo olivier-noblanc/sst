@@ -107,11 +107,18 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
         $params[':user_site_id'] = $userSiteId;
     }
 
-    // Confidentiality filter for agents
+    // Confidentiality filter for agents (agent_choice mode)
+    // Agent sees public reports + their own (even confidential)
     if (!empty($filters['confidential_filter'])) {
-        // Agent in 'confidential' mode: see public reports + their own (even confidential)
         $where .= " AND (r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)";
         $params[':cf_declarant_id'] = (int) $filters['confidential_filter'];
+    }
+
+    // Own-only filter for agents (confidential mode — most restrictive)
+    // Agent sees ONLY their own reports, nothing from others
+    if (!empty($filters['own_only'])) {
+        $where .= " AND r.declarant_id = :own_only_declarant_id";
+        $params[':own_only_declarant_id'] = (int) $filters['own_only'];
     }
 
     // Filter by etat

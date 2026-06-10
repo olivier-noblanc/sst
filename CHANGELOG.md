@@ -2,6 +2,43 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.4.0] — 2026-06-11
+
+### Fonctionnalités — Système de visibilité des signalements en 3 modes
+
+Passage d'un système à 2 modes (confidentiel / public) à un système à **3 modes** configurable par le superviseur dans Paramètres → Application :
+
+- **Mode « Confidentiel »** (le plus restrictif) : l'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.
+- **Mode « Choix de l'agent »** (confidentiel par défaut) : l'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son site ainsi que ses propres signalements (même confidentiels).
+- **Mode « Visibilité publique »** : tous les signalements du site sont visibles par tous les agents du site.
+
+### Technique — Changements
+
+- `src/config.php` : ajout de `REPORT_VISIBILITY_MODES` (constante), version 2.4.0
+- `src/helpers.php` : `getReportVisibility()` remplace `getAgentVisibility()` (3 valeurs : `confidential`, `agent_choice`, `public`). Nouvelles fonctions `reportVisibilityIsConfidential()`, `reportVisibilityIsAgentChoice()`, `reportVisibilityIsPublic()`. Anciennes fonctions conservées comme alias dépréciés.
+- `schema.sql` : nouvelle clé `app_report_visibility` (défaut `agent_choice`), clé `app_agent_visibility` marquée obsolète
+- `handlers/settings_handler.php` : validation des 3 valeurs pour `app_report_visibility`, synchronisation avec les anciennes clés
+- `pages/settings.php` : 3 radios au lieu de 2 pour la visibilité des signalements
+- `pages/report_list.php` : filtre `own_only` pour le mode confidentiel strict, filtre `confidential_filter` pour le mode choix agent
+- `src/queries/report_queries.php` : clause `own_only` (declarant_id = userId) pour le mode confidentiel
+- `templates/report_form.php` : toggle confidentiel uniquement en mode « Choix de l'agent », badge + hidden input dans les autres modes
+- `handlers/report_create_handler.php` : force `is_confidential` selon le mode (1 en confidentiel, 0 en public, choix en agent_choice)
+- `handlers/report_edit_handler.php` : même logique que la création
+- `pages/report_view.php` : contrôle d'accès pour les 3 modes (bloque même le titre en mode confidentiel)
+- `pages/report_print.php` : contrôle d'accès pour les 3 modes
+- `pages/home.php` : compteurs adaptés au mode (own only / public+own / all)
+- `pages/preamble.php` : wording mis à jour pour les 3 modes
+- `pages/help.php` : tableau de visibilité par mode (3 lignes) au lieu de par rôle
+
+### Nettoyage du dépôt Git
+
+- Restructuration du dépôt : le projet (`pdf_docs/sst/`) déplacé à la racine du repo
+- Suppression de `download/` (script audit non lié), `upload/` (doublon du projet), `.env` (sécurité)
+- Suppression de `data/sst.db` du suivi git
+- `.gitignore` racine fusionné avec les règles du projet (vendor, data, .env, IDE, OS, pdf, zip)
+
+---
+
 ## [2.3.0] — 2026-06-11
 
 ### Fonctionnalités — Confidentialité des signalements par défaut, choix de l'agent

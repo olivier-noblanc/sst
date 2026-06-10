@@ -7,7 +7,7 @@
 
 // Application metadata
 define('APP_NAME', 'Application SST — DREETS BFC');
-define('APP_VERSION', '2.3.0');
+define('APP_VERSION', '2.4.0');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
 // Environment: set to 'dev' for mock auth, 'prod' for IIS Windows Auth
@@ -56,6 +56,16 @@ define('ROLE_LABELS', [
     'agent'       => 'Agent',
     'superviseur' => 'Superviseur',
     'chsct'       => 'Membre CHSCT',
+]);
+
+// Report visibility modes (admin-configurable in Settings → Application)
+// 'confidential'  : Agent sees ONLY their own reports — most restrictive
+// 'agent_choice'  : Agent chooses per-report (public/confidential), defaulting to confidential
+// 'public'        : All reports visible to all agents in the site
+define('REPORT_VISIBILITY_MODES', [
+    'confidential' => 'Confidentiel (l\'agent ne voit que ses signalements)',
+    'agent_choice' => 'Choix de l\'agent (confidentiel par défaut)',
+    'public'       => 'Visibilité publique de tous les signalements',
 ]);
 
 // State labels

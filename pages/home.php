@@ -9,15 +9,22 @@ $pageTitle = 'Accueil';
 $pdo = getDB();
 $user = $_SESSION['user'];
 $userSiteId = (int) $user['site_id'];
-$agentVisibility = getAgentVisibility();
+$agentVisibility = getReportVisibility();
 $seeAllSites = canSeeAllSites();
 
-// Get counts for each registry type based on agent visibility
+// Get counts for each registry type based on report visibility
 // - 'all'           → count across all sites (superviseur/chsct)
 // - 'public'        → count all reports for agent's site
-// - 'confidential'  → count public reports + agent's own reports for site
+// - 'agent_choice'  → count public reports + agent's own reports for site
+// - 'confidential'  → count only agent's own reports for site (most restrictive)
+$userId = (int) $user['id'];
 if ($agentVisibility === 'confidential') {
-    $userId = (int) $user['id'];
+    // Most restrictive: only own reports
+    $rsstCount = countActiveReportsForUser($pdo, 'rsst', $userId);
+    $ramiCount = countActiveReportsForUser($pdo, 'rami', $userId);
+    $dgiCount  = countActiveReportsForUser($pdo, 'dgi', $userId);
+} elseif ($agentVisibility === 'agent_choice') {
+    // Agent choice mode: public + own (even confidential)
     $rsstCount = countActiveReports($pdo, 'rsst', $userSiteId, $userId, true);
     $ramiCount = countActiveReports($pdo, 'rami', $userSiteId, $userId, true);
     $dgiCount  = countActiveReports($pdo, 'dgi', $userSiteId, $userId, true);

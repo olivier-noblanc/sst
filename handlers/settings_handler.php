@@ -126,15 +126,16 @@ try {
         updateConfig($pdo, 'app_label_unite', $appLabelUnite);
         updateConfig($pdo, 'app_superviseur_usernames', $appSuperviseurUsernames);
 
-        // Agent visibility setting (radio: confidential / public)
-        $agentVisibility = $_POST['app_agent_visibility'] ?? 'confidential';
-        if (!in_array($agentVisibility, ['confidential', 'public'])) {
-            $agentVisibility = 'confidential';
+        // Report visibility setting (radio: confidential / agent_choice / public)
+        $reportVisibility = $_POST['app_report_visibility'] ?? 'agent_choice';
+        if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'])) {
+            $reportVisibility = 'agent_choice';
         }
-        updateConfig($pdo, 'app_agent_visibility', $agentVisibility);
+        updateConfig($pdo, 'app_report_visibility', $reportVisibility);
 
-        // Legacy key: keep in sync for backward compatibility
-        updateConfig($pdo, 'app_agent_see_only_own', $agentVisibility === 'confidential' ? '1' : '0');
+        // Legacy keys: keep in sync for backward compatibility
+        updateConfig($pdo, 'app_agent_visibility', $reportVisibility);
+        updateConfig($pdo, 'app_agent_see_only_own', $reportVisibility === 'confidential' ? '1' : '0');
 
         // Clear the getConfig() static cache so new values are picked up immediately
         clearConfigCache();

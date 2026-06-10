@@ -195,51 +195,93 @@ function canSeeAllSites(): bool {
 }
 
 /**
- * Get the agent visibility mode.
- * Returns one of: 'public', 'confidential', 'all'
+ * Get the report visibility mode for agents.
+ * Returns one of: 'confidential', 'agent_choice', 'public', 'all'
  * 
- * - 'public'       : Agent sees all signalements from their own site
- * - 'confidential'  : Agent sees public signalements from their site + their own signalements (even confidential)
+ * - 'confidential' : Agent sees ONLY their own reports (most restrictive)
+ * - 'agent_choice' : Agent sees public reports from their site + their own reports (even confidential).
+ *                    Agent can choose per-report visibility, defaulting to confidential.
+ * - 'public'       : Agent sees all reports from their own site
  * 
  * Non-agent roles always get 'all'.
  * 
  * @return string
  */
-function getAgentVisibility(): string {
+function getReportVisibility(): string {
     if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'agent') {
         return 'all';
     }
-    $value = getConfig('app_agent_visibility', 'confidential');
+    $value = getConfig('app_report_visibility', 'agent_choice');
     // Backward compatibility: migrate old values
     if ($value === '0') return 'public';
     if ($value === '1') return 'confidential';
     if ($value === 'site') return 'public';
     if ($value === 'own') return 'confidential';
-    // Valid values: 'public', 'confidential'
-    if (in_array($value, ['public', 'confidential'])) {
+    // Old 2-mode values
+    if ($value === 'confidential') return 'confidential';
+    // Valid 3-mode values
+    if (in_array($value, ['confidential', 'agent_choice', 'public'])) {
         return $value;
     }
-    return 'confidential'; // Default fallback
+    return 'agent_choice'; // Default fallback
 }
 
 /**
- * Check if the agent visibility mode is 'confidential'.
- * When true, agents see public signalements from their site + their own signalements.
+ * Get the agent visibility mode.
+ * Backward-compatible alias for getReportVisibility().
+ * 
+ * @return string
+ * @deprecated Use getReportVisibility() instead
+ */
+function getAgentVisibility(): string {
+    return getReportVisibility();
+}
+
+/**
+ * Check if the report visibility mode is 'confidential' (most restrictive).
+ * When true, agents see ONLY their own reports — nothing from other agents.
  * 
  * @return bool
+ */
+function reportVisibilityIsConfidential(): bool {
+    return getReportVisibility() === 'confidential';
+}
+
+/**
+ * Check if the report visibility mode is 'agent_choice'.
+ * When true, agents can choose per-report visibility, defaulting to confidential.
+ * They see public reports from their site + their own reports (even confidential).
+ * 
+ * @return bool
+ */
+function reportVisibilityIsAgentChoice(): bool {
+    return getReportVisibility() === 'agent_choice';
+}
+
+/**
+ * Check if the report visibility mode is 'public'.
+ * When true, agents see all reports from their site.
+ * 
+ * @return bool
+ */
+function reportVisibilityIsPublic(): bool {
+    return getReportVisibility() === 'public';
+}
+
+/**
+ * Check if the agent visibility mode is 'confidential' (old name).
+ * @deprecated Use reportVisibilityIsConfidential() or reportVisibilityIsAgentChoice() instead
  */
 function agentVisibilityIsConfidential(): bool {
-    return getAgentVisibility() === 'confidential';
+    return in_array(getReportVisibility(), ['confidential', 'agent_choice']);
 }
 
 /**
- * Check if the agent visibility mode is 'public'.
- * When true, agents see all signalements from their site.
- * 
- * @return bool
+ * Check if the agent visibility mode is 'public' (old name).
+ * @deprecated Use reportVisibilityIsPublic() instead
  */
 function agentVisibilityIsPublic(): bool {
-    return getAgentVisibility() === 'public';
+    return getReportVisibility() === 'public';
 }
 
 /**

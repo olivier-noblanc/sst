@@ -36,7 +36,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Consulter le Préambule</li>
             </ul>
             <p style="font-size:12px;color:var(--grey-500);margin-top:10px;border-top:1px solid var(--grey-100);padding-top:8px;">
-                🔒 Voit les signalements publics de <strong>son site</strong> (son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ou Siège) ainsi que ses propres signalements confidentiels. Le mode de visibilité est configurable par le superviseur.
+                🔒 La visibilité des signalements dépend du paramétrage choisi par le superviseur : confidentiel (ses signalements uniquement), choix de l'agent (public ou confidentiel au dépôt), ou public (tous les signalements du site).
             </p>
         </div>
 
@@ -181,25 +181,32 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
 <!-- ============================================================ -->
 <div class="card" style="margin-bottom:20px;">
     <h2 style="margin-bottom:16px;">🔐 Confidentialité des signalements</h2>
-    <p style="margin-bottom:12px;color:var(--grey-600);font-size:13px;">La visibilité des signalements dépend du paramétrage choisi par le superviseur et du choix de l'agent lors du dépôt :</p>
+    <p style="margin-bottom:12px;color:var(--grey-600);font-size:13px;">La visibilité des signalements dépend du paramétrage choisi par le superviseur dans les Paramètres de l'application :</p>
     <table class="table" style="font-size:13px;">
         <thead>
             <tr>
-                <th>Rôle</th>
-                <th>Visibilité</th>
+                <th>Mode</th>
+                <th>Visibilité de l'agent</th>
                 <th>Détail</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td><span class="badge badge--agent">Agent</span></td>
-                <td>Dépend du paramétrage</td>
-                <td>
-                    <strong>Mode « Confidentiel par défaut » :</strong> l'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> et ses propres signalements (même confidentiels). Il choisit la confidentialité au dépôt.<br>
-                    <strong>Mode « Visibilité publique » :</strong> l'agent voit tous les signalements de son <?php echo e(getConfig('app_label_unite', 'UR')); ?>.
-                </td>
+                <td><strong>Confidentiel</strong></td>
+                <td>Ses signalements uniquement</td>
+                <td>L'agent ne voit que ses propres signalements. Les autres agents ne voient rien de ses signalements, pas même le titre. C'est le mode le plus restrictif.</td>
             </tr>
             <tr>
+                <td><strong>Choix de l'agent</strong></td>
+                <td>Dépend du choix au dépôt</td>
+                <td>L'agent choisit la visibilité de chaque signalement lors de la création. Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements (même confidentiels).</td>
+            </tr>
+            <tr>
+                <td><strong>Visibilité publique</strong></td>
+                <td>Tous les signalements du site</td>
+                <td>Tous les signalements du site sont visibles par tous les agents du site.</td>
+            </tr>
+            <tr style="border-top:2px solid var(--grey-200);">
                 <td><span class="badge badge--superviseur">Superviseur</span></td>
                 <td>Tous les sites</td>
                 <td>Le superviseur a accès à l'ensemble des signalements, tous sites confondus, y compris les confidentiels.</td>

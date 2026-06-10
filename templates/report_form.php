@@ -125,7 +125,7 @@ $submitBtnClass = $isEdit
             </div>
             <?php endif; ?>
 
-            <?php if (agentVisibilityIsConfidential()): ?>
+            <?php if (reportVisibilityIsAgentChoice()): ?>
             <div class="form-group" style="grid-column: 1 / -1;">
                 <label>
                     <input type="checkbox" name="is_confidential" id="is_confidential" value="1"
@@ -134,10 +134,18 @@ $submitBtnClass = $isEdit
                 </label>
                 <span class="form-hint">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
             </div>
+            <?php elseif (reportVisibilityIsConfidential()): ?>
+            <input type="hidden" name="is_confidential" value="1">
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <span class="badge" style="background:#6b7280;">🔒 Confidentiel</span>
+                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du CHSCT.</span>
+            </div>
+            <?php elseif (reportVisibilityIsPublic()): ?>
+            <input type="hidden" name="is_confidential" value="0">
             <?php elseif ($isEdit && !empty($report['is_confidential'])): ?>
             <div class="form-group" style="grid-column: 1 / -1;">
                 <span class="badge" style="background:#6b7280;">🔒 Confidentiel</span>
-                <span class="form-hint">Ce signalement est confidentiel. La visibilité publique n'est pas activée.</span>
+                <span class="form-hint">Ce signalement est confidentiel.</span>
             </div>
             <?php endif; ?>
 

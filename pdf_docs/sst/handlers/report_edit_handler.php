@@ -56,6 +56,11 @@ $description = trim($_POST['description'] ?? '');
 $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
 $pourCompteNom = trim($_POST['pour_compte_nom'] ?? '');
 $pourComptePrenom = trim($_POST['pour_compte_prenom'] ?? '');
+$isConfidential = isset($_POST['is_confidential']) && $_POST['is_confidential'] === '1' ? 1 : 0;
+// If visibility mode is 'public', force is_confidential to 0
+if (agentVisibilityIsPublic()) {
+    $isConfidential = 0;
+}
 
 $type = $report['type'];
 
@@ -120,6 +125,7 @@ $updateData = [
     'date_evenement'    => $dateEvenement,
     'heure_evenement'   => $heureEvenement ?: null,
     'lieu'              => $lieu ?: null,
+    'is_confidential'   => $isConfidential,
 ];
 
 // RAMI-specific fields

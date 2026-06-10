@@ -31,15 +31,15 @@ $filters = [
 ];
 
 // Apply agent visibility restrictions
-if ($agentVisibility === 'own') {
-    // Agent sees only their own reports (also implies their site only)
-    $filters['declarant_id'] = $userId;
+if ($agentVisibility === 'confidential') {
+    // Agent sees public signalements from their site + their own signalements (even confidential)
     $filters['force_site_id'] = $userSiteId;
-} elseif ($agentVisibility === 'site') {
-    // Agent sees all reports from their site only
+    $filters['confidential_filter'] = $userId;
+} elseif ($agentVisibility === 'public') {
+    // Agent sees all signalements from their site only
     $filters['force_site_id'] = $userSiteId;
 }
-// else: 'all' — no restrictions
+// else: 'all' — no restrictions (superviseur/chsct)
 
 // Pagination
 $pageNum = max(1, (int) ($_GET['p'] ?? 1));

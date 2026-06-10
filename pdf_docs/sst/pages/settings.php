@@ -263,26 +263,26 @@ $pageTitle = 'Paramètres';
             <div class="form-group" style="margin-bottom:0;" id="visibility-radios">
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
-                        <input type="radio" name="app_agent_visibility" value="site"
-                               <?php echo getAgentVisibility() === 'site' ? 'checked' : ''; ?>
+                        <input type="radio" name="app_agent_visibility" value="confidential"
+                               <?php echo getAgentVisibility() === 'confidential' ? 'checked' : ''; ?>
                                style="margin-top:3px;width:16px;height:16px;">
                         <div>
-                            <strong>Uniquement son site</strong> <span style="color:var(--grey-500);font-size:12px;">(par défaut)</span>
-                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">L'agent voit uniquement les signalements de son <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</div>
+                            <strong>Confidentiel par défaut</strong> <span style="color:var(--grey-500);font-size:12px;">(par défaut)</span>
+                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">Les signalements sont confidentiels par défaut. L'agent peut choisir de rendre un signalement public lors de la création. Il voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements.</div>
                         </div>
                     </label>
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
-                        <input type="radio" name="app_agent_visibility" value="own"
-                               <?php echo getAgentVisibility() === 'own' ? 'checked' : ''; ?>
+                        <input type="radio" name="app_agent_visibility" value="public"
+                               <?php echo getAgentVisibility() === 'public' ? 'checked' : ''; ?>
                                style="margin-top:3px;width:16px;height:16px;">
                         <div>
-                            <strong>Uniquement ses propres signalements</strong>
-                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">L'agent ne voit que les signalements qu'il a lui-même déposés.</div>
+                            <strong>Visibilité publique</strong>
+                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">Tous les signalements du site sont visibles par tous les agents du site. Conforme au principe de transparence des registres SST.</div>
                         </div>
                     </label>
                 </div>
-                <div id="agentVisibilityWarning" class="agent-visibility-warning" style="margin-top:14px;padding:10px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#991b1b;font-size:12px;">
-                    ⚠️ <strong>Avertissement réglementaire :</strong> Par défaut, les registres SST sont consultables par tous les agents (principe de transparence en matière de santé et sécurité au travail). Restreindre l'accès peut ne pas être conforme aux dispositions du Code du travail relatives aux registres SST. Activez ces restrictions uniquement si vous avez vérifié leur conformité avec votre politique interne.
+                <div id="agentVisibilityWarning" class="agent-visibility-warning" style="margin-top:14px;padding:10px 14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;color:#92400e;font-size:12px;">
+                    ℹ️ <strong>Information :</strong> En mode « Confidentiel par défaut », chaque agent choisit la visibilité de son signalement. Les superviseurs et membres du CHSCT voient tous les signalements quel que soit le mode.
                 </div>
             </div>
         </div>
@@ -294,9 +294,9 @@ $pageTitle = 'Paramètres';
     </div>
 </form>
 
-<!-- Agent visibility warning toggle — CSS only, no JavaScript -->
+<!-- Agent visibility info toggle — CSS only, no JavaScript -->
 <style>
-#visibility-radios:not(:has(input[value="site"]:checked)):not(:has(input[value="own"]:checked)) .agent-visibility-warning { display: none; }
+#visibility-radios:not(:has(input[value="confidential"]:checked)):not(:has(input[value="public"]:checked)) .agent-visibility-warning { display: none; }
 </style>
 <?php endif; ?>
 

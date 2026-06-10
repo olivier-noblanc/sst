@@ -183,9 +183,7 @@ function getRoleBadgeClass(string $role): string {
 /**
  * Check if the current user can see all sites.
  * Superviseurs and CHSCT members always see all sites.
- * Agents depend on the app_agent_visibility config:
- *   - 'site' → only their own site (default)
- *   - 'own'  → only their own reports
+ * Agents never see all sites (they are restricted to their own site).
  * 
  * @return bool
  */
@@ -193,23 +191,15 @@ function canSeeAllSites(): bool {
     if (!isset($_SESSION['user']['role'])) {
         return false;
     }
-    // Non-agent roles always see all sites
-    if (in_array($_SESSION['user']['role'], ['superviseur', 'chsct'])) {
-        return true;
-    }
-    // Agent: depends on visibility setting
-    if ($_SESSION['user']['role'] === 'agent') {
-        return getAgentVisibility() === 'all';
-    }
-    return false;
+    return in_array($_SESSION['user']['role'], ['superviseur', 'chsct']);
 }
 
 /**
  * Get the agent visibility mode.
- * Returns one of: 'site', 'own'
+ * Returns one of: 'public', 'confidential', 'all'
  * 
- * - 'site' : Agent sees signalements from their own site only (default)
- * - 'own'  : Agent sees only their own signalements
+ * - 'public'       : Agent sees all signalements from their own site
+ * - 'confidential'  : Agent sees public signalements from their site + their own signalements (even confidential)
  * 
  * Non-agent roles always get 'all'.
  * 
@@ -219,25 +209,37 @@ function getAgentVisibility(): string {
     if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'agent') {
         return 'all';
     }
-    $value = getConfig('app_agent_visibility', 'site');
-    // Backward compatibility: old value '0' = all, '1' = own
-    if ($value === '0') return 'all';
-    if ($value === '1') return 'own';
-    // Valid values: 'site', 'own'
-    if (in_array($value, ['site', 'own'])) {
+    $value = getConfig('app_agent_visibility', 'confidential');
+    // Backward compatibility: migrate old values
+    if ($value === '0') return 'public';
+    if ($value === '1') return 'confidential';
+    if ($value === 'site') return 'public';
+    if ($value === 'own') return 'confidential';
+    // Valid values: 'public', 'confidential'
+    if (in_array($value, ['public', 'confidential'])) {
         return $value;
     }
-    return 'site'; // Default fallback
+    return 'confidential'; // Default fallback
 }
 
 /**
- * Check if the current agent should see only their own reports.
- * Kept for backward compatibility — now delegates to getAgentVisibility().
+ * Check if the agent visibility mode is 'confidential'.
+ * When true, agents see public signalements from their site + their own signalements.
  * 
  * @return bool
  */
-function agentSeesOnlyOwn(): bool {
-    return getAgentVisibility() === 'own';
+function agentVisibilityIsConfidential(): bool {
+    return getAgentVisibility() === 'confidential';
+}
+
+/**
+ * Check if the agent visibility mode is 'public'.
+ * When true, agents see all signalements from their site.
+ * 
+ * @return bool
+ */
+function agentVisibilityIsPublic(): bool {
+    return getAgentVisibility() === 'public';
 }
 
 /**

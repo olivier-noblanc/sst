@@ -58,6 +58,8 @@ CREATE TABLE IF NOT EXISTS reports (
     pour_compte_prenom TEXT,                         -- Denormalized first name
     -- Assignment
     site_id         INTEGER NOT NULL,                -- FK to sites (UR where event occurred, always set)
+    -- Confidentiality
+    is_confidential INTEGER NOT NULL DEFAULT 1,     -- 1 = confidentiel (défaut), 0 = public
     -- State management
     etat            TEXT NOT NULL DEFAULT 'nouveau', -- 'nouveau'|'en_cours'|'traite'|'abandonne'
     -- Respondent (superviseur who handled the report)
@@ -136,7 +138,7 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
     ('app_label_unite', 'UR', 'text', 'app', 'Libellé des unités (UD, UR, etc.)', 1),
     ('app_superviseur_usernames', '', 'text', 'app', 'Logins Windows des superviseurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS. Utile pour une première installation.', 1),
     ('app_agent_see_only_own', '0', 'text', 'app', 'Si activé (1), les agents ne voient que leurs propres signalements. ⚠️ Attention : cela peut ne pas être conforme au Code du travail concernant les registres SST. (Obsolète : utilisez app_agent_visibility)', 1),
-    ('app_agent_visibility', 'site', 'text', 'app', 'Visibilité des agents : "site" (uniquement son site, par défaut), "own" (uniquement ses propres signalements).', 1),
+    ('app_agent_visibility', 'confidential', 'text', 'app', 'Visibilité des agents : "confidential" (confidentiel par défaut, l'agent choisit au cas par cas), "public" (tous les signalements du site sont visibles).', 1),
     ('smtp_host', '', 'text', 'smtp', 'Serveur SMTP', 1),
     ('smtp_port', '25', 'number', 'smtp', 'Port SMTP', 1),
     ('smtp_user', '', 'text', 'smtp', 'Utilisateur SMTP', 1),
@@ -155,6 +157,7 @@ CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id);
 CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at);
 CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat);
 CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id);
+CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);

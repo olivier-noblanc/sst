@@ -374,7 +374,7 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
     ('app_label_unite', 'UR', 'text', 'app', 'Libellé des unités (UD, UR, etc.)', 1),
     ('app_superviseur_usernames', '', 'text', 'app', 'Logins Windows des superviseurs...', 1),
     ('app_agent_see_only_own', '0', 'text', 'app', 'Obsolète : utilisez app_agent_visibility', 1),
-    ('app_agent_visibility', 'site', 'text', 'app', 'Visibilité des agents', 1),
+    ('app_agent_visibility', 'confidential', 'text', 'app', 'Visibilité des agents : confidential (confidentiel par défaut) ou public', 1),
     ('smtp_host', '', 'text', 'smtp', 'Serveur SMTP', 1),
     ('smtp_port', '25', 'number', 'smtp', 'Port SMTP', 1),
     ('smtp_user', '', 'text', 'smtp', 'Utilisateur SMTP', 1),
@@ -531,7 +531,7 @@ Affichée automatiquement quand un utilisateur authentifié n'a pas encore chois
 - Bouton : « Inscrire un signalement » → `report_create&type=dgi`
 - Stat : « X signalements enregistrés »
 
-Le compteur utilise `countActiveReports()` (exclut les abandonnés). Pour les agents avec visibilité `site` : filtré par `site_id`. Pour les agents avec visibilité `own` : `countActiveReportsForUser()`. Pour superviseur/CHSCT : pas de filtre.
+Le compteur utilise `countActiveReports()`. Pour les agents en mode `confidential` : filtré par `site_id` + `(is_confidential = 0 OR declarant_id = :user_id)`. Pour les agents en mode `public` : filtré par `site_id`. Pour superviseur/CHSCT : pas de filtre.
 
 ---
 
@@ -916,7 +916,7 @@ Bouton « Envoyer un e-mail de test » avec champ de saisie du destinataire (req
 | Nom complet | `app_nom_complet` | Nom complet de l'organisation |
 | Libellé des unités | `app_label_unite` | Ex: UR, UD, Direction... Utilisé partout dans l'UI |
 | Logins Windows des superviseurs | `app_superviseur_usernames` | Liste séparée par virgules (ex: `jean.martin, sophie.dupont`) — auto-promotion superviseur |
-| Visibilité des agents | `app_agent_visibility` | Radio : « Uniquement son site » (`site`, défaut) / « Uniquement ses propres signalements » (`own`) |
+| Visibilité des agents | `app_agent_visibility` | Radio : « Confidentiel par défaut » (`confidential`, défaut) / « Visibilité publique » (`public`) |
 
 Un avertissement réglementaire s'affiche si la visibilité est restreinte : les registres SST sont consultables par tous les agents par principe de transparence (Code du travail).
 
@@ -1017,15 +1017,26 @@ Pour les agents (non déclarants du signalement consulté) :
 
 | Valeur | Description | Remarque |
 |--------|-------------|----------|
-| `site` | L'agent voit les signalements de son site uniquement | **Par défaut** |
-| `own` | L'agent voit uniquement ses propres signalements | ⚠️ Avertissement réglementaire |
+| `confidential` | Signalements confidentiels par défaut, l'agent choisit au cas par cas | **Par défaut** |
+| `public` | Tous les signalements du site sont visibles par tous les agents | Conforme au principe de transparence |
 
 Configurée via `app_agent_visibility` dans `config_app`. Les superviseurs et CHSCT voient toujours tous les sites (`canSeeAllSites() === true`).
 
+- `'confidential'` (défaut) : l'agent voit les signalements publics de son site + ses propres signalements (même confidentiels). Chaque signalement a un flag `is_confidential` (défaut : 1). L'agent peut décocher ce flag lors de la création.
+- `'public'` : l'agent voit tous les signalements de son site.
+
+Fonctions :
+- `getAgentVisibility()` : retourne `'confidential'`, `'public'` ou `'all'` (superviseur/CHSCT)
+- `agentVisibilityIsConfidential()` : `getAgentVisibility() === 'confidential'`
+- `agentVisibilityIsPublic()` : `getAgentVisibility() === 'public'`
+
 Compatibilité ascendante :
-- Ancienne valeur `'0'` → `'all'` (n'est plus une option agent)
-- Ancienne valeur `'1'` → `'own'`
-- `agentSeesOnlyOwn()` : alias retrocompatible, retourne `getAgentVisibility() === 'own'`
+- Ancienne valeur `'site'` → `'public'`
+- Ancienne valeur `'own'` → `'confidential'`
+- Ancienne valeur `'0'` → `'public'`
+- Ancienne valeur `'1'` → `'confidential'`
+- `agentVisibilityIsConfidential()` : l'agent est en mode confidentiel
+- `agentVisibilityIsPublic()` : l'agent est en mode public
 
 ### Matrice des permissions par rôle
 
@@ -1229,9 +1240,10 @@ Pas de fonctions. Définit les constantes et tableaux :
 | `getEtatBadgeClass` | `(string $etat): string` | Classe CSS badge pour un état |
 | `getRegistryBadgeClass` | `(string $type): string` | Classe CSS badge pour un registre |
 | `getRoleBadgeClass` | `(string $role): string` | Classe CSS badge pour un rôle |
-| `canSeeAllSites` | `(): bool` | L'utilisateur peut-il voir tous les sites ? |
-| `getAgentVisibility` | `(): string` | Mode de visibilité agent : `'site'` ou `'own'` |
-| `agentSeesOnlyOwn` | `(): bool` | Alias retrocompatible pour `getAgentVisibility() === 'own'` |
+| `canSeeAllSites` | `(): bool` | L'utilisateur peut-il voir tous les sites ? (superviseur/CHSCT uniquement) |
+| `getAgentVisibility` | `(): string` | Mode de visibilité agent : `'confidential'` ou `'public'` |
+| `agentVisibilityIsConfidential` | `(): bool` | L'agent est en mode confidentiel ? |
+| `agentVisibilityIsPublic` | `(): bool` | L'agent est en mode public ? |
 | `truncate` | `(string $string, int $length): string` | Tronque avec ellipsis |
 | `getConfig` | `(string $cle, string $default): string` | Lit une valeur de `config_app` (avec cache statique) |
 | `updateConfig` | `(PDO $pdo, string $cle, string $valeur): void` | Met à jour une valeur dans `config_app` (UPSERT) |
@@ -1344,7 +1356,7 @@ La table `config_app` stocke les paramètres modifiables via l'interface. L'acc�
 | `app_label_unite` | app | text | UR | Libellé des unités (UR, UD, etc.) |
 | `app_superviseur_usernames` | app | text | (vide) | Logins Windows des superviseurs, séparés par virgules |
 | `app_agent_see_only_own` | app | text | 0 | **Obsolète** — utiliser `app_agent_visibility` |
-| `app_agent_visibility` | app | text | site | Visibilité des agents : `site` ou `own` |
+| `app_agent_visibility` | app | text | confidential | Visibilité des agents : `confidential` ou `public` |
 | `smtp_host` | smtp | text | (vide) | Serveur SMTP |
 | `smtp_port` | smtp | number | 25 | Port SMTP |
 | `smtp_user` | smtp | text | (vide) | Utilisateur SMTP |
@@ -1358,4 +1370,4 @@ La table `config_app` stocke les paramètres modifiables via l'interface. L'acc�
 
 ### Auto-migration des clés
 
-`migrateConfigKeys(PDO $pdo)` est appelée à chaque requête et ajoute automatiquement les clés manquantes dans les bases existantes. Pour `app_agent_visibility`, la migration convertit l'ancienne valeur `app_agent_see_only_own = '1'` vers `app_agent_visibility = 'own'`.
+`migrateConfigKeys(PDO $pdo)` est appelée à chaque requête et ajoute automatiquement les clés manquantes dans les bases existantes. Pour `app_agent_visibility`, la migration convertit les anciennes valeurs : `'site'` → `'public'`, `'own'` → `'confidential'`, `app_agent_see_only_own = '1'` → `'confidential'`. La colonne `is_confidential` est ajoutée automatiquement à la table `reports` si elle n'existe pas.

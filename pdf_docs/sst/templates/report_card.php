@@ -39,6 +39,9 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
             <div style="display:flex;gap:8px;align-items:center;">
                 <span class="badge <?php echo getRegistryBadgeClass($type); ?>"><?php echo e($registryLabel); ?></span>
                 <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>"><?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?></span>
+                <?php if (!empty($report['is_confidential'])): ?>
+                <span class="badge" style="background:#6b7280;">🔒 Confidentiel</span>
+                <?php endif; ?>
             </div>
         </div>
 

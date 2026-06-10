@@ -37,6 +37,11 @@ $siteId = (int) ($_POST['site_id'] ?? 0);
 $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
 $pourCompteNom = trim($_POST['pour_compte_nom'] ?? '');
 $pourComptePrenom = trim($_POST['pour_compte_prenom'] ?? '');
+$isConfidential = isset($_POST['is_confidential']) && $_POST['is_confidential'] === '1' ? 1 : 0;
+// If visibility mode is 'public', force is_confidential to 0
+if (agentVisibilityIsPublic()) {
+    $isConfidential = 0;
+}
 
 // Validate
 $errors = [];
@@ -81,8 +86,8 @@ if ($siteId <= 0) {
     }
 }
 
-// Agent can only create for their own site (unless visibility is 'all')
-if (getAgentVisibility() !== 'all' && $siteId !== (int) $user['site_id']) {
+// Agent can only create for their own site
+if ($siteId !== (int) $user['site_id']) {
     $errors['site_id'] = 'Vous ne pouvez créer un signalement que pour votre ' . getConfig('app_label_unite', 'UR') . '.';
 }
 
@@ -119,6 +124,7 @@ $reportData = [
     'declarant_nom'     => $user['nom'],
     'declarant_prenom'  => $user['prenom'],
     'site_id'           => $siteId,
+    'is_confidential'   => $isConfidential,
 ];
 
 // RAMI-specific fields

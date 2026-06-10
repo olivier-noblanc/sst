@@ -13,14 +13,14 @@ $agentVisibility = getAgentVisibility();
 $seeAllSites = canSeeAllSites();
 
 // Get counts for each registry type based on agent visibility
-// - 'all'  → count across all sites
-// - 'site' → count only for agent's site
-// - 'own'  → count only agent's own reports
-if ($agentVisibility === 'own') {
+// - 'all'           → count across all sites (superviseur/chsct)
+// - 'public'        → count all reports for agent's site
+// - 'confidential'  → count public reports + agent's own reports for site
+if ($agentVisibility === 'confidential') {
     $userId = (int) $user['id'];
-    $rsstCount = countActiveReportsForUser($pdo, 'rsst', $userId);
-    $ramiCount = countActiveReportsForUser($pdo, 'rami', $userId);
-    $dgiCount  = countActiveReportsForUser($pdo, 'dgi', $userId);
+    $rsstCount = countActiveReports($pdo, 'rsst', $userSiteId, $userId, true);
+    $ramiCount = countActiveReports($pdo, 'rami', $userSiteId, $userId, true);
+    $dgiCount  = countActiveReports($pdo, 'dgi', $userSiteId, $userId, true);
 } else {
     $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
     $rsstCount = countActiveReports($pdo, 'rsst', $siteIdFilter);

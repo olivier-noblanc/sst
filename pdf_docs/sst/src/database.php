@@ -156,6 +156,32 @@ function migrateSchema(PDO $pdo): void {
     }
 
     // === Column migrations (SQLite cannot ALTER COLUMN, so we check pragmas) ===
+
+    // Add is_confidential column to reports table
+    try {
+        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $hasConfidential = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'is_confidential') {
+                $hasConfidential = true;
+                break;
+            }
+        }
+        if (!$hasConfidential) {
+            $pdo->exec('ALTER TABLE reports ADD COLUMN is_confidential INTEGER NOT NULL DEFAULT 1');
+            // Migrate existing reports: if app_agent_visibility was 'site',
+            // existing reports were public → set them to is_confidential = 0
+            $vis = getConfig('app_agent_visibility', 'confidential');
+            if ($vis === 'site') {
+                $pdo->exec('UPDATE reports SET is_confidential = 0');
+            }
+            // Add index
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
+        }
+    } catch (Exception $e) {
+        error_log("Migration warning for reports.is_confidential: " . $e->getMessage());
+    }
+
     // Make users.site_id nullable for existing databases
     try {
         $cols = $pdo->query("PRAGMA table_info(users)")->fetchAll();
@@ -220,7 +246,7 @@ function migrateConfigKeys(PDO $pdo): void {
     $newKeys = [
         'app_superviseur_usernames' => ['', 'text', 'app', 'Logins Windows des superviseurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS. Utile pour une première installation.', 1],
         'app_agent_see_only_own' => ['0', 'text', 'app', 'Si activé (1), les agents ne voient que leurs propres signalements. ⚠️ Attention : cela peut ne pas être conforme au Code du travail concernant les registres SST. (Obsolète : utilisez app_agent_visibility)', 1],
-        'app_agent_visibility' => ['site', 'text', 'app', 'Visibilité des agents : "site" (uniquement son site, par défaut), "own" (uniquement ses propres signalements).', 1],
+        'app_agent_visibility' => ['confidential', 'text', 'app', 'Visibilité des agents : "confidential" (confidentiel par défaut, l\'agent choisit au cas par cas), "public" (tous les signalements du site sont visibles).', 1],
     ];
 
     foreach ($newKeys as $cle => $data) {
@@ -230,14 +256,31 @@ function migrateConfigKeys(PDO $pdo): void {
         $exists = (int) $stmt->fetchColumn();
 
         if ($exists === 0) {
-            // For app_agent_visibility: migrate from old app_agent_see_only_own
+            // For app_agent_visibility: migrate from old values
             $value = $data[0];
             if ($cle === 'app_agent_visibility') {
+                // Check if key already exists with old value
+                $stmt2 = $pdo->prepare('SELECT valeur FROM config_app WHERE cle = :cle');
+                $stmt2->execute([':cle' => 'app_agent_visibility']);
+                $existingValue = $stmt2->fetchColumn();
+                if ($existingValue !== false) {
+                    // Key exists but with old value — migrate it
+                    if ($existingValue === 'site') {
+                        $value = 'public'; // old "site" → new "public"
+                    } elseif ($existingValue === 'own') {
+                        $value = 'confidential'; // old "own" → new "confidential"
+                    }
+                    // Update the existing row instead of inserting
+                    $stmt3 = $pdo->prepare('UPDATE config_app SET valeur = :valeur, libelle = :libelle, updated_at = datetime("now") WHERE cle = :cle');
+                    $stmt3->execute([':valeur' => $value, ':libelle' => $data[3], ':cle' => $cle]);
+                    continue; // Skip the INSERT below
+                }
+                // Key doesn't exist at all — also check old app_agent_see_only_own
                 $stmt2 = $pdo->prepare('SELECT valeur FROM config_app WHERE cle = :cle');
                 $stmt2->execute([':cle' => 'app_agent_see_only_own']);
                 $oldValue = $stmt2->fetchColumn();
                 if ($oldValue === '1') {
-                    $value = 'own'; // Migrate: old "see only own" → new "own"
+                    $value = 'confidential'; // Migrate: old "see only own" → new "confidential"
                 }
             }
 

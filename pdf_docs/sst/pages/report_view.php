@@ -27,20 +27,20 @@ $userId = (int) $user['id'];
 $userRole = $user['role'];
 $agentVisibility = getAgentVisibility();
 
-if ($agentVisibility === 'own') {
-    // Agent can only see their own reports
-    if ((int) $report['declarant_id'] !== $userId) {
+// Superviseur/CHSCT can always see everything
+if (!in_array($userRole, ['superviseur', 'chsct'])) {
+    // Agent access control
+    if ((int) $report['site_id'] !== $userSiteId) {
+        // Agent can never see reports from other sites
         setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
         redirect(url('home'));
     }
-} elseif ($agentVisibility === 'site') {
-    // Agent can only see reports from their site
-    if ((int) $report['site_id'] !== $userSiteId) {
+    if ($agentVisibility === 'confidential' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== $userId) {
+        // In confidential mode, agent cannot see other agents' confidential reports
         setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
         redirect(url('home'));
     }
 }
-// 'all' → no restriction
 
 // If report is abandoned and user is not declarant nor supervisor/chsct
 if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== $userId && !in_array($userRole, ['superviseur', 'chsct'])) {

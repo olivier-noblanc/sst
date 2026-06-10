@@ -2,6 +2,39 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.3.0] — 2026-06-11
+
+### Fonctionnalités — Confidentialité des signalements par défaut, choix de l'agent
+
+- **Mode « Confidentiel par défaut »** : les signalements sont confidentiels par défaut. L'agent peut choisir de rendre son signalement public lors de la création ou de la modification en décochant la case « Signalement confidentiel ». En mode confidentiel, un agent voit les signalements publics de son site + ses propres signalements (même confidentiels).
+- **Mode « Visibilité publique »** : tous les signalements du site sont visibles par tous les agents du site. Conforme au principe de transparence des registres SST. La case confidentiel n'est pas affichée dans ce mode.
+- **Badge « 🔒 Confidentiel »** : affiché sur la vue détaillée et le PDF d'un signalement confidentiel.
+- **Paramétrage admin** : le superviseur choisit le mode de visibilité dans Paramètres → Application. L'ancien réglage site/own est remplacé par confidentiel/public.
+- **Migration automatique** : les bases existantes sont migrées automatiquement — colonne `is_confidential` ajoutée, ancien mode `site` → `public`, ancien mode `own` → `confidential`, les signalements existants conservent leur visibilité précédente.
+- **Superviseurs et CHSCT** : voient tous les signalements y compris confidentiels, quel que soit le mode.
+
+### Technique — Fichiers modifiés
+
+- `schema.sql` : colonne `is_confidential` (INTEGER NOT NULL DEFAULT 1) dans `reports`, config par défaut `confidential`
+- `src/database.php` : migration auto — ALTER TABLE + UPDATE + index pour `is_confidential`, migration des valeurs de config
+- `src/helpers.php` : `getAgentVisibility()` renvoie `confidential`/`public` au lieu de `site`/`own`, ajout de `agentVisibilityIsConfidential()` et `agentVisibilityIsPublic()`, `canSeeAllSites()` simplifié
+- `src/queries/report_queries.php` : `createReport()` avec `is_confidential`, `updateReport()` avec `is_confidential`, `getReportsByRegistry()` avec filtre `confidential_filter`, `countActiveReports()` avec paramètres `$userId` et `$confidentialMode`
+- `templates/report_form.php` : case à cocher « Signalement confidentiel » (cochée par défaut) en mode confidentiel, badge en mode public
+- `templates/report_card.php` : badge « 🔒 Confidentiel »
+- `handlers/report_create_handler.php` : sauvegarde de `is_confidential`
+- `handlers/report_edit_handler.php` : sauvegarde de `is_confidential` lors de la modification
+- `pages/settings.php` : radios confidentiel/public au lieu de site/own, info au lieu d'avertissement
+- `handlers/settings_handler.php` : validation `confidential`/`public`
+- `pages/report_view.php` : contrôle d'accès avec `is_confidential`
+- `pages/report_print.php` : contrôle d'accès + badge confidentiel dans le PDF
+- `pages/report_list.php` : filtres `confidential_filter` / `force_site_id` selon le mode
+- `pages/home.php` : compteurs avec filtre confidentiel
+- `pages/preamble.php` : wording « confidentiel par défaut, l'agent peut le rendre public »
+- `pages/help.php` : tableau de visibilité par rôle et par mode
+- `src/config.php` : version 2.3.0
+
+---
+
 ## [2.2.0] — 2026-06-10
 
 ### Technique — Suppression du JavaScript personnalisé (zéro JS côté métier)

@@ -29,16 +29,18 @@ if (!$report) {
 // Access control: depends on agent visibility setting
 $user = $_SESSION['user'];
 $userSiteId = (int) $user['site_id'];
+$userId = (int) $user['id'];
+$userRole = $user['role'];
 $agentVisibility = getAgentVisibility();
 
-if ($agentVisibility === 'own') {
-    $userId = (int) $user['id'];
-    if ((int) $report['declarant_id'] !== $userId) {
+// Superviseur/CHSCT can always see everything
+if (!in_array($userRole, ['superviseur', 'chsct'])) {
+    // Agent access control
+    if ((int) $report['site_id'] !== $userSiteId) {
         setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
         redirect(url('home'));
     }
-} elseif ($agentVisibility === 'site') {
-    if ((int) $report['site_id'] !== $userSiteId) {
+    if ($agentVisibility === 'confidential' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== $userId) {
         setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
         redirect(url('home'));
     }
@@ -119,8 +121,11 @@ $html .= '<div style="font-size:9pt;color:#666;margin-bottom:16px;">' . $orgName
 $html .= '<h1>Signalement — ' . e($report['reference']) . '</h1>';
 $html .= '<div style="margin-bottom:12px;">'
     . '<span class="badge badge-' . e($type) . '">' . e($registryShortLabel) . '</span> '
-    . '<span class="badge badge-' . e($report['etat']) . '">' . e($etatLabel) . '</span>'
-    . '</div>';
+    . '<span class="badge badge-' . e($report['etat']) . '">' . e($etatLabel) . '</span>';
+if (!empty($report['is_confidential'])) {
+    $html .= ' <span class="badge" style="background-color:#6b7280;">Confidentiel</span>';
+}
+$html .= '</div>';
 
 // Fields
 $fields = [

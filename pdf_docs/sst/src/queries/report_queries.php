@@ -24,12 +24,12 @@ function createReport(PDO $pdo, array $data): string {
             reference, type, objet, description, date_evenement, heure_evenement,
             lieu, declarant_id, declarant_nom, declarant_prenom,
             pour_compte_de, pour_compte_nom, pour_compte_prenom,
-            site_id, etat
+            site_id, is_confidential, etat
         ) VALUES (
             :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
             :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
             :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
-            :site_id, 'nouveau'
+            :site_id, :is_confidential, 'nouveau'
         )
     ");
 
@@ -48,6 +48,7 @@ function createReport(PDO $pdo, array $data): string {
         ':pour_compte_nom'   => $data['pour_compte_nom'] ?? null,
         ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
         ':site_id'           => $data['site_id'],
+        ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
     ]);
 
     return $reference;
@@ -106,6 +107,13 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
         $params[':user_site_id'] = $userSiteId;
     }
 
+    // Confidentiality filter for agents
+    if (!empty($filters['confidential_filter'])) {
+        // Agent in 'confidential' mode: see public reports + their own (even confidential)
+        $where .= " AND (r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)";
+        $params[':cf_declarant_id'] = (int) $filters['confidential_filter'];
+    }
+
     // Filter by etat
     if (!empty($filters['etat'])) {
         $where .= " AND r.etat = :etat";
@@ -118,7 +126,7 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
         $params[':filter_site_id'] = $filters['site_id'];
     }
 
-    // Force site filter (for agent visibility mode 'site' or 'own')
+    // Force site filter (for agent visibility: always filter by site for agents)
     if (!empty($filters['force_site_id'])) {
         $where .= " AND r.site_id = :force_site_id";
         $params[':force_site_id'] = (int) $filters['force_site_id'];
@@ -131,8 +139,8 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
         $params[':q2'] = '%' . $filters['q'] . '%';
     }
 
-    // Filter by declarant (agent restricted to own reports)
-    if (!empty($filters['declarant_id'])) {
+    // Filter by declarant (used in some specific contexts)
+    if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) {
         $where .= " AND r.declarant_id = :declarant_id";
         $params[':declarant_id'] = (int) $filters['declarant_id'];
     }
@@ -199,6 +207,7 @@ function updateReport(PDO $pdo, int $id, array $data, int $userId): bool {
             date_evenement = :date_evenement, heure_evenement = :heure_evenement,
             lieu = :lieu, pour_compte_nom = :pour_compte_nom,
             pour_compte_prenom = :pour_compte_prenom,
+            is_confidential = :is_confidential,
             updated_at = datetime('now')
         WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')
     ");
@@ -211,6 +220,7 @@ function updateReport(PDO $pdo, int $id, array $data, int $userId): bool {
         ':lieu'              => $data['lieu'] ?? null,
         ':pour_compte_nom'   => $data['pour_compte_nom'] ?? null,
         ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
+        ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
         ':id'                => $id,
         ':user_id'           => $userId,
     ]);
@@ -349,13 +359,18 @@ function getReportResponses(PDO $pdo, int $reportId): array {
  * @param int    $siteId      Site ID for agent filtering (0 = all)
  * @return int
  */
-function countActiveReports(PDO $pdo, string $type, int $siteId = 0): int {
+function countActiveReports(PDO $pdo, string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int {
     $sql = "SELECT COUNT(*) FROM reports WHERE type = :type AND etat != 'abandonne'";
     $params = [':type' => $type];
 
     if ($siteId > 0) {
         $sql .= " AND site_id = :site_id";
         $params[':site_id'] = $siteId;
+    }
+
+    if ($confidentialMode && $userId > 0) {
+        $sql .= " AND (is_confidential = 0 OR declarant_id = :user_id)";
+        $params[':user_id'] = $userId;
     }
 
     $stmt = $pdo->prepare($sql);
@@ -365,7 +380,7 @@ function countActiveReports(PDO $pdo, string $type, int $siteId = 0): int {
 
 /**
  * Count all active (non-abandoned) reports for a specific user (declarant).
- * Used when agent visibility is set to 'own'.
+ * Used for dashboard display.
  * 
  * @param PDO    $pdo     Database connection
  * @param string $type    Registry type

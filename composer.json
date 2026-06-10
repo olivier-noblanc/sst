@@ -2,9 +2,7 @@
     "name": "dreets-bfc/sst-app",
     "description": "Application SST DREETS Bourgogne-Franche-Comté",
     "type": "project",
-    "require": {
-        "mpdf/mpdf": "^8.2"
-    },
+    "require": {},
     "config": {
         "vendor-dir": "vendor"
     }

@@ -7,7 +7,7 @@ Plateforme des Registres en Santé et Sécurité au Travail
 - **Langage** : PHP 8.3 (vanilla, aucun framework)
 - **Base de données** : SQLite via PDO
 - **Authentification** : IIS Windows Authentication (pas de LDAP — lecture de `$_SERVER['AUTH_USER']`)
-- **Dépendances PHP** : mPDF 8.2 (génération PDF, via Composer), Parsedown (inclus sans Composer)
+- **Dépendances PHP** : FPDF 1.9 (génération PDF, inclus sans Composer), Parsedown (inclus sans Composer)
 - **JavaScript** : AUCUN — zéro JS, tout fonctionne en PHP/HTML/CSS pur
 - **Serveur de prod** : IIS 10+ avec FastCGI
 
@@ -16,9 +16,8 @@ Plateforme des Registres en Santé et Sécurité au Travail
 1. Cloner le dépôt dans `C:\inetpub\sst\`
 2. Configurer un site IIS pointant vers `C:\inetpub\sst\public\`
 3. Activer Windows Authentication (désactiver Anonymous Authentication)
-4. Installer PHP 8.3 NTS + extensions (`sqlite3`, `pdo_sqlite`, `mbstring`, `gd`, `xml`, `curl`, `zip`)
-5. Installer les dépendances : `composer install --no-dev`
-6. Donner les permissions IIS_IUSRS en écriture sur `data\`
+4. Installer PHP 8.3 NTS + extensions (`sqlite3`, `pdo_sqlite`, `mbstring`)
+5. Donner les permissions IIS_IUSRS en écriture sur `data\`
 7. Dans `src/config.php`, passer `APP_ENV` à `'prod'`
 8. Accéder à l'application — la base se crée automatiquement
 
@@ -32,7 +31,7 @@ Sur le serveur, exécuter en tant qu'administrateur :
 powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\update_sst.ps1
 ```
 
-Le script effectue : `git pull` → `composer install` → vérification permissions → `iisreset`
+Le script effectue : `git pull` → vérification permissions → `iisreset`
 
 ## Comptes de test (DEV_MODE)
 
@@ -76,14 +75,12 @@ C:\inetpub\sst\
 │   ├── helpers.php  ← Fonctions utilitaires + getConfig()
 │   ├── queries/     ← Requêtes SQL préparées
 │   ├── middleware/   ← Contrôle d'accès
-│   └── lib/         ← Parsedown.php
+│   └── lib/         ← Parsedown.php, fpdf/
 ├── pages/           ← Pages de l'application
 ├── handlers/        ← Traitements des formulaires POST
 ├── templates/       ← Templates réutilisables (header, sidebar, footer...)
-├── vendor/          ← Dépendances Composer (mPDF)
 ├── data/            ← Base SQLite (auto-créée, git-ignorée)
 ├── schema.sql       ← Schéma de la base
-├── composer.json    ← Dépendances PHP
 ├── update_sst.ps1   ← Script de mise à jour automatisée
 ├── DEPLOY.md        ← Guide de déploiement IIS complet
 ├── SPEC.md          ← Spécification technique détaillée

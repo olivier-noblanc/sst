@@ -4,9 +4,10 @@
 # Ce script effectue :
 #   1. Vérification des prérequis (Git, PHP)
 #   2. Git pull (via proxy Kerberos)
-#   3. Composer install
-#   4. Création des dossiers cache + permissions IIS
-#   5. Redémarrage IIS
+#   3. Création des dossiers + permissions IIS
+#   4. Redémarrage IIS
+#
+# Note : Plus besoin de Composer — FPDF est inclus directement.
 #
 # Emplacement : C:\inetpub\sst\update_sst.ps1
 # Utilisation : clic droit "Exécuter en tant qu'administrateur"
@@ -32,7 +33,7 @@ if (-not $isAdmin) {
 }
 
 # --- Vérifier les prérequis ---
-Write-Host "[0/5] Verification des prerequis..." -ForegroundColor Yellow
+Write-Host "[0/4] Verification des prerequis..." -ForegroundColor Yellow
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Host " ERREUR : Git n'est pas installe ou pas dans le PATH." -ForegroundColor Red
@@ -57,7 +58,7 @@ Write-Host "  OK : Git, PHP, dossier $AppDir" -ForegroundColor Green
 
 # --- 1. Git pull ---
 Write-Host ""
-Write-Host "[1/5] Telechargement des mises a jour (git pull)..." -ForegroundColor Yellow
+Write-Host "[1/4] Telechargement des mises a jour (git pull)..." -ForegroundColor Yellow
 
 try {
     git pull origin main 2>&1
@@ -84,45 +85,23 @@ catch {
     exit 1
 }
 
-# --- 2. Composer install ---
+# --- 2. Vérification FPDF ---
 Write-Host ""
-Write-Host "[2/5] Installation des dependances (Composer)..." -ForegroundColor Yellow
+Write-Host "[2/4] Verification FPDF..." -ForegroundColor Yellow
 
-if (Test-Path "$AppDir\composer.json") {
-    # Essayer php composer.phar d'abord, puis composer
-    $composerCmd = $null
-    if (Test-Path "$AppDir\composer.phar") {
-        $composerCmd = "php composer.phar install --no-dev --optimize-autoloader"
-    }
-    elseif (Get-Command composer -ErrorAction SilentlyContinue) {
-        $composerCmd = "composer install --no-dev --optimize-autoloader"
-    }
-    else {
-        Write-Host "  AVERTISSEMENT : Composer non trouve. Dependances non installees." -ForegroundColor DarkYellow
-        Write-Host "  Installer Composer : https://getcomposer.org/download/" -ForegroundColor DarkYellow
-    }
+$fpdfPath = "$AppDir\src\lib\fpdf\fpdf.php"
+$fontPath = "$AppDir\src\lib\fpdf\font\DejaVuSans.json"
 
-    if ($composerCmd) {
-        try {
-            Invoke-Expression $composerCmd
-            if ($LASTEXITCODE -ne 0) {
-                throw "Composer a echoue (code $LASTEXITCODE)"
-            }
-            Write-Host "  OK : Dependances a jour" -ForegroundColor Green
-        }
-        catch {
-            Write-Host "  AVERTISSEMENT : Composer a echoue. Les dependances existantes seront utilisees." -ForegroundColor DarkYellow
-            Write-Host "  Verifiez que le dossier vendor\ existe." -ForegroundColor DarkYellow
-        }
-    }
-}
-else {
-    Write-Host "  Saute : pas de composer.json" -ForegroundColor DarkGray
+if ((Test-Path $fpdfPath) -and (Test-Path $fontPath)) {
+    Write-Host "  OK : FPDF et polices presents" -ForegroundColor Green
+} else {
+    Write-Host "  AVERTISSEMENT : FPDF ou polices manquants." -ForegroundColor DarkYellow
+    Write-Host "  Verifiez que src\lib\fpdf\ existe apres le git pull." -ForegroundColor DarkYellow
 }
 
 # --- 3. Création des dossiers + permissions ---
 Write-Host ""
-Write-Host "[3/5] Configuration des dossiers et permissions..." -ForegroundColor Yellow
+Write-Host "[3/4] Configuration des dossiers et permissions..." -ForegroundColor Yellow
 
 $dirsToCreate = @(
     "$AppDir\data"
@@ -145,10 +124,20 @@ $acl.SetAccessRule($rule)
 Set-Acl $aclDir $acl
 Write-Host "  OK : Permissions IIS_IUSRS sur $aclDir" -ForegroundColor Green
 
-# --- 4. Version deployée ---
+# --- 4. Redémarrage IIS ---
 Write-Host ""
-Write-Host "[4/5] Version deployee..." -ForegroundColor Yellow
+Write-Host "[4/4] Redemarrage IIS..." -ForegroundColor Yellow
 
+try {
+    iisreset /restart 2>&1 | Out-Null
+    Write-Host "  OK : IIS redemarre" -ForegroundColor Green
+}
+catch {
+    Write-Host "  AVERTISSEMENT : iisreset a echoue. Redemarrez IIS manuellement." -ForegroundColor DarkYellow
+}
+
+# --- Version déployée ---
+Write-Host ""
 $configFile = "$AppDir\src\config.php"
 if (Test-Path $configFile) {
     $version = Select-String -Path $configFile -Pattern "APP_VERSION.*'([^']+)'" | ForEach-Object { $_.Matches[0].Groups[1].Value }
@@ -160,18 +149,6 @@ if (Test-Path $configFile) {
 $gitLog = git log -1 --format="%h - %s (%cr)" 2>$null
 if ($gitLog) {
     Write-Host "  Dernier commit : $gitLog" -ForegroundColor Gray
-}
-
-# --- 5. Redémarrage IIS ---
-Write-Host ""
-Write-Host "[5/5] Redemarrage IIS..." -ForegroundColor Yellow
-
-try {
-    iisreset /restart 2>&1 | Out-Null
-    Write-Host "  OK : IIS redemarre" -ForegroundColor Green
-}
-catch {
-    Write-Host "  AVERTISSEMENT : iisreset a echoue. Redemarrez IIS manuellement." -ForegroundColor DarkYellow
 }
 
 # --- Résumé ---

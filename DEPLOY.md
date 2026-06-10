@@ -4,7 +4,7 @@
 
 - Windows Server 2016+ avec IIS 10+
 - PHP 8.3 installé (Non-Thread-Safe recommandé pour IIS/FastCGI)
-- **Composer** (gestionnaire de dépendances PHP) — voir section 3
+- **PAS BESOIN** de Composer (FPDF est inclus directement)
 - **PAS BESOIN** du module URL Rewrite (l'app utilise un routage par query string)
 - Active Directory DREETS BFC accessible (pour l'authentification Windows)
 - Module IIS **Windows Authentication** installé
@@ -12,10 +12,10 @@
 ### Extensions PHP requises
 
 ```
-sqlite3, pdo_sqlite, mbstring, gd, xml, curl, zip
+sqlite3, pdo_sqlite, mbstring
 ```
 
-> L'extension `gd` est nécessaire pour la génération de PDF (mPDF). Vérifier avec `php -m | findstr gd`.
+> L'extension `mbstring` est nécessaire pour la conversion UTF-8 → cp1252 dans les PDF (FPDF). Vérifier avec `php -m | findstr mbstring`.
 
 ## Flux d'authentification
 
@@ -60,10 +60,6 @@ define('APP_ENV', 'prod');  // pour IIS en production
    extension=sqlite3
    extension=pdo_sqlite
    extension=mbstring
-   extension=gd
-   extension=xml
-   extension=curl
-   extension=zip
    session.save_path = "C:\inetpub\sessions"
    upload_tmp_dir = "C:\inetpub\uploads"
    date.timezone = Europe/Paris
@@ -97,20 +93,7 @@ define('APP_ENV', 'prod');  // pour IIS en production
 ### 3. Déployer l'application
 
 1. Copier le contenu du projet dans `C:\inetpub\sst\`
-2. **Installer les dépendances PHP avec Composer** :
-   ```cmd
-   cd C:\inetpub\sst
-   composer install --no-dev --optimize-autoloader
-   ```
-   > **Si Composer n'est pas installé**, voir https://getcomposer.org/download/ — télécharger `Composer-Setup.exe` ou utiliser :
-   ```cmd
-   php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-   php composer-setup.php
-   php -r "unlink('composer-setup.php');"
-   ```
-   > L'exécutable `composer.phar` peut être placé dans `C:\php\` (à côté de `php.exe`).
-
-3. La structure doit être :
+2. La structure doit être :
    ```
    C:\inetpub\sst\
    ├── public\           ← RACINE DU SITE IIS
@@ -118,24 +101,20 @@ define('APP_ENV', 'prod');  // pour IIS en production
    │   ├── web.config    ← Configuration IIS
    │   └── css\
    ├── src\              ← Inaccessible depuis le web (hiddenSegments)
-   │   └── lib\          ← Parsedown.php (inclus sans Composer)
-   ├── vendor\           ← Dépendances Composer (mPDF, etc.)
-   │   ├── autoload.php
-   │   └── mpdf\
+   │   └── lib\          ← Parsedown.php, fpdf/ (FPDF 1.9 + polices)
    ├── handlers\
    ├── pages\
    ├── templates\
    ├── queries\
    ├── middleware\
    ├── data\             ← Base SQLite (accès en ÉCRITURE requis)
-   ├── composer.json     ← Dépendances PHP
    └── schema.sql
    ```
-4. Créer un site IIS pointant vers `C:\inetpub\sst\public\`
+3. Créer un site IIS pointant vers `C:\inetpub\sst\public\`
 5. Configurer le binding (port 80 ou 443)
 6. `index.php` est déjà défini comme document par défaut dans web.config
 
-> **Note** : le dossier `vendor/` NE DOIT PAS être accessible depuis le web. Le fichier `web.config` inclut déjà `vendor/` dans les hidden segments.
+> **Note** : PAS besoin de dossier `vendor/` — FPDF est inclus directement dans `src/lib/fpdf/`.
 
 ### 4. Permissions IIS
 
@@ -144,11 +123,10 @@ Donner les permissions **IIS_IUSRS** (lecture + écriture) sur :
 - `C:\inetpub\sessions\` — sessions PHP
 
 Donner les permissions **IIS_IUSRS** (lecture seule) sur :
-- `public\`, `src\`, `handlers\`, `pages\`, `templates\`, `vendor\`
+- `public\`, `src\`, `handlers\`, `pages\`, `templates\`
 
-> **Note** : mPDF utilise le dossier temp système de PHP (`sys_get_temp_dir()`) pour son cache.
-> Ce dossier correspond à `upload_tmp_dir` dans `php.ini` (par défaut `C:\inetpub\uploads`).
-> Il doit être accessible en écriture par IIS_IUSRS — ce qui est normalement déjà le cas.
+> **Note** : FPDF génère les PDF entièrement en mémoire, sans écriture de fichiers temporaires sur disque.
+> Contrairement à mPDF, il n'y a pas besoin de dossier temporaire accessible en écriture.
 
 ### 5. Activer l'authentification Windows
 
@@ -240,8 +218,8 @@ sendmail_from = noreply@dreets.gouv.fr
    - `display_errors = On` dans `php.ini` ET dans `config.php`
    - Permissions sur `data/` (IIS_IUSRS écriture)
    - Module FastCGI configuré correctement
-   - Extensions PHP : `sqlite3`, `pdo_sqlite`, `mbstring`, `gd`, `xml`, `curl`, `zip`
-   - Dossier `vendor/` présent (Composer installé) — sinon exécuter `composer install`
+   - Extensions PHP : `sqlite3`, `pdo_sqlite`, `mbstring`
+   - Dossier `src/lib/fpdf/` présent (FPDF inclus)
 3. Vérifier les logs :
    - `C:\inetpub\logs\php-errors.log`
    - `data\php-error.log` (log de l'application)
@@ -355,20 +333,21 @@ C'est **NORMAL**. En production, IIS authentifie automatiquement via Windows Aut
 La page de login mock (avec admin.dev, agent.dev) n'existe qu'en mode développement.
 Si vous voyez le formulaire de login en prod, c'est que `APP_ENV` est encore à `dev` dans `config.php`.
 
-### Erreur "Class 'Mpdf\Mpdf' not found"
-1. Vérifier que `composer install` a été exécuté dans le dossier de l'application
-2. Vérifier que le dossier `vendor/mpdf/` existe
-3. Vérifier que `vendor/autoload.php` existe et est lisible par IIS_IUSRS
-4. Relancer `composer install --no-dev --optimize-autoloader`
+### Erreur "Class 'FPDF' not found"
+1. Vérifier que le fichier `src/lib/fpdf/fpdf.php` existe
+2. Vérifier que les fichiers de police `src/lib/fpdf/font/DejaVuSans.json` et `DejaVuSans.z` existent
+3. Vérifier les permissions IIS_IUSRS sur `src/lib/fpdf/`
 
-### Erreur mPDF "Unable to find font"
-1. Vérifier que l'extension `gd` est activée dans `php.ini` : `extension=gd`
-2. Vérifier avec `php -m | findstr gd`
-3. Relancer IIS après modification de `php.ini` : `iisreset`
+### Erreur "Undefined font: DejaVu"
+1. Vérifier que les fichiers `DejaVuSans.json` et `DejaVuSans-Bold.json` sont dans `src/lib/fpdf/font/`
+2. Vérifier que les fichiers `.z` correspondants existent
+3. Vérifier les permissions de lecture sur le dossier `font/`
 
-### Mise à jour des dépendances
-Pour mettre à jour les dépendances PHP après une mise à jour du code :
+### Mise à jour
+Pour mettre à jour l'application après une mise à jour du code :
 ```cmd
 cd C:\inetpub\sst
-composer update --no-dev --optimize-autoloader
+git pull
+iisreset
 ```
+> Plus besoin de `composer install` — FPDF est inclus directement dans le projet.

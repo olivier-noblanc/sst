@@ -12,7 +12,8 @@ require_once __DIR__ . '/../src/session.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
 
-// Composer autoloader (for mPDF and other dependencies)
+// Composer autoloader (if present — no longer required since FPDF replaces mPDF)
+// FPDF is loaded directly in report_print.php via require_once.
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require_once __DIR__ . '/../vendor/autoload.php';
 }

@@ -2,6 +2,30 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.5.0] — 2026-06-11
+
+### Technique — Migration mPDF → FPDF
+
+Remplacement de **mPDF 8.2** (nécessite Composer, écrit des fichiers temporaires sur disque) par **FPDF 1.9** (zéro dépendance, zéro I/O disque, tout en mémoire). Ce changement élimine la dépendance Composer et garantit la pérennité du code (FPDF : 24 ans de stabilité d'API, 0 rupture de compatibilité depuis 2001).
+
+- `pages/report_print.php` : réécriture complète avec l'API FPDF (Cell, MultiCell, Rect, Line) au lieu de HTML/CSS via mPDF. Même rendu visuel : badges colorés, tableau d'historique, en-tête/pied de page, boîte de réponse avec bordure verte.
+- `src/lib/fpdf/` : FPDF v1.9 inclus (fpdf.php + font/). Aucune dépendance Composer.
+- `src/lib/fpdf/font/` : polices DejaVu Sans (Unicode TrueType, cp1252) pour le support des caractères français accentués.
+- `composer.json` : dépendance `mpdf/mpdf` supprimée. Fichier vidé (`require: {}`).
+- `public/index.php` : l'autoloader Composer n'est plus requis. Chargé conditionnellement si présent (rétro-compatible).
+- `test_fpdf.php` : script de test autonome pour valider le rendu PDF (accents, badges, tableau, multiligne).
+
+### Technique — Simplification du déploiement
+
+- **Extensions PHP réduites** : seules `sqlite3`, `pdo_sqlite`, `mbstring` sont nécessaires. Les extensions `gd`, `xml`, `curl`, `zip` ne sont plus requises (elles étaient pour mPDF).
+- **Plus besoin de Composer** : FPDF est inclus directement dans le projet. `composer install` n'est plus nécessaire au déploiement.
+- **Plus de dossier temporaire** : FPDF génère le PDF entièrement en mémoire. Pas besoin de `sys_get_temp_dir()` ou de RAM disk.
+- `DEPLOY.md` : mis à jour — suppression des sections Composer, extensions réduites, nouvelle structure sans `vendor/`.
+- `README.md` : mis à jour — stack technique, installation simplifiée, structure sans `vendor/`.
+- `update_sst.ps1` : script simplifié — étape Composer supprimée, seuls `git pull` + `iisreset` restent.
+
+---
+
 ## [2.4.1] — 2026-06-11
 
 ### Technique — Suppression totale du JavaScript
@@ -25,12 +49,12 @@ Plus aucune ligne de JavaScript dans l'application. Toutes les confirmations uti
 
 ### Technique — Déploiement et infrastructure
 
-- `report_print.php` : mPDF utilise `sys_get_temp_dir()` au lieu du dossier vendor (plus d'erreur "Permission denied")
+- `report_print.php` : FPDF génère le PDF en mémoire (pas de fichiers temporaires)
 - `DEPLOY.md` : chemin corrigé `C:\inetpub\sst\` (était `C:\inetpub\wwwroot\sst\`)
 - `DEPLOY.md` : section proxy Git Kerberos (`http.proxyAuthMethod negotiate`)
 - `DEPLOY.md` : Composer derrière le proxy (variables d'environnement HTTP_PROXY/HTTPS_PROXY)
 - `web.config` racine : URL Rewrite supprimé (inutile, routage par query string)
-- `update_sst.ps1` : script PowerShell de déploiement automatisé (git pull + composer + permissions + iisreset)
+- `update_sst.ps1` : script PowerShell de déploiement automatisé (git pull + permissions + iisreset)
 
 ### Technique — Avertissement décochage confidentiel
 
@@ -152,22 +176,21 @@ Objectif : éliminer tout JavaScript personnalisé de l'application. Les seuls `
 
 ### Fonctionnalités — Génération PDF des fiches de signalement
 
-- **Impression PDF native** : `report_print.php` génère désormais un PDF côté serveur via mPDF au lieu d'une vue HTML + `window.print()`. Plus de JavaScript pour l'impression.
+- **Impression PDF native** : `report_print.php` génère désormais un PDF côté serveur via FPDF au lieu d'une vue HTML + `window.print()`. Plus de JavaScript pour l'impression.
 - **Bouton « Télécharger en PDF »** : remplace l'ancien bouton « Imprimer la fiche » dans la vue détaillée d'un signalement.
 - **PDF professionnel** : en-tête (organisation + référence), pied de page (pagination + date de génération), badges colorés pour le registre et l'état, tableau d'historique des réponses.
-- **mPDF** : ajout de la dépendance `mpdf/mpdf ^8.2` via Composer pour la génération PDF.
+- **FPDF 1.9** : bibliothèque incluse directement, sans Composer. Zéro dépendance, zéro fichier temporaire.
 
 ### Technique — Dépendances PHP
 
-- **composer.json** : ajout du fichier avec la dépendance `mpdf/mpdf ^8.2`.
-- **Autoloader Composer** : `vendor/autoload.php` chargé conditionnellement dans `public/index.php`.
-- **vendor/ sécurisé** : ajout de `vendor` dans les hidden segments de `web.config` et les permissions IIS dans DEPLOY.md.
-- **Extensions PHP requises** : ajout de `gd`, `xml`, `curl`, `zip` dans les prérequis de DEPLOY.md (nécessaires pour mPDF).
+- **composer.json** : fichier vidé (`require: {}`). Plus de dépendance mPDF.
+- **Autoloader Composer** : `vendor/autoload.php` chargé conditionnellement dans `public/index.php` (rétro-compatible si vendor/ existe).
+- **FPDF inclus** : `src/lib/fpdf/fpdf.php` + polices dans `src/lib/fpdf/font/`.
 
 ### Technique — Fichiers modifiés
 
 - `pages/changelog.php` : nouvelle page — parse le CHANGELOG.md via Parsedown
-- `pages/report_print.php` : réécrit — génération PDF mPDF au lieu de HTML + `window.print()`
+- `pages/report_print.php` : réécrit — génération PDF FPDF au lieu de HTML + `window.print()`
 - `pages/help.php` : CU8 mis à jour — « Télécharger en PDF » au lieu de « vue imprimable via le navigateur »
 - `templates/footer.php` : version cliquable → lien vers `?page=changelog`
 - `templates/report_card.php` : bouton « Imprimer la fiche » → « Télécharger en PDF »
@@ -175,9 +198,9 @@ Objectif : éliminer tout JavaScript personnalisé de l'application. Les seuls `
 - `public/css/style.css` : styles `.footer-version` (lien cliquable dans le footer)
 - `public/web.config` : hidden segment `vendor`
 - `src/lib/Parsedown.php` : parseur Markdown (fichier unique)
-- `composer.json` : dépendance `mpdf/mpdf ^8.2`
+- `composer.json` : `require: {}` (dépendance mPDF supprimée)
 - `.gitignore` : exclusion de `vendor/`, `data/*.db`, IDE, OS
-- `DEPLOY.md` : documentation Composer, extensions PHP, structure avec `vendor/`, section dépannage mPDF, mise à jour section superviseurs (suppression du mécanisme de préfixe obsolète)
+- `DEPLOY.md` : documentation simplifiée — plus de Composer, extensions réduites, structure sans `vendor/`
 
 ---
 

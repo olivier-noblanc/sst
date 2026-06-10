@@ -1,0 +1,22 @@
+# Database
+data/sst.db
+data/*.db
+
+# Environment / config overrides
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# PHP temp files
+*.tmp
+*.bak

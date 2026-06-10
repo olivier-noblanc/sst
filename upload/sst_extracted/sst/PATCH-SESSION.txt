@@ -1,0 +1,7 @@
+SECURITY FIX FOR PRODUCTION:
+Replace session_regenerate_id(false) with session_regenerate_id(true) in:
+1. src/auth.php (lines 30 and 48)  
+2. handlers/login_handler.php
+
+The false parameter is used in dev to prevent PHP built-in server crashes.
+In production on IIS, use true for better session fixation protection.

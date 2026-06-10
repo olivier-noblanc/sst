@@ -393,23 +393,20 @@ $pageTitle = 'Paramètres';
                     <?php endif; ?>
 
                     <?php if ($userCount === 0 && $reportCount === 0): ?>
-                    <dialog id="delete-site-<?php echo e($site['id']); ?>" class="confirm-dialog">
-                        <p>⚠️ Supprimer définitivement le site <strong><?php echo e($site['code']); ?> — <?php echo e($site['nom']); ?></strong> ?</p>
-                        <p style="font-size:13px;color:var(--grey-600);">Cette action est irréversible.</p>
-                        <div class="confirm-dialog__actions">
-                            <form method="dialog" style="display:inline;">
-                                <button type="submit" value="cancel" class="btn btn--secondary">Annuler</button>
-                            </form>
-                            <form method="POST" action="<?php echo url('settings'); ?>" style="display:inline;">
-                                <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-                                <input type="hidden" name="tab" value="manage_sites">
-                                <input type="hidden" name="action" value="delete_site">
-                                <input type="hidden" name="site_id" value="<?php echo e($site['id']); ?>">
-                                <button type="submit" class="btn btn--danger">Supprimer définitivement</button>
-                            </form>
-                        </div>
-                    </dialog>
-                    <button type="button" class="btn btn--sm btn--danger" onclick="document.getElementById('delete-site-<?php echo e($site['id']); ?>').showModal()">Supprimer</button>
+                    <?php if (isset($_GET['confirm_delete_site']) && (int) $_GET['confirm_delete_site'] === (int) $site['id']): ?>
+                    <!-- Confirmation inline — pas de JavaScript -->
+                    <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--dgi-color);font-weight:600;">⚠️ Supprimer <strong><?php echo e($site['code']); ?></strong> ?</span>
+                    <form method="POST" action="<?php echo url('settings'); ?>" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                        <input type="hidden" name="tab" value="manage_sites">
+                        <input type="hidden" name="action" value="delete_site">
+                        <input type="hidden" name="site_id" value="<?php echo e($site['id']); ?>">
+                        <button type="submit" class="btn btn--sm btn--danger">Oui, supprimer</button>
+                    </form>
+                    <a href="<?php echo url('settings', ['tab' => 'manage_sites']); ?>" class="btn btn--sm btn--secondary">Annuler</a>
+                    <?php else: ?>
+                    <a href="<?php echo url('settings', ['tab' => 'manage_sites', 'confirm_delete_site' => $site['id']]); ?>" class="btn btn--sm btn--danger">Supprimer</a>
+                    <?php endif; ?>
                     <?php endif; ?>
                 </td>
             </tr>
@@ -419,25 +416,3 @@ $pageTitle = 'Paramètres';
 </div>
 <?php endif; ?>
 
-<!-- Shared dialog styles -->
-<style>
-.confirm-dialog {
-    border: none;
-    border-radius: 8px;
-    padding: 24px;
-    max-width: 480px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-}
-.confirm-dialog::backdrop {
-    background: rgba(0,0,0,0.4);
-}
-.confirm-dialog p {
-    margin: 0 0 8px 0;
-}
-.confirm-dialog__actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    margin-top: 16px;
-}
-</style>

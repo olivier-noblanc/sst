@@ -96,10 +96,10 @@ define('APP_ENV', 'prod');  // pour IIS en production
 
 ### 3. Déployer l'application
 
-1. Copier le contenu du projet dans `C:\inetpub\wwwroot\sst\`
+1. Copier le contenu du projet dans `C:\inetpub\sst\`
 2. **Installer les dépendances PHP avec Composer** :
    ```cmd
-   cd C:\inetpub\wwwroot\sst
+   cd C:\inetpub\sst
    composer install --no-dev --optimize-autoloader
    ```
    > **Si Composer n'est pas installé**, voir https://getcomposer.org/download/ — télécharger `Composer-Setup.exe` ou utiliser :
@@ -112,7 +112,7 @@ define('APP_ENV', 'prod');  // pour IIS en production
 
 3. La structure doit être :
    ```
-   C:\inetpub\wwwroot\sst\
+   C:\inetpub\sst\
    ├── public\           ← RACINE DU SITE IIS
    │   ├── index.php
    │   ├── web.config    ← Configuration IIS
@@ -131,7 +131,7 @@ define('APP_ENV', 'prod');  // pour IIS en production
    ├── composer.json     ← Dépendances PHP
    └── schema.sql
    ```
-4. Créer un site IIS pointant vers `C:\inetpub\wwwroot\sst\public\`
+4. Créer un site IIS pointant vers `C:\inetpub\sst\public\`
 5. Configurer le binding (port 80 ou 443)
 6. `index.php` est déjà défini comme document par défaut dans web.config
 
@@ -145,6 +145,10 @@ Donner les permissions **IIS_IUSRS** (lecture + écriture) sur :
 
 Donner les permissions **IIS_IUSRS** (lecture seule) sur :
 - `public\`, `src\`, `handlers\`, `pages\`, `templates\`, `vendor\`
+
+> **Note** : mPDF utilise le dossier temp système de PHP (`sys_get_temp_dir()`) pour son cache.
+> Ce dossier correspond à `upload_tmp_dir` dans `php.ini` (par défaut `C:\inetpub\uploads`).
+> Il doit être accessible en écriture par IIS_IUSRS — ce qui est normalement déjà le cas.
 
 ### 5. Activer l'authentification Windows
 
@@ -173,7 +177,7 @@ Le fichier `public/web.config` est déjà configuré avec :
 ### 7. Initialiser la base de données
 
 ```cmd
-cd C:\inetpub\wwwroot\sst
+cd C:\inetpub\sst
 php src\database.php
 ```
 
@@ -252,6 +256,71 @@ sendmail_from = noreply@dreets.gouv.fr
 - En production stable, on peut passer `errorMode="DetailedLocalOnly"` dans web.config
   (les erreurs PHP restent visibles grâce à `display_errors=On` dans config.php)
 
+### 13. Configuration Git derrière un proxy Kerberos
+
+Le réseau DREETS utilise un proxy sortant avec authentification **Kerberos (Negotiate) uniquement** — NTLM est refusé. Git utilise `libcurl` en interne, donc la même méthode d'authentification que `curl` fonctionne.
+
+#### Trouver l'adresse du proxy
+
+```cmd
+netsh winhttp show proxy
+```
+
+Ou vérifier la configuration curl existante :
+```cmd
+curl --verbose https://github.com 2>&1 | findstr "Proxy"
+```
+
+#### Configurer Git pour le proxy Kerberos
+
+Git utilise `libcurl` : il suffit de lui dire d'utiliser `negotiate` comme méthode d'authentification proxy, exactement comme `curl --proxy-auth negotiate` :
+
+```cmd
+:: Adresse du proxy (adapter avec l'adresse réelle trouvée ci-dessus)
+git config --global http.proxy http://PROXY_DREETS:PORT
+git config --global https.proxy http://PROXY_DREETS:PORT
+
+:: Méthode d'authentification : Negotiate (Kerberos)
+git config --global http.proxyAuthMethod negotiate
+```
+
+> **Important** : `http.proxyAuthMethod negotiate` dit à libcurl d'utiliser `CURLAUTH_NEGOTIATE` (SPNEGO/Kerberos).
+> C'est équivalent à `curl --proxy-auth negotiate`. Le ticket Kerberos est fourni par la session Windows.
+
+#### Vérification
+
+```cmd
+git ls-remote https://github.com/olivier-noblanc/sst.git
+```
+
+Si la commande affiche les refs du dépôt, la configuration est correcte.
+
+#### Composer derrière le proxy
+
+Composer utilise aussi `libcurl`. Configurer les variables d'environnement PHP :
+
+```cmd
+:: Dans C:\php\php.ini, ajouter :
+curl.cainfo = C:\php\cacert.pem
+
+:: Télécharger les certificats CA :
+cd C:\php
+curl --proxy-auth negotiate -o cacert.pem https://curl.se/ca/cacert.pem
+```
+
+Pour Composer avec le proxy :
+```cmd
+set HTTP_PROXY=http://PROXY_DREETS:PORT
+set HTTPS_PROXY=http://PROXY_DREETS:PORT
+composer install --no-dev --optimize-autoloader
+```
+
+#### Dépannage proxy
+
+- **`Failed to connect to github.com port 443`** : le proxy n'est pas configuré dans Git → exécuter les commandes `git config --global http.proxy` et `http.proxyAuthMethod negotiate`
+- **`The requested URL returned error: 407`** : le proxy refuse l'authentification → vérifier que `proxyAuthMethod` est à `negotiate` (pas `ntlm`)
+- **`gnutls_handshake() failed`** : problème SSL → vérifier `curl.cainfo` dans `php.ini`
+
 ## Dépannage IIS
 
 ### Erreur "collection dupliquée add avec value index.php"
@@ -300,6 +369,6 @@ Si vous voyez le formulaire de login en prod, c'est que `APP_ENV` est encore à 
 ### Mise à jour des dépendances
 Pour mettre à jour les dépendances PHP après une mise à jour du code :
 ```cmd
-cd C:\inetpub\wwwroot\sst
+cd C:\inetpub\sst
 composer update --no-dev --optimize-autoloader
 ```

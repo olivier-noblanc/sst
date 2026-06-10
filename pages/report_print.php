@@ -61,6 +61,7 @@ $etatLabel = ETAT_LABELS[$report['etat']] ?? $report['etat'];
 // --- Build PDF with mPDF ---
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// mPDF temp directory — use PHP system temp (already writable by IIS)
 $mpdf = new \Mpdf\Mpdf([
     'mode'          => 'utf-8',
     'format'        => 'A4',
@@ -69,6 +70,7 @@ $mpdf = new \Mpdf\Mpdf([
     'margin_top'    => 25,
     'margin_bottom' => 20,
     'default_font'  => 'dejavusans',
+    'tempDir'       => sys_get_temp_dir(),
 ]);
 
 $mpdf->SetTitle('Signalement ' . $report['reference']);

@@ -179,6 +179,8 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 // Pagination
 $totalPages = (int) ceil($totalItems / $perPage);
 if ($totalPages > 1) {
+    // Override $currentPage (set by sidebar as page name) with numeric page number
+    $currentPage = $pageNum;
     require __DIR__ . '/../templates/pagination.php';
 }
 ?>

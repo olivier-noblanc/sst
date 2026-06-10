@@ -116,13 +116,12 @@ try {
 
     $pdo->commit();
 
-    // Update session if editing self
+    // Update session if editing self — re-read full user with site info
     if ((int) $_SESSION['user']['id'] === $userId) {
-        $_SESSION['user']['nom'] = $nom;
-        $_SESSION['user']['prenom'] = $prenom;
-        $_SESSION['user']['email'] = $email;
-        $_SESSION['user']['role'] = $role;
-        $_SESSION['user']['site_id'] = $siteId;
+        $freshUser = getUserById($pdo, $userId);
+        if ($freshUser) {
+            $_SESSION['user'] = $freshUser;
+        }
     }
 
     setFlash('success', 'Utilisateur ' . e($prenom . ' ' . $nom) . ' mis à jour avec succès.');

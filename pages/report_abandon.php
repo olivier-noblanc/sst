@@ -2,9 +2,10 @@
 /**
  * Report Abandon Page — Application SST DREETS BFC
  *
- * Shows a confirmation dialog before abandoning a report (soft delete).
+ * Shows a confirmation form before abandoning a report (soft delete).
  * URL: index.php?page=report_abandon&id={report_id}
  * Access: Only the declarant, and only if etat is nouveau or en_cours.
+ * No JavaScript — pure PHP inline confirmation.
  */
 $id = (int) ($_GET['id'] ?? 0);
 
@@ -32,12 +33,13 @@ if ((int) $report['declarant_id'] !== $userId) {
 
 // Check state: can only abandon if nouveau or en_cours
 if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
-    setFlash('error', 'Ce signalement ne peut plus être abandonné (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
+    setFlash('error', 'Ce signalement ne peut plus être abandonné (etat : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
     redirect(url('report_view', ['id' => $id]));
 }
 
 $pageTitle = 'Abandonner le signalement — ' . $report['reference'];
 $type = $report['type'];
+$csrfToken = generateCsrfToken();
 
 require __DIR__ . '/../templates/alert.php';
 ?>
@@ -53,11 +55,11 @@ require __DIR__ . '/../templates/alert.php';
                 <td><?php echo e($report['objet']); ?></td>
             </tr>
             <tr>
-                <th>Date de l'événement</th>
+                <th>Date de l'evenement</th>
                 <td><?php echo formatDateFR($report['date_evenement']); ?></td>
             </tr>
             <tr>
-                <th>État actuel</th>
+                <th>Etat actuel</th>
                 <td>
                     <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>">
                         <?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?>
@@ -68,4 +70,16 @@ require __DIR__ . '/../templates/alert.php';
     </table>
 </div>
 
-<?php require __DIR__ . '/../templates/confirm_dialog.php'; ?>
+<!-- Confirmation inline — pas de JavaScript -->
+<div class="card" style="margin-top:16px;background:#fffbeb;border:1px solid #fcd34d;">
+    <p style="font-weight:600;color:#92400e;">Etes-vous sur de vouloir abandonner le signalement <strong><?php echo e($report['reference']); ?></strong> ?</p>
+    <p style="font-size:13px;color:var(--grey-600);">Cette action est irreversible. Le signalement sera marque comme abandonne.</p>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+        <form method="POST" action="<?php echo url('report_abandon', ['id' => $id]); ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+            <input type="hidden" name="report_id" value="<?php echo e($report['id']); ?>">
+            <button type="submit" class="btn btn--danger">Oui, abandonner</button>
+        </form>
+        <a href="<?php echo url('report_view', ['id' => $id]); ?>" class="btn btn--secondary">Annuler</a>
+    </div>
+</div>

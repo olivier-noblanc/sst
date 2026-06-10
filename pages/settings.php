@@ -405,8 +405,11 @@ $pageTitle = 'Paramètres';
                     </form>
                     <a href="<?php echo url('settings', ['tab' => 'manage_sites']); ?>" class="btn btn--sm btn--secondary">Annuler</a>
                     <?php else: ?>
+                    <a href="<?php echo url('site_edit', ['id' => $site['id']]); ?>" class="btn btn--sm btn--outline">Éditer</a>
                     <a href="<?php echo url('settings', ['tab' => 'manage_sites', 'confirm_delete_site' => $site['id']]); ?>" class="btn btn--sm btn--danger">Supprimer</a>
                     <?php endif; ?>
+                    <?php else: ?>
+                    <a href="<?php echo url('site_edit', ['id' => $site['id']]); ?>" class="btn btn--sm btn--outline">Éditer</a>
                     <?php endif; ?>
                 </td>
             </tr>

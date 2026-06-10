@@ -31,7 +31,8 @@ $validPages = [
     'report_create', 'report_list', 'report_view', 'report_edit',
     'report_print', 'report_abandon', 'report_respond',
     'synthesis', 'export', 'statistics',
-    'settings', 'users', 'user_edit', 'user_view', 'user_create', 'user_delete',
+    'settings', 'site_edit',
+    'users', 'user_edit', 'user_view', 'user_create', 'user_delete', 'user_reactivate',
     'logout'
 ];
 
@@ -143,10 +144,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'report_respond' => __DIR__ . '/../handlers/report_respond_handler.php',
         'export'         => __DIR__ . '/../handlers/export_handler.php',
         'settings'       => __DIR__ . '/../handlers/settings_handler.php',
+        'site_edit'      => __DIR__ . '/../handlers/site_edit_handler.php',
         'smtp_test'      => __DIR__ . '/../handlers/smtp_test_handler.php',
         'user_edit'      => __DIR__ . '/../handlers/user_edit_handler.php',
         'user_create'    => __DIR__ . '/../handlers/user_create_handler.php',
         'user_delete'    => __DIR__ . '/../handlers/user_delete_handler.php',
+        'user_reactivate' => __DIR__ . '/../handlers/user_reactivate_handler.php',
     ];
     if (isset($handlerMap[$page])) {
         require $handlerMap[$page];
@@ -198,7 +201,7 @@ if (!in_array($page, $validPages)) {
 // Already loaded above before POST handlers
 
 // === RENDER PAGE WITH LAYOUT ===
-$currentPage = $page;
+$currentPageName = $page;
 
 // CSRF token already generated above
 
@@ -222,6 +225,7 @@ $pageTitle = match($page) {
     'users'           => 'Gestion des utilisateurs',
     'user_edit'       => 'Éditer l\'utilisateur',
     'user_view'       => 'Profil utilisateur',
+    'site_edit'       => 'Éditer le site',
     'access_denied'   => 'Accès refusé',
     'user_create'     => 'Créer un utilisateur',
     default           => 'Accueil',

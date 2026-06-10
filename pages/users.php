@@ -114,6 +114,12 @@ $pageTitle = 'Gestion des utilisateurs';
                         <a href="<?php echo url('user_view', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--outline">Voir</a>
                         <?php if ($u['is_active']): ?>
                         <a href="<?php echo url('user_edit', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--primary">Éditer</a>
+                        <?php else: ?>
+                        <form method="POST" action="<?php echo url('user_reactivate'); ?>" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                            <input type="hidden" name="user_id" value="<?php echo (int) $u['id']; ?>">
+                            <button type="submit" class="btn btn--sm btn--success">Réactiver</button>
+                        </form>
                         <?php endif; ?>
                     </td>
                 </tr>

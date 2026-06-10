@@ -4,25 +4,35 @@ Plateforme des Registres en Santé et Sécurité au Travail
 
 ## Stack Technique
 
-- **Langage**: PHP 8.3 (vanilla, aucun framework)
-- **Base de données**: SQLite via PDO
-- **Authentification**: IIS Windows Authentication (pas de LDAP — lecture de `$_SERVER['AUTH_USER']` uniquement)
-- **Dépendances**: ZÉRO (pas de Composer, pas de npm)
-- **Serveur de prod**: IIS avec FastCGI
+- **Langage** : PHP 8.3 (vanilla, aucun framework)
+- **Base de données** : SQLite via PDO
+- **Authentification** : IIS Windows Authentication (pas de LDAP — lecture de `$_SERVER['AUTH_USER']`)
+- **Dépendances PHP** : mPDF 8.2 (génération PDF, via Composer), Parsedown (inclus sans Composer)
+- **JavaScript** : AUCUN — zéro JS, tout fonctionne en PHP/HTML/CSS pur
+- **Serveur de prod** : IIS 10+ avec FastCGI
 
 ## Installation sur IIS
 
-1. Copier le dossier `sst-app-fixed/` sur le serveur IIS
-2. Configurer un site IIS pointant vers `sst-app-fixed/public/`
-3. Activer Windows Authentication sur le site IIS (désactiver Anonymous Authentication)
-4. Installer PHP 8.3 NTS via https://windows.php.net/download/
-5. Configurer `php.ini` : extensions `sqlite3`, `pdo_sqlite`, `mbstring`, `session.save_path`, `display_errors = On`
-6. Dans `src/config.php`, passer `APP_ENV` à `'prod'` (ou via variable d'environnement)
-7. Donner les permissions IIS_IUSRS en écriture sur le dossier `data/`
-8. Accéder à l'application — la base se crée automatiquement au premier accès
-9. Configurer les notifications par email et les paramètres dans l'interface superviseur
+1. Cloner le dépôt dans `C:\inetpub\sst\`
+2. Configurer un site IIS pointant vers `C:\inetpub\sst\public\`
+3. Activer Windows Authentication (désactiver Anonymous Authentication)
+4. Installer PHP 8.3 NTS + extensions (`sqlite3`, `pdo_sqlite`, `mbstring`, `gd`, `xml`, `curl`, `zip`)
+5. Installer les dépendances : `composer install --no-dev`
+6. Donner les permissions IIS_IUSRS en écriture sur `data\`
+7. Dans `src/config.php`, passer `APP_ENV` à `'prod'`
+8. Accéder à l'application — la base se crée automatiquement
 
 **Voir `DEPLOY.md` pour le guide de déploiement complet.**
+
+## Mise à jour
+
+Sur le serveur, exécuter en tant qu'administrateur :
+
+```cmd
+powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\update_sst.ps1
+```
+
+Le script effectue : `git pull` → `composer install` → vérification permissions → `iisreset`
 
 ## Comptes de test (DEV_MODE)
 
@@ -41,43 +51,40 @@ php -S localhost:8080 -t public/ public/router.php
 # Ouvrir http://localhost:8080/?page=login
 ```
 
-## Attribution du rôle Superviseur
+## Visibilité des signalements — 3 modes (configurable par le superviseur)
 
-Le rôle Superviseur peut être obtenu de deux manières :
+| Mode | Description |
+|------|-------------|
+| **Confidentiel** | L'agent ne voit que ses propres signalements. Les autres agents ne voient rien. |
+| **Choix de l'agent** | L'agent choisit par signalement (public/confidentiel). Confidentiel par défaut. |
+| **Visibilité publique** | Tous les signalements du site sont visibles par tous les agents du site. |
 
-1. **Par un autre superviseur** via la gestion des utilisateurs (UI) — un superviseur peut attribuer le rôle superviseur à n'importe quel utilisateur
-2. **Via la liste de configuration** dans **Paramètres → Application → Logins Windows des superviseurs** — les logins ajoutés ici (séparés par virgules) seront automatiquement promus Superviseur lors de leur première connexion via IIS. Ce mécanisme est utile pour une première installation afin de désigner les premiers superviseurs.
-
-La promotion automatique s'applique aussi aux utilisateurs existants à leur prochaine connexion.
+Les superviseurs et membres du CHSCT voient tous les signalements, y compris confidentiels, quel que soit le mode.
 
 ## Structure
 
 ```
-sst-app-fixed/
+C:\inetpub\sst\
 ├── public/          ← Racine web (point d'entrée IIS)
 │   ├── index.php    ← Routeur principal
-│   ├── router.php   ← Routeur pour serveur PHP intégré (dev)
 │   ├── web.config   ← Configuration IIS
 │   └── css/         ← Feuilles de style
 ├── src/             ← Logique métier
-│   ├── config.php   ← Configuration (APP_ENV, DEV_MODE)
+│   ├── config.php   ← Configuration (APP_ENV, modes visibilité)
 │   ├── database.php ← Connexion SQLite + auto-migration
 │   ├── auth.php     ← Authentification (AUTH_USER / mock login)
-│   ├── session.php  ← Gestion des sessions + CSRF
 │   ├── helpers.php  ← Fonctions utilitaires + getConfig()
-│   ├── mail.php     ← Notifications email (stub)
 │   ├── queries/     ← Requêtes SQL préparées
-│   └── middleware/   ← Contrôle d'accès
+│   ├── middleware/   ← Contrôle d'accès
+│   └── lib/         ← Parsedown.php
 ├── pages/           ← Pages de l'application
-│   ├── choose_site.php  ← Choix du site au premier login
-│   └── ...
 ├── handlers/        ← Traitements des formulaires POST
-│   ├── choose_site_handler.php  ← Validation choix site
-│   └── ...
 ├── templates/       ← Templates réutilisables (header, sidebar, footer...)
-├── data/            ← Base de données SQLite (auto-créée)
+├── vendor/          ← Dépendances Composer (mPDF)
+├── data/            ← Base SQLite (auto-créée, git-ignorée)
 ├── schema.sql       ← Schéma de la base
-├── seed.php         ← Données de test
+├── composer.json    ← Dépendances PHP
+├── update_sst.ps1   ← Script de mise à jour automatisée
 ├── DEPLOY.md        ← Guide de déploiement IIS complet
 ├── SPEC.md          ← Spécification technique détaillée
 └── README.md        ← Ce fichier
@@ -85,16 +92,16 @@ sst-app-fixed/
 
 ## Sécurité
 
-- ✅ Requêtes SQL préparées (PDO) — Protection injection SQL
-- ✅ htmlspecialchars via e() — Protection XSS
-- ✅ Tokens CSRF sur tous les formulaires
-- ✅ Contrôle d'accès par rôle (requireRole)
-- ✅ Vérification d'appartenance (auteur seul peut modifier/abandonner)
-- ✅ Visibilité par site (Agent = son site uniquement par défaut)
-- ✅ Confidentialité des signalements via canAccessReport()
-- ✅ Session sécurisée (HttpOnly, SameSite, Secure en prod)
-- ✅ Échappement CSV (protection injection formule Excel)
-- ✅ Validation côté serveur de tous les inputs
+- Requêtes SQL préparées (PDO) — Protection injection SQL
+- `htmlspecialchars` via `e()` — Protection XSS
+- Tokens CSRF sur tous les formulaires
+- Contrôle d'accès par rôle (`requireRole`)
+- Vérification d'appartenance (auteur seul peut modifier/abandonner)
+- Visibilité par site + 3 modes de confidentialité
+- Session sécurisée (HttpOnly, SameSite, Secure en prod)
+- Échappement CSV (protection injection formule Excel)
+- Validation côté serveur de tous les inputs
+- Zéro JavaScript — pas de surface d'attaque XSS côté client
 
 ## 3 Registres
 
@@ -108,6 +115,6 @@ sst-app-fixed/
 
 | Rôle | Permissions |
 |------|------------|
-| Agent | Créer, voir (son site), modifier (ses), ses signalements |
+| Agent | Créer, voir (selon mode de visibilité), modifier (ses signalements) |
 | Superviseur | Agent + Répondre, Abandonner, Synthèse, Export, Stats, Paramètres, Utilisateurs, Impression |
 | CHSCT | Vue élargie sur tous les sites (lecture), Synthèse, Export, Stats |

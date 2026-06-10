@@ -2,6 +2,42 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.4.1] — 2026-06-11
+
+### Technique — Suppression totale du JavaScript
+
+Plus aucune ligne de JavaScript dans l'application. Toutes les confirmations utilisent désormais un mécanisme PHP inline (rechargement de page avec paramètre URL de confirmation) au lieu de `<dialog>` HTML5 + `onclick` + `<script>`.
+
+- `pages/user_edit.php` : confirmation suppression → `?confirm_delete=1` au lieu de `<dialog>` + `onclick`
+- `pages/settings.php` : confirmation suppression site → `?confirm_delete_site={id}` au lieu de `<dialog>` + `onclick`
+- `templates/report_card.php` : confirmation abandon → `?confirm_abandon=1` au lieu de `<dialog>` + `onclick`
+- `pages/report_abandon.php` : confirmation inline PHP (l'ancien `require confirm_dialog.php` causait un fatal error)
+- `templates/confirm_dialog.php` : supprimé (plus utilisé)
+
+### Technique — Corrections de bugs critiques (audit statique)
+
+- **C1 — Fatal error `confirm_dialog.php`** : `report_abandon.php` référençait le template supprimé → confirmation PHP inline
+- **C2 — Pagination crash PHP 8** : la variable `$currentPage` du routeur (nom de page) écrasait celle de la pagination (numéro) → `$currentPageName` pour le routeur, `$currentPage = $pageNum` avant inclusion de la pagination
+- **W4 — Session stale** : après modification d'un utilisateur, la session n'était pas complètement mise à jour (manquaient `site_code`, `site_nom`) → re-lecture complète depuis la DB avec JOIN
+- **W1/W2 — Handlers orphelins** : `site_edit` et `user_reactivate` n'étaient pas routés → ajoutés au routing + boutons dans l'UI
+- **I4 — CSV export** : colonne `Confidentiel` (Oui/Non) ajoutée à l'export
+- **I3 — `phpinfo.php`** : supprimé (risque de sécurité)
+
+### Technique — Déploiement et infrastructure
+
+- `report_print.php` : mPDF utilise `sys_get_temp_dir()` au lieu du dossier vendor (plus d'erreur "Permission denied")
+- `DEPLOY.md` : chemin corrigé `C:\inetpub\sst\` (était `C:\inetpub\wwwroot\sst\`)
+- `DEPLOY.md` : section proxy Git Kerberos (`http.proxyAuthMethod negotiate`)
+- `DEPLOY.md` : Composer derrière le proxy (variables d'environnement HTTP_PROXY/HTTPS_PROXY)
+- `web.config` racine : URL Rewrite supprimé (inutile, routage par query string)
+- `update_sst.ps1` : script PowerShell de déploiement automatisé (git pull + composer + permissions + iisreset)
+
+### Technique — Avertissement décochage confidentiel
+
+- `templates/report_form.php` : warning CSS `:has()` affiché quand l'agent décoche « Signalement confidentiel » en mode « Choix de l'agent ». Pas de JavaScript, pur CSS.
+
+---
+
 ## [2.4.0] — 2026-06-11
 
 ### Fonctionnalités — Système de visibilité des signalements en 3 modes

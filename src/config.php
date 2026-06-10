@@ -7,7 +7,7 @@
 
 // Application metadata
 define('APP_NAME', 'Application SST — DREETS BFC');
-define('APP_VERSION', '2.4.0');
+define('APP_VERSION', '2.4.1');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
 // Environment: set to 'dev' for mock auth, 'prod' for IIS Windows Auth

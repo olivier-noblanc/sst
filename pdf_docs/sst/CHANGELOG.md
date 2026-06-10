@@ -2,6 +2,45 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.1.0] — 2026-06-10
+
+### Fonctionnalités — Changelog consultable dans l'UI
+
+- **Page Changelog** : le numéro de version dans le footer est désormais un lien cliquable vers `?page=changelog`, qui affiche le contenu du fichier `CHANGELOG.md` rendu en HTML.
+- **Parsedown** : ajout du parseur Markdown `Parsedown.php` dans `src/lib/` (fichier unique, sans Composer) pour le rendu du changelog.
+- **Pas d'export PDF** : le changelog est en lecture seule, aucun bouton d'export.
+
+### Fonctionnalités — Génération PDF des fiches de signalement
+
+- **Impression PDF native** : `report_print.php` génère désormais un PDF côté serveur via mPDF au lieu d'une vue HTML + `window.print()`. Plus de JavaScript pour l'impression.
+- **Bouton « Télécharger en PDF »** : remplace l'ancien bouton « Imprimer la fiche » dans la vue détaillée d'un signalement.
+- **PDF professionnel** : en-tête (organisation + référence), pied de page (pagination + date de génération), badges colorés pour le registre et l'état, tableau d'historique des réponses.
+- **mPDF** : ajout de la dépendance `mpdf/mpdf ^8.2` via Composer pour la génération PDF.
+
+### Technique — Dépendances PHP
+
+- **composer.json** : ajout du fichier avec la dépendance `mpdf/mpdf ^8.2`.
+- **Autoloader Composer** : `vendor/autoload.php` chargé conditionnellement dans `public/index.php`.
+- **vendor/ sécurisé** : ajout de `vendor` dans les hidden segments de `web.config` et les permissions IIS dans DEPLOY.md.
+- **Extensions PHP requises** : ajout de `gd`, `xml`, `curl`, `zip` dans les prérequis de DEPLOY.md (nécessaires pour mPDF).
+
+### Technique — Fichiers modifiés
+
+- `pages/changelog.php` : nouvelle page — parse le CHANGELOG.md via Parsedown
+- `pages/report_print.php` : réécrit — génération PDF mPDF au lieu de HTML + `window.print()`
+- `pages/help.php` : CU8 mis à jour — « Télécharger en PDF » au lieu de « vue imprimable via le navigateur »
+- `templates/footer.php` : version cliquable → lien vers `?page=changelog`
+- `templates/report_card.php` : bouton « Imprimer la fiche » → « Télécharger en PDF »
+- `public/index.php` : route `changelog`, titre page, autoload Composer
+- `public/css/style.css` : styles `.footer-version` (lien cliquable dans le footer)
+- `public/web.config` : hidden segment `vendor`
+- `src/lib/Parsedown.php` : parseur Markdown (fichier unique)
+- `composer.json` : dépendance `mpdf/mpdf ^8.2`
+- `.gitignore` : exclusion de `vendor/`, `data/*.db`, IDE, OS
+- `DEPLOY.md` : documentation Composer, extensions PHP, structure avec `vendor/`, section dépannage mPDF, mise à jour section superviseurs (suppression du mécanisme de préfixe obsolète)
+
+---
+
 ## [2.0.0] — 2026-06-10
 
 ### Breaking Changes — Refonte du système de rôles

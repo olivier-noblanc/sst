@@ -80,10 +80,10 @@ $pageTitle = 'Synthèse des signalements';
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Filter Bar -->
-<div class="filter-bar">
+<form method="GET" action="<?php echo url('synthesis'); ?>" class="filter-bar">
     <div class="form-group">
         <label for="year">Année</label>
-        <select name="year" id="year" onchange="window.location.href='<?php echo url("synthesis"); ?>&year='+this.value+'&site=<?php echo $siteId; ?>'">
+        <select name="year" id="year">
             <?php foreach ($availableYears as $y): ?>
             <option value="<?php echo e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo e($y); ?></option>
             <?php endforeach; ?>
@@ -91,14 +91,17 @@ $pageTitle = 'Synthèse des signalements';
     </div>
     <div class="form-group">
         <label for="site">Site</label>
-        <select name="site" id="site" onchange="window.location.href='<?php echo url("synthesis"); ?>&year=<?php echo e($year); ?>&site='+this.value">
+        <select name="site" id="site">
             <option value="0" <?php echo $siteId === 0 ? 'selected' : ''; ?>>Tous les sites</option>
             <?php foreach ($sites as $s): ?>
             <option value="<?php echo (int) $s['id']; ?>" <?php echo $siteId === (int) $s['id'] ? 'selected' : ''; ?>><?php echo e($s['nom']); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
-</div>
+    <div class="form-group" style="align-self:flex-end;">
+        <button type="submit" class="btn btn--outline">Filtrer</button>
+    </div>
+</form>
 
 <!-- Synthesis Table -->
 <div class="card">

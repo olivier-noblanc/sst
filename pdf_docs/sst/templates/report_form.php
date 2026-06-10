@@ -144,7 +144,7 @@ $submitBtnClass = $isEdit
                 </label>
             </div>
 
-            <div id="pour_compte_fields" class="form-group" style="grid-column: 1 / -1; <?php echo ($val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? '' : 'display:none;'; ?>">
+            <div id="pour_compte_fields" class="form-group" style="grid-column: 1 / -1;">
                 <div style="display:flex;gap:12px;flex-wrap:wrap;">
                     <div style="flex:1;min-width:200px;">
                         <label for="pour_compte_nom">Nom de l'agent</label>
@@ -174,15 +174,10 @@ $submitBtnClass = $isEdit
     </form>
 </div>
 
-<script>
-// Toggle "pour le compte de" fields visibility
-const pourCompteCheckbox = document.getElementById('pour_compte');
-if (pourCompteCheckbox) {
-    pourCompteCheckbox.addEventListener('change', function() {
-        const fields = document.getElementById('pour_compte_fields');
-        if (fields) {
-            fields.style.display = this.checked ? '' : 'none';
-        }
-    });
-}
-</script>
+<?php if ($type === 'rami'): ?>
+<style>
+/* Toggle "pour le compte de" fields with CSS only — no JavaScript */
+.form-grid:not(:has(#pour_compte:checked)) #pour_compte_fields { display: none; }
+.form-grid:has(#pour_compte:checked) #pour_compte_fields { display: block; }
+</style>
+<?php endif; ?>

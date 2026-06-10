@@ -78,16 +78,19 @@ $pageTitle = 'Statistiques';
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Year filter -->
-<div class="filter-bar">
+<form method="GET" action="<?php echo url('statistics'); ?>" class="filter-bar">
     <div class="form-group">
         <label for="year">Année</label>
-        <select name="year" id="year" onchange="window.location.href='<?php echo url("statistics"); ?>&year='+this.value">
+        <select name="year" id="year">
             <?php foreach ($availableYears as $y): ?>
             <option value="<?php echo e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo e($y); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
-</div>
+    <div class="form-group" style="align-self:flex-end;">
+        <button type="submit" class="btn btn--outline">Filtrer</button>
+    </div>
+</form>
 
 <!-- KPI Cards -->
 <div class="kpi-grid">

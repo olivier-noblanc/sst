@@ -37,7 +37,7 @@ $pageTitle = 'Export des données';
             <div class="form-group">
                 <label for="type">Registre</label>
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <select name="type" id="type" <?php echo !empty($formData['all_registries']) ? 'disabled' : ''; ?>>
+                    <select name="type" id="type">
                         <option value="" <?php echo empty($formData['type']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <option value="rsst" <?php echo ($formData['type'] ?? '') === 'rsst' ? 'selected' : ''; ?>>RSST</option>
                         <option value="rami" <?php echo ($formData['type'] ?? '') === 'rami' ? 'selected' : ''; ?>>RAMI</option>
@@ -45,8 +45,7 @@ $pageTitle = 'Export des données';
                     </select>
                     <label style="font-weight:normal;white-space:nowrap;display:flex;align-items:center;gap:4px;font-size:13px;">
                         <input type="checkbox" name="all_registries" id="all_registries" value="1"
-                               <?php echo !empty($formData['all_registries']) ? 'checked' : ''; ?>
-                               onchange="document.getElementById('type').disabled=this.checked;if(this.checked)document.getElementById('type').selectedIndex=0;">
+                               <?php echo !empty($formData['all_registries']) ? 'checked' : ''; ?>>
                         Tous les registres
                     </label>
                 </div>
@@ -56,7 +55,7 @@ $pageTitle = 'Export des données';
             <div class="form-group">
                 <label for="site_id">Site</label>
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <select name="site_id" id="site_id" <?php echo !empty($formData['all_sites']) ? 'disabled' : ''; ?>>
+                    <select name="site_id" id="site_id">
                         <option value="" <?php echo empty($formData['site_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($sites as $site): ?>
                         <option value="<?php echo (int) $site['id']; ?>" <?php echo ($formData['site_id'] ?? '') == $site['id'] ? 'selected' : ''; ?>><?php echo e($site['nom']); ?></option>
@@ -64,8 +63,7 @@ $pageTitle = 'Export des données';
                     </select>
                     <label style="font-weight:normal;white-space:nowrap;display:flex;align-items:center;gap:4px;font-size:13px;">
                         <input type="checkbox" name="all_sites" id="all_sites" value="1"
-                               <?php echo !empty($formData['all_sites']) ? 'checked' : ''; ?>
-                               onchange="document.getElementById('site_id').disabled=this.checked;if(this.checked)document.getElementById('site_id').selectedIndex=0;">
+                               <?php echo !empty($formData['all_sites']) ? 'checked' : ''; ?>>
                         Tous les sites
                     </label>
                 </div>
@@ -75,7 +73,7 @@ $pageTitle = 'Export des données';
             <div class="form-group">
                 <label for="declarant_id">Agent</label>
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <select name="declarant_id" id="declarant_id" <?php echo !empty($formData['all_agents']) ? 'disabled' : ''; ?>>
+                    <select name="declarant_id" id="declarant_id">
                         <option value="" <?php echo empty($formData['declarant_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($users as $u): ?>
                         <option value="<?php echo (int) $u['id']; ?>" <?php echo ($formData['declarant_id'] ?? '') == $u['id'] ? 'selected' : ''; ?>><?php echo e($u['prenom'] . ' ' . $u['nom']); ?></option>
@@ -83,8 +81,7 @@ $pageTitle = 'Export des données';
                     </select>
                     <label style="font-weight:normal;white-space:nowrap;display:flex;align-items:center;gap:4px;font-size:13px;">
                         <input type="checkbox" name="all_agents" id="all_agents" value="1"
-                               <?php echo !empty($formData['all_agents']) ? 'checked' : ''; ?>
-                               onchange="document.getElementById('declarant_id').disabled=this.checked;if(this.checked)document.getElementById('declarant_id').selectedIndex=0;">
+                               <?php echo !empty($formData['all_agents']) ? 'checked' : ''; ?>>
                         Tous les agents
                     </label>
                 </div>

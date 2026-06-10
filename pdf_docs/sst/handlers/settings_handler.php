@@ -32,13 +32,14 @@ try {
         // Delete all existing site notification settings
         $pdo->prepare("DELETE FROM notification_settings WHERE type = 'site'")->execute();
 
-        // Insert new site emails
+        // Insert new site emails (textarea format: one email per line)
         $siteEmails = $_POST['site_emails'] ?? [];
         if (is_array($siteEmails)) {
-            foreach ($siteEmails as $siteId => $emails) {
+            foreach ($siteEmails as $siteId => $emailText) {
                 $siteId = (int) $siteId;
-                if (!is_array($emails)) continue;
-                foreach ($emails as $email) {
+                // Parse textarea: split by newlines, trim, filter valid emails
+                $lines = preg_split('/[\r\n]+/', $emailText);
+                foreach ($lines as $email) {
                     $email = trim($email);
                     if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
                         saveNotificationSetting($pdo, $siteId, 'site', 'all', $email);
@@ -52,10 +53,11 @@ try {
         // Delete all existing global notification settings
         $pdo->prepare("DELETE FROM notification_settings WHERE type = 'global'")->execute();
 
-        // Insert new global emails
-        $globalEmails = $_POST['global_emails'] ?? [];
-        if (is_array($globalEmails)) {
-            foreach ($globalEmails as $email) {
+        // Insert new global emails (textarea format: one email per line)
+        $globalEmailsText = trim($_POST['global_emails'] ?? '');
+        if ($globalEmailsText !== '') {
+            $lines = preg_split('/[\r\n]+/', $globalEmailsText);
+            foreach ($lines as $email) {
                 $email = trim($email);
                 if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     saveNotificationSetting($pdo, null, 'global', 'all', $email);

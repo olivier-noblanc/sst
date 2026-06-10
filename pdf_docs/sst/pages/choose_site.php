@@ -53,37 +53,10 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             </select>
         </div>
 
-        <div id="siteWarning" style="display:none;margin-bottom:16px;padding:12px 16px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#991b1b;font-size:13px;">
+        <div style="margin-bottom:16px;padding:12px 16px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#991b1b;font-size:13px;">
             ⚠️ <strong>Attention :</strong> ce choix est définitif. Vous ne pourrez plus le modifier par vous-même. En cas d'erreur, contactez un superviseur.
         </div>
 
-        <button type="submit" class="btn btn--primary btn--full" id="confirmBtn" disabled>Confirmer mon choix</button>
+        <button type="submit" class="btn btn--primary btn--full">Confirmer mon choix</button>
     </form>
 </div>
-
-<script>
-(function() {
-    var select = document.getElementById('site_id');
-    var warning = document.getElementById('siteWarning');
-    var btn = document.getElementById('confirmBtn');
-    var form = document.getElementById('chooseSiteForm');
-
-    select.addEventListener('change', function() {
-        if (this.value) {
-            warning.style.display = 'block';
-            btn.disabled = false;
-        } else {
-            warning.style.display = 'none';
-            btn.disabled = true;
-        }
-    });
-
-    // Simple confirm() dialog before submitting — no double-click confusion
-    form.addEventListener('submit', function(e) {
-        var siteName = select.options[select.selectedIndex].text;
-        if (!confirm('Confirmez-vous votre choix : ' + siteName + ' ?\n\nCe choix est DÉFINITIF. Vous ne pourrez pas le modifier vous-même.')) {
-            e.preventDefault();
-        }
-    });
-})();
-</script>

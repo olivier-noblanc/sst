@@ -2,6 +2,40 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.2.0] — 2026-06-10
+
+### Technique — Suppression du JavaScript personnalisé (zéro JS côté métier)
+
+Objectif : éliminer tout JavaScript personnalisé de l'application. Les seuls `onclick` restants sont des appels natifs `showModal()` HTML5 pour ouvrir des `<dialog>` — aucun framework, aucune logique métier en JS.
+
+- **synthesis.php** : les filtres année/site utilisaient `onchange="window.location.href=..."` → remplacés par un `<form method="GET">` avec bouton « Filtrer »
+- **statistics.php** : le filtre année utilisait `onchange="window.location.href=..."` → remplacé par un `<form method="GET">` avec bouton « Filtrer »
+- **export.php** : les checkboxes « Tous » utilisaient `onchange="...disabled=..."` → supprimés. Le handler côté serveur ignore déjà les selects quand la checkbox est cochée.
+- **choose_site.php** : le `<script>` qui toggle le warning + `confirm()` → supprimé. Le warning est toujours visible, le select a `required` HTML5.
+- **report_form.php** : le `<script>` qui toggle `pour_compte_fields` → remplacé par CSS `:has()` : `.form-grid:has(#pour_compte:checked) #pour_compte_fields { display: block; }`
+- **settings.php — Tag input** : le système de tags avec `addTag()`, `syncHidden()`, `onclick`, `onkeydown` → remplacé par des `<textarea>` simples (une adresse e-mail par ligne). Le handler parse les lignes côté serveur.
+- **settings.php — SMTP test** : le `fetch()` + `alert()` → remplacé par un formulaire POST classique. Le handler `smtp_test_handler.php` redirige avec flash message au lieu de retourner du JSON.
+- **settings.php — Visibilité agent** : le `<script>` qui toggle le warning radio → remplacé par CSS `:has()` : `#visibility-radios:not(:has(input[value="site"]:checked)):not(:has(input[value="own"]:checked)) .agent-visibility-warning { display: none; }`
+- **settings.php — Confirm suppressions** : les `onclick="return confirm(...)"` → remplacés par `<dialog>` HTML5 natif avec `showModal()`
+- **user_edit.php** : le `onsubmit="return confirm(...)"` → remplacé par `<dialog>` HTML5 natif
+- **report_card.php** + **confirm_dialog.php** : le `onclick="...style.display='block'"` → remplacé par `<dialog>` HTML5 natif
+
+### Technique — Fichiers modifiés
+
+- `pages/synthesis.php` : `<form method="GET">` + bouton Filtrer
+- `pages/statistics.php` : `<form method="GET">` + bouton Filtrer
+- `pages/export.php` : suppression des `onchange`, retrait des `disabled`
+- `pages/choose_site.php` : suppression du `<script>`, warning toujours visible, `required` HTML5
+- `pages/settings.php` : textarea au lieu de tags, formulaire POST pour SMTP test, CSS `:has()` pour warning, `<dialog>` pour confirmations
+- `pages/user_edit.php` : `<dialog>` au lieu de `onsubmit confirm()`
+- `templates/report_card.php` : `<dialog>` au lieu de `div` masqué
+- `templates/confirm_dialog.php` : contenu `<dialog>` avec `formmethod="dialog"` natif
+- `templates/report_form.php` : CSS `:has()` au lieu de `<script>`
+- `handlers/settings_handler.php` : parse textarea (une adresse/ligne) au lieu de tableaux
+- `handlers/smtp_test_handler.php` : redirect + flash au lieu de JSON
+
+---
+
 ## [2.1.0] — 2026-06-10
 
 ### Fonctionnalités — Changelog consultable dans l'UI

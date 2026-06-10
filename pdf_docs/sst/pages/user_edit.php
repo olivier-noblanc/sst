@@ -117,13 +117,30 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
 
 <!-- Delete user (soft delete) -->
 <?php if ($user['is_active'] && (int) $user['id'] !== (int) ($_SESSION['user']['id'] ?? 0)): ?>
+<dialog id="confirm-delete-dialog" class="confirm-dialog">
+    <form method="dialog">
+        <p>Êtes-vous sûr de vouloir désactiver cet utilisateur ?</p>
+        <p style="font-size:13px;color:var(--grey-600);">La désactivation rendra le compte inutilisable. Cette action est réversible.</p>
+        <div class="confirm-dialog__actions">
+            <button type="submit" value="cancel" class="btn btn--secondary">Annuler</button>
+            <button type="submit" value="confirm" class="btn btn--danger" id="confirm-delete-btn">Supprimer (désactiver)</button>
+        </div>
+    </form>
+</dialog>
 <div class="card" style="margin-top:20px;border-top:4px solid var(--dgi-color);">
     <h3 style="margin-bottom:12px;color:var(--dgi-color);">Zone dangereuse</h3>
     <p style="color:var(--grey-600);margin-bottom:16px;">La désactivation rendra le compte inutilisable. Cette action est réversible.</p>
-    <form method="POST" action="<?php echo url('user_delete'); ?>" onsubmit="return confirm('Êtes-vous sûr de vouloir désactiver cet utilisateur ?');">
+    <form method="POST" action="<?php echo url('user_delete'); ?>" id="delete-user-form">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
-        <button type="submit" class="btn btn--danger">Supprimer (désactiver)</button>
     </form>
+    <button type="button" class="btn btn--danger" onclick="document.getElementById('confirm-delete-dialog').showModal()">Supprimer (désactiver)</button>
+    <script>
+    document.getElementById('confirm-delete-dialog').addEventListener('close', function() {
+        if (this.returnValue === 'confirm') {
+            document.getElementById('delete-user-form').submit();
+        }
+    });
+    </script>
 </div>
 <?php endif; ?>

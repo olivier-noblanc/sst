@@ -3,46 +3,35 @@
  * SMTP Test Handler — Application SST DREETS BFC
  *
  * POST handler: sends a real test email to a specified recipient
- * using the form values (before they are saved).
- * Returns JSON {ok: bool, message: string}.
+ * using the saved SMTP configuration.
+ * Redirects back to SMTP settings with a flash message (no JavaScript needed).
  * Access: superviseur only.
  */
 
-header('Content-Type: application/json; charset=UTF-8');
-
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['ok' => false, 'message' => 'Méthode non autorisée.']);
-    exit;
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    http_response_code(403);
-    echo json_encode(['ok' => false, 'message' => 'Jeton CSRF invalide. Actualisez la page.']);
-    exit;
+    setFlash('error', 'Jeton CSRF invalide. Actualisez la page.');
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 if (!hasRole('superviseur')) {
-    http_response_code(403);
-    echo json_encode(['ok' => false, 'message' => 'Accès refusé.']);
-    exit;
+    setFlash('error', 'Accès refusé.');
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 // ── Parameters ────────────────────────────────────────────────────────────────
 
 $to         = trim($_POST['smtp_test_to']   ?? '');
-$host       = trim($_POST['smtp_host']       ?? getConfig('smtp_host', ''));
-$port       = (int) ($_POST['smtp_port']     ?? getConfig('smtp_port', 25));
-$user       = trim($_POST['smtp_user']       ?? getConfig('smtp_user', ''));
-$pass       = trim($_POST['smtp_pass']       ?? '');
-$encryption = trim($_POST['smtp_encryption'] ?? getConfig('smtp_encryption', 'none'));
-$from       = trim($_POST['smtp_from']       ?? getConfig('smtp_from', ''));
+$host       = trim(getConfig('smtp_host', ''));
+$port       = (int) getConfig('smtp_port', 25);
+$user       = trim(getConfig('smtp_user', ''));
+$pass       = trim(getConfig('smtp_pass', ''));
+$encryption = trim(getConfig('smtp_encryption', 'none'));
+$from       = trim(getConfig('smtp_from', ''));
 $appName    = getConfig('app_nom_organisation', 'DREETS BFC');
-
-// Empty password field = keep saved password
-if ($pass === '') {
-    $pass = getConfig('smtp_pass', '');
-}
 
 if (!in_array($encryption, ['none', 'tls', 'starttls'], true)) {
     $encryption = 'none';
@@ -51,22 +40,22 @@ if (!in_array($encryption, ['none', 'tls', 'starttls'], true)) {
 // ── Validation ────────────────────────────────────────────────────────────────
 
 if (empty($to) || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
-    echo json_encode(['ok' => false, 'message' => 'Adresse destinataire invalide.']);
-    exit;
+    setFlash('error', 'Adresse destinataire invalide.');
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 if (empty($host)) {
-    echo json_encode(['ok' => false, 'message' => 'Hôte SMTP non renseigné.']);
-    exit;
+    setFlash('error', 'Hôte SMTP non renseigné. Enregistrez d\'abord la configuration SMTP.');
+    redirect(url('settings', ['tab' => 'smtp']));
+}
+
+if (empty($from) || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
+    setFlash('error', 'Adresse d\'expédition (smtp_from) invalide. Enregistrez d\'abord la configuration SMTP.');
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 if ($port <= 0 || $port > 65535) {
     $port = 25;
-}
-
-if (empty($from) || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
-    echo json_encode(['ok' => false, 'message' => 'Adresse d\'expédition (smtp_from) invalide.']);
-    exit;
 }
 
 // ── Socket connection ─────────────────────────────────────────────────────────
@@ -74,8 +63,8 @@ if (empty($from) || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
 $prefix = ($encryption === 'tls') ? 'tls://' : '';
 $socket = @fsockopen($prefix . $host, $port, $errno, $errstr, 10);
 if (!$socket) {
-    echo json_encode(['ok' => false, 'message' => "Impossible de joindre $host:$port — [$errno] $errstr"]);
-    exit;
+    setFlash('error', "Impossible de joindre $host:$port — [$errno] $errstr");
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 stream_set_timeout($socket, 10);
@@ -83,8 +72,8 @@ stream_set_timeout($socket, 10);
 $greeting = fgets($socket);
 if (substr($greeting, 0, 3) !== '220') {
     fclose($socket);
-    echo json_encode(['ok' => false, 'message' => 'Réponse inattendue du serveur : ' . trim($greeting)]);
-    exit;
+    setFlash('error', 'Réponse inattendue du serveur : ' . trim($greeting));
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 // EHLO
@@ -99,13 +88,13 @@ if ($encryption === 'starttls') {
     $r = fgets($socket);
     if (substr($r, 0, 3) !== '220') {
         fwrite($socket, "QUIT\r\n"); fclose($socket);
-        echo json_encode(['ok' => false, 'message' => 'STARTTLS refusé : ' . trim($r)]);
-        exit;
+        setFlash('error', 'STARTTLS refusé : ' . trim($r));
+        redirect(url('settings', ['tab' => 'smtp']));
     }
     if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
         fclose($socket);
-        echo json_encode(['ok' => false, 'message' => 'Échec de la négociation TLS.']);
-        exit;
+        setFlash('error', 'Échec de la négociation TLS.');
+        redirect(url('settings', ['tab' => 'smtp']));
     }
     fwrite($socket, "EHLO localhost\r\n");
     while ($line = fgets($socket)) {
@@ -119,8 +108,8 @@ if ($user !== '' && $pass !== '') {
     $r = fgets($socket);
     if (substr($r, 0, 3) !== '334') {
         fwrite($socket, "QUIT\r\n"); fclose($socket);
-        echo json_encode(['ok' => false, 'message' => 'AUTH LOGIN refusé : ' . trim($r)]);
-        exit;
+        setFlash('error', 'AUTH LOGIN refusé : ' . trim($r));
+        redirect(url('settings', ['tab' => 'smtp']));
     }
     fwrite($socket, base64_encode($user) . "\r\n");
     fgets($socket);
@@ -128,8 +117,8 @@ if ($user !== '' && $pass !== '') {
     $r = fgets($socket);
     if (substr($r, 0, 3) !== '235') {
         fwrite($socket, "QUIT\r\n"); fclose($socket);
-        echo json_encode(['ok' => false, 'message' => 'Authentification échouée : ' . trim($r)]);
-        exit;
+        setFlash('error', 'Authentification échouée : ' . trim($r));
+        redirect(url('settings', ['tab' => 'smtp']));
     }
 }
 
@@ -138,8 +127,8 @@ fwrite($socket, "MAIL FROM:<$from>\r\n");
 $r = fgets($socket);
 if (substr($r, 0, 3) !== '250') {
     fwrite($socket, "QUIT\r\n"); fclose($socket);
-    echo json_encode(['ok' => false, 'message' => 'MAIL FROM refusé : ' . trim($r)]);
-    exit;
+    setFlash('error', 'MAIL FROM refusé : ' . trim($r));
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 // RCPT TO
@@ -147,8 +136,8 @@ fwrite($socket, "RCPT TO:<$to>\r\n");
 $r = fgets($socket);
 if (substr($r, 0, 3) !== '250') {
     fwrite($socket, "QUIT\r\n"); fclose($socket);
-    echo json_encode(['ok' => false, 'message' => "RCPT TO <$to> refusé : " . trim($r)]);
-    exit;
+    setFlash('error', "RCPT TO <$to> refusé : " . trim($r));
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 // DATA
@@ -156,8 +145,8 @@ fwrite($socket, "DATA\r\n");
 $r = fgets($socket);
 if (substr($r, 0, 3) !== '354') {
     fwrite($socket, "QUIT\r\n"); fclose($socket);
-    echo json_encode(['ok' => false, 'message' => 'DATA refusé : ' . trim($r)]);
-    exit;
+    setFlash('error', 'DATA refusé : ' . trim($r));
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
 $date    = date('r');
@@ -186,9 +175,9 @@ fwrite($socket, "QUIT\r\n");
 fclose($socket);
 
 if (substr($r, 0, 3) !== '250') {
-    echo json_encode(['ok' => false, 'message' => 'Message rejeté par le serveur : ' . trim($r)]);
-    exit;
+    setFlash('error', 'Message rejeté par le serveur : ' . trim($r));
+    redirect(url('settings', ['tab' => 'smtp']));
 }
 
-echo json_encode(['ok' => true, 'message' => "E-mail de test envoyé à $to via $host:$port."]);
-exit;
+setFlash('success', "E-mail de test envoyé avec succès à $to via $host:$port.");
+redirect(url('settings', ['tab' => 'smtp']));

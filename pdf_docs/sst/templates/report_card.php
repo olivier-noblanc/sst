@@ -151,7 +151,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
     <?php endif; ?>
 
     <?php if ($canAbandon): ?>
-        <a href="#" onclick="document.getElementById('abandon-form').style.display='block';return false;" class="btn btn--danger">Abandonner le signalement</a>
+        <button type="button" class="btn btn--danger" onclick="document.getElementById('abandon-dialog').showModal()">Abandonner le signalement</button>
     <?php endif; ?>
 
     <a href="<?php echo url('report_print', ['id' => $report['id']]); ?>" class="btn btn--outline">Télécharger en PDF</a>
@@ -159,7 +159,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
 </div>
 
 <?php if ($canAbandon): ?>
-<div id="abandon-form" style="display:none;">
+<dialog id="abandon-dialog" class="confirm-dialog">
     <?php require __DIR__ . '/confirm_dialog.php'; ?>
-</div>
+</dialog>
 <?php endif; ?>

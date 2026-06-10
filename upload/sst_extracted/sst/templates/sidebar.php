@@ -36,13 +36,13 @@ if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_G
 
 // Define menu items with role visibility
 $menuItems = [
-    ['label' => 'Accueil',        'icon' => '🏠', 'page' => 'home',                'params' => [],                                  'roles' => ['agent','manager','superviseur','chsct']],
-    ['label' => 'RSST',           'icon' => '📋', 'page' => 'report_list',         'params' => ['type' => 'rsst'],                  'roles' => ['agent','manager','superviseur','chsct']],
-    ['label' => 'RAMI',           'icon' => '⚠️', 'page' => 'report_list',         'params' => ['type' => 'rami'],                  'roles' => ['agent','manager','superviseur','chsct']],
-    ['label' => 'DGI',            'icon' => '🔴', 'page' => 'report_list',         'params' => ['type' => 'dgi'],                   'roles' => ['agent','manager','superviseur','chsct']],
-    ['label' => 'Synthèse',       'icon' => '📊', 'page' => 'synthesis',           'params' => [],                                  'roles' => ['superviseur','manager','chsct']],
-    ['label' => 'Export',         'icon' => '📥', 'page' => 'export',              'params' => [],                                  'roles' => ['superviseur','manager','chsct']],
-    ['label' => 'Statistiques',   'icon' => '📈', 'page' => 'statistics',          'params' => [],                                  'roles' => ['superviseur','manager','chsct']],
+    ['label' => 'Accueil',        'icon' => '🏠', 'page' => 'home',                'params' => [],                                  'roles' => ['agent','superviseur','chsct']],
+    ['label' => 'RSST',           'icon' => '📋', 'page' => 'report_list',         'params' => ['type' => 'rsst'],                  'roles' => ['agent','superviseur','chsct']],
+    ['label' => 'RAMI',           'icon' => '⚠️', 'page' => 'report_list',         'params' => ['type' => 'rami'],                  'roles' => ['agent','superviseur','chsct']],
+    ['label' => 'DGI',            'icon' => '🔴', 'page' => 'report_list',         'params' => ['type' => 'dgi'],                   'roles' => ['agent','superviseur','chsct']],
+    ['label' => 'Synthèse',       'icon' => '📊', 'page' => 'synthesis',           'params' => [],                                  'roles' => ['superviseur','chsct']],
+    ['label' => 'Export',         'icon' => '📥', 'page' => 'export',              'params' => [],                                  'roles' => ['superviseur','chsct']],
+    ['label' => 'Statistiques',   'icon' => '📈', 'page' => 'statistics',          'params' => [],                                  'roles' => ['superviseur','chsct']],
     ['label' => 'Utilisateurs',   'icon' => '👥', 'page' => 'users',               'params' => [],                                  'roles' => ['superviseur']],
     ['label' => 'Paramètres',     'icon' => '⚙️', 'page' => 'settings',            'params' => [],                                  'roles' => ['superviseur']],
 ];

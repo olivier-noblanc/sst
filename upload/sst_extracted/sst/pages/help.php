@@ -2,8 +2,8 @@
 /**
  * Help / Documentation Page — Application SST DREETS BFC
  * 
- * Documents the 4 user profiles, their permissions,
- * and the 3 registries with their specific features.
+ * Conforme à la documentation DIRECCTE (manuels utilisateurs PDF).
+ * 3 profils : Agent, Superviseur, CHSCT.
  */
 $pageTitle = 'Documentation';
 $userRole = $_SESSION['user']['role'] ?? 'agent';
@@ -16,7 +16,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
 <!-- ============================================================ -->
 <div class="card" style="margin-bottom:20px;">
     <h2 style="margin-bottom:16px;">👥 Profils utilisateurs</h2>
-    <p style="margin-bottom:16px;color:var(--grey-600);">L'application dispose de 4 profils avec des droits croissants. En production, le profil est attribué par un Superviseur via la gestion des utilisateurs, ou automatiquement via la liste des administrateurs configurée dans les Paramètres.</p>
+    <p style="margin-bottom:16px;color:var(--grey-600);">L'application dispose de 3 profils avec des droits croissants, conformément à la documentation DIRECCTE. En production, le profil Superviseur peut être attribué par un autre Superviseur via la gestion des utilisateurs, ou via la liste des logins superviseur configurée dans les Paramètres (utile pour une première installation).</p>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
 
@@ -53,30 +53,12 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Accéder à la <strong>Synthèse</strong></li>
                 <li>Accéder aux <strong>Statistiques</strong></li>
                 <li><strong>Exporter</strong> les données</li>
-                <li>Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver)</li>
+                <li>Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver, attribuer le rôle superviseur)</li>
                 <li>Configurer les <strong>paramètres</strong> (SMTP, notifications, application)</li>
                 <li>Imprimer une fiche de signalement</li>
             </ul>
             <p style="font-size:12px;color:var(--grey-500);margin-top:10px;border-top:1px solid var(--grey-100);padding-top:8px;">
-                🔑 Auto-promu via <strong>préfixe "adm."</strong> ou <strong>Paramètres → Logins administrateurs</strong>.
-            </p>
-        </div>
-
-        <!-- Manager -->
-        <div style="border:1px solid var(--grey-200);border-radius:8px;padding:16px;border-left:4px solid var(--rami-color,#6b7280);">
-            <h3 style="margin-bottom:8px;">
-                <span class="badge badge--manager" style="font-size:12px;">Manager</span>
-            </h3>
-            <p style="font-size:13px;color:var(--grey-600);margin-bottom:12px;">Profil de consultation élargie. Le manager suit l'activité des signalements sans pouvoir y répondre directement.</p>
-            <ul style="font-size:13px;margin:0;padding-left:18px;">
-                <li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
-                <li>Voir les signalements de <strong>tous les sites</strong></li>
-                <li>Accéder à la <strong>Synthèse</strong></li>
-                <li>Accéder aux <strong>Statistiques</strong></li>
-                <li><strong>Exporter</strong> les données</li>
-            </ul>
-            <p style="font-size:12px;color:var(--grey-500);margin-top:10px;border-top:1px solid var(--grey-100);padding-top:8px;">
-                ⚠ Ne peut pas répondre aux signalements ni gérer les utilisateurs.
+                🔑 Peut être attribué par un autre Superviseur via la gestion des utilisateurs, ou via <strong>Paramètres → Logins superviseur</strong> (utile pour une première installation).
             </p>
         </div>
 
@@ -85,7 +67,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
             <h3 style="margin-bottom:8px;">
                 <span class="badge badge--chsct" style="font-size:12px;">Membre CHSCT</span>
             </h3>
-            <p style="font-size:13px;color:var(--grey-600);margin-bottom:12px;">Membre de la Commission Hygiène, Sécurité et Conditions de Travail. Accès en consultation élargie comme le Manager.</p>
+            <p style="font-size:13px;color:var(--grey-600);margin-bottom:12px;">Membre de la Commission Hygiène, Sécurité et Conditions de Travail. Accès en consultation élargie sur tous les sites.</p>
             <ul style="font-size:13px;margin:0;padding-left:18px;">
                 <li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
                 <li>Voir les signalements de <strong>tous les sites</strong></li>
@@ -94,7 +76,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li><strong>Exporter</strong> les données</li>
             </ul>
             <p style="font-size:12px;color:var(--grey-500);margin-top:10px;border-top:1px solid var(--grey-100);padding-top:8px;">
-                ⚠ Ne peut pas répondre aux signalements ni gérer les utilisateurs.
+                ⚠ Ne peut pas répondre aux signalements ni gérer les utilisateurs — rôle de consultation uniquement.
             </p>
         </div>
     </div>
@@ -105,14 +87,13 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
 <!-- ============================================================ -->
 <div class="card" style="margin-bottom:20px;border-left:4px solid #dc2626;">
     <h2 style="margin-bottom:12px;">🔒 Confidentialité des signalements</h2>
-    <p style="font-size:13px;color:var(--grey-700);margin-bottom:12px;">Le signalement est confidentiel. Seuls le déclarant, les superviseurs et les membres du CHSCT peuvent y accéder selon leur rôle. Les managers ont également accès en consultation.</p>
+    <p style="font-size:13px;color:var(--grey-700);margin-bottom:12px;">Le signalement est confidentiel. Seuls le déclarant, les superviseurs et les membres du CHSCT peuvent y accéder selon leur rôle.</p>
     <table class="table" style="font-size:13px;">
         <thead>
             <tr>
                 <th style="text-align:left;">Règle d'accès</th>
                 <th style="text-align:center;">Agent</th>
                 <th style="text-align:center;">Superviseur</th>
-                <th style="text-align:center;">Manager</th>
                 <th style="text-align:center;">CHSCT</th>
             </tr>
         </thead>
@@ -122,19 +103,16 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <td style="text-align:center;">✅</td>
                 <td style="text-align:center;">✅</td>
                 <td style="text-align:center;">✅</td>
-                <td style="text-align:center;">✅</td>
             </tr>
             <tr>
                 <td>Voit les signalements de son site</td>
                 <td style="text-align:center;">✅ <span style="font-size:11px;color:var(--grey-500);">(défaut)</span></td>
                 <td style="text-align:center;">✅</td>
                 <td style="text-align:center;">✅</td>
-                <td style="text-align:center;">✅</td>
             </tr>
             <tr>
                 <td>Voit les signalements de tous les sites</td>
                 <td style="text-align:center;">❌</td>
-                <td style="text-align:center;">✅</td>
                 <td style="text-align:center;">✅</td>
                 <td style="text-align:center;">✅</td>
             </tr>
@@ -149,13 +127,12 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
 <div class="card" style="margin-bottom:20px;">
     <h2 style="margin-bottom:16px;">🔒 Tableau des droits</h2>
     <div style="overflow-x:auto;">
-        <table class="table" style="font-size:13px;min-width:600px;">
+        <table class="table" style="font-size:13px;min-width:500px;">
             <thead>
                 <tr>
                     <th style="text-align:left;">Fonctionnalité</th>
                     <th style="text-align:center;">Agent</th>
                     <th style="text-align:center;">Superviseur</th>
-                    <th style="text-align:center;">Manager</th>
                     <th style="text-align:center;">CHSCT</th>
                 </tr>
             </thead>
@@ -165,11 +142,9 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
-                    <td style="text-align:center;">✅</td>
                 </tr>
                 <tr>
                     <td>Voir ses signalements</td>
-                    <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
@@ -179,12 +154,10 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
-                    <td style="text-align:center;">✅</td>
                 </tr>
                 <tr>
                     <td>Voir les signalements de tous les sites</td>
                     <td style="text-align:center;">❌</td>
-                    <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                 </tr>
@@ -193,13 +166,11 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                     <td style="text-align:center;">❌</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">❌</td>
-                    <td style="text-align:center;">❌</td>
                 </tr>
                 <tr>
                     <td>Abandonner un signalement</td>
                     <td style="text-align:center;">❌</td>
                     <td style="text-align:center;">✅</td>
-                    <td style="text-align:center;">❌</td>
                     <td style="text-align:center;">❌</td>
                 </tr>
                 <tr>
@@ -207,12 +178,10 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                     <td style="text-align:center;">❌</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">❌</td>
-                    <td style="text-align:center;">❌</td>
                 </tr>
                 <tr>
                     <td>Synthèse des signalements</td>
                     <td style="text-align:center;">❌</td>
-                    <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                 </tr>
@@ -221,12 +190,10 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                     <td style="text-align:center;">❌</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
-                    <td style="text-align:center;">✅</td>
                 </tr>
                 <tr>
                     <td>Exporter les données</td>
                     <td style="text-align:center;">❌</td>
-                    <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">✅</td>
                 </tr>
@@ -235,13 +202,11 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                     <td style="text-align:center;">❌</td>
                     <td style="text-align:center;">✅</td>
                     <td style="text-align:center;">❌</td>
-                    <td style="text-align:center;">❌</td>
                 </tr>
                 <tr>
                     <td>Paramètres de l'application</td>
                     <td style="text-align:center;">❌</td>
                     <td style="text-align:center;">✅</td>
-                    <td style="text-align:center;">❌</td>
                     <td style="text-align:center;">❌</td>
                 </tr>
             </tbody>
@@ -365,7 +330,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
         <h3 style="margin-bottom:8px;">CU2 — Signalement RAMI pour le compte d'un collègue</h3>
         <p style="font-size:12px;color:var(--grey-500);margin-bottom:10px;">Profil : Agent • Registre : RAMI</p>
         <div style="font-size:13px;line-height:1.8;">
-            <strong>Situation :</strong> Sophie, agent au Siège, witness une agression verbale envers son collègue Pierre par un usager. Pierre est trop choqué pour faire le signalement lui-même.<br><br>
+            <strong>Situation :</strong> Sophie, agent au Siège, est témoin d'une agression verbale envers son collègue Pierre par un usager. Pierre est trop choqué pour faire le signalement lui-même.<br><br>
             <strong>Parcours :</strong>
             <ol style="padding-left:20px;">
                 <li>Sophie clique sur <strong>« Inscrire un signalement »</strong> sur la carte RAMI</li>
@@ -428,12 +393,12 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
         </div>
     </div>
 
-    <!-- CU6 : Manager consulte -->
+    <!-- CU6 : CHSCT consulte -->
     <div style="border:1px solid var(--grey-200);border-radius:8px;padding:16px;margin-bottom:16px;">
-        <h3 style="margin-bottom:8px;">CU6 — Un manager suit l'activité des signalements</h3>
-        <p style="font-size:12px;color:var(--grey-500);margin-bottom:10px;">Profil : Manager ou CHSCT</p>
+        <h3 style="margin-bottom:8px;">CU6 — Un membre CHSCT suit l'activité des signalements</h3>
+        <p style="font-size:12px;color:var(--grey-500);margin-bottom:10px;">Profil : CHSCT</p>
         <div style="font-size:13px;line-height:1.8;">
-            <strong>Situation :</strong> Philippe, manager, souhaite avoir une vue d'ensemble de l'activité des 3 registres sur l'ensemble des sites.<br><br>
+            <strong>Situation :</strong> Philippe, membre du CHSCT, souhaite avoir une vue d'ensemble de l'activité des 3 registres sur l'ensemble des sites.<br><br>
             <strong>Parcours :</strong>
             <ol style="padding-left:20px;">
                 <li>Il accède à la <strong>Synthèse</strong> pour voir le nombre de signalements par registre, par site et par état</li>
@@ -442,7 +407,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Il peut consulter le détail de n'importe quel signalement sur <strong>tous les sites</strong></li>
             </ol>
             <p style="margin-top:8px;padding:8px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">
-                ⚠ Le Manager et le membre CHSCT <strong>ne peuvent pas répondre</strong> aux signalements ni modifier les utilisateurs — ils ont un rôle de consultation uniquement.
+                ⚠ Le membre CHSCT <strong>ne peut pas répondre</strong> aux signalements ni modifier les utilisateurs — il a un rôle de consultation uniquement.
             </p>
         </div>
     </div>
@@ -459,12 +424,12 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>L'agent est alors redirigé vers la page <strong>« Choisir mon site »</strong> — il sélectionne son UR parmi les sites actifs. Ce choix est <strong>définitif</strong> pour l'agent (seul un superviseur peut le modifier ensuite).</li>
                 <li>Le superviseur peut ensuite modifier le site ou le rôle dans <strong>Utilisateurs</strong> si nécessaire</li>
                 <li>Il peut aussi <strong>désactiver</strong> un compte d'agent qui a quitté la structure</li>
+                <li>Un superviseur peut <strong>attribuer le rôle Superviseur</strong> à un autre utilisateur via la gestion des utilisateurs</li>
             </ol>
             <p style="margin-top:8px;font-size:13px;"><strong>Configuration initiale :</strong></p>
             <ol style="padding-left:20px;">
                 <li>Dans <strong>Paramètres → Application</strong>, configurer le nom de l'organisation et le libellé des unités (UR, UD...)</li>
-                <li>Dans <strong>Paramètres → Application</strong>, configurer le <strong>préfixe de login administrateur</strong> (par défaut <code>adm.</code>) — tout login commençant par ce préfixe sera automatiquement promu Superviseur (ex: <code>adm.olivier.noblanc</code>)</li>
-                <li>Compléter si besoin la <strong>liste explicite des logins administrateurs</strong> pour les utilisateurs dont le login ne suit pas la convention de préfixe</li>
+                <li>Dans <strong>Paramètres → Application</strong>, configurer la <strong>liste des logins superviseur</strong> — ajouter les logins Windows des premiers superviseurs (séparés par virgules). Ils seront automatiquement promus Superviseur lors de leur première connexion</li>
                 <li>Dans <strong>Paramètres → SMTP</strong>, configurer le serveur d'envoi d'e-mails</li>
                 <li>Dans <strong>Paramètres → Notifications</strong>, ajouter les adresses e-mail à notifier par site et/ou globalement</li>
             </ol>
@@ -500,16 +465,16 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 L'utilisateur est automatiquement authentifié via son compte Windows Active Directory.
                 Aucun formulaire de login n'est affiché. Son compte est créé automatiquement à la première connexion.
                 <br><br>
-                <strong>Promotion automatique :</strong> si le login Windows commence par le préfixe configuré
-                (par défaut <code>adm.</code>), l'utilisateur est automatiquement promu Superviseur.
-                Exemple : <code>DREETS-BFC\adm.olivier.noblanc</code> → Superviseur.
+                <strong>Attribution du rôle Superviseur :</strong> si le login Windows figure dans la liste configurée
+                dans les Paramètres (<strong>Logins superviseur</strong>), l'utilisateur est automatiquement promu Superviseur.
+                Ensuite, les superviseurs peuvent attribuer ce rôle à d'autres utilisateurs via la gestion des utilisateurs.
             </p>
         </div>
         <div style="padding:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
             <h4 style="margin-bottom:6px;color:#92400e;">⚙️ Développement</h4>
             <p style="font-size:13px;color:var(--grey-600);">
                 En mode développement, un <strong>formulaire de connexion mock</strong> permet de tester les différents profils.
-                Les comptes de test sont : <code>admin.dev</code>, <code>agent.dev</code>, <code>manager.dev</code>, <code>chsct.dev</code>.
+                Les comptes de test sont : <code>admin.dev</code>, <code>agent.dev</code>, <code>chsct.dev</code>.
             </p>
         </div>
     </div>

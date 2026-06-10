@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
     nom             TEXT NOT NULL,                   -- Last name
     prenom          TEXT NOT NULL,                   -- First name
     email           TEXT,                            -- Email address
-    role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent'|'manager'|'superviseur'|'chsct'
+    role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent'|'superviseur'|'chsct'
     site_id         INTEGER,                         -- FK to sites (NULL until agent chooses on first login)
     is_active       INTEGER NOT NULL DEFAULT 1,      -- Soft delete: 0 = deactivated
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
@@ -134,10 +134,8 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
     ('app_nom_organisation', 'DREETS BFC', 'text', 'app', 'Nom de l''organisation', 1),
     ('app_nom_complet', 'DREETS Bourgogne-Franche-Comté', 'text', 'app', 'Nom complet', 1),
     ('app_label_unite', 'UR', 'text', 'app', 'Libellé des unités (UD, UR, etc.)', 1),
-    ('app_admin_prefix', 'adm.', 'text', 'app', 'Préfixe de login Windows pour la promotion automatique en Superviseur. Tout utilisateur dont le login commence par ce préfixe sera automatiquement promu Superviseur (ex: "adm." → "adm.olivier.noblanc" = Superviseur). Laisser vide pour désactiver.', 1),
-    ('app_admin_usernames', '', 'text', 'app', 'Logins Windows des administrateurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS.', 1),
-    ('app_agent_see_only_own', '0', 'text', 'app', 'Si activé (1), les agents ne voient que leurs propres signalements. ⚠️ Attention : cela peut ne pas être conforme au Code du travail concernant les registres SST. (Obsolète : utilisez app_agent_visibility)', 1),
-    ('app_agent_visibility', 'all', 'text', 'app', 'Visibilité des agents : "all" (tous les signalements, par défaut), "site" (uniquement son site), "own" (uniquement ses propres signalements).', 1),
+    ('app_admin_usernames', '', 'text', 'app', 'Logins Windows des superviseurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS. Utile pour une première installation.', 1),
+    ('app_agent_visibility', 'site', 'text', 'app', 'Visibilité des agents : "site" (uniquement son site, par défaut et conforme), "own" (uniquement ses propres signalements).', 1),
     ('smtp_host', '', 'text', 'smtp', 'Serveur SMTP', 1),
     ('smtp_port', '25', 'number', 'smtp', 'Port SMTP', 1),
     ('smtp_user', '', 'text', 'smtp', 'Utilisateur SMTP', 1),

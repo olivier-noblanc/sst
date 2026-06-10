@@ -30,9 +30,7 @@ Plateforme des Registres en Santé et Sécurité au Travail
 |------------|------|------|
 | admin.dev | Superviseur | Siège |
 | agent.dev | Agent | UR Côte-d'Or |
-| manager.dev | Manager | Siège |
 | chsct.dev | Membre CHSCT | Siège |
-| adm.olivier.noblanc | Superviseur (auto-promu) | À choisir au login |
 
 Mot de passe pour tous : `test`
 
@@ -43,18 +41,16 @@ php -S localhost:8080 -t public/ public/router.php
 # Ouvrir http://localhost:8080/?page=login
 ```
 
-## Promotion automatique des administrateurs
+## Promotion automatique des superviseurs
 
-Deux mécanismes pour promouvoir automatiquement un utilisateur en Superviseur :
+Un seul mécanisme pour promouvoir un utilisateur en Superviseur :
 
-1. **Préfixe de login** (par défaut `adm.`) : tout login Windows commençant par ce préfixe est auto-promu Superviseur.
-   - Exemple : `adm.olivier.noblanc` → Superviseur
-   - Configurable dans **Paramètres → Application → Préfixe de login administrateur**
-
-2. **Liste explicite** : ajouter les logins séparés par virgules dans **Paramètres → Application → Logins Windows des administrateurs**
-   - Exemple : `jean.martin, sophie.dupont`
+- **Liste explicite des logins superviseur** : ajouter les logins Windows séparés par virgules dans **Paramètres → Application → Logins Windows des superviseurs**
+  - Exemple : `jean.martin, sophie.dupont`
 
 La promotion s'applique aussi aux utilisateurs existants à leur prochaine connexion.
+
+Un superviseur peut attribuer le rôle Superviseur à un autre utilisateur via la gestion des utilisateurs.
 
 ## Structure
 
@@ -109,11 +105,10 @@ sst-app-fixed/
 | Agressions, Menaces et Incivilités | RAMI | Gris | Agressions verbales/physiques |
 | Danger Grave et Imminent | DGI | Rouge | Dangers immédiats |
 
-## 4 Rôles
+## 3 Rôles
 
 | Rôle | Permissions |
 |------|------------|
 | Agent | Créer, voir, modifier (ses), abandonner ses signalements |
 | Superviseur | Agent + Répondre, Synthèse, Export, Stats, Paramètres, Utilisateurs |
-| Manager | Intermédiaire |
 | CHSCT | Vue élargie sur tous les sites (lecture) |

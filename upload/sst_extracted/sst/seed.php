@@ -31,8 +31,7 @@ echo "Database initialized with schema.\n";
 // Default users (IDs 1-4):
 //   1: admin.dev   — superviseur, Siège (site 1)
 //   2: agent.dev   — agent, UR21 (site 2)
-//   3: manager.dev — manager, Siège (site 1)
-//   4: chsct.dev   — chsct, Siège (site 1)
+//   3: chsct.dev — chsct, Siège (site 1)
 //
 // Additional users (IDs 5-14):
 //   5: Superviseur UR25 (site 3)
@@ -76,8 +75,7 @@ echo "Created " . count($testUsers) . " additional test users (14 total with def
 // User IDs reference:
 //   1: admin.dev (superviseur, Siège)
 //   2: agent.dev (agent, UR21)
-//   3: manager.dev (manager, Siège)
-//   4: chsct.dev (chsct, Siège)
+//   3: chsct.dev (chsct, Siège)
 //   5: nathalie.rousseau (superviseur, UR25)
 //   6: marc.benjamin (superviseur, UR21)
 //   7: jean.dupont (agent, UR25)
@@ -532,7 +530,7 @@ foreach (['rsst', 'rami', 'dgi'] as $type) {
 }
 
 // User breakdown
-foreach (['superviseur', 'manager', 'agent', 'chsct'] as $role) {
+foreach (['superviseur', 'agent', 'chsct'] as $role) {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = :role AND is_active = 1");
     $stmt->execute([':role' => $role]);
     echo "  $role: " . $stmt->fetchColumn() . "\n";

@@ -99,7 +99,6 @@ try {
         $appNomOrganisation = trim($_POST['app_nom_organisation'] ?? '');
         $appNomComplet = trim($_POST['app_nom_complet'] ?? '');
         $appLabelUnite = trim($_POST['app_label_unite'] ?? '');
-        $appAdminPrefix = trim($_POST['app_admin_prefix'] ?? '');
         $appAdminUsernames = trim($_POST['app_admin_usernames'] ?? '');
 
         // Validate: none should be empty (admin usernames can be empty)
@@ -123,7 +122,6 @@ try {
         updateConfig($pdo, 'app_nom_organisation', $appNomOrganisation);
         updateConfig($pdo, 'app_nom_complet', $appNomComplet);
         updateConfig($pdo, 'app_label_unite', $appLabelUnite);
-        updateConfig($pdo, 'app_admin_prefix', $appAdminPrefix);
         updateConfig($pdo, 'app_admin_usernames', $appAdminUsernames);
 
         // Agent visibility setting (radio: site / own)
@@ -132,9 +130,6 @@ try {
             $agentVisibility = 'site';
         }
         updateConfig($pdo, 'app_agent_visibility', $agentVisibility);
-
-        // Legacy key: keep in sync for backward compatibility
-        updateConfig($pdo, 'app_agent_see_only_own', $agentVisibility === 'own' ? '1' : '0');
 
         // Clear the getConfig() static cache so new values are picked up immediately
         clearConfigCache();

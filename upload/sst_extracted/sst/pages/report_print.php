@@ -27,8 +27,8 @@ if (!$report) {
 }
 
 // Access control: confidentiality check
-// Le signalement est confidentiel : seuls le déclarant, les superviseurs,
-// les managers et les membres CHSCT peuvent y accéder.
+// Le signalement est confidentiel : seuls le déclarant, les superviseurs
+// et les membres CHSCT peuvent y accéder.
 if (!canAccessReport($report)) {
     setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
     redirect(url('home'));

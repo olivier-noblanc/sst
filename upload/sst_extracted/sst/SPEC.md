@@ -34,12 +34,11 @@ Web application for three workplace health & safety registries at DREETS BFC (Fr
 | RAMI | Registre des Actes d'Agressions, de Menaces et d'Incivilités | Grey (#6C6C6C) | Aggression/threat/incivility reports |
 | DGI | Registre de signalement d'un Danger Grave et Imminent | Red (#B22222) | Immediate danger reports |
 
-### Four Roles
+### Three Roles
 | Role | Code | Permissions |
 |------|------|-------------|
 | Agent | `agent` | Create reports, view own site reports, modify/abandon own reports |
 | Superviseur | `superviseur` | Agent perms + respond to reports, synthesis, export, stats, settings, user management |
-| Manager | `manager` | Intermediate — same as Superviseur but no user management, no settings |
 | Membre CHSCT | `chsct` | View all sites (like Superviseur) + stats/synthesis/export, read-only on settings |
 
 ### Report States
@@ -191,7 +190,7 @@ CREATE TABLE IF NOT EXISTS users (
     nom             TEXT NOT NULL,                   -- Last name
     prenom          TEXT NOT NULL,                   -- First name
     email           TEXT,                            -- Email address
-    role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent'|'manager'|'superviseur'|'chsct'
+    role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent'|'superviseur'|'chsct'
     site_id         INTEGER NOT NULL,                -- FK to sites
     is_active       INTEGER NOT NULL DEFAULT 1,      -- Soft delete: 0 = deactivated
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
@@ -349,12 +348,12 @@ All requests go through `public/index.php`. The URL pattern is:
 | `report_edit` | `handlers/report_edit_handler.php` | POST+`&id=N` | Yes | Owner only |
 | `report_print` | `pages/report_print.php` | GET+`&id=N` | Yes | All (see rules) |
 | `report_abandon` | `handlers/report_abandon_handler.php` | POST+`&id=N` | Yes | Owner only |
-| `report_respond` | `pages/report_respond.php` | GET+`&id=N` | Yes | superviseur, manager |
-| `report_respond` | `handlers/report_respond_handler.php` | POST+`&id=N` | Yes | superviseur, manager |
-| `synthesis` | `pages/synthesis.php` | GET | Yes | superviseur, manager, chsct |
-| `export` | `pages/export.php` | GET | Yes | superviseur, manager, chsct |
-| `export` | `handlers/export_handler.php` | POST | Yes | superviseur, manager, chsct |
-| `statistics` | `pages/statistics.php` | GET | Yes | superviseur, manager, chsct |
+| `report_respond` | `pages/report_respond.php` | GET+`&id=N` | Yes | superviseur |
+| `report_respond` | `handlers/report_respond_handler.php` | POST+`&id=N` | Yes | superviseur |
+| `synthesis` | `pages/synthesis.php` | GET | Yes | superviseur, chsct |
+| `export` | `pages/export.php` | GET | Yes | superviseur, chsct |
+| `export` | `handlers/export_handler.php` | POST | Yes | superviseur, chsct |
+| `statistics` | `pages/statistics.php` | GET | Yes | superviseur, chsct |
 | `settings` | `pages/settings.php` | GET | Yes | superviseur |
 | `settings` | `handlers/settings_handler.php` | POST | Yes | superviseur |
 | `users` | `pages/users.php` | GET | Yes | superviseur |
@@ -508,7 +507,7 @@ SELECT COUNT(*) as count FROM reports WHERE type = 'dgi' AND etat != 'abandonne'
 ```
 
 For agents, add `AND site_id = :user_site_id`.
-For superviseur/manager/chsct, no site filter.
+For superviseur/chsct, no site filter.
 
 ---
 
@@ -625,7 +624,7 @@ VALUES (:reference, :type, :objet, :description, :date_evenement, :heure_eveneme
 - Page title: "Liste des signalements — {RSST|RAMI|DGI}"
 - Filter bar (top):
   - **État**: `<select name="etat">` — Options: Tous, Nouveau, En cours, Traité, Abandonné
-  - **Site (UD)**: `<select name="site">` — Options: Tous + list of sites (only for superviseur/manager/chsct; agent sees only their site)
+  - **Site (UD)**: `<select name="site">` — Options: Tous + list of sites (only for superviseur/chsct; agent sees only their site)
   - **Recherche**: `<input type="text" name="q" placeholder="Rechercher...">` — searches in `objet` and `description`
   - Button: "Filtrer"
 - Results table:
@@ -643,7 +642,7 @@ VALUES (:reference, :type, :objet, :description, :date_evenement, :heure_eveneme
 - Action buttons per row:
   - **Voir** — always shown, link to `report_view&id={id}`
   - **Modifier** — shown only if current user is the declarant AND etat is `nouveau` or `en_cours`
-  - **Répondre** — shown only if role is superviseur/manager AND etat is `nouveau` or `en_cours`
+  - **Répondre** — shown only if role is superviseur AND etat is `nouveau` or `en_cours`
   - **Abandonner** — shown only if current user is the declarant AND etat is NOT `abandonne` AND etat is NOT `traite`
 
 - Pagination at bottom (20 items per page):
@@ -685,7 +684,7 @@ LIMIT :limit OFFSET :offset
 
 #### Access Control
 - If agent and report's `site_id` !== user's `site_id`, show access denied
-- If report's `etat` is `abandonne` and user is not the declarant and not superviseur/manager/chsct, show "Ce signalement a été abandonné"
+- If report's `etat` is `abandonne` and user is not the declarant and not superviseur/chsct, show "Ce signalement a été abandonné"
 
 #### Display
 - Page title: "Signalement — {reference}"
@@ -720,7 +719,7 @@ LIMIT :limit OFFSET :offset
 
 - Action buttons (bottom):
   - **Modifier** — if current user is declarant AND etat is nouveau/en_cours
-  - **Répondre** — if role is superviseur/manager AND etat is nouveau/en_cours
+  - **Répondre** — if role is superviseur AND etat is nouveau/en_cours
   - **Abandonner** — if current user is declarant AND etat is not abandonne/traite
   - **Imprimer** — link to `report_print&id={id}`, always shown
   - **Retour à la liste** — link to `report_list&type={type}`
@@ -839,11 +838,11 @@ WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours');
 ### 5.10 Report Respond Page (`pages/report_respond.php`)
 
 **URL**: `index.php?page=report_respond&id={report_id}`
-**Access**: superviseur, manager only
+**Access**: superviseur only
 **Method**: GET (display form), POST (via handler)
 
 #### Access Control
-- Verify role is `superviseur` or `manager`
+- Verify role is `superviseur`
 - Verify report etat is `nouveau` or `en_cours`
 
 #### Display
@@ -893,7 +892,7 @@ VALUES (:id, :user_id, :reponse, :nouvel_etat);
 ### 5.11 Synthesis Page (`pages/synthesis.php`)
 
 **URL**: `index.php?page=synthesis`
-**Access**: superviseur, manager, chsct
+**Access**: superviseur, chsct
 **Method**: GET
 
 #### Display
@@ -932,7 +931,7 @@ ORDER BY s.code, r.type;
 ### 5.12 Export Page (`pages/export.php`)
 
 **URL**: `index.php?page=export`
-**Access**: superviseur, manager, chsct
+**Access**: superviseur, chsct
 **Method**: GET (display form), POST (via handler, returns CSV)
 
 #### Display
@@ -995,7 +994,7 @@ ORDER BY r.created_at DESC
 ### 5.13 Statistics Page (`pages/statistics.php`)
 
 **URL**: `index.php?page=statistics`
-**Access**: superviseur, manager, chsct
+**Access**: superviseur, chsct
 **Method**: GET
 
 #### Display
@@ -1107,7 +1106,7 @@ VALUES (:site_id, :type, :registry, :email);
 | Nom | `user.nom` |
 | Prénom | `user.prenom` |
 | Email | `user.email` |
-| Rôle | Badge: agent=blue, manager=orange, superviseur=red, chsct=purple |
+| Rôle | Badge: agent=blue, superviseur=red, chsct=purple |
 | Site | `site.code` — `site.nom` |
 | Actif | "Oui" (green) / "Non" (red) |
 | Actions | "Modifier" button → `user_edit&id={id}` |
@@ -1142,7 +1141,7 @@ LIMIT :limit OFFSET :offset;
 | `nom` | `<input type="text">` | Yes | Read-only (from LDAP) |
 | `prenom` | `<input type="text">` | Yes | Read-only (from LDAP) |
 | `email` | `<input type="email">` | No | Read-only (from LDAP) |
-| `role` | `<select>` | Yes | Options: agent, manager, superviseur, chsct |
+| `role` | `<select>` | Yes | Options: agent, superviseur, chsct |
 | `site_id` | `<select>` | Yes | All sites |
 
 - Hidden: `csrf_token`, `user_id`
@@ -1213,7 +1212,7 @@ WHERE id = :id;
 ### 6.5 Authorization Checks
 - Role-based access enforced in each page/handler:
   ```php
-  requireRole(['superviseur', 'manager']); // for synthesis, export, stats
+  requireRole(['superviseur', 'chsct']); // for synthesis, export, stats
   requireRole(['superviseur']); // for settings, users
   ```
 - Ownership checks for edit/abandon: `report.declarant_id === $_SESSION['user']['id']`
@@ -1227,7 +1226,7 @@ WHERE id = :id;
 - `description`: max 5000 chars, trimmed
 - `type`: must be in whitelist `['rsst', 'rami', 'dgi']`
 - `etat`: must be in whitelist `['nouveau', 'en_cours', 'traite', 'abandonne']`
-- `role`: must be in whitelist `['agent', 'manager', 'superviseur', 'chsct']`
+- `role`: must be in whitelist `['agent', 'superviseur', 'chsct']`
 - `site_id`: must exist in sites table
 
 ### 6.7 Session Security
@@ -1370,7 +1369,6 @@ $_SESSION['user'] = [
 
     /* Role badge colors */
     --role-agent: #2E5C8A;
-    --role-manager: #E67E22;
     --role-superviseur: #B22222;
     --role-chsct: #8E44AD;
 
@@ -1491,7 +1489,6 @@ tr:hover td { background: var(--grey-50); }
 .badge--traite { background: var(--state-traite); }
 .badge--abandonne { background: var(--state-abandonne); }
 .badge--agent { background: var(--role-agent); }
-.badge--manager { background: var(--role-manager); }
 .badge--superviseur { background: var(--role-superviseur); }
 .badge--chsct { background: var(--role-chsct); }
 .badge--rsst { background: var(--rsst-color); }
@@ -1646,7 +1643,7 @@ Abandonné ──→ (no further transitions)
 
 ### 10.3 Site Visibility
 - **Agent**: Can only see reports from their own `site_id`
-- **Superviseur/Manager/CHSCT**: Can see reports from ALL sites
+- **Superviseur/CHSCT**: Can see reports from ALL sites
 - This applies to: report list, statistics, synthesis, export
 - On the home page, agent counts reflect only their site
 
@@ -1728,9 +1725,9 @@ Types: `success`, `error`, `warning`, `info`
 | 2 | RSST | 📋 | `report_list&type=rsst` | All |
 | 3 | RAMI | ⚠️ | `report_list&type=rami` | All |
 | 4 | DGI | 🔴 | `report_list&type=dgi` | All |
-| 5 | Synthèse | 📊 | `synthesis` | superviseur, manager, chsct |
-| 6 | Export | 📥 | `export` | superviseur, manager, chsct |
-| 7 | Statistiques | 📈 | `statistics` | superviseur, manager, chsct |
+| 5 | Synthèse | 📊 | `synthesis` | superviseur, chsct |
+| 6 | Export | 📥 | `export` | superviseur, chsct |
+| 7 | Statistiques | 📈 | `statistics` | superviseur, chsct |
 | 8 | Utilisateurs | 👥 | `users` | superviseur |
 | 9 | Paramètres | ⚙️ | `settings` | superviseur |
 
@@ -1758,7 +1755,6 @@ Items hidden based on role — not shown at all, not just greyed out.
 | DB Value | Display Label |
 |----------|---------------|
 | `agent` | Agent |
-| `manager` | Manager |
 | `superviseur` | Superviseur |
 | `chsct` | Membre CHSCT |
 

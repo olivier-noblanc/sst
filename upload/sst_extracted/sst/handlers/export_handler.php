@@ -3,7 +3,7 @@
  * Export Handler — Application SST DREETS BFC
  * 
  * POST handler: generate CSV and send as download.
- * Access: superviseur, manager, chsct
+ * Access: superviseur, chsct
  */
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -17,7 +17,7 @@ if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
 }
 
 // Check role
-if (!hasAnyRole(['superviseur', 'manager', 'chsct'])) {
+if (!hasAnyRole(['superviseur', 'chsct'])) {
     setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
     redirect(url('home'));
 }

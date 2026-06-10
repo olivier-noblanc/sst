@@ -73,11 +73,10 @@ if (isset($_SESSION['user'])) {
                 <ul>
                     <li><code>admin.dev</code> — Superviseur (Siège)</li>
                     <li><code>agent.dev</code> — Agent (UR21 Côte-d'Or)</li>
-                    <li><code>manager.dev</code> — Manager (Siège)</li>
                     <li><code>chsct.dev</code> — Membre CHSCT (Siège)</li>
                 </ul>
                 <p style="font-size:12px;color:var(--grey-500);margin-top:8px;">
-                    Tout login commençant par "<code>adm.</code>" sera automatiquement promu Superviseur (ex: <code>adm.olivier.noblanc</code>).
+                    Les logins configurés dans Paramètres → Logins superviseur seront automatiquement promus Superviseur.
                 </p>
                 <p style="font-size:12px;color:var(--grey-500);margin-top:4px;">
                     Tout autre nom d'utilisateur créera un compte agent automatiquement.

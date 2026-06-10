@@ -7,7 +7,7 @@
 
 // Application metadata
 define('APP_NAME', 'Application SST — DREETS BFC');
-define('APP_VERSION', '1.1.0');
+define('APP_VERSION', '1.2.0');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
 // Environment: set to 'dev' for mock auth, 'prod' for IIS+LDAP
@@ -51,10 +51,9 @@ define('REGISTRY_SHORT_LABELS', [
     'dgi'  => 'DGI',
 ]);
 
-// Role labels
+// Role labels (3 roles conformes à la documentation DIRECCTE)
 define('ROLE_LABELS', [
     'agent'       => 'Agent',
-    'manager'     => 'Manager',
     'superviseur' => 'Superviseur',
     'chsct'       => 'Membre CHSCT',
 ]);

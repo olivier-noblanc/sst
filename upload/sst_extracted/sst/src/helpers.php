@@ -174,7 +174,6 @@ function getRegistryBadgeClass(string $type): string {
 function getRoleBadgeClass(string $role): string {
     return match ($role) {
         'agent'       => 'badge--agent',
-        'manager'     => 'badge--manager',
         'superviseur' => 'badge--superviseur',
         'chsct'       => 'badge--chsct',
         default       => '',
@@ -183,11 +182,10 @@ function getRoleBadgeClass(string $role): string {
 
 /**
  * Check if the current user can see all sites.
- * Superviseurs, managers, CHSCT members always see all sites.
- * Agents depend on the app_agent_visibility config:
- *   - 'all'  → can see all sites (non-conforme, conservé pour compatibilité)
- *   - 'site' → only their own site (défaut, conforme à la documentation)
- *   - 'own'  → only their own reports (implicit single site)
+ * Superviseurs et CHSCT voient toujours tous les sites.
+ * Les agents dépendent de la config app_agent_visibility :
+ *   - 'site' → uniquement son site (défaut, conforme à la documentation)
+ *   - 'own'  → uniquement ses propres signalements
  * 
  * @return bool
  */
@@ -196,27 +194,24 @@ function canSeeAllSites(): bool {
         return false;
     }
     // Non-agent roles always see all sites
-    if (in_array($_SESSION['user']['role'], ['superviseur', 'manager', 'chsct'])) {
+    if (in_array($_SESSION['user']['role'], ['superviseur', 'chsct'])) {
         return true;
     }
-    // Agent: depends on visibility setting
-    if ($_SESSION['user']['role'] === 'agent') {
-        return getAgentVisibility() === 'all';
-    }
+    // Agent: visibilité toujours limitée
     return false;
 }
 
 /**
  * Check if the current user can access a specific report.
  * 
- * Confidentiality rule: a report is accessible only to:
- *   - The declarant (owner)
- *   - Superviseurs
- *   - Managers
- *   - CHSCT members
+ * Règle de confidentialité (conforme documentation DIRECCTE) :
+ * un signalement est accessible uniquement à :
+ *   - Le déclarant (propriétaire)
+ *   - Les superviseurs
+ *   - Les membres du CHSCT
  * 
- * Agents can only see reports from their own site (visibility = 'site')
- * or their own reports (visibility = 'own'), per the documentation.
+ * Les agents ne voient que les signalements de leur site (visibility = 'site')
+ * ou leurs propres signalements (visibility = 'own'), conformément à la documentation.
  * 
  * @param array $report  The report data (must contain declarant_id, site_id)
  * @return bool
@@ -229,8 +224,8 @@ function canAccessReport(array $report): bool {
     $userId = (int) $user['id'];
     $userRole = $user['role'];
 
-    // Superviseur, manager et CHSCT voient tous les signalements
-    if (in_array($userRole, ['superviseur', 'manager', 'chsct'])) {
+    // Superviseur et CHSCT voient tous les signalements
+    if (in_array($userRole, ['superviseur', 'chsct'])) {
         return true;
     }
 
@@ -246,12 +241,8 @@ function canAccessReport(array $report): bool {
             // Ne voit que ses propres signalements (déjà vérifié ci-dessus)
             return false;
         }
-        if ($visibility === 'site') {
-            // Voit les signalements de son site
-            return (int) $report['site_id'] === (int) $user['site_id'];
-        }
-        // 'all' : voit tout (non conforme par défaut, mais possible via config)
-        return true;
+        // 'site' (défaut) : voit les signalements de son site
+        return (int) $report['site_id'] === (int) $user['site_id'];
     }
 
     return false;
@@ -261,11 +252,10 @@ function canAccessReport(array $report): bool {
  * Get the agent visibility mode.
  * Returns one of: 'site', 'own'
  * 
- * - 'site' : Agent sees signalements from their own site only (DEFAULT, conforme documentation)
- * - 'own'  : Agent sees only their own signalements
- * - 'all'  : Agent sees ALL signalements (non conforme, conservé pour compatibilité ascendante)
+ * - 'site' : L'agent voit les signalements de son site uniquement (DÉFAUT, conforme documentation)
+ * - 'own'  : L'agent voit uniquement ses propres signalements
  * 
- * Non-agent roles always get 'all'.
+ * Les rôles non-agent reçoivent toujours 'all'.
  * 
  * @return string
  */
@@ -274,14 +264,13 @@ function getAgentVisibility(): string {
         return 'all';
     }
     $value = getConfig('app_agent_visibility', 'site');
-    // Backward compatibility: old value '0' = all, '1' = own
-    if ($value === '0') return 'all';
+    // Rétrocompatibilité : ancienne valeur '1' = own
     if ($value === '1') return 'own';
-    // New values: 'site' (default), 'own', 'all'
-    if (in_array($value, ['all', 'site', 'own'])) {
+    // Valeurs valides : 'site' (défaut), 'own'
+    if (in_array($value, ['site', 'own'])) {
         return $value;
     }
-    return 'site'; // Default fallback — conforme à la documentation
+    return 'site'; // Fallback par défaut — conforme à la documentation
 }
 
 

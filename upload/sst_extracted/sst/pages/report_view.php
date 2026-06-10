@@ -21,8 +21,8 @@ if (!$report) {
 }
 
 // Access control: confidentiality check
-// Le signalement est confidentiel : seuls le déclarant, les superviseurs,
-// les managers et les membres CHSCT peuvent y accéder.
+// Le signalement est confidentiel : seuls le déclarant, les superviseurs
+// et les membres CHSCT peuvent y accéder.
 if (!canAccessReport($report)) {
     setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
     redirect(url('home'));
@@ -32,8 +32,8 @@ $user = $_SESSION['user'];
 $userId = (int) $user['id'];
 $userRole = $user['role'];
 
-// If report is abandoned and user is not declarant nor supervisor/manager/chsct
-if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== $userId && !in_array($userRole, ['superviseur', 'manager', 'chsct'])) {
+// If report is abandoned and user is not declarant nor supervisor/chsct
+if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== $userId && !in_array($userRole, ['superviseur', 'chsct'])) {
     setFlash('warning', 'Ce signalement a été abandonné.');
 }
 

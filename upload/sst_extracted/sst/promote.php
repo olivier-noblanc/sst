@@ -7,7 +7,7 @@
  * 
  * Exemples:
  *   php promote.php jean.martin superviseur
- *   php promote.php sophie.dupont manager
+ *   php promote.php sophie.dupont chsct
  *   php promote.php pierre.bernard agent
  * 
  * Sans argument role, promeut en superviseur par défaut.
@@ -36,7 +36,7 @@ require_once __DIR__ . '/src/queries/user_queries.php';
 $username = $argv[1] ?? null;
 $role = $argv[2] ?? 'superviseur';
 
-$validRoles = ['agent', 'superviseur', 'manager', 'chsct'];
+$validRoles = ['agent', 'superviseur', 'chsct'];
 
 if (empty($username)) {
     echo "Usage: php promote.php <username> [role]\n";
@@ -44,7 +44,7 @@ if (empty($username)) {
     echo "Par défaut: superviseur\n\n";
     echo "Exemples:\n";
     echo "  php promote.php jean.martin superviseur\n";
-    echo "  php promote.php sophie.dupont manager\n";
+    echo "  php promote.php sophie.dupont chsct\n";
     exit(1);
 }
 
@@ -86,16 +86,14 @@ echo "  Site        : {$user['site_code']} — {$user['site_nom']}\n";
 echo "  Email       : {$user['email']}\n\n";
 
 // Also update config_app admin list suggestion
-$adminPrefix = getConfig('app_admin_prefix', 'adm.');
 $adminUsernames = getConfig('app_admin_usernames', '');
-if (empty($adminUsernames) && empty($adminPrefix)) {
+if (empty($adminUsernames)) {
     echo "Astuce: pour que les futurs utilisateurs soient aussi auto-promus, vous pouvez :\n";
-    echo "  - Configurer un préfixe admin dans Paramètres → 'Préfixe de login administrateur' (ex: adm.)\n";
-    echo "  - Ou ajouter des logins dans Paramètres → 'Logins Windows des administrateurs'\n";
+    echo "  - Ajouter des logins dans Paramètres → 'Logins Windows des superviseurs'\n";
     echo "  - Ou exécuter : php promote.php <username> superviseur\n";
-} elseif (!empty($adminPrefix)) {
-    echo "Note: le préfixe admin est configuré à '$adminPrefix'.\n";
-    echo "  Tout login commençant par '$adminPrefix' sera automatiquement promu Superviseur.\n";
+} else {
+    echo "Note: des logins superviseur sont configurés dans les paramètres.\n";
+    echo "  Les utilisateurs de cette liste seront automatiquement promus Superviseur.\n";
 }
 
 echo "Terminé.\n";

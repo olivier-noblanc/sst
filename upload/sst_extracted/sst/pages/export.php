@@ -3,9 +3,9 @@
  * Export Page — Application SST DREETS BFC
  * 
  * CSV data export with filters.
- * Access: superviseur, manager, chsct
+ * Access: superviseur, chsct
  */
-requireRole(['superviseur', 'manager', 'chsct']);
+requireRole(['superviseur', 'chsct']);
 
 $pdo = getDB();
 

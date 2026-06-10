@@ -372,27 +372,15 @@ function testSmtp() {
         </div>
 
         <div class="form-group">
-            <label for="app_admin_prefix">Préfixe de login administrateur</label>
-            <input type="text" id="app_admin_prefix" name="app_admin_prefix" class="form-control"
-                   value="<?php echo e(getConfig('app_admin_prefix', 'adm.')); ?>"
-                   placeholder="adm." maxlength="20">
-            <small class="text-muted" style="display:block;margin-top:4px;">
-                Tout utilisateur dont le login Windows commence par ce préfixe sera automatiquement promu <strong>Superviseur</strong>.
-                Par exemple, avec le préfixe "<code>adm.</code>", le login "<code>adm.olivier.noblanc</code>" sera Superviseur.
-                <strong>Laisser vide pour désactiver</strong> cette règle de promotion automatique.
-                La promotion s'applique aussi aux utilisateurs existants à leur prochaine connexion.
-            </small>
-        </div>
-
-        <div class="form-group">
-            <label for="app_admin_usernames">Logins Windows des administrateurs (liste explicite)</label>
+            <label for="app_admin_usernames">Logins Windows des superviseurs (liste explicite)</label>
             <input type="text" id="app_admin_usernames" name="app_admin_usernames" class="form-control"
                    value="<?php echo e(getConfig('app_admin_usernames', '')); ?>"
                    placeholder="jean.martin, sophie.dupont">
             <small class="text-muted" style="display:block;margin-top:4px;">
-                Séparés par des virgules. Ces utilisateurs seront également promus <strong>Superviseur</strong>
-                lors de leur connexion via IIS. Complémentaire du préfixe ci-dessus — permet d'ajouter
-                des administrateurs dont le login ne suit pas la convention de préfixe.
+                Séparés par des virgules. Ces utilisateurs seront automatiquement promus <strong>Superviseur</strong>
+                lors de leur connexion via IIS. Utile pour une première installation : configurez ici les logins
+                des premiers superviseurs. Ensuite, les superviseurs peuvent attribuer le rôle à d'autres
+                utilisateurs via la <strong>gestion des utilisateurs</strong>.
             </small>
         </div>
 

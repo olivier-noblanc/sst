@@ -19,7 +19,7 @@ Navigateur → IIS (Windows Auth automatique) → PHP reçoit $_SERVER['AUTH_USE
 1. IIS authentifie l'utilisateur via Windows Authentication **AVANT** que PHP ne s'exécute
 2. `$_SERVER['AUTH_USER']` est **TOUJOURS** rempli (format : `DREETS-BFC\jean.martin`)
 3. PHP lit `AUTH_USER`, cherche l'utilisateur en base, le crée si nécessaire (auto-provisioning)
-4. **Règle de promotion automatique** : si le login commence par le préfixe configuré (par défaut `adm.`), l'utilisateur est automatiquement promu Superviseur. Exemple : `adm.olivier.noblanc` → Superviseur
+4. **Règle de promotion automatique** : si le login figure dans la liste configurée dans les Paramètres (Logins superviseur), l'utilisateur est automatiquement promu Superviseur. Un Superviseur peut aussi attribuer le rôle à un autre utilisateur via la gestion des utilisateurs.
 5. **AUCUN formulaire de login** — la page de login n'est pas accessible en production
 6. Le "déconnexion" vide la session PHP mais IIS re-authentifie automatiquement au prochain accès
 
@@ -158,29 +158,24 @@ define('APP_ENV', 'prod');
 Les paramètres SMTP et organisation sont configurables via l'interface admin :
 - Menu **Paramètres → Notifications** : emails de notification
 - Menu **Paramètres → SMTP** : configuration serveur mail
-- Menu **Paramètres → Application** : nom org, label unités, préfixe admin, visibilité agents
+- Menu **Paramètres → Application** : nom org, label unités, logins superviseur, visibilité agents
 
 ### 9. Configurer les administrateurs
 
 Les premiers utilisateurs sont auto-provisionnés avec le rôle `agent`.
-Pour promouvoir des utilisateurs en `superviseur` automatiquement, il existe **deux mécanismes** :
+Pour promouvoir des utilisateurs en `superviseur`, il existe **deux mécanismes** :
 
-#### Mécanisme 1 : Préfixe de login (recommandé)
-Par défaut, tout login Windows commençant par `adm.` est automatiquement promu Superviseur.
-- Exemple : `adm.olivier.noblanc` → Superviseur
-- Ce préfixe est configurable dans **Paramètres → Paramètres de l'application → Préfixe de login administrateur**
-- Laisser le champ vide pour désactiver cette règle
-- La promotion s'applique aussi aux utilisateurs existants à leur prochaine connexion
-
-#### Mécanisme 2 : Liste explicite de logins
+#### Mécanisme 1 : Liste explicite de logins (utile pour la première installation)
 1. Aller dans **Paramètres → Paramètres de l'application**
-2. Ajouter les logins Windows séparés par des virgules dans le champ "Logins Windows des administrateurs" :
+2. Ajouter les logins Windows séparés par des virgules dans le champ "Logins Windows des superviseurs" :
    ```
    jean.martin, sophie.dupont
    ```
 3. Ces utilisateurs seront automatiquement promus au rôle `superviseur` lors de leur connexion
 
-Alternativement, un administrateur peut modifier le rôle manuellement via la page **Gestion des utilisateurs**.
+#### Mécanisme 2 : Attribution par un Superviseur
+Un Superviseur peut modifier le rôle d'un utilisateur via la page **Gestion des utilisateurs**.
+C'est le mécanisme recommandé une fois les premiers Superviseurs configurés.
 
 ### 10. SMTP pour les notifications
 

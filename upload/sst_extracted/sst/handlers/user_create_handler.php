@@ -49,7 +49,7 @@ if (empty($username)) {
 }
 
 $role = trim($_POST['role'] ?? '');
-if (!in_array($role, ['agent', 'manager', 'superviseur', 'chsct'])) {
+if (!in_array($role, ['agent', 'superviseur', 'chsct'])) {
     $errors['role'] = 'Rôle invalide.';
 }
 

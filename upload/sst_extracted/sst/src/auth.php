@@ -113,7 +113,7 @@ function findOrCreateUser(string $username): ?array {
     $user = $stmt->fetch();
 
     if ($user) {
-        // Check if existing user should be auto-promoted (e.g. "adm." prefix rule)
+        // Check if existing user should be auto-promoted via admin list
         $user = checkAndPromoteUser($pdo, $user, $username);
         return $user;
     }
@@ -135,17 +135,9 @@ function autoProvisionUser(PDO $pdo, string $username): ?array {
     // Determine role: check if username is in admin list
     $role = determineProvisionRole($pdo, $username);
 
-    // Strip admin prefix from username for display name generation
-    // e.g. "adm.olivier.noblanc" → "olivier.noblanc" → "Olivier Noblanc"
-    $displayNameUsername = $username;
-    $adminPrefix = getConfig('app_admin_prefix', 'adm.');
-    if (!empty($adminPrefix) && str_starts_with(strtolower($username), strtolower($adminPrefix))) {
-        $displayNameUsername = substr($username, strlen($adminPrefix));
-    }
-
     // Generate a display name from the username (e.g. "olivier.noblanc" → Olivier Noblanc)
-    $parts = explode('.', $displayNameUsername);
-    $prenom = ucfirst($parts[0] ?? $displayNameUsername);
+    $parts = explode('.', $username);
+    $prenom = ucfirst($parts[0] ?? $username);
     $nom = ucfirst($parts[1] ?? 'Utilisateur');
     // If there are more than 2 parts, join them for the last name
     if (count($parts) > 2) {
@@ -206,28 +198,23 @@ function mockLogin(string $username): ?array {
 
 /**
  * Determine the role for a newly provisioned user.
- * Two mechanisms for auto-promotion to 'superviseur':
+ * Auto-promotion to 'superviseur' via explicit username list only:
  * 
- * 1. Prefix rule: if username starts with 'app_admin_prefix' (default: "adm."),
- *    the user is automatically promoted to superviseur.
- *    Example: "adm.olivier.noblanc" → Superviseur
+ * Si le login figure dans 'app_admin_usernames' (séparés par virgules),
+ * l'utilisateur est automatiquement promu superviseur.
+ * Exemple : "jean.martin, sophie.dupont"
  * 
- * 2. Explicit list: if username is in 'app_admin_usernames' (comma-separated),
- *    the user is promoted to superviseur.
- *    Example: "jean.martin, sophie.dupont"
+ * Utile pour une première installation : configurer les logins des
+ * superviseurs dans les paramètres pour qu'ils soient promus dès leur
+ * première connexion. Ensuite, les superviseurs peuvent attribuer le
+ * rôle superviseur à d'autres utilisateurs via la gestion des utilisateurs.
  * 
  * @param PDO    $pdo       Database connection
  * @param string $username  The Windows login username
  * @return string           Role: 'superviseur' or 'agent'
  */
 function determineProvisionRole(PDO $pdo, string $username): string {
-    // 1. Check admin prefix (e.g. "adm.")
-    $adminPrefix = getConfig('app_admin_prefix', 'adm.');
-    if (!empty($adminPrefix) && str_starts_with(strtolower($username), strtolower($adminPrefix))) {
-        return 'superviseur';
-    }
-
-    // 2. Check explicit username list
+    // Vérifier la liste explicite des logins superviseur
     $adminUsernames = getConfig('app_admin_usernames', '');
     if (!empty($adminUsernames)) {
         // Comma-separated list: "jean.martin, sophie.dupont"
@@ -241,37 +228,28 @@ function determineProvisionRole(PDO $pdo, string $username): string {
 
 /**
  * Check if an existing user should be auto-promoted to superviseur.
- * This handles the case where a user was created before the admin
- * prefix rule was established — on their next login, if their username
- * now matches the admin prefix, their role is upgraded.
+ * Vérifie si le login figure dans la liste explicite des superviseurs.
+ * Ceci permet de promouvoir un agent existant lors de sa prochaine
+ * connexion si son login a été ajouté à la liste entre-temps.
  * 
  * @param PDO    $pdo       Database connection
  * @param array  $user      The existing user data from DB
- * @param string $username  The username (for prefix check)
+ * @param string $username  The username (for list check)
  * @return array            Updated user data (role may be upgraded)
  */
 function checkAndPromoteUser(PDO $pdo, array $user, string $username): array {
-    // Only promote agents and managers — not CHSCT members
-    if (!in_array($user['role'], ['agent', 'manager'])) {
+    // Seuls les agents peuvent être auto-promus (pas les CHSCT)
+    if ($user['role'] !== 'agent') {
         return $user;
     }
 
-    // Check if username matches admin prefix
-    $adminPrefix = getConfig('app_admin_prefix', 'adm.');
+    // Vérifier la liste explicite des logins superviseur
     $shouldPromote = false;
-
-    if (!empty($adminPrefix) && str_starts_with(strtolower($username), strtolower($adminPrefix))) {
-        $shouldPromote = true;
-    }
-
-    // Also check explicit username list
-    if (!$shouldPromote) {
-        $adminUsernames = getConfig('app_admin_usernames', '');
-        if (!empty($adminUsernames)) {
-            $admins = array_map('trim', explode(',', strtolower($adminUsernames)));
-            if (in_array(strtolower($username), $admins)) {
-                $shouldPromote = true;
-            }
+    $adminUsernames = getConfig('app_admin_usernames', '');
+    if (!empty($adminUsernames)) {
+        $admins = array_map('trim', explode(',', strtolower($adminUsernames)));
+        if (in_array(strtolower($username), $admins)) {
+            $shouldPromote = true;
         }
     }
 
@@ -281,7 +259,7 @@ function checkAndPromoteUser(PDO $pdo, array $user, string $username): array {
         $user['role'] = 'superviseur';
 
         // Log the promotion
-        error_log("SST App: Auto-promoted user '$username' to superviseur (admin prefix/list rule)");
+        error_log("SST App: Auto-promoted user '$username' to superviseur (admin list rule)");
     }
 
     return $user;

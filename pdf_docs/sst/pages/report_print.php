@@ -2,8 +2,8 @@
 /**
  * Report Print Page — Application SST DREETS BFC
  *
- * Print-friendly view of a single report. No header/sidebar.
- * Auto-triggers window.print() via JavaScript.
+ * Generates a PDF of a single report using mPDF.
+ * No JavaScript, no window.print() — pure server-side PDF generation.
  * URL: index.php?page=report_print&id={report_id}
  *
  * NOTE: This page is included by the router BEFORE header/sidebar.
@@ -32,20 +32,17 @@ $userSiteId = (int) $user['site_id'];
 $agentVisibility = getAgentVisibility();
 
 if ($agentVisibility === 'own') {
-    // Agent can only see their own reports — need to check declarant
     $userId = (int) $user['id'];
     if ((int) $report['declarant_id'] !== $userId) {
         setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
         redirect(url('home'));
     }
 } elseif ($agentVisibility === 'site') {
-    // Agent can only see reports from their site
     if ((int) $report['site_id'] !== $userSiteId) {
         setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
         redirect(url('home'));
     }
 }
-// 'all' → no restriction
 
 // Get response history
 $responses = getReportResponses($pdo, $id);
@@ -53,159 +50,141 @@ $responses = getReportResponses($pdo, $id);
 $type = $report['type'] ?? 'rsst';
 $registryLabel = REGISTRY_LABELS[$type] ?? strtoupper($type);
 $registryShortLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
-?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signalement <?php echo e($report['reference']); ?> — Impression</title>
-    <link rel="stylesheet" href="<?php echo assetUrl('css/style.css'); ?>">
-</head>
-<body>
-<div class="print-view">
-    <div class="print-view__header">
-        <strong><?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?></strong>
-        <div class="print-view__title">Signalement — <?php echo e($report['reference']); ?></div>
-        <div>
-            <span class="badge <?php echo getRegistryBadgeClass($type); ?>"><?php echo e($registryShortLabel); ?></span>
-            <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>"><?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?></span>
-        </div>
-    </div>
+$etatLabel = ETAT_LABELS[$report['etat']] ?? $report['etat'];
 
-    <div class="print-view__field">
-        <div class="print-view__label">Référence</div>
-        <div class="print-view__value"><?php echo e($report['reference']); ?></div>
-    </div>
+// --- Build PDF with mPDF ---
+require_once __DIR__ . '/../vendor/autoload.php';
 
-    <div class="print-view__field">
-        <div class="print-view__label">Registre</div>
-        <div class="print-view__value"><?php echo e($registryLabel); ?></div>
-    </div>
+$mpdf = new \Mpdf\Mpdf([
+    'mode'          => 'utf-8',
+    'format'        => 'A4',
+    'margin_left'   => 15,
+    'margin_right'  => 15,
+    'margin_top'    => 25,
+    'margin_bottom' => 20,
+    'default_font'  => 'dejavusans',
+]);
 
-    <div class="print-view__field">
-        <div class="print-view__label">Date de l'événement</div>
-        <div class="print-view__value"><?php echo formatDateFR($report['date_evenement']); ?></div>
-    </div>
+$mpdf->SetTitle('Signalement ' . $report['reference']);
+$mpdf->SetAuthor(getConfig('app_nom_organisation', 'DREETS BFC'));
 
-    <div class="print-view__field">
-        <div class="print-view__label">Heure de l'événement</div>
-        <div class="print-view__value"><?php echo e($report['heure_evenement'] ?? '—'); ?></div>
-    </div>
+// Header
+$mpdf->SetHTMLHeader(
+    '<div style="font-size:9px;color:#666;border-bottom:1px solid #ccc;padding-bottom:4px;">'
+    . e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté'))
+    . ' — Signalement ' . e($report['reference'])
+    . '</div>'
+);
 
-    <div class="print-view__field">
-        <div class="print-view__label">Lieu</div>
-        <div class="print-view__value"><?php echo e($report['lieu'] ?? '—'); ?></div>
-    </div>
+// Footer with page number
+$mpdf->SetHTMLFooter(
+    '<div style="font-size:8px;color:#999;border-top:1px solid #ccc;padding-top:4px;text-align:center;">'
+    . 'Page {PAGENO} / {nb} — Généré le ' . date('d/m/Y H:i')
+    . '</div>'
+);
 
-    <div class="print-view__field">
-        <div class="print-view__label">Objet</div>
-        <div class="print-view__value"><?php echo e($report['objet']); ?></div>
-    </div>
+// --- CSS ---
+$css = '
+    body { font-family: dejavusans, sans-serif; font-size: 11pt; color: #222; }
+    h1 { font-size: 16pt; color: #1a3a5c; margin: 0 0 12px 0; }
+    h2 { font-size: 13pt; color: #1a3a5c; margin: 20px 0 8px 0; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+    .field { margin: 6px 0; }
+    .field-label { font-weight: bold; color: #555; display: inline-block; min-width: 180px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 9pt; color: #fff; }
+    .badge-rsst { background-color: #2E5C8A; }
+    .badge-rami { background-color: #6C6C6C; }
+    .badge-dgi { background-color: #B22222; }
+    .badge-nouveau { background-color: #2E5C8A; }
+    .badge-en_cours { background-color: #E67E22; }
+    .badge-traite { background-color: #27AE60; }
+    .badge-abandonne { background-color: #95A5A6; }
+    .response-box { background: #f5f5f5; padding: 10px; border-radius: 4px; border-left: 4px solid #27AE60; margin: 8px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    th { background: #f0f0f0; text-align: left; padding: 6px 8px; border: 1px solid #ddd; font-size: 10pt; }
+    td { padding: 6px 8px; border: 1px solid #ddd; font-size: 10pt; }
+    hr { border: none; border-top: 1px solid #ccc; margin: 16px 0; }
+    .footer-info { font-size: 8pt; color: #999; text-align: center; margin-top: 20px; }
+';
 
-    <div class="print-view__field">
-        <div class="print-view__label">Description</div>
-        <div class="print-view__value"><?php echo nl2br(e($report['description'])); ?></div>
-    </div>
+// --- Build HTML body ---
+$orgName = e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté'));
+$labelUnite = e(getConfig('app_label_unite', 'UR'));
 
-    <div class="print-view__field">
-        <div class="print-view__label">Déclarant</div>
-        <div class="print-view__value"><?php echo e($report['declarant_prenom'] . ' ' . $report['declarant_nom']); ?></div>
-    </div>
+$html = '<style>' . $css . '</style>';
 
-    <div class="print-view__field">
-        <div class="print-view__label"><?php echo e(getConfig('app_label_unite', 'UR')); ?></div>
-        <div class="print-view__value"><?php echo e($report['site_nom'] ?? '—'); ?> (<?php echo e($report['site_code'] ?? '—'); ?>)</div>
-    </div>
+// Organization header
+$html .= '<div style="font-size:9pt;color:#666;margin-bottom:16px;">' . $orgName . '</div>';
 
-    <?php if ($type === 'rami' && !empty($report['pour_compte_nom'])): ?>
-    <div class="print-view__field">
-        <div class="print-view__label">Déclaré pour le compte de</div>
-        <div class="print-view__value"><?php echo e(($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']); ?></div>
-    </div>
-    <?php endif; ?>
+// Title + badges
+$html .= '<h1>Signalement — ' . e($report['reference']) . '</h1>';
+$html .= '<div style="margin-bottom:12px;">'
+    . '<span class="badge badge-' . e($type) . '">' . e($registryShortLabel) . '</span> '
+    . '<span class="badge badge-' . e($report['etat']) . '">' . e($etatLabel) . '</span>'
+    . '</div>';
 
-    <div class="print-view__field">
-        <div class="print-view__label">Date de création</div>
-        <div class="print-view__value"><?php echo formatDateTimeFR($report['created_at']); ?></div>
-    </div>
+// Fields
+$fields = [
+    'Référence'             => e($report['reference']),
+    'Registre'              => e($registryLabel),
+    'Date de l\'événement'  => formatDateFR($report['date_evenement']),
+    'Heure de l\'événement' => e($report['heure_evenement'] ?? '—'),
+    'Lieu'                  => e($report['lieu'] ?? '—'),
+    'Objet'                 => e($report['objet']),
+    'Description'           => nl2br(e($report['description'])),
+    'Déclarant'             => e($report['declarant_prenom'] . ' ' . $report['declarant_nom']),
+    $labelUnite             => e($report['site_nom'] ?? '—') . ' (' . e($report['site_code'] ?? '—') . ')',
+];
 
-    <div class="print-view__field">
-        <div class="print-view__label">État</div>
-        <div class="print-view__value">
-            <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>">
-                <?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?>
-            </span>
-        </div>
-    </div>
+if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
+    $fields['Déclaré pour le compte de'] = e(($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']);
+}
 
-    <?php if (!empty($report['reponse'])): ?>
-    <hr style="margin:24px 0;border:none;border-top:1px solid #ccc;">
-    <h3>Réponse</h3>
-    <div class="print-view__field">
-        <div class="print-view__value" style="background:var(--grey-50);padding:12px;border-radius:4px;border-left:4px solid var(--state-traite);">
-            <?php echo nl2br(e($report['reponse'])); ?>
-        </div>
-    </div>
-    <div class="print-view__field">
-        <div class="print-view__label">Répondant</div>
-        <div class="print-view__value"><?php echo e(($report['repondant_prenom'] ?? '') . ' ' . ($report['repondant_nom'] ?? '')); ?></div>
-    </div>
-    <div class="print-view__field">
-        <div class="print-view__label">Date de réponse</div>
-        <div class="print-view__value"><?php echo formatDateTimeFR($report['date_reponse']); ?></div>
-    </div>
-    <?php endif; ?>
+$fields['Date de création'] = formatDateTimeFR($report['created_at']);
+// État as badge (not plain text)
+// $fields['État'] = ... handled separately
 
-    <?php if (!empty($responses)): ?>
-    <hr style="margin:24px 0;border:none;border-top:1px solid #ccc;">
-    <h3>Historique des réponses</h3>
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Répondant</th>
-                    <th>Nouvel état</th>
-                    <th>Réponse</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($responses as $resp): ?>
-                <tr>
-                    <td><?php echo formatDateTimeFR($resp['created_at']); ?></td>
-                    <td><?php echo e(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? '')); ?></td>
-                    <td>
-                        <?php if (!empty($resp['nouvel_etat'])): ?>
-                            <span class="badge <?php echo getEtatBadgeClass($resp['nouvel_etat']); ?>">
-                                <?php echo e(ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat']); ?>
-                            </span>
-                        <?php else: ?>
-                            —
-                        <?php endif; ?>
-                    </td>
-                    <td><?php echo nl2br(e($resp['reponse'])); ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-    <?php endif; ?>
+foreach ($fields as $label => $value) {
+    $html .= '<div class="field"><span class="field-label">' . e($label) . '</span> <span class="field-value">' . $value . '</span></div>';
+}
 
-    <hr style="margin:24px 0;border:none;border-top:1px solid #ccc;">
-    <div class="print-hint">
-        Utilisez Ctrl+P pour imprimer ce document
-    </div>
-    <div style="text-align:center;color:var(--grey-500);font-size:12px;margin-top:8px;">
-        Document généré le <?php echo formatDateFR(date('Y-m-d')); ?> — <?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?>
-    </div>
-</div>
+// État field with badge
+$html .= '<div class="field"><span class="field-label">État</span> <span class="field-value"><span class="badge badge-' . e($report['etat']) . '">' . e($etatLabel) . '</span></span></div>';
 
-<script>
-// Auto-trigger print dialog after a short delay
-window.addEventListener('load', function() {
-    setTimeout(function() { window.print(); }, 500);
-});
-</script>
-</body>
-</html>
+// Response section
+if (!empty($report['reponse'])) {
+    $html .= '<hr>';
+    $html .= '<h2>Réponse</h2>';
+    $html .= '<div class="response-box">' . nl2br(e($report['reponse'])) . '</div>';
+    $html .= '<div class="field"><span class="field-label">Répondant</span> <span class="field-value">' . e(($report['repondant_prenom'] ?? '') . ' ' . ($report['repondant_nom'] ?? '')) . '</span></div>';
+    $html .= '<div class="field"><span class="field-label">Date de réponse</span> <span class="field-value">' . formatDateTimeFR($report['date_reponse']) . '</span></div>';
+}
+
+// Response history table
+if (!empty($responses)) {
+    $html .= '<hr>';
+    $html .= '<h2>Historique des réponses</h2>';
+    $html .= '<table><thead><tr><th>Date</th><th>Répondant</th><th>Nouvel état</th><th>Réponse</th></tr></thead><tbody>';
+    foreach ($responses as $resp) {
+        $etatResp = !empty($resp['nouvel_etat'])
+            ? e(ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat'])
+            : '—';
+        $html .= '<tr>'
+            . '<td>' . formatDateTimeFR($resp['created_at']) . '</td>'
+            . '<td>' . e(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? '')) . '</td>'
+            . '<td>' . $etatResp . '</td>'
+            . '<td>' . nl2br(e($resp['reponse'])) . '</td>'
+            . '</tr>';
+    }
+    $html .= '</tbody></table>';
+}
+
+// Footer info
+$html .= '<hr>';
+$html .= '<div class="footer-info">Document généré le ' . formatDateFR(date('Y-m-d')) . ' — ' . e(getConfig('app_nom_organisation', 'DREETS BFC')) . '</div>';
+
+// Output PDF
+$mpdf->WriteHTML($html);
+
+$filename = 'signalement-' . $report['reference'] . '.pdf';
+$mpdf->Output($filename, \Mpdf\Output\Destination::DOWNLOAD);
+exit;

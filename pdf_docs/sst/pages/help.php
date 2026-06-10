@@ -440,8 +440,8 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
             <strong>Parcours :</strong>
             <ol style="padding-left:20px;">
                 <li>Le superviseur ouvre le signalement</li>
-                <li>Il clique sur <strong>« Imprimer »</strong></li>
-                <li>Une vue imprimable s'ouvre (sans menu ni sidebar), prête pour l'impression ou l'export PDF via le navigateur</li>
+                <li>Il clique sur <strong>« Télécharger en PDF »</strong></li>
+                <li>Un fichier PDF est généré et téléchargé automatiquement, prêt pour impression ou archivage</li>
             </ol>
         </div>
     </div>

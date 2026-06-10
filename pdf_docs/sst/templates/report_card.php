@@ -154,7 +154,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
         <a href="#" onclick="document.getElementById('abandon-form').style.display='block';return false;" class="btn btn--danger">Abandonner le signalement</a>
     <?php endif; ?>
 
-    <a href="<?php echo url('report_print', ['id' => $report['id']]); ?>" class="btn btn--outline" target="_blank">Imprimer la fiche</a>
+    <a href="<?php echo url('report_print', ['id' => $report['id']]); ?>" class="btn btn--outline">Télécharger en PDF</a>
     <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>
 

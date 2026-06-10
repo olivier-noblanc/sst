@@ -189,17 +189,6 @@ if ($page === 'report_print') {
     exit;
 }
 
-// === CHANGELOG PDF: special handling (binary output before any HTML) ===
-if ($page === 'changelog' && isset($_GET['pdf']) && $_GET['pdf'] === '1') {
-    $pageFile = __DIR__ . '/../pages/changelog.php';
-    if (file_exists($pageFile)) {
-        require $pageFile;
-    } else {
-        redirect(url('home'));
-    }
-    exit;
-}
-
 // === VALIDATE PAGE ===
 if (!in_array($page, $validPages)) {
     $page = 'home';

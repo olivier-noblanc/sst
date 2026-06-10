@@ -4,9 +4,18 @@
 
 - Windows Server 2016+ avec IIS 10+
 - PHP 8.3 installé (Non-Thread-Safe recommandé pour IIS/FastCGI)
+- **Composer** (gestionnaire de dépendances PHP) — voir section 3
 - **PAS BESOIN** du module URL Rewrite (l'app utilise un routage par query string)
 - Active Directory DREETS BFC accessible (pour l'authentification Windows)
 - Module IIS **Windows Authentication** installé
+
+### Extensions PHP requises
+
+```
+sqlite3, pdo_sqlite, mbstring, gd, xml, curl, zip
+```
+
+> L'extension `gd` est nécessaire pour la génération de PDF (mPDF). Vérifier avec `php -m | findstr gd`.
 
 ## Flux d'authentification
 
@@ -19,7 +28,7 @@ Navigateur → IIS (Windows Auth automatique) → PHP reçoit $_SERVER['AUTH_USE
 1. IIS authentifie l'utilisateur via Windows Authentication **AVANT** que PHP ne s'exécute
 2. `$_SERVER['AUTH_USER']` est **TOUJOURS** rempli (format : `DREETS-BFC\jean.martin`)
 3. PHP lit `AUTH_USER`, cherche l'utilisateur en base, le crée si nécessaire (auto-provisioning)
-4. **Règle de promotion automatique** : si le login commence par le préfixe configuré (par défaut `adm.`), l'utilisateur est automatiquement promu Superviseur. Exemple : `adm.olivier.noblanc` → Superviseur
+4. **Règle de promotion automatique** : si le login figure dans la liste `app_superviseur_usernames` configurée dans `src/config.php`, l'utilisateur est automatiquement promu Superviseur lors de sa première connexion
 5. **AUCUN formulaire de login** — la page de login n'est pas accessible en production
 6. Le "déconnexion" vide la session PHP mais IIS re-authentifie automatiquement au prochain accès
 
@@ -51,6 +60,10 @@ define('APP_ENV', 'prod');  // pour IIS en production
    extension=sqlite3
    extension=pdo_sqlite
    extension=mbstring
+   extension=gd
+   extension=xml
+   extension=curl
+   extension=zip
    session.save_path = "C:\inetpub\sessions"
    upload_tmp_dir = "C:\inetpub\uploads"
    date.timezone = Europe/Paris
@@ -83,8 +96,21 @@ define('APP_ENV', 'prod');  // pour IIS en production
 
 ### 3. Déployer l'application
 
-1. Copier le contenu du dossier `sst-app-fixed/` dans `C:\inetpub\wwwroot\sst\`
-2. La structure doit être :
+1. Copier le contenu du projet dans `C:\inetpub\wwwroot\sst\`
+2. **Installer les dépendances PHP avec Composer** :
+   ```cmd
+   cd C:\inetpub\wwwroot\sst
+   composer install --no-dev --optimize-autoloader
+   ```
+   > **Si Composer n'est pas installé**, voir https://getcomposer.org/download/ — télécharger `Composer-Setup.exe` ou utiliser :
+   ```cmd
+   php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+   php composer-setup.php
+   php -r "unlink('composer-setup.php');"
+   ```
+   > L'exécutable `composer.phar` peut être placé dans `C:\php\` (à côté de `php.exe`).
+
+3. La structure doit être :
    ```
    C:\inetpub\wwwroot\sst\
    ├── public\           ← RACINE DU SITE IIS
@@ -92,17 +118,24 @@ define('APP_ENV', 'prod');  // pour IIS en production
    │   ├── web.config    ← Configuration IIS
    │   └── css\
    ├── src\              ← Inaccessible depuis le web (hiddenSegments)
+   │   └── lib\          ← Parsedown.php (inclus sans Composer)
+   ├── vendor\           ← Dépendances Composer (mPDF, etc.)
+   │   ├── autoload.php
+   │   └── mpdf\
    ├── handlers\
    ├── pages\
    ├── templates\
    ├── queries\
    ├── middleware\
    ├── data\             ← Base SQLite (accès en ÉCRITURE requis)
+   ├── composer.json     ← Dépendances PHP
    └── schema.sql
    ```
-3. Créer un site IIS pointant vers `C:\inetpub\wwwroot\sst\public\`
-4. Configurer le binding (port 80 ou 443)
-5. `index.php` est déjà défini comme document par défaut dans web.config
+4. Créer un site IIS pointant vers `C:\inetpub\wwwroot\sst\public\`
+5. Configurer le binding (port 80 ou 443)
+6. `index.php` est déjà défini comme document par défaut dans web.config
+
+> **Note** : le dossier `vendor/` NE DOIT PAS être accessible depuis le web. Le fichier `web.config` inclut déjà `vendor/` dans les hidden segments.
 
 ### 4. Permissions IIS
 
@@ -111,7 +144,7 @@ Donner les permissions **IIS_IUSRS** (lecture + écriture) sur :
 - `C:\inetpub\sessions\` — sessions PHP
 
 Donner les permissions **IIS_IUSRS** (lecture seule) sur :
-- `public\`, `src\`, `handlers\`, `pages\`, `templates\`
+- `public\`, `src\`, `handlers\`, `pages\`, `templates\`, `vendor\`
 
 ### 5. Activer l'authentification Windows
 
@@ -131,7 +164,7 @@ Donner les permissions **IIS_IUSRS** (lecture seule) sur :
 Le fichier `public/web.config` est déjà configuré avec :
 - **Document par défaut** : `index.php` (avec `<clear />` pour éviter les doublons avec la config IIS parente)
 - **Sécurité** : blocage d'accès aux fichiers `.sql`, `.db`, `.sqlite`, `.log`, `.env`, `.bak`
-- **Hidden segments** : dossiers `data/`, `src/`, `handlers/`, `pages/`, `templates/`, `queries/`, `middleware/` inaccessibles
+- **Hidden segments** : dossiers `data/`, `src/`, `handlers/`, `pages/`, `templates/`, `queries/`, `middleware/`, `vendor/` inaccessibles
 - **En-têtes de sécurité** : X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
 - **Erreurs détaillées** : `errorMode="Detailed"` pour voir les erreurs IIS
 
@@ -158,29 +191,29 @@ define('APP_ENV', 'prod');
 Les paramètres SMTP et organisation sont configurables via l'interface admin :
 - Menu **Paramètres → Notifications** : emails de notification
 - Menu **Paramètres → SMTP** : configuration serveur mail
-- Menu **Paramètres → Application** : nom org, label unités, préfixe admin, visibilité agents
+- Menu **Paramètres → Application** : nom org, label unités, visibilité agents
 
-### 9. Configurer les administrateurs
+### 9. Configurer les superviseurs
 
 Les premiers utilisateurs sont auto-provisionnés avec le rôle `agent`.
-Pour promouvoir des utilisateurs en `superviseur` automatiquement, il existe **deux mécanismes** :
+Pour promouvoir des utilisateurs en `superviseur`, il existe **deux méthodes** :
 
-#### Mécanisme 1 : Préfixe de login (recommandé)
-Par défaut, tout login Windows commençant par `adm.` est automatiquement promu Superviseur.
-- Exemple : `adm.olivier.noblanc` → Superviseur
-- Ce préfixe est configurable dans **Paramètres → Paramètres de l'application → Préfixe de login administrateur**
-- Laisser le champ vide pour désactiver cette règle
-- La promotion s'applique aussi aux utilisateurs existants à leur prochaine connexion
+#### Méthode 1 : Liste de bootstrap dans config.php (recommandé pour la première installation)
+Dans `src/config.php`, renseigner la liste des logins Windows à promouvoir automatiquement :
+```php
+$app_superviseur_usernames = ['jean.martin', 'sophie.dupont'];
+```
+Ces utilisateurs seront automatiquement promus au rôle `superviseur` lors de leur connexion via IIS.
+Cette méthode est utile pour la **première installation** quand aucun superviseur n'existe encore en base.
 
-#### Mécanisme 2 : Liste explicite de logins
-1. Aller dans **Paramètres → Paramètres de l'application**
-2. Ajouter les logins Windows séparés par des virgules dans le champ "Logins Windows des administrateurs" :
-   ```
-   jean.martin, sophie.dupont
-   ```
-3. Ces utilisateurs seront automatiquement promus au rôle `superviseur` lors de leur connexion
+#### Méthode 2 : Par un autre superviseur via l'interface
+1. Se connecter en tant que Superviseur
+2. Aller dans **Utilisateurs**
+3. Modifier le rôle de l'utilisateur souhaité
 
-Alternativement, un administrateur peut modifier le rôle manuellement via la page **Gestion des utilisateurs**.
+Un superviseur peut attribuer le rôle superviseur à d'autres utilisateurs.
+
+> **Rôle Admin** : le rôle `admin` suit le même pattern — liste de bootstrap `app_admin_usernames` dans config.php + attribution par un autre admin via l'interface. Le rôle admin dispose de droits supplémentaires (gestion des paramètres, suppression de signalements).
 
 ### 10. SMTP pour les notifications
 
@@ -203,7 +236,8 @@ sendmail_from = noreply@dreets.gouv.fr
    - `display_errors = On` dans `php.ini` ET dans `config.php`
    - Permissions sur `data/` (IIS_IUSRS écriture)
    - Module FastCGI configuré correctement
-   - Extensions PHP : `sqlite3`, `pdo_sqlite`, `mbstring`
+   - Extensions PHP : `sqlite3`, `pdo_sqlite`, `mbstring`, `gd`, `xml`, `curl`, `zip`
+   - Dossier `vendor/` présent (Composer installé) — sinon exécuter `composer install`
 3. Vérifier les logs :
    - `C:\inetpub\logs\php-errors.log`
    - `data\php-error.log` (log de l'application)
@@ -251,3 +285,21 @@ Si le problème persiste, vérifiez qu'il n'y a pas d'autre web.config parent qu
 C'est **NORMAL**. En production, IIS authentifie automatiquement via Windows Auth.
 La page de login mock (avec admin.dev, agent.dev) n'existe qu'en mode développement.
 Si vous voyez le formulaire de login en prod, c'est que `APP_ENV` est encore à `dev` dans `config.php`.
+
+### Erreur "Class 'Mpdf\Mpdf' not found"
+1. Vérifier que `composer install` a été exécuté dans le dossier de l'application
+2. Vérifier que le dossier `vendor/mpdf/` existe
+3. Vérifier que `vendor/autoload.php` existe et est lisible par IIS_IUSRS
+4. Relancer `composer install --no-dev --optimize-autoloader`
+
+### Erreur mPDF "Unable to find font"
+1. Vérifier que l'extension `gd` est activée dans `php.ini` : `extension=gd`
+2. Vérifier avec `php -m | findstr gd`
+3. Relancer IIS après modification de `php.ini` : `iisreset`
+
+### Mise à jour des dépendances
+Pour mettre à jour les dépendances PHP après une mise à jour du code :
+```cmd
+cd C:\inetpub\wwwroot\sst
+composer update --no-dev --optimize-autoloader
+```

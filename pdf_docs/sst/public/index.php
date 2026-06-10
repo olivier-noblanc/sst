@@ -12,6 +12,11 @@ require_once __DIR__ . '/../src/session.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
 
+// Composer autoloader (for mPDF and other dependencies)
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+}
+
 // Load query functions
 require_once __DIR__ . '/../src/queries/report_queries.php';
 require_once __DIR__ . '/../src/queries/user_queries.php';
@@ -22,7 +27,7 @@ startSession();
 
 // Whitelist of valid pages
 $validPages = [
-    'home', 'preamble', 'help', 'access_denied', 'choose_site',
+    'home', 'preamble', 'help', 'changelog', 'access_denied', 'choose_site',
     'report_create', 'report_list', 'report_view', 'report_edit',
     'report_print', 'report_abandon', 'report_respond',
     'synthesis', 'export', 'statistics',
@@ -184,6 +189,17 @@ if ($page === 'report_print') {
     exit;
 }
 
+// === CHANGELOG PDF: special handling (binary output before any HTML) ===
+if ($page === 'changelog' && isset($_GET['pdf']) && $_GET['pdf'] === '1') {
+    $pageFile = __DIR__ . '/../pages/changelog.php';
+    if (file_exists($pageFile)) {
+        require $pageFile;
+    } else {
+        redirect(url('home'));
+    }
+    exit;
+}
+
 // === VALIDATE PAGE ===
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -202,6 +218,7 @@ $pageTitle = match($page) {
     'home'            => 'Accueil',
     'preamble'        => 'Préambule',
     'help'            => 'Documentation',
+    'changelog'       => 'Historique des modifications',
     'choose_site'     => 'Choisir mon site',
     'report_create'   => 'Inscrire un signalement — ' . (REGISTRY_SHORT_LABELS[$_GET['type'] ?? ''] ?? ''),
     'report_list'     => 'Liste des fiches — ' . (REGISTRY_SHORT_LABELS[$_GET['type'] ?? ''] ?? ''),

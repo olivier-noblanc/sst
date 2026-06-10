@@ -82,7 +82,6 @@ function seedDefaultData(PDO $pdo): void {
     $users = [
         ['admin.dev', 'Administrateur', 'Dev', 'admin.dev@dreets.gouv.fr', 'superviseur', 1],
         ['agent.dev', 'Dupont', 'Jean', 'agent.dev@dreets.gouv.fr', 'agent', null],
-        ['manager.dev', 'Martin', 'Sophie', 'manager.dev@dreets.gouv.fr', 'manager', 1],
         ['chsct.dev', 'Bernard', 'Pierre', 'chsct.dev@dreets.gouv.fr', 'chsct', 2],
     ];
 
@@ -219,10 +218,9 @@ function migrateSchema(PDO $pdo): void {
  */
 function migrateConfigKeys(PDO $pdo): void {
     $newKeys = [
-        'app_admin_usernames' => ['', 'text', 'app', 'Logins Windows des administrateurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS.', 1],
-        'app_admin_prefix' => ['adm.', 'text', 'app', 'Préfixe de login Windows pour la promotion automatique en Superviseur. Tout utilisateur dont le login commence par ce préfixe sera automatiquement promu Superviseur (ex: "adm." → "adm.olivier.noblanc" = Superviseur). Laisser vide pour désactiver.', 1],
+        'app_superviseur_usernames' => ['', 'text', 'app', 'Logins Windows des superviseurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS. Utile pour une première installation.', 1],
         'app_agent_see_only_own' => ['0', 'text', 'app', 'Si activé (1), les agents ne voient que leurs propres signalements. ⚠️ Attention : cela peut ne pas être conforme au Code du travail concernant les registres SST. (Obsolète : utilisez app_agent_visibility)', 1],
-        'app_agent_visibility' => ['all', 'text', 'app', 'Visibilité des agents : "all" (tous les signalements, par défaut), "site" (uniquement son site), "own" (uniquement ses propres signalements).', 1],
+        'app_agent_visibility' => ['site', 'text', 'app', 'Visibilité des agents : "site" (uniquement son site, par défaut), "own" (uniquement ses propres signalements).', 1],
     ];
 
     foreach ($newKeys as $cle => $data) {

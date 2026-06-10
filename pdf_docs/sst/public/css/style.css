@@ -26,7 +26,6 @@
 
     /* Role badge colors */
     --role-agent: #2E5C8A;
-    --role-manager: #E67E22;
     --role-superviseur: #B22222;
     --role-chsct: #8E44AD;
 
@@ -559,7 +558,6 @@ tr:hover td {
 .badge--traite     { background: var(--state-traite); }
 .badge--abandonne  { background: var(--state-abandonne); }
 .badge--agent      { background: var(--role-agent); }
-.badge--manager    { background: var(--role-manager); }
 .badge--superviseur{ background: var(--role-superviseur); }
 .badge--chsct      { background: var(--role-chsct); }
 .badge--rsst       { background: var(--rsst-color); }

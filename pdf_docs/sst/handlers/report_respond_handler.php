@@ -3,7 +3,7 @@
  * Report Respond Handler — Application SST DREETS BFC
  * 
  * POST handler: save supervisor response + update report state.
- * Access: superviseur, manager only
+ * Access: superviseur only
  */
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -17,7 +17,7 @@ if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
 }
 
 // Check role
-if (!hasAnyRole(['superviseur', 'manager'])) {
+if (!hasRole('superviseur')) {
     setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
     redirect(url('home'));
 }

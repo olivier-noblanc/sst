@@ -99,8 +99,7 @@ try {
         $appNomOrganisation = trim($_POST['app_nom_organisation'] ?? '');
         $appNomComplet = trim($_POST['app_nom_complet'] ?? '');
         $appLabelUnite = trim($_POST['app_label_unite'] ?? '');
-        $appAdminPrefix = trim($_POST['app_admin_prefix'] ?? '');
-        $appAdminUsernames = trim($_POST['app_admin_usernames'] ?? '');
+        $appSuperviseurUsernames = trim($_POST['app_superviseur_usernames'] ?? '');
 
         // Validate: none should be empty (admin usernames can be empty)
         $errors = [];
@@ -123,13 +122,12 @@ try {
         updateConfig($pdo, 'app_nom_organisation', $appNomOrganisation);
         updateConfig($pdo, 'app_nom_complet', $appNomComplet);
         updateConfig($pdo, 'app_label_unite', $appLabelUnite);
-        updateConfig($pdo, 'app_admin_prefix', $appAdminPrefix);
-        updateConfig($pdo, 'app_admin_usernames', $appAdminUsernames);
+        updateConfig($pdo, 'app_superviseur_usernames', $appSuperviseurUsernames);
 
-        // Agent visibility setting (radio: all / site / own)
-        $agentVisibility = $_POST['app_agent_visibility'] ?? 'all';
-        if (!in_array($agentVisibility, ['all', 'site', 'own'])) {
-            $agentVisibility = 'all';
+        // Agent visibility setting (radio: site / own)
+        $agentVisibility = $_POST['app_agent_visibility'] ?? 'site';
+        if (!in_array($agentVisibility, ['site', 'own'])) {
+            $agentVisibility = 'site';
         }
         updateConfig($pdo, 'app_agent_visibility', $agentVisibility);
 

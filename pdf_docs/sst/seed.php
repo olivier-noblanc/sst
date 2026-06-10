@@ -26,25 +26,24 @@ $pdo = getDB();
 echo "Database initialized with schema.\n";
 
 // ================================================================
-// ADDITIONAL USERS (10 users to add to the 4 default ones = 14 total)
+// ADDITIONAL USERS (10 users to add to the 3 default ones = 13 total)
 // ================================================================
-// Default users (IDs 1-4):
+// Default users (IDs 1-3):
 //   1: admin.dev   — superviseur, Siège (site 1)
 //   2: agent.dev   — agent, UR21 (site 2)
-//   3: manager.dev — manager, Siège (site 1)
-//   4: chsct.dev   — chsct, Siège (site 1)
+//   3: chsct.dev   — chsct, UR25 (site 2)
 //
-// Additional users (IDs 5-14):
-//   5: Superviseur UR25 (site 3)
-//   6: Superviseur UR21 (site 2)
-//   7: Agent UR25 (site 3)
-//   8: Agent UR39 (site 4)
-//   9: Agent UR71 (site 7)
-//  10: Agent UR89 (site 8)
-//  11: Agent UR58 (site 5) — scattered
-//  12: Agent UR70 (site 6) — scattered
-//  13: Agent UR90 (site 9) — scattered
-//  14: Agent Siège (site 1) — scattered
+// Additional users (IDs 4-13):
+//   4: Superviseur UR25 (site 3)
+//   5: Superviseur UR21 (site 2)
+//   6: Agent UR25 (site 3)
+//   7: Agent UR39 (site 4)
+//   8: Agent UR71 (site 7)
+//   9: Agent UR89 (site 8)
+//  10: Agent UR58 (site 5) — scattered
+//  11: Agent UR70 (site 6) — scattered
+//  12: Agent UR90 (site 9) — scattered
+//  13: Agent Siège (site 1) — scattered
 
 $testUsers = [
     // 2 superviseurs (UR25, UR21)
@@ -68,26 +67,25 @@ $stmt = $pdo->prepare('INSERT INTO users (username, nom, prenom, email, role, si
 foreach ($testUsers as $user) {
     $stmt->execute($user);
 }
-echo "Created " . count($testUsers) . " additional test users (14 total with defaults).\n";
+echo "Created " . count($testUsers) . " additional test users (13 total with defaults).\n";
 
 // ================================================================
 // SAMPLE REPORTS (25 total: 10 RSST, 8 RAMI, 7 DGI)
 // ================================================================
 // User IDs reference:
-//   1: admin.dev (superviseur, Siège)
+//   1: admin.dev (superviseur, UR21)
 //   2: agent.dev (agent, UR21)
-//   3: manager.dev (manager, Siège)
-//   4: chsct.dev (chsct, Siège)
-//   5: nathalie.rousseau (superviseur, UR25)
-//   6: marc.benjamin (superviseur, UR21)
-//   7: jean.dupont (agent, UR25)
-//   8: pierre.moreau (agent, UR39)
-//   9: sophie.robert (agent, UR71)
-//  10: claude.richard (agent, UR89)
-//  11: anne.brun (agent, UR58)
-//  12: luc.petit (agent, UR70)
-//  13: isabelle.durand (agent, UR90)
-//  14: marie.leroy (agent, Siège)
+//   3: chsct.dev (chsct, UR25)
+//   4: nathalie.rousseau (superviseur, UR25)
+//   5: marc.benjamin (superviseur, UR21)
+//   6: jean.dupont (agent, UR25)
+//   7: pierre.moreau (agent, UR39)
+//   8: sophie.robert (agent, UR71)
+//   9: claude.richard (agent, UR89)
+//  10: anne.brun (agent, UR58)
+//  11: luc.petit (agent, UR70)
+//  12: isabelle.durand (agent, UR90)
+//  13: marie.leroy (agent, Siège)
 
 $sampleReports = [
     // =============== RSST reports (10) ===============
@@ -99,7 +97,7 @@ $sampleReports = [
         'date_evenement' => '2026-02-15',
         'heure_evenement' => '09:30',
         'lieu' => 'Bureau 204, UR25 Doubs',
-        'declarant_id' => 7,  // jean.dupont
+        'declarant_id' => 6,  // jean.dupont
         'site_id' => 3,       // UR25
         'etat' => 'nouveau',
     ],
@@ -110,7 +108,7 @@ $sampleReports = [
         'date_evenement' => '2026-02-20',
         'heure_evenement' => '14:00',
         'lieu' => 'Escalier parking, Siège DREETS',
-        'declarant_id' => 14, // marie.leroy
+        'declarant_id' => 13, // marie.leroy
         'site_id' => 1,       // Siège
         'etat' => 'en_cours',
     ],
@@ -125,7 +123,7 @@ $sampleReports = [
         'site_id' => 2,       // UR21
         'etat' => 'traite',
         'reponse' => "Les néons ont été remplacés le 15/01/2026. L'éclairage est maintenant conforme aux normes.",
-        'repondant_id' => 6,  // marc.benjamin (superviseur UR21)
+        'repondant_id' => 5,  // marc.benjamin (superviseur UR21)
         'date_reponse' => '2026-01-15 16:30:00',
     ],
     [
@@ -135,7 +133,7 @@ $sampleReports = [
         'date_evenement' => '2026-03-01',
         'heure_evenement' => '08:45',
         'lieu' => 'Bureau 112, UR39 Lons-le-Saunier',
-        'declarant_id' => 8,  // pierre.moreau
+        'declarant_id' => 7,  // pierre.moreau
         'site_id' => 4,       // UR39
         'etat' => 'nouveau',
     ],
@@ -146,7 +144,7 @@ $sampleReports = [
         'date_evenement' => '2026-02-28',
         'heure_evenement' => '11:00',
         'lieu' => 'Sanitaires 3ème étage, UR58 Nevers',
-        'declarant_id' => 11, // anne.brun
+        'declarant_id' => 10, // anne.brun
         'site_id' => 5,       // UR58
         'etat' => 'en_cours',
     ],
@@ -157,7 +155,7 @@ $sampleReports = [
         'date_evenement' => '2026-01-25',
         'heure_evenement' => '15:30',
         'lieu' => 'Couloir RDC, UR71 Mâcon',
-        'declarant_id' => 9,  // sophie.robert
+        'declarant_id' => 8,  // sophie.robert
         'site_id' => 7,       // UR71
         'etat' => 'traite',
         'reponse' => "Les câbles ont été sécurisés et passés dans des goulottes. Le couloir est maintenant conforme.",
@@ -171,7 +169,7 @@ $sampleReports = [
         'date_evenement' => '2026-03-03',
         'heure_evenement' => '14:30',
         'lieu' => 'Open space 1er étage, UR89 Auxerre',
-        'declarant_id' => 10, // claude.richard
+        'declarant_id' => 9,  // claude.richard
         'site_id' => 8,       // UR89
         'etat' => 'nouveau',
     ],
@@ -182,7 +180,7 @@ $sampleReports = [
         'date_evenement' => '2026-01-15',
         'heure_evenement' => '07:45',
         'lieu' => 'Bureau 305, UR90 Belfort',
-        'declarant_id' => 13, // isabelle.durand
+        'declarant_id' => 12, // isabelle.durand
         'site_id' => 9,       // UR90
         'etat' => 'abandonne',
     ],
@@ -193,7 +191,7 @@ $sampleReports = [
         'date_evenement' => '2026-02-10',
         'heure_evenement' => '11:00',
         'lieu' => 'Open space 2ème étage, UR70 Vesoul',
-        'declarant_id' => 12, // luc.petit
+        'declarant_id' => 11, // luc.petit
         'site_id' => 6,       // UR70
         'etat' => 'en_cours',
     ],
@@ -204,7 +202,7 @@ $sampleReports = [
         'date_evenement' => '2026-03-04',
         'heure_evenement' => '09:15',
         'lieu' => 'Couloir 1er étage, UR25 Besançon',
-        'declarant_id' => 7,  // jean.dupont
+        'declarant_id' => 6,  // jean.dupont
         'site_id' => 3,       // UR25
         'etat' => 'abandonne',
     ],
@@ -218,7 +216,7 @@ $sampleReports = [
         'date_evenement' => '2026-02-25',
         'heure_evenement' => '11:20',
         'lieu' => "Hall d'accueil, UR71 Mâcon",
-        'declarant_id' => 9,  // sophie.robert
+        'declarant_id' => 8,  // sophie.robert
         'site_id' => 7,       // UR71
         'etat' => 'nouveau',
         'pour_compte_nom' => 'Lambert',
@@ -231,7 +229,7 @@ $sampleReports = [
         'date_evenement' => '2026-03-02',
         'heure_evenement' => '15:45',
         'lieu' => 'Standard téléphonique, UR89 Auxerre',
-        'declarant_id' => 10, // claude.richard
+        'declarant_id' => 9,  // claude.richard
         'site_id' => 8,       // UR89
         'etat' => 'en_cours',
     ],
@@ -242,7 +240,7 @@ $sampleReports = [
         'date_evenement' => '2026-01-20',
         'heure_evenement' => '09:00',
         'lieu' => 'Open space 3ème étage, Siège DREETS',
-        'declarant_id' => 14, // marie.leroy
+        'declarant_id' => 13, // marie.leroy
         'site_id' => 1,       // Siège
         'etat' => 'traite',
         'reponse' => "Un entretien avec l'agent concerné a été réalisé. Un suivi psychologique a été proposé. Un médiateur a été nommé pour améliorer le climat dans le service.",
@@ -256,11 +254,11 @@ $sampleReports = [
         'date_evenement' => '2026-02-10',
         'heure_evenement' => '08:15',
         'lieu' => 'Service accueil, UR25 Besançon',
-        'declarant_id' => 7,  // jean.dupont
+        'declarant_id' => 6,  // jean.dupont
         'site_id' => 3,       // UR25
         'etat' => 'traite',
         'reponse' => "Une plainte a été déposée. La sécurité du bâtiment a été renforcée avec mise en place d'un système de vidéosurveillance. Un soutien psychologique a été proposé au personnel.",
-        'repondant_id' => 5,  // nathalie.rousseau (superviseur UR25)
+        'repondant_id' => 4,  // nathalie.rousseau (superviseur UR25)
         'date_reponse' => '2026-02-15 14:00:00',
     ],
     [
@@ -283,7 +281,7 @@ $sampleReports = [
         'date_evenement' => '2026-02-05',
         'heure_evenement' => '16:00',
         'lieu' => 'Service RH, UR39 Lons-le-Saunier',
-        'declarant_id' => 8,  // pierre.moreau
+        'declarant_id' => 7,  // pierre.moreau
         'site_id' => 4,       // UR39
         'etat' => 'en_cours',
     ],
@@ -294,7 +292,7 @@ $sampleReports = [
         'date_evenement' => '2026-01-30',
         'heure_evenement' => '19:30',
         'lieu' => 'Bureaux administratifs, UR58 Nevers',
-        'declarant_id' => 11, // anne.brun
+        'declarant_id' => 10, // anne.brun
         'site_id' => 5,       // UR58
         'etat' => 'abandonne',
     ],
@@ -305,7 +303,7 @@ $sampleReports = [
         'date_evenement' => '2026-03-05',
         'heure_evenement' => '08:20',
         'lieu' => 'Parking, UR70 Vesoul',
-        'declarant_id' => 12, // luc.petit
+        'declarant_id' => 11, // luc.petit
         'site_id' => 6,       // UR70
         'etat' => 'nouveau',
     ],
@@ -319,7 +317,7 @@ $sampleReports = [
         'date_evenement' => '2026-03-03',
         'heure_evenement' => '07:30',
         'lieu' => 'Chaufferie, UR58 Nevers',
-        'declarant_id' => 11, // anne.brun
+        'declarant_id' => 10, // anne.brun
         'site_id' => 5,       // UR58
         'etat' => 'en_cours',
     ],
@@ -330,7 +328,7 @@ $sampleReports = [
         'date_evenement' => '2026-02-18',
         'heure_evenement' => '16:00',
         'lieu' => 'Salle de documentation, UR70 Vesoul',
-        'declarant_id' => 12, // luc.petit
+        'declarant_id' => 11, // luc.petit
         'site_id' => 6,       // UR70
         'etat' => 'nouveau',
     ],
@@ -341,7 +339,7 @@ $sampleReports = [
         'date_evenement' => '2026-01-05',
         'heure_evenement' => '10:00',
         'lieu' => 'Aile Est, Siège DREETS Besançon',
-        'declarant_id' => 14, // marie.leroy
+        'declarant_id' => 13, // marie.leroy
         'site_id' => 1,       // Siège
         'etat' => 'traite',
         'reponse' => "Les travaux ont été stoppés immédiatement. Un diagnostic amiante complet a été réalisé. Les agents exposés ont été orientés vers le service de médecine préventive. Des travaux de désamiantage sont prévus.",
@@ -359,7 +357,7 @@ $sampleReports = [
         'site_id' => 2,       // UR21
         'etat' => 'traite',
         'reponse' => "Le système d'alarme a été réparé en urgence dans la journée. Un contrat de maintenance préventive a été signé avec un prestataire pour éviter toute récidive.",
-        'repondant_id' => 6,  // marc.benjamin (superviseur UR21)
+        'repondant_id' => 5,  // marc.benjamin (superviseur UR21)
         'date_reponse' => '2026-02-12 17:00:00',
     ],
     [
@@ -369,7 +367,7 @@ $sampleReports = [
         'date_evenement' => '2026-03-04',
         'heure_evenement' => '11:15',
         'lieu' => 'Bâtiment B, UR25 Besançon',
-        'declarant_id' => 7,  // jean.dupont
+        'declarant_id' => 6,  // jean.dupont
         'site_id' => 3,       // UR25
         'etat' => 'en_cours',
     ],
@@ -380,7 +378,7 @@ $sampleReports = [
         'date_evenement' => '2026-01-20',
         'heure_evenement' => '13:30',
         'lieu' => 'Bâtiment principal, UR39 Lons-le-Saunier',
-        'declarant_id' => 8,  // pierre.moreau
+        'declarant_id' => 7,  // pierre.moreau
         'site_id' => 4,       // UR39
         'etat' => 'traite',
         'reponse' => "Un expert en structure a été mandaté. Le bâtiment a été évacué préventivement. Des travaux de consolidation ont été réalisés. Le bâtiment a été déclaré sûr.",
@@ -394,7 +392,7 @@ $sampleReports = [
         'date_evenement' => '2026-02-01',
         'heure_evenement' => '08:00',
         'lieu' => 'Sous-sol, UR71 Mâcon',
-        'declarant_id' => 9,  // sophie.robert
+        'declarant_id' => 8,  // sophie.robert
         'site_id' => 7,       // UR71
         'etat' => 'abandonne',
     ],
@@ -532,7 +530,7 @@ foreach (['rsst', 'rami', 'dgi'] as $type) {
 }
 
 // User breakdown
-foreach (['superviseur', 'manager', 'agent', 'chsct'] as $role) {
+foreach (['superviseur', 'agent', 'chsct'] as $role) {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = :role AND is_active = 1");
     $stmt->execute([':role' => $role]);
     echo "  $role: " . $stmt->fetchColumn() . "\n";

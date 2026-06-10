@@ -2,37 +2,65 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.0.0] — 2026-06-10
+
+### Breaking Changes — Refonte du système de rôles
+
+- **Rôle Manager supprimé** : le rôle `manager` n'existe plus dans l'application. Il a été retiré de tous les fichiers : config.php, helpers.php, sidebar.php, handlers, pages, seed.php, promote.php, database.php, schema.sql, style.css, help.php. Les fonctionnalités de consultation élargie (tous les sites, synthèse, export, stats) sont déjà couvertes par le rôle CHSCT.
+- **Système d'auto-promotion par préfixe supprimé** : le mécanisme `app_admin_prefix` (par défaut `adm.`) qui promouvait automatiquement les logins commençant par ce préfixe est supprimé. Ce système était source de confusion et de faille de sécurité potentielle.
+- **Clé de config renommée** : `app_admin_usernames` → `app_superviseur_usernames` — le nom reflète désormais clairement son usage : liste de logins Windows séparés par virgules qui seront automatiquement promus Superviseur. Utile pour une première installation.
+
+### Attribution du rôle Superviseur (nouveau système)
+
+Deux méthodes pour obtenir le rôle Superviseur :
+1. **Par un autre superviseur** via la gestion des utilisateurs dans l'interface
+2. **Via la liste de config** `app_superviseur_usernames` (Paramètres → Application) — les utilisateurs de cette liste sont auto-promus à leur connexion via IIS
+
+### Sécurité — Corrections de confidentialité
+
+- **Visibilité agent par défaut = son site** : le défaut de `app_agent_visibility` passe de `'all'` à `'site'`. Par défaut, un agent ne voit que les signalements de son site.
+- **Option 'all' supprimée** : l'option « Tous les signalements » n'est plus proposée dans les paramètres de visibilité agent. Seules les options « Son site » (par défaut) et « Ses propres signalements » sont disponibles.
+- **Contrôle d'accès renforcé** : `canAccessReport()` dans helpers.php vérifie systématiquement que l'utilisateur a le droit d'accéder au signalement (déclarant, superviseur ou CHSCT).
+- **Abandon de signalement** : réservé au superviseur uniquement (conforme à la documentation de référence).
+
+### Documentation
+
+- **help.php réécrit** : conforme à la documentation PDF de référence. 3 rôles uniquement (Agent, Superviseur, CHSCT). Section confidentialité ajoutée.
+- **SPEC.md réécrit** : suppression des références LDAP, des fonctions obsolètes, du rôle Manager. Documentation du système de rôles à 3 profils.
+- **README.md mis à jour** : reflète le nouveau système de rôles et d'attribution.
+- **CHANGELOG.md mis à jour** : ce fichier.
+
+### Technique
+
+- `src/auth.php` : suppression des fonctions `determineProvisionRole()` (prefix + list) et `checkAndPromoteUser()` (prefix) — remplacées par un mécanisme simplifié basé uniquement sur la liste `app_superviseur_usernames`
+- `src/config.php` : `ROLE_LABELS` ne contient plus que agent, superviseur, chsct. `APP_VERSION` → 2.0.0
+- `src/helpers.php` : `getRoleBadgeClass()` sans manager, `canSeeAllSites()` sans manager, `getAgentVisibility()` défaut 'site'
+- `schema.sql` : rôle commenté `'agent'|'superviseur'|'chsct'`, clé `app_superviseur_usernames` au lieu de `app_admin_prefix`/`app_admin_usernames`
+- `src/database.php` : seed sans manager.dev, config keys mises à jour
+- Tous les handlers et pages : retraits des références au rôle manager
+- `public/css/style.css` : retrait de `--role-manager` et `.badge--manager`
+- `promote.php` : rôles valides = agent, superviseur, chsct
+
+---
+
 ## [1.1.0] — 2026-06-10
 
 ### Sécurité — Corrections de confidentialité
 
-- **Vulnérabilité critique corrigée** : le défaut de `app_agent_visibility` passe de `'all'` à `'site'`. Par défaut, un agent ne voit plus que les signalements de son site, conformément à la documentation (help.php).
-- **Contrôle d'accès renforcé** : ajout de `canAccessReport()` dans helpers.php. Les pages `report_view.php` et `report_print.php` vérifient désormais systématiquement que l'utilisateur a le droit d'accéder au signalement (déclarant, superviseur, manager ou CHSCT), quelle que soit la configuration de visibilité.
-- **Rôle Manager corrigé** : le manager ne peut plus répondre aux signalements (retiré de `$canRespond` dans `report_list.php`, `report_card.php`, `report_respond.php` et `report_respond_handler.php`), conforme au tableau des droits dans help.php.
-- **Abandon de signalement corrigé** : l'abandon est désormais réservé au superviseur (conforme à help.php), et non plus au déclarant. Corrigé dans `report_abandon.php`, `report_abandon_handler.php`, `report_card.php` et `report_list.php`. Le bouton « Abandonner » apparaît maintenant dans la liste des signalements pour les superviseurs.
-- **Option 'all' supprimée des paramètres** : l'option « Tous les signalements » n'est plus proposée dans les paramètres de visibilité agent. Seules les options « Son site » (par défaut) et « Ses propres signalements » sont disponibles.
-- **Commentaire de code corrigé** : `respondToReport()` documenté comme réservé au superviseur (pas au manager).
+- **Vulnérabilité critique corrigée** : le défaut de `app_agent_visibility` passe de `'all'` à `'site'`. Par défaut, un agent ne voit plus que les signalements de son site.
+- **Contrôle d'accès renforcé** : ajout de `canAccessReport()` dans helpers.php.
+- **Rôle Manager corrigé** : le manager ne peut plus répondre aux signalements.
+- **Abandon de signalement corrigé** : l'abandon est désormais réservé au superviseur.
+- **Option 'all' supprimée des paramètres**.
 
 ### Fonctionnalités métier ajoutées
 
-- **Réactivation d'utilisateur** : ajout d'un bouton « Réactiver » dans la liste des utilisateurs (`users.php`) et le profil utilisateur (`user_view.php`) pour les comptes désactivés. La fonction DB `reactivateUser()` était déjà présente mais sans UI. Ajout du handler `user_reactivate_handler.php`.
-- **Modification de site** : ajout d'un bouton « Modifier » dans l'onglet « Gestion des sites » permettant de changer le code, le nom et le département d'un site. La fonction DB `updateSite()` était déjà présente mais sans UI. Ajout de la page `site_edit.php` et du handler `site_edit_handler.php`.
+- **Réactivation d'utilisateur** : bouton « Réactiver » dans la liste des utilisateurs.
+- **Modification de site** : bouton « Modifier » dans l'onglet « Gestion des sites ».
 
 ### Code mort supprimé
 
-- **`updateUserRole()`** : supprimée de `user_queries.php` — couverte par `updateUser()`.
-- **`updateUserSite()`** : supprimée de `user_queries.php` — couverte par `updateUser()`.
-- **`agentSeesOnlyOwn()`** : supprimée de `helpers.php` — remplacée par `getAgentVisibility()`.
-
-### Documentation
-
-- **Section confidentialité ajoutée** dans help.php : tableau explicatif des règles d'accès aux signalements par rôle.
-- **Avertissement de confidentialité** ajouté dans la description du profil Agent dans help.php.
-
-### Technique
-
-- Ajout de `user_reactivate` et `site_edit` dans le routeur (`index.php`).
-- Ajout des handlers correspondants dans la dispatch table.
+- `updateUserRole()`, `updateUserSite()`, `agentSeesOnlyOwn()` supprimées.
 
 ---
 
@@ -41,7 +69,7 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 ### Première version
 
 - Application SST DREETS BFC complète.
-- 4 profils utilisateurs : Agent, Manager, Superviseur, CHSCT.
+- 3 profils utilisateurs : Agent, Superviseur, CHSCT.
 - 3 registres : RSST, RAMI, DGI.
 - Authentification IIS Windows (prod) / mock login (dev).
 - Notifications par e-mail, configuration SMTP.

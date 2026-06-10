@@ -372,27 +372,14 @@ function testSmtp() {
         </div>
 
         <div class="form-group">
-            <label for="app_admin_prefix">Préfixe de login administrateur</label>
-            <input type="text" id="app_admin_prefix" name="app_admin_prefix" class="form-control"
-                   value="<?php echo e(getConfig('app_admin_prefix', 'adm.')); ?>"
-                   placeholder="adm." maxlength="20">
-            <small class="text-muted" style="display:block;margin-top:4px;">
-                Tout utilisateur dont le login Windows commence par ce préfixe sera automatiquement promu <strong>Superviseur</strong>.
-                Par exemple, avec le préfixe "<code>adm.</code>", le login "<code>adm.olivier.noblanc</code>" sera Superviseur.
-                <strong>Laisser vide pour désactiver</strong> cette règle de promotion automatique.
-                La promotion s'applique aussi aux utilisateurs existants à leur prochaine connexion.
-            </small>
-        </div>
-
-        <div class="form-group">
-            <label for="app_admin_usernames">Logins Windows des administrateurs (liste explicite)</label>
-            <input type="text" id="app_admin_usernames" name="app_admin_usernames" class="form-control"
-                   value="<?php echo e(getConfig('app_admin_usernames', '')); ?>"
+            <label for="app_superviseur_usernames">Logins Windows des superviseurs (liste explicite)</label>
+            <input type="text" id="app_superviseur_usernames" name="app_superviseur_usernames" class="form-control"
+                   value="<?php echo e(getConfig('app_superviseur_usernames', '')); ?>"
                    placeholder="jean.martin, sophie.dupont">
             <small class="text-muted" style="display:block;margin-top:4px;">
-                Séparés par des virgules. Ces utilisateurs seront également promus <strong>Superviseur</strong>
-                lors de leur connexion via IIS. Complémentaire du préfixe ci-dessus — permet d'ajouter
-                des administrateurs dont le login ne suit pas la convention de préfixe.
+                Séparés par des virgules. Ces utilisateurs seront automatiquement promus <strong>Superviseur</strong>
+                lors de leur connexion via IIS. Utile pour une première installation afin de désigner
+                les premiers superviseurs sans avoir à passer par la base de données.
             </small>
         </div>
 
@@ -402,20 +389,11 @@ function testSmtp() {
             <div class="form-group" style="margin-bottom:0;">
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
-                        <input type="radio" name="app_agent_visibility" value="all"
-                               <?php echo getAgentVisibility() === 'all' ? 'checked' : ''; ?>
-                               style="margin-top:3px;width:16px;height:16px;">
-                        <div>
-                            <strong>Tous les signalements</strong> <span style="color:var(--grey-500);font-size:12px;">(par défaut)</span>
-                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">L'agent voit tous les signalements de tous les sites. Conforme au principe de transparence des registres SST.</div>
-                        </div>
-                    </label>
-                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
                         <input type="radio" name="app_agent_visibility" value="site"
                                <?php echo getAgentVisibility() === 'site' ? 'checked' : ''; ?>
                                style="margin-top:3px;width:16px;height:16px;">
                         <div>
-                            <strong>Uniquement son site</strong>
+                            <strong>Uniquement son site</strong> <span style="color:var(--grey-500);font-size:12px;">(par défaut)</span>
                             <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">L'agent voit uniquement les signalements de son <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</div>
                         </div>
                     </label>
@@ -429,7 +407,7 @@ function testSmtp() {
                         </div>
                     </label>
                 </div>
-                <div id="agentVisibilityWarning" style="display:<?php echo in_array(getAgentVisibility(), ['own', 'site']) ? 'block' : 'none'; ?>;margin-top:14px;padding:10px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#991b1b;font-size:12px;">
+                <div id="agentVisibilityWarning" style="display:<?php echo in_array(getAgentVisibility(), ['own']) ? 'block' : 'none'; ?>;margin-top:14px;padding:10px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#991b1b;font-size:12px;">
                     ⚠️ <strong>Avertissement réglementaire :</strong> Par défaut, les registres SST sont consultables par tous les agents (principe de transparence en matière de santé et sécurité au travail). Restreindre l'accès peut ne pas être conforme aux dispositions du Code du travail relatives aux registres SST. Activez ces restrictions uniquement si vous avez vérifié leur conformité avec votre politique interne.
                 </div>
             </div>

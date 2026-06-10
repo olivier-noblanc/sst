@@ -26,7 +26,7 @@ $userRole = $user['role'] ?? 'agent';
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $isDeclarant = ((int) $report['declarant_id'] === $userId);
-$canRespond = in_array($userRole, ['superviseur', 'manager']);
+$canRespond = in_array($userRole, ['superviseur']);
 $canEdit = $isDeclarant && in_array($report['etat'], ['nouveau', 'en_cours']);
 $canAbandon = $isDeclarant && !in_array($report['etat'], ['abandonne', 'traite']);
 $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_cours']);

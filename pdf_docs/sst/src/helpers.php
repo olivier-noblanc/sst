@@ -174,7 +174,6 @@ function getRegistryBadgeClass(string $type): string {
 function getRoleBadgeClass(string $role): string {
     return match ($role) {
         'agent'       => 'badge--agent',
-        'manager'     => 'badge--manager',
         'superviseur' => 'badge--superviseur',
         'chsct'       => 'badge--chsct',
         default       => '',
@@ -183,11 +182,10 @@ function getRoleBadgeClass(string $role): string {
 
 /**
  * Check if the current user can see all sites.
- * Superviseurs, managers, CHSCT members always see all sites.
+ * Superviseurs and CHSCT members always see all sites.
  * Agents depend on the app_agent_visibility config:
- *   - 'all'  → can see all sites (default)
- *   - 'site' → only their own site
- *   - 'own'  → only their own reports (implicit single site)
+ *   - 'site' → only their own site (default)
+ *   - 'own'  → only their own reports
  * 
  * @return bool
  */
@@ -196,7 +194,7 @@ function canSeeAllSites(): bool {
         return false;
     }
     // Non-agent roles always see all sites
-    if (in_array($_SESSION['user']['role'], ['superviseur', 'manager', 'chsct'])) {
+    if (in_array($_SESSION['user']['role'], ['superviseur', 'chsct'])) {
         return true;
     }
     // Agent: depends on visibility setting
@@ -208,10 +206,9 @@ function canSeeAllSites(): bool {
 
 /**
  * Get the agent visibility mode.
- * Returns one of: 'all', 'site', 'own'
+ * Returns one of: 'site', 'own'
  * 
- * - 'all'  : Agent sees ALL signalements across all sites (default, regulatory standard)
- * - 'site' : Agent sees signalements from their own site only
+ * - 'site' : Agent sees signalements from their own site only (default)
  * - 'own'  : Agent sees only their own signalements
  * 
  * Non-agent roles always get 'all'.
@@ -222,15 +219,15 @@ function getAgentVisibility(): string {
     if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'agent') {
         return 'all';
     }
-    $value = getConfig('app_agent_visibility', 'all');
+    $value = getConfig('app_agent_visibility', 'site');
     // Backward compatibility: old value '0' = all, '1' = own
     if ($value === '0') return 'all';
     if ($value === '1') return 'own';
-    // New values: 'all', 'site', 'own'
-    if (in_array($value, ['all', 'site', 'own'])) {
+    // Valid values: 'site', 'own'
+    if (in_array($value, ['site', 'own'])) {
         return $value;
     }
-    return 'all'; // Default fallback
+    return 'site'; // Default fallback
 }
 
 /**

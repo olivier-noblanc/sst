@@ -20,7 +20,7 @@ Plateforme des Registres en Santé et Sécurité au Travail
 6. Dans `src/config.php`, passer `APP_ENV` à `'prod'` (ou via variable d'environnement)
 7. Donner les permissions IIS_IUSRS en écriture sur le dossier `data/`
 8. Accéder à l'application — la base se crée automatiquement au premier accès
-9. Configurer les notifications par email et les paramètres dans l'interface admin
+9. Configurer les notifications par email et les paramètres dans l'interface superviseur
 
 **Voir `DEPLOY.md` pour le guide de déploiement complet.**
 
@@ -28,11 +28,9 @@ Plateforme des Registres en Santé et Sécurité au Travail
 
 | Identifiant | Rôle | Site |
 |------------|------|------|
-| admin.dev | Superviseur | Siège |
-| agent.dev | Agent | UR Côte-d'Or |
-| manager.dev | Manager | Siège |
-| chsct.dev | Membre CHSCT | Siège |
-| adm.olivier.noblanc | Superviseur (auto-promu) | À choisir au login |
+| admin.dev | Superviseur | UR21 Côte-d'Or |
+| agent.dev | Agent | À choisir au login |
+| chsct.dev | Membre CHSCT | UR25 Doubs |
 
 Mot de passe pour tous : `test`
 
@@ -43,18 +41,14 @@ php -S localhost:8080 -t public/ public/router.php
 # Ouvrir http://localhost:8080/?page=login
 ```
 
-## Promotion automatique des administrateurs
+## Attribution du rôle Superviseur
 
-Deux mécanismes pour promouvoir automatiquement un utilisateur en Superviseur :
+Le rôle Superviseur peut être obtenu de deux manières :
 
-1. **Préfixe de login** (par défaut `adm.`) : tout login Windows commençant par ce préfixe est auto-promu Superviseur.
-   - Exemple : `adm.olivier.noblanc` → Superviseur
-   - Configurable dans **Paramètres → Application → Préfixe de login administrateur**
+1. **Par un autre superviseur** via la gestion des utilisateurs (UI) — un superviseur peut attribuer le rôle superviseur à n'importe quel utilisateur
+2. **Via la liste de configuration** dans **Paramètres → Application → Logins Windows des superviseurs** — les logins ajoutés ici (séparés par virgules) seront automatiquement promus Superviseur lors de leur première connexion via IIS. Ce mécanisme est utile pour une première installation afin de désigner les premiers superviseurs.
 
-2. **Liste explicite** : ajouter les logins séparés par virgules dans **Paramètres → Application → Logins Windows des administrateurs**
-   - Exemple : `jean.martin, sophie.dupont`
-
-La promotion s'applique aussi aux utilisateurs existants à leur prochaine connexion.
+La promotion automatique s'applique aussi aux utilisateurs existants à leur prochaine connexion.
 
 ## Structure
 
@@ -96,7 +90,8 @@ sst-app-fixed/
 - ✅ Tokens CSRF sur tous les formulaires
 - ✅ Contrôle d'accès par rôle (requireRole)
 - ✅ Vérification d'appartenance (auteur seul peut modifier/abandonner)
-- ✅ Visibilité par site (Agent = son site uniquement)
+- ✅ Visibilité par site (Agent = son site uniquement par défaut)
+- ✅ Confidentialité des signalements via canAccessReport()
 - ✅ Session sécurisée (HttpOnly, SameSite, Secure en prod)
 - ✅ Échappement CSV (protection injection formule Excel)
 - ✅ Validation côté serveur de tous les inputs
@@ -109,11 +104,10 @@ sst-app-fixed/
 | Agressions, Menaces et Incivilités | RAMI | Gris | Agressions verbales/physiques |
 | Danger Grave et Imminent | DGI | Rouge | Dangers immédiats |
 
-## 4 Rôles
+## 3 Rôles
 
 | Rôle | Permissions |
 |------|------------|
-| Agent | Créer, voir, modifier (ses), abandonner ses signalements |
-| Superviseur | Agent + Répondre, Synthèse, Export, Stats, Paramètres, Utilisateurs |
-| Manager | Intermédiaire |
-| CHSCT | Vue élargie sur tous les sites (lecture) |
+| Agent | Créer, voir (son site), modifier (ses), ses signalements |
+| Superviseur | Agent + Répondre, Abandonner, Synthèse, Export, Stats, Paramètres, Utilisateurs, Impression |
+| CHSCT | Vue élargie sur tous les sites (lecture), Synthèse, Export, Stats |

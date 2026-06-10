@@ -42,8 +42,8 @@ if ($agentVisibility === 'own') {
 }
 // 'all' → no restriction
 
-// If report is abandoned and user is not declarant nor supervisor/manager/chsct
-if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== $userId && !in_array($userRole, ['superviseur', 'manager', 'chsct'])) {
+// If report is abandoned and user is not declarant nor supervisor/chsct
+if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== $userId && !in_array($userRole, ['superviseur', 'chsct'])) {
     setFlash('warning', 'Ce signalement a été abandonné.');
 }
 

@@ -137,7 +137,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                     <?php
                         $isDeclarant = ((int) $report['declarant_id'] === $userId);
                         $canEdit = $isDeclarant && in_array($report['etat'], ['nouveau', 'en_cours']);
-                        $canRespond = in_array($userRole, ['superviseur', 'manager']) && in_array($report['etat'], ['nouveau', 'en_cours']);
+                        $canRespond = in_array($userRole, ['superviseur']) && in_array($report['etat'], ['nouveau', 'en_cours']);
                         $canAbandon = $isDeclarant && !in_array($report['etat'], ['abandonne', 'traite']);
                     ?>
                     <tr>

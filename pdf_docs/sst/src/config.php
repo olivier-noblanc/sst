@@ -7,10 +7,10 @@
 
 // Application metadata
 define('APP_NAME', 'Application SST — DREETS BFC');
-define('APP_VERSION', '1.0.0');
+define('APP_VERSION', '2.0.0');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
-// Environment: set to 'dev' for mock auth, 'prod' for IIS+LDAP
+// Environment: set to 'dev' for mock auth, 'prod' for IIS Windows Auth
 define('APP_ENV', getenv('APP_ENV') ?: 'prod');
 define('DEV_MODE', APP_ENV === 'dev');
 
@@ -54,7 +54,6 @@ define('REGISTRY_SHORT_LABELS', [
 // Role labels
 define('ROLE_LABELS', [
     'agent'       => 'Agent',
-    'manager'     => 'Manager',
     'superviseur' => 'Superviseur',
     'chsct'       => 'Membre CHSCT',
 ]);

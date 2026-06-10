@@ -3,9 +3,9 @@
  * Statistics Page — Application SST DREETS BFC
  * 
  * KPI dashboard with cards and table by site.
- * Access: superviseur, manager, chsct
+ * Access: superviseur, chsct
  */
-requireRole(['superviseur', 'manager', 'chsct']);
+requireRole(['superviseur', 'chsct']);
 
 $pdo = getDB();
 

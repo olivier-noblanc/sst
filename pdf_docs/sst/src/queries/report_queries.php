@@ -237,7 +237,7 @@ function abandonReport(PDO $pdo, int $id, int $userId): bool {
 }
 
 /**
- * Respond to a report (by superviseur/manager).
+ * Respond to a report (by superviseur only).
  * Also inserts into the response history table.
  * 
  * @param PDO    $pdo          Database connection

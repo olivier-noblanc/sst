@@ -2,10 +2,10 @@
 /**
  * Report Respond Page — Application SST DREETS BFC
  * 
- * Superviseur/Manager responds to a report.
- * Access: superviseur, manager only.
+ * Superviseur responds to a report.
+ * Access: superviseur only.
  */
-requireRole(['superviseur', 'manager']);
+requireRole(['superviseur']);
 
 $pdo = getDB();
 $reportId = (int) ($_GET['id'] ?? 0);

@@ -3,9 +3,9 @@
  * Synthesis Page — Application SST DREETS BFC
  * 
  * Summary table across all registries, showing counts by site, registry type, and state.
- * Access: superviseur, manager, chsct
+ * Access: superviseur, chsct
  */
-requireRole(['superviseur', 'manager', 'chsct']);
+requireRole(['superviseur', 'chsct']);
 
 $pdo = getDB();
 

@@ -2,233 +2,267 @@
 
 > Plateforme des Registres en Santé et Sécurité au Travail
 > DREETS Bourgogne-Franche-Comté
-> Version 1.0 — Specification for build agents
+> Version 2.0.0 — Specification technique
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#1-overview)
-2. [File Tree](#2-file-tree)
-3. [Database Schema](#3-database-schema)
-4. [Routing](#4-routing)
-5. [Page Specifications](#5-page-specifications)
-6. [Security Measures](#6-security-measures)
-7. [Auth System Design](#7-auth-system-design)
-8. [CSS Architecture](#8-css-architecture)
-9. [Report Reference Format](#9-report-reference-format)
-10. [Business Rules](#10-business-rules)
-11. [Error Handling](#11-error-handling)
+1. [Présentation générale](#1-présentation-générale)
+2. [Arborescence des fichiers](#2-arborescence-des-fichiers)
+3. [Schéma de la base de données](#3-schéma-de-la-base-de-données)
+4. [Routage](#4-routage)
+5. [Spécifications des pages](#5-spécifications-des-pages)
+6. [Système d'authentification](#6-système-dauthentification)
+7. [Contrôle d'accès et visibilité](#7-contrôle-daccès-et-visibilité)
+8. [Règles métier](#8-règles-métier)
+9. [Architecture CSS](#9-architecture-css)
+10. [Format des références](#10-format-des-références)
+11. [Notifications par e-mail](#11-notifications-par-e-mail)
+12. [Référence des fonctions](#12-référence-des-fonctions)
+13. [Configuration applicative](#13-configuration-applicative)
 
 ---
 
-## 1. Overview
+## 1. Présentation générale
 
-### Purpose
-Web application for three workplace health & safety registries at DREETS BFC (French regional labor authority). Replaces the original DIRECCTE Auvergne-Rhône-Alpes version.
+### Objet
 
-### Three Registries
-| Code | Full Name | Color | Description |
-|------|-----------|-------|-------------|
-| RSST | Registre de Santé et de Sécurité au Travail | Blue (#2E5C8A) | General health & safety reports |
-| RAMI | Registre des Actes d'Agressions, de Menaces et d'Incivilités | Grey (#6C6C6C) | Aggression/threat/incivility reports |
-| DGI | Registre de signalement d'un Danger Grave et Imminent | Red (#B22222) | Immediate danger reports |
+Application web pour la gestion de trois registres de santé et sécurité au travail au sein de la DREETS Bourgogne-Franche-Comté (direction régionale de l'économie, de l'emploi, du travail et des solidarités).
 
-### Four Roles
-| Role | Code | Permissions |
+### Trois registres
+
+| Code | Nom complet | Couleur | Description |
+|------|-------------|---------|-------------|
+| RSST | Registre de Santé et de Sécurité au Travail | Bleu (`var(--rsst-color)`) | Signalements généraux de santé et sécurité |
+| RAMI | Registre des Actes d'Agressions, de Menaces et d'Incivilités | Gris (`var(--rami-color)`) | Signalements d'agressions, menaces ou incivilités |
+| DGI | Registre de signalement d'un Danger Grave et Imminent | Rouge (`var(--dgi-color)`) | Signalements de dangers graves et imminents |
+
+### Trois rôles
+
+| Rôle | Code | Permissions |
 |------|------|-------------|
-| Agent | `agent` | Create reports, view own site reports, modify/abandon own reports |
-| Superviseur | `superviseur` | Agent perms + respond to reports, synthesis, export, stats, settings, user management |
-| Manager | `manager` | Intermediate — same as Superviseur but no user management, no settings |
-| Membre CHSCT | `chsct` | View all sites (like Superviseur) + stats/synthesis/export, read-only on settings |
+| Agent | `agent` | Créer des signalements, consulter les signalements (selon visibilité), modifier ses propres signalements |
+| Superviseur | `superviseur` | Permissions agent + répondre aux signalements, abandonner des signalements, synthèse, export, statistiques, gestion des utilisateurs, paramètres |
+| Membre CHSCT | `chsct` | Consulter tous les signalements (tous sites), synthèse, export, statistiques — lecture seule, pas de réponse ni d'abandon |
 
-### Report States
+> **Note** : Il n'y a pas de rôle « Manager ». Les trois seuls rôles sont `agent`, `superviseur` et `chsct`.
+
+### États d'un signalement
+
 ```
 Nouveau → En cours → Traité
-  └──→ Abandonné (soft delete, can happen from any state)
+  └──→ Abandonné (soft delete, possible depuis n'importe quel état non traité)
 ```
 
-### Unités Départementales (UD / Sites)
-The DREETS BFC region covers the following départements:
-- UD 21 — Côte-d'Or
-- UD 25 — Doubs
-- UD 39 — Jura
-- UD 58 — Nièvre
-- UD 70 — Haute-Saône
-- UD 71 — Saône-et-Loire
-- UD 89 — Yonne
-- UD 90 — Territoire de Belfort
+| État | Code | Badge CSS |
+|------|------|-----------|
+| Nouveau | `nouveau` | `badge--nouveau` |
+| En cours | `en_cours` | `badge--en-cours` |
+| Traité | `traite` | `badge--traite` |
+| Abandonné | `abandonne` | `badge--abandonne` |
 
-These are stored in the `sites` table. The "Siège" (headquarters) in Dijon is also a site.
+### Sites (Unités Régionales — UR)
+
+Les sites sont stockés dans la table `sites`. Par défaut, deux sites sont créés lors de l'initialisation :
+
+| Code | Nom | Département |
+|------|-----|-------------|
+| UR21 | UR Côte-d'Or | Côte-d'Or |
+| UR25 | UR Doubs | Doubs |
+
+D'autres sites peuvent être ajoutés via l'interface de paramétrage (onglet « Gestion des sites »). Le libellé des unités (« UR », « UD », etc.) est configurable via `app_label_unite`.
+
+### Constantes de l'application
+
+| Constante | Valeur | Description |
+|-----------|--------|-------------|
+| `APP_NAME` | `Application SST — DREETS BFC` | Nom affiché dans l'en-tête |
+| `APP_VERSION` | `2.0.0` | Version de l'application |
+| `SITE_NAME` | `DREETS Bourgogne-Franche-Comté` | Nom complet du site |
+| `APP_ENV` | `prod` (défaut) ou `dev` | Environnement d'exécution |
+| `DEV_MODE` | `APP_ENV === 'dev'` | Mode développement (authentification mock) |
+| `DB_PATH` | `__DIR__ . '/../data/sst.db'` | Chemin vers la base SQLite |
+| `ITEMS_PER_PAGE` | `20` | Nombre d'éléments par page |
+| `MAX_OBJECT_LENGTH` | `100` | Longueur max du champ objet |
+| `MAX_DESCRIPTION_LENGTH` | `5000` | Longueur max du champ description |
+| `MAX_LIEU_LENGTH` | `200` | Longueur max du champ lieu |
 
 ---
 
-## 2. File Tree
+## 2. Arborescence des fichiers
 
 ```
 sst-app/
-├── public/                          # Web root (document root for server)
-│   ├── index.php                    # Entry point — router/dispatcher
-│   ├── .htaccess                    # Apache fallback (optional, for Apache deploys)
+├── public/                              # Racine web (document root IIS)
+│   ├── index.php                        # Point d'entrée unique — routeur/dispatcher
+│   ├── router.php                       # Router pour le serveur PHP built-in (dev only)
 │   ├── css/
-│   │   └── style.css                # Single CSS file (~400 lines max)
+│   │   └── style.css                    # Feuille de style unique
 │   ├── img/
-│   │   └── logo-dreets.png          # DREETS BFC logo (copied manually)
-│   └── favicon.ico                  # Favicon
+│   │   └── logo-dreets.png              # Logo DREETS BFC
+│   └── favicon.ico                      # Favicon
 │
 ├── src/
-│   ├── config.php                   # Constants, DB path, LDAP config, app settings
-│   ├── database.php                 # PDO connection singleton + schema init
-│   ├── auth.php                     # Auth logic: mock auth (dev), LDAP (prod)
-│   ├── session.php                  # Session start, CSRF token generation/validation
-│   ├── helpers.php                  # Utility functions: e(), redirect(), formatDate(), etc.
+│   ├── config.php                       # Constantes, configuration applicative
+│   ├── database.php                     # Connexion PDO singleton + initialisation schema + migrations
+│   ├── auth.php                         # Authentification IIS Windows Auth / mock dev
+│   ├── session.php                      # Gestion de session, CSRF, flash messages
+│   ├── session_patch.php                # Correctif pour session_regenerate_id en dev
+│   ├── helpers.php                      # Fonctions utilitaires : e(), redirect(), formatDateFR(), etc.
+│   ├── mail.php                         # Envoi d'e-mails (SMTP ou mail() en fallback)
 │   ├── queries/
-│   │   ├── report_queries.php       # All SQL queries related to reports
-│   │   ├── user_queries.php         # All SQL queries related to users
-│   │   ├── site_queries.php         # All SQL queries related to sites
-│   │   └── stats_queries.php        # All SQL queries for statistics/export/synthesis
+│   │   ├── report_queries.php           # Requêtes SQL liées aux signalements
+│   │   ├── user_queries.php             # Requêtes SQL liées aux utilisateurs
+│   │   ├── site_queries.php             # Requêtes SQL liées aux sites
+│   │   └── stats_queries.php            # Requêtes SQL pour statistiques/export/synthèse + notifications
 │   └── middleware/
-│       ├── require_auth.php         # Redirects to login if not authenticated
-│       └── require_role.php         # Functions to check role access
+│       ├── require_auth.php             # Vérifie l'authentification
+│       └── require_role.php             # Vérifie le rôle (requireRole, hasRole, hasAnyRole)
 │
 ├── templates/
-│   ├── header.php                   # Top blue bar: logo, app title, user name, logout
-│   ├── sidebar.php                  # Left dark grey sidebar navigation
-│   ├── footer.php                   # Closing tags, no JS needed
-│   ├── pagination.php               # Reusable pagination component
-│   ├── report_form.php              # Shared form for RSST/RAMI/DGI creation/edit
-│   ├── report_card.php              # Shared display for a single report view
-│   ├── alert.php                    # Flash message display (success/error/warning)
-│   └── confirm_dialog.php           # Confirmation for abandon/delete actions
+│   ├── header.php                       # Barre supérieure : logo, titre, nom utilisateur, déconnexion
+│   ├── sidebar.php                      # Navigation latérale (menu adapté au rôle)
+│   ├── footer.php                       # Fermeture des balises
+│   ├── pagination.php                   # Composant de pagination réutilisable
+│   ├── report_form.php                  # Formulaire partagé création/édition de signalement
+│   ├── report_card.php                  # Affichage partagé d'un signalement détaillé
+│   ├── alert.php                        # Affichage des messages flash (success/error/warning)
+│   └── confirm_dialog.php               # Dialogue de confirmation (abandon, suppression)
 │
 ├── pages/
-│   ├── login.php                    # Login page (dev only — mock auth form)
-│   ├── home.php                     # Dashboard / Accueil — 3 colored cards
-│   ├── preamble.php                 # Préambule info page
-│   ├── report_create.php            # Create report (RSST/RAMI/DGI)
-│   ├── report_list.php              # List reports with filters
-│   ├── report_view.php              # View single report detail
-│   ├── report_edit.php              # Edit own report
-│   ├── report_print.php             # Print-friendly view of a report
-│   ├── report_abandon.php           # Abandon (soft-delete) a report
-│   ├── report_respond.php           # Superviseur responds to a report
-│   ├── synthesis.php                # Synthesis table across registries
-│   ├── export.php                   # Export page with filters + CSV download
-│   ├── statistics.php               # KPI cards + table by UD
-│   ├── settings.php                 # Notification settings per site + global
-│   ├── users.php                    # User management (list + edit)
-│   └── access_denied.php            # 403 page
+│   ├── login.php                        # Page de connexion (dev only — formulaire mock)
+│   ├── choose_site.php                  # Choix du site lors de la première connexion
+│   ├── home.php                         # Tableau de bord / Accueil — 3 cartes colorées
+│   ├── preamble.php                     # Page d'information « Préambule »
+│   ├── help.php                         # Page « Documentation »
+│   ├── report_create.php                # Créer un signalement (RSST/RAMI/DGI)
+│   ├── report_list.php                  # Liste des signalements avec filtres
+│   ├── report_view.php                  # Consultation d'un signalement
+│   ├── report_edit.php                  # Modifier un signalement (déclarant uniquement)
+│   ├── report_print.php                 # Version imprimable d'un signalement (sans header/sidebar)
+│   ├── report_abandon.php               # Abandonner un signalement (confirmation)
+│   ├── report_respond.php               # Répondre à un signalement (superviseur uniquement)
+│   ├── synthesis.php                    # Synthèse croisée des signalements
+│   ├── export.php                       # Export CSV avec filtres
+│   ├── statistics.php                   # Statistiques et KPI
+│   ├── settings.php                     # Paramètres : notifications, SMTP, application, gestion des sites
+│   ├── users.php                        # Gestion des utilisateurs (liste + inscription)
+│   ├── user_edit.php                    # Édition d'un utilisateur
+│   ├── user_view.php                    # Profil utilisateur
+│   ├── site_edit.php                    # Édition d'un site
+│   └── access_denied.php                # Page 403 — accès refusé
 │
 ├── handlers/
-│   ├── report_create_handler.php    # POST handler: create report
-│   ├── report_edit_handler.php      # POST handler: edit report
-│   ├── report_abandon_handler.php   # POST handler: abandon report
-│   ├── report_respond_handler.php   # POST handler: respond to report
-│   ├── export_handler.php           # POST/GET handler: generate CSV
-│   ├── settings_handler.php         # POST handler: save notification settings
-│   └── user_edit_handler.php        # POST handler: edit user role/site
+│   ├── login_handler.php                # POST : authentification mock (dev)
+│   ├── choose_site_handler.php          # POST : choix du site (première connexion)
+│   ├── report_create_handler.php        # POST : création d'un signalement
+│   ├── report_edit_handler.php          # POST : modification d'un signalement
+│   ├── report_abandon_handler.php       # POST : abandon d'un signalement
+│   ├── report_respond_handler.php       # POST : réponse à un signalement
+│   ├── export_handler.php               # POST/GET : génération export CSV
+│   ├── settings_handler.php             # POST : sauvegarde paramètres (notifications, SMTP, app, sites)
+│   ├── smtp_test_handler.php            # POST : test d'envoi SMTP
+│   ├── user_edit_handler.php            # POST : modification d'un utilisateur
+│   ├── user_create_handler.php          # POST : création d'un utilisateur
+│   ├── user_delete_handler.php          # POST : désactivation d'un utilisateur
+│   ├── user_reactivate_handler.php      # POST : réactivation d'un utilisateur
+│   └── site_edit_handler.php            # POST : modification d'un site
 │
 ├── data/
-│   └── sst.db                       # SQLite database file (auto-created)
+│   └── sst.db                           # Base de données SQLite (créée automatiquement)
 │
-└── SPEC.md                          # This file
+├── schema.sql                           # Schéma SQL complet (exécuté à la première connexion)
+├── promote.php                          # Script CLI pour promouvoir un utilisateur superviseur
+├── seed.php                             # Script CLI pour peupler la base de test
+├── phpinfo.php                          # Page de diagnostic PHP
+└── SPEC.md                              # Ce fichier
 ```
-
-### File Purpose Details
-
-| File | Purpose |
-|------|---------|
-| `public/index.php` | Single entry point. Parses `$_GET['page']` to determine which page to render. Includes header/sidebar, renders the page, includes footer. All page includes are relative to `pages/` directory. |
-| `src/config.php` | Defines `APP_NAME`, `APP_VERSION`, `DB_PATH`, `LDAP_HOST`, `LDAP_PORT`, `LDAP_BASE_DN`, `DEV_MODE`, `SITE_NAME`, `MAX_OBJECT_LENGTH` (100), `ITEMS_PER_PAGE` (20). |
-| `src/database.php` | Returns a PDO instance. On first run, executes schema creation SQL. Sets `PRAGMA foreign_keys = ON;` and `PRAGMA journal_mode = WAL;`. |
-| `src/auth.php` | `getAuthenticatedUser()`: In DEV_MODE, reads `$_SESSION['mock_user']`. In prod, reads `$_SERVER['AUTH_USER']` and does LDAP lookup. Returns array with keys: `id`, `username`, `nom`, `prenom`, `email`, `role`, `site_id`. |
-| `src/session.php` | `startSession()`: `session_start()`. `generateCsrfToken()`: stores token in `$_SESSION['csrf_token']` and returns it. `validateCsrfToken($token)`: compares against session token. `setFlash($type, $message)`: stores flash message. `getFlash()`: retrieves and clears flash message. |
-| `src/helpers.php` | `e($string)`: `htmlspecialchars($string, ENT_QUOTES, 'UTF-8')`. `redirect($url)`: `header('Location: ' . $url); exit;`. `formatDateFR($date)`: formats ISO date to `d/m/Y`. `formatDateTimeFR($date)`: formats to `d/m/Y à H:i`. `generateReference($type, $year, $seq)`: creates reference string. |
-| `src/queries/report_queries.php` | Functions: `createReport()`, `getReportById()`, `getReportsByRegistry()`, `getReportsBySite()`, `updateReport()`, `abandonReport()`, `respondToReport()`, `countReportsByState()`, `getReportSequence()`. |
-| `src/queries/user_queries.php` | Functions: `getUserByUsername()`, `getUserById()`, `getAllUsers()`, `updateUserRole()`, `updateUserSite()`, `createUser()`, `deleteUser()`. |
-| `src/queries/site_queries.php` | Functions: `getAllSites()`, `getSiteById()`, `getSiteByName()`. |
-| `src/queries/stats_queries.php` | Functions: `getSynthesisData()`, `getExportData()`, `getStatisticsKPIs()`, `getStatsByUD()`, `countReportsByRegistryAndSite()`. |
-| `src/middleware/require_auth.php` | Checks `$_SESSION['user']` is set. If not, redirects to login page. |
-| `src/middleware/require_role.php` | `requireRole($roles)`: takes array of role strings. If `$_SESSION['user']['role']` not in array, renders `access_denied.php` and exits. |
 
 ---
 
-## 3. Database Schema
+## 3. Schéma de la base de données
 
-### Entity Relationship
+### Relations entre entités
 
 ```
 sites ──1:N── users
 sites ──1:N── reports
 users ──1:N── reports (declarant)
-users ──1:N── reports (respondent)
+users ──1:N── reports (repondant)
+users ──1:N── reports (pour_compte_de)
 reports ──1:N── report_responses
 sites ──1:N── notification_settings
 ```
 
-### CREATE TABLE Statements
+### Table `sites`
+
+Stocke les Unités Régionales (UR). Deux sites par défaut, extensibles via l'UI.
 
 ```sql
--- ============================================================
--- Table: sites
--- Stores the Unités Départementales (UD) and Siège
--- ============================================================
 CREATE TABLE IF NOT EXISTS sites (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    code            TEXT NOT NULL UNIQUE,           -- e.g. "UD21", "UD25", "SIEGE"
-    nom             TEXT NOT NULL,                   -- e.g. "UD Côte-d'Or"
-    departement     TEXT,                            -- e.g. "Côte-d'Or"
+    code            TEXT NOT NULL UNIQUE,           -- ex: "UR21", "UR25"
+    nom             TEXT NOT NULL,                   -- ex: "UR Côte-d'Or"
+    departement     TEXT,                            -- ex: "Côte-d'Or"
+    is_active       INTEGER NOT NULL DEFAULT 1,      -- 0 = désactivé, n'apparaît plus dans les listes
     created_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
+```
 
--- ============================================================
--- Table: users
--- Application users. Synced from LDAP or created in dev.
--- ============================================================
+### Table `users`
+
+Utilisateurs de l'application. Créés automatiquement à partir du login Windows (IIS) ou via le formulaire mock en dev.
+
+```sql
 CREATE TABLE IF NOT EXISTS users (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    username        TEXT NOT NULL UNIQUE,            -- Windows login (e.g. "jean.martin")
-    nom             TEXT NOT NULL,                   -- Last name
-    prenom          TEXT NOT NULL,                   -- First name
-    email           TEXT,                            -- Email address
-    role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent'|'manager'|'superviseur'|'chsct'
-    site_id         INTEGER NOT NULL,                -- FK to sites
-    is_active       INTEGER NOT NULL DEFAULT 1,      -- Soft delete: 0 = deactivated
+    username        TEXT NOT NULL UNIQUE,            -- Login Windows (ex: "jean.martin")
+    nom             TEXT NOT NULL,                   -- Nom de famille
+    prenom          TEXT NOT NULL,                   -- Prénom
+    email           TEXT,                            -- Adresse e-mail
+    role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent' | 'superviseur' | 'chsct'
+    site_id         INTEGER,                         -- FK vers sites (NULL jusqu'au choix du site)
+    is_active       INTEGER NOT NULL DEFAULT 1,      -- Soft delete : 0 = désactivé
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (site_id) REFERENCES sites(id)
 );
+```
 
--- ============================================================
--- Table: reports
--- Core table for all three registries.
--- ============================================================
+> **Note** : `site_id` est nullable. Un nouvel utilisateur auto-provisionné n'a pas de site tant qu'il n'a pas choisi le sien sur la page `choose_site`.
+
+### Table `reports`
+
+Table principale pour les trois registres.
+
+```sql
 CREATE TABLE IF NOT EXISTS reports (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    reference       TEXT NOT NULL UNIQUE,            -- e.g. "rsst-25-001"
-    type            TEXT NOT NULL,                   -- 'rsst'|'rami'|'dgi'
-    objet           TEXT NOT NULL,                   -- Subject line, max 100 chars
-    description     TEXT NOT NULL,                   -- Full description
-    date_evenement  TEXT NOT NULL,                   -- Date of the event (ISO 8601 date)
-    heure_evenement TEXT,                            -- Time of the event (HH:MM)
-    lieu            TEXT,                            -- Location of the event
-    -- Declarant (person who filed the report)
-    declarant_id    INTEGER NOT NULL,                -- FK to users
-    declarant_nom   TEXT NOT NULL,                   -- Denormalized last name for speed
-    declarant_prenom TEXT NOT NULL,                  -- Denormalized first name
-    -- "Pour le compte de" (RAMI only — report filed for another agent)
-    pour_compte_de  INTEGER,                         -- FK to users (nullable, RAMI only)
-    pour_compte_nom TEXT,                            -- Denormalized name of the other agent
-    pour_compte_prenom TEXT,                         -- Denormalized first name
-    -- Assignment
-    site_id         INTEGER NOT NULL,                -- FK to sites (UD where event occurred)
-    -- State management
-    etat            TEXT NOT NULL DEFAULT 'nouveau', -- 'nouveau'|'en_cours'|'traite'|'abandonne'
-    -- Respondent (superviseur who handled the report)
-    repondant_id    INTEGER,                         -- FK to users (nullable)
-    date_reponse    TEXT,                            -- When supervisor responded
-    reponse         TEXT,                            -- Supervisor's response text
-    -- Timestamps
+    reference       TEXT NOT NULL UNIQUE,            -- ex: "rsst-25-001"
+    type            TEXT NOT NULL,                   -- 'rsst' | 'rami' | 'dgi'
+    objet           TEXT NOT NULL,                   -- Objet du signalement, max 100 caractères
+    description     TEXT NOT NULL,                   -- Description complète, max 5000 caractères
+    date_evenement  TEXT NOT NULL,                   -- Date de l'événement (ISO 8601)
+    heure_evenement TEXT,                            -- Heure de l'événement (HH:MM)
+    lieu            TEXT,                            -- Lieu de l'événement
+    -- Déclarant (personne qui dépose le signalement)
+    declarant_id    INTEGER NOT NULL,                -- FK vers users
+    declarant_nom   TEXT NOT NULL,                   -- Nom dénormalisé pour performance
+    declarant_prenom TEXT NOT NULL,                  -- Prénom dénormalisé
+    -- « Pour le compte de » (RAMI uniquement)
+    pour_compte_de  INTEGER,                         -- FK vers users (nullable, RAMI uniquement)
+    pour_compte_nom TEXT,                            -- Nom de l'agent concerné
+    pour_compte_prenom TEXT,                         -- Prénom de l'agent concerné
+    -- Rattachement
+    site_id         INTEGER NOT NULL,                -- FK vers sites (UR où l'événement s'est produit)
+    -- Gestion d'état
+    etat            TEXT NOT NULL DEFAULT 'nouveau', -- 'nouveau' | 'en_cours' | 'traite' | 'abandonne'
+    -- Répondant (superviseur qui a traité le signalement)
+    repondant_id    INTEGER,                         -- FK vers users (nullable)
+    date_reponse    TEXT,                            -- Date de la réponse
+    reponse         TEXT,                            -- Texte de la réponse
+    -- Horodatage
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (declarant_id) REFERENCES users(id),
@@ -236,52 +270,75 @@ CREATE TABLE IF NOT EXISTS reports (
     FOREIGN KEY (repondant_id) REFERENCES users(id),
     FOREIGN KEY (site_id) REFERENCES sites(id)
 );
+```
 
--- ============================================================
--- Table: report_responses
--- Tracks multiple responses/updates to a report (audit trail).
--- The first response also populates reports.reponse/repondant_id.
--- ============================================================
+### Table `report_responses`
+
+Historique des réponses à un signalement (audit trail). Chaque réponse du superviseur est enregistrée ici.
+
+```sql
 CREATE TABLE IF NOT EXISTS report_responses (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    report_id       INTEGER NOT NULL,                -- FK to reports
-    user_id         INTEGER NOT NULL,                -- FK to users (the supervisor)
-    reponse         TEXT NOT NULL,                   -- Response text
-    nouvel_etat     TEXT,                            -- State change if any: 'en_cours'|'traite'
+    report_id       INTEGER NOT NULL,                -- FK vers reports
+    user_id         INTEGER NOT NULL,                -- FK vers users (le superviseur)
+    reponse         TEXT NOT NULL,                   -- Texte de la réponse
+    nouvel_etat     TEXT,                            -- Changement d'état : 'en_cours' | 'traite'
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+```
 
--- ============================================================
--- Table: notification_settings
--- Email addresses for notifications per site and globally.
--- ============================================================
+### Table `notification_settings`
+
+Adresses e-mail de notification par site et globales.
+
+```sql
 CREATE TABLE IF NOT EXISTS notification_settings (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    site_id         INTEGER,                         -- FK to sites. NULL = global setting
-    type            TEXT NOT NULL,                   -- 'site'|'global'
-    registry        TEXT NOT NULL,                   -- 'rsst'|'rami'|'dgi'|'all'
-    email           TEXT NOT NULL,                   -- Email address
+    site_id         INTEGER,                         -- FK vers sites. NULL = global
+    type            TEXT NOT NULL,                   -- 'site' | 'global'
+    registry        TEXT NOT NULL,                   -- 'rsst' | 'rami' | 'dgi' | 'all'
+    email           TEXT NOT NULL,                   -- Adresse e-mail
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (site_id) REFERENCES sites(id)
 );
+```
 
--- ============================================================
--- Table: report_sequence
--- Auto-incrementing sequence per registry+year for references.
--- ============================================================
+### Table `report_sequence`
+
+Séquence auto-incrémentée par registre et par année pour la génération des références.
+
+```sql
 CREATE TABLE IF NOT EXISTS report_sequence (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    type            TEXT NOT NULL,                   -- 'rsst'|'rami'|'dgi'
-    year            INTEGER NOT NULL,                -- e.g. 2025
-    last_sequence   INTEGER NOT NULL DEFAULT 0,      -- Last used sequence number
+    type            TEXT NOT NULL,                   -- 'rsst' | 'rami' | 'dgi'
+    year            INTEGER NOT NULL,                -- ex: 2025
+    last_sequence   INTEGER NOT NULL DEFAULT 0,      -- Dernier numéro de séquence utilisé
     UNIQUE(type, year)
 );
+```
 
--- ============================================================
--- Indexes
--- ============================================================
+### Table `config_app`
+
+Configuration applicative (magasin clé-valeur, éditable via l'UI).
+
+```sql
+CREATE TABLE IF NOT EXISTS config_app (
+    cle             TEXT PRIMARY KEY,                -- Clé de configuration
+    valeur          TEXT,                            -- Valeur
+    type            TEXT DEFAULT 'text',             -- 'text' | 'number' | 'password' | 'email'
+    categorie       TEXT DEFAULT 'app',              -- 'app' | 'smtp'
+    libelle         TEXT,                            -- Libellé affiché dans l'UI
+    modifiable      INTEGER DEFAULT 1,               -- 1 = modifiable via l'UI
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+### Index
+
+```sql
 CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type);
 CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat);
 CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id);
@@ -296,483 +353,354 @@ CREATE INDEX IF NOT EXISTS idx_report_responses_report_id ON report_responses(re
 CREATE INDEX IF NOT EXISTS idx_notification_settings_site_id ON notification_settings(site_id);
 ```
 
-### Initial Seed Data
+### Données d'initialisation (seed)
 
 ```sql
--- Sites
+-- Sites par défaut
 INSERT INTO sites (code, nom, departement) VALUES
-    ('SIEGE', 'Siège DREETS BFC', 'Côte-d''Or'),
-    ('UD21', 'UD Côte-d''Or', 'Côte-d''Or'),
-    ('UD25', 'UD Doubs', 'Doubs'),
-    ('UD39', 'UD Jura', 'Jura'),
-    ('UD58', 'UD Nièvre', 'Nièvre'),
-    ('UD70', 'UD Haute-Saône', 'Haute-Saône'),
-    ('UD71', 'UD Saône-et-Loire', 'Saône-et-Loire'),
-    ('UD89', 'UD Yonne', 'Yonne'),
-    ('UD90', 'UD Territoire de Belfort', 'Territoire de Belfort');
+    ('UR21', 'UR Côte-d''Or', 'Côte-d''Or'),
+    ('UR25', 'UR Doubs', 'Doubs');
 
--- Dev admin user (password: not used — mock auth)
+-- Utilisateurs de développement
 INSERT INTO users (username, nom, prenom, email, role, site_id) VALUES
-    ('admin.dev', 'Administrateur', 'Dev', 'admin.dev@dreets.gouv.fr', 'superviseur', 1);
+    ('admin.dev', 'Administrateur', 'Dev', 'admin.dev@dreets.gouv.fr', 'superviseur', 1),
+    ('agent.dev', 'Dupont', 'Jean', 'agent.dev@dreets.gouv.fr', 'agent', NULL),
+    ('chsct.dev', 'Bernard', 'Pierre', 'chsct.dev@dreets.gouv.fr', 'chsct', 2);
 
--- Dev agent user
-INSERT INTO users (username, nom, prenom, email, role, site_id) VALUES
-    ('agent.dev', 'Dupont', 'Jean', 'agent.dev@dreets.gouv.fr', 'agent', 2);
+-- Configuration par défaut
+INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUES
+    ('app_nom_organisation', 'DREETS BFC', 'text', 'app', 'Nom de l''organisation', 1),
+    ('app_nom_complet', 'DREETS Bourgogne-Franche-Comté', 'text', 'app', 'Nom complet', 1),
+    ('app_label_unite', 'UR', 'text', 'app', 'Libellé des unités (UD, UR, etc.)', 1),
+    ('app_superviseur_usernames', '', 'text', 'app', 'Logins Windows des superviseurs...', 1),
+    ('app_agent_see_only_own', '0', 'text', 'app', 'Obsolète : utilisez app_agent_visibility', 1),
+    ('app_agent_visibility', 'site', 'text', 'app', 'Visibilité des agents', 1),
+    ('smtp_host', '', 'text', 'smtp', 'Serveur SMTP', 1),
+    ('smtp_port', '25', 'number', 'smtp', 'Port SMTP', 1),
+    ('smtp_user', '', 'text', 'smtp', 'Utilisateur SMTP', 1),
+    ('smtp_pass', '', 'password', 'smtp', 'Mot de passe SMTP', 1),
+    ('smtp_from', '', 'email', 'smtp', 'Adresse d''expédition', 1),
+    ('smtp_encryption', 'none', 'text', 'smtp', 'Chiffrement (none, tls, starttls)', 1);
 ```
 
 ---
 
-## 4. Routing
+## 4. Routage
 
 ### Architecture
 
-All requests go through `public/index.php`. The URL pattern is:
+Toutes les requêtes passent par `public/index.php`. Le pattern d'URL est :
 
 ```
-/index.php?page={page_name}&id={optional_id}&type={optional_type}
+/index.php?page={page_name}[&id={id}][&type={type}][&tab={tab}]
 ```
 
-### Route Table
+### Table des routes
 
-| URL (`?page=`) | File Included | Method | Auth Required | Roles |
-|-----------------|---------------|--------|---------------|-------|
-| `login` | `pages/login.php` | GET | No | — |
-| `login` | `handlers/login_handler.php` (inline) | POST | No | — |
-| `logout` | `handlers/logout_handler.php` (inline) | GET | Yes | — |
-| `home` | `pages/home.php` | GET | Yes | All |
-| `preamble` | `pages/preamble.php` | GET | Yes | All |
-| `report_create` | `pages/report_create.php` | GET | Yes | All |
-| `report_create` | `handlers/report_create_handler.php` | POST | Yes | All |
-| `report_list` | `pages/report_list.php` | GET | Yes | All |
-| `report_view` | `pages/report_view.php` | GET+`&id=N` | Yes | All (see rules) |
-| `report_edit` | `pages/report_edit.php` | GET+`&id=N` | Yes | Owner only |
-| `report_edit` | `handlers/report_edit_handler.php` | POST+`&id=N` | Yes | Owner only |
-| `report_print` | `pages/report_print.php` | GET+`&id=N` | Yes | All (see rules) |
-| `report_abandon` | `handlers/report_abandon_handler.php` | POST+`&id=N` | Yes | Owner only |
-| `report_respond` | `pages/report_respond.php` | GET+`&id=N` | Yes | superviseur, manager |
-| `report_respond` | `handlers/report_respond_handler.php` | POST+`&id=N` | Yes | superviseur, manager |
-| `synthesis` | `pages/synthesis.php` | GET | Yes | superviseur, manager, chsct |
-| `export` | `pages/export.php` | GET | Yes | superviseur, manager, chsct |
-| `export` | `handlers/export_handler.php` | POST | Yes | superviseur, manager, chsct |
-| `statistics` | `pages/statistics.php` | GET | Yes | superviseur, manager, chsct |
-| `settings` | `pages/settings.php` | GET | Yes | superviseur |
-| `settings` | `handlers/settings_handler.php` | POST | Yes | superviseur |
-| `users` | `pages/users.php` | GET | Yes | superviseur |
-| `user_edit` | `pages/user_edit.php` | GET+`&id=N` | Yes | superviseur |
-| `user_edit` | `handlers/user_edit_handler.php` | POST+`&id=N` | Yes | superviseur |
-| (default/missing) | `pages/home.php` | GET | Yes | All |
+| URL (`?page=`) | Fichier inclus | Méthode | Auth requis | Rôles autorisés |
+|-----------------|---------------|---------|-------------|-----------------|
+| `login` | `pages/login.php` | GET | Non | — |
+| `login` | `handlers/login_handler.php` | POST | Non | — |
+| `logout` | (inline dans index.php) | GET | Oui | Tous |
+| `choose_site` | `pages/choose_site.php` | GET | Oui | Tous (sans site) |
+| `choose_site` | `handlers/choose_site_handler.php` | POST | Oui | Tous (sans site) |
+| `home` | `pages/home.php` | GET | Oui | Tous |
+| `preamble` | `pages/preamble.php` | GET | Oui | Tous |
+| `help` | `pages/help.php` | GET | Oui | Tous |
+| `report_create` | `pages/report_create.php` | GET | Oui | Tous |
+| `report_create` | `handlers/report_create_handler.php` | POST | Oui | Tous |
+| `report_list` | `pages/report_list.php` | GET | Oui | Tous (filtré par visibilité) |
+| `report_view` | `pages/report_view.php` | GET+`&id=N` | Oui | Déclarant, superviseur, CHSCT |
+| `report_edit` | `pages/report_edit.php` | GET+`&id=N` | Oui | Déclarant uniquement |
+| `report_edit` | `handlers/report_edit_handler.php` | POST+`&id=N` | Oui | Déclarant uniquement |
+| `report_print` | `pages/report_print.php` | GET+`&id=N` | Oui | Déclarant, superviseur, CHSCT |
+| `report_abandon` | `pages/report_abandon.php` | GET+`&id=N` | Oui | Superviseur uniquement |
+| `report_abandon` | `handlers/report_abandon_handler.php` | POST+`&id=N` | Oui | Superviseur uniquement |
+| `report_respond` | `pages/report_respond.php` | GET+`&id=N` | Oui | Superviseur uniquement |
+| `report_respond` | `handlers/report_respond_handler.php` | POST+`&id=N` | Oui | Superviseur uniquement |
+| `synthesis` | `pages/synthesis.php` | GET | Oui | superviseur, chsct |
+| `export` | `pages/export.php` | GET | Oui | superviseur, chsct |
+| `export` | `handlers/export_handler.php` | POST | Oui | superviseur, chsct |
+| `statistics` | `pages/statistics.php` | GET | Oui | superviseur, chsct |
+| `settings` | `pages/settings.php` | GET | Oui | superviseur |
+| `settings` | `handlers/settings_handler.php` | POST | Oui | superviseur |
+| `smtp_test` | `handlers/smtp_test_handler.php` | POST | Oui | superviseur |
+| `users` | `pages/users.php` | GET | Oui | superviseur |
+| `user_edit` | `pages/user_edit.php` | GET+`&id=N` | Oui | superviseur |
+| `user_edit` | `handlers/user_edit_handler.php` | POST+`&id=N` | Oui | superviseur |
+| `user_view` | `pages/user_view.php` | GET+`&id=N` | Oui | superviseur |
+| `user_create` | `handlers/user_create_handler.php` | POST | Oui | superviseur |
+| `user_delete` | `handlers/user_delete_handler.php` | POST | Oui | superviseur |
+| `user_reactivate` | `handlers/user_reactivate_handler.php` | POST | Oui | superviseur |
+| `site_edit` | `handlers/site_edit_handler.php` | POST | Oui | superviseur |
+| (défaut/inconnu) | `pages/home.php` | GET | Oui | Tous |
 
-### Router Logic (index.php)
+### Menu latéral (sidebar)
 
-```php
-<?php
-require_once __DIR__ . '/../src/config.php';
-require_once __DIR__ . '/../src/database.php';
-require_once __DIR__ . '/../src/session.php';
-require_once __DIR__ . '/../src/helpers.php';
-require_once __DIR__ . '/../src/auth.php';
+Le menu est construit dynamiquement selon le rôle de l'utilisateur :
 
-startSession();
+| Élément | Icône | Page | Rôles |
+|---------|-------|------|-------|
+| Accueil | 🏠 | `home` | agent, superviseur, chsct |
+| RSST | 📋 | `report_list&type=rsst` | agent, superviseur, chsct |
+| RAMI | ⚠️ | `report_list&type=rami` | agent, superviseur, chsct |
+| DGI | 🔴 | `report_list&type=dgi` | agent, superviseur, chsct |
+| Synthèse | 📊 | `synthesis` | superviseur, chsct |
+| Export | 📥 | `export` | superviseur, chsct |
+| Statistiques | 📈 | `statistics` | superviseur, chsct |
+| Utilisateurs | 👥 | `users` | superviseur |
+| Paramètres | ⚙️ | `settings` | superviseur |
 
-// Whitelist of valid pages
-$publicPages = ['login'];
-$validPages = [
-    'home', 'preamble',
-    'report_create', 'report_list', 'report_view', 'report_edit',
-    'report_print', 'report_abandon', 'report_respond',
-    'synthesis', 'export', 'statistics',
-    'settings', 'users', 'user_edit',
-    'logout'
-];
-
-$page = $_GET['page'] ?? 'home';
-
-// If not authenticated and not on public page, redirect to login
-if (!isset($_SESSION['user']) && !in_array($page, $publicPages)) {
-    redirect('index.php?page=login');
-}
-
-// Handle POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $handlerMap = [
-        'report_create'  => __DIR__ . '/../handlers/report_create_handler.php',
-        'report_edit'    => __DIR__ . '/../handlers/report_edit_handler.php',
-        'report_abandon' => __DIR__ . '/../handlers/report_abandon_handler.php',
-        'report_respond' => __DIR__ . '/../handlers/report_respond_handler.php',
-        'export'         => __DIR__ . '/../handlers/export_handler.php',
-        'settings'       => __DIR__ . '/../handlers/settings_handler.php',
-        'user_edit'      => __DIR__ . '/../handlers/user_edit_handler.php',
-    ];
-    if (isset($handlerMap[$page])) {
-        require $handlerMap[$page];
-        exit;
-    }
-}
-
-// Handle special GET routes
-if ($page === 'logout') {
-    session_destroy();
-    redirect('index.php?page=login');
-}
-
-// Validate page
-if (!in_array($page, $validPages)) {
-    $page = 'home';
-}
-
-// Render
-require_once __DIR__ . '/../src/middleware/require_auth.php';
-require_once __DIR__ . '/../src/middleware/require_role.php';
-
-require __DIR__ . '/../templates/header.php';
-require __DIR__ . '/../templates/sidebar.php';
-
-$currentPage = $page;
-$pageFile = __DIR__ . '/../pages/' . $page . '.php';
-if (file_exists($pageFile)) {
-    require $pageFile;
-} else {
-    require __DIR__ . '/../pages/home.php';
-}
-
-require __DIR__ . '/../templates/footer.php';
-```
+Liens du pied de sidebar (visibles par tous) :
+- 📚 Documentation → `help`
+- 📖 Préambule → `preamble`
 
 ---
 
-## 5. Page Specifications
+## 5. Spécifications des pages
 
-### 5.1 Login Page (`pages/login.php`)
+### 5.1 Page de connexion (`pages/login.php`)
 
-**URL**: `index.php?page=login`
-**Access**: Public (no auth required)
-**Only shown in DEV_MODE**. In production, IIS handles authentication before PHP runs.
+**URL** : `index.php?page=login`
+**Accès** : Public (uniquement en mode DEV)
+**Méthode** : GET (affichage), POST (traitement)
 
-#### Display
-- Centered white card on grey background
-- Title: "Application SST — DREETS BFC"
-- Subtitle: "Connexion (mode développement)"
-- Form fields:
-  - **Nom d'utilisateur** — `<input type="text" name="username" required>`
-  - **Mot de passe** — `<input type="password" name="password">` (cosmetic only, not checked)
-- Button: "Se connecter" (blue, `type="submit"`)
-- No CSRF token on login (session not yet established)
+En production, IIS gère l'authentification Windows avant que PHP ne s'exécute — cette page est donc inaccessible. En dev, un formulaire mock permet de simuler une connexion.
 
-#### POST Handler (inline in index.php or separate)
-- Looks up `$_POST['username']` in `users` table
-- If found: sets `$_SESSION['user']` with user data array
-- If not found: creates a new user with role `agent` and default site, then logs in
-- Redirects to `index.php?page=home`
+#### Affichage
+- Carte centrée sur fond gris
+- Titre : « Application SST — DREETS BFC »
+- Sous-titre : « Connexion (mode développement) »
+- Champ : **Nom d'utilisateur** — `<input type="text" name="username" required>`
+- Champ : **Mot de passe** — `<input type="password" name="password">` (cosmétique, non vérifié)
+- Bouton : « Se connecter »
 
----
-
-### 5.2 Home Page (`pages/home.php`)
-
-**URL**: `index.php?page=home`
-**Access**: All authenticated users
-**Method**: GET
-
-#### Display
-- Page title: "Accueil"
-- Three cards in a row (flexbox, wrap on mobile):
-
-**Card 1 — RSST (Blue)**
-- Background: `var(--rsst-color)` with white text
-- Icon: 📋 (or SVG clipboard icon)
-- Title: "Registre de Santé et de Sécurité au Travail"
-- Subtitle: "RSST"
-- Button: `<a href="index.php?page=report_create&type=rsst">Inscrire un signalement</a>` — white outlined button
-- Bottom stat: "X signalements enregistrés" (count from `SELECT COUNT(*) FROM reports WHERE type='rsst'`)
-
-**Card 2 — RAMI (Grey)**
-- Background: `var(--rami-color)` with white text
-- Icon: ⚠️ (or SVG warning icon)
-- Title: "Registre des Actes d'Agressions, de Menaces et d'Incivilités"
-- Subtitle: "RAMI"
-- Button: `<a href="index.php?page=report_create&type=rami">Inscrire un signalement</a>`
-- Bottom stat: "X signalements enregistrés"
-
-**Card 3 — DGI (Red)**
-- Background: `var(--dgi-color)` with white text
-- Icon: 🔴 (or SVG danger icon)
-- Title: "Registre de signalement d'un Danger Grave et Imminent"
-- Subtitle: "DGI"
-- Button: `<a href="index.php?page=report_create&type=dgi">Inscrire un signalement</a>`
-- Bottom stat: "X signalements enregistrés"
-
-#### SQL Queries
-```sql
-SELECT COUNT(*) as count FROM reports WHERE type = 'rsst' AND etat != 'abandonne';
-SELECT COUNT(*) as count FROM reports WHERE type = 'rami' AND etat != 'abandonne';
-SELECT COUNT(*) as count FROM reports WHERE type = 'dgi' AND etat != 'abandonne';
-```
-
-For agents, add `AND site_id = :user_site_id`.
-For superviseur/manager/chsct, no site filter.
+#### Traitement POST (`handlers/login_handler.php`)
+- Appelle `mockLogin($username)` qui appelle `findOrCreateUser($username)`
+- Si l'utilisateur existe en base : connexion réussie
+- Si l'utilisateur n'existe pas : création automatique avec rôle `agent` et `site_id = NULL`
+- En cas de succès : `$_SESSION['user'] = $user` → redirection vers `home`
+- Pas de jeton CSRF sur le login (session pas encore établie)
 
 ---
 
-### 5.3 Preamble Page (`pages/preamble.php`)
+### 5.2 Page de choix de site (`pages/choose_site.php`)
 
-**URL**: `index.php?page=preamble`
-**Access**: All authenticated users
-**Method**: GET
+**URL** : `index.php?page=choose_site`
+**Accès** : Utilisateurs authentifiés sans `site_id`
+**Méthode** : GET (affichage), POST (traitement)
 
-#### Display
-- Page title: "Préambule"
-- Static informational text about the SST registries:
-  - Legal basis (Code du travail articles)
-  - Purpose of each registry
-  - Who can file a report
-  - Confidentiality notice
-  - How reports are processed
-- This is a static content page — no dynamic data, no forms
-- Content is hardcoded in French in the PHP template
+Affichée automatiquement quand un utilisateur authentifié n'a pas encore choisi son site (site_id NULL). L'utilisateur doit sélectionner son UR parmi les sites actifs.
 
-#### SQL Queries
-None.
+#### Traitement POST (`handlers/choose_site_handler.php`)
+- Vérifie le jeton CSRF
+- Met à jour `users.site_id` avec la valeur choisie
+- Met à jour la session
+- Redirige vers la page initialement demandée (ou `home`)
 
 ---
 
-### 5.4 Report Create Page (`pages/report_create.php`)
+### 5.3 Page d'accueil (`pages/home.php`)
 
-**URL**: `index.php?page=report_create&type={rsst|rami|dgi}`
-**Access**: All authenticated users
-**Method**: GET (display form), POST (submit via handler)
+**URL** : `index.php?page=home`
+**Accès** : Tous les utilisateurs authentifiés
+**Méthode** : GET
 
-#### Display
-- Page title varies by type:
-  - RSST: "Inscrire un signalement — Registre de Santé et de Sécurité au Travail"
-  - RAMI: "Inscrire un signalement — Registre RAMI"
-  - DGI: "Inscrire un signalement — Registre DGI"
-- Color accent strip at top of form matching registry color
-- Form fields:
+#### Affichage
+- Titre : « Accueil »
+- Trois cartes côte à côte (flexbox) :
 
-| Field | Type | Required | Max Length | Default | Notes |
-|-------|------|----------|------------|---------|-------|
-| `date_evenement` | `<input type="date">` | Yes | — | Today's date | Date of the event |
-| `heure_evenement` | `<input type="time">` | No | — | Current time | Time of the event |
-| `lieu` | `<input type="text">` | No | 200 | — | Location (e.g. "Bureau 204, UD25") |
-| `objet` | `<input type="text">` | Yes | 100 | — | Subject line |
-| `description` | `<textarea rows="8">` | Yes | 5000 | — | Full description |
-| `site_id` | `<select>` | Yes | — | User's site | Dropdown of sites. Agent sees only their site. Superviseur sees all. |
+**Carte RSST** (fond bleu `var(--rsst-color)`, texte blanc)
+- Icône : 📋
+- Titre : « Registre de Santé et de Sécurité au Travail »
+- Sous-titre : « RSST »
+- Bouton : « Inscrire un signalement » → `report_create&type=rsst`
+- Stat : « X signalements enregistrés »
 
-**RAMI-specific fields** (shown only when `type=rami`):
+**Carte RAMI** (fond gris `var(--rami-color)`, texte blanc)
+- Icône : ⚠️
+- Titre : « Registre des Actes d'Agressions, de Menaces et d'Incivilités »
+- Sous-titre : « RAMI »
+- Bouton : « Inscrire un signalement » → `report_create&type=rami`
+- Stat : « X signalements enregistrés »
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `pour_compte` | `<input type="checkbox">` | No | "Signaler pour le compte d'un autre agent" |
-| `pour_compte_nom` | `<input type="text">` | Conditional | Shown when `pour_compte` is checked |
-| `pour_compte_prenom` | `<input type="text">` | Conditional | Shown when `pour_compte` is checked |
+**Carte DGI** (fond rouge `var(--dgi-color)`, texte blanc)
+- Icône : 🔴
+- Titre : « Registre de signalement d'un Danger Grave et Imminent »
+- Sous-titre : « DGI »
+- Bouton : « Inscrire un signalement » → `report_create&type=dgi`
+- Stat : « X signalements enregistrés »
 
-**Declarant info** (auto-filled, read-only):
-- Nom: `$_SESSION['user']['nom']` (readonly)
-- Prénom: `$_SESSION['user']['prenom']` (readonly)
-
-- Hidden fields:
-  - `<input type="hidden" name="type" value="{rsst|rami|dgi}">`
-  - `<input type="hidden" name="csrf_token" value="{token}">`
-
-- Buttons:
-  - "Valider" (submit, registry-colored)
-  - "Annuler" (link to `index.php?page=home`, grey)
-
-#### POST Handler (`handlers/report_create_handler.php`)
-
-**Validation**:
-1. CSRF token must match `$_SESSION['csrf_token']`
-2. `type` must be one of: `rsst`, `rami`, `dgi`
-3. `date_evenement` must be a valid date, not in the future
-4. `objet` must not be empty, max 100 characters
-5. `description` must not be empty, max 5000 characters
-6. `site_id` must exist in sites table
-7. If RAMI and `pour_compte` checked, `pour_compte_nom` and `pour_compte_prenom` must not be empty
-8. If `site_id` does not match user's site and user is `agent`, reject
-
-**Processing**:
-1. Generate reference: call `generateReference($type, date('y'), getNextSequence($type, date('Y')))`
-2. Insert into `reports` table
-3. Set flash: "Signalement enregistré avec la référence {reference}"
-4. Redirect to `index.php?page=report_view&id={new_report_id}`
-
-**SQL**:
-```sql
--- Get next sequence number
-INSERT INTO report_sequence (type, year, last_sequence)
-VALUES (:type, :year, 1)
-ON CONFLICT(type, year) DO UPDATE SET last_sequence = last_sequence + 1;
-
-SELECT last_sequence FROM report_sequence WHERE type = :type AND year = :year;
-
--- Insert report
-INSERT INTO reports (reference, type, objet, description, date_evenement, heure_evenement,
-    lieu, declarant_id, declarant_nom, declarant_prenom, pour_compte_de, pour_compte_nom,
-    pour_compte_prenom, site_id, etat)
-VALUES (:reference, :type, :objet, :description, :date_evenement, :heure_evenement,
-    :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :pour_compte_de, :pour_compte_nom,
-    :pour_compte_prenom, :site_id, 'nouveau');
-```
+Le compteur utilise `countActiveReports()` (exclut les abandonnés). Pour les agents avec visibilité `site` : filtré par `site_id`. Pour les agents avec visibilité `own` : `countActiveReportsForUser()`. Pour superviseur/CHSCT : pas de filtre.
 
 ---
 
-### 5.5 Report List Page (`pages/report_list.php`)
+### 5.4 Page Préambule (`pages/preamble.php`)
 
-**URL**: `index.php?page=report_list&type={rsst|rami|dgi}`
-**Access**: All authenticated users (Agent sees own site only; others see all)
-**Method**: GET
+**URL** : `index.php?page=preamble`
+**Accès** : Tous les utilisateurs authentifiés
+**Méthode** : GET
 
-#### Display
-- Page title: "Liste des signalements — {RSST|RAMI|DGI}"
-- Filter bar (top):
-  - **État**: `<select name="etat">` — Options: Tous, Nouveau, En cours, Traité, Abandonné
-  - **Site (UD)**: `<select name="site">` — Options: Tous + list of sites (only for superviseur/manager/chsct; agent sees only their site)
-  - **Recherche**: `<input type="text" name="q" placeholder="Rechercher...">` — searches in `objet` and `description`
-  - Button: "Filtrer"
-- Results table:
+Page d'information statique sur les registres SST. Contenu hardcoded en français :
+- Base légale (articles du Code du travail)
+- Objet de chaque registre
+- Qui peut déposer un signalement
+- Avis de confidentialité
+- Traitement des signalements
 
-| Column | Width | Content |
-|--------|-------|---------|
-| Réf. | 100px | `report.reference` |
-| Date | 100px | `formatDateFR(report.date_evenement)` |
-| Objet | flexible | `e(report.objet)`, truncated to 50 chars with "…" |
-| Déclarant | 150px | `report.declarant_nom` + `report.declarant_prenom` |
-| UD | 80px | `site.code` |
-| État | 100px | Badge with color: Nouveau=blue, En cours=orange, Traité=green, Abandonné=grey |
-| Actions | 150px | Buttons (see below) |
-
-- Action buttons per row:
-  - **Voir** — always shown, link to `report_view&id={id}`
-  - **Modifier** — shown only if current user is the declarant AND etat is `nouveau` or `en_cours`
-  - **Répondre** — shown only if role is superviseur/manager AND etat is `nouveau` or `en_cours`
-  - **Abandonner** — shown only if current user is the declarant AND etat is NOT `abandonne` AND etat is NOT `traite`
-
-- Pagination at bottom (20 items per page):
-  - "Précédent" / "Suivant" + page numbers
-
-#### SQL Queries
-```sql
--- Count total for pagination
-SELECT COUNT(*) as total
-FROM reports r
-LEFT JOIN sites s ON r.site_id = s.id
-WHERE r.type = :type
-  AND r.etat != 'abandonne'  -- unless filter includes abandonne
-  AND (:site_id IS NULL OR r.site_id = :site_id)
-  AND (:etat IS NULL OR r.etat = :etat)
-  AND (:q IS NULL OR r.objet LIKE '%' || :q || '%' OR r.description LIKE '%' || :q || '%')
-  AND (r.site_id = :user_site_id OR :is_superviseur = 1)
-
--- Fetch page
-SELECT r.*, s.code as site_code, s.nom as site_nom
-FROM reports r
-LEFT JOIN sites s ON r.site_id = s.id
-WHERE r.type = :type
-  AND (:site_id IS NULL OR r.site_id = :site_id)
-  AND (:etat IS NULL OR r.etat = :etat)
-  AND (:q IS NULL OR r.objet LIKE '%' || :q || '%' OR r.description LIKE '%' || :q || '%')
-  AND (r.site_id = :user_site_id OR :is_superviseur = 1)
-ORDER BY r.created_at DESC
-LIMIT :limit OFFSET :offset
-```
+Aucune donnée dynamique, aucun formulaire.
 
 ---
 
-### 5.6 Report View Page (`pages/report_view.php`)
+### 5.5 Création de signalement (`pages/report_create.php`)
 
-**URL**: `index.php?page=report_view&id={report_id}`
-**Access**: All authenticated users. Agent can only see reports from their own site.
-**Method**: GET
+**URL** : `index.php?page=report_create&type={rsst|rami|dgi}`
+**Accès** : Tous les utilisateurs authentifiés
+**Méthode** : GET (affichage), POST (traitement via handler)
 
-#### Access Control
-- If agent and report's `site_id` !== user's `site_id`, show access denied
-- If report's `etat` is `abandonne` and user is not the declarant and not superviseur/manager/chsct, show "Ce signalement a été abandonné"
+#### Affichage
+- Titre adapté au type : « Inscrire un signalement — RSST/RAMI/DGI »
+- Bande de couleur en haut du formulaire correspondant au registre
+- Champs du formulaire :
 
-#### Display
-- Page title: "Signalement — {reference}"
-- Color accent strip matching registry type
-- Report detail card:
+| Champ | Type | Requis | Max | Défaut | Notes |
+|-------|------|--------|-----|--------|-------|
+| `date_evenement` | `<input type="date">` | Oui | — | Date du jour | Date de l'événement |
+| `heure_evenement` | `<input type="time">` | Non | — | Heure actuelle | Heure de l'événement |
+| `lieu` | `<input type="text">` | Non | 200 | — | Lieu de l'événement |
+| `objet` | `<input type="text">` | Oui | 100 | — | Objet du signalement |
+| `description` | `<textarea rows="8">` | Oui | 5000 | — | Description complète |
+| `site_id` | `<select>` | Oui | — | Site de l'utilisateur | L'agent voit son site seul, le superviseur voit tous les sites |
 
-| Label | Value |
-|-------|-------|
-| Référence | `report.reference` |
-| Registre | RSST / RAMI / DGI (with colored badge) |
-| Date de l'événement | `formatDateFR(report.date_evenement)` |
-| Heure de l'événement | `report.heure_evenement` or "—" |
-| Lieu | `e(report.lieu)` or "—" |
-| Objet | `e(report.objet)` |
-| Description | `nl2br(e(report.description))` |
+**Champs spécifiques RAMI** (affichés uniquement si `type=rami`) :
+
+| Champ | Type | Requis | Notes |
+|-------|------|--------|-------|
+| `pour_compte` | `<input type="checkbox">` | Non | « Signaler pour le compte d'un autre agent » |
+| `pour_compte_nom` | `<input type="text">` | Conditionnel | Affiché si `pour_compte` coché |
+| `pour_compte_prenom` | `<input type="text">` | Conditionnel | Affiché si `pour_compte` coché |
+
+**Informations déclarant** (auto-remplies, lecture seule) :
+- Nom : `$_SESSION['user']['nom']`
+- Prénom : `$_SESSION['user']['prenom']`
+
+Champs cachés : `type`, `csrf_token`
+
+Boutons : « Valider » (couleur du registre), « Annuler » (retour à l'accueil)
+
+#### Traitement POST (`handlers/report_create_handler.php`)
+
+**Validation** :
+1. Jeton CSRF valide
+2. `type` parmi : `rsst`, `rami`, `dgi`
+3. `date_evenement` valide, pas dans le futur
+4. `objet` non vide, max 100 caractères
+5. `description` non vide, max 5000 caractères
+6. `site_id` existe dans la table sites
+7. Si RAMI et `pour_compte` coché : `pour_compte_nom` et `pour_compte_prenom` requis
+
+**Traitement** :
+1. Générer la référence : `generateReference($type, date('y'), getNextSequence($pdo, $type, date('Y')))`
+2. Insérer dans la table `reports`
+3. Flash : « Signalement enregistré avec la référence {reference} »
+4. Redirection vers `report_view&id={new_report_id}`
+
+---
+
+### 5.6 Liste des signalements (`pages/report_list.php`)
+
+**URL** : `index.php?page=report_list&type={rsst|rami|dgi}`
+**Accès** : Tous les utilisateurs authentifiés (filtré par visibilité agent)
+**Méthode** : GET
+
+#### Affichage
+- Titre : « Liste des signalements — RSST/RAMI/DGI »
+- Barre de filtres :
+  - **État** : `<select>` — Tous, Nouveau, En cours, Traité, Abandonné
+  - **Site** : `<select>` — Tous + liste des sites (superviseur/CHSCT uniquement ; agent voit son site)
+  - **Recherche** : `<input type="text">` — recherche dans `objet` et `description`
+  - Bouton « Filtrer »
+- Tableau des résultats :
+
+| Colonne | Contenu |
+|---------|---------|
+| Réf. | `report.reference` |
+| Date | `formatDateFR(report.date_evenement)` |
+| Objet | `truncate(e(report.objet), 50)` |
 | Déclarant | `report.declarant_prenom` `report.declarant_nom` |
-| UD | `site.nom` |
-| État | Badge: Nouveau/En cours/Traité/Abandonné |
-| Date de création | `formatDateTimeFR(report.created_at)` |
+| Site | `site.code` |
+| État | Badge coloré |
+| Actions | Boutons contextuels |
 
-- **RAMI-specific section** (if `report.pour_compte_nom` is not null):
-  - "Déclaré pour le compte de : `report.pour_compte_prenom` `report.pour_compte_nom`"
+- Boutons d'action par ligne :
+  - **Voir** — toujours affiché → `report_view&id={id}`
+  - **Modifier** — si utilisateur = déclarant ET état `nouveau` ou `en_cours`
+  - **Répondre** — si rôle superviseur ET état `nouveau` ou `en_cours`
+  - **Abandonner** — si rôle superviseur ET état non `abandonne` ni `traite`
 
-- **Response section** (if `report.reponse` is not null):
-  - Label: "Réponse"
-  - Response text: `nl2br(e(report.reponse))`
-  - Respondent: `repondant_prenom` `repondant_nom`
-  - Date: `formatDateTimeFR(report.date_reponse)`
-
-- **Response history** (if any entries in `report_responses`):
-  - Table: Date | Répondant | Nouvel état | Réponse
-
-- Action buttons (bottom):
-  - **Modifier** — if current user is declarant AND etat is nouveau/en_cours
-  - **Répondre** — if role is superviseur/manager AND etat is nouveau/en_cours
-  - **Abandonner** — if current user is declarant AND etat is not abandonne/traite
-  - **Imprimer** — link to `report_print&id={id}`, always shown
-  - **Retour à la liste** — link to `report_list&type={type}`
-
-#### SQL Queries
-```sql
-SELECT r.*, s.code as site_code, s.nom as site_nom,
-       rep.nom as repondant_nom, rep.prenom as repondant_prenom
-FROM reports r
-LEFT JOIN sites s ON r.site_id = s.id
-LEFT JOIN users rep ON r.repondant_id = rep.id
-WHERE r.id = :id;
-
-SELECT rr.*, u.nom, u.prenom
-FROM report_responses rr
-LEFT JOIN users u ON rr.user_id = u.id
-WHERE rr.report_id = :id
-ORDER BY rr.created_at ASC;
-```
+- Pagination en bas (20 éléments par page)
 
 ---
 
-### 5.7 Report Edit Page (`pages/report_edit.php`)
+### 5.7 Consultation d'un signalement (`pages/report_view.php`)
 
-**URL**: `index.php?page=report_edit&id={report_id}`
-**Access**: Only the declarant of the report, and only if etat is `nouveau` or `en_cours`
-**Method**: GET (display form), POST (via handler)
+**URL** : `index.php?page=report_view&id={report_id}`
+**Accès** : Déclarant, superviseur, CHSCT (via `canAccessReport()`)
+**Méthode** : GET
 
-#### Access Control
-- Load report by ID
-- If `report.declarant_id !== $_SESSION['user']['id']`, redirect with error "Vous ne pouvez modifier que vos propres signalements"
-- If `report.etat` is `traite` or `abandonne`, redirect with error "Ce signalement ne peut plus être modifié"
+#### Contrôle d'accès
 
-#### Display
-- Same form as `report_create.php` but pre-filled with existing data
-- Date/heure/lieu/objet/description fields are editable
-- `type` and declarant info are read-only
-- RAMI `pour_compte` fields are editable if originally set
-- Site (UD) is NOT editable after creation
+La fonction `canAccessReport()` centralise les règles :
+- **Déclarant** : toujours accès à son propre signalement
+- **Superviseur** : accès à tous les signalements
+- **CHSCT** : accès à tous les signalements
+- **Agent** (non déclarant) : selon `getAgentVisibility()` :
+  - `'site'` → accès si `report.site_id === user.site_id`
+  - `'own'` → accès uniquement à ses propres signalements
 
-- Buttons:
-  - "Enregistrer" (submit, registry-colored)
-  - "Annuler" (link back to `report_view&id={id}`)
+Si le signalement est `abandonne` et que l'utilisateur n'est ni le déclarant ni superviseur/CHSCT, un avertissement est affiché.
 
-#### POST Handler (`handlers/report_edit_handler.php`)
+#### Affichage
+Utilise le template `report_card.php` :
+- Carte avec bande de couleur du registre
+- Tableau de détail : référence, date/heure, lieu, objet, description, déclarant, site, état, date de création
+- Section « Pour le compte de » (RAMI uniquement, si renseigné)
+- Section « Réponse » (si `report.reponse` non null) : texte + répondant + date
+- Section « Historique des réponses » (si entrées dans `report_responses`) : tableau Date | Répondant | Nouvel état | Réponse
 
-**Validation**: Same as create, plus:
-1. Verify CSRF token
-2. Verify ownership (declarant_id matches session user)
-3. Verify etat is still nouveau/en_cours (re-check from DB, not form)
+Boutons d'action :
+- **Modifier** — si déclarant ET état `nouveau`/`en_cours`
+- **Répondre** — si superviseur ET état `nouveau`/`en_cours`
+- **Abandonner** — si superviseur ET état non `abandonne`/`traite`
+- **Imprimer** — toujours affiché (ouvre `report_print` dans un nouvel onglet)
+- **Retour à la liste** — lien vers `report_list&type={type}`
 
-**Processing**:
+---
+
+### 5.8 Modification d'un signalement (`pages/report_edit.php`)
+
+**URL** : `index.php?page=report_edit&id={report_id}`
+**Accès** : Déclarant uniquement, et uniquement si état `nouveau` ou `en_cours`
+**Méthode** : GET (affichage), POST (traitement)
+
+#### Contrôle d'accès
+- Charger le signalement par ID
+- Si `report.declarant_id !== user.id` → erreur + redirection
+- Si `report.etat` est `traite` ou `abandonne` → erreur + redirection
+
+#### Affichage
+- Même formulaire que `report_create.php` pré-rempli avec les données existantes
+- Champs modifiables : date, heure, lieu, objet, description
+- Champs en lecture seule : type, déclarant, site
+- Champs RAMI `pour_compte` modifiables si initialement renseignés
+
+#### Traitement POST (`handlers/report_edit_handler.php`)
+
+**Validation** : même que création, plus :
+1. Jeton CSRF
+2. Vérification de propriété (declarant_id)
+3. Vérification d'état (re-check depuis la DB, pas le formulaire)
+
 ```sql
 UPDATE reports
 SET objet = :objet, description = :description,
@@ -783,95 +711,87 @@ SET objet = :objet, description = :description,
 WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours');
 ```
 
-- If 0 rows affected, set flash error
-- Redirect to `report_view&id={id}`
+---
+
+### 5.9 Version imprimable (`pages/report_print.php`)
+
+**URL** : `index.php?page=report_print&id={report_id}`
+**Accès** : Déclarant, superviseur, CHSCT
+**Méthode** : GET
+
+#### Affichage
+- **Pas d'en-tête, pas de sidebar** — page autonome pour impression
+- Fond blanc, texte noir, pas de navigation
+- Classe CSS `print-only` avec styles `@media print`
+- En-tête : « DREETS Bourgogne-Franche-Comté » + logo
+- Contenu identique à `report_view` formaté en document propre
+- Pied : « Document généré le {date} — Application SST DREETS BFC »
+- Aucun bouton d'action
+- Indication : « Utilisez Ctrl+P pour imprimer »
 
 ---
 
-### 5.8 Report Print Page (`pages/report_print.php`)
+### 5.10 Abandon d'un signalement (`pages/report_abandon.php`)
 
-**URL**: `index.php?page=report_print&id={report_id}`
-**Access**: All authenticated users (same visibility rules as report_view)
-**Method**: GET
+**URL** : `index.php?page=report_abandon&id={report_id}`
+**Accès** : Superviseur uniquement, état `nouveau` ou `en_cours`
+**Méthode** : GET (confirmation), POST (traitement)
 
-#### Display
-- **No header, no sidebar** — standalone print-friendly page
-- White background, black text, no navigation
-- CSS class `print-only` that triggers `@media print` styles
+#### Affichage
+- Page de confirmation avant abandon
+- Résumé du signalement : référence, objet, date, état
+- Utilise le template `confirm_dialog.php`
 
-Content:
-- Header: "DREETS Bourgogne-Franche-Comté" + logo
-- Title: "Signalement — {reference}"
-- Same information as report_view, formatted as a clean document
-- Footer: "Document généré le {current_date} — Application SST DREETS BFC"
-- No action buttons
-- Browser print button hint: "Utilisez Ctrl+P pour imprimer"
+#### Traitement POST (`handlers/report_abandon_handler.php`)
 
-#### SQL Queries
-Same as report_view.
-
----
-
-### 5.9 Report Abandon Handler (`handlers/report_abandon_handler.php`)
-
-**URL**: `index.php?page=report_abandon&id={report_id}` (POST only)
-**Access**: Only the declarant, and only if etat is `nouveau` or `en_cours`
-**Method**: POST
-
-#### Processing
-1. Verify CSRF token from hidden field
-2. Load report, verify ownership and state
-3. Update state:
+1. Vérifier le jeton CSRF
+2. Charger le signalement
+3. Vérifier que l'utilisateur est superviseur
+4. Vérifier l'état (`nouveau` ou `en_cours`)
+5. Mettre à jour :
 
 ```sql
 UPDATE reports
 SET etat = 'abandonne', updated_at = datetime('now')
-WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours');
+WHERE id = :id AND etat IN ('nouveau', 'en_cours');
 ```
 
-4. Set flash: "Signalement {reference} abandonné"
-5. Redirect to `report_list&type={type}`
-
-**Confirmation**: The report_view page shows a "Abandonner" button that links to a confirm dialog (via `confirm_dialog.php` template) which POSTs to this handler.
+6. Flash : « Signalement {reference} abandonné »
+7. Redirection vers `report_list&type={type}`
 
 ---
 
-### 5.10 Report Respond Page (`pages/report_respond.php`)
+### 5.11 Réponse à un signalement (`pages/report_respond.php`)
 
-**URL**: `index.php?page=report_respond&id={report_id}`
-**Access**: superviseur, manager only
-**Method**: GET (display form), POST (via handler)
+**URL** : `index.php?page=report_respond&id={report_id}`
+**Accès** : Superviseur uniquement, état `nouveau` ou `en_cours`
+**Méthode** : GET (affichage), POST (traitement)
 
-#### Access Control
-- Verify role is `superviseur` or `manager`
-- Verify report etat is `nouveau` or `en_cours`
+#### Affichage
+- Titre : « Répondre au signalement — {reference} »
+- Résumé du signalement (lecture seule) : référence, registre, date, déclarant, site, objet, description, état
+- Historique des réponses précédentes (si existant)
+- Formulaire :
 
-#### Display
-- Page title: "Répondre au signalement — {reference}"
-- Summary of the report (read-only): reference, objet, declarant, date, description
-- Form fields:
+| Champ | Type | Requis | Notes |
+|-------|------|--------|-------|
+| `nouvel_etat` | `<select>` | Oui | « En cours » / « Traité » |
+| `reponse` | `<textarea rows="6">` | Oui | Max 5000 caractères |
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `nouvel_etat` | `<select>` | Yes | Options: "En cours", "Traité" |
-| `reponse` | `<textarea rows="6">` | Yes | Response text, max 5000 chars |
+Champs cachés : `csrf_token`, `report_id`
 
-- Hidden: `csrf_token`, `report_id`
-- Buttons:
-  - "Envoyer la réponse" (submit, blue)
-  - "Annuler" (link to `report_view&id={id}`)
+#### Traitement POST (`handlers/report_respond_handler.php`)
 
-#### POST Handler (`handlers/report_respond_handler.php`)
+**Validation** :
+1. Jeton CSRF
+2. Rôle superviseur
+3. `nouvel_etat` parmi `en_cours`, `traite`
+4. `reponse` non vide, max 5000 caractères
 
-**Validation**:
-1. CSRF token
-2. Role check
-3. `nouvel_etat` must be `en_cours` or `traite`
-4. `reponse` must not be empty, max 5000 chars
+**Traitement** :
 
-**Processing**:
 ```sql
--- Update the report
+-- Mettre à jour le signalement
 UPDATE reports
 SET etat = :nouvel_etat,
     reponse = :reponse,
@@ -880,1060 +800,562 @@ SET etat = :nouvel_etat,
     updated_at = datetime('now')
 WHERE id = :id AND etat IN ('nouveau', 'en_cours');
 
--- Insert into response history
+-- Insérer dans l'historique des réponses
 INSERT INTO report_responses (report_id, user_id, reponse, nouvel_etat)
 VALUES (:id, :user_id, :reponse, :nouvel_etat);
 ```
 
-- Set flash: "Réponse enregistrée pour le signalement {reference}"
-- Redirect to `report_view&id={id}`
+- Flash : « Réponse enregistrée pour le signalement {reference} »
+- Redirection vers `report_view&id={id}`
 
 ---
 
-### 5.11 Synthesis Page (`pages/synthesis.php`)
+### 5.12 Synthèse (`pages/synthesis.php`)
 
-**URL**: `index.php?page=synthesis`
-**Access**: superviseur, manager, chsct
-**Method**: GET
+**URL** : `index.php?page=synthesis`
+**Accès** : superviseur, chsct
+**Méthode** : GET
 
-#### Display
-- Page title: "Synthèse des signalements"
-- Filter bar:
-  - **Année**: `<select>` — Options: current year, previous years (from `SELECT DISTINCT strftime('%Y', created_at) FROM reports`)
-  - **Site**: `<select>` — Tous + list of sites
-- Summary table:
+#### Affichage
+- Titre : « Synthèse des signalements »
+- Filtres : Année + Site
+- Tableau croisé : Site × Registre × État
 
-| UD | RSST Nouveau | RSST En cours | RSST Traité | RSST Total | RAMI Nouveau | RAMI En cours | RAMI Traité | RAMI Total | DGI Nouveau | DGI En cours | DGI Traité | DGI Total | Total |
-|----|------|------|------|------|------|------|------|------|------|------|------|------|------|
+| Site | RSST Nouv. | RSST En cours | RSST Traité | RSST Total | RAMI ... | DGI ... | Total |
+|------|------|------|------|------|------|------|------|
 
-- Each cell is a count of reports for that UD/registry/state combination
-- Last row is totals across all UDs
-- Cells with count > 0 are bold; cells with 0 are dimmed (lighter text)
-
-#### SQL Queries
-```sql
-SELECT s.id as site_id, s.code, s.nom,
-    r.type,
-    SUM(CASE WHEN r.etat = 'nouveau' THEN 1 ELSE 0 END) as nouveau,
-    SUM(CASE WHEN r.etat = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
-    SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,
-    SUM(CASE WHEN r.etat = 'abandonne' THEN 1 ELSE 0 END) as abandonne,
-    COUNT(*) as total
-FROM sites s
-LEFT JOIN reports r ON r.site_id = s.id
-    AND strftime('%Y', r.created_at) = :year
-    AND (:site_id IS NULL OR r.site_id = :site_id)
-GROUP BY s.id, r.type
-ORDER BY s.code, r.type;
-```
+Chaque cellule contient le nombre de signalements pour la combinaison site/registre/état. Les cellules à 0 sont atténuées (texte plus clair). Dernière ligne = totaux.
 
 ---
 
-### 5.12 Export Page (`pages/export.php`)
+### 5.13 Export (`pages/export.php`)
 
-**URL**: `index.php?page=export`
-**Access**: superviseur, manager, chsct
-**Method**: GET (display form), POST (via handler, returns CSV)
+**URL** : `index.php?page=export`
+**Accès** : superviseur, chsct
+**Méthode** : GET (formulaire), POST (génération CSV)
 
-#### Display
-- Page title: "Export des données"
-- Filter form:
+#### Formulaire de filtres
 
-| Field | Type | Required | Options |
-|-------|------|----------|---------|
-| `type` | `<select>` | No | Tous, RSST, RAMI, DGI |
-| `site_id` | `<select>` | No | Tous + list of sites |
-| `declarant_id` | `<select>` | No | Tous + list of users |
-| `date_from` | `<input type="date">` | No | Start date |
-| `date_to` | `<input type="date">` | No | End date |
-| `etat` | `<select multiple>` | No | Nouveau, En cours, Traité, Abandonné |
+| Champ | Type | Options |
+|-------|------|---------|
+| `type` | `<select>` | Tous, RSST, RAMI, DGI |
+| `site_id` | `<select>` | Tous + liste des sites |
+| `declarant_id` | `<select>` | Tous + liste des utilisateurs |
+| `date_from` | `<input type="date">` | Date de début |
+| `date_to` | `<input type="date">` | Date de fin |
+| `etat` | `<select multiple>` | Nouveau, En cours, Traité, Abandonné |
 
-- Hidden: `csrf_token`
-- Button: "Exporter en CSV" (blue)
+Bouton : « Exporter en CSV »
 
-#### POST Handler (`handlers/export_handler.php`)
-
-**Validation**: CSRF token only. All filters are optional.
-
-**Processing**:
-1. Build SQL query with dynamic WHERE clauses based on submitted filters
-2. Execute query
-3. Set headers for CSV download:
-   ```php
-   header('Content-Type: text/csv; charset=utf-8');
-   header('Content-Disposition: attachment; filename="export_sst_' . date('Y-m-d_His') . '.csv"');
-   ```
-4. Output BOM for Excel UTF-8 compatibility: `echo "\xEF\xBB\xBF";`
-5. Output header row, then data rows
-6. Exit (no redirect — this is a file download)
-
-**CSV Columns**:
-Référence, Registre, Objet, Description, Date événement, Heure événement, Lieu, Déclarant nom, Déclarant prénom, UD, État, Réponse, Répondant nom, Répondant prénom, Date réponse, Pour le compte de (nom), Pour le compte de (prénom), Date création
-
-**SQL Query**:
-```sql
-SELECT r.reference, r.type, r.objet, r.description, r.date_evenement,
-    r.heure_evenement, r.lieu, r.declarant_nom, r.declarant_prenom,
-    s.code as site_code, r.etat, r.reponse,
-    rep.nom as repondant_nom, rep.prenom as repondant_prenom,
-    r.date_reponse, r.pour_compte_nom, r.pour_compte_prenom, r.created_at
-FROM reports r
-LEFT JOIN sites s ON r.site_id = s.id
-LEFT JOIN users rep ON r.repondant_id = rep.id
-WHERE 1=1
-    AND (:type IS NULL OR r.type = :type)
-    AND (:site_id IS NULL OR r.site_id = :site_id)
-    AND (:declarant_id IS NULL OR r.declarant_id = :declarant_id)
-    AND (:date_from IS NULL OR r.date_evenement >= :date_from)
-    AND (:date_to IS NULL OR r.date_evenement <= :date_to)
-    AND (:etats IS NULL OR r.etat IN (...))
-ORDER BY r.created_at DESC
-```
+#### Traitement (`handlers/export_handler.php`)
+- Construction dynamique de la requête SQL avec clauses WHERE
+- En-têtes CSV avec noms de colonnes en français
+- Téléchargement du fichier avec `Content-Type: text/csv`
 
 ---
 
-### 5.13 Statistics Page (`pages/statistics.php`)
+### 5.14 Statistiques (`pages/statistics.php`)
 
-**URL**: `index.php?page=statistics`
-**Access**: superviseur, manager, chsct
-**Method**: GET
+**URL** : `index.php?page=statistics`
+**Accès** : superviseur, chsct
+**Méthode** : GET
 
-#### Display
-- Page title: "Statistiques"
-- **KPI cards row** (4 cards):
-
-| Card | Value | Color |
-|------|-------|-------|
-| Signalements inscrits | Total count (all registries) | Blue |
-| Signalements RSST | Count RSST | Blue |
-| Signalements RAMI | Count RAMI | Grey |
-| Signalements DGI | Count DGI | Red |
-
-Each card also shows a sub-stat: "dont X nouveau, X en cours, X traité, X abandonné"
-
-- **Table: Répartition par UD**
-
-| UD | RSST | RAMI | DGI | Total | Nouveau | En cours | Traité | Abandonné |
-|----|------|------|-----|-------|---------|----------|--------|-----------|
-
-- Filter: Year selector (same as synthesis)
-
-#### SQL Queries
-```sql
--- KPI counts
-SELECT type, etat, COUNT(*) as count
-FROM reports
-WHERE strftime('%Y', created_at) = :year
-GROUP BY type, etat;
-
--- By UD
-SELECT s.code, s.nom,
-    SUM(CASE WHEN r.type = 'rsst' THEN 1 ELSE 0 END) as rsst,
-    SUM(CASE WHEN r.type = 'rami' THEN 1 ELSE 0 END) as rami,
-    SUM(CASE WHEN r.type = 'dgi' THEN 1 ELSE 0 END) as dgi,
-    COUNT(r.id) as total,
-    SUM(CASE WHEN r.etat = 'nouveau' THEN 1 ELSE 0 END) as nouveau,
-    SUM(CASE WHEN r.etat = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
-    SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,
-    SUM(CASE WHEN r.etat = 'abandonne' THEN 1 ELSE 0 END) as abandonne
-FROM sites s
-LEFT JOIN reports r ON r.site_id = s.id
-    AND strftime('%Y', r.created_at) = :year
-GROUP BY s.id
-ORDER BY s.code;
-```
+#### Affichage
+- Titre : « Statistiques »
+- Filtres : Année + Site
+- Cartes KPI : total signalements, nouveaux, en cours, traités, abandonnés, par registre
+- Tableau par site : Site | Total | Nouveau | En cours | Traité | Abandonné | RSST | RAMI | DGI
 
 ---
 
-### 5.14 Settings Page (`pages/settings.php`)
+### 5.15 Paramètres (`pages/settings.php`)
 
-**URL**: `index.php?page=settings`
-**Access**: superviseur only
-**Method**: GET (display), POST (via handler)
+**URL** : `index.php?page=settings[&tab={tab}]`
+**Accès** : superviseur uniquement
+**Méthode** : GET (affichage), POST (traitement)
 
-#### Display
-- Page title: "Paramètres — Notifications"
-- Two tabs (implemented as anchor links that show/hide divs):
+#### Onglets
 
-**Tab 1: "Notifications par site"**
-- For each site, a section with:
-  - Site name as heading
-  - Table with columns: Registre | Email
-  - Rows: RSST, RAMI, DGI, Tous
-  - Each row has an `<input type="email">` field pre-filled from DB
-  - Multiple emails separated by semicolons
+| Onglet | Paramètre `tab` | Contenu |
+|--------|------------------|---------|
+| 📍 Notifications par site | `sites` | Adresses e-mail de notification par site |
+| 🌐 Notifications globales | `global` | Adresses e-mail globales (tous sites, tous registres) |
+| 📧 Configuration SMTP | `smtp` | Paramètres SMTP + test d'envoi |
+| 🏢 Gestion des sites | `manage_sites` | Ajout/désactivation/réactivation/suppression de sites |
+| ⚙️ Paramètres de l'application | `app` | Nom organisation, libellé unités, superviseurs, visibilité agents |
 
-**Tab 2: "Notifications globales"**
-- Same structure but for global settings (no site_id)
-- Rows: RSST, RAMI, DGI, Tous
-- Email input fields
+#### Onglet « Notifications par site »
+Pour chaque site actif, champ de saisie d'adresses e-mail (système de tags). Utilise des inputs cachés pour stocker les valeurs.
 
-- Hidden: `csrf_token`
-- Button: "Enregistrer" (blue)
+#### Onglet « Notifications globales »
+Adresses e-mail recevant des notifications pour tous les sites et tous les registres.
 
-#### POST Handler (`handlers/settings_handler.php`)
+#### Onglet « Configuration SMTP »
 
-**Validation**: CSRF token. Each email field is optional but must be valid email(s) if filled.
+| Champ | Clé config | Type | Défaut |
+|-------|-----------|------|--------|
+| Serveur SMTP | `smtp_host` | text | — |
+| Port SMTP | `smtp_port` | number | 25 |
+| Utilisateur SMTP | `smtp_user` | text | — |
+| Mot de passe SMTP | `smtp_pass` | password | — |
+| Adresse d'expédition | `smtp_from` | email | — |
+| Chiffrement | `smtp_encryption` | text | none |
 
-**Processing**:
-1. Delete all existing notification_settings rows
-2. Insert new rows from form data
-3. Set flash: "Paramètres de notification enregistrés"
-4. Redirect to `settings`
+Bouton « Envoyer un e-mail de test » avec champ de saisie du destinataire (requête AJAX POST vers `smtp_test`).
 
-```sql
-DELETE FROM notification_settings;
+#### Onglet « Gestion des sites »
+- Formulaire d'ajout : code, nom, département
+- Tableau des sites existants : code, nom, département, nombre d'agents, nombre de signalements, statut, actions
+- Actions : désactiver/réactiver (toggle `is_active`), supprimer (uniquement si 0 agents et 0 signalements)
 
--- For each non-empty email field:
-INSERT INTO notification_settings (site_id, type, registry, email)
-VALUES (:site_id, :type, :registry, :email);
-```
+#### Onglet « Paramètres de l'application »
 
----
+| Champ | Clé config | Description |
+|-------|-----------|-------------|
+| Nom de l'organisation | `app_nom_organisation` | Affiché dans l'en-tête et les e-mails |
+| Nom complet | `app_nom_complet` | Nom complet de l'organisation |
+| Libellé des unités | `app_label_unite` | Ex: UR, UD, Direction... Utilisé partout dans l'UI |
+| Logins Windows des superviseurs | `app_superviseur_usernames` | Liste séparée par virgules (ex: `jean.martin, sophie.dupont`) — auto-promotion superviseur |
+| Visibilité des agents | `app_agent_visibility` | Radio : « Uniquement son site » (`site`, défaut) / « Uniquement ses propres signalements » (`own`) |
 
-### 5.15 Users Page (`pages/users.php`)
-
-**URL**: `index.php?page=users`
-**Access**: superviseur only
-**Method**: GET
-
-#### Display
-- Page title: "Gestion des utilisateurs"
-- Filter: `<input type="text" name="q" placeholder="Rechercher un utilisateur...">`
-- Table:
-
-| Column | Content |
-|--------|---------|
-| Nom | `user.nom` |
-| Prénom | `user.prenom` |
-| Email | `user.email` |
-| Rôle | Badge: agent=blue, manager=orange, superviseur=red, chsct=purple |
-| Site | `site.code` — `site.nom` |
-| Actif | "Oui" (green) / "Non" (red) |
-| Actions | "Modifier" button → `user_edit&id={id}` |
-
-- Pagination (20 per page)
-
-#### SQL Queries
-```sql
-SELECT u.*, s.code as site_code, s.nom as site_nom
-FROM users u
-LEFT JOIN sites s ON u.site_id = s.id
-WHERE u.is_active = 1
-    AND (:q IS NULL OR u.nom LIKE '%' || :q || '%' OR u.prenom LIKE '%' || :q || '%' OR u.email LIKE '%' || :q || '%')
-ORDER BY u.nom, u.prenom
-LIMIT :limit OFFSET :offset;
-```
+Un avertissement réglementaire s'affiche si la visibilité est restreinte : les registres SST sont consultables par tous les agents par principe de transparence (Code du travail).
 
 ---
 
-### 5.16 User Edit Page (`pages/user_edit.php`)
+### 5.16 Gestion des utilisateurs (`pages/users.php`)
 
-**URL**: `index.php?page=user_edit&id={user_id}`
-**Access**: superviseur only
-**Method**: GET (display), POST (via handler)
+**URL** : `index.php?page=users[&tab={tab}]`
+**Accès** : superviseur uniquement
+**Méthode** : GET (affichage), POST via handlers
 
-#### Display
-- Page title: "Modifier l'utilisateur — {prenom} {nom}"
-- Form fields:
+#### Onglet « Liste des utilisateurs »
+- Barre de recherche (nom, prénom, e-mail, identifiant, site)
+- Tableau : Nom | Prénom | Email | Rôle (badge) | Site | Statut | Actions (Voir, Éditer)
+- Les utilisateurs inactifs sont affichés en atténué (opacité réduite)
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `nom` | `<input type="text">` | Yes | Read-only (from LDAP) |
-| `prenom` | `<input type="text">` | Yes | Read-only (from LDAP) |
-| `email` | `<input type="email">` | No | Read-only (from LDAP) |
-| `role` | `<select>` | Yes | Options: agent, manager, superviseur, chsct |
-| `site_id` | `<select>` | Yes | All sites |
+#### Onglet « Inscrire un utilisateur »
+Formulaire de création avec champs : nom, prénom, email, identifiant Windows, rôle (sélecteur `ROLE_LABELS`), site.
 
-- Hidden: `csrf_token`, `user_id`
-- Buttons:
-  - "Enregistrer" (blue)
-  - "Annuler" (link to `users`)
-
-#### POST Handler (`handlers/user_edit_handler.php`)
-
-**Validation**: CSRF, role must be valid, site_id must exist.
-
-**Processing**:
-```sql
-UPDATE users
-SET role = :role, site_id = :site_id, updated_at = datetime('now')
-WHERE id = :id;
-```
-
-- Set flash: "Utilisateur {prenom} {nom} modifié"
-- Redirect to `users`
+Rôles disponibles dans le sélecteur : Agent, Superviseur, Membre CHSCT.
 
 ---
 
-### 5.17 Access Denied Page (`pages/access_denied.php`)
+## 6. Système d'authentification
 
-**URL**: Rendered inline by middleware
-**Access**: N/A (shown when access is denied)
+### Architecture
 
-#### Display
-- Centered message: "Accès refusé"
-- Explanation: "Vous n'avez pas les droits nécessaires pour accéder à cette page."
-- Link: "Retour à l'accueil" → `index.php?page=home`
+L'application utilise exclusivement l'authentification Windows intégrée d'IIS. **Il n'y a pas de LDAP, pas de formulaire de login en production.**
 
----
+### Flux en production (`DEV_MODE = false`)
 
-## 6. Security Measures
+1. IIS authentifie l'utilisateur via Windows Authentication **avant** que PHP ne s'exécute
+2. `$_SERVER['AUTH_USER']` est toujours défini (format : `DOMAIN\username` ou `username@domain`)
+3. `getAuthenticatedUser()` lit `AUTH_USER`, extrait le nom d'utilisateur via `extractUsername()`
+4. `findOrCreateUser()` cherche l'utilisateur en base ou le crée automatiquement
+5. L'utilisateur est stocké dans `$_SESSION['user']`
 
-### 6.1 CSRF Protection
-- Every form includes a hidden `<input type="hidden" name="csrf_token" value="...">`
-- Token is generated in `session.php` and stored in `$_SESSION['csrf_token']`
-- Every POST handler validates: `if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) { die('CSRF token mismatch'); }`
-- Token is regenerated on each login
+### Flux en développement (`DEV_MODE = true`)
 
-### 6.2 SQL Injection Prevention
-- ALL queries use PDO prepared statements with named parameters (`:param`)
-- NO string concatenation in SQL queries
-- Example pattern:
-  ```php
-  $stmt = $pdo->prepare('SELECT * FROM reports WHERE id = :id');
-  $stmt->execute([':id' => $id]);
-  ```
+1. IIS n'est pas utilisé — `AUTH_USER` n'est pas disponible
+2. Un formulaire mock de connexion est affiché (`pages/login.php`)
+3. `mockLogin($username)` appelle `findOrCreateUser($username)` et stocke en session
 
-### 6.3 XSS Prevention
-- ALL user-supplied data displayed in HTML passes through `e()` function:
-  ```php
-  function e($string) {
-      return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
-  }
-  ```
-- Used in templates: `<?= e($report['objet']) ?>`
-- `nl2br()` is applied AFTER `e()` for multiline descriptions: `<?= nl2br(e($report['description'])) ?>`
+### Extraction du nom d'utilisateur
 
-### 6.4 Authentication Checks
-- `require_auth.php` is included on every page (except login)
-- Checks `isset($_SESSION['user'])`
-- If not set, redirects to login
+`extractUsername(string $authUser): string` gère les formats IIS :
+- `DREETS-BFC\jean.martin` → `jean.martin`
+- `jean.martin@dreets-bfc.gouv.fr` → `jean.martin`
+- `jean.martin` → `jean.martin`
+- Résultat toujours en minuscules
 
-### 6.5 Authorization Checks
-- Role-based access enforced in each page/handler:
-  ```php
-  requireRole(['superviseur', 'manager']); // for synthesis, export, stats
-  requireRole(['superviseur']); // for settings, users
-  ```
-- Ownership checks for edit/abandon: `report.declarant_id === $_SESSION['user']['id']`
-- Site visibility: agents only see their own site's reports
+### Auto-provisionnement
 
-### 6.6 Input Validation
-- HTML5 `required`, `maxlength`, `type="date"`, `type="email"` attributes
-- Server-side validation in handlers (never trust client-side alone)
-- `date_evenement`: validated with `checkdate()`, must not be in the future
-- `objet`: max 100 chars, trimmed
-- `description`: max 5000 chars, trimmed
-- `type`: must be in whitelist `['rsst', 'rami', 'dgi']`
-- `etat`: must be in whitelist `['nouveau', 'en_cours', 'traite', 'abandonne']`
-- `role`: must be in whitelist `['agent', 'manager', 'superviseur', 'chsct']`
-- `site_id`: must exist in sites table
+`findOrCreateUser(PDO $pdo, string $username): ?array`
+- Si l'utilisateur existe en base : retourne ses données
+- Si l'utilisateur n'existe pas : appelle `autoProvisionUser()`
 
-### 6.7 Session Security
-- `session.cookie_httponly = 1` — cookies not accessible via JavaScript
-- `session.cookie_samesite = 'Strict'` — CSRF mitigation
-- `session.use_strict_mode = 1` — reject uninitialized session IDs
-- In production: `session.cookie_secure = 1` — cookies only over HTTPS
+`autoProvisionUser(PDO $pdo, string $username): ?array`
+- Génère le nom d'affichage à partir du username (ex: `jean.martin` → Jean Martin)
+- Détermine le rôle via `determineProvisionRole()`
+- Crée l'utilisateur avec `site_id = NULL` (choix du site à la première connexion)
+- Email auto-généré : `{username}@dreets.gouv.fr`
 
-### 6.8 Database File Protection
-- SQLite database file (`data/sst.db`) is OUTSIDE the web root (`public/`)
-- `.htaccess` in `data/` directory: `Deny from all`
-- For IIS: `web.config` with `<authorization><deny users="*" /></authorization>` for data folder
+### Attribution du rôle superviseur
 
-### 6.9 Report Integrity
-- Once a report is `traite` or `abandonne`, it cannot be edited
-- The `updated_at` field tracks last modification
-- The `report_responses` table provides an audit trail of all supervisor actions
+Deux méthodes :
+
+1. **Via l'interface** : un superviseur peut modifier le rôle d'un utilisateur via la page `user_edit` → `updateUser()`
+
+2. **Via la liste de configuration** (`app_superviseur_usernames`) :
+   - Liste séparée par virgules de logins Windows (ex: `jean.martin, sophie.dupont`)
+   - `determineProvisionRole()` vérifie cette liste lors de l'auto-provisionnement
+   - `checkAndPromoteUser()` vérifie la liste à chaque connexion d'un agent existant et le promeut automatiquement si son username y figure
+   - Utile pour la première installation : permet de désigner les premiers superviseurs sans accès à la base de données
+   - **Pas de mécanisme de préfixe** (l'ancien système auto-admin par préfixe n'existe plus)
 
 ---
 
-## 7. Auth System Design
+## 7. Contrôle d'accès et visibilité
 
-### 7.1 Development Mode (DEV_MODE = true)
+### Fonction centrale : `canAccessReport()`
 
-**Flow**:
-1. User navigates to `index.php?page=login`
-2. Login form displayed with username/password fields
-3. User submits form
-4. Handler looks up username in `users` table:
-   ```php
-   $stmt = $pdo->prepare('SELECT * FROM users WHERE username = :username AND is_active = 1');
-   $stmt->execute([':username' => $_POST['username']]);
-   $user = $stmt->fetch(PDO::FETCH_ASSOC);
-   ```
-5. If found: set `$_SESSION['user']` with user data
-6. If not found: auto-create with default role `agent` and first site, then log in
-7. Password is NOT checked in dev mode (it's cosmetic)
+`canAccessReport(array $report, array $user): bool`
 
-**Dev Users** (pre-seeded):
-- `admin.dev` — role: superviseur, site: Siège
-- `agent.dev` — role: agent, site: UD21
+Centralise toutes les règles d'accès à un signalement. Un utilisateur peut consulter un signalement si et seulement si :
 
-**Switching users in dev**: Logout, then login with different username.
+- Il est le **déclarant** du signalement (`report.declarant_id === user.id`), OU
+- Il a le rôle **superviseur**, OU
+- Il a le rôle **CHSCT**
 
-### 7.2 Production Mode (DEV_MODE = false)
+Pour les agents (non déclarants du signalement consulté) :
+- Si `getAgentVisibility() === 'site'` : accès si `report.site_id === user.site_id`
+- Si `getAgentVisibility() === 'own'` : accès refusé (l'agent ne voit que ses propres signalements)
 
-**Flow**:
-1. IIS with Windows Authentication intercepts the request before it reaches PHP
-2. IIS sets `$_SERVER['AUTH_USER']` with the Windows login (e.g. `DREETS\jean.martin`)
-3. PHP reads `$_SERVER['AUTH_USER']`, strips domain prefix:
-   ```php
-   $username = strtolower(str_replace('DREETS\\', '', $_SERVER['AUTH_USER']));
-   ```
-4. Look up user in `users` table
-5. If not found: auto-provision via LDAP lookup, create user with role `agent`
-6. Set `$_SESSION['user']`
+### Visibilité des agents
 
-**LDAP Lookup** (for auto-provisioning):
-```php
-function ldapLookup($username) {
-    $conn = ldap_connect(LDAP_HOST, LDAP_PORT);
-    ldap_set_option($conn, LDAP_OPT_PROTOCOL_VERSION, 3);
-    ldap_set_option($conn, LDAP_OPT_REFERRALS, 0);
+`getAgentVisibility(): string` — retourne le mode de visibilité pour les agents :
 
-    // Bind with service account or user's credentials
-    $bind = ldap_bind($conn, LDAP_SERVICE_DN, LDAP_SERVICE_PASSWORD);
+| Valeur | Description | Remarque |
+|--------|-------------|----------|
+| `site` | L'agent voit les signalements de son site uniquement | **Par défaut** |
+| `own` | L'agent voit uniquement ses propres signalements | ⚠️ Avertissement réglementaire |
 
-    $search = ldap_search($conn, LDAP_BASE_DN, "(sAMAccountName=$username)", [
-        'sn', 'givenName', 'mail', 'department'
-    ]);
-    $entries = ldap_get_entries($conn, $search);
+Configurée via `app_agent_visibility` dans `config_app`. Les superviseurs et CHSCT voient toujours tous les sites (`canSeeAllSites() === true`).
 
-    if ($entries['count'] > 0) {
-        return [
-            'nom' => $entries[0]['sn'][0] ?? '',
-            'prenom' => $entries[0]['givenname'][0] ?? '',
-            'email' => $entries[0]['mail'][0] ?? '',
-        ];
-    }
-    return null;
-}
-```
+Compatibilité ascendante :
+- Ancienne valeur `'0'` → `'all'` (n'est plus une option agent)
+- Ancienne valeur `'1'` → `'own'`
+- `agentSeesOnlyOwn()` : alias retrocompatible, retourne `getAgentVisibility() === 'own'`
 
-### 7.3 Transition Between Dev and Prod
+### Matrice des permissions par rôle
 
-The ONLY difference between dev and prod is in `src/auth.php`:
-- `DEV_MODE = true`: Uses `$_SESSION['mock_user']` from login form
-- `DEV_MODE = false`: Uses `$_SERVER['AUTH_USER']` from IIS
+| Action | agent | superviseur | chsct |
+|--------|-------|-------------|-------|
+| Créer un signalement | ✅ | ✅ | ✅ |
+| Voir ses propres signalements | ✅ | ✅ | ✅ |
+| Voir les signalements de son site | ✅ (si visibilité `site`) | ✅ (tous sites) | ✅ (tous sites) |
+| Voir tous les signalements | ❌ | ✅ | ✅ |
+| Modifier un signalement | ✅ (déclarant, état nouv./en cours) | ✅ (déclarant, état nouv./en cours) | ❌ |
+| Répondre à un signalement | ❌ | ✅ (état nouv./en cours) | ❌ |
+| Abandonner un signalement | ❌ | ✅ (état nouv./en cours) | ❌ |
+| Imprimer un signalement | ✅ | ✅ | ✅ |
+| Synthèse | ❌ | ✅ | ✅ |
+| Export CSV | ❌ | ✅ | ✅ |
+| Statistiques | ❌ | ✅ | ✅ |
+| Gestion des utilisateurs | ❌ | ✅ | ❌ |
+| Paramètres | ❌ | ✅ | ❌ |
 
-Everything else (session management, role checks, page access) is identical.
+### Middleware de contrôle de rôle
 
-In `config.php`:
-```php
-define('DEV_MODE', getenv('APP_ENV') !== 'production');
-```
-
-Set environment variable `APP_ENV=production` on the IIS server.
-
-### 7.4 Session Data Structure
-
-```php
-$_SESSION['user'] = [
-    'id'        => 42,
-    'username'  => 'jean.martin',
-    'nom'       => 'Martin',
-    'prenom'    => 'Jean',
-    'email'     => 'jean.martin@dreets.gouv.fr',
-    'role'      => 'agent',
-    'site_id'   => 3,
-    'site_code' => 'UD25',
-    'site_nom'  => 'UD Doubs',
-];
-```
+- `requireRole(array $roles): void` — Vérifie que l'utilisateur a l'un des rôles requis. Sinon, affiche `access_denied.php` et termine l'exécution.
+- `hasRole(string $role): bool` — Vérifie un rôle sans terminer l'exécution.
+- `hasAnyRole(array $roles): bool` — Vérifie l'appartenance à l'un des rôles.
 
 ---
 
-## 8. CSS Architecture
+## 8. Règles métier
 
-### 8.1 File: `public/css/style.css` (~400 lines)
+### Génération de référence
 
-### 8.2 CSS Custom Properties (Variables)
+Format : `{type}-{YY}-{NNN}`
 
-```css
-:root {
-    /* Brand colors */
-    --color-primary: #2E5C8A;          /* DREETS blue */
-    --color-primary-dark: #1E3F5E;
-    --color-primary-light: #3D7AB5;
+- `type` : `rsst`, `rami` ou `dgi`
+- `YY` : année sur 2 chiffres (ex: `25`)
+- `NNN` : numéro séquentiel sur 3 chiffres avec zéro-padding (ex: `001`)
 
-    /* Registry colors */
-    --rsst-color: #2E5C8A;             /* Blue */
-    --rami-color: #6C6C6C;             /* Grey */
-    --dgi-color: #B22222;              /* Red */
+Exemples : `rsst-25-001`, `rami-25-015`, `dgi-25-003`
 
-    /* State colors */
-    --state-nouveau: #2E5C8A;          /* Blue */
-    --state-en-cours: #E67E22;         /* Orange */
-    --state-traite: #27AE60;           /* Green */
-    --state-abandonne: #95A5A6;        /* Grey */
-
-    /* Role badge colors */
-    --role-agent: #2E5C8A;
-    --role-manager: #E67E22;
-    --role-superviseur: #B22222;
-    --role-chsct: #8E44AD;
-
-    /* Layout */
-    --sidebar-width: 220px;
-    --header-height: 60px;
-    --content-padding: 24px;
-
-    /* Greys */
-    --grey-50: #FAFAFA;
-    --grey-100: #F5F5F5;
-    --grey-200: #EEEEEE;
-    --grey-300: #E0E0E0;
-    --grey-400: #BDBDBD;
-    --grey-500: #9E9E9E;
-    --grey-600: #757575;
-    --grey-700: #616161;
-    --grey-800: #424242;
-    --grey-900: #212121;
-
-    /* Sidebar */
-    --sidebar-bg: #333333;
-    --sidebar-text: #CCCCCC;
-    --sidebar-hover: #444444;
-    --sidebar-active: var(--color-primary);
-
-    /* Misc */
-    --border-radius: 4px;
-    --shadow: 0 2px 4px rgba(0,0,0,0.1);
-    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --font-size-base: 14px;
-}
-```
-
-### 8.3 Layout Classes
-
-```css
-/* Reset & Base */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-family); font-size: var(--font-size-base); color: var(--grey-900); background: var(--grey-100); }
-
-/* Header — 60px blue bar at top */
-.header { height: var(--header-height); background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
-.header__logo { display: flex; align-items: center; gap: 12px; }
-.header__logo img { height: 40px; }
-.header__title { font-size: 18px; font-weight: 600; }
-.header__user { display: flex; align-items: center; gap: 16px; font-size: 13px; }
-.header__logout { color: white; text-decoration: none; opacity: 0.8; }
-.header__logout:hover { opacity: 1; text-decoration: underline; }
-
-/* Sidebar — 220px dark grey, fixed */
-.sidebar { width: var(--sidebar-width); background: var(--sidebar-bg); color: var(--sidebar-text); position: fixed; top: var(--header-height); left: 0; bottom: 0; overflow-y: auto; }
-.sidebar__nav { list-style: none; padding: 8px 0; }
-.sidebar__item { display: block; padding: 10px 20px; color: var(--sidebar-text); text-decoration: none; font-size: 14px; border-left: 3px solid transparent; }
-.sidebar__item:hover { background: var(--sidebar-hover); }
-.sidebar__item--active { background: var(--sidebar-hover); border-left-color: var(--sidebar-active); color: white; font-weight: 600; }
-.sidebar__icon { margin-right: 10px; width: 18px; text-align: center; }
-
-/* Main content area */
-.main { margin-left: var(--sidebar-width); margin-top: var(--header-height); padding: var(--content-padding); min-height: calc(100vh - var(--header-height)); }
-
-/* Page title */
-.page-title { font-size: 22px; font-weight: 600; color: var(--grey-900); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--grey-200); }
-```
-
-### 8.4 Component Classes
-
-```css
-/* Cards */
-.card { background: white; border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
-.card--rsst { border-top: 4px solid var(--rsst-color); }
-.card--rami { border-top: 4px solid var(--rami-color); }
-.card--dgi { border-top: 4px solid var(--dgi-color); }
-
-/* Home page registry cards */
-.registry-card { border-radius: 8px; padding: 30px 24px; color: white; text-align: center; min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; }
-.registry-card--rsst { background: var(--rsst-color); }
-.registry-card--rami { background: var(--rami-color); }
-.registry-card--dgi { background: var(--dgi-color); }
-.registry-card__title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.registry-card__subtitle { font-size: 24px; font-weight: 700; margin-bottom: 12px; }
-.registry-card__stat { font-size: 13px; opacity: 0.85; margin-top: 12px; }
-.registry-card__btn { display: inline-block; margin-top: 16px; padding: 10px 24px; border: 2px solid white; border-radius: var(--border-radius); color: white; text-decoration: none; font-weight: 600; transition: background 0.2s; }
-.registry-card__btn:hover { background: rgba(255,255,255,0.2); }
-.registry-cards { display: flex; gap: 20px; flex-wrap: wrap; }
-.registry-cards > * { flex: 1; min-width: 250px; }
-
-/* Buttons */
-.btn { display: inline-block; padding: 8px 18px; border: none; border-radius: var(--border-radius); font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; text-align: center; transition: opacity 0.2s; }
-.btn:hover { opacity: 0.85; }
-.btn--primary { background: var(--color-primary); color: white; }
-.btn--success { background: var(--state-traite); color: white; }
-.btn--warning { background: var(--state-en-cours); color: white; }
-.btn--danger { background: var(--dgi-color); color: white; }
-.btn--secondary { background: var(--grey-500); color: white; }
-.btn--outline { background: transparent; border: 1px solid var(--grey-400); color: var(--grey-700); }
-.btn--sm { padding: 4px 10px; font-size: 12px; }
-
-/* Forms */
-.form-group { margin-bottom: 16px; }
-.form-group label { display: block; margin-bottom: 4px; font-weight: 500; color: var(--grey-700); font-size: 13px; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--grey-300); border-radius: var(--border-radius); font-size: 14px; font-family: var(--font-family); }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(46,92,138,0.2); }
-.form-group input[readonly] { background: var(--grey-100); color: var(--grey-600); }
-.form-group .form-hint { font-size: 12px; color: var(--grey-500); margin-top: 2px; }
-
-/* Tables */
-.table-wrapper { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; background: white; }
-th { background: var(--grey-100); text-align: left; padding: 10px 12px; font-weight: 600; font-size: 13px; color: var(--grey-700); border-bottom: 2px solid var(--grey-300); white-space: nowrap; }
-td { padding: 10px 12px; border-bottom: 1px solid var(--grey-200); font-size: 14px; vertical-align: middle; }
-tr:hover td { background: var(--grey-50); }
-
-/* Badges */
-.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; color: white; }
-.badge--nouveau { background: var(--state-nouveau); }
-.badge--en-cours { background: var(--state-en-cours); }
-.badge--traite { background: var(--state-traite); }
-.badge--abandonne { background: var(--state-abandonne); }
-.badge--agent { background: var(--role-agent); }
-.badge--manager { background: var(--role-manager); }
-.badge--superviseur { background: var(--role-superviseur); }
-.badge--chsct { background: var(--role-chsct); }
-.badge--rsst { background: var(--rsst-color); }
-.badge--rami { background: var(--rami-color); }
-.badge--dgi { background: var(--dgi-color); }
-
-/* KPI cards */
-.kpi-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-.kpi-card { flex: 1; min-width: 200px; background: white; border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 20px; text-align: center; border-top: 4px solid var(--color-primary); }
-.kpi-card--rsst { border-top-color: var(--rsst-color); }
-.kpi-card--rami { border-top-color: var(--rami-color); }
-.kpi-card--dgi { border-top-color: var(--dgi-color); }
-.kpi-card__value { font-size: 32px; font-weight: 700; color: var(--grey-900); }
-.kpi-card__label { font-size: 13px; color: var(--grey-600); margin-top: 4px; }
-.kpi-card__detail { font-size: 11px; color: var(--grey-500); margin-top: 8px; }
-
-/* Alerts / Flash messages */
-.alert { padding: 12px 16px; border-radius: var(--border-radius); margin-bottom: 16px; font-size: 14px; }
-.alert--success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-.alert--error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-.alert--warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-.alert--info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-
-/* Pagination */
-.pagination { display: flex; gap: 4px; justify-content: center; margin-top: 20px; }
-.pagination__link, .pagination__current { display: inline-block; padding: 6px 12px; border: 1px solid var(--grey-300); border-radius: var(--border-radius); font-size: 13px; text-decoration: none; color: var(--grey-700); }
-.pagination__current { background: var(--color-primary); color: white; border-color: var(--color-primary); }
-.pagination__link:hover { background: var(--grey-200); }
-
-/* Filter bar */
-.filter-bar { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 20px; padding: 16px; background: white; border-radius: var(--border-radius); box-shadow: var(--shadow); }
-.filter-bar .form-group { margin-bottom: 0; }
-
-/* Tabs */
-.tabs { display: flex; border-bottom: 2px solid var(--grey-200); margin-bottom: 20px; }
-.tabs__link { padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--grey-600); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-.tabs__link--active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
-
-/* Print view */
-.print-view { max-width: 800px; margin: 0 auto; padding: 40px; }
-.print-view__header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--grey-900); padding-bottom: 20px; }
-.print-view__title { font-size: 20px; font-weight: 700; margin-top: 12px; }
-.print-view__field { margin-bottom: 12px; }
-.print-view__label { font-weight: 600; color: var(--grey-600); font-size: 13px; }
-.print-view__value { font-size: 14px; margin-top: 2px; }
-.print-hint { text-align: center; color: var(--grey-500); font-size: 13px; margin-bottom: 20px; }
-
-/* Confirm dialog (inline, not modal) */
-.confirm-box { background: #fff3cd; border: 1px solid #ffeeba; border-radius: var(--border-radius); padding: 20px; text-align: center; margin: 20px 0; }
-.confirm-box p { margin-bottom: 16px; font-weight: 500; }
-.confirm-box__actions { display: flex; gap: 12px; justify-content: center; }
-```
-
-### 8.5 Print Styles
-
-```css
-@media print {
-    .header, .sidebar, .filter-bar, .btn, .pagination, .print-hint { display: none !important; }
-    .main { margin: 0; padding: 0; }
-    body { background: white; }
-    .print-view { padding: 0; }
-    table { font-size: 11px; }
-    .badge { border: 1px solid #333; color: #333 !important; background: transparent !important; }
-}
-```
-
-### 8.6 Responsive
-
-```css
-@media (max-width: 768px) {
-    .sidebar { display: none; }
-    .main { margin-left: 0; }
-    .registry-cards { flex-direction: column; }
-    .kpi-grid { flex-direction: column; }
-    .filter-bar { flex-direction: column; }
-}
-```
-
----
-
-## 9. Report Reference Format
-
-### Format
-```
-{type}-{year}-{sequence}
-```
-
-### Examples
-```
-rsst-25-001    — First RSST report of 2025
-rami-25-042    — 42nd RAMI report of 2025
-dgi-25-007     — 7th DGI report of 2025
-```
-
-### Generation Logic
-
-```php
-function generateReference(string $type, string $year2, int $sequence): string {
-    // type: 'rsst'|'rami'|'dgi'
-    // year2: 2-digit year, e.g. '25'
-    // sequence: zero-padded 3-digit number
-    return $type . '-' . $year2 . '-' . str_pad($sequence, 3, '0', STR_PAD_LEFT);
-}
-```
-
-### Sequence Generation
-
-```php
-function getNextSequence(PDO $pdo, string $type, int $year): int {
-    // Try to insert a new row
-    $stmt = $pdo->prepare("
-        INSERT INTO report_sequence (type, year, last_sequence)
-        VALUES (:type, :year, 1)
-        ON CONFLICT(type, year) DO UPDATE SET last_sequence = last_sequence + 1
-    ");
-    $stmt->execute([':type' => $type, ':year' => $year]);
-
-    // Read the new value
-    $stmt = $pdo->prepare("
-        SELECT last_sequence FROM report_sequence WHERE type = :type AND year = :year
-    ");
-    $stmt->execute([':type' => $type, ':year' => $year]);
-    return (int) $stmt->fetchColumn();
-}
-```
-
-**Thread safety note**: In SQLite, this is safe because SQLite serializes writes. If concurrency were a concern, wrap in a transaction.
-
-**Year rollover**: When the year changes, a new sequence starts at 1 automatically because of the `UNIQUE(type, year)` constraint on `report_sequence`.
-
----
-
-## 10. Business Rules
-
-### 10.1 Report Ownership
-- A report belongs to the `declarant_id` user
-- Only the declarant can edit or abandon their report
-- Exception: RAMI reports filed "pour le compte de" another agent still belong to the filer (`declarant_id`), but `pour_compte_de` references the actual victim
-
-### 10.2 Report State Machine
-```
-Nouveau ──(agent edits)──→ Nouveau (stays, updated_at changes)
-Nouveau ──(superviseur responds with "En cours")──→ En cours
-Nouveau ──(superviseur responds with "Traité")──→ Traité
-Nouveau ──(agent abandons)──→ Abandonné
-En cours ──(agent edits)──→ En cours (stays)
-En cours ──(superviseur responds with "Traité")──→ Traité
-En cours ──(agent abandons)──→ Abandonné
-Traité ──→ (no further transitions)
-Abandonné ──→ (no further transitions)
-```
-
-### 10.3 Site Visibility
-- **Agent**: Can only see reports from their own `site_id`
-- **Superviseur/Manager/CHSCT**: Can see reports from ALL sites
-- This applies to: report list, statistics, synthesis, export
-- On the home page, agent counts reflect only their site
-
-### 10.4 RAMI "Pour le compte de" Feature
-- Only available on RAMI reports
-- When checked, the agent filing the report is the `declarant_id`
-- The actual victim is recorded in `pour_compte_nom` and `pour_compte_prenom`
-- The `pour_compte_de` field is nullable and may reference a user ID if the victim is in the system
-- This feature allows an agent to file on behalf of a colleague who may be too distressed
-
-### 10.5 Notification Settings
-- Only `superviseur` can edit notification settings
-- `chsct` can view settings but not edit
-- Emails are stored per site + registry combination
-- Global notifications apply to all sites (site_id = NULL)
-- When a new report is created, the system should send an email to the configured addresses (NOTE: email sending is a future enhancement — for now, settings are stored but no emails are sent)
-
-### 10.6 User Management
-- Only `superviseur` can manage users
-- User names and emails are read-only (managed by LDAP in production)
-- Only `role` and `site_id` are editable
-- Users are never hard-deleted; they are deactivated (`is_active = 0`)
-- Auto-provisioning: When a new user authenticates (via LDAP or dev login), a `users` record is created with default role `agent` and the first site in the list
-
-### 10.7 Pagination
-- All list pages use pagination with 20 items per page (configurable via `ITEMS_PER_PAGE` in config)
-- Page parameter: `$_GET['p']` (default 1)
-- Offset calculation: `($page - 1) * ITEMS_PER_PAGE`
-
----
-
-## 11. Error Handling
-
-### 11.1 Database Errors
-- PDO is set to throw exceptions: `$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);`
-- Wrap critical operations in try/catch
-- On error: log to PHP error log, show generic error message to user
-- Never expose SQL errors to the user
-
-### 11.2 404 Handling
-- If `$_GET['page']` is not in the valid pages list, redirect to home
-- If a report ID doesn't exist, show "Signalement introuvable" message
-
-### 11.3 403 Handling
-- If role check fails, render `access_denied.php` template
-- If ownership check fails, show error flash message and redirect
-
-### 11.4 Validation Errors
-- On POST validation failure, redirect back to the form page
-- Store submitted values in `$_SESSION['form_data']` to repopulate the form
-- Store error messages in `$_SESSION['form_errors']` array
-- Display errors above the relevant form fields
-
-### 11.5 Flash Messages
-```php
-function setFlash(string $type, string $message): void {
-    $_SESSION['flash'] = ['type' => $type, 'message' => $message];
-}
-
-function getFlash(): ?array {
-    if (isset($_SESSION['flash'])) {
-        $flash = $_SESSION['flash'];
-        unset($_SESSION['flash']);
-        return $flash;
-    }
-    return null;
-}
-```
-
-Types: `success`, `error`, `warning`, `info`
-
----
-
-## Appendix A: Sidebar Menu Items
-
-| Order | Label | Icon (Unicode) | Page | Roles |
-|-------|-------|---------|------|-------|
-| 1 | Accueil | 🏠 | `home` | All |
-| 2 | RSST | 📋 | `report_list&type=rsst` | All |
-| 3 | RAMI | ⚠️ | `report_list&type=rami` | All |
-| 4 | DGI | 🔴 | `report_list&type=dgi` | All |
-| 5 | Synthèse | 📊 | `synthesis` | superviseur, manager, chsct |
-| 6 | Export | 📥 | `export` | superviseur, manager, chsct |
-| 7 | Statistiques | 📈 | `statistics` | superviseur, manager, chsct |
-| 8 | Utilisateurs | 👥 | `users` | superviseur |
-| 9 | Paramètres | ⚙️ | `settings` | superviseur |
-
-Items hidden based on role — not shown at all, not just greyed out.
-
-## Appendix B: French Labels for States
-
-| DB Value | Display Label | Badge Class |
-|----------|---------------|-------------|
-| `nouveau` | Nouveau | badge--nouveau |
-| `en_cours` | En cours | badge--en-cours |
-| `traite` | Traité | badge--traite |
-| `abandonne` | Abandonné | badge--abandonne |
-
-## Appendix C: French Labels for Registries
-
-| DB Value | Display Label | Short Label |
-|----------|---------------|-------------|
-| `rsst` | Registre de Santé et de Sécurité au Travail | RSST |
-| `rami` | Registre des Actes d'Agressions, de Menaces et d'Incivilités | RAMI |
-| `dgi` | Registre de signalement d'un Danger Grave et Imminent | DGI |
-
-## Appendix D: French Labels for Roles
-
-| DB Value | Display Label |
-|----------|---------------|
-| `agent` | Agent |
-| `manager` | Manager |
-| `superviseur` | Superviseur |
-| `chsct` | Membre CHSCT |
-
-## Appendix E: Complete SQL Query Reference
-
-### Report Queries
+La séquence est gérée par la table `report_sequence` avec un UPSERT atomique :
 
 ```sql
--- Create report
-INSERT INTO reports (reference, type, objet, description, date_evenement, heure_evenement,
-    lieu, declarant_id, declarant_nom, declarant_prenom, pour_compte_de, pour_compte_nom,
-    pour_compte_prenom, site_id, etat)
-VALUES (:reference, :type, :objet, :description, :date_evenement, :heure_evenement,
-    :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :pour_compte_de, :pour_compte_nom,
-    :pour_compte_prenom, :site_id, 'nouveau');
-
--- Get report by ID
-SELECT r.*, s.code as site_code, s.nom as site_nom,
-       rep.nom as repondant_nom, rep.prenom as repondant_prenom
-FROM reports r
-LEFT JOIN sites s ON r.site_id = s.id
-LEFT JOIN users rep ON r.repondant_id = rep.id
-WHERE r.id = :id;
-
--- Get reports list (with filters)
-SELECT r.*, s.code as site_code, s.nom as site_nom
-FROM reports r
-LEFT JOIN sites s ON r.site_id = s.id
-WHERE r.type = :type
-    AND (:etat IS NULL OR r.etat = :etat)
-    AND (:site_id IS NULL OR r.site_id = :site_id)
-    AND (:q IS NULL OR r.objet LIKE '%' || :q || '%' OR r.description LIKE '%' || :q || '%')
-    AND (r.site_id = :user_site_id OR :show_all = 1)
-ORDER BY r.created_at DESC
-LIMIT :limit OFFSET :offset;
-
--- Update report
-UPDATE reports
-SET objet = :objet, description = :description,
-    date_evenement = :date_evenement, heure_evenement = :heure_evenement,
-    lieu = :lieu, pour_compte_nom = :pour_compte_nom,
-    pour_compte_prenom = :pour_compte_prenom,
-    updated_at = datetime('now')
-WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours');
-
--- Abandon report
-UPDATE reports
-SET etat = 'abandonne', updated_at = datetime('now')
-WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours');
-
--- Respond to report
-UPDATE reports
-SET etat = :nouvel_etat, reponse = :reponse, repondant_id = :user_id,
-    date_reponse = datetime('now'), updated_at = datetime('now')
-WHERE id = :id AND etat IN ('nouveau', 'en_cours');
-
--- Insert response history
-INSERT INTO report_responses (report_id, user_id, reponse, nouvel_etat)
-VALUES (:report_id, :user_id, :reponse, :nouvel_etat);
-
--- Get response history
-SELECT rr.*, u.nom, u.prenom
-FROM report_responses rr
-LEFT JOIN users u ON rr.user_id = u.id
-WHERE rr.report_id = :report_id
-ORDER BY rr.created_at ASC;
-
--- Count by registry
-SELECT COUNT(*) as count FROM reports WHERE type = :type AND etat != 'abandonne' AND (site_id = :site_id OR :show_all = 1);
-
--- Get next sequence
 INSERT INTO report_sequence (type, year, last_sequence) VALUES (:type, :year, 1)
 ON CONFLICT(type, year) DO UPDATE SET last_sequence = last_sequence + 1;
-SELECT last_sequence FROM report_sequence WHERE type = :type AND year = :year;
 ```
 
-### User Queries
+### « Pour le compte de » (RAMI)
 
-```sql
--- Get user by username
-SELECT u.*, s.code as site_code, s.nom as site_nom
-FROM users u LEFT JOIN sites s ON u.site_id = s.id
-WHERE u.username = :username AND u.is_active = 1;
+Dans le registre RAMI, un signalement peut être déposé pour le compte d'un autre agent. Les champs `pour_compte_nom` et `pour_compte_prenom` sont renseignés. Si l'agent concerné est trouvé en base, une notification e-mail lui est envoyée via `notifyPourCompte()`.
 
--- Get all users (with search)
-SELECT u.*, s.code as site_code, s.nom as site_nom
-FROM users u LEFT JOIN sites s ON u.site_id = s.id
-WHERE u.is_active = 1
-    AND (:q IS NULL OR u.nom LIKE '%' || :q || '%' OR u.prenom LIKE '%' || :q || '%' OR u.email LIKE '%' || :q || '%')
-ORDER BY u.nom, u.prenom
-LIMIT :limit OFFSET :offset;
+### Désactivation de compte (soft delete)
 
--- Update user role and site
-UPDATE users SET role = :role, site_id = :site_id, updated_at = datetime('now') WHERE id = :id;
+Les utilisateurs sont désactivés (`is_active = 0`) et non supprimés physiquement. Un utilisateur désactivé :
+- Ne peut plus se connecter (`findOrCreateUser` filtre `is_active = 1`)
+- N'apparaît plus dans la liste des utilisateurs actifs
+- Ses signalements existants sont conservés
 
--- Deactivate user
-UPDATE users SET is_active = 0, updated_at = datetime('now') WHERE id = :id;
+### Gestion des sites
 
--- Create user (auto-provisioning)
-INSERT INTO users (username, nom, prenom, email, role, site_id)
-VALUES (:username, :nom, :prenom, :email, 'agent', :site_id);
+- Les sites peuvent être ajoutés via l'onglet « Gestion des sites »
+- Un site désactivé n'apparaît plus dans les listes de choix (pour les nouveaux agents)
+- Les signalements existants d'un site désactivé restent accessibles
+- Un site ne peut être supprimé définitivement que s'il n'a ni utilisateurs ni signalements rattachés
+
+---
+
+## 9. Architecture CSS
+
+### Variables CSS (custom properties)
+
+Les couleurs des registres sont définies via des variables CSS :
+- `--rsst-color` : bleu (#2E5C8A)
+- `--rami-color` : gris (#6C6C6C)
+- `--dgi-color` : rouge (#B22222)
+
+### Classes de badges
+
+| Badge | Classe CSS |
+|-------|-----------|
+| RSST | `badge--rsst` |
+| RAMI | `badge--rami` |
+| DGI | `badge--dgi` |
+| Agent | `badge--agent` |
+| Superviseur | `badge--superviseur` |
+| CHSCT | `badge--chsct` |
+| Nouveau | `badge--nouveau` |
+| En cours | `badge--en-cours` |
+| Traité | `badge--traite` |
+| Abandonné | `badge--abandonne` |
+
+### Cartes de registre
+
+| Carte | Classe CSS |
+|-------|-----------|
+| RSST | `card--rsst` |
+| RAMI | `card--rami` |
+| DGI | `card--dgi` |
+
+### Fonctions utilitaires CSS
+
+- `getRegistryColor(string $type): string` → retourne la variable CSS de couleur
+- `getEtatBadgeClass(string $etat): string` → classe badge pour un état
+- `getRegistryBadgeClass(string $type): string` → classe badge pour un registre
+- `getRoleBadgeClass(string $role): string` → classe badge pour un rôle
+
+---
+
+## 10. Format des références
+
+`generateReference(string $type, string $year2, int $seq): string`
+
+Construit la référence : `{type}-{year2}-{seq_padded}`
+
+```php
+generateReference('rsst', '25', 1)   // → "rsst-25-001"
+generateReference('rami', '25', 15)  // → "rami-25-015"
+generateReference('dgi', '25', 3)    // → "dgi-25-003"
 ```
 
-### Site Queries
+`getNextSequence(PDO $pdo, string $type, int $year): int`
 
-```sql
--- Get all sites
-SELECT * FROM sites ORDER BY code;
+Utilise un UPSERT atomique sur `report_sequence` pour obtenir le numéro séquentiel suivant.
 
--- Get site by ID
-SELECT * FROM sites WHERE id = :id;
-```
+---
 
-### Stats/Export/Synthesis Queries
+## 11. Notifications par e-mail
 
-```sql
--- Synthesis data
-SELECT s.id as site_id, s.code, s.nom, r.type,
-    SUM(CASE WHEN r.etat = 'nouveau' THEN 1 ELSE 0 END) as nouveau,
-    SUM(CASE WHEN r.etat = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
-    SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,
-    SUM(CASE WHEN r.etat = 'abandonne' THEN 1 ELSE 0 END) as abandonne,
-    COUNT(r.id) as total
-FROM sites s
-LEFT JOIN reports r ON r.site_id = s.id AND strftime('%Y', r.created_at) = :year
-GROUP BY s.id, r.type
-ORDER BY s.code, r.type;
+### Module d'envoi (`src/mail.php`)
 
--- KPI counts
-SELECT type, etat, COUNT(*) as count
-FROM reports WHERE strftime('%Y', created_at) = :year
-GROUP BY type, etat;
+- `sendMail(string $to, string $subject, string $body, string $from): bool` — Envoi via SMTP configuré, fallback vers `mail()` PHP
+- `sendViaSMTP(string $to, string $subject, string $body, string $headers): bool` — Envoi via socket SMTP brut (pas de dépendance externe), supporte TLS et STARTTLS
+- `notifyNewReport(PDO $pdo, int $reportId, string $type, int $siteId): void` — Notifie les destinataires configurés d'un nouveau signalement
+- `notifyReportResponse(PDO $pdo, int $reportId, int $respondentId): void` — Notifie le déclarant qu'une réponse a été apportée
+- `notifyPourCompte(PDO $pdo, int $reportId): void` — Notifie l'agent pour lequel un signalement RAMI a été déposé
+- `getNotificationRecipients(PDO $pdo, int $siteId): array` — Rassemble les e-mails par site + globaux (dédoublonnés)
+- `getBaseUrl(): string` — Construit l'URL de base pour les liens dans les e-mails
 
--- Stats by UD
-SELECT s.code, s.nom,
-    SUM(CASE WHEN r.type = 'rsst' THEN 1 ELSE 0 END) as rsst,
-    SUM(CASE WHEN r.type = 'rami' THEN 1 ELSE 0 END) as rami,
-    SUM(CASE WHEN r.type = 'dgi' THEN 1 ELSE 0 END) as dgi,
-    COUNT(r.id) as total,
-    SUM(CASE WHEN r.etat = 'nouveau' THEN 1 ELSE 0 END) as nouveau,
-    SUM(CASE WHEN r.etat = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
-    SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,
-    SUM(CASE WHEN r.etat = 'abandonne' THEN 1 ELSE 0 END) as abandonne
-FROM sites s
-LEFT JOIN reports r ON r.site_id = s.id AND strftime('%Y', r.created_at) = :year
-GROUP BY s.id ORDER BY s.code;
+### Configuration des notifications
 
--- Export data
-SELECT r.reference, r.type, r.objet, r.description, r.date_evenement,
-    r.heure_evenement, r.lieu, r.declarant_nom, r.declarant_prenom,
-    s.code as site_code, r.etat, r.reponse,
-    rep.nom as repondant_nom, rep.prenom as repondant_prenom,
-    r.date_reponse, r.pour_compte_nom, r.pour_compte_prenom, r.created_at
-FROM reports r
-LEFT JOIN sites s ON r.site_id = s.id
-LEFT JOIN users rep ON r.repondant_id = rep.id
-WHERE 1=1
-    AND (:type IS NULL OR r.type = :type)
-    AND (:site_id IS NULL OR r.site_id = :site_id)
-    AND (:declarant_id IS NULL OR r.declarant_id = :declarant_id)
-    AND (:date_from IS NULL OR r.date_evenement >= :date_from)
-    AND (:date_to IS NULL OR r.date_evenement <= :date_to)
-ORDER BY r.created_at DESC;
-```
+Les notifications sont gérées via la table `notification_settings` :
+- Notifications par site : `type = 'site'`, `site_id` renseigné
+- Notifications globales : `type = 'global'`, `site_id = NULL`
 
-### Notification Settings Queries
+### Test SMTP
 
-```sql
--- Get all settings
-SELECT ns.*, s.code as site_code, s.nom as site_nom
-FROM notification_settings ns
-LEFT JOIN sites s ON ns.site_id = s.id
-ORDER BY ns.type, s.code, ns.registry;
+L'interface de paramétrage offre un bouton « Envoyer un e-mail de test » qui envoie une requête AJAX POST vers `handlers/smtp_test_handler.php`.
 
--- Delete and re-insert (on save)
-DELETE FROM notification_settings;
-INSERT INTO notification_settings (site_id, type, registry, email) VALUES (:site_id, :type, :registry, :email);
-```
+---
+
+## 12. Référence des fonctions
+
+### `src/config.php`
+
+Pas de fonctions. Définit les constantes et tableaux :
+- `APP_NAME`, `APP_VERSION`, `SITE_NAME`, `APP_ENV`, `DEV_MODE`
+- `DB_PATH`, `ITEMS_PER_PAGE`, `MAX_OBJECT_LENGTH`, `MAX_DESCRIPTION_LENGTH`, `MAX_LIEU_LENGTH`
+- `REGISTRY_LABELS` : `[rsst => ..., rami => ..., dgi => ...]`
+- `REGISTRY_SHORT_LABELS` : `[rsst => 'RSST', rami => 'RAMI', dgi => 'DGI']`
+- `ROLE_LABELS` : `[agent => 'Agent', superviseur => 'Superviseur', chsct => 'Membre CHSCT']`
+- `ETAT_LABELS` : `[nouveau => 'Nouveau', en_cours => 'En cours', traite => 'Traité', abandonne => 'Abandonné']`
+
+### `src/auth.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `getAuthenticatedUser` | `(): ?array` | Retourne l'utilisateur authentifié (session, puis AUTH_USER en prod) |
+| `extractUsername` | `(string $authUser): string` | Extrait le username depuis AUTH_USER (supprime domaine, minuscules) |
+| `findOrCreateUser` | `(PDO $pdo, string $username): ?array` | Cherche ou crée un utilisateur en base |
+| `autoProvisionUser` | `(PDO $pdo, string $username): ?array` | Crée un nouvel utilisateur avec nom déduit du username |
+| `mockLogin` | `(string $username): ?array` | Connexion mock (dev uniquement) |
+| `determineProvisionRole` | `(PDO $pdo, string $username): string` | Détermine le rôle à l'auto-provisionnement (vérifie `app_superviseur_usernames`) |
+| `checkAndPromoteUser` | `(PDO $pdo, array $user, string $username): array` | Vérifie et promeut un agent existant en superviseur si dans la liste config |
+
+### `src/session.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `startSession` | `(): void` | Démarre la session avec paramètres sécurisés |
+| `generateCsrfToken` | `(): string` | Génère et stocke un jeton CSRF en session |
+| `validateCsrfToken` | `(string $token): bool` | Valide un jeton CSRF (hash_equals) |
+| `setFlash` | `(string $type, string $message): void` | Stocke un message flash |
+| `getFlash` | `(): ?array` | Récupère et efface le message flash |
+| `setFormData` | `(array $data): void` | Stocke les données de formulaire en session |
+| `getFormData` | `(): array` | Récupère et efface les données de formulaire |
+| `setFormErrors` | `(array $errors): void` | Stocke les erreurs de formulaire en session |
+| `getFormErrors` | `(): array` | Récupère et efface les erreurs de formulaire |
+| `getFieldError` | `(array $errors, string $field): ?string` | Récupère l'erreur d'un champ spécifique |
+
+### `src/helpers.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `e` | `(?string $string): string` | Échappement HTML (`htmlspecialchars` avec ENT_QUOTES + UTF-8) |
+| `redirect` | `(string $url): void` | Redirection HTTP + exit |
+| `setCookieSafe` | `(string $name, string $value, int $expires, string $path, bool $httpOnly, string $sameSite): void` | Définit un cookie (compatible web + CLI/proxy) |
+| `formatDateFR` | `(?string $date): string` | Formate une date ISO en `d/m/Y` |
+| `formatDateTimeFR` | `(?string $datetime): string` | Formate un datetime ISO en `d/m/Y à H:i` |
+| `generateReference` | `(string $type, string $year2, int $seq): string` | Génère une référence de signalement |
+| `getNextSequence` | `(PDO $pdo, string $type, int $year): int` | Numéro séquentiel suivant (UPSERT atomique) |
+| `getRegistryColor` | `(string $type): string` | Variable CSS de couleur du registre |
+| `getEtatBadgeClass` | `(string $etat): string` | Classe CSS badge pour un état |
+| `getRegistryBadgeClass` | `(string $type): string` | Classe CSS badge pour un registre |
+| `getRoleBadgeClass` | `(string $role): string` | Classe CSS badge pour un rôle |
+| `canSeeAllSites` | `(): bool` | L'utilisateur peut-il voir tous les sites ? |
+| `getAgentVisibility` | `(): string` | Mode de visibilité agent : `'site'` ou `'own'` |
+| `agentSeesOnlyOwn` | `(): bool` | Alias retrocompatible pour `getAgentVisibility() === 'own'` |
+| `truncate` | `(string $string, int $length): string` | Tronque avec ellipsis |
+| `getConfig` | `(string $cle, string $default): string` | Lit une valeur de `config_app` (avec cache statique) |
+| `updateConfig` | `(PDO $pdo, string $cle, string $valeur): void` | Met à jour une valeur dans `config_app` (UPSERT) |
+| `clearConfigCache` | `(): void` | Invalide le cache de `getConfig()` |
+| `assetUrl` | `(string $path): string` | URL d'un asset statique |
+| `url` | `(string $page, array $params): string` | Construit une URL interne |
+| `todayISO` | `(): string` | Date du jour en format ISO (Y-m-d) |
+| `nowTime` | `(): string` | Heure actuelle en format HH:MM |
+
+### `src/database.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `getDB` | `(): PDO` | Connexion PDO singleton (crée le schéma si nouveau) |
+| `seedDefaultData` | `(PDO $pdo): void` | Insère les données initiales (sites + utilisateurs dev) |
+| `migrateSchema` | `(PDO $pdo): void` | Auto-migration : crée les tables manquantes + index |
+| `migrateConfigKeys` | `(PDO $pdo): void` | Auto-migration : ajoute les clés config manquantes |
+
+### `src/queries/report_queries.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `createReport` | `(PDO $pdo, array $data): string` | Crée un signalement, retourne la référence |
+| `getLastInsertId` | `(PDO $pdo): int` | Dernier ID inséré |
+| `getReportById` | `(PDO $pdo, int $id): ?array` | Signalement par ID avec site et répondant |
+| `getReportsByRegistry` | `(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page, int $perPage): array` | Liste filtrée et paginée par registre |
+| `getReportsBySite` | `(PDO $pdo, int $siteId): array` | Signalements par site |
+| `updateReport` | `(PDO $pdo, int $id, array $data, int $userId): bool` | Modification par le déclarant |
+| `abandonReport` | `(PDO $pdo, int $id, int $userId): bool` | Abandon (soft delete) |
+| `respondToReport` | `(PDO $pdo, int $id, int $userId, string $reponse, string $nouvelEtat): bool` | Réponse du superviseur + historique |
+| `countReportsByState` | `(PDO $pdo, string $type, int $siteId, bool $seeAllSites): array` | Comptage par état |
+| `getReportResponses` | `(PDO $pdo, int $reportId): array` | Historique des réponses |
+| `countActiveReports` | `(PDO $pdo, string $type, int $siteId): int` | Comptage des signalements actifs |
+| `countActiveReportsForUser` | `(PDO $pdo, string $type, int $userId): int` | Comptage des signalements actifs d'un utilisateur |
+
+### `src/queries/user_queries.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `getUserByUsername` | `(PDO $pdo, string $username): ?array` | Utilisateur par username (actifs uniquement) |
+| `getUserById` | `(PDO $pdo, int $id): ?array` | Utilisateur par ID |
+| `getAllUsers` | `(PDO $pdo, int $siteId, bool $active): array` | Liste des utilisateurs (filtrable par site et activité) |
+| `updateUserRole` | `(PDO $pdo, int $id, string $role): bool` | Mise à jour du rôle |
+| `updateUserSite` | `(PDO $pdo, int $id, int $siteId): bool` | Mise à jour du site |
+| `createUser` | `(PDO $pdo, array $data): int` | Création d'un utilisateur |
+| `updateUser` | `(PDO $pdo, int $id, array $data): bool` | Mise à jour complète du profil |
+| `countActiveUsers` | `(PDO $pdo): int` | Nombre d'utilisateurs actifs |
+| `deactivateUser` | `(PDO $pdo, int $id): bool` | Désactivation (soft delete) |
+| `reactivateUser` | `(PDO $pdo, int $id): bool` | Réactivation |
+
+### `src/queries/site_queries.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `getAllSites` | `(PDO $pdo): array` | Tous les sites |
+| `getActiveSites` | `(PDO $pdo): array` | Sites actifs uniquement |
+| `getSiteById` | `(PDO $pdo, int $id): ?array` | Site par ID |
+| `getSiteByCode` | `(PDO $pdo, string $code): ?array` | Site par code |
+| `getSiteByName` | `(PDO $pdo, string $nom): ?array` | Site par nom |
+| `createSite` | `(PDO $pdo, string $code, string $nom, string $departement): int` | Création d'un site |
+| `updateSite` | `(PDO $pdo, int $id, string $code, string $nom, string $departement): bool` | Mise à jour d'un site |
+| `toggleSiteActive` | `(PDO $pdo, int $id, bool $active): bool` | Activation/désactivation |
+| `countUsersBySite` | `(PDO $pdo, int $id): int` | Nombre d'utilisateurs actifs par site |
+| `countReportsBySite` | `(PDO $pdo, int $id): int` | Nombre de signalements par site |
+| `deleteSite` | `(PDO $pdo, int $id): bool` | Suppression définitive (si aucun user ni report) |
+
+### `src/queries/stats_queries.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `getSynthesisData` | `(PDO $pdo, string $year, int $siteId): array` | Données de synthèse par site/registre/état |
+| `getExportData` | `(PDO $pdo, array $filters): array` | Données pour export CSV avec filtres dynamiques |
+| `getStatisticsKPIs` | `(PDO $pdo, string $year, int $siteId): array` | KPI statistiques globaux |
+| `getStatsBySite` | `(PDO $pdo, string $year, int $siteId): array` | Statistiques par site |
+| `countReportsByRegistryAndSite` | `(PDO $pdo, string $type, int $siteId): int` | Comptage par registre et site |
+| `getAvailableYears` | `(PDO $pdo): array` | Années disponibles dans les signalements |
+| `getNotificationSettings` | `(PDO $pdo): array` | Paramètres de notification |
+| `saveNotificationSetting` | `(PDO $pdo, ?int $siteId, string $type, string $registry, string $email): int` | Sauvegarde d'un paramètre de notification |
+| `deleteNotificationSetting` | `(PDO $pdo, int $id): bool` | Suppression d'un paramètre de notification |
+| `deleteNotificationSettingsByType` | `(PDO $pdo, string $type): int` | Suppression par type ('site' ou 'global') |
+| `getSiteNotificationEmails` | `(PDO $pdo, int $siteId): array` | E-mails de notification par site |
+| `getGlobalNotificationEmails` | `(PDO $pdo): array` | E-mails de notification globaux |
+
+### `src/middleware/require_role.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `requireRole` | `(array $roles): void` | Vérifie le rôle, affiche access_denied si non autorisé |
+| `hasRole` | `(string $role): bool` | Vérifie un rôle sans exit |
+| `hasAnyRole` | `(array $roles): bool` | Vérifie l'appartenance à l'un des rôles |
+
+### `src/session_patch.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `safeSessionRegenerate` | `(): void` | Regénère l'ID de session (true en prod, false en dev) |
+
+---
+
+## 13. Configuration applicative
+
+La table `config_app` stocke les paramètres modifiables via l'interface. L'accès se fait par `getConfig($cle, $default)` et `updateConfig($pdo, $cle, $valeur)`.
+
+### Clés de configuration
+
+| Clé | Catégorie | Type | Défaut | Description |
+|-----|-----------|------|--------|-------------|
+| `app_nom_organisation` | app | text | DREETS BFC | Nom de l'organisation (en-tête, e-mails) |
+| `app_nom_complet` | app | text | DREETS Bourgogne-Franche-Comté | Nom complet |
+| `app_label_unite` | app | text | UR | Libellé des unités (UR, UD, etc.) |
+| `app_superviseur_usernames` | app | text | (vide) | Logins Windows des superviseurs, séparés par virgules |
+| `app_agent_see_only_own` | app | text | 0 | **Obsolète** — utiliser `app_agent_visibility` |
+| `app_agent_visibility` | app | text | site | Visibilité des agents : `site` ou `own` |
+| `smtp_host` | smtp | text | (vide) | Serveur SMTP |
+| `smtp_port` | smtp | number | 25 | Port SMTP |
+| `smtp_user` | smtp | text | (vide) | Utilisateur SMTP |
+| `smtp_pass` | smtp | password | (vide) | Mot de passe SMTP |
+| `smtp_from` | smtp | email | (vide) | Adresse d'expédition |
+| `smtp_encryption` | smtp | text | none | Chiffrement : `none`, `tls`, `starttls` |
+
+### Cache de configuration
+
+`getConfig()` utilise un cache statique interne. Après un `updateConfig()`, le cache est invalidé via `clearConfigCache()` (mécanisme de flag global `$_config_cache_cleared`).
+
+### Auto-migration des clés
+
+`migrateConfigKeys(PDO $pdo)` est appelée à chaque requête et ajoute automatiquement les clés manquantes dans les bases existantes. Pour `app_agent_visibility`, la migration convertit l'ancienne valeur `app_agent_see_only_own = '1'` vers `app_agent_visibility = 'own'`.

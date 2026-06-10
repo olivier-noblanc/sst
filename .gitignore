@@ -1,2 +1,6 @@
 skills/
 node_modules/
+
+# Binary / generated files
+*.pdf
+*.zip

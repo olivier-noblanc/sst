@@ -19,3 +19,7 @@ Thumbs.db
 # PHP
 composer.phar
 composer-setup.php
+
+# Binary / generated files
+*.pdf
+*.zip

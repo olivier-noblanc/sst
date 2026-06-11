@@ -126,13 +126,14 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                     <th>Prénom</th>
                     <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
                     <th>État</th>
+                    <th>Visibilité</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($reports)): ?>
                 <tr>
-                    <td colspan="8" style="text-align:center;color:var(--grey-500);padding:24px;">
+                    <td colspan="9" style="text-align:center;color:var(--grey-500);padding:24px;">
                         Aucun signalement trouvé.
                     </td>
                 </tr>
@@ -155,6 +156,13 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                             <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>">
                                 <?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?>
                             </span>
+                        </td>
+                        <td>
+                            <?php if (!empty($report['is_confidential'])): ?>
+                            <span class="badge" style="background:#6b7280;">🔒 Confidentiel</span>
+                            <?php else: ?>
+                            <span class="badge" style="background:#22c55e;">Public</span>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <div style="display:flex;gap:4px;flex-wrap:wrap;">

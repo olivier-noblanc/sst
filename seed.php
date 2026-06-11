@@ -409,7 +409,7 @@ foreach ($sampleReports as $report) {
 
     // Generate UUID v4
     $hex = bin2hex(random_bytes(16));
-    $reportUuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex(hexdec(substr($hex, 16, 2)) | 0x8) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+    $reportUuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
 
     $stmt = $pdo->prepare("
         INSERT INTO reports (

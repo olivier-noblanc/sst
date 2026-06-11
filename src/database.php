@@ -227,7 +227,7 @@ function migrateSchema(PDO $pdo): void {
             $stmt = $pdo->query('SELECT id FROM reports WHERE uuid IS NULL');
             while ($row = $stmt->fetch()) {
                 $hex = bin2hex(random_bytes(16));
-                $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex(hexdec(substr($hex, 16, 2)) | 0x8) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+                $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
                 $upd = $pdo->prepare('UPDATE reports SET uuid = :uuid WHERE id = :id');
                 $upd->execute([':uuid' => $uuid, ':id' => $row['id']]);
             }
@@ -266,6 +266,67 @@ function migrateSchema(PDO $pdo): void {
         }
     } catch (Exception $e) {
         error_log("Migration warning for report_responses.report_uuid: " . $e->getMessage());
+    }
+
+    // === Fix UUIDs with invalid variant bits ===
+    // Old generateUuid() used | 0x8 instead of (& 0x3F | 0x80),
+    // producing UUIDs whose 4th group starts with c-f instead of 8-b.
+    // This migration fixes those UUIDs in both reports and report_responses.
+    try {
+        // Check if reports table has both 'id' and 'uuid' columns (old schema)
+        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $hasId = false;
+        $hasUuid = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'id') $hasId = true;
+            if ($col['name'] === 'uuid') $hasUuid = true;
+        }
+
+        // Backfill NULL UUIDs even if column already exists (migration might have been partial)
+        if ($hasUuid) {
+            $idCol = $hasId ? 'id' : 'rowid';
+            $stmt = $pdo->query("SELECT $idCol FROM reports WHERE uuid IS NULL");
+            while ($row = $stmt->fetch()) {
+                $hex = bin2hex(random_bytes(16));
+                $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+                $upd = $pdo->prepare("UPDATE reports SET uuid = :uuid WHERE $idCol = :id");
+                $upd->execute([':uuid' => $uuid, ':id' => $row[$idCol]]);
+            }
+        }
+
+        // Fix UUIDs with invalid variant bits (4th group starts with c-f)
+        // Pattern: the 20th character (index 19) of UUID should be 8/9/a/b
+        // If it's c/d/e/f, we fix it by applying & 0x3F | 0x80 to the variant byte
+        if ($hasUuid) {
+            $stmt = $pdo->query("SELECT uuid FROM reports WHERE uuid IS NOT NULL");
+            $fixes = [];
+            while ($row = $stmt->fetch()) {
+                $oldUuid = $row['uuid'];
+                $variantNibble = strtolower($oldUuid[19]);
+                if (in_array($variantNibble, ['c', 'd', 'e', 'f'])) {
+                    // Fix the variant byte: extract it, apply correct mask, rebuild UUID
+                    $variantByte = hexdec(substr($oldUuid, 14, 2) . substr($oldUuid, 19, 2));
+                    // Actually, let's fix just the variant nibble directly
+                    // Map c→8, d→9, e→a, f→b (clear bits 6-7, set bit 7)
+                    $nibbleMap = ['c' => '8', 'd' => '9', 'e' => 'a', 'f' => 'b'];
+                    $newUuid = substr($oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr($oldUuid, 20);
+                    $fixes[] = ['old' => $oldUuid, 'new' => $newUuid];
+                }
+            }
+            foreach ($fixes as $fix) {
+                // Update report_responses first (FK)
+                $upd1 = $pdo->prepare('UPDATE report_responses SET report_uuid = :new WHERE report_uuid = :old');
+                $upd1->execute([':new' => $fix['new'], ':old' => $fix['old']]);
+                // Update reports (PK)
+                $upd2 = $pdo->prepare('UPDATE reports SET uuid = :new WHERE uuid = :old');
+                $upd2->execute([':new' => $fix['new'], ':old' => $fix['old']]);
+            }
+            if (count($fixes) > 0) {
+                error_log('[SST-MIGRATION] Fixed ' . count($fixes) . ' report UUIDs with invalid variant bits.');
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Migration warning for UUID variant fix: " . $e->getMessage());
     }
 
     // Also ensure indexes exist

@@ -14,7 +14,7 @@
 function generateUuid(): string {
     $hex = bin2hex(random_bytes(16));
     return substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3)
-        . '-' . dechex(hexdec(substr($hex, 16, 2)) | 0x8) . substr($hex, 18, 2)
+        . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2)
         . '-' . substr($hex, 20, 12);
 }
 
@@ -25,7 +25,12 @@ function generateUuid(): string {
  * @return bool
  */
 function isValidUuid(string $uuid): bool {
-    return (bool) preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{2}-[0-9a-f]{12}$/i', $uuid);
+    // Accept any well-formed UUID (8-4-4-4-12 hex format).
+    // Previously required strict v4 variant bits [89ab], but the old generateUuid()
+    // had a bug (| 0x8 instead of & 0x3F | 0x80) producing invalid variant nibbles
+    // in ~25% of UUIDs. Accepting all hex variants allows those legacy UUIDs to work.
+    // Security is provided by 122 bits of randomness, not by variant bits.
+    return (bool) preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
 }
 
 /**

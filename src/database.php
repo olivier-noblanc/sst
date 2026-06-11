@@ -329,6 +329,25 @@ function migrateSchema(PDO $pdo): void {
         error_log("Migration warning for UUID variant fix: " . $e->getMessage());
     }
 
+    // Add attachment columns to reports table
+    try {
+        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $hasAttachment = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'attachment_blob') {
+                $hasAttachment = true;
+                break;
+            }
+        }
+        if (!$hasAttachment) {
+            $pdo->exec('ALTER TABLE reports ADD COLUMN attachment_blob BLOB');
+            $pdo->exec('ALTER TABLE reports ADD COLUMN attachment_name TEXT');
+            $pdo->exec('ALTER TABLE reports ADD COLUMN attachment_mime TEXT');
+        }
+    } catch (Exception $e) {
+        error_log("Migration warning for attachment columns: " . $e->getMessage());
+    }
+
     // Also ensure indexes exist
     $indexes = [
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)',

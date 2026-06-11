@@ -30,7 +30,7 @@ startSession();
 $validPages = [
     'home', 'preamble', 'help', 'changelog', 'access_denied', 'choose_site',
     'report_create', 'report_list', 'report_view', 'report_edit',
-    'report_print', 'report_abandon', 'report_respond',
+    'report_print', 'report_attachment', 'report_abandon', 'report_respond',
     'synthesis', 'export', 'statistics',
     'settings', 'site_edit',
     'users', 'user_edit', 'user_view', 'user_create', 'user_delete', 'user_reactivate',
@@ -218,6 +218,17 @@ if ($page === 'logout') {
         // This clears the PHP session cache (role changes etc. will be refreshed)
         redirect(url('home'));
     }
+}
+
+// === ATTACHMENT DOWNLOAD: special handling (raw file, no layout) ===
+if ($page === 'report_attachment') {
+    $pageFile = __DIR__ . '/../pages/report_attachment.php';
+    if (file_exists($pageFile)) {
+        require $pageFile;
+    } else {
+        redirect(url('home'));
+    }
+    exit;
 }
 
 // === PRINT PAGE: special handling (no header/sidebar) ===

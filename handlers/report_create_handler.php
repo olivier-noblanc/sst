@@ -82,6 +82,29 @@ if (!empty($heureEvenement) && !preg_match('/^\d{2}:\d{2}$/', $heureEvenement)) 
     $errors['heure_evenement'] = 'Format d\'heure invalide (HH:MM attendu).';
 }
 
+// Validate attachment (optional)
+$attachmentBlob = null;
+$attachmentName = null;
+$attachmentMime = null;
+if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
+    $file = $_FILES['attachment'];
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $errors['attachment'] = 'Erreur lors du téléchargement du fichier.';
+    } elseif ($file['size'] > MAX_ATTACHMENT_SIZE) {
+        $errors['attachment'] = 'Le fichier ne doit pas dépasser 10 Mo.';
+    } else {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($file['tmp_name']);
+        if (!in_array($mime, ALLOWED_ATTACHMENT_MIMES)) {
+            $errors['attachment'] = 'Type de fichier non autorisé. Formats acceptés : JPG, PNG, GIF, PDF.';
+        } else {
+            $attachmentBlob = file_get_contents($file['tmp_name']);
+            $attachmentName = basename($file['name']);
+            $attachmentMime = $mime;
+        }
+    }
+}
+
 // Validate site
 if ($siteId <= 0) {
     $errors['site_id'] = 'L\'unité départementale est obligatoire.';
@@ -131,6 +154,9 @@ $reportData = [
     'declarant_prenom'  => $user['prenom'],
     'site_id'           => $siteId,
     'is_confidential'   => $isConfidential,
+    'attachment_blob'  => $attachmentBlob,
+    'attachment_name'  => $attachmentName,
+    'attachment_mime'  => $attachmentMime,
 ];
 
 // RAMI-specific fields

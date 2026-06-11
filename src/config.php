@@ -56,8 +56,12 @@ define('ITEMS_PER_PAGE', 20);
 
 // Field constraints
 define('MAX_OBJECT_LENGTH', 100);
-define('MAX_DESCRIPTION_LENGTH', 5000);
+define('MAX_DESCRIPTION_LENGTH', 20000);
 define('MAX_LIEU_LENGTH', 200);
+
+// Attachment constraints
+define('MAX_ATTACHMENT_SIZE', 10 * 1024 * 1024); // 10 MB
+define('ALLOWED_ATTACHMENT_MIMES', ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']);
 
 // No LDAP needed — IIS Windows Auth provides $_SERVER['AUTH_USER']
 // Format: "DOMAIN\username" — PHP extracts the username and strips the domain.

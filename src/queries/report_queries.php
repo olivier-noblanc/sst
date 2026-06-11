@@ -55,12 +55,14 @@ function createReport(PDO $pdo, array $data): string {
             uuid, reference, type, objet, description, date_evenement, heure_evenement,
             lieu, declarant_id, declarant_nom, declarant_prenom,
             pour_compte_de, pour_compte_nom, pour_compte_prenom,
-            site_id, is_confidential, etat
+            site_id, is_confidential, etat,
+            attachment_blob, attachment_name, attachment_mime
         ) VALUES (
             :uuid, :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
             :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
             :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
-            :site_id, :is_confidential, 'nouveau'
+            :site_id, :is_confidential, 'nouveau',
+            :attachment_blob, :attachment_name, :attachment_mime
         )
     ");
 
@@ -81,6 +83,9 @@ function createReport(PDO $pdo, array $data): string {
         ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
         ':site_id'           => $data['site_id'],
         ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
+        ':attachment_blob'   => $data['attachment_blob'] ?? null,
+        ':attachment_name'   => $data['attachment_name'] ?? null,
+        ':attachment_mime'   => $data['attachment_mime'] ?? null,
     ]);
 
     return $uuid;
@@ -231,18 +236,19 @@ function getReportsBySite(PDO $pdo, int $siteId): array {
  * @return bool
  */
 function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
-    $stmt = $pdo->prepare("
-        UPDATE reports
-        SET objet = :objet, description = :description,
-            date_evenement = :date_evenement, heure_evenement = :heure_evenement,
-            lieu = :lieu, pour_compte_nom = :pour_compte_nom,
-            pour_compte_prenom = :pour_compte_prenom,
-            is_confidential = :is_confidential,
-            updated_at = datetime('now')
-        WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')
-    ");
+    // Build dynamic SET clause and params
+    $setClauses = [
+        'objet = :objet',
+        'description = :description',
+        'date_evenement = :date_evenement',
+        'heure_evenement = :heure_evenement',
+        'lieu = :lieu',
+        'pour_compte_nom = :pour_compte_nom',
+        'pour_compte_prenom = :pour_compte_prenom',
+        'is_confidential = :is_confidential',
+    ];
 
-    $stmt->execute([
+    $params = [
         ':objet'             => $data['objet'],
         ':description'       => $data['description'],
         ':date_evenement'    => $data['date_evenement'],
@@ -251,9 +257,27 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
         ':pour_compte_nom'   => $data['pour_compte_nom'] ?? null,
         ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
         ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
-        ':uuid'              => $uuid,
-        ':user_id'           => $userId,
-    ]);
+    ];
+
+    // Attachment columns: only update if explicitly present in $data
+    if (array_key_exists('attachment_blob', $data)) {
+        $setClauses[] = 'attachment_blob = :attachment_blob';
+        $setClauses[] = 'attachment_name = :attachment_name';
+        $setClauses[] = 'attachment_mime = :attachment_mime';
+        $params[':attachment_blob'] = $data['attachment_blob'];
+        $params[':attachment_name'] = $data['attachment_name'] ?? null;
+        $params[':attachment_mime'] = $data['attachment_mime'] ?? null;
+    }
+
+    $setClauses[] = "updated_at = datetime('now')";
+    $params[':uuid'] = $uuid;
+    $params[':user_id'] = $userId;
+
+    $sql = 'UPDATE reports SET ' . implode(', ', $setClauses)
+        . " WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
 
     return $stmt->rowCount() > 0;
 }

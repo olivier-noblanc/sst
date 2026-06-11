@@ -53,7 +53,7 @@ $submitBtnClass = $isEdit
         <?php echo $isEdit ? 'Modifier le signalement' : 'Inscrire un signalement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>
 
-    <form method="POST" action="<?php echo e($action); ?>" novalidate>
+    <form method="POST" action="<?php echo e($action); ?>" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <?php if ($isEdit): ?>
@@ -100,11 +100,29 @@ $submitBtnClass = $isEdit
 
             <div class="form-group" style="grid-column: 1 / -1;">
                 <label for="description">Description <span class="required">*</span></label>
-                <textarea id="description" name="description" rows="8" maxlength="5000" required
+                <textarea id="description" name="description" rows="8" maxlength="20000" required
                           placeholder="Décrivez le signalement en détail..."><?php echo e($val('description')); ?></textarea>
-                <span class="form-hint">5000 caractères max.</span>
+                <span class="form-hint">20 000 caractères max.</span>
                 <?php if (isset($formErrors['description'])): ?>
                     <span class="form-error"><?php echo e($formErrors['description']); ?></span>
+                <?php endif; ?>
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="attachment">Pièce jointe</label>
+                <input type="file" id="attachment" name="attachment"
+                       accept=".jpg,.jpeg,.png,.gif,.pdf">
+                <span class="form-hint">Image (JPG, PNG, GIF) ou PDF — 10 Mo max. Optionnel.</span>
+                <?php if ($isEdit && !empty($report['attachment_name'])): ?>
+                    <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+                        <span class="badge" style="background:#6b7280;">📎 <?php echo e($report['attachment_name']); ?></span>
+                        <label style="font-size:13px;color:#b91c1c;">
+                            <input type="checkbox" name="remove_attachment" value="1"> Supprimer la pièce jointe actuelle
+                        </label>
+                    </div>
+                <?php endif; ?>
+                <?php if (isset($formErrors['attachment'])): ?>
+                    <span class="form-error"><?php echo e($formErrors['attachment']); ?></span>
                 <?php endif; ?>
             </div>
 

@@ -67,6 +67,10 @@ CREATE TABLE IF NOT EXISTS reports (
     repondant_id    INTEGER,                         -- FK to users (nullable)
     date_reponse    TEXT,                            -- When supervisor responded
     reponse         TEXT,                            -- Supervisor's response text
+    -- Attachment (mono-file, stored as BLOB)
+    attachment_blob  BLOB,                           -- File content (max ~10 MB)
+    attachment_name  TEXT,                            -- Original filename (e.g. "photo_danger.jpg")
+    attachment_mime  TEXT,                            -- MIME type (e.g. "image/jpeg")
     -- Timestamps
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now')),

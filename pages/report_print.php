@@ -309,6 +309,10 @@ if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
 
 drawField($pdf, 'Date de création', formatDateTimeFR($report['created_at']));
 
+if (!empty($report['attachment_name'])) {
+    drawField($pdf, 'Pièce jointe', $report['attachment_name'] . ' (jointe au signalement)');
+}
+
 // État badge (special rendering)
 $pdf->Ln(1);
 $pdf->SetFont('DejaVu', 'B', 10);

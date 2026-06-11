@@ -89,6 +89,17 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
                     <th>Date de création</th>
                     <td><?php echo formatDateTimeFR($report['created_at']); ?></td>
                 </tr>
+                <?php if (!empty($report['attachment_name'])): ?>
+                <tr>
+                    <th>Pièce jointe</th>
+                    <td>
+                        <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>" 
+                           class="btn btn--outline" style="font-size:13px;padding:4px 12px;">
+                            📎 <?php echo e($report['attachment_name']); ?>
+                        </a>
+                    </td>
+                </tr>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

@@ -2,6 +2,21 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.7.1] — 2026-06-11
+
+### Technique — Correction de l'erreur « finfo not found »
+
+L'upload de pièces jointes provoquait une erreur fatale `Class "finfo" not found` lorsque l'extension PHP `fileinfo` n'était pas activée sur le serveur. Désormais, un message clair s'affiche à l'utilisateur demandant d'activer l'extension, sans contournement.
+
+- `src/helpers.php` : ajout de la fonction `getMimeType()` qui exige l'extension `fileinfo` — si absente, lève une `RuntimeException` avec le message : « L'extension PHP "fileinfo" est requise pour le téléchargement de pièces jointes. Veuillez l'activer dans php.ini : extension=fileinfo, puis redémarrer le serveur web. »
+- `handlers/report_create_handler.php` : remplacement de `new finfo()` par `getMimeType()` avec `try/catch` pour afficher le message d'erreur dans le formulaire
+- `handlers/report_edit_handler.php` : même remplacement
+- `DEPLOY.md` : `fileinfo` ajouté aux extensions PHP **requises** (était absent), section de dépannage ajoutée
+- `DEPLOY.md` : `extension=fileinfo` ajouté dans l'exemple `php.ini`
+- `DEPLOY.md` : checklist de vérification mise à jour avec `fileinfo`
+
+---
+
 ## [2.7.0] — 2026-06-11
 
 ### Fonctionnalité — Images embarquées dans les PDF

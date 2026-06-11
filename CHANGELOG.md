@@ -2,6 +2,25 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.7.2] — 2026-06-11
+
+### Fonctionnalité — Colonne Visibilité dans la liste des signalements
+
+La liste des signalements (`report_list`) affiche désormais une colonne **Visibilité** indiquant si le signalement est 🔒 Confidentiel ou Public, avec des badges colorés (gris pour confidentiel, vert pour public). Cohérent avec le badge affiché dans la vue détaillée.
+
+- `pages/report_list.php` : ajout de la colonne « Visibilité » avec badge Confidentiel/Public
+
+### Technique — Corrections de bugs
+
+- `pages/settings.php` : les radios de visibilité n'étaient pas cochés sur le réglage en cours — `getReportVisibility()` renvoie `'all'` pour les superviseurs, qui ne correspond à aucune des 3 valeurs possibles. Remplacé par `getConfig('app_report_visibility', 'agent_choice')` qui lit directement la valeur en base.
+- `DEPLOY.md` : la « Méthode 2 : Auto-promotion bootstrap » était impossible — un agent n'a pas accès aux Paramètres (`requireRole(['superviseur'])`). Réécriture de la section 9 : la Méthode 1 est désormais le script CLI `promote.php`, la Méthode 2 est la promotion par un superviseur existant, et la variable d'environnement est en méthode alternative.
+
+### Technique — Affichage de la version PHP
+
+- `templates/footer.php` : ajout de la version PHP (`PHP_VERSION`) dans le footer, après la version de l'application
+
+---
+
 ## [2.7.1] — 2026-06-11
 
 ### Technique — Correction de l'erreur « finfo not found »

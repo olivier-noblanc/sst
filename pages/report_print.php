@@ -390,55 +390,10 @@ $pdf->Cell(55, 6, utf8ToCp1252('État'), 0, 0);
 drawBadge($pdf, $etatLabel, $etatColor);
 $pdf->Ln(8);
 
-// --- Response section ---
-if (!empty($report['reponse'])) {
-    drawHR($pdf);
-    drawSectionTitle($pdf, 'Réponse', $blueDark);
-
-    // Response box with left border
-    $x = $pdf->GetX();
-    $y = $pdf->GetY();
-    $boxW = $pdf->GetPageWidth() - $pdf->getLeftMargin() - $pdf->getRightMargin();
-
-    // Calculate response height
-    $pdf->SetFont('DejaVu', '', 10);
-    $responseText = utf8ToCp1252($report['reponse']);
-    // Estimate number of lines
-    $lineW = $boxW - 10; // minus padding
-    $lines = 1;
-    $words = explode(' ', $responseText);
-    $testLine = '';
-    foreach ($words as $word) {
-        $testLine .= ($testLine ? ' ' : '') . $word;
-        if ($pdf->GetStringWidth($testLine) > $lineW) {
-            $lines++;
-            $testLine = $word;
-        }
-    }
-    $boxH = max($lines * 6 + 6, 12);
-
-    // Background
-    $pdf->SetFillColor(245, 245, 245);
-    $pdf->Rect($x, $y, $boxW, $boxH, 'F');
-
-    // Left green border
-    $pdf->SetFillColor(39, 174, 96);
-    $pdf->Rect($x, $y, 2, $boxH, 'F');
-
-    // Text
-    $pdf->SetXY($x + 6, $y + 3);
-    $pdf->SetTextColor(34, 34, 34);
-    $pdf->MultiCell($lineW, 6, $responseText, 0, 'L');
-
-    $pdf->SetY($y + $boxH + 3);
-    drawField($pdf, 'Répondant', ($report['repondant_prenom'] ?? '') . ' ' . ($report['repondant_nom'] ?? ''));
-    drawField($pdf, 'Date de réponse', formatDateTimeFR($report['date_reponse']));
-}
-
 // --- Response history table ---
 if (!empty($responses)) {
     drawHR($pdf);
-    drawSectionTitle($pdf, 'Historique des réponses', $blueDark);
+    drawSectionTitle($pdf, 'Réponses (' . count($responses) . ')', $blueDark);
 
     $colWidths = [30, 35, 25, 70]; // Date, Répondant, État, Réponse
     $headers = ['Date', 'Répondant', 'Nouvel état', 'Réponse'];

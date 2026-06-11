@@ -2,6 +2,15 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.8.2] — 2026-06-12
+
+### Correctif
+
+- **F04** ↩️ `display_errors` rétabli à toujours activé — le paramétrage précédent (désactivation en prod) avait été appliqué sans accord. Les erreurs PHP sont de nouveau affichées en production comme en dev.
+- **F07** 🟠 Affichage multi-réponses corrigé — un signalement peut recevoir plusieurs réponses du superviseur. La carte "Réponse" (unique, dernier seulement) et l'"Historique des réponses" étaient redondantes et masquaient ce fait. Remplacées par une seule section "Réponses (N)" listant toutes les réponses, dans le card HTML (`report_card.php`) et le PDF (`report_print.php`).
+
+---
+
 ## [2.8.1] — 2026-06-12
 
 ### Sécurité — Corrections de l'audit fonctionnel

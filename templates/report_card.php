@@ -123,23 +123,9 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
     </div>
 </div>
 
-<?php if (!empty($report['reponse'])): ?>
-<div class="card">
-    <h3>Réponse</h3>
-    <div class="report-response">
-        <p><?php echo nl2br(e($report['reponse'])); ?></p>
-        <div class="report-response__meta">
-            <strong>Répondant :</strong> <?php echo e(($report['repondant_prenom'] ?? '') . ' ' . ($report['repondant_nom'] ?? '')); ?>
-            &nbsp;—&nbsp;
-            <strong>Date :</strong> <?php echo e(formatDateTimeFR($report['date_reponse'])); ?>
-        </div>
-    </div>
-</div>
-<?php endif; ?>
-
 <?php if (!empty($responses)): ?>
 <div class="card">
-    <h3>Historique des réponses</h3>
+    <h3>Réponses (<?php echo count($responses); ?>)</h3>
     <div class="table-wrapper">
         <table>
             <thead>

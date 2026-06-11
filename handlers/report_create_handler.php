@@ -161,7 +161,8 @@ try {
     }
 
     setFlash('success', 'Signalement enregistré avec la référence ' . e($reference));
-    redirect(url('report_view', ['id' => $newId]));
+    $newReport = getReportById($pdo, $newId);
+    redirect(url('report_view', ['uuid' => $newReport['uuid']]));
 } catch (Exception $e) {
     setFlash('error', 'Erreur lors de l\'enregistrement du signalement. Veuillez réessayer.');
     setFormData($_POST);

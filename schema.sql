@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS reports (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid            TEXT NOT NULL UNIQUE,           -- UUID v4 for URL-safe public access (non-guessable)
     reference       TEXT NOT NULL UNIQUE,            -- e.g. "rsst-25-001"
     type            TEXT NOT NULL,                   -- 'rsst'|'rami'|'dgi'
     objet           TEXT NOT NULL,                   -- Subject line, max 100 chars
@@ -151,6 +152,7 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
 -- ============================================================
 -- Indexes
 -- ============================================================
+CREATE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid);
 CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type);
 CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat);
 CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id);

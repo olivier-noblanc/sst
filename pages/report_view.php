@@ -3,22 +3,24 @@
  * Report View Page — Application SST DREETS BFC
  *
  * Displays a single report with all details, response history, and action buttons.
- * URL: index.php?page=report_view&id={report_id}
+ * URL: index.php?page=report_view&uuid={report_uuid}
  */
-$id = (int) ($_GET['id'] ?? 0);
+$uuid = $_GET['uuid'] ?? '';
 
-if ($id <= 0) {
+if ($uuid === '' || strlen($uuid) !== 36) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
 
 $pdo = getDB();
-$report = getReportById($pdo, $id);
+$report = getReportByUuid($pdo, $uuid);
 
 if (!$report) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
+
+$id = (int) $report['id'];
 
 // Access control: depends on report visibility setting
 $user = $_SESSION['user'];

@@ -146,28 +146,28 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
 
 <div class="form-actions">
     <?php if ($canEdit): ?>
-        <a href="<?php echo url('report_edit', ['id' => $report['id']]); ?>" class="btn btn--secondary">Modifier</a>
+        <a href="<?php echo url('report_edit', ['uuid' => $report['uuid']]); ?>" class="btn btn--secondary">Modifier</a>
     <?php endif; ?>
 
     <?php if ($canRespondToReport): ?>
-        <a href="<?php echo url('report_respond', ['id' => $report['id']]); ?>" class="btn btn--primary">Répondre</a>
+        <a href="<?php echo url('report_respond', ['uuid' => $report['uuid']]); ?>" class="btn btn--primary">Répondre</a>
     <?php endif; ?>
 
     <?php if ($canAbandon): ?>
         <?php if (isset($_GET['confirm_abandon'])): ?>
         <span style="font-weight:600;color:var(--dgi-color);">⚠️ Abandonner ce signalement ?</span>
-        <form method="POST" action="<?php echo url('report_abandon', ['id' => $report['id']]); ?>" style="display:inline;">
+        <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" style="display:inline;">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
             <input type="hidden" name="report_id" value="<?php echo e($report['id']); ?>">
             <button type="submit" class="btn btn--danger">Oui, abandonner</button>
         </form>
-        <a href="<?php echo url('report_view', ['id' => $report['id']]); ?>" class="btn btn--secondary">Annuler</a>
+        <a href="<?php echo url('report_view', ['uuid' => $report['uuid']]); ?>" class="btn btn--secondary">Annuler</a>
         <?php else: ?>
-        <a href="<?php echo url('report_view', ['id' => $report['id'], 'confirm_abandon' => 1]); ?>" class="btn btn--danger">Abandonner le signalement</a>
+        <a href="<?php echo url('report_view', ['uuid' => $report['uuid'], 'confirm_abandon' => 1]); ?>" class="btn btn--danger">Abandonner le signalement</a>
         <?php endif; ?>
     <?php endif; ?>
 
-    <a href="<?php echo url('report_print', ['id' => $report['id']]); ?>" class="btn btn--outline">Télécharger en PDF</a>
+    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline">Télécharger en PDF</a>
     <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>
 

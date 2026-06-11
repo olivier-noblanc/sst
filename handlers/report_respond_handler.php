@@ -40,7 +40,7 @@ $nouvelEtat = trim($_POST['nouvel_etat'] ?? '');
 if (!in_array($nouvelEtat, ['en_cours', 'traite'])) {
     setFlash('error', 'L\'état sélectionné n\'est pas valide.');
     setFormData($_POST);
-    redirect(url('report_respond', ['id' => $reportId]));
+    redirect(url('report_respond', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
 }
 
 // Validate reponse
@@ -49,14 +49,14 @@ if (empty($reponse)) {
     setFlash('error', 'La réponse ne peut pas être vide.');
     setFormErrors(['reponse' => 'La réponse ne peut pas être vide.']);
     setFormData($_POST);
-    redirect(url('report_respond', ['id' => $reportId]));
+    redirect(url('report_respond', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
 }
 
 if (strlen($reponse) > 5000) {
     setFlash('error', 'La réponse ne doit pas dépasser 5000 caractères.');
     setFormErrors(['reponse' => 'Maximum 5000 caractères.']);
     setFormData($_POST);
-    redirect(url('report_respond', ['id' => $reportId]));
+    redirect(url('report_respond', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
 }
 
 // Get the report
@@ -69,7 +69,7 @@ if (!$report) {
 // Verify report state
 if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
-    redirect(url('report_view', ['id' => $reportId]));
+    redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
 }
 
 // Save response
@@ -90,4 +90,4 @@ if ($success) {
     setFlash('error', 'Erreur lors de l\'enregistrement de la réponse. Le signalement a peut-être déjà été traité.');
 }
 
-redirect(url('report_view', ['id' => $reportId]));
+redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));

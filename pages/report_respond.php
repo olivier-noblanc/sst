@@ -8,24 +8,26 @@
 requireRole(['superviseur']);
 
 $pdo = getDB();
-$reportId = (int) ($_GET['id'] ?? 0);
+$uuid = $_GET['uuid'] ?? '';
 
-if ($reportId <= 0) {
+if ($uuid === '' || strlen($uuid) !== 36) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
 
-$report = getReportById($pdo, $reportId);
+$report = getReportByUuid($pdo, $uuid);
 
 if (!$report) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
 
+$reportId = (int) $report['id'];
+
 // Check if report can be responded to
 if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse (état : ' . e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
-    redirect(url('report_view', ['id' => $reportId]));
+    redirect(url('report_view', ['uuid' => $uuid]));
 }
 
 // Get response history
@@ -115,7 +117,7 @@ $formData = getFormData();
 <!-- Response Form -->
 <div class="card">
     <h3 style="margin-bottom:16px;">Formuler une réponse</h3>
-    <form method="POST" action="<?php echo url('report_respond', ['id' => $reportId]); ?>">
+    <form method="POST" action="<?php echo url('report_respond', ['uuid' => $uuid]); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <input type="hidden" name="report_id" value="<?php echo $reportId; ?>">
 
@@ -141,7 +143,7 @@ $formData = getFormData();
 
         <div class="form-actions">
             <button type="submit" class="btn btn--primary">Enregistrer les modifications</button>
-            <a href="<?php echo url('report_view', ['id' => $reportId]); ?>" class="btn btn--secondary">Annuler</a>
+            <a href="<?php echo url('report_view', ['uuid' => $uuid]); ?>" class="btn btn--secondary">Annuler</a>
         </div>
     </form>
 </div>

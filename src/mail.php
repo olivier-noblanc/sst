@@ -199,7 +199,7 @@ function notifyNewReport(PDO $pdo, int $reportId, string $type, int $siteId): vo
     $body .= "<p><strong>Objet :</strong> " . e($report['objet']) . "</p>";
     $body .= "<p><strong>Déclarant :</strong> " . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . "</p>";
     $body .= "<p><strong>Date de l'événement :</strong> " . formatDateFR($report['date_evenement']) . "</p>";
-    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['id' => $reportId]) . "\">Consulter le signalement</a></p>";
+    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]) . "\">Consulter le signalement</a></p>";
     $body .= "</body></html>";
 
     // Collect recipients: per-site + global
@@ -235,7 +235,7 @@ function notifyReportResponse(PDO $pdo, int $reportId, int $respondentId): void 
     $body .= "<p><strong>Référence :</strong> " . e($report['reference']) . "</p>";
     $body .= "<p><strong>Répondant :</strong> " . e($respondent['prenom'] . ' ' . $respondent['nom']) . "</p>";
     $body .= "<p><strong>Nouvel état :</strong> " . e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . "</p>";
-    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['id' => $reportId]) . "\">Consulter le signalement</a></p>";
+    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]) . "\">Consulter le signalement</a></p>";
     $body .= "</body></html>";
 
     sendMail($declarant['email'], $subject, $body);
@@ -266,7 +266,7 @@ function notifyPourCompte(PDO $pdo, int $reportId): void {
     $body .= "<p><strong>Registre :</strong> RAMI</p>";
     $body .= "<p><strong>Objet :</strong> " . e($report['objet']) . "</p>";
     $body .= "<p><strong>Déposé par :</strong> " . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . "</p>";
-    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['id' => $reportId]) . "\">Consulter le signalement</a></p>";
+    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]) . "\">Consulter le signalement</a></p>";
     $body .= "</body></html>";
 
     sendMail($agent['email'], $subject, $body);

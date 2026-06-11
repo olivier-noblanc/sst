@@ -5,27 +5,29 @@
  * Generates a PDF of a single report using FPDF v1.9.
  * No JavaScript, no window.print() — pure server-side PDF generation.
  * No Composer, no mPDF — zero dependency, everything in memory.
- * URL: index.php?page=report_print&id={report_id}
+ * URL: index.php?page=report_print&uuid={report_uuid}
  *
  * NOTE: This page is included by the router BEFORE header/sidebar.
  * The router has already started the session, loaded config/database/helpers/queries,
  * and checked authentication. We do NOT need to re-require or re-start session.
  */
 
-$id = (int) ($_GET['id'] ?? 0);
+$uuid = $_GET['uuid'] ?? '';
 
-if ($id <= 0) {
+if ($uuid === '' || strlen($uuid) !== 36) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
 
 $pdo = getDB();
-$report = getReportById($pdo, $id);
+$report = getReportByUuid($pdo, $uuid);
 
 if (!$report) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
+
+$id = (int) $report['id'];
 
 // Access control: depends on report visibility setting
 $user = $_SESSION['user'];

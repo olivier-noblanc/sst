@@ -44,13 +44,13 @@ $type = $report['type'];
 // Ownership check
 if ((int) $report['declarant_id'] !== $userId) {
     setFlash('error', 'Vous ne pouvez abandonner que vos propres signalements.');
-    redirect(url('report_view', ['id' => $reportId]));
+    redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
 }
 
 // State check (from DB, not form)
 if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
     setFlash('error', 'Ce signalement ne peut plus être abandonné (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
-    redirect(url('report_view', ['id' => $reportId]));
+    redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
 }
 
 // Abandon the report (soft delete)
@@ -61,5 +61,5 @@ if ($abandoned) {
     redirect(url('report_list', ['type' => $type]));
 } else {
     setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps.');
-    redirect(url('report_view', ['id' => $reportId]));
+    redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
 }

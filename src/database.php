@@ -211,8 +211,38 @@ function migrateSchema(PDO $pdo): void {
         error_log("Migration warning for users.site_id nullable: " . $e->getMessage());
     }
 
+    // Add uuid column to reports table (for non-guessable URLs)
+    try {
+        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $hasUuid = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'uuid') {
+                $hasUuid = true;
+                break;
+            }
+        }
+        if (!$hasUuid) {
+            $pdo->exec('ALTER TABLE reports ADD COLUMN uuid TEXT');
+            // Backfill existing reports with UUIDs
+            $stmt = $pdo->query('SELECT id FROM reports WHERE uuid IS NULL');
+            while ($row = $stmt->fetch()) {
+                $uuid = bin2hex(random_bytes(16));
+                // Format as UUID v4 (8-4-4-4-12)
+                $uuid = substr($uuid, 0, 8) . '-' . substr($uuid, 8, 4) . '-4' . substr($uuid, 13, 3) . '-' . dechex(hexdec(substr($uuid, 16, 2)) | 0x8) . substr($uuid, 18, 2) . '-' . substr($uuid, 20, 12);
+                $upd = $pdo->prepare('UPDATE reports SET uuid = :uuid WHERE id = :id');
+                $upd->execute([':uuid' => $uuid, ':id' => $row['id']]);
+            }
+            // Make uuid NOT NULL UNIQUE after backfill
+            // SQLite doesn't support ALTER COLUMN — the index enforces uniqueness
+            $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+        }
+    } catch (Exception $e) {
+        error_log("Migration warning for reports.uuid: " . $e->getMessage());
+    }
+
     // Also ensure indexes exist
     $indexes = [
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)',
         'CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)',
         'CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)',
         'CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)',

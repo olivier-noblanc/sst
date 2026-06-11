@@ -19,14 +19,18 @@ function createReport(PDO $pdo, array $data): string {
     $seq = getNextSequence($pdo, $data['type'], $year);
     $reference = generateReference($data['type'], $year2, $seq);
 
+    // Generate UUID v4
+    $hex = bin2hex(random_bytes(16));
+    $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex(hexdec(substr($hex, 16, 2)) | 0x8) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+
     $stmt = $pdo->prepare("
         INSERT INTO reports (
-            reference, type, objet, description, date_evenement, heure_evenement,
+            uuid, reference, type, objet, description, date_evenement, heure_evenement,
             lieu, declarant_id, declarant_nom, declarant_prenom,
             pour_compte_de, pour_compte_nom, pour_compte_prenom,
             site_id, is_confidential, etat
         ) VALUES (
-            :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
+            :uuid, :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
             :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
             :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
             :site_id, :is_confidential, 'nouveau'
@@ -34,6 +38,7 @@ function createReport(PDO $pdo, array $data): string {
     ");
 
     $stmt->execute([
+        ':uuid'              => $uuid,
         ':reference'         => $reference,
         ':type'              => $data['type'],
         ':objet'             => $data['objet'],
@@ -65,7 +70,33 @@ function getLastInsertId(PDO $pdo): int {
 }
 
 /**
+ * Get a single report by UUID with site and respondent info.
+ * Used for public URLs (non-guessable identifier).
+ * 
+ * @param PDO    $pdo   Database connection
+ * @param string $uuid  Report UUID
+ * @return array|null
+ */
+function getReportByUuid(PDO $pdo, string $uuid): ?array {
+    if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{2}-[0-9a-f]{12}$/i', $uuid)) {
+        return null;
+    }
+    $stmt = $pdo->prepare("
+        SELECT r.*, s.code as site_code, s.nom as site_nom,
+               rep.nom as repondant_nom, rep.prenom as repondant_prenom
+        FROM reports r
+        LEFT JOIN sites s ON r.site_id = s.id
+        LEFT JOIN users rep ON r.repondant_id = rep.id
+        WHERE r.uuid = :uuid
+    ");
+    $stmt->execute([':uuid' => $uuid]);
+    $result = $stmt->fetch();
+    return $result ?: null;
+}
+
+/**
  * Get a single report by ID with site and respondent info.
+ * Used internally (not exposed in URLs).
  * 
  * @param PDO $pdo  Database connection
  * @param int $id   Report ID

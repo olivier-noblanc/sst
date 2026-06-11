@@ -16,14 +16,14 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
 // should highlight the corresponding registry (RSST/RAMI/DGI) menu item
 $activeRegistryType = $_GET['type'] ?? null;
 $reportSubpages = ['report_create', 'report_view', 'report_edit', 'report_abandon', 'report_respond'];
-if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_GET['id'])) {
+if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_GET['uuid'])) {
     // For view/edit/abandon/respond pages, try to get the type from the report
     try {
         $pdo = getDB();
-        $reportId = (int) ($_GET['id'] ?? 0);
-        if ($reportId > 0) {
-            $stmt = $pdo->prepare('SELECT type FROM reports WHERE id = :id');
-            $stmt->execute([':id' => $reportId]);
+        $reportUuid = $_GET['uuid'] ?? '';
+        if (strlen($reportUuid) === 36) {
+            $stmt = $pdo->prepare('SELECT type FROM reports WHERE uuid = :uuid');
+            $stmt->execute([':uuid' => $reportUuid]);
             $row = $stmt->fetch();
             if ($row) {
                 $activeRegistryType = $row['type'];

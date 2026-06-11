@@ -285,54 +285,28 @@ function agentVisibilityIsPublic(): bool {
 }
 
 /**
- * Detect the MIME type of a file, with fallback when the fileinfo extension is not available.
+ * Detect the MIME type of a file using the fileinfo extension.
  *
- * Detection priority:
- * 1. finfo (fileinfo extension) — most reliable
- * 2. mime_content_type() — legacy function
- * 3. Extension-based mapping — last resort
+ * Requires the PHP fileinfo extension to be enabled.
+ * If the extension is not available, throws a clear error message.
  *
  * @param string $filePath  Absolute path to the file
- * @return string  MIME type (e.g. 'image/jpeg'), or 'application/octet-stream' if unknown
+ * @return string  MIME type (e.g. 'image/jpeg')
+ * @throws \RuntimeException  If the fileinfo extension is not available
  */
 function getMimeType(string $filePath): string {
-    // 1. Try finfo (fileinfo extension)
-    if (class_exists('finfo')) {
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($filePath);
-        if ($mime !== false) {
-            return $mime;
-        }
+    if (!class_exists('finfo')) {
+        throw new \RuntimeException(
+            'L\'extension PHP "fileinfo" est requise pour le téléchargement de pièces jointes. ' .
+            'Veuillez l\'activer dans php.ini : extension=fileinfo, puis redémarrer le serveur web.'
+        );
     }
-
-    // 2. Try mime_content_type() (may also require fileinfo extension)
-    if (function_exists('mime_content_type')) {
-        $mime = mime_content_type($filePath);
-        if ($mime !== false) {
-            return $mime;
-        }
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($filePath);
+    if ($mime === false) {
+        throw new \RuntimeException('Impossible de déterminer le type du fichier.');
     }
-
-    // 3. Extension-based fallback
-    $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-    $map = [
-        'jpg'  => 'image/jpeg',
-        'jpeg' => 'image/jpeg',
-        'png'  => 'image/png',
-        'gif'  => 'image/gif',
-        'pdf'  => 'application/pdf',
-        'doc'  => 'application/msword',
-        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'xls'  => 'application/vnd.ms-excel',
-        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'txt'  => 'text/plain',
-        'csv'  => 'text/csv',
-        'webp' => 'image/webp',
-        'bmp'  => 'image/bmp',
-        'svg'  => 'image/svg+xml',
-    ];
-
-    return $map[$ext] ?? 'application/octet-stream';
+    return $mime;
 }
 
 /**

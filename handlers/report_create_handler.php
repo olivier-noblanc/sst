@@ -93,13 +93,17 @@ if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ER
     } elseif ($file['size'] > MAX_ATTACHMENT_SIZE) {
         $errors['attachment'] = 'Le fichier ne doit pas dépasser 10 Mo.';
     } else {
-        $mime = getMimeType($file['tmp_name']);
-        if (!in_array($mime, ALLOWED_ATTACHMENT_MIMES)) {
-            $errors['attachment'] = 'Type de fichier non autorisé. Formats acceptés : JPG, PNG, GIF, PDF.';
-        } else {
-            $attachmentBlob = file_get_contents($file['tmp_name']);
-            $attachmentName = basename($file['name']);
-            $attachmentMime = $mime;
+        try {
+            $mime = getMimeType($file['tmp_name']);
+            if (!in_array($mime, ALLOWED_ATTACHMENT_MIMES)) {
+                $errors['attachment'] = 'Type de fichier non autorisé. Formats acceptés : JPG, PNG, GIF, PDF.';
+            } else {
+                $attachmentBlob = file_get_contents($file['tmp_name']);
+                $attachmentName = basename($file['name']);
+                $attachmentMime = $mime;
+            }
+        } catch (\RuntimeException $ex) {
+            $errors['attachment'] = $ex->getMessage();
         }
     }
 }

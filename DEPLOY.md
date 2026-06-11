@@ -12,20 +12,11 @@
 ### Extensions PHP requises
 
 ```
-sqlite3, pdo_sqlite, mbstring
+sqlite3, pdo_sqlite, mbstring, fileinfo
 ```
 
-> L'extension `mbstring` est nécessaire pour la conversion UTF-8 → cp1252 dans les PDF (FPDF). Vérifier avec `php -m | findstr mbstring`.
-
-### Extensions PHP recommandées
-
-```
-fileinfo
-```
-
-> L'extension `fileinfo` permet la détection fiable du type MIME des fichiers uploadés (pièces jointes).
-> Si elle n'est pas disponible, l'application utilise un fallback basé sur l'extension du fichier.
-> Vérifier avec `php -m | findstr fileinfo`.
+> - `mbstring` : nécessaire pour la conversion UTF-8 → cp1252 dans les PDF (FPDF). Vérifier avec `php -m | findstr mbstring`.
+> - `fileinfo` : nécessaire pour la vérification du type MIME des pièces jointes lors de l'upload. Sans cette extension, l'ajout de pièce jointe affichera un message d'erreur. Vérifier avec `php -m | findstr fileinfo`.
 
 ## Flux d'authentification
 
@@ -419,12 +410,11 @@ C'est **NORMAL**. En production, IIS authentifie automatiquement via Windows Aut
 La page de login mock (avec admin.dev, agent.dev) n'existe qu'en mode développement.
 Si vous voyez le formulaire de login en prod, c'est que `APP_ENV` est encore à `dev` dans `config.php`.
 
-### Erreur "Class 'finfo' not found" / "finfo not found"
+### Erreur "finfo not found" / message "extension fileinfo est requise"
 1. L'extension `fileinfo` n'est pas activée dans `php.ini`
 2. Décommenter ou ajouter `extension=fileinfo` dans `C:\php\php.ini`
 3. Redémarrer IIS : `iisreset`
 4. Vérifier avec `php -m | findstr fileinfo`
-5. **Note** : l'application fonctionne sans cette extension grâce au fallback basé sur l'extension du fichier, mais la détection MIME est moins fiable
 
 ### Erreur "Class 'FPDF' not found"
 1. Vérifier que le fichier `src/lib/fpdf/fpdf.php` existe

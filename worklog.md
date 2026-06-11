@@ -112,6 +112,6 @@ Work Log:
   - Ajouté section dépannage "Erreur Class 'finfo' not found"
 
 Stage Summary:
-- Erreur "finfo not found" résolue : l'application fonctionne désormais même sans l'extension fileinfo
-- Fallback par extension de fichier (jpg→image/jpeg, png→image/png, gif→image/gif, pdf→application/pdf)
-- L'extension fileinfo reste recommandée pour une détection MIME plus fiable
+- Erreur "finfo not found" résolue : l'application affiche un message clair demandant l'activation de l'extension fileinfo
+- Pas de contournement : l'extension fileinfo est désormais requise pour l'upload de pièces jointes
+- DEPLOY.md mis à jour : fileinfo passé en extension requise (plus recommandée)

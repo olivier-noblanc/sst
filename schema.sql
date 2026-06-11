@@ -154,6 +154,20 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
 
 
 -- ============================================================
+-- Table: schema_version
+-- Tracks which migration versions have been applied.
+-- Prevents re-running migrations and provides auditability.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS schema_version (
+    version     INTEGER PRIMARY KEY,           -- Sequential version number
+    description TEXT NOT NULL,                  -- Human-readable description
+    applied_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Record the baseline version (current schema as of this file)
+INSERT INTO schema_version (version, description) VALUES (1, 'Baseline — initial schema with all tables and indexes');
+
+-- ============================================================
 -- Indexes
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type);

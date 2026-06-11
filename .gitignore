@@ -5,6 +5,7 @@
 /data/*.db
 /data/*.sqlite
 /data/*.log
+/data/backups/
 
 # Environment
 .env

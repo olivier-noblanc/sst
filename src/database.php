@@ -48,9 +48,29 @@ function getDB(): PDO {
         seedDefaultData($pdo);
     }
 
+    // Auto-backup: create a snapshot if the DB has changed since last backup.
+    // Lazy check — skips if fingerprint unchanged (zero I/O waste).
+    // Must run BEFORE migrations so we have a clean pre-migration state.
+    require_once __DIR__ . '/backup.php';
+    try {
+        performBackup($pdo);
+    } catch (Exception $e) {
+        // Backup failure must NOT block the application
+        error_log('[SST-BACKUP] Auto-backup failed: ' . $e->getMessage());
+    }
+
     // Auto-migrate: ensure config_app table and new keys exist in existing databases
+    // Backup before migration in case the schema changes break something
+    $fingerprintBefore = getDbFingerprint($pdo);
     migrateSchema($pdo);
     migrateConfigKeys($pdo);
+    $fingerprintAfter = getDbFingerprint($pdo);
+    // If migrations changed the DB, ensure we have a pre-migration backup
+    if ($fingerprintBefore['mtime'] !== $fingerprintAfter['mtime'] || $fingerprintBefore['size'] !== $fingerprintAfter['size']) {
+        // Migration changed something — the pre-migration backup was already created
+        // by performBackup() above. Update the marker so next backup detects further changes.
+        setLastBackupFingerprint($fingerprintAfter);
+    }
 
     return $pdo;
 }
@@ -346,6 +366,24 @@ function migrateSchema(PDO $pdo): void {
         }
     } catch (Exception $e) {
         error_log("Migration warning for attachment columns: " . $e->getMessage());
+    }
+
+    // === Schema version tracking ===
+    try {
+        $pdo->exec('CREATE TABLE IF NOT EXISTS schema_version (
+            version     INTEGER PRIMARY KEY,
+            description TEXT NOT NULL,
+            applied_at  TEXT NOT NULL DEFAULT (datetime(\'now\'))
+        )');
+
+        // Record baseline for existing databases that pre-date schema_version
+        $stmt = $pdo->query('SELECT COUNT(*) FROM schema_version');
+        $count = (int) $stmt->fetchColumn();
+        if ($count === 0) {
+            $pdo->exec("INSERT INTO schema_version (version, description) VALUES (1, 'Baseline — existing database before version tracking')");
+        }
+    } catch (Exception $e) {
+        error_log("Migration warning for schema_version: " . $e->getMessage());
     }
 
     // Also ensure indexes exist

@@ -41,54 +41,65 @@ function isValidUuid(string $uuid): bool {
  * @return string         The new report UUID
  */
 function createReport(PDO $pdo, array $data): string {
-    // Generate reference
-    $year = (int) date('Y');
-    $year2 = date('y');
-    $seq = getNextSequence($pdo, $data['type'], $year);
-    $reference = generateReference($data['type'], $year2, $seq);
+    // Transaction: sequence increment + report INSERT must be atomic.
+    // Without this, two concurrent requests could get the same sequence number
+    // or a sequence could be consumed without a report being created.
+    $pdo->beginTransaction();
+    try {
+        // Generate reference
+        $year = (int) date('Y');
+        $year2 = date('y');
+        $seq = getNextSequence($pdo, $data['type'], $year);
+        $reference = generateReference($data['type'], $year2, $seq);
 
-    // Generate UUID v4
-    $uuid = generateUuid();
+        // Generate UUID v4
+        $uuid = generateUuid();
 
-    $stmt = $pdo->prepare("
-        INSERT INTO reports (
-            uuid, reference, type, objet, description, date_evenement, heure_evenement,
-            lieu, declarant_id, declarant_nom, declarant_prenom,
-            pour_compte_de, pour_compte_nom, pour_compte_prenom,
-            site_id, is_confidential, etat,
-            attachment_blob, attachment_name, attachment_mime
-        ) VALUES (
-            :uuid, :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
-            :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
-            :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
-            :site_id, :is_confidential, 'nouveau',
-            :attachment_blob, :attachment_name, :attachment_mime
-        )
-    ");
+        $stmt = $pdo->prepare("
+            INSERT INTO reports (
+                uuid, reference, type, objet, description, date_evenement, heure_evenement,
+                lieu, declarant_id, declarant_nom, declarant_prenom,
+                pour_compte_de, pour_compte_nom, pour_compte_prenom,
+                site_id, is_confidential, etat,
+                attachment_blob, attachment_name, attachment_mime
+            ) VALUES (
+                :uuid, :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
+                :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
+                :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
+                :site_id, :is_confidential, 'nouveau',
+                :attachment_blob, :attachment_name, :attachment_mime
+            )
+        ");
 
-    $stmt->execute([
-        ':uuid'              => $uuid,
-        ':reference'         => $reference,
-        ':type'              => $data['type'],
-        ':objet'             => $data['objet'],
-        ':description'       => $data['description'],
-        ':date_evenement'    => $data['date_evenement'],
-        ':heure_evenement'   => $data['heure_evenement'] ?? null,
-        ':lieu'              => $data['lieu'] ?? null,
-        ':declarant_id'      => $data['declarant_id'],
-        ':declarant_nom'     => $data['declarant_nom'],
-        ':declarant_prenom'  => $data['declarant_prenom'],
-        ':pour_compte_de'    => $data['pour_compte_de'] ?? null,
-        ':pour_compte_nom'   => $data['pour_compte_nom'] ?? null,
-        ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
-        ':site_id'           => $data['site_id'],
-        ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
-        ':attachment_blob'   => $data['attachment_blob'] ?? null,
-        ':attachment_name'   => $data['attachment_name'] ?? null,
-        ':attachment_mime'   => $data['attachment_mime'] ?? null,
-    ]);
+        $stmt->execute([
+            ':uuid'              => $uuid,
+            ':reference'         => $reference,
+            ':type'              => $data['type'],
+            ':objet'             => $data['objet'],
+            ':description'       => $data['description'],
+            ':date_evenement'    => $data['date_evenement'],
+            ':heure_evenement'   => $data['heure_evenement'] ?? null,
+            ':lieu'              => $data['lieu'] ?? null,
+            ':declarant_id'      => $data['declarant_id'],
+            ':declarant_nom'     => $data['declarant_nom'],
+            ':declarant_prenom'  => $data['declarant_prenom'],
+            ':pour_compte_de'    => $data['pour_compte_de'] ?? null,
+            ':pour_compte_nom'   => $data['pour_compte_nom'] ?? null,
+            ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
+            ':site_id'           => $data['site_id'],
+            ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
+            ':attachment_blob'   => $data['attachment_blob'] ?? null,
+            ':attachment_name'   => $data['attachment_name'] ?? null,
+            ':attachment_mime'   => $data['attachment_mime'] ?? null,
+        ]);
 
-    return $uuid;
+        $pdo->commit();
+        return $uuid;
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log('[SST-DB] createReport transaction failed: ' . $e->getMessage());
+        throw $e; // Re-throw so the handler can show an error to the user
+    }
 }
 
 /**
@@ -312,40 +323,51 @@ function abandonReport(PDO $pdo, string $uuid, int $userId): bool {
  * @return bool
  */
 function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): bool {
-    // Update the report
-    $stmt = $pdo->prepare("
-        UPDATE reports
-        SET etat = :nouvel_etat,
-            reponse = :reponse,
-            repondant_id = :user_id,
-            date_reponse = datetime('now'),
-            updated_at = datetime('now')
-        WHERE uuid = :uuid AND etat IN ('nouveau', 'en_cours')
-    ");
-    $stmt->execute([
-        ':nouvel_etat' => $nouvelEtat,
-        ':reponse'     => $reponse,
-        ':user_id'     => $userId,
-        ':uuid'        => $uuid,
-    ]);
-
-    $updated = $stmt->rowCount() > 0;
-
-    if ($updated) {
-        // Insert into response history
+    // Transaction: UPDATE reports + INSERT report_responses must be atomic.
+    // Without this, a crash between the two queries would leave reports.reponse
+    // updated but no history entry in report_responses = data inconsistency.
+    $pdo->beginTransaction();
+    try {
+        // Update the report
         $stmt = $pdo->prepare("
-            INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
-            VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
+            UPDATE reports
+            SET etat = :nouvel_etat,
+                reponse = :reponse,
+                repondant_id = :user_id,
+                date_reponse = datetime('now'),
+                updated_at = datetime('now')
+            WHERE uuid = :uuid AND etat IN ('nouveau', 'en_cours')
         ");
         $stmt->execute([
-            ':report_uuid' => $uuid,
-            ':user_id'     => $userId,
-            ':reponse'     => $reponse,
             ':nouvel_etat' => $nouvelEtat,
+            ':reponse'     => $reponse,
+            ':user_id'     => $userId,
+            ':uuid'        => $uuid,
         ]);
-    }
 
-    return $updated;
+        $updated = $stmt->rowCount() > 0;
+
+        if ($updated) {
+            // Insert into response history
+            $stmt = $pdo->prepare("
+                INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
+                VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
+            ");
+            $stmt->execute([
+                ':report_uuid' => $uuid,
+                ':user_id'     => $userId,
+                ':reponse'     => $reponse,
+                ':nouvel_etat' => $nouvelEtat,
+            ]);
+        }
+
+        $pdo->commit();
+        return $updated;
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log('[SST-DB] respondToReport transaction failed: ' . $e->getMessage());
+        return false;
+    }
 }
 
 /**

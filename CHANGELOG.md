@@ -2,6 +2,26 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.9.0] — 2026-06-12
+
+### Fiabilité — SQLite
+
+- **S1/S2** 🔴 Transactions ajoutées sur `respondToReport()` et `createReport()` — l'UPDATE de `reports` + INSERT dans `report_responses` (et séquence + INSERT) sont désormais atomiques. Un crash entre les deux requêtes ne peut plus laisser la base incohérente.
+- **S3** 🔴 **Stratégie de backup autonome** — `src/backup.php` : sauvegarde automatique via `VACUUM INTO` (SQL pure, pas de script externe, compatible IIS/Windows). Le backup ne se déclenche que si la base a changé depuis le dernier snapshot (comparaison filemtime + taille après checkpoint WAL). Zéro gaspillage de stockage si rien n'a bougé.
+- **S4** 🟡 Rotation des backups — les 10 plus récents sont conservés dans `data/backups/`, les plus anciens sont supprimés automatiquement. Protection HTTP via `.htaccess` + `web.config`.
+- **S5** 🟡 Backup pré-migration — avant chaque modification de schéma, un snapshot est créé. Permet de restaurer la base si une migration échoue.
+- **S6** 🟡 **Table `schema_version`** — versionnage des migrations. Chaque migration appliquée est enregistrée avec un numéro de version et un horodatage. Les bases existantes reçoivent le baseline v1 automatiquement.
+- **S7** 🟡 `data/backups/` ajouté au `.gitignore` — les snapshots ne polluent pas le dépôt.
+
+### Export CSV
+
+- **E1** 🔴 **`fputcsv()`** remplace la construction manuelle — les champs contenant des `;`, des guillemets ou des retours à la ligne sont correctement encadrés. Plus de CSV cassé.
+- **E2** 🔴 **Historique multi-réponses exporté** — colonne `Historique réponses` avec toutes les réponses du signalement au format `[Date] Répondant (État) : Réponse`. Colonne `Nb réponses` pour le compteur.
+- **E3** 🟠 Colonnes ajoutées : `Nom UR`, `Date création`, `Déclaré pour le compte de`, `Heure événement`, `Lieu`.
+- **E4** 🟡 Description et réponse conservent leurs retours à la ligne (encapsulation `"` par `fputcsv`).
+
+---
+
 ## [2.8.2] — 2026-06-12
 
 ### Correctif

@@ -4,6 +4,9 @@
  * 
  * POST handler: generate CSV and send as download.
  * Access: superviseur, chsct
+ * 
+ * Uses fputcsv() for proper field enclosure (handles semicolons,
+ * quotes, and newlines inside fields). Exports multi-response history.
  */
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -56,60 +59,107 @@ if (!empty($_POST['etats']) && is_array($_POST['etats'])) {
 }
 
 // Get data
-$data = getExportData($pdo, $filters);
+$reports = getExportData($pdo, $filters);
 
-// Generate CSV
+// Build CSV in memory using fputcsv (proper enclosure, no injection risk)
 $filename = 'export_sst_' . date('Y-m-d_His') . '.csv';
+$tmpFile = tmpfile();
+if ($tmpFile === false) {
+    setFlash('error', 'Erreur lors de la génération du fichier.');
+    redirect(url('export'));
+}
 
 // UTF-8 BOM for Excel compatibility
-$csv = "\xEF\xBB\xBF";
+fwrite($tmpFile, "\xEF\xBB\xBF");
 
-// Header row
-$csv .= implode(';', [
+// Header row — includes multi-response columns
+$headers = [
     'Référence',
-    'Type',
-    'Date',
-    'Heure',
+    'Registre',
+    'Date événement',
+    'Heure événement',
+    'Lieu',
     'Objet',
     'Description',
-    'Nom auteur',
-    'Prénom auteur',
+    'Déclarant (nom)',
+    'Déclarant (prénom)',
     getConfig('app_label_unite', 'UR'),
+    'Nom ' . getConfig('app_label_unite', 'UR'),
     'État',
     'Confidentiel',
-    'Réponse',
-    'Répondu par',
-    'Date réponse',
-]) . "\r\n";
-
-// Helper: prevent CSV formula injection by prefixing cells that start with =+@-
-$csvEscape = function($value): string {
-    $value = (string) $value;
-    if (preg_match('/^[=+\-@]/', $value)) {
-        return "'" . $value;
-    }
-    return $value;
-};
+    'Date création',
+    'Déclaré pour le compte de',
+    'Nb réponses',
+    'Dernière réponse',
+    'Dernier répondant',
+    'Date dernière réponse',
+    'Historique réponses',
+];
+fputcsv($tmpFile, $headers, ';');
 
 // Data rows
-foreach ($data as $row) {
-    $csv .= implode(';', [
+foreach ($reports as $row) {
+    // Get response history for this report
+    $responses = getReportResponses($pdo, $row['uuid']);
+    $responseCount = count($responses);
+
+    // Build "Pour le compte de" field
+    $pourCompte = '';
+    if (!empty($row['pour_compte_nom'])) {
+        $pourCompte = trim(($row['pour_compte_prenom'] ?? '') . ' ' . $row['pour_compte_nom']);
+    }
+
+    // Build response history as structured text
+    // Format: [Date] Répondant (État) : Réponse | [Date] ...
+    $historyParts = [];
+    foreach ($responses as $resp) {
+        $date = $resp['created_at'] ?? '';
+        $respondent = trim(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? ''));
+        $etat = ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat'] ?? '';
+        $text = $resp['reponse'] ?? '';
+        $historyParts[] = "[$date] $respondent ($etat) : $text";
+    }
+    $historyText = implode(' | ', $historyParts);
+
+    // CSV formula injection prevention: prefix cells starting with =+@-
+    $csvEscape = function($value): string {
+        $value = (string) $value;
+        if (preg_match('/^[=+\-@]/', $value)) {
+            return "'" . $value;
+        }
+        return $value;
+    };
+
+    $csvRow = [
         $csvEscape($row['reference'] ?? ''),
         $csvEscape(strtoupper($row['type'] ?? '')),
         $csvEscape($row['date_evenement'] ?? ''),
         $csvEscape($row['heure_evenement'] ?? ''),
-        $csvEscape(str_replace(["\r\n", "\n", "\r"], ' ', $row['objet'] ?? '')),
-        $csvEscape(str_replace(["\r\n", "\n", "\r"], ' ', $row['description'] ?? '')),
+        $csvEscape($row['lieu'] ?? ''),
+        $csvEscape($row['objet'] ?? ''),
+        $csvEscape($row['description'] ?? ''),           // Newlines preserved by fputcsv enclosure
         $csvEscape($row['declarant_nom'] ?? ''),
         $csvEscape($row['declarant_prenom'] ?? ''),
         $csvEscape($row['site_code'] ?? ''),
+        $csvEscape($row['site_nom'] ?? ''),
         $csvEscape(ETAT_LABELS[$row['etat'] ?? ''] ?? $row['etat'] ?? ''),
         !empty($row['is_confidential']) ? 'Oui' : 'Non',
-        $csvEscape(str_replace(["\r\n", "\n", "\r"], ' ', $row['reponse'] ?? '')),
+        $csvEscape($row['created_at'] ?? ''),
+        $csvEscape($pourCompte),
+        $responseCount,
+        $csvEscape($row['reponse'] ?? ''),
         $csvEscape(trim(($row['repondant_prenom'] ?? '') . ' ' . ($row['repondant_nom'] ?? ''))),
         $csvEscape($row['date_reponse'] ?? ''),
-    ]) . "\r\n";
+        $csvEscape($historyText),
+    ];
+
+    fputcsv($tmpFile, $csvRow, ';');
 }
+
+// Read the CSV content from temp file
+rewind($tmpFile);
+$csv = stream_get_contents($tmpFile);
+fclose($tmpFile);
 
 // Send as download
 header('Content-Type: text/csv; charset=UTF-8');

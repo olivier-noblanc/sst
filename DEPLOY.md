@@ -192,7 +192,34 @@ Les paramètres SMTP et organisation sont configurables via l'interface admin :
 Les premiers utilisateurs sont auto-provisionnés avec le rôle `agent`.
 Pour promouvoir des utilisateurs en `superviseur`, il existe **deux méthodes** :
 
-#### Méthode 1 : Promotion par un superviseur existant (méthode normale)
+#### Méthode 1 : Script CLI `promote.php` (première installation)
+
+> **Usage** : première installation, quand aucun superviseur n'existe encore.
+
+L'application inclut un script CLI pour promouvoir un utilisateur directement depuis la ligne de commande du serveur.
+
+**Procédure :**
+
+1. L'utilisateur se connecte une première fois via IIS → son compte est auto-provisionné en `agent`
+2. Sur le serveur, en ligne de commande :
+   ```cmd
+   cd C:\inetpub\sst
+   php promote.php jean.martin superviseur
+   ```
+3. L'utilisateur recharge la page dans son navigateur → il est maintenant superviseur
+
+**Exemples :**
+```cmd
+php promote.php jean.martin superviseur    → promeut en Superviseur
+php promote.php sophie.dupont chsct        → promeut en membre CHSCT
+php promote.php pierre.bernard agent       → rétrograde en Agent
+```
+
+> **Note** : le script ne fonctionne qu'en CLI (`php_sapi === 'cli'`), il n'est pas accessible via le navigateur.
+
+Une fois le premier superviseur créé, il peut en promouvoir d'autres via l'interface web (Méthode 2).
+
+#### Méthode 2 : Promotion par un superviseur existant (méthode normale)
 
 > **Usage** : quand au moins un superviseur existe déjà.
 
@@ -202,31 +229,9 @@ Pour promouvoir des utilisateurs en `superviseur`, il existe **deux méthodes** 
 
 Un superviseur peut attribuer le rôle superviseur à d'autres utilisateurs. C'est la méthode **recommandée en fonctionnement normal**.
 
-#### Méthode 2 : Auto-promotion bootstrap (première installation uniquement)
+#### Méthode alternative : variable d'environnement `APP_SUPERVISEUR_USERNAMES`
 
-> **Usage** : première installation, quand aucun superviseur n'existe encore.
-
-Cette méthode permet à un agent de se promouvoir lui-même en superviseur. C'est intentionnel et nécessaire pour le démarrage initial : sans superviseur, personne ne pourrait en créer un via l'interface.
-
-**Comment ça fonctionne :**
-
-1. Se connecter avec le premier compte créé (rôle agent)
-2. Aller dans **Paramètres → Application**
-3. Renseigner le champ **Logins Windows des superviseurs** avec les logins séparés par des virgules (ex: `jean.martin, sophie.dupont`)
-4. La promotion est **immédiate** : au rechargement de la page, l'utilisateur est superviseur
-
-**Où est stockée la liste ?**
-
-La liste `app_superviseur_usernames` est stockée **en base de données** (table `settings`), **pas** dans un fichier PHP.
-Cela signifie que **`git pull` n'écrase jamais cette configuration**.
-
-**⚠️ Recommandation de sécurité** : après la promotion initiale, **vider le champ** dans Paramètres → Application
-(puisque les superviseurs existants peuvent en promouvoir d'autres via l'interface). Cela évite qu'un agent
-non-autorisé ne soit promu si son login est ajouté par erreur à la liste.
-
-#### Backup : variable d'environnement `APP_SUPERVISEUR_USERNAMES`
-
-Si la base de données ne contient pas de liste (par exemple après une réinstallation), l'application utilise la variable d'environnement `APP_SUPERVISEUR_USERNAMES` comme **source de secours**.
+Si l'accès CLI n'est pas possible, l'application peut auto-promouvoir les utilisateurs dont le login figure dans la variable d'environnement `APP_SUPERVISEUR_USERNAMES`.
 
 | Priorité | Source | Survit aux `git pull` ? | Modifiable sans redémarrage ? |
 |----------|--------|--------------------------|-------------------------------|
@@ -273,6 +278,8 @@ environment:
 ```
 
 > **Note** : la variable d'environnement n'est utilisée que si la base de données ne contient pas de liste. Dès que le champ « Logins Windows des superviseurs » est rempli dans Paramètres → Application, la DB prend le relais et l'env var est ignorée.
+>
+> **⚠️ Recommandation de sécurité** : après la promotion initiale via l'env var, aller dans **Paramètres → Application** et renseigner le champ **Logins Windows des superviseurs** dans l'interface, puis retirer la variable d'environnement. Vider le champ dans l'interface une fois que les superviseurs existants peuvent en promouvoir d'autres via la gestion des utilisateurs.
 
 ### 10. SMTP pour les notifications
 

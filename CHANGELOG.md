@@ -2,6 +2,22 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.7.0] — 2026-06-11
+
+### Fonctionnalité — Images embarquées dans les PDF
+
+Les pièces jointes de type image (JPG, PNG, GIF) sont désormais intégrées directement dans le PDF généré par FPDF, au lieu d'afficher uniquement le nom du fichier. Le PDF est ainsi autonome et contient toutes les informations visuelles du signalement.
+
+- `pages/report_print.php` : après la section « Pièce jointe », si l'attachment est une image, le BLOB est écrit dans un fichier temporaire (`tempnam()`), intégré via `$pdf->Image()` avec des dimensions proportionnelles (max 180 mm de large, max 120 mm de haut, fond gris clair), puis le temp est supprimé immédiatement. Si l'intégration échoue, le PDF est quand même généré (le nom du fichier reste affiché). Les PDF en pièce jointe ne sont pas embarqués.
+- `pages/report_attachment.php` : ajout du paramètre `inline=1` — les images sont servies avec `Content-Disposition: inline` pour affichage dans le navigateur (aperçu dans la page). Sans ce paramètre, le téléchargement forcé est conservé.
+- `templates/report_card.php` : les images sont affichées en aperçu inline (`<img>` avec `max-height:400px`) au-dessus du bouton de téléchargement. Cliquer sur l'image lance le téléchargement. Les PDF restent en lien de téléchargement simple.
+
+### Technique — Mise à jour de la spécification
+
+- `SPEC.md` : `MAX_DESCRIPTION_LENGTH` corrigé de 5000 à 20000 (la valeur réelle dans config.php était déjà 20000, la spec était en retard). Ajout des constantes `MAX_ATTACHMENT_SIZE` et `ALLOWED_ATTACHMENT_MIMES` dans le tableau des constantes. Ajout des colonnes `attachment_blob`, `attachment_name`, `attachment_mime` dans le schéma de la table `reports`. Ajout de la route `report_attachment` dans la table des routes. Ajout du champ `attachment` dans le tableau des champs du formulaire. Section PDF mise à jour avec la description de l'embarquement d'images.
+
+---
+
 ## [2.6.1] — 2026-06-11
 
 ### Sécurité — Correction critique : génération UUID invalide

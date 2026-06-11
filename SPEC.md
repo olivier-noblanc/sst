@@ -2,7 +2,7 @@
 
 > Plateforme des Registres en Santé et Sécurité au Travail
 > DREETS Bourgogne-Franche-Comté
-> Version 2.6.1 — Specification technique
+> Version 2.7.0 — Specification technique
 
 ---
 
@@ -78,7 +78,7 @@ D'autres sites peuvent être ajoutés via l'interface de paramétrage (onglet «
 | Constante | Valeur | Description |
 |-----------|--------|-------------|
 | `APP_NAME` | `Application SST — DREETS BFC` | Nom affiché dans l'en-tête |
-| `APP_VERSION` | `2.6.1` | Version de l'application |
+| `APP_VERSION` | `2.7.0` | Version de l'application |
 | `REPORT_VISIBILITY_MODES` | `['confidential', 'agent_choice', 'public']` | Modes de visibilité des signalements |
 | `SITE_NAME` | `DREETS Bourgogne-Franche-Comté` | Nom complet du site |
 | `APP_ENV` | `prod` (défaut) ou `dev` | Environnement d'exécution |
@@ -86,8 +86,10 @@ D'autres sites peuvent être ajoutés via l'interface de paramétrage (onglet «
 | `DB_PATH` | `__DIR__ . '/../data/sst.db'` | Chemin vers la base SQLite |
 | `ITEMS_PER_PAGE` | `20` | Nombre d'éléments par page |
 | `MAX_OBJECT_LENGTH` | `100` | Longueur max du champ objet |
-| `MAX_DESCRIPTION_LENGTH` | `5000` | Longueur max du champ description |
+| `MAX_DESCRIPTION_LENGTH` | `20000` | Longueur max du champ description |
 | `MAX_LIEU_LENGTH` | `200` | Longueur max du champ lieu |
+| `MAX_ATTACHMENT_SIZE` | `10485760` (10 Mo) | Taille max d'une pièce jointe |
+| `ALLOWED_ATTACHMENT_MIMES` | `image/jpeg, image/png, image/gif, application/pdf` | Types MIME acceptés pour les pièces jointes |
 
 ---
 
@@ -146,6 +148,7 @@ sst-app/
 │   ├── report_view.php                  # Consultation d'un signalement
 │   ├── report_edit.php                  # Modifier un signalement (déclarant uniquement)
 │   ├── report_print.php                 # Télécharger un signalement en PDF (FPDF)
+│   ├── report_attachment.php            # Télécharger/afficher une pièce jointe (BLOB depuis DB)
 │   ├── report_abandon.php               # Abandonner un signalement (confirmation)
 │   ├── report_respond.php               # Répondre à un signalement (superviseur uniquement)
 │   ├── synthesis.php                    # Synthèse croisée des signalements
@@ -248,7 +251,7 @@ CREATE TABLE IF NOT EXISTS reports (
     reference       TEXT NOT NULL UNIQUE,            -- ex: "rsst-25-001"
     type            TEXT NOT NULL,                   -- 'rsst' | 'rami' | 'dgi'
     objet           TEXT NOT NULL,                   -- Objet du signalement, max 100 caractères
-    description     TEXT NOT NULL,                   -- Description complète, max 5000 caractères
+    description     TEXT NOT NULL,                   -- Description complète, max 20 000 caractères
     date_evenement  TEXT NOT NULL,                   -- Date de l'événement (ISO 8601)
     heure_evenement TEXT,                            -- Heure de l'événement (HH:MM)
     lieu            TEXT,                            -- Lieu de l'événement
@@ -269,6 +272,10 @@ CREATE TABLE IF NOT EXISTS reports (
     repondant_id    INTEGER,                         -- FK vers users (nullable)
     date_reponse    TEXT,                            -- Date de la réponse
     reponse         TEXT,                            -- Texte de la réponse
+    -- Pièce jointe (mono-fichier, stockée en BLOB dans la base)
+    attachment_blob BLOB,                            -- Contenu du fichier (max ~10 Mo)
+    attachment_name TEXT,                            -- Nom du fichier original (ex: "photo_danger.jpg")
+    attachment_mime TEXT,                            -- Type MIME (ex: "image/jpeg", "application/pdf")
     -- Horodatage
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
@@ -423,6 +430,7 @@ Toutes les requêtes passent par `public/index.php`. Le pattern d'URL est :
 | `report_edit` | `pages/report_edit.php` | GET+`&uuid={uuid}` | Oui | Déclarant uniquement |
 | `report_edit` | `handlers/report_edit_handler.php` | POST+`&uuid={uuid}` | Oui | Déclarant uniquement |
 | `report_print` | `pages/report_print.php` | GET+`&uuid={uuid}` | Oui | Déclarant, superviseur, CHSCT |
+| `report_attachment` | `pages/report_attachment.php` | GET+`&uuid={uuid}[&inline=1]` | Oui | Déclarant, superviseur, CHSCT |
 | `report_abandon` | `pages/report_abandon.php` | GET+`&uuid={uuid}` | Oui | Superviseur uniquement |
 | `report_abandon` | `handlers/report_abandon_handler.php` | POST+`&uuid={uuid}` | Oui | Superviseur uniquement |
 | `report_respond` | `pages/report_respond.php` | GET+`&uuid={uuid}` | Oui | Superviseur uniquement |
@@ -582,7 +590,8 @@ Aucune donnée dynamique, aucun formulaire.
 | `heure_evenement` | `<input type="time">` | Non | — | Heure actuelle | Heure de l'événement |
 | `lieu` | `<input type="text">` | Non | 200 | — | Lieu de l'événement |
 | `objet` | `<input type="text">` | Oui | 100 | — | Objet du signalement |
-| `description` | `<textarea rows="8">` | Oui | 5000 | — | Description complète |
+| `description` | `<textarea rows="8">` | Oui | 20000 | — | Description complète |
+| `attachment` | `<input type="file">` | Non | 10 Mo | — | Image (JPG, PNG, GIF) ou PDF |
 | `site_id` | `<select>` | Oui | — | Site de l'utilisateur | L'agent voit son site seul, le superviseur voit tous les sites |
 
 **Champs spécifiques RAMI** (affichés uniquement si `type=rami`) :
@@ -608,7 +617,7 @@ Boutons : « Valider » (couleur du registre), « Annuler » (retour à l'accuei
 2. `type` parmi : `rsst`, `rami`, `dgi`
 3. `date_evenement` valide, pas dans le futur
 4. `objet` non vide, max 100 caractères
-5. `description` non vide, max 5000 caractères
+5. `description` non vide, max 20 000 caractères
 6. `site_id` existe dans la table sites
 7. Si RAMI et `pour_compte` coché : `pour_compte_nom` et `pour_compte_prenom` requis
 
@@ -743,6 +752,8 @@ La page ne produit plus de HTML imprimable mais génère un fichier PDF téléch
 - **Badges colorés** : registre (RSST/RAMI/DGI) et état (Nouveau/En cours/Traité/Abandonné) avec fond de couleur
 - **Détail du signalement** : date/heure événement, lieu, objet, description, déclarant, site, confidentialité
 - **Section « Pour le compte de »** (RAMI uniquement, si renseigné)
+- **Pièce jointe** : nom du fichier + mention « image embarquée ci-dessous » si c'est une image
+- **Image jointe embarquée** (si l'attachment est une image JPG/PNG/GIF) : l'image est intégrée directement dans le PDF, avec un fond gris clair et des dimensions proportionnelles (max 180 mm de large, max 120 mm de haut). Un fichier temporaire est utilisé (FPDF `Image()` nécessite un chemin fichier), puis supprimé immédiatement. Les PDF en pièce jointe ne sont pas embarqués (nom du fichier uniquement).
 - **Tableau de l'historique des réponses** (si entrées dans `report_responses`) : Date | Répondant | Nouvel état | Réponse
 - **Pied de page** : pagination (`Page N / Total`) + date de génération
 
@@ -811,7 +822,7 @@ WHERE uuid = :uuid AND etat IN ('nouveau', 'en_cours');
 | Champ | Type | Requis | Notes |
 |-------|------|--------|-------|
 | `nouvel_etat` | `<select>` | Oui | « En cours » / « Traité » |
-| `reponse` | `<textarea rows="6">` | Oui | Max 5000 caractères |
+| `reponse` | `<textarea rows="6">` | Oui | Max 20 000 caractères |
 
 Champs cachés : `csrf_token`, `report_uuid`
 
@@ -821,7 +832,7 @@ Champs cachés : `csrf_token`, `report_uuid`
 1. Jeton CSRF
 2. Rôle superviseur
 3. `nouvel_etat` parmi `en_cours`, `traite`
-4. `reponse` non vide, max 5000 caractères
+4. `reponse` non vide, max 20 000 caractères
 
 **Traitement** :
 

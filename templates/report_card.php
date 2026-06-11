@@ -93,10 +93,28 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
                 <tr>
                     <th>Pièce jointe</th>
                     <td>
-                        <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>" 
-                           class="btn btn--outline" style="font-size:13px;padding:4px 12px;">
-                            📎 <?php echo e($report['attachment_name']); ?>
-                        </a>
+                        <?php
+                        $isImageAttachment = !empty($report['attachment_mime']) && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
+                        ?>
+                        <?php if ($isImageAttachment): ?>
+                            <div style="margin-bottom:8px;">
+                                <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>" 
+                                   title="<?php echo e($report['attachment_name']); ?> — Télécharger">
+                                    <img src="<?php echo url('report_attachment', ['uuid' => $report['uuid'], 'inline' => 1]); ?>" 
+                                         alt="<?php echo e($report['attachment_name']); ?>"
+                                         style="max-width:100%;max-height:400px;border-radius:6px;border:1px solid #e5e7eb;cursor:pointer;">
+                                </a>
+                            </div>
+                            <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>" 
+                               class="btn btn--outline" style="font-size:13px;padding:4px 12px;">
+                                ⬇️ <?php echo e($report['attachment_name']); ?>
+                            </a>
+                        <?php else: ?>
+                            <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>" 
+                               class="btn btn--outline" style="font-size:13px;padding:4px 12px;">
+                                📎 <?php echo e($report['attachment_name']); ?>
+                            </a>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endif; ?>

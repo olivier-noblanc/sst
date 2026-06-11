@@ -310,7 +310,82 @@ if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
 drawField($pdf, 'Date de création', formatDateTimeFR($report['created_at']));
 
 if (!empty($report['attachment_name'])) {
-    drawField($pdf, 'Pièce jointe', $report['attachment_name'] . ' (jointe au signalement)');
+    $isImage = !empty($report['attachment_mime']) && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
+    if ($isImage && !empty($report['attachment_blob'])) {
+        drawField($pdf, 'Pièce jointe', $report['attachment_name'] . ' (image embarquée ci-dessous)');
+    } else {
+        drawField($pdf, 'Pièce jointe', $report['attachment_name'] . ' (jointe au signalement)');
+    }
+}
+
+// --- Embed image attachment in PDF ---
+if (!empty($report['attachment_blob']) && !empty($report['attachment_mime'])
+    && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif'])) {
+    // Determine file extension for temp file
+    $ext = match($report['attachment_mime']) {
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/gif'  => 'gif',
+        default      => 'img',
+    };
+
+    // Write BLOB to temp file (FPDF Image() requires a file path)
+    $tempFile = tempnam(sys_get_temp_dir(), 'sst_pdf_') . '.' . $ext;
+    $bytesWritten = file_put_contents($tempFile, $report['attachment_blob']);
+
+    if ($bytesWritten !== false && $bytesWritten > 0) {
+        try {
+            // Get image dimensions to calculate proportional size
+            $imageInfo = @getimagesize($tempFile);
+            $pageWidth = $pdf->GetPageWidth() - $pdf->getLeftMargin() - $pdf->getRightMargin();
+            $maxImageHeight = 120; // mm — max height on page
+
+            if ($imageInfo !== false) {
+                $imgWidthPx = $imageInfo[0];
+                $imgHeightPx = $imageInfo[1];
+                // Calculate proportional dimensions (pixels → mm, fit to page width)
+                $ratio = $imgHeightPx / $imgWidthPx;
+                $displayWidth = min($pageWidth, 180); // max 180mm wide
+                $displayHeight = $displayWidth * $ratio;
+
+                // If image is too tall, scale down by height
+                if ($displayHeight > $maxImageHeight) {
+                    $displayHeight = $maxImageHeight;
+                    $displayWidth = $displayHeight / $ratio;
+                }
+            } else {
+                // Fallback if getimagesize fails
+                $displayWidth = min($pageWidth, 180);
+                $displayHeight = 80;
+            }
+
+            // Check if image fits on current page, otherwise add new page
+            $currentY = $pdf->GetY();
+            $bottomMargin = 22; // footer space
+            if ($currentY + $displayHeight + 6 > $pdf->GetPageHeight() - $bottomMargin) {
+                $pdf->AddPage();
+            }
+
+            // Section title for image
+            drawSectionTitle($pdf, 'Image jointe', $blueDark);
+
+            // Draw light gray background rectangle behind image
+            $x = $pdf->getLeftMargin();
+            $y = $pdf->GetY();
+            $pdf->SetFillColor(248, 248, 248);
+            $pdf->Rect($x, $y, $displayWidth + 4, $displayHeight + 4, 'F');
+
+            // Embed image in PDF
+            $pdf->Image($tempFile, $x + 2, $y + 2, $displayWidth, $displayHeight);
+            $pdf->SetY($y + $displayHeight + 8);
+        } catch (\Throwable $e) {
+            // If image embedding fails, just skip it — don't break PDF generation
+            // The filename is already shown above
+        }
+    }
+
+    // Always clean up temp file
+    @unlink($tempFile);
 }
 
 // État badge (special rendering)

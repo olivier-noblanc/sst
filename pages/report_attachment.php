@@ -62,8 +62,16 @@ if (!in_array($userRole, ['superviseur', 'chsct'])) {
 $mime = $row['attachment_mime'] ?? 'application/octet-stream';
 $name = $row['attachment_name'] ?? 'piece_jointe';
 
+// Check if inline mode is requested (for image preview in browser)
+$inline = !empty($_GET['inline']);
+
+// For images with inline=1, use Content-Disposition: inline (display in browser)
+// For PDFs or downloads without inline param, force download
+$isImage = in_array($mime, ['image/jpeg', 'image/png', 'image/gif']);
+$disposition = ($inline && $isImage) ? 'inline' : 'attachment';
+
 header('Content-Type: ' . $mime);
-header('Content-Disposition: attachment; filename="' . str_replace('"', '\\"', $name) . '"');
+header('Content-Disposition: ' . $disposition . '; filename="' . str_replace('"', '\\"', $name) . '"');
 header('Content-Length: ' . strlen($row['attachment_blob']));
 header('Cache-Control: private, max-age=0, must-revalidate');
 header('Pragma: public');

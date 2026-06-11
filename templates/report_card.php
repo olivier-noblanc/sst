@@ -196,7 +196,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
         <?php endif; ?>
     <?php endif; ?>
 
-    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline">Télécharger en PDF</a>
+    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank">Voir en PDF</a>
     <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>
 

@@ -533,7 +533,9 @@ $pdf->Cell(0, 5, utf8ToCp1252(
     . ' — ' . getConfig('app_nom_organisation', 'DREETS BFC')
 ), 0, 1, 'C');
 
-// Output PDF as download
+// Output PDF inline (displayed in browser, not forced download)
+// 'I' = Content-Disposition: inline — le navigateur ouvre le PDF dans un onglet
+// L'utilisateur peut ensuite l'imprimer ou le télécharger depuis le visualiseur PDF.
 $filename = 'signalement-' . $report['reference'] . '.pdf';
-$pdf->Output('D', $filename, true);
+$pdf->Output('I', $filename, true);
 exit;

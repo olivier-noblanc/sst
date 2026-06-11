@@ -93,8 +93,7 @@ if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ER
     } elseif ($file['size'] > MAX_ATTACHMENT_SIZE) {
         $errors['attachment'] = 'Le fichier ne doit pas dépasser 10 Mo.';
     } else {
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($file['tmp_name']);
+        $mime = getMimeType($file['tmp_name']);
         if (!in_array($mime, ALLOWED_ATTACHMENT_MIMES)) {
             $errors['attachment'] = 'Type de fichier non autorisé. Formats acceptés : JPG, PNG, GIF, PDF.';
         } else {

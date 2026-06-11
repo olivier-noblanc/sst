@@ -91,3 +91,27 @@ Stage Summary:
 - Nouvelle variable d'environnement APP_SUPERVISEUR_USERNAMES comme fallback
 - Priorité : DB setting (UI) > env var > rien
 - Sécurité : recommandation de vider la liste bootstrap après usage
+
+---
+Task ID: 5
+Agent: Main
+Task: Fix "Uncaught error finfo not found"
+
+Work Log:
+- Diagnostiqué : la classe `finfo` (extension PHP fileinfo) n'est pas disponible sur le serveur
+- Trouvé 2 usages de `new finfo()` : handlers/report_create_handler.php (l.96) et report_edit_handler.php (l.118)
+- Ajouté fonction `getMimeType()` dans src/helpers.php avec fallback en 3 niveaux :
+  1. `finfo` (si extension disponible) — plus fiable
+  2. `mime_content_type()` — fonction legacy
+  3. Mapping extension → MIME type — dernier recours (jpg/jpeg/png/gif/pdf/etc.)
+- Remplacé `$finfo = new finfo(FILEINFO_MIME_TYPE); $mime = $finfo->file(...)` par `$mime = getMimeType(...)` dans les 2 handlers
+- Mis à jour DEPLOY.md :
+  - Ajouté section "Extensions PHP recommandées" avec `fileinfo`
+  - Ajouté `extension=fileinfo` dans l'exemple php.ini
+  - Ajouté `fileinfo` dans la checklist de vérification
+  - Ajouté section dépannage "Erreur Class 'finfo' not found"
+
+Stage Summary:
+- Erreur "finfo not found" résolue : l'application fonctionne désormais même sans l'extension fileinfo
+- Fallback par extension de fichier (jpg→image/jpeg, png→image/png, gif→image/gif, pdf→application/pdf)
+- L'extension fileinfo reste recommandée pour une détection MIME plus fiable

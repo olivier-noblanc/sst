@@ -17,6 +17,16 @@ sqlite3, pdo_sqlite, mbstring
 
 > L'extension `mbstring` est nécessaire pour la conversion UTF-8 → cp1252 dans les PDF (FPDF). Vérifier avec `php -m | findstr mbstring`.
 
+### Extensions PHP recommandées
+
+```
+fileinfo
+```
+
+> L'extension `fileinfo` permet la détection fiable du type MIME des fichiers uploadés (pièces jointes).
+> Si elle n'est pas disponible, l'application utilise un fallback basé sur l'extension du fichier.
+> Vérifier avec `php -m | findstr fileinfo`.
+
 ## Flux d'authentification
 
 L'application a **deux modes d'authentification** complètement différents :
@@ -68,6 +78,7 @@ define('APP_ENV_FORCE', 'prod');
    extension=sqlite3
    extension=pdo_sqlite
    extension=mbstring
+   extension=fileinfo
    session.save_path = "C:\inetpub\sessions"
    upload_tmp_dir = "C:\inetpub\uploads"
    date.timezone = Europe/Paris
@@ -293,7 +304,7 @@ sendmail_from = noreply@dreets.gouv.fr
    - `display_errors = On` dans `php.ini` ET dans `config.php`
    - Permissions sur `data/` (IIS_IUSRS écriture)
    - Module FastCGI configuré correctement
-   - Extensions PHP : `sqlite3`, `pdo_sqlite`, `mbstring`
+   - Extensions PHP : `sqlite3`, `pdo_sqlite`, `mbstring`, `fileinfo` (recommandée)
    - Dossier `src/lib/fpdf/` présent (FPDF inclus)
 3. Vérifier les logs :
    - `C:\inetpub\logs\php-errors.log`
@@ -407,6 +418,13 @@ Si le problème persiste, vérifiez qu'il n'y a pas d'autre web.config parent qu
 C'est **NORMAL**. En production, IIS authentifie automatiquement via Windows Auth.
 La page de login mock (avec admin.dev, agent.dev) n'existe qu'en mode développement.
 Si vous voyez le formulaire de login en prod, c'est que `APP_ENV` est encore à `dev` dans `config.php`.
+
+### Erreur "Class 'finfo' not found" / "finfo not found"
+1. L'extension `fileinfo` n'est pas activée dans `php.ini`
+2. Décommenter ou ajouter `extension=fileinfo` dans `C:\php\php.ini`
+3. Redémarrer IIS : `iisreset`
+4. Vérifier avec `php -m | findstr fileinfo`
+5. **Note** : l'application fonctionne sans cette extension grâce au fallback basé sur l'extension du fichier, mais la détection MIME est moins fiable
 
 ### Erreur "Class 'FPDF' not found"
 1. Vérifier que le fichier `src/lib/fpdf/fpdf.php` existe

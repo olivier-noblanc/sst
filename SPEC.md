@@ -2,7 +2,7 @@
 
 > Plateforme des Registres en Santé et Sécurité au Travail
 > DREETS Bourgogne-Franche-Comté
-> Version 2.0.0 — Specification technique
+> Version 2.6.1 — Specification technique
 
 ---
 
@@ -78,7 +78,8 @@ D'autres sites peuvent être ajoutés via l'interface de paramétrage (onglet «
 | Constante | Valeur | Description |
 |-----------|--------|-------------|
 | `APP_NAME` | `Application SST — DREETS BFC` | Nom affiché dans l'en-tête |
-| `APP_VERSION` | `2.0.0` | Version de l'application |
+| `APP_VERSION` | `2.6.1` | Version de l'application |
+| `REPORT_VISIBILITY_MODES` | `['confidential', 'agent_choice', 'public']` | Modes de visibilité des signalements |
 | `SITE_NAME` | `DREETS Bourgogne-Franche-Comté` | Nom complet du site |
 | `APP_ENV` | `prod` (défaut) ou `dev` | Environnement d'exécution |
 | `DEV_MODE` | `APP_ENV === 'dev'` | Mode développement (authentification mock) |
@@ -111,6 +112,10 @@ sst-app/
 │   ├── session_patch.php                # Correctif pour session_regenerate_id en dev
 │   ├── helpers.php                      # Fonctions utilitaires : e(), redirect(), formatDateFR(), etc.
 │   ├── mail.php                         # Envoi d'e-mails (SMTP ou mail() en fallback)
+│   ├── lib/
+│   │   └── fpdf/                         # FPDF 1.9 bundled (génération PDF)
+│   │       ├── fpdf.php                  # Classe FPDF principale
+│   │       └── font/                     # Polices TrueType (DejaVu Sans)
 │   ├── queries/
 │   │   ├── report_queries.php           # Requêtes SQL liées aux signalements
 │   │   ├── user_queries.php             # Requêtes SQL liées aux utilisateurs
@@ -140,7 +145,7 @@ sst-app/
 │   ├── report_list.php                  # Liste des signalements avec filtres
 │   ├── report_view.php                  # Consultation d'un signalement
 │   ├── report_edit.php                  # Modifier un signalement (déclarant uniquement)
-│   ├── report_print.php                 # Version imprimable d'un signalement (sans header/sidebar)
+│   ├── report_print.php                 # Télécharger un signalement en PDF (FPDF)
 │   ├── report_abandon.php               # Abandonner un signalement (confirmation)
 │   ├── report_respond.php               # Répondre à un signalement (superviseur uniquement)
 │   ├── synthesis.php                    # Synthèse croisée des signalements
@@ -175,6 +180,7 @@ sst-app/
 ├── schema.sql                           # Schéma SQL complet (exécuté à la première connexion)
 ├── promote.php                          # Script CLI pour promouvoir un utilisateur superviseur
 ├── seed.php                             # Script CLI pour peupler la base de test
+├── test_fpdf.php                        # Script de test FPDF (vérification polices + génération)
 ├── phpinfo.php                          # Page de diagnostic PHP
 └── SPEC.md                              # Ce fichier
 ```
@@ -238,7 +244,7 @@ Table principale pour les trois registres.
 
 ```sql
 CREATE TABLE IF NOT EXISTS reports (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid            TEXT PRIMARY KEY,                -- UUID v4 (ex: "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
     reference       TEXT NOT NULL UNIQUE,            -- ex: "rsst-25-001"
     type            TEXT NOT NULL,                   -- 'rsst' | 'rami' | 'dgi'
     objet           TEXT NOT NULL,                   -- Objet du signalement, max 100 caractères
@@ -258,6 +264,7 @@ CREATE TABLE IF NOT EXISTS reports (
     site_id         INTEGER NOT NULL,                -- FK vers sites (UR où l'événement s'est produit)
     -- Gestion d'état
     etat            TEXT NOT NULL DEFAULT 'nouveau', -- 'nouveau' | 'en_cours' | 'traite' | 'abandonne'
+    is_confidential INTEGER NOT NULL DEFAULT 1,      -- 1 = confidentiel, 0 = public (mode confidential)
     -- Répondant (superviseur qui a traité le signalement)
     repondant_id    INTEGER,                         -- FK vers users (nullable)
     date_reponse    TEXT,                            -- Date de la réponse
@@ -279,12 +286,12 @@ Historique des réponses à un signalement (audit trail). Chaque réponse du sup
 ```sql
 CREATE TABLE IF NOT EXISTS report_responses (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    report_id       INTEGER NOT NULL,                -- FK vers reports
+    report_uuid     TEXT NOT NULL,                    -- FK vers reports(uuid)
     user_id         INTEGER NOT NULL,                -- FK vers users (le superviseur)
     reponse         TEXT NOT NULL,                   -- Texte de la réponse
     nouvel_etat     TEXT,                            -- Changement d'état : 'en_cours' | 'traite'
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
+    FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 ```
@@ -349,7 +356,8 @@ CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-CREATE INDEX IF NOT EXISTS idx_report_responses_report_id ON report_responses(report_id);
+CREATE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid);
+CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid);
 CREATE INDEX IF NOT EXISTS idx_notification_settings_site_id ON notification_settings(site_id);
 ```
 
@@ -373,8 +381,9 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
     ('app_nom_complet', 'DREETS Bourgogne-Franche-Comté', 'text', 'app', 'Nom complet', 1),
     ('app_label_unite', 'UR', 'text', 'app', 'Libellé des unités (UD, UR, etc.)', 1),
     ('app_superviseur_usernames', '', 'text', 'app', 'Logins Windows des superviseurs...', 1),
-    ('app_agent_see_only_own', '0', 'text', 'app', 'Obsolète : utilisez app_agent_visibility', 1),
-    ('app_agent_visibility', 'confidential', 'text', 'app', 'Visibilité des agents : confidential (confidentiel par défaut) ou public', 1),
+    ('app_agent_see_only_own', '0', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1),
+    ('app_agent_visibility', 'confidential', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1),
+    ('app_report_visibility', 'confidential', 'text', 'app', 'Mode de visibilité : confidential|agent_choice|public', 1),
     ('smtp_host', '', 'text', 'smtp', 'Serveur SMTP', 1),
     ('smtp_port', '25', 'number', 'smtp', 'Port SMTP', 1),
     ('smtp_user', '', 'text', 'smtp', 'Utilisateur SMTP', 1),
@@ -392,7 +401,7 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
 Toutes les requêtes passent par `public/index.php`. Le pattern d'URL est :
 
 ```
-/index.php?page={page_name}[&id={id}][&type={type}][&tab={tab}]
+/index.php?page={page_name}[&uuid={uuid}][&id={id}][&type={type}][&tab={tab}]
 ```
 
 ### Table des routes
@@ -410,14 +419,14 @@ Toutes les requêtes passent par `public/index.php`. Le pattern d'URL est :
 | `report_create` | `pages/report_create.php` | GET | Oui | Tous |
 | `report_create` | `handlers/report_create_handler.php` | POST | Oui | Tous |
 | `report_list` | `pages/report_list.php` | GET | Oui | Tous (filtré par visibilité) |
-| `report_view` | `pages/report_view.php` | GET+`&id=N` | Oui | Déclarant, superviseur, CHSCT |
-| `report_edit` | `pages/report_edit.php` | GET+`&id=N` | Oui | Déclarant uniquement |
-| `report_edit` | `handlers/report_edit_handler.php` | POST+`&id=N` | Oui | Déclarant uniquement |
-| `report_print` | `pages/report_print.php` | GET+`&id=N` | Oui | Déclarant, superviseur, CHSCT |
-| `report_abandon` | `pages/report_abandon.php` | GET+`&id=N` | Oui | Superviseur uniquement |
-| `report_abandon` | `handlers/report_abandon_handler.php` | POST+`&id=N` | Oui | Superviseur uniquement |
-| `report_respond` | `pages/report_respond.php` | GET+`&id=N` | Oui | Superviseur uniquement |
-| `report_respond` | `handlers/report_respond_handler.php` | POST+`&id=N` | Oui | Superviseur uniquement |
+| `report_view` | `pages/report_view.php` | GET+`&uuid={uuid}` | Oui | Déclarant, superviseur, CHSCT |
+| `report_edit` | `pages/report_edit.php` | GET+`&uuid={uuid}` | Oui | Déclarant uniquement |
+| `report_edit` | `handlers/report_edit_handler.php` | POST+`&uuid={uuid}` | Oui | Déclarant uniquement |
+| `report_print` | `pages/report_print.php` | GET+`&uuid={uuid}` | Oui | Déclarant, superviseur, CHSCT |
+| `report_abandon` | `pages/report_abandon.php` | GET+`&uuid={uuid}` | Oui | Superviseur uniquement |
+| `report_abandon` | `handlers/report_abandon_handler.php` | POST+`&uuid={uuid}` | Oui | Superviseur uniquement |
+| `report_respond` | `pages/report_respond.php` | GET+`&uuid={uuid}` | Oui | Superviseur uniquement |
+| `report_respond` | `handlers/report_respond_handler.php` | POST+`&uuid={uuid}` | Oui | Superviseur uniquement |
 | `synthesis` | `pages/synthesis.php` | GET | Oui | superviseur, chsct |
 | `export` | `pages/export.php` | GET | Oui | superviseur, chsct |
 | `export` | `handlers/export_handler.php` | POST | Oui | superviseur, chsct |
@@ -531,7 +540,11 @@ Affichée automatiquement quand un utilisateur authentifié n'a pas encore chois
 - Bouton : « Inscrire un signalement » → `report_create&type=dgi`
 - Stat : « X signalements enregistrés »
 
-Le compteur utilise `countActiveReports()`. Pour les agents en mode `confidential` : filtré par `site_id` + `(is_confidential = 0 OR declarant_id = :user_id)`. Pour les agents en mode `public` : filtré par `site_id`. Pour superviseur/CHSCT : pas de filtre.
+Le compteur utilise `countActiveReports()`. Le filtrage dépend du mode de visibilité (`app_report_visibility`) :
+- **`confidential`** (défaut) : filtré par `site_id` + `(is_confidential = 0 OR declarant_id = :user_id)`
+- **`agent_choice`** : filtré par `site_id` + `(is_confidential = 0 OR declarant_id = :user_id)` (l'agent choisit la confidentialité au cas par cas)
+- **`public`** : filtré par `site_id` (tous les signalements du site sont visibles)
+- Pour superviseur/CHSCT : pas de filtre
 
 ---
 
@@ -603,7 +616,7 @@ Boutons : « Valider » (couleur du registre), « Annuler » (retour à l'accuei
 1. Générer la référence : `generateReference($type, date('y'), getNextSequence($pdo, $type, date('Y')))`
 2. Insérer dans la table `reports`
 3. Flash : « Signalement enregistré avec la référence {reference} »
-4. Redirection vers `report_view&id={new_report_id}`
+4. Redirection vers `report_view&uuid={new_report_uuid}`
 
 ---
 
@@ -633,7 +646,7 @@ Boutons : « Valider » (couleur du registre), « Annuler » (retour à l'accuei
 | Actions | Boutons contextuels |
 
 - Boutons d'action par ligne :
-  - **Voir** — toujours affiché → `report_view&id={id}`
+  - **Voir** — toujours affiché → `report_view&uuid={uuid}`
   - **Modifier** — si utilisateur = déclarant ET état `nouveau` ou `en_cours`
   - **Répondre** — si rôle superviseur ET état `nouveau` ou `en_cours`
   - **Abandonner** — si rôle superviseur ET état non `abandonne` ni `traite`
@@ -644,7 +657,7 @@ Boutons : « Valider » (couleur du registre), « Annuler » (retour à l'accuei
 
 ### 5.7 Consultation d'un signalement (`pages/report_view.php`)
 
-**URL** : `index.php?page=report_view&id={report_id}`
+**URL** : `index.php?page=report_view&uuid={report_uuid}`
 **Accès** : Déclarant, superviseur, CHSCT (via `canAccessReport()`)
 **Méthode** : GET
 
@@ -654,9 +667,10 @@ La fonction `canAccessReport()` centralise les règles :
 - **Déclarant** : toujours accès à son propre signalement
 - **Superviseur** : accès à tous les signalements
 - **CHSCT** : accès à tous les signalements
-- **Agent** (non déclarant) : selon `getAgentVisibility()` :
-  - `'site'` → accès si `report.site_id === user.site_id`
-  - `'own'` → accès uniquement à ses propres signalements
+- **Agent** (non déclarant) : selon `getReportVisibility()` :
+  - `'confidential'` → accès si signalement non confidentiel (`is_confidential = 0`) ET même site, ou si déclarant
+  - `'agent_choice'` → accès si signalement non confidentiel (`is_confidential = 0`) ET même site, ou si déclarant (l'agent déclarant choisit la confidentialité au cas par cas)
+  - `'public'` → accès si `report.site_id === user.site_id`
 
 Si le signalement est `abandonne` et que l'utilisateur n'est ni le déclarant ni superviseur/CHSCT, un avertissement est affiché.
 
@@ -672,19 +686,19 @@ Boutons d'action :
 - **Modifier** — si déclarant ET état `nouveau`/`en_cours`
 - **Répondre** — si superviseur ET état `nouveau`/`en_cours`
 - **Abandonner** — si superviseur ET état non `abandonne`/`traite`
-- **Imprimer** — toujours affiché (ouvre `report_print` dans un nouvel onglet)
+- **Télécharger en PDF** — toujours affiché (lien vers `report_print&uuid={uuid}`)
 - **Retour à la liste** — lien vers `report_list&type={type}`
 
 ---
 
 ### 5.8 Modification d'un signalement (`pages/report_edit.php`)
 
-**URL** : `index.php?page=report_edit&id={report_id}`
+**URL** : `index.php?page=report_edit&uuid={report_uuid}`
 **Accès** : Déclarant uniquement, et uniquement si état `nouveau` ou `en_cours`
 **Méthode** : GET (affichage), POST (traitement)
 
 #### Contrôle d'accès
-- Charger le signalement par ID
+- Charger le signalement par UUID
 - Si `report.declarant_id !== user.id` → erreur + redirection
 - Si `report.etat` est `traite` ou `abandonne` → erreur + redirection
 
@@ -708,32 +722,53 @@ SET objet = :objet, description = :description,
     lieu = :lieu, pour_compte_nom = :pour_compte_nom,
     pour_compte_prenom = :pour_compte_prenom,
     updated_at = datetime('now')
-WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours');
+WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours');
 ```
 
 ---
 
-### 5.9 Version imprimable (`pages/report_print.php`)
+### 5.9 Télécharger en PDF (`pages/report_print.php`)
 
-**URL** : `index.php?page=report_print&id={report_id}`
-**Accès** : Déclarant, superviseur, CHSCT
+**URL** : `index.php?page=report_print&uuid={report_uuid}`
+**Accès** : Déclarant, superviseur, CHSCT (même contrôle que `report_view` via `canAccessReport()`)
 **Méthode** : GET
 
-#### Affichage
-- **Pas d'en-tête, pas de sidebar** — page autonome pour impression
-- Fond blanc, texte noir, pas de navigation
-- Classe CSS `print-only` avec styles `@media print`
-- En-tête : « DREETS Bourgogne-Franche-Comté » + logo
-- Contenu identique à `report_view` formaté en document propre
-- Pied : « Document généré le {date} — Application SST DREETS BFC »
-- Aucun bouton d'action
-- Indication : « Utilisez Ctrl+P pour imprimer »
+#### Génération PDF côté serveur (FPDF 1.9)
+
+La page ne produit plus de HTML imprimable mais génère un fichier PDF téléchargeable côté serveur via **FPDF 1.9** (bibliothèque bundlée dans `src/lib/fpdf/`).
+
+#### Contenu du PDF
+
+- **En-tête** : nom de l'organisation (`app_nom_organisation`) + référence du signalement
+- **Badges colorés** : registre (RSST/RAMI/DGI) et état (Nouveau/En cours/Traité/Abandonné) avec fond de couleur
+- **Détail du signalement** : date/heure événement, lieu, objet, description, déclarant, site, confidentialité
+- **Section « Pour le compte de »** (RAMI uniquement, si renseigné)
+- **Tableau de l'historique des réponses** (si entrées dans `report_responses`) : Date | Répondant | Nouvel état | Réponse
+- **Pied de page** : pagination (`Page N / Total`) + date de génération
+
+#### Polices et encodage
+
+- Utilise les polices **DejaVu Sans** (TrueType) pour le support des caractères accentués français
+- Conversion UTF-8 → cp1252 via `mb_convert_encoding($text, 'cp1252', 'UTF-8')` pour FPDF
+- Polices chargées : `DejaVuSans`, `DejaVuSans-Bold`, `DejaVuSans-Oblique`
+
+#### Téléchargement
+
+- En-tête HTTP : `Content-Type: application/pdf`
+- En-tête HTTP : `Content-Disposition: attachment; filename="signalement-{reference}.pdf"`
+- Le PDF est généré en mémoire et envoyé directement en téléchargement (pas de fichier temporaire)
+
+#### Dépendances
+
+- FPDF 1.9 bundlée (`src/lib/fpdf/fpdf.php`)
+- Polices DejaVu Sans (`src/lib/fpdf/font/`)
+- Aucune dépendance Composer externe
 
 ---
 
 ### 5.10 Abandon d'un signalement (`pages/report_abandon.php`)
 
-**URL** : `index.php?page=report_abandon&id={report_id}`
+**URL** : `index.php?page=report_abandon&uuid={report_uuid}`
 **Accès** : Superviseur uniquement, état `nouveau` ou `en_cours`
 **Méthode** : GET (confirmation), POST (traitement)
 
@@ -753,7 +788,7 @@ WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours');
 ```sql
 UPDATE reports
 SET etat = 'abandonne', updated_at = datetime('now')
-WHERE id = :id AND etat IN ('nouveau', 'en_cours');
+WHERE uuid = :uuid AND etat IN ('nouveau', 'en_cours');
 ```
 
 6. Flash : « Signalement {reference} abandonné »
@@ -763,7 +798,7 @@ WHERE id = :id AND etat IN ('nouveau', 'en_cours');
 
 ### 5.11 Réponse à un signalement (`pages/report_respond.php`)
 
-**URL** : `index.php?page=report_respond&id={report_id}`
+**URL** : `index.php?page=report_respond&uuid={report_uuid}`
 **Accès** : Superviseur uniquement, état `nouveau` ou `en_cours`
 **Méthode** : GET (affichage), POST (traitement)
 
@@ -778,7 +813,7 @@ WHERE id = :id AND etat IN ('nouveau', 'en_cours');
 | `nouvel_etat` | `<select>` | Oui | « En cours » / « Traité » |
 | `reponse` | `<textarea rows="6">` | Oui | Max 5000 caractères |
 
-Champs cachés : `csrf_token`, `report_id`
+Champs cachés : `csrf_token`, `report_uuid`
 
 #### Traitement POST (`handlers/report_respond_handler.php`)
 
@@ -798,15 +833,15 @@ SET etat = :nouvel_etat,
     repondant_id = :user_id,
     date_reponse = datetime('now'),
     updated_at = datetime('now')
-WHERE id = :id AND etat IN ('nouveau', 'en_cours');
+WHERE uuid = :uuid AND etat IN ('nouveau', 'en_cours');
 
 -- Insérer dans l'historique des réponses
-INSERT INTO report_responses (report_id, user_id, reponse, nouvel_etat)
-VALUES (:id, :user_id, :reponse, :nouvel_etat);
+INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
+VALUES (:uuid, :user_id, :reponse, :nouvel_etat);
 ```
 
 - Flash : « Réponse enregistrée pour le signalement {reference} »
-- Redirection vers `report_view&id={id}`
+- Redirection vers `report_view&uuid={uuid}`
 
 ---
 
@@ -916,7 +951,9 @@ Bouton « Envoyer un e-mail de test » avec champ de saisie du destinataire (req
 | Nom complet | `app_nom_complet` | Nom complet de l'organisation |
 | Libellé des unités | `app_label_unite` | Ex: UR, UD, Direction... Utilisé partout dans l'UI |
 | Logins Windows des superviseurs | `app_superviseur_usernames` | Liste séparée par virgules (ex: `jean.martin, sophie.dupont`) — auto-promotion superviseur |
-| Visibilité des agents | `app_agent_visibility` | Radio : « Confidentiel par défaut » (`confidential`, défaut) / « Visibilité publique » (`public`) |
+| Visibilité des signalements | `app_report_visibility` | Sélecteur : « Confidentiel » (`confidential`, défaut) / « Choix de l'agent » (`agent_choice`) / « Public » (`public`) |
+
+> **Note** : L'ancienne clé `app_agent_visibility` est dépréciée. Elle est migrée automatiquement vers `app_report_visibility` lors de la première exécution. Les valeurs `confidential` et `public` sont conservées, la valeur `agent_choice` est nouvelle.
 
 Un avertissement réglementaire s'affiche si la visibilité est restreinte : les registres SST sont consultables par tous les agents par principe de transparence (Code du travail).
 
@@ -954,6 +991,19 @@ L'application utilise exclusivement l'authentification Windows intégrée d'IIS.
 4. `findOrCreateUser()` cherche l'utilisateur en base ou le crée automatiquement
 5. L'utilisateur est stocké dans `$_SESSION['user']`
 
+### Détection de l'environnement (APP_ENV)
+
+La constante `APP_ENV` est déterminée par un système de priorité à 3 niveaux :
+
+1. **`APP_ENV_FORCE`** (priorité maximale) : si cette constante est définie dans `config.php` (ex: `'dev'` ou `'prod'`), elle est utilisée sans vérification supplémentaire
+2. **`getenv('APP_ENV')`** (priorité intermédiaire) : variable d'environnement du serveur, utile pour les déploiements sans modification de code
+3. **Auto-détection via `$_SERVER['AUTH_USER']`** (priorité minimale, fallback) : si `AUTH_USER` est disponible → `prod`, sinon → `dev`
+
+```php
+// Ordre de résolution :
+defined('APP_ENV_FORCE') ? APP_ENV_FORCE : (getenv('APP_ENV') ?: (isset($_SERVER['AUTH_USER']) ? 'prod' : 'dev'))
+```
+
 ### Flux en développement (`DEV_MODE = true`)
 
 1. IIS n'est pas utilisé — `AUTH_USER` n'est pas disponible
@@ -989,7 +1039,7 @@ Deux méthodes :
 2. **Via la liste de configuration** (`app_superviseur_usernames`) :
    - Liste séparée par virgules de logins Windows (ex: `jean.martin, sophie.dupont`)
    - `determineProvisionRole()` vérifie cette liste lors de l'auto-provisionnement
-   - `checkAndPromoteUser()` vérifie la liste à chaque connexion d'un agent existant et le promeut automatiquement si son username y figure
+   - `checkAndPromoteUser()` vérifie la liste **à chaque requête** (pas uniquement à la connexion) et promeut automatiquement un agent existant si son username y figure
    - Utile pour la première installation : permet de désigner les premiers superviseurs sans accès à la base de données
    - **Pas de mécanisme de préfixe** (l'ancien système auto-admin par préfixe n'existe plus)
 
@@ -1008,35 +1058,40 @@ Centralise toutes les règles d'accès à un signalement. Un utilisateur peut co
 - Il a le rôle **CHSCT**
 
 Pour les agents (non déclarants du signalement consulté) :
-- Si `getAgentVisibility() === 'site'` : accès si `report.site_id === user.site_id`
-- Si `getAgentVisibility() === 'own'` : accès refusé (l'agent ne voit que ses propres signalements)
+- Si `getReportVisibility() === 'confidential'` : accès si `report.is_confidential = 0` ET `report.site_id === user.site_id`
+- Si `getReportVisibility() === 'agent_choice'` : accès si `report.is_confidential = 0` ET `report.site_id === user.site_id` (l'agent déclarant choisit au cas par cas)
+- Si `getReportVisibility() === 'public'` : accès si `report.site_id === user.site_id`
 
-### Visibilité des agents
+### Visibilité des signalements
 
-`getAgentVisibility(): string` — retourne le mode de visibilité pour les agents :
+`getReportVisibility(): string` — retourne le mode de visibilité pour les agents :
 
 | Valeur | Description | Remarque |
 |--------|-------------|----------|
-| `confidential` | Signalements confidentiels par défaut, l'agent choisit au cas par cas | **Par défaut** |
+| `confidential` | Signalements confidentiels par défaut, l'agent ne voit que les siens + les non confidentiels de son site | **Par défaut** |
+| `agent_choice` | L'agent déclarant choisit la confidentialité au cas par cas (`is_confidential`), les autres agents voient les non confidentiels de leur site | Compromis flexibilité/transparence |
 | `public` | Tous les signalements du site sont visibles par tous les agents | Conforme au principe de transparence |
 
-Configurée via `app_agent_visibility` dans `config_app`. Les superviseurs et CHSCT voient toujours tous les sites (`canSeeAllSites() === true`).
+Configurée via `app_report_visibility` dans `config_app`. Les superviseurs et CHSCT voient toujours tous les sites (`canSeeAllSites() === true`).
 
 - `'confidential'` (défaut) : l'agent voit les signalements publics de son site + ses propres signalements (même confidentiels). Chaque signalement a un flag `is_confidential` (défaut : 1). L'agent peut décocher ce flag lors de la création.
-- `'public'` : l'agent voit tous les signalements de son site.
+- `'agent_choice'` : même comportement que `confidential` mais l'interface indique explicitement à l'agent qu'il peut choisir la visibilité de son signalement.
+- `'public'` : l'agent voit tous les signalements de son site. Le flag `is_confidential` est ignoré dans ce mode.
 
 Fonctions :
-- `getAgentVisibility()` : retourne `'confidential'`, `'public'` ou `'all'` (superviseur/CHSCT)
-- `agentVisibilityIsConfidential()` : `getAgentVisibility() === 'confidential'`
-- `agentVisibilityIsPublic()` : `getAgentVisibility() === 'public'`
+- `getReportVisibility()` : retourne `'confidential'`, `'agent_choice'`, `'public'` ou `'all'` (superviseur/CHSCT)
+- `reportVisibilityIsConfidential()` : `getReportVisibility() === 'confidential'`
+- `reportVisibilityIsAgentChoice()` : `getReportVisibility() === 'agent_choice'`
+- `reportVisibilityIsPublic()` : `getReportVisibility() === 'public'`
 
 Compatibilité ascendante :
 - Ancienne valeur `'site'` → `'public'`
 - Ancienne valeur `'own'` → `'confidential'`
 - Ancienne valeur `'0'` → `'public'`
 - Ancienne valeur `'1'` → `'confidential'`
-- `agentVisibilityIsConfidential()` : l'agent est en mode confidentiel
-- `agentVisibilityIsPublic()` : l'agent est en mode public
+- `app_agent_visibility` → migrée vers `app_report_visibility`
+- `agentVisibilityIsConfidential()` : alias déprécié, appelle `reportVisibilityIsConfidential()`
+- `agentVisibilityIsPublic()` : alias déprécié, appelle `reportVisibilityIsPublic()`
 
 ### Matrice des permissions par rôle
 
@@ -1044,12 +1099,12 @@ Compatibilité ascendante :
 |--------|-------|-------------|-------|
 | Créer un signalement | ✅ | ✅ | ✅ |
 | Voir ses propres signalements | ✅ | ✅ | ✅ |
-| Voir les signalements de son site | ✅ (si visibilité `site`) | ✅ (tous sites) | ✅ (tous sites) |
+| Voir les signalements de son site | ✅ (si visibilité `public` ou `agent_choice`) | ✅ (tous sites) | ✅ (tous sites) |
 | Voir tous les signalements | ❌ | ✅ | ✅ |
 | Modifier un signalement | ✅ (déclarant, état nouv./en cours) | ✅ (déclarant, état nouv./en cours) | ❌ |
 | Répondre à un signalement | ❌ | ✅ (état nouv./en cours) | ❌ |
 | Abandonner un signalement | ❌ | ✅ (état nouv./en cours) | ❌ |
-| Imprimer un signalement | ✅ | ✅ | ✅ |
+| Imprimer/Télécharger PDF un signalement | ✅ | ✅ | ✅ |
 | Synthèse | ❌ | ✅ | ✅ |
 | Export CSV | ❌ | ✅ | ✅ |
 | Statistiques | ❌ | ✅ | ✅ |
@@ -1168,9 +1223,9 @@ Utilise un UPSERT atomique sur `report_sequence` pour obtenir le numéro séquen
 
 - `sendMail(string $to, string $subject, string $body, string $from): bool` — Envoi via SMTP configuré, fallback vers `mail()` PHP
 - `sendViaSMTP(string $to, string $subject, string $body, string $headers): bool` — Envoi via socket SMTP brut (pas de dépendance externe), supporte TLS et STARTTLS
-- `notifyNewReport(PDO $pdo, int $reportId, string $type, int $siteId): void` — Notifie les destinataires configurés d'un nouveau signalement
-- `notifyReportResponse(PDO $pdo, int $reportId, int $respondentId): void` — Notifie le déclarant qu'une réponse a été apportée
-- `notifyPourCompte(PDO $pdo, int $reportId): void` — Notifie l'agent pour lequel un signalement RAMI a été déposé
+- `notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId): void` — Notifie les destinataires configurés d'un nouveau signalement
+- `notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): void` — Notifie le déclarant qu'une réponse a été apportée
+- `notifyPourCompte(PDO $pdo, string $reportUuid): void` — Notifie l'agent pour lequel un signalement RAMI a été déposé
 - `getNotificationRecipients(PDO $pdo, int $siteId): array` — Rassemble les e-mails par site + globaux (dédoublonnés)
 - `getBaseUrl(): string` — Construit l'URL de base pour les liens dans les e-mails
 
@@ -1193,6 +1248,7 @@ L'interface de paramétrage offre un bouton « Envoyer un e-mail de test » qui 
 Pas de fonctions. Définit les constantes et tableaux :
 - `APP_NAME`, `APP_VERSION`, `SITE_NAME`, `APP_ENV`, `DEV_MODE`
 - `DB_PATH`, `ITEMS_PER_PAGE`, `MAX_OBJECT_LENGTH`, `MAX_DESCRIPTION_LENGTH`, `MAX_LIEU_LENGTH`
+- `REPORT_VISIBILITY_MODES` : `['confidential', 'agent_choice', 'public']`
 - `REGISTRY_LABELS` : `[rsst => ..., rami => ..., dgi => ...]`
 - `REGISTRY_SHORT_LABELS` : `[rsst => 'RSST', rami => 'RAMI', dgi => 'DGI']`
 - `ROLE_LABELS` : `[agent => 'Agent', superviseur => 'Superviseur', chsct => 'Membre CHSCT']`
@@ -1241,9 +1297,13 @@ Pas de fonctions. Définit les constantes et tableaux :
 | `getRegistryBadgeClass` | `(string $type): string` | Classe CSS badge pour un registre |
 | `getRoleBadgeClass` | `(string $role): string` | Classe CSS badge pour un rôle |
 | `canSeeAllSites` | `(): bool` | L'utilisateur peut-il voir tous les sites ? (superviseur/CHSCT uniquement) |
-| `getAgentVisibility` | `(): string` | Mode de visibilité agent : `'confidential'` ou `'public'` |
-| `agentVisibilityIsConfidential` | `(): bool` | L'agent est en mode confidentiel ? |
-| `agentVisibilityIsPublic` | `(): bool` | L'agent est en mode public ? |
+| `getReportVisibility` | `(): string` | Mode de visibilité signalements : `'confidential'`, `'agent_choice'` ou `'public'` |
+| `reportVisibilityIsConfidential` | `(): bool` | Mode confidentiel ? |
+| `reportVisibilityIsAgentChoice` | `(): bool` | Mode choix de l'agent ? |
+| `reportVisibilityIsPublic` | `(): bool` | Mode public ? |
+| `getAgentVisibility` | `(): string` | **Déprécié** — alias de `getReportVisibility()` |
+| `agentVisibilityIsConfidential` | `(): bool` | **Déprécié** — alias de `reportVisibilityIsConfidential()` |
+| `agentVisibilityIsPublic` | `(): bool` | **Déprécié** — alias de `reportVisibilityIsPublic()` |
 | `truncate` | `(string $string, int $length): string` | Tronque avec ellipsis |
 | `getConfig` | `(string $cle, string $default): string` | Lit une valeur de `config_app` (avec cache statique) |
 | `updateConfig` | `(PDO $pdo, string $cle, string $valeur): void` | Met à jour une valeur dans `config_app` (UPSERT) |
@@ -1266,16 +1326,16 @@ Pas de fonctions. Définit les constantes et tableaux :
 
 | Fonction | Signature | Description |
 |----------|-----------|-------------|
-| `createReport` | `(PDO $pdo, array $data): string` | Crée un signalement, retourne la référence |
-| `getLastInsertId` | `(PDO $pdo): int` | Dernier ID inséré |
-| `getReportById` | `(PDO $pdo, int $id): ?array` | Signalement par ID avec site et répondant |
+| `createReport` | `(PDO $pdo, array $data): string` | Crée un signalement, retourne l'UUID |
+| `getReportByUuid` | `(PDO $pdo, string $uuid): ?array` | Signalement par UUID avec site et répondant |
+| `getReportById` | `(PDO $pdo, int $id): ?array` | **Déprécié** — utiliser `getReportByUuid()` |
 | `getReportsByRegistry` | `(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page, int $perPage): array` | Liste filtrée et paginée par registre |
 | `getReportsBySite` | `(PDO $pdo, int $siteId): array` | Signalements par site |
-| `updateReport` | `(PDO $pdo, int $id, array $data, int $userId): bool` | Modification par le déclarant |
-| `abandonReport` | `(PDO $pdo, int $id, int $userId): bool` | Abandon (soft delete) |
-| `respondToReport` | `(PDO $pdo, int $id, int $userId, string $reponse, string $nouvelEtat): bool` | Réponse du superviseur + historique |
+| `updateReport` | `(PDO $pdo, string $uuid, array $data, int $userId): bool` | Modification par le déclarant |
+| `abandonReport` | `(PDO $pdo, string $uuid, int $userId): bool` | Abandon (soft delete) |
+| `respondToReport` | `(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): bool` | Réponse du superviseur + historique |
 | `countReportsByState` | `(PDO $pdo, string $type, int $siteId, bool $seeAllSites): array` | Comptage par état |
-| `getReportResponses` | `(PDO $pdo, int $reportId): array` | Historique des réponses |
+| `getReportResponses` | `(PDO $pdo, string $reportUuid): array` | Historique des réponses |
 | `countActiveReports` | `(PDO $pdo, string $type, int $siteId): int` | Comptage des signalements actifs |
 | `countActiveReportsForUser` | `(PDO $pdo, string $type, int $userId): int` | Comptage des signalements actifs d'un utilisateur |
 
@@ -1354,9 +1414,10 @@ La table `config_app` stocke les paramètres modifiables via l'interface. L'acc�
 | `app_nom_organisation` | app | text | DREETS BFC | Nom de l'organisation (en-tête, e-mails) |
 | `app_nom_complet` | app | text | DREETS Bourgogne-Franche-Comté | Nom complet |
 | `app_label_unite` | app | text | UR | Libellé des unités (UR, UD, etc.) |
-| `app_superviseur_usernames` | app | text | (vide) | Logins Windows des superviseurs, séparés par virgules |
-| `app_agent_see_only_own` | app | text | 0 | **Obsolète** — utiliser `app_agent_visibility` |
-| `app_agent_visibility` | app | text | confidential | Visibilité des agents : `confidential` ou `public` |
+| `app_superviseur_usernames` | app | text | (vide) | Logins Windows des superviseurs, séparés par virgules — auto-promotion à chaque requête |
+| `app_agent_see_only_own` | app | text | 0 | **Obsolète** — utiliser `app_report_visibility` |
+| `app_agent_visibility` | app | text | confidential | **Déprécié** — utiliser `app_report_visibility` (migré automatiquement) |
+| `app_report_visibility` | app | text | confidential | Mode de visibilité des signalements : `confidential` \| `agent_choice` \| `public` |
 | `smtp_host` | smtp | text | (vide) | Serveur SMTP |
 | `smtp_port` | smtp | number | 25 | Port SMTP |
 | `smtp_user` | smtp | text | (vide) | Utilisateur SMTP |
@@ -1370,4 +1431,4 @@ La table `config_app` stocke les paramètres modifiables via l'interface. L'acc�
 
 ### Auto-migration des clés
 
-`migrateConfigKeys(PDO $pdo)` est appelée à chaque requête et ajoute automatiquement les clés manquantes dans les bases existantes. Pour `app_agent_visibility`, la migration convertit les anciennes valeurs : `'site'` → `'public'`, `'own'` → `'confidential'`, `app_agent_see_only_own = '1'` → `'confidential'`. La colonne `is_confidential` est ajoutée automatiquement à la table `reports` si elle n'existe pas.
+`migrateConfigKeys(PDO $pdo)` est appelée à chaque requête et ajoute automatiquement les clés manquantes dans les bases existantes. Pour `app_report_visibility`, la migration convertit les anciennes valeurs : `'site'` → `'public'`, `'own'` → `'confidential'`, `app_agent_see_only_own = '1'` → `'confidential'`. L'ancienne clé `app_agent_visibility` est migrée vers `app_report_visibility` si cette dernière n'existe pas encore. La colonne `is_confidential` est ajoutée automatiquement à la table `reports` si elle n'existe pas. La colonne `uuid` (TEXT PRIMARY KEY) remplace l'ancien `id` (INTEGER PRIMARY KEY AUTOINCREMENT) — la migration ajoute la colonne `uuid` et la peuple avec des UUID v4 si elle n'existe pas, puis la promeut en PRIMARY KEY.

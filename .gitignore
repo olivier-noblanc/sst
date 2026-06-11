@@ -34,3 +34,7 @@ node_modules/
 download/
 upload/
 pdf_docs/
+
+# PHP CLI tooling (not part of the app)
+.tools/
+test_pdf_real.php

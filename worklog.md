@@ -44,3 +44,50 @@ Stage Summary:
 - Aucune dépendance Composer nécessaire, zéro I/O disque
 - Prêt pour déploiement sur serveur IIS avec PHP + mbstring
 - Pour tester sur le serveur IIS : php test_fpdf.php (génère test_fpdf.pdf dans /download/)
+
+---
+Task ID: 3
+Agent: Subagent (general-purpose)
+Task: Fix fatal error "Cannot access protected property SSTPDF::$w"
+
+Work Log:
+- Diagnostic : FPDF v1.9 déclare $w, $h, $lMargin, $rMargin comme `protected`
+- Les fonctions standalone drawField(), drawMultiField(), drawSectionTitle(), drawHR() et le code principal accédaient directement à ces propriétés → fatal error
+- Ajouté 2 getters publics à SSTPDF : getLeftMargin(), getRightMargin()
+- FPDF fournit déjà GetPageWidth() et GetPageHeight() comme méthodes publiques
+- Remplacé 6 accès externes aux propriétés protégées :
+  - drawField() : $pdf->w → GetPageWidth(), $pdf->rMargin → getRightMargin()
+  - drawMultiField() : même remplacement
+  - drawSectionTitle() : $pdf->lMargin → getLeftMargin(), $pdf->w → GetPageWidth(), $pdf->rMargin → getRightMargin()
+  - drawHR() : même remplacement
+  - Code principal (boxW) : $pdf->w - $pdf->lMargin - $pdf->rMargin → GetPageWidth() - getLeftMargin() - getRightMargin()
+  - Code principal (page break check) : $pdf->h → GetPageHeight()
+- Les accès $this->w, $this->lMargin, etc. dans Header() et Footer() sont inchangés (accès intra-classe légal)
+
+Stage Summary:
+- Fatal error FPDF protected property résolue dans report_print.php
+- 2 getters ajoutés à SSTPDF, 6 remplacements d'accès externe
+- Aucun changement dans le comportement, juste la compatibilité FPDF v1.9
+
+---
+Task ID: 4
+Agent: Subagent (general-purpose)
+Task: Fix DEPLOY.md + mécanisme de promotion superviseur + env var fallback
+
+Work Log:
+- Corrigé DEPLOY.md ligne 31 : "configurée dans src/config.php" → "configurée via Paramètres → Application et stockée en base de données"
+- Réécrit section 9 "Configurer les superviseurs" :
+  - Méthode 1 renommée "Liste de bootstrap — auto-promotion initiale" avec usage clair
+  - Ajouté sous-section "Où est stockée la liste ?" : explicite que c'est en DB, pas en PHP
+  - Ajouté tableau de priorité : DB (1) vs env var APP_SUPERVISEUR_USERNAMES (2)
+  - Ajouté exemple web.config pour la variable d'environnement
+  - Ajouté recommandation de sécurité : vider la liste bootstrap après promotion initiale
+  - Méthode 2 clarifiée : usage recommandé quand au moins un superviseur existe
+- Ajouté fallback env var dans index.php : getenv('APP_SUPERVISEUR_USERNAMES') quand DB vide
+- Ajouté commentaire de documentation dans config.php sur les 2 sources de configuration superviseur
+
+Stage Summary:
+- DEPLOY.md corrigé et enrichi : plus de confusion sur le stockage, git pull ne risque rien
+- Nouvelle variable d'environnement APP_SUPERVISEUR_USERNAMES comme fallback
+- Priorité : DB setting (UI) > env var > rien
+- Sécurité : recommandation de vider la liste bootstrap après usage

@@ -2,6 +2,36 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.6.1] — 2026-06-11
+
+### Sécurité — Correction critique : génération UUID invalide
+
+La fonction `generateUuid()` utilisait `| 0x8` au lieu de `(& 0x3F | 0x80)` pour les bits de variante UUID v4. Cela produisait des UUID invalides dans environ 25 % des cas (4e groupe commençant par c, d, e ou f au lieu de 8, 9, a, b uniquement). La fonction `isValidUuid()` les rejetait, et `getReportByUuid()` retournait `null` → message « Signalement introuvable » au clic sur « Voir » depuis la liste.
+
+- `src/queries/report_queries.php` : `generateUuid()` corrigé — `& 0x3F | 0x80` au lieu de `| 0x8`
+- `src/queries/report_queries.php` : `isValidUuid()` assoupli — accepte tout UUID bien formé (8-4-4-4-12 hex) pour la rétrocompatibilité avec les UUID existants mal formatés en base
+- `src/database.php` : migration automatique qui corrige les UUID existants avec des bits de variante invalides (c→8, d→9, e→a, f→b) dans `reports` et `report_responses`
+- `src/database.php` : backfill des UUID NULL même si la colonne existe déjà (migration partielle possible)
+- `seed.php` : même correction sur la génération UUID
+
+### Fonctionnalité — Promotion superviseur immédiate
+
+La vérification de `app_superviseur_usernames` ne s'appliquait qu'au moment du login. Si l'utilisateur était déjà en session, modifier ce paramètre n'avait aucun effet jusqu'à la déconnexion/reconnexion. Désormais, la vérification s'exécute à chaque chargement de page : un agent dont le login figure dans la liste est promu superviseur immédiatement, sans déconnexion.
+
+- `public/index.php` : ajout du bloc « SUPERVISEUR PROMOTION CHECK » avant le rendu de chaque page
+- `pages/settings.php` : libellé mis à jour — « immédiatement (dès la prochaine page consultée) » au lieu de « lors de leur connexion via IIS »
+
+### Technique — Détection automatique de l'environnement
+
+L'ancien système `define('APP_ENV', getenv('APP_ENV') ?: 'prod')` ne fonctionnait pas sur les serveurs non-IIS (Space-Z, Docker, Apache) : la variable d'environnement n'était pas définie, l'app restait en mode dev avec le formulaire de login, et l'utilisateur voyait « Mode développement » même en configurant `prod`. Le nouveau système détecte automatiquement : si `AUTH_USER` est disponible (IIS) → prod, sinon → dev.
+
+- `src/config.php` : détection en 3 niveaux — `APP_ENV_FORCE` (constante PHP) > `getenv('APP_ENV')` > auto-détection via `$_SERVER['AUTH_USER']`
+- `pages/login.php` : badge « Mode sans IIS — authentification par identifiant » au lieu de « Mode développement » quand `AUTH_USER` n'est pas disponible ; ajout d'une aide pour devenir superviseur via les paramètres
+- `README.md` : section installation mise à jour
+- `DEPLOY.md` : section configuration mise à jour
+
+---
+
 ## [2.6.0] — 2026-06-11
 
 ### Sécurité — Migration des PK reports vers UUID

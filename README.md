@@ -18,7 +18,7 @@ Plateforme des Registres en Santé et Sécurité au Travail
 3. Activer Windows Authentication (désactiver Anonymous Authentication)
 4. Installer PHP 8.3 NTS + extensions (`sqlite3`, `pdo_sqlite`, `mbstring`)
 5. Donner les permissions IIS_IUSRS en écriture sur `data\`
-7. Dans `src/config.php`, passer `APP_ENV` à `'prod'`
+7. L'application détecte automatiquement l'environnement (IIS = prod, sinon dev) — voir `DEPLOY.md` pour forcer le mode
 8. Accéder à l'application — la base se crée automatiquement
 
 **Voir `DEPLOY.md` pour le guide de déploiement complet.**

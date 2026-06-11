@@ -226,18 +226,46 @@ function migrateSchema(PDO $pdo): void {
             // Backfill existing reports with UUIDs
             $stmt = $pdo->query('SELECT id FROM reports WHERE uuid IS NULL');
             while ($row = $stmt->fetch()) {
-                $uuid = bin2hex(random_bytes(16));
-                // Format as UUID v4 (8-4-4-4-12)
-                $uuid = substr($uuid, 0, 8) . '-' . substr($uuid, 8, 4) . '-4' . substr($uuid, 13, 3) . '-' . dechex(hexdec(substr($uuid, 16, 2)) | 0x8) . substr($uuid, 18, 2) . '-' . substr($uuid, 20, 12);
+                $hex = bin2hex(random_bytes(16));
+                $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex(hexdec(substr($hex, 16, 2)) | 0x8) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
                 $upd = $pdo->prepare('UPDATE reports SET uuid = :uuid WHERE id = :id');
                 $upd->execute([':uuid' => $uuid, ':id' => $row['id']]);
             }
-            // Make uuid NOT NULL UNIQUE after backfill
-            // SQLite doesn't support ALTER COLUMN — the index enforces uniqueness
             $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
         }
     } catch (Exception $e) {
         error_log("Migration warning for reports.uuid: " . $e->getMessage());
+    }
+
+    // Migrate report_responses: report_id (integer) → report_uuid (text)
+    try {
+        $cols = $pdo->query("PRAGMA table_info(report_responses)")->fetchAll();
+        $hasReportUuid = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'report_uuid') {
+                $hasReportUuid = true;
+                break;
+            }
+        }
+        if (!$hasReportUuid) {
+            // Add report_uuid column
+            $pdo->exec('ALTER TABLE report_responses ADD COLUMN report_uuid TEXT');
+            // Backfill: map old report_id → report uuid
+            $stmt = $pdo->query('SELECT rr.id, rr.report_id FROM report_responses rr WHERE rr.report_uuid IS NULL');
+            while ($row = $stmt->fetch()) {
+                $uuidStmt = $pdo->prepare('SELECT uuid FROM reports WHERE id = :id');
+                $uuidStmt->execute([':id' => $row['report_id']]);
+                $reportUuid = $uuidStmt->fetchColumn();
+                if ($reportUuid) {
+                    $upd = $pdo->prepare('UPDATE report_responses SET report_uuid = :uuid WHERE id = :id');
+                    $upd->execute([':uuid' => $reportUuid, ':id' => $row['id']]);
+                }
+            }
+            // Create index on new column
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
+        }
+    } catch (Exception $e) {
+        error_log("Migration warning for report_responses.report_uuid: " . $e->getMessage());
     }
 
     // Also ensure indexes exist
@@ -253,7 +281,7 @@ function migrateSchema(PDO $pdo): void {
         'CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)',
         'CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id)',
         'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)',
-        'CREATE INDEX IF NOT EXISTS idx_report_responses_report_id ON report_responses(report_id)',
+        'CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)',
         'CREATE INDEX IF NOT EXISTS idx_notification_settings_site_id ON notification_settings(site_id)',
     ];
     foreach ($indexes as $sql) {

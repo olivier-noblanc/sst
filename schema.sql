@@ -1,6 +1,6 @@
 -- ============================================================
 -- DREETS BFC SST Application — Database Schema
--- Version 1.0
+-- Version 2.6.0
 -- ============================================================
 
 -- ============================================================
@@ -38,10 +38,10 @@ CREATE TABLE IF NOT EXISTS users (
 -- ============================================================
 -- Table: reports
 -- Core table for all three registries.
+-- PK = uuid (non-guessable, safe for URLs)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS reports (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    uuid            TEXT NOT NULL UNIQUE,           -- UUID v4 for URL-safe public access (non-guessable)
+    uuid            TEXT PRIMARY KEY,                -- UUID v4 — non-guessable public identifier
     reference       TEXT NOT NULL UNIQUE,            -- e.g. "rsst-25-001"
     type            TEXT NOT NULL,                   -- 'rsst'|'rami'|'dgi'
     objet           TEXT NOT NULL,                   -- Subject line, max 100 chars
@@ -82,12 +82,12 @@ CREATE TABLE IF NOT EXISTS reports (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS report_responses (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    report_id       INTEGER NOT NULL,                -- FK to reports
+    report_uuid     TEXT NOT NULL,                   -- FK to reports(uuid)
     user_id         INTEGER NOT NULL,                -- FK to users (the supervisor)
     reponse         TEXT NOT NULL,                   -- Response text
     nouvel_etat     TEXT,                            -- State change if any: 'en_cours'|'traite'
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
+    FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -152,7 +152,6 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
 -- ============================================================
 -- Indexes
 -- ============================================================
-CREATE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid);
 CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type);
 CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat);
 CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id);
@@ -164,5 +163,5 @@ CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidentia
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-CREATE INDEX IF NOT EXISTS idx_report_responses_report_id ON report_responses(report_id);
+CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid);
 CREATE INDEX IF NOT EXISTS idx_notification_settings_site_id ON notification_settings(site_id);

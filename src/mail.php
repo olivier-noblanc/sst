@@ -180,13 +180,13 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
 /**
  * Notify relevant people about a new report.
  *
- * @param PDO    $pdo       Database connection
- * @param int    $reportId  The new report ID
- * @param string $type      Report type (rsst/rami/dgi)
- * @param int    $siteId    Site ID where report was filed
+ * @param PDO    $pdo        Database connection
+ * @param string $reportUuid The new report UUID
+ * @param string $type       Report type (rsst/rami/dgi)
+ * @param int    $siteId     Site ID where report was filed
  */
-function notifyNewReport(PDO $pdo, int $reportId, string $type, int $siteId): void {
-    $report = getReportById($pdo, $reportId);
+function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId): void {
+    $report = getReportByUuid($pdo, $reportUuid);
     if (!$report) return;
 
     $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
@@ -199,7 +199,7 @@ function notifyNewReport(PDO $pdo, int $reportId, string $type, int $siteId): vo
     $body .= "<p><strong>Objet :</strong> " . e($report['objet']) . "</p>";
     $body .= "<p><strong>Déclarant :</strong> " . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . "</p>";
     $body .= "<p><strong>Date de l'événement :</strong> " . formatDateFR($report['date_evenement']) . "</p>";
-    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]) . "\">Consulter le signalement</a></p>";
+    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => $reportUuid]) . "\">Consulter le signalement</a></p>";
     $body .= "</body></html>";
 
     // Collect recipients: per-site + global
@@ -213,12 +213,12 @@ function notifyNewReport(PDO $pdo, int $reportId, string $type, int $siteId): vo
 /**
  * Notify the declarant that their report has received a response.
  *
- * @param PDO $pdo          Database connection
- * @param int $reportId     Report ID
- * @param int $respondentId The responding user's ID
+ * @param PDO    $pdo          Database connection
+ * @param string $reportUuid   Report UUID
+ * @param int    $respondentId The responding user's ID
  */
-function notifyReportResponse(PDO $pdo, int $reportId, int $respondentId): void {
-    $report = getReportById($pdo, $reportId);
+function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): void {
+    $report = getReportByUuid($pdo, $reportUuid);
     if (!$report) return;
 
     // Get declarant email
@@ -235,7 +235,7 @@ function notifyReportResponse(PDO $pdo, int $reportId, int $respondentId): void 
     $body .= "<p><strong>Référence :</strong> " . e($report['reference']) . "</p>";
     $body .= "<p><strong>Répondant :</strong> " . e($respondent['prenom'] . ' ' . $respondent['nom']) . "</p>";
     $body .= "<p><strong>Nouvel état :</strong> " . e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . "</p>";
-    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]) . "\">Consulter le signalement</a></p>";
+    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => $reportUuid]) . "\">Consulter le signalement</a></p>";
     $body .= "</body></html>";
 
     sendMail($declarant['email'], $subject, $body);
@@ -244,11 +244,11 @@ function notifyReportResponse(PDO $pdo, int $reportId, int $respondentId): void 
 /**
  * Notify the agent on whose behalf a RAMI report was filed ("pour le compte de").
  *
- * @param PDO $pdo       Database connection
- * @param int $reportId  Report ID
+ * @param PDO    $pdo        Database connection
+ * @param string $reportUuid Report UUID
  */
-function notifyPourCompte(PDO $pdo, int $reportId): void {
-    $report = getReportById($pdo, $reportId);
+function notifyPourCompte(PDO $pdo, string $reportUuid): void {
+    $report = getReportByUuid($pdo, $reportUuid);
     if (!$report || empty($report['pour_compte_nom'])) return;
 
     // Try to find the agent by name
@@ -266,7 +266,7 @@ function notifyPourCompte(PDO $pdo, int $reportId): void {
     $body .= "<p><strong>Registre :</strong> RAMI</p>";
     $body .= "<p><strong>Objet :</strong> " . e($report['objet']) . "</p>";
     $body .= "<p><strong>Déposé par :</strong> " . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . "</p>";
-    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]) . "\">Consulter le signalement</a></p>";
+    $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => $reportUuid]) . "\">Consulter le signalement</a></p>";
     $body .= "</body></html>";
 
     sendMail($agent['email'], $subject, $body);

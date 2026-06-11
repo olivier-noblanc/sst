@@ -407,17 +407,21 @@ foreach ($sampleReports as $report) {
     $seq = getNextSequence($pdo, $report['type'], $reportYear);
     $reference = generateReference($report['type'], $reportYear2, $seq);
 
+    // Generate UUID v4
+    $hex = bin2hex(random_bytes(16));
+    $reportUuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex(hexdec(substr($hex, 16, 2)) | 0x8) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+
     $stmt = $pdo->prepare("
         INSERT INTO reports (
-            reference, type, objet, description, date_evenement, heure_evenement,
+            uuid, reference, type, objet, description, date_evenement, heure_evenement,
             lieu, declarant_id, declarant_nom, declarant_prenom,
             pour_compte_nom, pour_compte_prenom,
-            site_id, etat, reponse, repondant_id, date_reponse
+            site_id, is_confidential, etat, reponse, repondant_id, date_reponse
         ) VALUES (
-            :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
+            :uuid, :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
             :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
             :pour_compte_nom, :pour_compte_prenom,
-            :site_id, :etat, :reponse, :repondant_id, :date_reponse
+            :site_id, :is_confidential, :etat, :reponse, :repondant_id, :date_reponse
         )
     ");
 
@@ -425,6 +429,7 @@ foreach ($sampleReports as $report) {
     $declarant = getUserById($pdo, $report['declarant_id']);
 
     $stmt->execute([
+        ':uuid'              => $reportUuid,
         ':reference'         => $reference,
         ':type'              => $report['type'],
         ':objet'             => $report['objet'],
@@ -438,6 +443,7 @@ foreach ($sampleReports as $report) {
         ':pour_compte_nom'   => $report['pour_compte_nom'] ?? null,
         ':pour_compte_prenom'=> $report['pour_compte_prenom'] ?? null,
         ':site_id'           => $report['site_id'],
+        ':is_confidential'   => $report['is_confidential'] ?? 0,
         ':etat'              => $report['etat'],
         ':reponse'           => $report['reponse'] ?? null,
         ':repondant_id'      => $report['repondant_id'] ?? null,
@@ -448,11 +454,11 @@ foreach ($sampleReports as $report) {
     if (!empty($report['reponse']) && !empty($report['repondant_id'])) {
         $nouvelEtat = $report['etat'];
         $stmt2 = $pdo->prepare("
-            INSERT INTO report_responses (report_id, user_id, reponse, nouvel_etat)
-            VALUES (:report_id, :user_id, :reponse, :nouvel_etat)
+            INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
+            VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
         ");
         $stmt2->execute([
-            ':report_id'   => $pdo->lastInsertId(),
+            ':report_uuid'   => $reportUuid,
             ':user_id'     => $report['repondant_id'],
             ':reponse'     => $report['reponse'],
             ':nouvel_etat' => $nouvelEtat,

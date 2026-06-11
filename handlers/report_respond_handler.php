@@ -22,13 +22,8 @@ if (!hasRole('superviseur')) {
     redirect(url('home'));
 }
 
-$reportId = (int) ($_POST['report_id'] ?? 0);
-if ($reportId <= 0) {
-    // Try from GET
-    $reportId = (int) ($_GET['id'] ?? 0);
-}
-
-if ($reportId <= 0) {
+$reportUuid = trim($_POST['report_uuid'] ?? '');
+if ($reportUuid === '' || !isValidUuid($reportUuid)) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
@@ -40,7 +35,7 @@ $nouvelEtat = trim($_POST['nouvel_etat'] ?? '');
 if (!in_array($nouvelEtat, ['en_cours', 'traite'])) {
     setFlash('error', 'L\'état sélectionné n\'est pas valide.');
     setFormData($_POST);
-    redirect(url('report_respond', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+    redirect(url('report_respond', ['uuid' => $reportUuid]));
 }
 
 // Validate reponse
@@ -49,18 +44,18 @@ if (empty($reponse)) {
     setFlash('error', 'La réponse ne peut pas être vide.');
     setFormErrors(['reponse' => 'La réponse ne peut pas être vide.']);
     setFormData($_POST);
-    redirect(url('report_respond', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+    redirect(url('report_respond', ['uuid' => $reportUuid]));
 }
 
 if (strlen($reponse) > 5000) {
     setFlash('error', 'La réponse ne doit pas dépasser 5000 caractères.');
     setFormErrors(['reponse' => 'Maximum 5000 caractères.']);
     setFormData($_POST);
-    redirect(url('report_respond', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+    redirect(url('report_respond', ['uuid' => $reportUuid]));
 }
 
 // Get the report
-$report = getReportById($pdo, $reportId);
+$report = getReportByUuid($pdo, $reportUuid);
 if (!$report) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
@@ -69,18 +64,18 @@ if (!$report) {
 // Verify report state
 if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
-    redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+    redirect(url('report_view', ['uuid' => $reportUuid]));
 }
 
 // Save response
 $userId = (int) $_SESSION['user']['id'];
-$success = respondToReport($pdo, $reportId, $userId, $reponse, $nouvelEtat);
+$success = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
 
 if ($success) {
     // Notify declarant about the response (non-blocking — errors are logged, not shown to user)
     try {
         require_once __DIR__ . '/../src/mail.php';
-        notifyReportResponse($pdo, $reportId, $userId);
+        notifyReportResponse($pdo, $reportUuid, $userId);
     } catch (Exception $mailEx) {
         error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());
     }
@@ -90,4 +85,4 @@ if ($success) {
     setFlash('error', 'Erreur lors de l\'enregistrement de la réponse. Le signalement a peut-être déjà été traité.');
 }
 
-redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+redirect(url('report_view', ['uuid' => $reportUuid]));

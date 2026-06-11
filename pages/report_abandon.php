@@ -77,7 +77,7 @@ require __DIR__ . '/../templates/alert.php';
     <div style="display:flex;gap:8px;margin-top:12px;">
         <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $uuid]); ?>">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-            <input type="hidden" name="report_id" value="<?php echo e($report['id']); ?>">
+            <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid']); ?>">
             <button type="submit" class="btn btn--danger">Oui, abandonner</button>
         </form>
         <a href="<?php echo url('report_view', ['uuid' => $uuid]); ?>" class="btn btn--secondary">Annuler</a>

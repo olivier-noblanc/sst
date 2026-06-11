@@ -57,7 +57,7 @@ $submitBtnClass = $isEdit
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <?php if ($isEdit): ?>
-            <input type="hidden" name="report_id" value="<?php echo e($report['id'] ?? ''); ?>">
+            <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid'] ?? ''); ?>">
         <?php endif; ?>
 
         <div class="form-grid">

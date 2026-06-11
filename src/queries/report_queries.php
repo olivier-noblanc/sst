@@ -3,14 +3,37 @@
  * Report Queries — Application SST DREETS BFC
  * 
  * All SQL queries related to reports (RSST, RAMI, DGI).
+ * Reports use UUID as primary key (non-guessable, safe for URLs).
  */
+
+/**
+ * Generate a UUID v4.
+ * 
+ * @return string
+ */
+function generateUuid(): string {
+    $hex = bin2hex(random_bytes(16));
+    return substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3)
+        . '-' . dechex(hexdec(substr($hex, 16, 2)) | 0x8) . substr($hex, 18, 2)
+        . '-' . substr($hex, 20, 12);
+}
+
+/**
+ * Validate UUID v4 format.
+ * 
+ * @param string $uuid
+ * @return bool
+ */
+function isValidUuid(string $uuid): bool {
+    return (bool) preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{2}-[0-9a-f]{12}$/i', $uuid);
+}
 
 /**
  * Create a new report.
  * 
  * @param PDO    $pdo     Database connection
  * @param array  $data    Report data
- * @return string         The new report reference
+ * @return string         The new report UUID
  */
 function createReport(PDO $pdo, array $data): string {
     // Generate reference
@@ -20,8 +43,7 @@ function createReport(PDO $pdo, array $data): string {
     $reference = generateReference($data['type'], $year2, $seq);
 
     // Generate UUID v4
-    $hex = bin2hex(random_bytes(16));
-    $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex(hexdec(substr($hex, 16, 2)) | 0x8) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+    $uuid = generateUuid();
 
     $stmt = $pdo->prepare("
         INSERT INTO reports (
@@ -56,29 +78,18 @@ function createReport(PDO $pdo, array $data): string {
         ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
     ]);
 
-    return $reference;
-}
-
-/**
- * Get the last insert ID after creating a report.
- * 
- * @param PDO $pdo  Database connection
- * @return int
- */
-function getLastInsertId(PDO $pdo): int {
-    return (int) $pdo->lastInsertId();
+    return $uuid;
 }
 
 /**
  * Get a single report by UUID with site and respondent info.
- * Used for public URLs (non-guessable identifier).
  * 
  * @param PDO    $pdo   Database connection
  * @param string $uuid  Report UUID
  * @return array|null
  */
 function getReportByUuid(PDO $pdo, string $uuid): ?array {
-    if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{2}-[0-9a-f]{12}$/i', $uuid)) {
+    if (!isValidUuid($uuid)) {
         return null;
     }
     $stmt = $pdo->prepare("
@@ -90,28 +101,6 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array {
         WHERE r.uuid = :uuid
     ");
     $stmt->execute([':uuid' => $uuid]);
-    $result = $stmt->fetch();
-    return $result ?: null;
-}
-
-/**
- * Get a single report by ID with site and respondent info.
- * Used internally (not exposed in URLs).
- * 
- * @param PDO $pdo  Database connection
- * @param int $id   Report ID
- * @return array|null
- */
-function getReportById(PDO $pdo, int $id): ?array {
-    $stmt = $pdo->prepare("
-        SELECT r.*, s.code as site_code, s.nom as site_nom,
-               rep.nom as repondant_nom, rep.prenom as repondant_prenom
-        FROM reports r
-        LEFT JOIN sites s ON r.site_id = s.id
-        LEFT JOIN users rep ON r.repondant_id = rep.id
-        WHERE r.id = :id
-    ");
-    $stmt->execute([':id' => $id]);
     $result = $stmt->fetch();
     return $result ?: null;
 }
@@ -139,14 +128,12 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
     }
 
     // Confidentiality filter for agents (agent_choice mode)
-    // Agent sees public reports + their own (even confidential)
     if (!empty($filters['confidential_filter'])) {
         $where .= " AND (r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)";
         $params[':cf_declarant_id'] = (int) $filters['confidential_filter'];
     }
 
-    // Own-only filter for agents (confidential mode — most restrictive)
-    // Agent sees ONLY their own reports, nothing from others
+    // Own-only filter for agents (confidential mode)
     if (!empty($filters['own_only'])) {
         $where .= " AND r.declarant_id = :own_only_declarant_id";
         $params[':own_only_declarant_id'] = (int) $filters['own_only'];
@@ -164,7 +151,7 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
         $params[':filter_site_id'] = $filters['site_id'];
     }
 
-    // Force site filter (for agent visibility: always filter by site for agents)
+    // Force site filter
     if (!empty($filters['force_site_id'])) {
         $where .= " AND r.site_id = :force_site_id";
         $params[':force_site_id'] = (int) $filters['force_site_id'];
@@ -177,7 +164,7 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
         $params[':q2'] = '%' . $filters['q'] . '%';
     }
 
-    // Filter by declarant (used in some specific contexts)
+    // Filter by declarant
     if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) {
         $where .= " AND r.declarant_id = :declarant_id";
         $params[':declarant_id'] = (int) $filters['declarant_id'];
@@ -232,13 +219,13 @@ function getReportsBySite(PDO $pdo, int $siteId): array {
 /**
  * Update a report (edit by declarant).
  * 
- * @param PDO   $pdo   Database connection
- * @param int   $id    Report ID
- * @param array $data  Updated data
- * @param int   $userId  The declarant's user ID (for ownership check)
+ * @param PDO    $pdo     Database connection
+ * @param string $uuid    Report UUID
+ * @param array  $data    Updated data
+ * @param int    $userId  The declarant's user ID (for ownership check)
  * @return bool
  */
-function updateReport(PDO $pdo, int $id, array $data, int $userId): bool {
+function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
     $stmt = $pdo->prepare("
         UPDATE reports
         SET objet = :objet, description = :description,
@@ -247,7 +234,7 @@ function updateReport(PDO $pdo, int $id, array $data, int $userId): bool {
             pour_compte_prenom = :pour_compte_prenom,
             is_confidential = :is_confidential,
             updated_at = datetime('now')
-        WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')
+        WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')
     ");
 
     $stmt->execute([
@@ -259,7 +246,7 @@ function updateReport(PDO $pdo, int $id, array $data, int $userId): bool {
         ':pour_compte_nom'   => $data['pour_compte_nom'] ?? null,
         ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
         ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
-        ':id'                => $id,
+        ':uuid'              => $uuid,
         ':user_id'           => $userId,
     ]);
 
@@ -269,18 +256,18 @@ function updateReport(PDO $pdo, int $id, array $data, int $userId): bool {
 /**
  * Abandon a report (soft delete).
  * 
- * @param PDO   $pdo     Database connection
- * @param int   $id      Report ID
- * @param int   $userId  The declarant's user ID
+ * @param PDO    $pdo     Database connection
+ * @param string $uuid    Report UUID
+ * @param int    $userId  The declarant's user ID
  * @return bool
  */
-function abandonReport(PDO $pdo, int $id, int $userId): bool {
+function abandonReport(PDO $pdo, string $uuid, int $userId): bool {
     $stmt = $pdo->prepare("
         UPDATE reports
         SET etat = 'abandonne', updated_at = datetime('now')
-        WHERE id = :id AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')
+        WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')
     ");
-    $stmt->execute([':id' => $id, ':user_id' => $userId]);
+    $stmt->execute([':uuid' => $uuid, ':user_id' => $userId]);
     return $stmt->rowCount() > 0;
 }
 
@@ -289,13 +276,13 @@ function abandonReport(PDO $pdo, int $id, int $userId): bool {
  * Also inserts into the response history table.
  * 
  * @param PDO    $pdo          Database connection
- * @param int    $id           Report ID
+ * @param string $uuid         Report UUID
  * @param int    $userId       The responding user's ID
  * @param string $reponse      Response text
  * @param string $nouvelEtat   New state ('en_cours' or 'traite')
  * @return bool
  */
-function respondToReport(PDO $pdo, int $id, int $userId, string $reponse, string $nouvelEtat): bool {
+function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): bool {
     // Update the report
     $stmt = $pdo->prepare("
         UPDATE reports
@@ -304,13 +291,13 @@ function respondToReport(PDO $pdo, int $id, int $userId, string $reponse, string
             repondant_id = :user_id,
             date_reponse = datetime('now'),
             updated_at = datetime('now')
-        WHERE id = :id AND etat IN ('nouveau', 'en_cours')
+        WHERE uuid = :uuid AND etat IN ('nouveau', 'en_cours')
     ");
     $stmt->execute([
         ':nouvel_etat' => $nouvelEtat,
         ':reponse'     => $reponse,
         ':user_id'     => $userId,
-        ':id'          => $id,
+        ':uuid'        => $uuid,
     ]);
 
     $updated = $stmt->rowCount() > 0;
@@ -318,11 +305,11 @@ function respondToReport(PDO $pdo, int $id, int $userId, string $reponse, string
     if ($updated) {
         // Insert into response history
         $stmt = $pdo->prepare("
-            INSERT INTO report_responses (report_id, user_id, reponse, nouvel_etat)
-            VALUES (:report_id, :user_id, :reponse, :nouvel_etat)
+            INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
+            VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
         ");
         $stmt->execute([
-            ':report_id'   => $id,
+            ':report_uuid' => $uuid,
             ':user_id'     => $userId,
             ':reponse'     => $reponse,
             ':nouvel_etat' => $nouvelEtat,
@@ -373,19 +360,19 @@ function countReportsByState(PDO $pdo, string $type, int $siteId = 0, bool $seeA
 /**
  * Get response history for a report.
  * 
- * @param PDO $pdo       Database connection
- * @param int $reportId  Report ID
+ * @param PDO    $pdo         Database connection
+ * @param string $reportUuid  Report UUID
  * @return array
  */
-function getReportResponses(PDO $pdo, int $reportId): array {
+function getReportResponses(PDO $pdo, string $reportUuid): array {
     $stmt = $pdo->prepare("
         SELECT rr.*, u.nom, u.prenom
         FROM report_responses rr
         LEFT JOIN users u ON rr.user_id = u.id
-        WHERE rr.report_id = :report_id
+        WHERE rr.report_uuid = :report_uuid
         ORDER BY rr.created_at ASC
     ");
-    $stmt->execute([':report_id' => $reportId]);
+    $stmt->execute([':report_uuid' => $reportUuid]);
     return $stmt->fetchAll();
 }
 

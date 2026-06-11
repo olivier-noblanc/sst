@@ -163,7 +163,7 @@ function getStatisticsKPIs(PDO $pdo, string $year = '', int $siteId = 0): array 
 function getStatsBySite(PDO $pdo, string $year = '', int $siteId = 0): array {
     $sql = "
         SELECT s.code, s.nom,
-            COUNT(r.id) as total,
+            COUNT(r.uuid) as total,
             SUM(CASE WHEN r.etat = 'nouveau' THEN 1 ELSE 0 END) as nouveau,
             SUM(CASE WHEN r.etat = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
             SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,

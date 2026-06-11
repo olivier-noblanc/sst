@@ -20,8 +20,6 @@ if (!$report) {
     redirect(url('home'));
 }
 
-$id = (int) $report['id'];
-
 // Access control: depends on report visibility setting
 $user = $_SESSION['user'];
 $userSiteId = (int) $user['site_id'];
@@ -57,7 +55,7 @@ if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== $userId
 $pageTitle = 'Signalement — ' . $report['reference'];
 
 // Get response history
-$responses = getReportResponses($pdo, $id);
+$responses = getReportResponses($pdo, $uuid);
 
 require __DIR__ . '/../templates/alert.php';
 require __DIR__ . '/../templates/report_card.php';

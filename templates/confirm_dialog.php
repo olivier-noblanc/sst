@@ -3,7 +3,7 @@
  * Confirm Dialog Template — Application SST DREETS BFC
  * 
  * Native HTML5 <dialog> content for abandon actions.
- * Expects $report to be set with at least 'id', 'reference', 'type'.
+ * Expects $report to be set with at least 'uuid', 'reference', 'type'.
  * The parent <dialog> handles show/close natively.
  */
 if (!isset($report) || !$report) {
@@ -18,9 +18,9 @@ $csrfToken = generateCsrfToken();
     <form method="dialog" style="display:inline;">
         <button type="submit" value="cancel" class="btn btn--secondary">Annuler</button>
     </form>
-    <form method="POST" action="<?php echo url('report_abandon', ['id' => $report['id']]); ?>" style="display:inline;">
+    <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" style="display:inline;">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-        <input type="hidden" name="report_id" value="<?php echo e($report['id']); ?>">
+        <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid']); ?>">
         <button type="submit" class="btn btn--danger">Oui, abandonner</button>
     </form>
 </div>

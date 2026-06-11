@@ -22,8 +22,6 @@ if (!$report) {
     redirect(url('home'));
 }
 
-$reportId = (int) $report['id'];
-
 // Check if report can be responded to
 if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse (état : ' . e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
@@ -31,7 +29,7 @@ if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
 }
 
 // Get response history
-$responses = getReportResponses($pdo, $reportId);
+$responses = getReportResponses($pdo, $uuid);
 
 $pageTitle = 'Répondre au signalement — ' . e($report['reference']);
 $registryType = $report['type'];
@@ -119,7 +117,7 @@ $formData = getFormData();
     <h3 style="margin-bottom:16px;">Formuler une réponse</h3>
     <form method="POST" action="<?php echo url('report_respond', ['uuid' => $uuid]); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-        <input type="hidden" name="report_id" value="<?php echo $reportId; ?>">
+        <input type="hidden" name="report_uuid" value="<?php echo e($uuid); ?>">
 
         <div class="form-group">
             <label for="nouvel_etat">Nouvel état <span class="required">*</span></label>

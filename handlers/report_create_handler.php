@@ -146,23 +146,24 @@ if ($type === 'rami' && $pourCompte) {
 
 // Create the report
 try {
-    $reference = createReport($pdo, $reportData);
-    $newId = getLastInsertId($pdo);
+    $newUuid = createReport($pdo, $reportData);
+
+    // Fetch the new report to get the reference for display
+    $newReport = getReportByUuid($pdo, $newUuid);
 
     // Send notifications (non-blocking — errors are logged, not shown to user)
     try {
         require_once __DIR__ . '/../src/mail.php';
-        notifyNewReport($pdo, $newId, $type, $siteId);
+        notifyNewReport($pdo, $newUuid, $type, $siteId);
         if ($type === 'rami' && !empty($pourCompteNom)) {
-            notifyPourCompte($pdo, $newId);
+            notifyPourCompte($pdo, $newUuid);
         }
     } catch (Exception $mailEx) {
         error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());
     }
 
-    setFlash('success', 'Signalement enregistré avec la référence ' . e($reference));
-    $newReport = getReportById($pdo, $newId);
-    redirect(url('report_view', ['uuid' => $newReport['uuid']]));
+    setFlash('success', 'Signalement enregistré avec la référence ' . e($newReport['reference']));
+    redirect(url('report_view', ['uuid' => $newUuid]));
 } catch (Exception $e) {
     setFlash('error', 'Erreur lors de l\'enregistrement du signalement. Veuillez réessayer.');
     setFormData($_POST);

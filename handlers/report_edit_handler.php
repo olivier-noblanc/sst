@@ -17,15 +17,15 @@ if (!validateCsrfToken($csrfToken)) {
     redirect(url('home'));
 }
 
-// Get report ID
-$reportId = (int) ($_POST['report_id'] ?? 0);
-if ($reportId <= 0) {
+// Get report UUID
+$reportUuid = trim($_POST['report_uuid'] ?? '');
+if ($reportUuid === '' || !isValidUuid($reportUuid)) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
 
 $pdo = getDB();
-$report = getReportById($pdo, $reportId);
+$report = getReportByUuid($pdo, $reportUuid);
 
 if (!$report) {
     setFlash('error', 'Signalement introuvable.');
@@ -38,13 +38,13 @@ $userId = (int) $user['id'];
 // Ownership check
 if ((int) $report['declarant_id'] !== $userId) {
     setFlash('error', 'Vous ne pouvez modifier que vos propres signalements.');
-    redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+    redirect(url('report_view', ['uuid' => $reportUuid]));
 }
 
 // State check (re-check from DB, not form)
 if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
     setFlash('error', 'Ce signalement ne peut plus être modifié (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
-    redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+    redirect(url('report_view', ['uuid' => $reportUuid]));
 }
 
 // Gather input
@@ -120,7 +120,7 @@ if ($type === 'rami' && $pourCompte) {
 if (!empty($errors)) {
     setFormErrors($errors);
     setFormData($_POST);
-    redirect(url('report_edit', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+    redirect(url('report_edit', ['uuid' => $reportUuid]));
 }
 
 // Build update data
@@ -143,7 +143,7 @@ if ($type === 'rami') {
 }
 
 // Update the report
-$updated = updateReport($pdo, $reportId, $updateData, $userId);
+$updated = updateReport($pdo, $reportUuid, $updateData, $userId);
 
 if ($updated) {
     setFlash('success', 'Signalement ' . e($report['reference']) . ' modifié avec succès.');
@@ -151,4 +151,4 @@ if ($updated) {
     setFlash('error', 'Impossible de modifier le signalement. Il a peut-être été traité ou abandonné entre-temps.');
 }
 
-redirect(url('report_view', ['uuid' => getReportById($pdo, $reportId)['uuid']]));
+redirect(url('report_view', ['uuid' => $reportUuid]));

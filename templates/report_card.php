@@ -158,7 +158,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
         <span style="font-weight:600;color:var(--dgi-color);">⚠️ Abandonner ce signalement ?</span>
         <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" style="display:inline;">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-            <input type="hidden" name="report_id" value="<?php echo e($report['id']); ?>">
+            <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid']); ?>">
             <button type="submit" class="btn btn--danger">Oui, abandonner</button>
         </form>
         <a href="<?php echo url('report_view', ['uuid' => $report['uuid']]); ?>" class="btn btn--secondary">Annuler</a>

@@ -27,8 +27,6 @@ if (!$report) {
     redirect(url('home'));
 }
 
-$id = (int) $report['id'];
-
 // Access control: depends on report visibility setting
 $user = $_SESSION['user'];
 $userSiteId = (int) $user['site_id'];
@@ -54,7 +52,7 @@ if (!in_array($userRole, ['superviseur', 'chsct'])) {
 }
 
 // Get response history
-$responses = getReportResponses($pdo, $id);
+$responses = getReportResponses($pdo, $uuid);
 
 $type = $report['type'] ?? 'rsst';
 $registryLabel = REGISTRY_LABELS[$type] ?? strtoupper($type);

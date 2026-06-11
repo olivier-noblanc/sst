@@ -17,10 +17,16 @@ $pageTitle = 'Inscrire un signalement — ' . (REGISTRY_SHORT_LABELS[$type] ?? s
 
 $pdo = getDB();
 $user = $_SESSION['user'];
-$sites = getAllSites($pdo);
 
 // For agents, restrict site dropdown to their own site only
 $canSelectSite = canSeeAllSites();
+if ($canSelectSite) {
+    $sites = getAllSites($pdo);
+} else {
+    // Agent: only show their own site
+    $mySite = getSiteById($pdo, (int) $user['site_id']);
+    $sites = $mySite ? [$mySite] : [];
+}
 
 $action = url('report_create', ['type' => $type]);
 

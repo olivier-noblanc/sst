@@ -2,6 +2,39 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.6.0] — 2026-06-11
+
+### Sécurité — Migration des PK reports vers UUID
+
+Les identifiants primaires de la table `reports` passent d'entiers auto-incrémentés (`id`) à des **UUID v4** (`uuid`). Cela empêche l'énumération d'URL : un agent ne peut plus deviner l'existence d'autres signalements en incrémentant l'ID dans l'URL.
+
+- `schema.sql` : `reports.uuid TEXT PRIMARY KEY` remplace `reports.id INTEGER PRIMARY KEY`. La colonne `id` est entièrement supprimée.
+- `src/queries/report_queries.php` : toutes les requêtes utilisent `uuid` au lieu de `id`. Ajout de `generateUuid()`, `isValidUuid()`, `getReportByUuid()`. Les fonctions `updateReport()`, `abandonReport()`, `respondToReport()` prennent désormais un UUID en paramètre.
+- `report_responses.report_uuid` : clé étrangère vers `reports(uuid)` au lieu de `reports(id)`.
+- Toutes les URLs de signalements utilisent `?uuid=...` au lieu de `?id=...` : `report_view`, `report_edit`, `report_abandon`, `report_respond`, `report_print`.
+- `templates/sidebar.php` : lookup du type de registre via `uuid` au lieu de `id`.
+- Validation UUID systématique dans chaque page/handler (`strlen($uuid) !== 36` ou `isValidUuid()`).
+
+### Sécurité — Contrôle d'autorisation dans report_print
+
+- `pages/report_print.php` : ajout du contrôle d'accès identique à `report_view.php`. Un agent ne peut plus imprimer un signalement auquel il n'a pas accès (site différent, confidentiel d'un autre agent, etc.). Auparavant, seul le format PDF était protégé par la non-devinabilité de l'ID entier.
+
+### Sécurité — Restriction du dropdown site pour les agents
+
+- `pages/report_create.php` : les agents ne voient que leur propre site dans le dropdown, les superviseurs/CHSCT voient tous les sites. Auparavant, `$canSelectSite` était calculé mais jamais utilisé dans le template, ce qui affichait tous les sites à tous les utilisateurs.
+
+### Technique — Corrections de syntaxe PHP
+
+- `pages/report_list.php` : 3 appels `url()` avec parenthèses en trop (`]))` au lieu de `]`). Fatal error PHP.
+- `templates/report_form.php` : 1 appel `url()` avec parenthèse en trop. Fatal error PHP.
+- `pages/report_print.php` : `SSTPDF::Header()` et `SSTPDF::Footer()` déclarées `public` au lieu de `protected` (FPDF les déclare publiques, la classe fille ne peut pas restreindre la visibilité).
+
+### Technique — Nettoyage du dépôt
+
+- `pdf_docs/` retiré du dépôt git et ajouté au `.gitignore` (80 fichiers, 14 128 lignes supprimées).
+
+---
+
 ## [2.5.0] — 2026-06-11
 
 ### Technique — Migration mPDF → FPDF

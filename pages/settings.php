@@ -261,10 +261,11 @@ $pageTitle = 'Paramètres';
             <h4 style="margin-bottom:12px;">🔒 Visibilité des signalements</h4>
             <p class="text-muted text-small" style="margin-bottom:12px;">Détermine quels signalements les agents peuvent consulter dans les registres. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
             <div class="form-group" style="margin-bottom:0;" id="visibility-radios">
+                <?php $currentVisibility = getConfig('app_report_visibility', 'agent_choice'); ?>
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
                         <input type="radio" name="app_report_visibility" value="confidential"
-                               <?php echo getReportVisibility() === 'confidential' ? 'checked' : ''; ?>
+                               <?php echo $currentVisibility === 'confidential' ? 'checked' : ''; ?>
                                style="margin-top:3px;width:16px;height:16px;">
                         <div>
                             <strong>Confidentiel</strong> <span style="color:var(--grey-500);font-size:12px;">(le plus restrictif)</span>
@@ -273,7 +274,7 @@ $pageTitle = 'Paramètres';
                     </label>
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
                         <input type="radio" name="app_report_visibility" value="agent_choice"
-                               <?php echo getReportVisibility() === 'agent_choice' ? 'checked' : ''; ?>
+                               <?php echo $currentVisibility === 'agent_choice' ? 'checked' : ''; ?>
                                style="margin-top:3px;width:16px;height:16px;">
                         <div>
                             <strong>Choix de l'agent</strong> <span style="color:var(--grey-500);font-size:12px;">(confidentiel par défaut)</span>
@@ -282,7 +283,7 @@ $pageTitle = 'Paramètres';
                     </label>
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
                         <input type="radio" name="app_report_visibility" value="public"
-                               <?php echo getReportVisibility() === 'public' ? 'checked' : ''; ?>
+                               <?php echo $currentVisibility === 'public' ? 'checked' : ''; ?>
                                style="margin-top:3px;width:16px;height:16px;">
                         <div>
                             <strong>Visibilité publique</strong>

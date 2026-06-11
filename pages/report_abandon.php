@@ -56,7 +56,7 @@ require __DIR__ . '/../templates/alert.php';
             </tr>
             <tr>
                 <th>Date de l'evenement</th>
-                <td><?php echo formatDateFR($report['date_evenement']); ?></td>
+                <td><?php echo e(formatDateFR($report['date_evenement'])); ?></td>
             </tr>
             <tr>
                 <th>Etat actuel</th>

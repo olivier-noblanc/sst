@@ -60,7 +60,7 @@ function formatDateFR(?string $date): string {
         // Try full datetime format
         $dt = DateTime::createFromFormat('Y-m-d H:i:s', $date);
     }
-    return $dt !== false ? $dt->format('d/m/Y') : $date;
+    return $dt !== false ? $dt->format('d/m/Y') : e($date);
 }
 
 /**
@@ -77,7 +77,7 @@ function formatDateTimeFR(?string $datetime): string {
     if ($dt === false) {
         $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime);
     }
-    return $dt !== false ? $dt->format('d/m/Y \à H:i') : $datetime;
+    return $dt !== false ? $dt->format('d/m/Y \à H:i') : e($datetime);
 }
 
 /**

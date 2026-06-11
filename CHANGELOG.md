@@ -2,6 +2,27 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.8.0] — 2026-06-11
+
+### Sécurité — Audit XSS complet
+
+Passage en revue systématique de toutes les sorties HTML. L'application utilisait déjà `e()` (alias `htmlspecialchars` avec `ENT_QUOTES` + `UTF-8`) de manière quasi systématique. Les quelques lacunes restantes sont corrigées :
+
+- `pages/changelog.php` : Parsedown n'avait pas `setSafeMode(true)` — le Markdown pouvait contenir du HTML brut (ex: `<img onerror=...>`). Safe Mode activé : les blocs HTML sont désormais échappés.
+- `src/helpers.php` : `formatDateFR()` et `formatDateTimeFR()` retournaient la chaîne brute en fallback si le parsing échouait — désormais encodées via `e()` dans le chemin fallback (défense en profondeur).
+- `templates/report_card.php` : 4 appels `formatDateFR`/`formatDateTimeFR` sans `e()` — corrigés.
+- `pages/report_abandon.php` : `formatDateFR` sans `e()` — corrigé.
+- `pages/report_list.php` : `formatDateFR` sans `e()` — corrigé.
+- `pages/user_edit.php` : `value="<?php echo $userId ?>"` sans `e()` — corrigé (entier casté, mais principe).
+- `pages/site_edit.php` : `value="<?php echo $siteId ?>"` sans `e()` — corrigé.
+- `pages/settings.php` : IDs de site dans les attributs HTML sans `e()` — corrigés.
+
+### Sécurité — CSRF déjà complet
+
+Vérification que tous les handlers POST valident le token CSRF et que tous les formulaires l'envoient. **Déjà en place** : les 14 handlers vérifient `validateCsrfToken()` avec `hash_equals()`, et les 21 formulaires incluent le champ `csrf_token`. Aucune correction nécessaire.
+
+---
+
 ## [2.7.3] — 2026-06-11
 
 ### Technique — Case confidentiel invisible pour les superviseurs

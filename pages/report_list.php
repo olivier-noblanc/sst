@@ -147,7 +147,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                     ?>
                     <tr>
                         <td><strong><?php echo e($report['reference']); ?></strong></td>
-                        <td><?php echo formatDateFR($report['date_evenement']); ?></td>
+                        <td><?php echo e(formatDateFR($report['date_evenement'])); ?></td>
                         <td><?php echo e(truncate($report['objet'], 50)); ?></td>
                         <td><?php echo e($report['declarant_nom']); ?></td>
                         <td><?php echo e($report['declarant_prenom']); ?></td>

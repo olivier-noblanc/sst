@@ -47,7 +47,7 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
 <div class="card">
     <form method="POST" action="<?php echo url('user_edit', ['id' => $userId]); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-        <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
+        <input type="hidden" name="user_id" value="<?php echo e((string)$userId); ?>">
 
         <div class="form-grid">
             <div class="form-group">
@@ -127,7 +127,7 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
         <p style="font-weight:600;margin-bottom:12px;">Êtes-vous sûr de vouloir désactiver cet utilisateur ?</p>
         <form method="POST" action="<?php echo url('user_delete'); ?>" style="display:flex;gap:8px;">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-            <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
+            <input type="hidden" name="user_id" value="<?php echo e((string)$userId); ?>">
             <button type="submit" class="btn btn--danger">Oui, désactiver</button>
             <a href="<?php echo url('user_edit', ['id' => $userId]); ?>" class="btn btn--secondary">Annuler</a>
         </form>

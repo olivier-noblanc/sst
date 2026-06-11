@@ -53,7 +53,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
                 </tr>
                 <tr>
                     <th>Date de l'événement</th>
-                    <td><?php echo formatDateFR($report['date_evenement']); ?></td>
+                    <td><?php echo e(formatDateFR($report['date_evenement'])); ?></td>
                 </tr>
                 <tr>
                     <th>Heure de l'événement</th>
@@ -87,7 +87,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
                 <?php endif; ?>
                 <tr>
                     <th>Date de création</th>
-                    <td><?php echo formatDateTimeFR($report['created_at']); ?></td>
+                    <td><?php echo e(formatDateTimeFR($report['created_at'])); ?></td>
                 </tr>
                 <?php if (!empty($report['attachment_name'])): ?>
                 <tr>
@@ -131,7 +131,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
         <div class="report-response__meta">
             <strong>Répondant :</strong> <?php echo e(($report['repondant_prenom'] ?? '') . ' ' . ($report['repondant_nom'] ?? '')); ?>
             &nbsp;—&nbsp;
-            <strong>Date :</strong> <?php echo formatDateTimeFR($report['date_reponse']); ?>
+            <strong>Date :</strong> <?php echo e(formatDateTimeFR($report['date_reponse'])); ?>
         </div>
     </div>
 </div>
@@ -153,7 +153,7 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
             <tbody>
                 <?php foreach ($responses as $resp): ?>
                 <tr>
-                    <td><?php echo formatDateTimeFR($resp['created_at']); ?></td>
+                    <td><?php echo e(formatDateTimeFR($resp['created_at'])); ?></td>
                     <td><?php echo e(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? '')); ?></td>
                     <td>
                         <?php if (!empty($resp['nouvel_etat'])): ?>

@@ -18,6 +18,7 @@ if ($changelogExists) {
     $mdContent = file_get_contents($changelogPath);
     require_once __DIR__ . '/../src/lib/Parsedown.php';
     $parsedown = new Parsedown();
+    $parsedown->setSafeMode(true);  // Strip raw HTML blocks — prevents XSS via Markdown
     $htmlContent = $parsedown->text($mdContent);
 }
 ?>

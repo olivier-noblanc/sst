@@ -180,6 +180,10 @@ try {
     // Fetch the new report to get the reference for display
     $newReport = getReportByUuid($pdo, $newUuid);
 
+    // Audit log
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'report', 'create', 'Signalement créé : ' . $newReport['reference'], (int) $newReport['id'] ?? null, 'report', ['reference' => $newReport['reference'], 'type' => $type, 'site_id' => $siteId]);
+
     // Send notifications (non-blocking — errors are logged, not shown to user)
     try {
         require_once __DIR__ . '/../src/mail.php';

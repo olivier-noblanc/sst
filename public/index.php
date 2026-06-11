@@ -284,7 +284,7 @@ $pageTitle = match($page) {
 require __DIR__ . '/../templates/header.php';
 require __DIR__ . '/../templates/sidebar.php';
 ?>
-<div class="main">
+<div class="main" id="main-content">
 <?php
 $pageFile = __DIR__ . '/../pages/' . $page . '.php';
 if (file_exists($pageFile)) {

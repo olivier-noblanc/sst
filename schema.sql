@@ -168,6 +168,29 @@ CREATE TABLE IF NOT EXISTS schema_version (
 INSERT INTO schema_version (version, description) VALUES (1, 'Baseline — initial schema with all tables and indexes');
 
 -- ============================================================
+-- Table: audit_log
+-- General-purpose audit trail for all significant actions.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS audit_log (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id         INTEGER,                         -- FK to users (NULL for system actions)
+    username        TEXT NOT NULL,                    -- Denormalized for speed + survives user deletion
+    category        TEXT NOT NULL,                    -- 'auth'|'report'|'user'|'site'|'config'|'export'|'backup'|'gdpr'
+    action          TEXT NOT NULL,                    -- 'create'|'edit'|'delete'|'reactivate'|'role_change'|'login'|'logout'|etc.
+    target_id       INTEGER,                         -- ID of the affected entity (nullable)
+    target_type     TEXT,                            -- 'report'|'user'|'site'|'config'|etc.
+    details         TEXT NOT NULL,                    -- Human-readable description
+    context         TEXT,                            -- JSON-encoded additional context
+    ip_address      TEXT,                            -- Client IP address
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_category ON audit_log(category);
+CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_target ON audit_log(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at);
+
+-- ============================================================
 -- Indexes
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type);

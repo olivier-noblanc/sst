@@ -91,5 +91,36 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
 </div>
 
 <div class="form-actions">
+    <a href="<?php echo url('user_edit', ['id' => (int) $user['id']]); ?>" class="btn btn--primary">Éditer</a>
     <a href="<?php echo url('users'); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>
+
+<?php if ($user['is_active'] || $user['nom'] !== 'Anonymisé'): ?>
+<div class="card" style="margin-top:20px;">
+    <h3 style="margin-bottom:12px;color:var(--grey-600);">RGPD — Données personnelles</h3>
+    <p style="color:var(--grey-500);font-size:13px;margin-bottom:16px;">
+        Conformément au RGPD, l'utilisateur peut exercer son droit d'accès (export) ou d'effacement (anonymisation).
+        L'anonymisation remplace les données personnelles par des placeholders et désactive le compte. Les signalements sont conservés.
+    </p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <form method="POST" action="<?php echo url('user_edit', ['id' => (int) $user['id']]); ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+            <input type="hidden" name="action" value="export_data">
+            <button type="submit" class="btn btn--outline" style="font-size:13px;">📥 Exporter les données (droit d'accès)</button>
+        </form>
+        <?php if ($user['nom'] !== 'Anonymisé'): ?>
+        <?php if (isset($_GET['confirm_anonymize'])): ?>
+        <span style="font-weight:600;color:var(--dgi-color);">⚠️ Anonymiser définitivement ?</span>
+        <form method="POST" action="<?php echo url('user_edit', ['id' => (int) $user['id']]); ?>" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+            <input type="hidden" name="action" value="anonymize">
+            <button type="submit" class="btn btn--danger" style="font-size:13px;">Oui, anonymiser</button>
+        </form>
+        <a href="<?php echo url('user_view', ['id' => (int) $user['id']]); ?>" class="btn btn--secondary" style="font-size:13px;">Annuler</a>
+        <?php else: ?>
+        <a href="<?php echo url('user_view', ['id' => (int) $user['id'], 'confirm_anonymize' => 1]); ?>" class="btn btn--danger" style="font-size:13px;">🔒 Anonymiser (droit d'effacement)</a>
+        <?php endif; ?>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>

@@ -34,6 +34,38 @@ if ($userId <= 0) {
 
 $pdo = getDB();
 
+// Handle GDPR actions (export_data, anonymize)
+$action = $_POST['action'] ?? '';
+if ($action === 'export_data') {
+    require_once __DIR__ . '/../src/queries/user_queries.php';
+    require_once __DIR__ . '/../src/audit.php';
+    $userData = exportUserData($pdo, $userId);
+    auditLog($pdo, 'gdpr', 'data_export', 'Export RGPD des données de l\'utilisateur ID ' . $userId, $userId, 'user');
+
+    // Generate JSON export as download
+    $filename = 'rgpd_export_user_' . $userId . '_' . date('Y-m-d') . '.json';
+    $json = json_encode($userData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    header('Content-Type: application/json; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Length: ' . strlen($json));
+    header('Cache-Control: no-cache, must-revalidate');
+    echo $json;
+    exit;
+}
+
+if ($action === 'anonymize') {
+    require_once __DIR__ . '/../src/queries/user_queries.php';
+    require_once __DIR__ . '/../src/audit.php';
+    $success = anonymizeUser($pdo, $userId);
+    if ($success) {
+        auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
+        setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
+    } else {
+        setFlash('error', 'Erreur lors de l\'anonymisation.');
+    }
+    redirect(url('user_view', ['id' => $userId]));
+}
+
 // Verify user exists
 $user = getUserById($pdo, $userId);
 if (!$user) {
@@ -125,6 +157,8 @@ try {
         }
     }
 
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $prenom . ' ' . $nom, (int) $userId, 'user', ['role' => $role]);
     setFlash('success', 'Utilisateur ' . e($prenom . ' ' . $nom) . ' mis à jour avec succès.');
 } catch (Exception $e) {
     $pdo->rollBack();

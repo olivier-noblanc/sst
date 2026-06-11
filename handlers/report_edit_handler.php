@@ -186,6 +186,8 @@ if ($type === 'rami') {
 $updated = updateReport($pdo, $reportUuid, $updateData, $userId);
 
 if ($updated) {
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'report', 'edit', 'Signalement modifié : ' . $report['reference'], (int) $report['id'] ?? null, 'report', ['reference' => $report['reference']]);
     setFlash('success', 'Signalement ' . e($report['reference']) . ' modifié avec succès.');
 } else {
     setFlash('error', 'Impossible de modifier le signalement. Il a peut-être été traité ou abandonné entre-temps.');

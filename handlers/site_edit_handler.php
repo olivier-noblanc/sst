@@ -69,6 +69,8 @@ if (!empty($errors)) {
 $success = updateSite($pdo, $siteId, $code, $nom, $departement);
 
 if ($success) {
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'site', 'edit', 'Site modifié : ' . $code . ' — ' . $nom, (int) $siteId, 'site');
     setFlash('success', 'Site ' . e($code . ' — ' . $nom) . ' mis à jour avec succès.');
 } else {
     setFlash('error', 'Erreur lors de la mise à jour du site.');

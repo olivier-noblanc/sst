@@ -165,6 +165,19 @@ function migrateSchema(PDO $pdo): void {
             FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )',
+        'audit_log' => 'CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            username TEXT NOT NULL,
+            category TEXT NOT NULL,
+            action TEXT NOT NULL,
+            target_id INTEGER,
+            target_type TEXT,
+            details TEXT NOT NULL,
+            context TEXT,
+            ip_address TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime(\'now\'))
+        )',
     ];
 
     foreach ($migrations as $table => $sql) {
@@ -368,6 +381,21 @@ function migrateSchema(PDO $pdo): void {
         error_log("Migration warning for attachment columns: " . $e->getMessage());
     }
 
+    // === FTS5 full-text search index ===
+    try {
+        $ftsCheck = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='reports_fts'");
+        $ftsExists = ($ftsCheck !== false && $ftsCheck->fetch() !== false);
+        if (!$ftsExists) {
+            // Create FTS5 virtual table indexing objet and description
+            $pdo->exec("CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid)");
+            // Populate from existing reports
+            $pdo->exec("INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL");
+        }
+    } catch (Exception $e) {
+        // FTS5 may not be available on very old SQLite builds — non-critical
+        error_log("Migration warning for FTS5: " . $e->getMessage());
+    }
+
     // === Schema version tracking ===
     try {
         $pdo->exec('CREATE TABLE IF NOT EXISTS schema_version (
@@ -401,6 +429,10 @@ function migrateSchema(PDO $pdo): void {
         'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)',
         'CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)',
         'CREATE INDEX IF NOT EXISTS idx_notification_settings_site_id ON notification_settings(site_id)',
+        'CREATE INDEX IF NOT EXISTS idx_audit_log_category ON audit_log(category)',
+        'CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id)',
+        'CREATE INDEX IF NOT EXISTS idx_audit_log_target ON audit_log(target_type, target_id)',
+        'CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at)',
     ];
     foreach ($indexes as $sql) {
         try {

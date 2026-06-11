@@ -2,6 +2,37 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [3.0.0] — 2026-06-12
+
+### Sécurité — Headers HTTP
+
+- **1** 🔴 Headers de sécurité ajoutés dans `header.php` — `X-Frame-Options: DENY` (anti-clickjacking), `X-Content-Type-Options: nosniff` (anti-MIME-sniffing), `X-XSS-Protection`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy` (same-origin uniquement). Défense en profondeur contre l'escalade XSS et les injections de contenu.
+
+### Conformité — Journal d'audit
+
+- **2** 🔴 **Table `audit_log` + fonctions** — traçabilité de toutes les actions significatives : connexion, création/édition/abandon/réponse de signalements, gestion des utilisateurs (CRUD, changement de rôle), modifications de sites, changements de paramètres, exports CSV, actions RGPD. Huit catégories (`auth`, `report`, `user`, `site`, `config`, `export`, `backup`, `gdpr`). Les entrées incluent utilisateur, horodatage, IP et contexte JSON. Fonctionne en mode non-bloquant — un échec de log ne casse jamais l'application.
+
+### Conformité — RGPD
+
+- **10** 🟠 **Droit d'accès et d'effacement** — deux actions RGPD ajoutées dans le profil utilisateur (`user_view.php`) : export JSON des données personnelles (droit d'accès art. 15) et anonymisation irréversible (droit d'effacement art. 17). L'anonymisation remplace noms et email par des placeholders, désactive le compte, mais conserve les signalements pour le registre. Les deux actions sont tracées dans l'audit log.
+
+### Recherche — FTS5
+
+- **11** 🟠 **Index plein texte FTS5** — table virtuelle `reports_fts` indexant `objet` et `description` pour une recherche rapide et pertinente. La migration crée l'index et peuple les données existantes. La recherche dans `getReportsByRegistry()` utilise FTS5 en priorité avec fallback LIKE si FTS5 n'est pas disponible. L'index est mis à jour à chaque création/édition de signalement.
+
+### Accessibilité
+
+- **8a** 🟡 **Skip link** — lien "Aller au contenu principal" visible uniquement au focus clavier (CSS pur, pas de JS). Permet de sauter la sidebar.
+- **8b** 🟡 **`aria-hidden="true"`** sur tous les emoji du sidebar — les lecteurs d'écran ne lisent plus "clipboard", "warning sign" etc.
+- **8c** 🟡 **`aria-describedby` + `aria-invalid`** sur les champs en erreur du formulaire de signalement — les erreurs sont maintenant programmatiquement associées à leur champ (6 champs : date, objet, description, pièce jointe, site, pour le compte de).
+- **8d** 🟡 **`<fieldset>` + `<legend>`** sur les radio buttons de visibilité dans les paramètres — regroupement sémantique pour les lecteurs d'écran.
+
+### Technique
+
+- **13** 🟢 **`truncate()` corrigé** — `strlen()`/`substr()` remplacés par `mb_strlen()`/`mb_substr()` avec encodage UTF-8 explicite. Les coupures ne se font plus au milieu d'un caractère accentué (é, ê, ç).
+
+---
+
 ## [2.9.0] — 2026-06-12
 
 ### Fiabilité — SQLite

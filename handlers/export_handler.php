@@ -60,6 +60,8 @@ if (!empty($_POST['etats']) && is_array($_POST['etats'])) {
 
 // Get data
 $reports = getExportData($pdo, $filters);
+require_once __DIR__ . '/../src/audit.php';
+auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . count($reports) . ' signalements', null, null, ['filters' => $filters, 'count' => count($reports)]);
 
 // Build CSV in memory using fputcsv (proper enclosure, no injection risk)
 $filename = 'export_sst_' . date('Y-m-d_His') . '.csv';

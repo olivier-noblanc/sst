@@ -65,9 +65,10 @@ $submitBtnClass = $isEdit
                 <label for="date_evenement">Date de l'événement <span class="required">*</span></label>
                 <input type="date" id="date_evenement" name="date_evenement"
                        value="<?php echo e($val('date_evenement', todayISO())); ?>"
-                       required max="<?php echo todayISO(); ?>">
+                       required max="<?php echo todayISO(); ?>"
+                       <?php echo isset($formErrors['date_evenement']) ? 'aria-describedby="err_date_evenement" aria-invalid="true"' : ''; ?>>
                 <?php if (isset($formErrors['date_evenement'])): ?>
-                    <span class="form-error"><?php echo e($formErrors['date_evenement']); ?></span>
+                    <span class="form-error" id="err_date_evenement"><?php echo e($formErrors['date_evenement']); ?></span>
                 <?php endif; ?>
             </div>
 
@@ -91,27 +92,30 @@ $submitBtnClass = $isEdit
                 <input type="text" id="objet" name="objet"
                        value="<?php echo e($val('objet')); ?>"
                        maxlength="100" required
-                       placeholder="Résumé du signalement">
+                       placeholder="Résumé du signalement"
+                       <?php echo isset($formErrors['objet']) ? 'aria-describedby="err_objet" aria-invalid="true"' : ''; ?>>
                 <span class="form-hint">100 caractères max.</span>
                 <?php if (isset($formErrors['objet'])): ?>
-                    <span class="form-error"><?php echo e($formErrors['objet']); ?></span>
+                    <span class="form-error" id="err_objet"><?php echo e($formErrors['objet']); ?></span>
                 <?php endif; ?>
             </div>
 
             <div class="form-group" style="grid-column: 1 / -1;">
                 <label for="description">Description <span class="required">*</span></label>
                 <textarea id="description" name="description" rows="8" maxlength="20000" required
-                          placeholder="Décrivez le signalement en détail..."><?php echo e($val('description')); ?></textarea>
+                          placeholder="Décrivez le signalement en détail..."
+                          <?php echo isset($formErrors['description']) ? 'aria-describedby="err_description" aria-invalid="true"' : ''; ?>><?php echo e($val('description')); ?></textarea>
                 <span class="form-hint">20 000 caractères max.</span>
                 <?php if (isset($formErrors['description'])): ?>
-                    <span class="form-error"><?php echo e($formErrors['description']); ?></span>
+                    <span class="form-error" id="err_description"><?php echo e($formErrors['description']); ?></span>
                 <?php endif; ?>
             </div>
 
             <div class="form-group" style="grid-column: 1 / -1;">
                 <label for="attachment">Pièce jointe</label>
                 <input type="file" id="attachment" name="attachment"
-                       accept=".jpg,.jpeg,.png,.gif,.pdf">
+                       accept=".jpg,.jpeg,.png,.gif,.pdf"
+                       <?php echo isset($formErrors['attachment']) ? 'aria-describedby="err_attachment" aria-invalid="true"' : ''; ?>>
                 <span class="form-hint">Image (JPG, PNG, GIF) ou PDF — 10 Mo max. Optionnel.</span>
                 <?php if ($isEdit && !empty($report['attachment_name'])): ?>
                     <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
@@ -122,14 +126,15 @@ $submitBtnClass = $isEdit
                     </div>
                 <?php endif; ?>
                 <?php if (isset($formErrors['attachment'])): ?>
-                    <span class="form-error"><?php echo e($formErrors['attachment']); ?></span>
+                    <span class="form-error" id="err_attachment"><?php echo e($formErrors['attachment']); ?></span>
                 <?php endif; ?>
             </div>
 
             <?php if (!$isEdit): ?>
             <div class="form-group">
                 <label for="site_id"><?php echo e(getConfig('app_label_unite', 'UR')); ?> <span class="required">*</span></label>
-                <select id="site_id" name="site_id" required>
+                <select id="site_id" name="site_id" required
+                        <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : ''; ?>>
                     <?php foreach ($sites as $site): ?>
                         <option value="<?php echo e($site['id']); ?>"
                             <?php echo ((int)$val('site_id', (string)$user['site_id']) === (int)$site['id']) ? 'selected' : ''; ?>>
@@ -138,7 +143,7 @@ $submitBtnClass = $isEdit
                     <?php endforeach; ?>
                 </select>
                 <?php if (isset($formErrors['site_id'])): ?>
-                    <span class="form-error"><?php echo e($formErrors['site_id']); ?></span>
+                    <span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span>
                 <?php endif; ?>
             </div>
             <?php endif; ?>
@@ -211,7 +216,8 @@ $submitBtnClass = $isEdit
                     <div style="flex:1;min-width:200px;">
                         <label for="pour_compte_nom">Nom de l'agent</label>
                         <input type="text" id="pour_compte_nom" name="pour_compte_nom"
-                               value="<?php echo e($val('pour_compte_nom')); ?>">
+                               value="<?php echo e($val('pour_compte_nom')); ?>"
+                               <?php echo isset($formErrors['pour_compte_nom']) ? 'aria-describedby="err_pour_compte_nom" aria-invalid="true"' : ''; ?>>
                     </div>
                     <div style="flex:1;min-width:200px;">
                         <label for="pour_compte_prenom">Prénom de l'agent</label>
@@ -220,7 +226,7 @@ $submitBtnClass = $isEdit
                     </div>
                 </div>
                 <?php if (isset($formErrors['pour_compte_nom'])): ?>
-                    <span class="form-error"><?php echo e($formErrors['pour_compte_nom']); ?></span>
+                    <span class="form-error" id="err_pour_compte_nom"><?php echo e($formErrors['pour_compte_nom']); ?></span>
                 <?php endif; ?>
             </div>
             <?php endif; ?>

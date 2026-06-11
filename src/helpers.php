@@ -330,8 +330,8 @@ function getMimeType(string $filePath): string {
  * @return string
  */
 function truncate(string $string, int $length = 50): string {
-    if (strlen($string) > $length) {
-        return substr($string, 0, $length) . '…';
+    if (mb_strlen($string, 'UTF-8') > $length) {
+        return mb_substr($string, 0, $length, 'UTF-8') . '…';
     }
     return $string;
 }

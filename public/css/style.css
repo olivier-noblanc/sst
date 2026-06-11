@@ -878,6 +878,24 @@ tr:hover td {
     border: 0;
 }
 
+/* Skip link — visible only on keyboard focus (accessibility) */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    z-index: 9999;
+    padding: 8px 16px;
+    background: #1a3a5c;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 0 0 4px 0;
+}
+.skip-link:focus {
+    top: 0;
+}
+
 /* Synthesis table cell styles */
 .synthesis-cell-zero {
     color: var(--grey-400);

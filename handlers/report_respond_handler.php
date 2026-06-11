@@ -72,6 +72,10 @@ $userId = (int) $_SESSION['user']['id'];
 $success = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
 
 if ($success) {
+    // Audit log
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . $report['reference'] . ' — état : ' . $nouvelEtat, (int) $report['id'] ?? null, 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
+
     // Notify declarant about the response (non-blocking — errors are logged, not shown to user)
     try {
         require_once __DIR__ . '/../src/mail.php';

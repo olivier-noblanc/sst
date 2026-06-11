@@ -260,7 +260,8 @@ $pageTitle = 'Paramètres';
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--grey-200);">
             <h4 style="margin-bottom:12px;">🔒 Visibilité des signalements</h4>
             <p class="text-muted text-small" style="margin-bottom:12px;">Détermine quels signalements les agents peuvent consulter dans les registres. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
-            <div class="form-group" style="margin-bottom:0;" id="visibility-radios">
+            <fieldset class="form-group" style="margin-bottom:0;border:none;padding:0;" id="visibility-radios">
+                <legend style="font-weight:600;font-size:14px;margin-bottom:8px;padding:0;">Visibilité des signalements</legend>
                 <?php $currentVisibility = getConfig('app_report_visibility', 'agent_choice'); ?>
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
@@ -294,7 +295,7 @@ $pageTitle = 'Paramètres';
                 <div class="agent-visibility-warning" style="margin-top:14px;padding:10px 14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;color:#92400e;font-size:12px;">
                     ℹ️ <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CHSCT voient tous les signalements, y compris les confidentiels.
                 </div>
-            </div>
+            </fieldset>
         </div>
     </div>
 

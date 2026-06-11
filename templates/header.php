@@ -4,6 +4,17 @@
  * 
  * Blue header bar with logo, app title, user name, and logout link.
  */
+/**
+ * Security headers — defense in depth against clickjacking, MIME sniffing, XSS escalation.
+ * Sent as HTTP headers (not meta tags) for maximum browser support.
+ */
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+// Content-Security-Policy: allow same-origin only (no external resources)
+header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -16,6 +27,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
     <header class="header" role="banner">
         <div class="header__logo">
             <?php if (file_exists(__DIR__ . '/../public/img/logo-dreets.png')): ?>

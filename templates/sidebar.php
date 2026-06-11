@@ -74,7 +74,7 @@ $menuItems = [
                     <a href="<?php echo url($itemPage, $itemParams); ?>"
                        class="sidebar__item<?php echo $isActive ? ' sidebar__item--active' : ''; ?>"
                        <?php echo $isActive ? 'aria-current="page"' : ''; ?>>
-                        <span class="sidebar__icon"><?php echo $item['icon']; ?></span>
+                        <span class="sidebar__icon" aria-hidden="true"><?php echo $item['icon']; ?></span>
                         <?php echo e($item['label']); ?>
                     </a>
                 </li>
@@ -84,11 +84,11 @@ $menuItems = [
 
     <div class="sidebar__footer">
         <a href="<?php echo url('help'); ?>" class="sidebar__item<?php echo $currentPage === 'help' ? ' sidebar__item--active' : ''; ?>">
-            <span class="sidebar__icon">📚</span>
+            <span class="sidebar__icon" aria-hidden="true">📚</span>
             Documentation
         </a>
         <a href="<?php echo url('preamble'); ?>" class="sidebar__item<?php echo $currentPage === 'preamble' ? ' sidebar__item--active' : ''; ?>">
-            <span class="sidebar__icon">📖</span>
+            <span class="sidebar__icon" aria-hidden="true">📖</span>
             Préambule
         </a>
     </div>

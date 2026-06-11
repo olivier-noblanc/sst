@@ -94,6 +94,16 @@ function createReport(PDO $pdo, array $data): string {
         ]);
 
         $pdo->commit();
+
+        // Update FTS5 index
+        try {
+            $pdo->prepare("INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)")
+                ->execute([':uuid' => $uuid, ':objet' => $data['objet'], ':description' => $data['description']]);
+        } catch (Exception $ftsE) {
+            // Non-critical: FTS5 may not be available
+            error_log('[SST-DB] FTS5 insert warning: ' . $ftsE->getMessage());
+        }
+
         return $uuid;
     } catch (Exception $e) {
         $pdo->rollBack();
@@ -178,11 +188,39 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
         $params[':force_site_id'] = (int) $filters['force_site_id'];
     }
 
-    // Search query
+    // Search query — uses FTS5 full-text search if available, falls back to LIKE
     if (!empty($filters['q'])) {
-        $where .= " AND (r.objet LIKE :q OR r.description LIKE :q2)";
-        $params[':q'] = '%' . $filters['q'] . '%';
-        $params[':q2'] = '%' . $filters['q'] . '%';
+        // Check if FTS5 table exists
+        static $hasFts = null;
+        if ($hasFts === null) {
+            try {
+                $check = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='reports_fts'");
+                $hasFts = ($check !== false && $check->fetch() !== false);
+            } catch (Exception $e) {
+                $hasFts = false;
+            }
+        }
+
+        if ($hasFts) {
+            // FTS5 search: match objet and description, return matching UUIDs
+            $where .= " AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)";
+            // Sanitize query for FTS5: remove special operators, keep words
+            $ftsQuery = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $filters['q']);
+            $ftsQuery = trim($ftsQuery);
+            if ($ftsQuery === '') {
+                // If query was only special chars, fall back to LIKE
+                $where = str_replace("AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)", "AND (r.objet LIKE :q OR r.description LIKE :q2)", $where);
+                $params[':q'] = '%' . $filters['q'] . '%';
+                $params[':q2'] = '%' . $filters['q'] . '%';
+            } else {
+                $params[':q_fts'] = $ftsQuery;
+            }
+        } else {
+            // Fallback: LIKE search
+            $where .= " AND (r.objet LIKE :q OR r.description LIKE :q2)";
+            $params[':q'] = '%' . $filters['q'] . '%';
+            $params[':q2'] = '%' . $filters['q'] . '%';
+        }
     }
 
     // Filter by declarant
@@ -290,7 +328,20 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
 
-    return $stmt->rowCount() > 0;
+    $updated = $stmt->rowCount() > 0;
+
+    // Update FTS5 index if report was updated
+    if ($updated) {
+        try {
+            $pdo->prepare("DELETE FROM reports_fts WHERE uuid = :uuid")->execute([':uuid' => $uuid]);
+            $pdo->prepare("INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)")
+                ->execute([':uuid' => $uuid, ':objet' => $data['objet'], ':description' => $data['description']]);
+        } catch (Exception $ftsE) {
+            error_log('[SST-DB] FTS5 update warning: ' . $ftsE->getMessage());
+        }
+    }
+
+    return $updated;
 }
 
 /**

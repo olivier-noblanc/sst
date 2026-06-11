@@ -85,6 +85,8 @@ try {
         'site_id'  => $siteId,
     ]);
 
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'user', 'create', 'Utilisateur créé : ' . $prenom . ' ' . $nom, (int) $newId, 'user', ['username' => $username, 'role' => $role]);
     setFlash('success', 'Utilisateur ' . e($prenom . ' ' . $nom) . ' créé avec succès (ID: ' . $newId . ').');
 } catch (Exception $e) {
     setFlash('error', 'Erreur lors de la création de l\'utilisateur. Veuillez réessayer.');

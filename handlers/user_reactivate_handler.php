@@ -47,6 +47,8 @@ if ($user['is_active']) {
 $success = reactivateUser($pdo, $userId);
 
 if ($success) {
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' réactivé avec succès.');
 } else {
     setFlash('error', 'Erreur lors de la réactivation de l\'utilisateur.');

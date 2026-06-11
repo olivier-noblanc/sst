@@ -209,6 +209,8 @@ try {
         'app'           => 'Paramètres de l\'application enregistrés avec succès.',
         'manage_sites'  => 'Sites mis à jour avec succès.',
     ];
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . ($tab ?? 'inconnu'), null, 'config', ['tab' => $tab ?? 'inconnu']);
     setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');
 } catch (Exception $e) {
     $pdo->rollBack();

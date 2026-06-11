@@ -32,6 +32,8 @@ if ($user) {
     // Redirect to intended URL if set, otherwise home
     $intendedUrl = $_SESSION['intended_url'] ?? url('home');
     unset($_SESSION['intended_url']);
+    require_once __DIR__ . '/../src/audit.php';
+    auditLog($pdo, 'auth', 'login', 'Connexion : ' . $user['prenom'] . ' ' . $user['nom'], (int) $user['id'], 'user', ['username' => $user['username']]);
     setFlash('success', 'Bienvenue, ' . $user['prenom'] . ' ' . $user['nom'] . ' !');
     redirect($intendedUrl);
 } else {

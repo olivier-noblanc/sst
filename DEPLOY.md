@@ -231,12 +231,30 @@ Si la base de données ne contient pas de liste (par exemple après une réinsta
 | 1 (principale) | Base de données (Paramètres → Application) | ✅ Oui | ✅ Oui, via l'interface |
 | 2 (backup) | Variable d'environnement `APP_SUPERVISEUR_USERNAMES` | ✅ Oui | ❌ Nécessite un redémarrage IIS |
 
-**Définition dans IIS (FastCGI) :**
+**Procédure complète pour IIS (FastCGI) :**
 
-```xml
-<!-- Dans web.config → fastCgi → application → environmentVariables -->
-<environmentVariable name="APP_SUPERVISEUR_USERNAMES" value="jean.martin,sophie.dupont" />
-```
+1. Ouvrir le Gestionnaire IIS → Sélectionner le site SST
+2. Double-cliquer sur **FastCGI Settings** (paramètres FastCGI)
+3. Sélectionner l'application `C:\php\php-cgi.exe`
+4. Cliquer sur **Edit...** (Modifier)
+5. Développer la section **Environment Variables** (Variables d'environnement)
+6. Cliquer sur **Add...** (Ajouter) :
+   - Name : `APP_SUPERVISEUR_USERNAMES`
+   - Value : `jean.martin,sophie.dupont` (logins séparés par des virgules, sans espaces)
+7. Cliquer sur **OK** pour fermer chaque boîte de dialogue
+8. Redémarrer IIS : `iisreset`
+9. L'utilisateur se connecte → il est automatiquement promu superviseur
+10. Une fois la promotion effective, aller dans **Paramètres → Application** et renseigner le champ **Logins Windows des superviseurs** dans l'interface → la DB devient la source principale et l'env var n'est plus lue
+
+> **Alternative via web.config** (moins recommandé car le fichier est dans le dépôt git) :
+> ```xml
+> <!-- Dans C:\inetpub\sst\public\web.config → configuration → system.webServer → fastCgi -->
+> <application fullPath="C:\php\php-cgi.exe">
+>   <environmentVariables>
+>     <environmentVariable name="APP_SUPERVISEUR_USERNAMES" value="jean.martin,sophie.dupont" />
+>   </environmentVariables>
+> </application>
+> ```
 
 **Définition dans Apache :**
 
@@ -251,6 +269,8 @@ SetEnv APP_SUPERVISEUR_USERNAMES "jean.martin,sophie.dupont"
 environment:
   - APP_SUPERVISEUR_USERNAMES=jean.martin,sophie.dupont
 ```
+
+> **Note** : la variable d'environnement n'est utilisée que si la base de données ne contient pas de liste. Dès que le champ « Logins Windows des superviseurs » est rempli dans Paramètres → Application, la DB prend le relais et l'env var est ignorée.
 
 ### 10. SMTP pour les notifications
 

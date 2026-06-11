@@ -10,6 +10,12 @@ Les superviseurs ne voyaient pas la case « Signalement confidentiel » dans le 
 
 - `src/helpers.php` : extraction de `getReportVisibilityMode()` (role-agnostic, lit la config brute) utilisée par les fonctions `reportVisibilityIs*()`. `getReportVisibility()` conserve son comportement pour la lecture/filtrage (retourne `'all'` pour les non-agents).
 
+### Technique — Alignement des checkboxes dans le formulaire
+
+Les checkboxes « Signalement confidentiel » et « Signaler pour le compte d'un autre agent » étaient affichées au-dessus de leur libellé au lieu d'être alignées à gauche du texte. Cause : le CSS global applique `width: 100%` à tous les `<input>` et `display: block` aux `<label>` dans `.form-group`.
+
+- `templates/report_form.php` : style inline sur les `<label>` (`display:flex; align-items:center; gap:8px`) et les `<input type="checkbox">` (`width:auto; margin:0`)
+
 ---
 
 ## [2.7.2] — 2026-06-11

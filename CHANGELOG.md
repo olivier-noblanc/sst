@@ -2,6 +2,16 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.7.3] — 2026-06-11
+
+### Technique — Case confidentiel invisible pour les superviseurs
+
+Les superviseurs ne voyaient pas la case « Signalement confidentiel » dans le formulaire de création/modification de signalement, même en mode « Au choix de l'agent ». Aucun `input hidden` n'était injecté non plus, donc le champ `is_confidential` n'était tout simplement pas envoyé. Cause : `getReportVisibility()` renvoie `'all'` pour les non-agents (lecture), et les fonctions `reportVisibilityIs*()` comparaient avec cette valeur — aucun match.
+
+- `src/helpers.php` : extraction de `getReportVisibilityMode()` (role-agnostic, lit la config brute) utilisée par les fonctions `reportVisibilityIs*()`. `getReportVisibility()` conserve son comportement pour la lecture/filtrage (retourne `'all'` pour les non-agents).
+
+---
+
 ## [2.7.2] — 2026-06-11
 
 ### Fonctionnalité — Colonne Visibilité dans la liste des signalements

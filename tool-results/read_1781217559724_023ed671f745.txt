@@ -1,0 +1,1035 @@
+     1→/* ============================================================
+     2→   Style Sheet — Application SST DREETS BFC
+     3→   Version 1.0
+     4→   Complete DREETS visual identity theme
+     5→   ============================================================ */
+     6→
+     7→/* ============================================================
+     8→   1. CSS Custom Properties (Variables)
+     9→   ============================================================ */
+    10→:root {
+    11→    /* Brand colors */
+    12→    --color-primary: #0056A3;           /* DREETS blue (header bar) */
+    13→    --color-primary-dark: #003D75;
+    14→    --color-primary-light: #3498DB;
+    15→
+    16→    /* Registry colors */
+    17→    --rsst-color: #2E5C8A;             /* Blue */
+    18→    --rami-color: #6C6C6C;             /* Grey */
+    19→    --dgi-color: #B22222;              /* Red */
+    20→
+    21→    /* State colors */
+    22→    --state-nouveau: #2E5C8A;          /* Blue */
+    23→    --state-en-cours: #E67E22;         /* Orange */
+    24→    --state-traite: #27AE60;           /* Green */
+    25→    --state-abandonne: #95A5A6;        /* Grey */
+    26→
+    27→    /* Role badge colors */
+    28→    --role-agent: #2E5C8A;
+    29→    --role-superviseur: #B22222;
+    30→    --role-chsct: #8E44AD;
+    31→
+    32→    /* Layout */
+    33→    --sidebar-width: 220px;
+    34→    --header-height: 60px;
+    35→    --content-padding: 24px;
+    36→
+    37→    /* Greys */
+    38→    --grey-50: #FAFAFA;
+    39→    --grey-100: #F5F5F5;
+    40→    --grey-200: #EEEEEE;
+    41→    --grey-300: #E0E0E0;
+    42→    --grey-400: #BDBDBD;
+    43→    --grey-500: #9E9E9E;
+    44→    --grey-600: #757575;
+    45→    --grey-700: #616161;
+    46→    --grey-800: #424242;
+    47→    --grey-900: #212121;
+    48→
+    49→    /* Sidebar */
+    50→    --sidebar-bg: #2C3E50;
+    51→    --sidebar-text: #CCCCCC;
+    52→    --sidebar-hover: #34495E;
+    53→    --sidebar-active: var(--color-primary-light);
+    54→
+    55→    /* Misc */
+    56→    --border-radius: 4px;
+    57→    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    58→    --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+    59→    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    60→    --font-size-base: 14px;
+    61→}
+    62→
+    63→/* ============================================================
+    64→   2. Reset & Base
+    65→   ============================================================ */
+    66→*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    67→
+    68→body {
+    69→    font-family: var(--font-family);
+    70→    font-size: var(--font-size-base);
+    71→    color: var(--grey-900);
+    72→    background: var(--grey-100);
+    73→    line-height: 1.5;
+    74→}
+    75→
+    76→a { color: var(--color-primary); text-decoration: none; }
+    77→a:hover { text-decoration: underline; }
+    78→
+    79→img { max-width: 100%; height: auto; }
+    80→
+    81→/* ============================================================
+    82→   3. Header — Blue bar at top (#0056A3)
+    83→   ============================================================ */
+    84→.header {
+    85→    height: var(--header-height);
+    86→    background: var(--color-primary);
+    87→    color: white;
+    88→    display: flex;
+    89→    align-items: center;
+    90→    justify-content: space-between;
+    91→    padding: 0 20px;
+    92→    position: fixed;
+    93→    top: 0;
+    94→    left: 0;
+    95→    right: 0;
+    96→    z-index: 100;
+    97→    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    98→}
+    99→
+   100→.header__logo {
+   101→    display: flex;
+   102→    align-items: center;
+   103→    gap: 12px;
+   104→}
+   105→
+   106→.header__logo-img {
+   107→    height: 40px;
+   108→}
+   109→
+   110→.header__logo-text {
+   111→    background: rgba(255,255,255,0.2);
+   112→    padding: 4px 12px;
+   113→    border-radius: var(--border-radius);
+   114→    font-weight: 700;
+   115→    font-size: 16px;
+   116→    letter-spacing: 1px;
+   117→}
+   118→
+   119→.header__title {
+   120→    font-size: 16px;
+   121→    font-weight: 600;
+   122→}
+   123→
+   124→.header__user {
+   125→    display: flex;
+   126→    align-items: center;
+   127→    gap: 16px;
+   128→    font-size: 13px;
+   129→}
+   130→
+   131→.header__username {
+   132→    display: flex;
+   133→    align-items: center;
+   134→    gap: 4px;
+   135→}
+   136→
+   137→.header__logout {
+   138→    color: white;
+   139→    text-decoration: none;
+   140→    opacity: 0.8;
+   141→    padding: 6px 12px;
+   142→    border-radius: var(--border-radius);
+   143→    transition: opacity 0.2s, background 0.2s;
+   144→}
+   145→.header__logout:hover {
+   146→    opacity: 1;
+   147→    background: rgba(255,255,255,0.15);
+   148→    text-decoration: none;
+   149→}
+   150→
+   151→/* ============================================================
+   152→   4. Sidebar — Dark grey (#2C3E50), fixed
+   153→   ============================================================ */
+   154→.sidebar {
+   155→    width: var(--sidebar-width);
+   156→    background: var(--sidebar-bg);
+   157→    color: var(--sidebar-text);
+   158→    position: fixed;
+   159→    top: var(--header-height);
+   160→    left: 0;
+   161→    bottom: 0;
+   162→    overflow-y: auto;
+   163→    z-index: 90;
+   164→    display: flex;
+   165→    flex-direction: column;
+   166→    justify-content: space-between;
+   167→}
+   168→
+   169→.sidebar__nav {
+   170→    list-style: none;
+   171→    padding: 8px 0;
+   172→}
+   173→
+   174→.sidebar__item {
+   175→    display: block;
+   176→    padding: 12px 20px;
+   177→    color: var(--sidebar-text);
+   178→    text-decoration: none;
+   179→    font-size: 14px;
+   180→    border-left: 3px solid transparent;
+   181→    transition: background 0.2s, border-color 0.2s;
+   182→}
+   183→
+   184→.sidebar__item:hover {
+   185→    background: var(--sidebar-hover);
+   186→    text-decoration: none;
+   187→}
+   188→
+   189→.sidebar__item--active {
+   190→    background: var(--sidebar-hover);
+   191→    border-left-color: var(--sidebar-active);
+   192→    color: white;
+   193→    font-weight: 600;
+   194→}
+   195→
+   196→.sidebar__icon {
+   197→    margin-right: 10px;
+   198→    width: 18px;
+   199→    text-align: center;
+   200→    display: inline-block;
+   201→}
+   202→
+   203→.sidebar__footer {
+   204→    padding: 8px 0;
+   205→    border-top: 1px solid rgba(255,255,255,0.1);
+   206→}
+   207→
+   208→/* ============================================================
+   209→   5. Main Content Area
+   210→   ============================================================ */
+   211→.main {
+   212→    margin-left: var(--sidebar-width);
+   213→    margin-top: var(--header-height);
+   214→    padding: var(--content-padding);
+   215→    min-height: calc(100vh - var(--header-height));
+   216→    display: flex;
+   217→    flex-direction: column;
+   218→}
+   219→
+   220→.main > :last-child {
+   221→    flex: 1;
+   222→}
+   223→
+   224→/* ============================================================
+   225→   6. Footer
+   226→   ============================================================ */
+   227→.footer {
+   228→    margin-top: auto;
+   229→    padding: 16px 0;
+   230→    text-align: center;
+   231→    color: var(--grey-500);
+   232→    font-size: 12px;
+   233→    border-top: 1px solid var(--grey-200);
+   234→}
+   235→
+   236→.footer-version {
+   237→    color: var(--color-primary);
+   238→    text-decoration: none;
+   239→    font-weight: 600;
+   240→    transition: color 0.15s ease, text-decoration 0.15s ease;
+   241→}
+   242→
+   243→.footer-version:hover {
+   244→    color: var(--color-primary-dark);
+   245→    text-decoration: underline;
+   246→}
+   247→
+   248→/* ============================================================
+   249→   7. Page Title
+   250→   ============================================================ */
+   251→.page-title {
+   252→    font-size: 22px;
+   253→    font-weight: 600;
+   254→    color: var(--grey-900);
+   255→    margin-bottom: 20px;
+   256→    padding-bottom: 10px;
+   257→    border-bottom: 2px solid var(--grey-200);
+   258→}
+   259→
+   260→/* ============================================================
+   261→   8. Cards
+   262→   ============================================================ */
+   263→.card {
+   264→    background: white;
+   265→    border-radius: var(--border-radius);
+   266→    box-shadow: var(--shadow);
+   267→    padding: 20px;
+   268→    margin-bottom: 20px;
+   269→}
+   270→
+   271→.card--rsst { border-top: 4px solid var(--rsst-color); }
+   272→.card--rami { border-top: 4px solid var(--rami-color); }
+   273→.card--dgi  { border-top: 4px solid var(--dgi-color); }
+   274→
+   275→/* ============================================================
+   276→   9. Home Page — Registry Cards (Blue #3498DB, Grey #7F8C8D, Red #E74C3C)
+   277→   ============================================================ */
+   278→.registry-cards {
+   279→    display: flex;
+   280→    gap: 20px;
+   281→    flex-wrap: wrap;
+   282→}
+   283→
+   284→.registry-cards > * {
+   285→    flex: 1;
+   286→    min-width: 250px;
+   287→}
+   288→
+   289→.registry-card {
+   290→    border-radius: 8px;
+   291→    padding: 30px 24px;
+   292→    color: white;
+   293→    text-align: center;
+   294→    min-height: 220px;
+   295→    display: flex;
+   296→    flex-direction: column;
+   297→    justify-content: space-between;
+   298→    box-shadow: var(--shadow-lg);
+   299→    transition: transform 0.2s, box-shadow 0.2s;
+   300→}
+   301→
+   302→.registry-card:hover {
+   303→    transform: translateY(-2px);
+   304→    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+   305→}
+   306→
+   307→.registry-card--rsst { background: var(--rsst-color); }
+   308→.registry-card--rami { background: var(--rami-color); }
+   309→.registry-card--dgi  { background: var(--dgi-color); }
+   310→
+   311→.registry-card__icon { font-size: 36px; margin-bottom: 8px; }
+   312→.registry-card__title { font-size: 15px; font-weight: 500; margin-bottom: 4px; opacity: 0.9; }
+   313→.registry-card__subtitle { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+   314→.registry-card__stat { font-size: 13px; opacity: 0.85; margin-top: 12px; }
+   315→
+   316→.registry-card__btn {
+   317→    display: inline-block;
+   318→    margin-top: 16px;
+   319→    padding: 10px 24px;
+   320→    border: 2px solid white;
+   321→    border-radius: var(--border-radius);
+   322→    color: white;
+   323→    text-decoration: none;
+   324→    font-weight: 600;
+   325→    font-size: 14px;
+   326→    transition: background 0.2s;
+   327→}
+   328→
+   329→.registry-card__btn:hover {
+   330→    background: rgba(255,255,255,0.2);
+   331→    text-decoration: none;
+   332→}
+   333→
+   334→/* ============================================================
+   335→   10. Buttons — Primary blue, Secondary grey, Danger red, Success green
+   336→   ============================================================ */
+   337→.btn {
+   338→    display: inline-block;
+   339→    padding: 8px 18px;
+   340→    border: none;
+   341→    border-radius: var(--border-radius);
+   342→    font-size: 14px;
+   343→    font-weight: 500;
+   344→    cursor: pointer;
+   345→    text-decoration: none;
+   346→    text-align: center;
+   347→    transition: opacity 0.2s, transform 0.1s;
+   348→    line-height: 1.4;
+   349→}
+   350→
+   351→.btn:hover { opacity: 0.85; text-decoration: none; }
+   352→.btn:active { transform: scale(0.98); }
+   353→
+   354→.btn--primary   { background: var(--color-primary); color: white; }
+   355→.btn--success   { background: var(--state-traite); color: white; }
+   356→.btn--warning   { background: var(--state-en-cours); color: white; }
+   357→.btn--danger    { background: var(--dgi-color); color: white; }
+   358→.btn--secondary { background: var(--grey-500); color: white; }
+   359→.btn--outline   { background: transparent; border: 1px solid var(--grey-400); color: var(--grey-700); }
+   360→.btn--rsst      { background: var(--rsst-color); color: white; }
+   361→.btn--rami      { background: var(--rami-color); color: white; }
+   362→.btn--dgi       { background: var(--dgi-color); color: white; }
+   363→
+   364→.btn--sm   { padding: 4px 10px; font-size: 12px; }
+   365→.btn--full { width: 100%; display: block; }
+   366→
+   367→/* ============================================================
+   368→   11. Forms
+   369→   ============================================================ */
+   370→.form-group {
+   371→    margin-bottom: 16px;
+   372→}
+   373→
+   374→.form-group label {
+   375→    display: block;
+   376→    margin-bottom: 4px;
+   377→    font-weight: 500;
+   378→    color: var(--grey-700);
+   379→    font-size: 13px;
+   380→}
+   381→
+   382→.form-group input,
+   383→.form-group select,
+   384→.form-group textarea {
+   385→    width: 100%;
+   386→    padding: 8px 12px;
+   387→    border: 1px solid var(--grey-300);
+   388→    border-radius: var(--border-radius);
+   389→    font-size: 14px;
+   390→    font-family: var(--font-family);
+   391→    background: white;
+   392→    transition: border-color 0.2s, box-shadow 0.2s;
+   393→}
+   394→
+   395→.form-group input:focus,
+   396→.form-group select:focus,
+   397→.form-group textarea:focus {
+   398→    outline: none;
+   399→    border-color: var(--color-primary);
+   400→    box-shadow: 0 0 0 2px rgba(0,86,163,0.2);
+   401→}
+   402→
+   403→.form-group input[readonly] {
+   404→    background: var(--grey-100);
+   405→    color: var(--grey-600);
+   406→    cursor: not-allowed;
+   407→}
+   408→
+   409→.form-group input:invalid:not(:placeholder-shown) {
+   410→    border-color: var(--dgi-color);
+   411→}
+   412→
+   413→.form-hint {
+   414→    font-size: 12px;
+   415→    color: var(--grey-500);
+   416→    margin-top: 2px;
+   417→}
+   418→
+   419→.form-error {
+   420→    display: block;
+   421→    color: var(--dgi-color);
+   422→    font-size: 12px;
+   423→    margin-top: 4px;
+   424→    font-weight: 500;
+   425→}
+   426→
+   427→.required {
+   428→    color: var(--dgi-color);
+   429→}
+   430→
+   431→.form-grid {
+   432→    display: grid;
+   433→    grid-template-columns: 1fr 1fr;
+   434→    gap: 16px;
+   435→}
+   436→
+   437→@media (max-width: 768px) {
+   438→    .form-grid {
+   439→        grid-template-columns: 1fr;
+   440→    }
+   441→}
+   442→
+   443→.form-actions {
+   444→    display: flex;
+   445→    gap: 12px;
+   446→    margin-top: 24px;
+   447→    padding-top: 16px;
+   448→    border-top: 1px solid var(--grey-200);
+   449→}
+   450→
+   451→/* ============================================================
+   452→   12. Tables — Striped, sortable headers
+   453→   ============================================================ */
+   454→.table-wrapper {
+   455→    overflow-x: auto;
+   456→    border-radius: var(--border-radius);
+   457→}
+   458→
+   459→table {
+   460→    width: 100%;
+   461→    border-collapse: collapse;
+   462→    background: white;
+   463→}
+   464→
+   465→th {
+   466→    background: var(--grey-100);
+   467→    text-align: left;
+   468→    padding: 10px 12px;
+   469→    font-weight: 600;
+   470→    font-size: 13px;
+   471→    color: var(--grey-700);
+   472→    border-bottom: 2px solid var(--grey-300);
+   473→    white-space: nowrap;
+   474→    cursor: default;
+   475→    user-select: none;
+   476→}
+   477→
+   478→th.sortable {
+   479→    cursor: pointer;
+   480→}
+   481→
+   482→th.sortable:hover {
+   483→    background: var(--grey-200);
+   484→}
+   485→
+   486→th.sortable::after {
+   487→    content: ' ↕';
+   488→    opacity: 0.4;
+   489→    font-size: 11px;
+   490→}
+   491→
+   492→th.sort-asc::after  { content: ' ↑'; opacity: 1; }
+   493→th.sort-desc::after { content: ' ↓'; opacity: 1; }
+   494→
+   495→td {
+   496→    padding: 10px 12px;
+   497→    border-bottom: 1px solid var(--grey-200);
+   498→    font-size: 14px;
+   499→    vertical-align: middle;
+   500→}
+   501→
+   502→/* Striped rows */
+   503→tr:nth-child(even) td {
+   504→    background: var(--grey-50);
+   505→}
+   506→
+   507→tr:hover td {
+   508→    background: #E8F0FE;
+   509→}
+   510→
+   511→/* Report detail table */
+   512→.report-detail__table {
+   513→    margin-top: 16px;
+   514→}
+   515→
+   516→.report-detail__table th {
+   517→    width: 200px;
+   518→    background: transparent;
+   519→    border-bottom: 1px solid var(--grey-200);
+   520→    padding: 8px 12px;
+   521→    vertical-align: top;
+   522→}
+   523→
+   524→.report-detail__table td {
+   525→    border-bottom: 1px solid var(--grey-200);
+   526→    padding: 8px 12px;
+   527→}
+   528→
+   529→.report-detail__header {
+   530→    display: flex;
+   531→    justify-content: space-between;
+   532→    align-items: center;
+   533→    flex-wrap: wrap;
+   534→    gap: 8px;
+   535→    margin-bottom: 8px;
+   536→}
+   537→
+   538→/* Response section */
+   539→.report-response {
+   540→    background: var(--grey-50);
+   541→    padding: 16px;
+   542→    border-radius: var(--border-radius);
+   543→    border-left: 4px solid var(--state-traite);
+   544→    margin-top: 12px;
+   545→}
+   546→
+   547→.report-response__meta {
+   548→    margin-top: 12px;
+   549→    font-size: 13px;
+   550→    color: var(--grey-600);
+   551→    padding-top: 8px;
+   552→    border-top: 1px solid var(--grey-200);
+   553→}
+   554→
+   555→/* ============================================================
+   556→   13. Badges
+   557→   ============================================================ */
+   558→.badge {
+   559→    display: inline-block;
+   560→    padding: 3px 10px;
+   561→    border-radius: 12px;
+   562→    font-size: 12px;
+   563→    font-weight: 600;
+   564→    color: white;
+   565→    white-space: nowrap;
+   566→}
+   567→
+   568→.badge--nouveau    { background: var(--state-nouveau); }
+   569→.badge--en-cours   { background: var(--state-en-cours); }
+   570→.badge--traite     { background: var(--state-traite); }
+   571→.badge--abandonne  { background: var(--state-abandonne); }
+   572→.badge--agent      { background: var(--role-agent); }
+   573→.badge--superviseur{ background: var(--role-superviseur); }
+   574→.badge--chsct      { background: var(--role-chsct); }
+   575→.badge--rsst       { background: var(--rsst-color); }
+   576→.badge--rami       { background: var(--rami-color); }
+   577→.badge--dgi        { background: var(--dgi-color); }
+   578→
+   579→/* ============================================================
+   580→   14. KPI Cards (Statistics page)
+   581→   ============================================================ */
+   582→.kpi-grid {
+   583→    display: flex;
+   584→    gap: 16px;
+   585→    flex-wrap: wrap;
+   586→    margin-bottom: 24px;
+   587→}
+   588→
+   589→.kpi-card {
+   590→    flex: 1;
+   591→    min-width: 200px;
+   592→    background: white;
+   593→    border-radius: var(--border-radius);
+   594→    box-shadow: var(--shadow);
+   595→    padding: 20px;
+   596→    text-align: center;
+   597→    border-top: 4px solid var(--color-primary);
+   598→}
+   599→
+   600→.kpi-card--rsst { border-top-color: var(--rsst-color); }
+   601→.kpi-card--rami { border-top-color: var(--rami-color); }
+   602→.kpi-card--dgi  { border-top-color: var(--dgi-color); }
+   603→.kpi-card--nouveau  { border-top-color: var(--state-nouveau); }
+   604→.kpi-card--en-cours { border-top-color: var(--state-en-cours); }
+   605→.kpi-card--traite   { border-top-color: var(--state-traite); }
+   606→
+   607→.kpi-card__value {
+   608→    font-size: 32px;
+   609→    font-weight: 700;
+   610→    color: var(--grey-900);
+   611→}
+   612→
+   613→.kpi-card__label {
+   614→    font-size: 13px;
+   615→    color: var(--grey-600);
+   616→    margin-top: 4px;
+   617→}
+   618→
+   619→.kpi-card__detail {
+   620→    font-size: 11px;
+   621→    color: var(--grey-500);
+   622→    margin-top: 8px;
+   623→}
+   624→
+   625→/* ============================================================
+   626→   15. Alerts / Flash Messages
+   627→   ============================================================ */
+   628→.alert {
+   629→    padding: 12px 16px;
+   630→    border-radius: var(--border-radius);
+   631→    margin-bottom: 16px;
+   632→    font-size: 14px;
+   633→}
+   634→
+   635→.alert--success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+   636→.alert--error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+   637→.alert--warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+   638→.alert--info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+   639→
+   640→/* ============================================================
+   641→   16. Pagination
+   642→   ============================================================ */
+   643→.pagination {
+   644→    display: flex;
+   645→    gap: 4px;
+   646→    justify-content: center;
+   647→    margin-top: 20px;
+   648→    flex-wrap: wrap;
+   649→}
+   650→
+   651→.pagination__link,
+   652→.pagination__current {
+   653→    display: inline-block;
+   654→    padding: 6px 12px;
+   655→    border: 1px solid var(--grey-300);
+   656→    border-radius: var(--border-radius);
+   657→    font-size: 13px;
+   658→    text-decoration: none;
+   659→    color: var(--grey-700);
+   660→}
+   661→
+   662→.pagination__current {
+   663→    background: var(--color-primary);
+   664→    color: white;
+   665→    border-color: var(--color-primary);
+   666→    font-weight: 600;
+   667→}
+   668→
+   669→.pagination__link:hover {
+   670→    background: var(--grey-200);
+   671→    text-decoration: none;
+   672→}
+   673→
+   674→.pagination__ellipsis {
+   675→    display: inline-block;
+   676→    padding: 6px 8px;
+   677→    color: var(--grey-500);
+   678→}
+   679→
+   680→/* ============================================================
+   681→   17. Filter Bar
+   682→   ============================================================ */
+   683→.filter-bar {
+   684→    display: flex;
+   685→    gap: 12px;
+   686→    align-items: flex-end;
+   687→    flex-wrap: wrap;
+   688→    margin-bottom: 20px;
+   689→    padding: 16px;
+   690→    background: white;
+   691→    border-radius: var(--border-radius);
+   692→    box-shadow: var(--shadow);
+   693→}
+   694→
+   695→.filter-bar .form-group {
+   696→    margin-bottom: 0;
+   697→}
+   698→
+   699→.filter-bar .btn {
+   700→    margin-bottom: 0;
+   701→}
+   702→
+   703→/* ============================================================
+   704→   18. Login Page
+   705→   ============================================================ */
+   706→.login-body {
+   707→    background: var(--grey-200);
+   708→    display: flex;
+   709→    align-items: center;
+   710→    justify-content: center;
+   711→    min-height: 100vh;
+   712→}
+   713→
+   714→.login-container {
+   715→    width: 100%;
+   716→    max-width: 440px;
+   717→    padding: 20px;
+   718→}
+   719→
+   720→.login-card {
+   721→    background: white;
+   722→    border-radius: 8px;
+   723→    box-shadow: var(--shadow-lg);
+   724→    padding: 40px 32px;
+   725→}
+   726→
+   727→.login-header {
+   728→    text-align: center;
+   729→    margin-bottom: 24px;
+   730→}
+   731→
+   732→.login-header h1 {
+   733→    font-size: 20px;
+   734→    color: var(--color-primary);
+   735→    margin-bottom: 4px;
+   736→}
+   737→
+   738→.login-subtitle {
+   739→    color: var(--grey-600);
+   740→    font-size: 14px;
+   741→}
+   742→
+   743→.login-dev-badge {
+   744→    display: inline-block;
+   745→    background: #fff3cd;
+   746→    color: #856404;
+   747→    padding: 4px 12px;
+   748→    border-radius: var(--border-radius);
+   749→    font-size: 12px;
+   750→    font-weight: 500;
+   751→    margin-top: 8px;
+   752→}
+   753→
+   754→.login-form .form-group {
+   755→    margin-bottom: 20px;
+   756→}
+   757→
+   758→.login-dev-info {
+   759→    margin-top: 24px;
+   760→    padding-top: 16px;
+   761→    border-top: 1px solid var(--grey-200);
+   762→    font-size: 13px;
+   763→    color: var(--grey-600);
+   764→}
+   765→
+   766→.login-dev-info ul {
+   767→    margin: 8px 0 0 16px;
+   768→    list-style: disc;
+   769→}
+   770→
+   771→.login-dev-info li {
+   772→    margin-bottom: 4px;
+   773→}
+   774→
+   775→.login-dev-info code {
+   776→    background: var(--grey-100);
+   777→    padding: 1px 6px;
+   778→    border-radius: 3px;
+   779→    font-size: 12px;
+   780→}
+   781→
+   782→/* ============================================================
+   783→   19. Print View
+   784→   ============================================================ */
+   785→.print-view {
+   786→    max-width: 800px;
+   787→    margin: 0 auto;
+   788→    padding: 40px;
+   789→}
+   790→
+   791→.print-view__header {
+   792→    text-align: center;
+   793→    margin-bottom: 30px;
+   794→    border-bottom: 2px solid var(--grey-900);
+   795→    padding-bottom: 20px;
+   796→}
+   797→
+   798→.print-view__title {
+   799→    font-size: 20px;
+   800→    font-weight: 700;
+   801→    margin-top: 12px;
+   802→}
+   803→
+   804→.print-view__field {
+   805→    margin-bottom: 12px;
+   806→}
+   807→
+   808→.print-view__label {
+   809→    font-weight: 600;
+   810→    color: var(--grey-600);
+   811→    font-size: 13px;
+   812→}
+   813→
+   814→.print-view__value {
+   815→    font-size: 14px;
+   816→    margin-top: 2px;
+   817→}
+   818→
+   819→.print-hint {
+   820→    text-align: center;
+   821→    color: var(--grey-500);
+   822→    font-size: 13px;
+   823→    margin-bottom: 20px;
+   824→}
+   825→
+   826→/* ============================================================
+   827→   20. Confirm Dialog (inline)
+   828→   ============================================================ */
+   829→.confirm-box {
+   830→    background: #fff3cd;
+   831→    border: 1px solid #ffeeba;
+   832→    border-radius: var(--border-radius);
+   833→    padding: 20px;
+   834→    text-align: center;
+   835→    margin: 20px 0;
+   836→}
+   837→
+   838→.confirm-box p {
+   839→    margin-bottom: 16px;
+   840→    font-weight: 500;
+   841→}
+   842→
+   843→.confirm-box__actions {
+   844→    display: flex;
+   845→    gap: 12px;
+   846→    justify-content: center;
+   847→}
+   848→
+   849→/* ============================================================
+   850→   21. Utility Classes
+   851→   ============================================================ */
+   852→.text-center { text-align: center; }
+   853→.text-right  { text-align: right; }
+   854→.text-muted  { color: var(--grey-500); }
+   855→.text-small  { font-size: 12px; }
+   856→.mt-0 { margin-top: 0; }
+   857→.mt-2 { margin-top: 8px; }
+   858→.mt-4 { margin-top: 16px; }
+   859→.mb-0 { margin-bottom: 0; }
+   860→.mb-2 { margin-bottom: 8px; }
+   861→.mb-4 { margin-bottom: 16px; }
+   862→.gap-2 { gap: 8px; }
+   863→.gap-4 { gap: 16px; }
+   864→.flex  { display: flex; }
+   865→.flex-wrap { flex-wrap: wrap; }
+   866→.items-center { align-items: center; }
+   867→.justify-between { justify-content: space-between; }
+   868→
+   869→.sr-only {
+   870→    position: absolute;
+   871→    width: 1px;
+   872→    height: 1px;
+   873→    padding: 0;
+   874→    margin: -1px;
+   875→    overflow: hidden;
+   876→    clip: rect(0,0,0,0);
+   877→    white-space: nowrap;
+   878→    border: 0;
+   879→}
+   880→
+   881→/* Synthesis table cell styles */
+   882→.synthesis-cell-zero {
+   883→    color: var(--grey-400);
+   884→}
+   885→
+   886→.synthesis-cell-value {
+   887→    font-weight: 600;
+   888→}
+   889→
+   890→/* ============================================================
+   891→   24. Tag Input (Settings page)
+   892→   ============================================================ */
+   893→.tag-input-container {
+   894→    border: 1px solid var(--grey-300);
+   895→    border-radius: var(--border-radius);
+   896→    padding: 8px;
+   897→    background: white;
+   898→}
+   899→.tag-input-tags {
+   900→    display: flex;
+   901→    flex-wrap: wrap;
+   902→    gap: 6px;
+   903→    margin-bottom: 6px;
+   904→}
+   905→.tag-input-tag {
+   906→    display: inline-flex;
+   907→    align-items: center;
+   908→    gap: 4px;
+   909→    background: var(--grey-100);
+   910→    border: 1px solid var(--grey-300);
+   911→    border-radius: 16px;
+   912→    padding: 4px 10px;
+   913→    font-size: 13px;
+   914→    color: var(--grey-800);
+   915→}
+   916→.tag-input-remove {
+   917→    background: none;
+   918→    border: none;
+   919→    color: var(--grey-500);
+   920→    cursor: pointer;
+   921→    font-size: 16px;
+   922→    line-height: 1;
+   923→    padding: 0 2px;
+   924→}
+   925→.tag-input-remove:hover {
+   926→    color: var(--dgi-color);
+   927→}
+   928→.tag-input-field {
+   929→    flex: 1;
+   930→    border: 1px solid var(--grey-200);
+   931→    border-radius: var(--border-radius);
+   932→    padding: 6px 10px;
+   933→    font-size: 13px;
+   934→    font-family: var(--font-family);
+   935→}
+   936→.tag-input-field:focus {
+   937→    outline: none;
+   938→    border-color: var(--color-primary);
+   939→}
+   940→
+   941→/* ============================================================
+   942→   25. Tabs (Settings, Users pages)
+   943→   ============================================================ */
+   944→.settings-tab {
+   945→    padding: 10px 20px;
+   946→    font-size: 14px;
+   947→    font-weight: 500;
+   948→    color: var(--grey-600);
+   949→    text-decoration: none;
+   950→    border-bottom: 3px solid transparent;
+   951→    margin-bottom: -2px;
+   952→    transition: color 0.2s, border-color 0.2s;
+   953→}
+   954→.settings-tab:hover {
+   955→    color: var(--color-primary);
+   956→    text-decoration: none;
+   957→}
+   958→.settings-tab--active {
+   959→    color: var(--color-primary);
+   960→    border-bottom-color: var(--color-primary);
+   961→    font-weight: 600;
+   962→}
+   963→
+   964→/* ============================================================
+   965→   22. Print Styles
+   966→   ============================================================ */
+   967→@media print {
+   968→    .header, .sidebar, .filter-bar, .btn, .pagination, .print-hint,
+   969→    .form-actions, .confirm-box, .footer {
+   970→        display: none !important;
+   971→    }
+   972→    .main {
+   973→        margin: 0;
+   974→        padding: 0;
+   975→    }
+   976→    body {
+   977→        background: white;
+   978→    }
+   979→    .print-view {
+   980→        padding: 0;
+   981→    }
+   982→    table {
+   983→        font-size: 11px;
+   984→    }
+   985→    .badge {
+   986→        border: 1px solid #333;
+   987→        color: #333 !important;
+   988→        background: transparent !important;
+   989→    }
+   990→    .registry-card {
+   991→        break-inside: avoid;
+   992→    }
+   993→    .card {
+   994→        box-shadow: none;
+   995→        border: 1px solid #ccc;
+   996→    }
+   997→}
+   998→
+   999→/* ============================================================
+  1000→   23. Responsive
+  1001→   ============================================================ */
+  1002→@media (max-width: 768px) {
+  1003→    .sidebar {
+  1004→        display: none;
+  1005→    }
+  1006→    .main {
+  1007→        margin-left: 0;
+  1008→    }
+  1009→    .registry-cards {
+  1010→        flex-direction: column;
+  1011→    }
+  1012→    .kpi-grid {
+  1013→        flex-direction: column;
+  1014→    }
+  1015→    .filter-bar {
+  1016→        flex-direction: column;
+  1017→    }
+  1018→    .form-grid {
+  1019→        grid-template-columns: 1fr;
+  1020→    }
+  1021→    .report-detail__header {
+  1022→        flex-direction: column;
+  1023→        align-items: flex-start;
+  1024→    }
+  1025→    .header__title {
+  1026→        display: none;
+  1027→    }
+  1028→    .form-actions {
+  1029→        flex-direction: column;
+  1030→    }
+  1031→    .form-actions .btn {
+  1032→        width: 100%;
+  1033→    }
+  1034→}
+  1035→

@@ -145,8 +145,9 @@ $submitBtnClass = $isEdit
 
             <?php if (reportVisibilityIsAgentChoice()): ?>
             <div class="form-group" style="grid-column: 1 / -1;" id="confidential-toggle">
-                <label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer;">
                     <input type="checkbox" name="is_confidential" id="is_confidential" value="1"
+                           style="width:auto;margin:0;"
                            <?php echo $val('is_confidential', '1') === '1' ? 'checked' : ''; ?>>
                     Signalement confidentiel
                 </label>
@@ -202,8 +203,9 @@ $submitBtnClass = $isEdit
 
             <?php if ($type === 'rami'): ?>
             <div class="form-group" style="grid-column: 1 / -1;">
-                <label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer;">
                     <input type="checkbox" name="pour_compte" id="pour_compte" value="1"
+                           style="width:auto;margin:0;"
                            <?php echo ($val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? 'checked' : ''; ?>>
                     Signaler pour le compte d'un autre agent
                 </label>

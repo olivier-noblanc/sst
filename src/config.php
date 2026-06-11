@@ -7,7 +7,7 @@
 
 // Application metadata
 define('APP_NAME', 'Application SST — DREETS BFC');
-define('APP_VERSION', '2.8.0');
+define('APP_VERSION', '2.8.1');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
 // Environment configuration:
@@ -38,13 +38,12 @@ if (defined('APP_ENV_FORCE')) {
 
 define('DEV_MODE', APP_ENV === 'dev');
 
-// Error handling: ALWAYS display errors (even in production)
-// This is intentional: the app must always show PHP errors on screen
-// for immediate diagnosis, even on IIS in production.
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
+// Error handling: display errors only in dev mode
+// In production, errors are logged but NOT shown to users (prevents info leakage)
+ini_set('display_errors', DEV_MODE ? '1' : '0');
+ini_set('display_startup_errors', DEV_MODE ? '1' : '0');
 error_reporting(E_ALL);
-// Also log errors to file
+// Always log errors to file
 ini_set('log_errors', '1');
 ini_set('error_log', __DIR__ . '/../data/php-error.log');
 

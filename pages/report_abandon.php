@@ -55,7 +55,7 @@ require __DIR__ . '/../templates/alert.php';
                 <td><?php echo e($report['objet']); ?></td>
             </tr>
             <tr>
-                <th>Date de l'evenement</th>
+                <th>Date de l'événement</th>
                 <td><?php echo e(formatDateFR($report['date_evenement'])); ?></td>
             </tr>
             <tr>
@@ -72,8 +72,8 @@ require __DIR__ . '/../templates/alert.php';
 
 <!-- Confirmation inline — pas de JavaScript -->
 <div class="card" style="margin-top:16px;background:#fffbeb;border:1px solid #fcd34d;">
-    <p style="font-weight:600;color:#92400e;">Etes-vous sur de vouloir abandonner le signalement <strong><?php echo e($report['reference']); ?></strong> ?</p>
-    <p style="font-size:13px;color:var(--grey-600);">Cette action est irreversible. Le signalement sera marque comme abandonne.</p>
+    <p style="font-weight:600;color:#92400e;">Êtes-vous sûr de vouloir abandonner le signalement <strong><?php echo e($report['reference']); ?></strong> ?</p>
+    <p style="font-size:13px;color:var(--grey-600);">Cette action est irréversible. Le signalement sera marqué comme abandonné.</p>
     <div style="display:flex;gap:8px;margin-top:12px;">
         <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $uuid]); ?>">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">

@@ -91,23 +91,6 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
             </div>
         </div>
 
-        <!-- Password (optional) -->
-        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--grey-200);">
-            <h4 style="margin-bottom:12px;color:var(--grey-700);">Changer le mot de passe (optionnel)</h4>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="password">Nouveau mot de passe</label>
-                    <input type="password" name="password" id="password" autocomplete="new-password">
-                    <div class="form-hint">Laissez vide pour ne pas changer</div>
-                    <?php if (isset($formErrors['password'])): ?><span class="form-error"><?php echo e($formErrors['password']); ?></span><?php endif; ?>
-                </div>
-                <div class="form-group">
-                    <label for="password_confirm">Confirmer le mot de passe</label>
-                    <input type="password" name="password_confirm" id="password_confirm" autocomplete="new-password">
-                </div>
-            </div>
-        </div>
-
         <div class="form-actions">
             <button type="submit" class="btn btn--success">Mettre à jour</button>
             <a href="<?php echo url('users'); ?>" class="btn btn--secondary">Retour</a>

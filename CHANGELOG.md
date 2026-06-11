@@ -2,6 +2,29 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [2.8.1] — 2026-06-12
+
+### Sécurité — Corrections de l'audit fonctionnel
+
+Corrections prioritaires issues de l'audit fonctionnel complet (31 constats) :
+
+- **F01** 🔴 `phpinfo.php` supprimé du dépôt — exposition complète de la config serveur en production
+- **F02/F03** 🟡 Protection du dernier superviseur actif — impossible de rétrograder ou désactiver le dernier superviseur (`user_edit_handler.php` + `user_delete_handler.php`). Empêche le verrouillage admin de l'application.
+- **F04** 🟡 `display_errors` désactivé en production — les erreurs PHP (requêtes SQL, chemins, variables) n'apparaissent plus aux utilisateurs. Reste activé en mode dev.
+- **F09** 🟠 Superviseur peut créer des signalements pour n'importe quel site — le handler bloquait les superviseurs comme les agents (`site_id !== user.site_id`). Corrigé avec `canSeeAllSites()`.
+- **F20** 🟠 Utilisateur désactivé : `findOrCreateUser()` cherche désormais les utilisateurs inactifs aussi — un utilisateur désactivé ne provoque plus de violation UNIQUE sur le username à la reconnexion via IIS.
+
+### Technique — Nettoyage et corrections
+
+- **F13/F14** Routes orphelines `user_create`, `user_delete`, `user_reactivate` retirées de `$validPages` — ces POST-only n'ont pas de page GET
+- **F17** Requête `getAllSites()` inutile retirée de `report_edit.php` (dropdown site masqué en mode édition)
+- **F18** Champs mot de passe supprimés du formulaire et du handler `user_edit` — l'auth est IIS, pas de mot de passe dans le schéma
+- **F19** Validation de l'existence du `site_id` ajoutée dans `user_create_handler.php`
+- **F24** Branche morte `elseif ($isEdit && !empty($report['is_confidential']))` retirée de `report_form.php` — les 3 modes de visibilité couvrent tous les cas
+- **F25** Accents français corrigés dans `report_abandon.php` (événement, Êtes-vous sûr, irréversible, abandonné)
+
+---
+
 ## [2.8.0] — 2026-06-11
 
 ### Sécurité — Audit XSS complet

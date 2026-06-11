@@ -43,7 +43,7 @@ $action = url('report_edit', ['uuid' => $uuid]);
 
 // Prepare variables for the shared form template
 $isEdit = true;
-$sites = getAllSites($pdo);
+$sites = [];  // Not used in edit mode (site dropdown is hidden)
 $formErrors = getFormErrors();
 $formData = getFormData();
 

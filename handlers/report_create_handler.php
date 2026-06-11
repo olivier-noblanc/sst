@@ -118,8 +118,8 @@ if ($siteId <= 0) {
     }
 }
 
-// Agent can only create for their own site
-if ($siteId !== (int) $user['site_id']) {
+// Agent can only create for their own site; superviseurs/chsct can create for any site
+if (!canSeeAllSites() && $siteId !== (int) $user['site_id']) {
     $errors['site_id'] = 'Vous ne pouvez créer un signalement que pour votre ' . getConfig('app_label_unite', 'UR') . '.';
 }
 

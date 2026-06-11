@@ -107,17 +107,21 @@ function extractUsername(string $authUser): string {
 function findOrCreateUser(string $username): ?array {
     $pdo = getDB();
 
-    // Look up existing user
+    // Look up existing user (including deactivated — they may need reactivation)
     $stmt = $pdo->prepare(
         'SELECT u.*, s.code as site_code, s.nom as site_nom 
          FROM users u 
          LEFT JOIN sites s ON u.site_id = s.id 
-         WHERE u.username = :username AND u.is_active = 1'
+         WHERE u.username = :username'
     );
     $stmt->execute([':username' => $username]);
     $user = $stmt->fetch();
 
     if ($user) {
+        // If user is deactivated, deny login with clear message
+        if (!$user['is_active']) {
+            return null;  // Will be caught as "auth failed" — superviseur must reactivate
+        }
         // Check if existing user should be auto-promoted via config list
         $user = checkAndPromoteUser($pdo, $user, $username);
         return $user;

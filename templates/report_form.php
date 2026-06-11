@@ -184,11 +184,6 @@ $submitBtnClass = $isEdit
             </div>
             <?php elseif (reportVisibilityIsPublic()): ?>
             <input type="hidden" name="is_confidential" value="0">
-            <?php elseif ($isEdit && !empty($report['is_confidential'])): ?>
-            <div class="form-group" style="grid-column: 1 / -1;">
-                <span class="badge" style="background:#6b7280;">🔒 Confidentiel</span>
-                <span class="form-hint">Ce signalement est confidentiel.</span>
-            </div>
             <?php endif; ?>
 
             <div class="form-group">

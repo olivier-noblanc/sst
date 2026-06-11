@@ -33,7 +33,7 @@ $validPages = [
     'report_print', 'report_attachment', 'report_abandon', 'report_respond',
     'synthesis', 'export', 'statistics',
     'settings', 'site_edit',
-    'users', 'user_edit', 'user_view', 'user_create', 'user_delete', 'user_reactivate',
+    'users', 'user_edit', 'user_view',
     'logout'
 ];
 

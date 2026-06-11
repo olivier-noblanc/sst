@@ -71,6 +71,16 @@ if (!in_array($role, ['agent', 'superviseur', 'chsct'])) {
     $errors['role'] = 'Rôle invalide.';
 }
 
+// Guard: prevent demoting the last active superviseur
+if ($user['role'] === 'superviseur' && $role !== 'superviseur') {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = 'superviseur' AND is_active = 1");
+    $stmt->execute();
+    $activeSups = (int) $stmt->fetchColumn();
+    if ($activeSups <= 1) {
+        $errors['role'] = 'Impossible de rétrograder le dernier superviseur actif. Nommez un autre superviseur d\'abord.';
+    }
+}
+
 $siteId = (int) ($_POST['site_id'] ?? 0);
 if ($siteId <= 0) {
     $errors['site_id'] = 'Le site est requis.';
@@ -81,16 +91,7 @@ if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $errors['email'] = 'Adresse email invalide.';
 }
 
-// Password (optional)
-$password = $_POST['password'] ?? '';
-$passwordConfirm = $_POST['password_confirm'] ?? '';
-if (!empty($password)) {
-    if (strlen($password) < 6) {
-        $errors['password'] = 'Le mot de passe doit contenir au moins 6 caractères.';
-    } elseif ($password !== $passwordConfirm) {
-        $errors['password'] = 'Les mots de passe ne correspondent pas.';
-    }
-}
+// Note: No password field — auth is via IIS Windows Authentication
 
 if (!empty($errors)) {
     setFormErrors($errors);

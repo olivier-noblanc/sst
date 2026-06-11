@@ -158,12 +158,12 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         </td>
                         <td>
                             <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                                <a href="<?php echo url('report_view', ['uuid' => $report['uuid']])); ?>" class="btn btn--sm btn--outline">Voir</a>
+                                <a href="<?php echo url('report_view', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--outline">Voir</a>
                                 <?php if ($canEdit): ?>
-                                <a href="<?php echo url('report_edit', ['uuid' => $report['uuid']])); ?>" class="btn btn--sm btn--secondary">Modifier</a>
+                                <a href="<?php echo url('report_edit', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--secondary">Modifier</a>
                                 <?php endif; ?>
                                 <?php if ($canRespond): ?>
-                                <a href="<?php echo url('report_respond', ['uuid' => $report['uuid']])); ?>" class="btn btn--sm btn--primary">Répondre</a>
+                                <a href="<?php echo url('report_respond', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--primary">Répondre</a>
                                 <?php endif; ?>
                             </div>
                         </td>

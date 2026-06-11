@@ -215,7 +215,7 @@ $submitBtnClass = $isEdit
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">
                 <?php echo $isEdit ? 'Enregistrer' : 'Valider son signalement'; ?>
             </button>
-            <a href="<?php echo $isEdit && $report ? url('report_view', ['uuid' => $report['uuid']])) : url('home'); ?>"
+            <a href="<?php echo $isEdit && $report ? url('report_view', ['uuid' => $report['uuid']]) : url('home'); ?>"
                class="btn btn--secondary">Annuler</a>
         </div>
     </form>

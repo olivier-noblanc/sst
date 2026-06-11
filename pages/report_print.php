@@ -14,7 +14,7 @@
 
 $uuid = $_GET['uuid'] ?? '';
 
-if ($uuid === '' || strlen($uuid) !== 36) {
+if (!isValidUuid($uuid)) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }
@@ -83,6 +83,10 @@ class SSTPDF extends FPDF
 {
     public string $headerText = '';
     public string $footerOrgName = '';
+
+    /** Public getters for protected FPDF margin properties. */
+    public function getLeftMargin(): float  { return $this->lMargin; }
+    public function getRightMargin(): float { return $this->rMargin; }
 
     public function Header(): void
     {
@@ -197,7 +201,7 @@ function drawField(SSTPDF $pdf, string $label, string $value, float $labelW = 55
     $valueCp = utf8ToCp1252($value);
 
     // If value is short, use Cell; if long, use MultiCell
-    $availableW = $pdf->w - $pdf->rMargin - $pdf->GetX();
+    $availableW = $pdf->GetPageWidth() - $pdf->getRightMargin() - $pdf->GetX();
     if ($pdf->GetStringWidth($valueCp) <= $availableW) {
         $pdf->Cell(0, 6, $valueCp, 0, 1);
     } else {
@@ -219,7 +223,7 @@ function drawMultiField(SSTPDF $pdf, string $label, string $value, float $labelW
     $pdf->SetTextColor(34, 34, 34);
     $valueCp = utf8ToCp1252($value);
 
-    $availableW = $pdf->w - $pdf->rMargin - $pdf->GetX();
+    $availableW = $pdf->GetPageWidth() - $pdf->getRightMargin() - $pdf->GetX();
     $pdf->MultiCell($availableW, 6, $valueCp, 0, 'L');
 }
 
@@ -235,7 +239,7 @@ function drawSectionTitle(SSTPDF $pdf, string $title, array $color): void
     $pdf->Cell(0, 7, $titleCp, 0, 1);
     $y = $pdf->GetY();
     $pdf->SetDrawColor(204, 204, 204);
-    $pdf->Line($pdf->lMargin, $y, $pdf->w - $pdf->rMargin, $y);
+    $pdf->Line($pdf->getLeftMargin(), $y, $pdf->GetPageWidth() - $pdf->getRightMargin(), $y);
     $pdf->Ln(3);
 }
 
@@ -246,7 +250,7 @@ function drawHR(SSTPDF $pdf): void
 {
     $pdf->Ln(4);
     $pdf->SetDrawColor(204, 204, 204);
-    $pdf->Line($pdf->lMargin, $pdf->GetY(), $pdf->w - $pdf->rMargin, $pdf->GetY());
+    $pdf->Line($pdf->getLeftMargin(), $pdf->GetY(), $pdf->GetPageWidth() - $pdf->getRightMargin(), $pdf->GetY());
     $pdf->Ln(4);
 }
 
@@ -321,7 +325,7 @@ if (!empty($report['reponse'])) {
     // Response box with left border
     $x = $pdf->GetX();
     $y = $pdf->GetY();
-    $boxW = $pdf->w - $pdf->lMargin - $pdf->rMargin;
+    $boxW = $pdf->GetPageWidth() - $pdf->getLeftMargin() - $pdf->getRightMargin();
 
     // Calculate response height
     $pdf->SetFont('DejaVu', '', 10);
@@ -408,7 +412,7 @@ if (!empty($responses)) {
         $currentRowH = max($maxLines * 5 + 2, $rowH);
 
         // Check if we need a new page
-        if ($pdf->GetY() + $currentRowH > $pdf->h - 25) {
+        if ($pdf->GetY() + $currentRowH > $pdf->GetPageHeight() - 25) {
             $pdf->AddPage();
             // Re-draw header on new page
             $pdf->SetFont('DejaVu', 'B', 9);

@@ -7,7 +7,7 @@
  */
 $uuid = $_GET['uuid'] ?? '';
 
-if ($uuid === '' || strlen($uuid) !== 36) {
+if (!isValidUuid($uuid)) {
     setFlash('error', 'Signalement introuvable.');
     redirect(url('home'));
 }

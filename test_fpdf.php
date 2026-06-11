@@ -54,7 +54,7 @@ function utf8ToCp1252(?string $s): string {
 
 // 5. Test class
 class TestPDF extends FPDF {
-    protected function Header(): void {
+    public function Header(): void {
         $this->SetFont('DejaVu', '', 8);
         $this->SetTextColor(102, 102, 102);
         $this->Cell(0, 6, 'Application SST - DREETS BFC - Test PDF', 0, 1, 'L');
@@ -63,7 +63,7 @@ class TestPDF extends FPDF {
         $this->Ln(4);
     }
 
-    protected function Footer(): void {
+    public function Footer(): void {
         $this->SetY(-18);
         $this->SetFont('DejaVu', '', 7);
         $this->SetDrawColor(204, 204, 204);

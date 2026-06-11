@@ -84,7 +84,7 @@ class SSTPDF extends FPDF
     public string $headerText = '';
     public string $footerOrgName = '';
 
-    protected function Header(): void
+    public function Header(): void
     {
         if ($this->headerText !== '') {
             $this->SetFont('DejaVu', '', 8);
@@ -96,7 +96,7 @@ class SSTPDF extends FPDF
         }
     }
 
-    protected function Footer(): void
+    public function Footer(): void
     {
         $this->SetY(-18);
         $this->SetFont('DejaVu', '', 7);

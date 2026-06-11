@@ -10,8 +10,32 @@ define('APP_NAME', 'Application SST — DREETS BFC');
 define('APP_VERSION', '2.6.1');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
-// Environment: set to 'dev' for mock auth, 'prod' for IIS Windows Auth
-define('APP_ENV', getenv('APP_ENV') ?: 'prod');
+// Environment configuration:
+// - 'prod' : IIS Windows Authentication (AUTH_USER). No login form.
+// - 'dev'  : Mock login form for local development.
+//
+// Detection priority:
+//   1. APP_ENV constant (if you hardcode it below)
+//   2. APP_ENV environment variable (e.g. SetEnv in Apache/IIS config)
+//   3. Auto-detection: if AUTH_USER is available → prod, otherwise → dev
+//
+// IMPORTANT: On non-IIS servers (Apache, Caddy, Space-Z, Docker, etc.),
+// AUTH_USER will NOT be set. The app will auto-detect dev mode and show
+// the login form. This is correct and expected.
+// To force prod mode, uncomment and set the line below:
+// define('APP_ENV_FORCE', 'prod');
+
+if (defined('APP_ENV_FORCE')) {
+    define('APP_ENV', APP_ENV_FORCE);
+} elseif (getenv('APP_ENV')) {
+    define('APP_ENV', getenv('APP_ENV'));
+} else {
+    // Auto-detect: if IIS provides AUTH_USER, we're in prod; otherwise dev
+    // This handles non-IIS deployments gracefully (Space-Z, Docker, Apache, etc.)
+    $hasAuthUser = !empty($_SERVER['AUTH_USER']);
+    define('APP_ENV', $hasAuthUser ? 'prod' : 'dev');
+}
+
 define('DEV_MODE', APP_ENV === 'dev');
 
 // Error handling: ALWAYS display errors (even in production)

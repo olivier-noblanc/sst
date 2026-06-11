@@ -76,6 +76,40 @@ if ($page === 'login') {
     exit;
 }
 
+// === SUPERVISEUR PROMOTION CHECK (every request) ===
+// If app_superviseur_usernames is set in config, check if the current
+// agent should be auto-promoted. This ensures the promotion takes effect
+// immediately without requiring logout/login.
+if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'agent') {
+    $superviseurUsernames = getConfig('app_superviseur_usernames', '');
+    if (!empty($superviseurUsernames)) {
+        $users = array_map('trim', explode(',', strtolower($superviseurUsernames)));
+        $currentUsername = strtolower($_SESSION['user']['username']);
+        if (in_array($currentUsername, $users)) {
+            $pdo = getDB();
+            $stmt = $pdo->prepare("UPDATE users SET role = 'superviseur', updated_at = datetime('now') WHERE id = :id AND role = 'agent'");
+            $stmt->execute([':id' => (int) $_SESSION['user']['id']]);
+            if ($stmt->rowCount() > 0) {
+                // Promotion applied — update session
+                $_SESSION['user']['role'] = 'superviseur';
+                // Refresh full user data from DB (includes site_code, site_nom, etc.)
+                $freshStmt = $pdo->prepare(
+                    'SELECT u.*, s.code as site_code, s.nom as site_nom
+                     FROM users u
+                     LEFT JOIN sites s ON u.site_id = s.id
+                     WHERE u.id = :id'
+                );
+                $freshStmt->execute([':id' => (int) $_SESSION['user']['id']]);
+                $freshUser = $freshStmt->fetch();
+                if ($freshUser) {
+                    $_SESSION['user'] = $freshUser;
+                }
+                error_log("SST App: Auto-promoted user '$currentUsername' to superviseur (config list rule, session refresh)");
+            }
+        }
+    }
+}
+
 // === NOT AUTHENTICATED: redirect ===
 if (!isset($_SESSION['user'])) {
     if (DEV_MODE) {

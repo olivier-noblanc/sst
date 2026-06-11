@@ -252,8 +252,8 @@ $pageTitle = 'Paramètres';
                    placeholder="jean.martin, sophie.dupont">
             <small class="text-muted" style="display:block;margin-top:4px;">
                 Séparés par des virgules. Ces utilisateurs seront automatiquement promus <strong>Superviseur</strong>
-                lors de leur connexion via IIS. Utile pour une première installation afin de désigner
-                les premiers superviseurs sans avoir à passer par la base de données.
+                immédiatement (dès la prochaine page consultée). Utile pour désigner les premiers
+                superviseurs sans avoir à passer par la base de données.
             </small>
         </div>
 

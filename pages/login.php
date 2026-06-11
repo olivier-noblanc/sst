@@ -38,7 +38,13 @@ if (isset($_SESSION['user'])) {
             <div class="login-header">
                 <h1><?php echo e(APP_NAME); ?></h1>
                 <p class="login-subtitle"><?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?></p>
-                <p class="login-dev-badge">⚙ Mode développement</p>
+                <p class="login-dev-badge">
+                    <?php if (!empty($_SERVER['AUTH_USER'])): ?>
+                    🔒 Authentification Windows IIS
+                    <?php else: ?>
+                    ⚙ Mode sans IIS — authentification par identifiant
+                    <?php endif; ?>
+                </p>
             </div>
 
             <?php $flash = getFlash(); ?>
@@ -78,8 +84,11 @@ if (isset($_SESSION['user'])) {
                 <p style="font-size:12px;color:var(--grey-500);margin-top:8px;">
                     Tout autre nom d'utilisateur créera un compte agent automatiquement.
                 </p>
+                <p style="font-size:12px;color:var(--grey-500);margin-top:8px;">
+                    💡 Pour devenir superviseur, ajoutez votre identifiant dans <em>Paramètres → Application → Logins Windows des superviseurs</em>.
+                </p>
                 <p style="font-size:11px;color:var(--grey-400);margin-top:12px;border-top:1px solid var(--grey-200);padding-top:8px;">
-                    ⚠ En production, cette page n'existe pas. L'authentification est automatique via IIS Windows Authentication.
+                    ⚠ Sur un serveur IIS en production, cette page n'existe pas. L'authentification est automatique via Windows Authentication.
                 </p>
             </div>
         </div>

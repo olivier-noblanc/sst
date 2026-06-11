@@ -419,10 +419,21 @@ Si vous voyez le formulaire de login en prod, c'est que `APP_ENV` est encore à 
 3. Vérifier les permissions de lecture sur le dossier `font/`
 
 ### Mise à jour
-Pour mettre à jour l'application après une mise à jour du code :
+Pour mettre à jour l'application, utiliser le script PowerShell fourni :
+```cmd
+powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\update_sst.ps1
+```
+
+Ou manuellement (force la synchronisation avec le remote, écrase les conflits locaux) :
 ```cmd
 cd C:\inetpub\sst
-git pull
+git fetch origin main
+git reset --hard origin/main
+git clean -fd
 iisreset
 ```
-> Plus besoin de `composer install` — FPDF est inclus directement dans le projet.
+
+> **Important** : `git reset --hard` écrase les fichiers locaux par la version du remote.
+> Cela évite les conflits. La base SQLite (`data\sst.db`) est préservée car elle est dans `.gitignore`.
+> **Ne jamais utiliser `git pull`** sur le serveur de production — il peut créer des conflits de fusion
+> qui bloquent la mise à jour.

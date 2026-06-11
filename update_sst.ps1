@@ -56,20 +56,33 @@ if (-not (Test-Path $AppDir)) {
 Set-Location $AppDir
 Write-Host "  OK : Git, PHP, dossier $AppDir" -ForegroundColor Green
 
-# --- 1. Git pull ---
+# --- 1. Git sync (force le contenu du remote, écrase les modifs locales) ---
 Write-Host ""
-Write-Host "[1/4] Telechargement des mises a jour (git pull)..." -ForegroundColor Yellow
+Write-Host "[1/4] Telechargement des mises a jour (git fetch + reset --hard)..." -ForegroundColor Yellow
 
 try {
-    git pull origin main 2>&1
+    # Récupérer les objets du remote sans fusionner
+    git fetch origin main 2>&1
     if ($LASTEXITCODE -ne 0) {
-        throw "git pull a echoue (code $LASTEXITCODE)"
+        throw "git fetch a echoue (code $LASTEXITCODE)"
     }
-    Write-Host "  OK : Code a jour" -ForegroundColor Green
+
+    # Forcer le répertoire de travail à correspondre exactement au remote
+    # Cela écrase toute modification locale (conflits, fichiers modifiés, etc.)
+    # La base SQLite dans data/ est ignorée par .gitignore donc elle est préservée.
+    git reset --hard origin/main 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "git reset --hard a echoue (code $LASTEXITCODE)"
+    }
+
+    # Nettoyer les fichiers non suivis (orphelins d'anciennes versions)
+    git clean -fd 2>&1
+
+    Write-Host "  OK : Code synchronise sur origin/main" -ForegroundColor Green
 }
 catch {
     Write-Host ""
-    Write-Host " ERREUR : git pull a echoue." -ForegroundColor Red
+    Write-Host " ERREUR : la synchronisation Git a echoue." -ForegroundColor Red
     Write-Host ""
     Write-Host " Causes possibles :" -ForegroundColor Yellow
     Write-Host "   - Token GitHub expire (password auth not supported)" -ForegroundColor White
@@ -79,8 +92,9 @@ catch {
     Write-Host "     > git config --global http.proxy http://PROXY:PORT" -ForegroundColor Gray
     Write-Host "     > git config --global http.proxyAuthMethod negotiate" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "   - Repo local diverge (conflits)" -ForegroundColor White
-    Write-Host "     > git stash puis relancer ce script" -ForegroundColor Gray
+    Write-Host "   - Depot local corrompu" -ForegroundColor White
+    Write-Host "     > cd $AppDir && git status" -ForegroundColor Gray
+    Write-Host "     > git fetch origin main && git reset --hard origin/main" -ForegroundColor Gray
     Read-Host "Appuyez sur Entree pour quitter"
     exit 1
 }

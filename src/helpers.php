@@ -195,22 +195,14 @@ function canSeeAllSites(): bool {
 }
 
 /**
- * Get the report visibility mode for agents.
- * Returns one of: 'confidential', 'agent_choice', 'public', 'all'
- * 
- * - 'confidential' : Agent sees ONLY their own reports (most restrictive)
- * - 'agent_choice' : Agent sees public reports from their site + their own reports (even confidential).
- *                    Agent can choose per-report visibility, defaulting to confidential.
- * - 'public'       : Agent sees all reports from their own site
- * 
- * Non-agent roles always get 'all'.
+ * Get the raw report visibility mode from config (role-agnostic).
+ * Returns one of: 'confidential', 'agent_choice', 'public'
+ * This is the actual setting value, regardless of the current user's role.
+ * Used for form display (creation/edit) and handler logic.
  * 
  * @return string
  */
-function getReportVisibility(): string {
-    if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'agent') {
-        return 'all';
-    }
+function getReportVisibilityMode(): string {
     $value = getConfig('app_report_visibility', 'agent_choice');
     // Backward compatibility: migrate old values
     if ($value === '0') return 'public';
@@ -224,6 +216,27 @@ function getReportVisibility(): string {
         return $value;
     }
     return 'agent_choice'; // Default fallback
+}
+
+/**
+ * Get the report visibility for the current user (for reading/filtering).
+ * Returns one of: 'confidential', 'agent_choice', 'public', 'all'
+ * 
+ * - 'all'          : Non-agent roles see everything (superviseur, chsct, admin)
+ * - 'confidential' : Agent sees ONLY their own reports (most restrictive)
+ * - 'agent_choice' : Agent sees public reports from their site + their own reports (even confidential).
+ *                    Agent can choose per-report visibility, defaulting to confidential.
+ * - 'public'       : Agent sees all reports from their own site
+ * 
+ * Non-agent roles always get 'all'.
+ * 
+ * @return string
+ */
+function getReportVisibility(): string {
+    if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'agent') {
+        return 'all';
+    }
+    return getReportVisibilityMode();
 }
 
 /**
@@ -244,7 +257,7 @@ function getAgentVisibility(): string {
  * @return bool
  */
 function reportVisibilityIsConfidential(): bool {
-    return getReportVisibility() === 'confidential';
+    return getReportVisibilityMode() === 'confidential';
 }
 
 /**
@@ -255,7 +268,7 @@ function reportVisibilityIsConfidential(): bool {
  * @return bool
  */
 function reportVisibilityIsAgentChoice(): bool {
-    return getReportVisibility() === 'agent_choice';
+    return getReportVisibilityMode() === 'agent_choice';
 }
 
 /**
@@ -265,7 +278,7 @@ function reportVisibilityIsAgentChoice(): bool {
  * @return bool
  */
 function reportVisibilityIsPublic(): bool {
-    return getReportVisibility() === 'public';
+    return getReportVisibilityMode() === 'public';
 }
 
 /**
@@ -273,7 +286,7 @@ function reportVisibilityIsPublic(): bool {
  * @deprecated Use reportVisibilityIsConfidential() or reportVisibilityIsAgentChoice() instead
  */
 function agentVisibilityIsConfidential(): bool {
-    return in_array(getReportVisibility(), ['confidential', 'agent_choice']);
+    return in_array(getReportVisibilityMode(), ['confidential', 'agent_choice']);
 }
 
 /**
@@ -281,7 +294,7 @@ function agentVisibilityIsConfidential(): bool {
  * @deprecated Use reportVisibilityIsPublic() instead
  */
 function agentVisibilityIsPublic(): bool {
-    return getReportVisibility() === 'public';
+    return getReportVisibilityMode() === 'public';
 }
 
 /**

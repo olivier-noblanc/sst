@@ -28,7 +28,7 @@ Navigateur → IIS (Windows Auth automatique) → PHP reçoit $_SERVER['AUTH_USE
 1. IIS authentifie l'utilisateur via Windows Authentication **AVANT** que PHP ne s'exécute
 2. `$_SERVER['AUTH_USER']` est **TOUJOURS** rempli (format : `DREETS-BFC\jean.martin`)
 3. PHP lit `AUTH_USER`, cherche l'utilisateur en base, le crée si nécessaire (auto-provisioning)
-4. **Règle de promotion automatique** : si le login figure dans la liste `app_superviseur_usernames` configurée dans `src/config.php`, l'utilisateur est automatiquement promu Superviseur lors de sa première connexion
+4. **Règle de promotion automatique (bootstrap)** : si le login figure dans la liste `app_superviseur_usernames` (configurée via l'interface **Paramètres → Application** et stockée en base de données), l'utilisateur est automatiquement promu Superviseur lors de sa connexion. Cette liste peut aussi être définie via la variable d'environnement `APP_SUPERVISEUR_USERNAMES` (voir §9).
 5. **AUCUN formulaire de login** — la page de login n'est pas accessible en production
 6. Le "déconnexion" vide la session PHP mais IIS re-authentifie automatiquement au prochain accès
 
@@ -42,11 +42,19 @@ Navigateur → Formulaire mock login → PHP crée la session
 4. Tout login inconnu crée automatiquement un compte agent
 
 ### Configuration du mode
+
+L'application détecte automatiquement l'environnement :
+
+- **Si `$_SERVER['AUTH_USER']` existe** (serveur IIS avec Windows Authentication) → mode **prod** automatique
+- **Sinon** (Apache, Caddy, Docker, développement local) → mode **dev** avec formulaire de login
+
+Pour forcer un mode spécifique, décommenter et modifier dans `src/config.php` :
 ```php
-// Dans src/config.php :
-define('APP_ENV', getenv('APP_ENV') ?: 'dev');  // 'dev' par défaut
-// ou
-define('APP_ENV', 'prod');  // pour IIS en production
+// Forcer le mode prod (même sans IIS) :
+define('APP_ENV_FORCE', 'prod');
+
+// Ou utiliser une variable d'environnement :
+// SetEnv APP_ENV prod  (dans Apache .htaccess ou vhost)
 ```
 
 ## Étapes de déploiement
@@ -165,9 +173,11 @@ Ou simplement accéder à l'application dans le navigateur — la base se crée 
 
 Dans `src/config.php` :
 ```php
-// Pour la production IIS :
-define('APP_ENV', 'prod');
-// DEV_MODE sera automatiquement false
+// Pour forcer la production (décommenter si nécessaire) :
+// define('APP_ENV_FORCE', 'prod');
+// Par défaut, l'application détecte automatiquement :
+// - AUTH_USER présent (IIS) → prod
+// - AUTH_USER absent → dev
 ```
 
 Les paramètres SMTP et organisation sont configurables via l'interface admin :
@@ -180,22 +190,67 @@ Les paramètres SMTP et organisation sont configurables via l'interface admin :
 Les premiers utilisateurs sont auto-provisionnés avec le rôle `agent`.
 Pour promouvoir des utilisateurs en `superviseur`, il existe **deux méthodes** :
 
-#### Méthode 1 : Liste de bootstrap dans config.php (recommandé pour la première installation)
-Dans `src/config.php`, renseigner la liste des logins Windows à promouvoir automatiquement :
-```php
-$app_superviseur_usernames = ['jean.martin', 'sophie.dupont'];
-```
-Ces utilisateurs seront automatiquement promus au rôle `superviseur` lors de leur connexion via IIS.
-Cette méthode est utile pour la **première installation** quand aucun superviseur n'existe encore en base.
+#### Méthode 1 : Promotion par un superviseur existant (méthode normale)
 
-#### Méthode 2 : Par un autre superviseur via l'interface
+> **Usage** : quand au moins un superviseur existe déjà.
+
 1. Se connecter en tant que Superviseur
 2. Aller dans **Utilisateurs**
 3. Modifier le rôle de l'utilisateur souhaité
 
-Un superviseur peut attribuer le rôle superviseur à d'autres utilisateurs.
+Un superviseur peut attribuer le rôle superviseur à d'autres utilisateurs. C'est la méthode **recommandée en fonctionnement normal**.
 
-> **Rôle Admin** : le rôle `admin` suit le même pattern — liste de bootstrap `app_admin_usernames` dans config.php + attribution par un autre admin via l'interface. Le rôle admin dispose de droits supplémentaires (gestion des paramètres, suppression de signalements).
+#### Méthode 2 : Auto-promotion bootstrap (première installation uniquement)
+
+> **Usage** : première installation, quand aucun superviseur n'existe encore.
+
+Cette méthode permet à un agent de se promouvoir lui-même en superviseur. C'est intentionnel et nécessaire pour le démarrage initial : sans superviseur, personne ne pourrait en créer un via l'interface.
+
+**Comment ça fonctionne :**
+
+1. Se connecter avec le premier compte créé (rôle agent)
+2. Aller dans **Paramètres → Application**
+3. Renseigner le champ **Logins Windows des superviseurs** avec les logins séparés par des virgules (ex: `jean.martin, sophie.dupont`)
+4. La promotion est **immédiate** : au rechargement de la page, l'utilisateur est superviseur
+
+**Où est stockée la liste ?**
+
+La liste `app_superviseur_usernames` est stockée **en base de données** (table `settings`), **pas** dans un fichier PHP.
+Cela signifie que **`git pull` n'écrase jamais cette configuration**.
+
+**⚠️ Recommandation de sécurité** : après la promotion initiale, **vider le champ** dans Paramètres → Application
+(puisque les superviseurs existants peuvent en promouvoir d'autres via l'interface). Cela évite qu'un agent
+non-autorisé ne soit promu si son login est ajouté par erreur à la liste.
+
+#### Backup : variable d'environnement `APP_SUPERVISEUR_USERNAMES`
+
+Si la base de données ne contient pas de liste (par exemple après une réinstallation), l'application utilise la variable d'environnement `APP_SUPERVISEUR_USERNAMES` comme **source de secours**.
+
+| Priorité | Source | Survit aux `git pull` ? | Modifiable sans redémarrage ? |
+|----------|--------|--------------------------|-------------------------------|
+| 1 (principale) | Base de données (Paramètres → Application) | ✅ Oui | ✅ Oui, via l'interface |
+| 2 (backup) | Variable d'environnement `APP_SUPERVISEUR_USERNAMES` | ✅ Oui | ❌ Nécessite un redémarrage IIS |
+
+**Définition dans IIS (FastCGI) :**
+
+```xml
+<!-- Dans web.config → fastCgi → application → environmentVariables -->
+<environmentVariable name="APP_SUPERVISEUR_USERNAMES" value="jean.martin,sophie.dupont" />
+```
+
+**Définition dans Apache :**
+
+```apache
+# Dans le VirtualHost ou .htaccess
+SetEnv APP_SUPERVISEUR_USERNAMES "jean.martin,sophie.dupont"
+```
+
+**Définition en Docker :**
+
+```yaml
+environment:
+  - APP_SUPERVISEUR_USERNAMES=jean.martin,sophie.dupont
+```
 
 ### 10. SMTP pour les notifications
 

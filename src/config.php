@@ -62,6 +62,11 @@ define('MAX_LIEU_LENGTH', 200);
 // No LDAP needed — IIS Windows Auth provides $_SERVER['AUTH_USER']
 // Format: "DOMAIN\username" — PHP extracts the username and strips the domain.
 
+// Superviseur auto-promotion (bootstrap, première installation uniquement) :
+//   1. Settings UI (Paramètres → Application) — stocké en base, survit aux git pulls
+//   2. Env var APP_SUPERVISEUR_USERNAMES (backup) — si la DB n'a pas de liste
+// La DB est prioritaire. Après la promotion initiale, vider la liste pour la sécurité.
+
 // Registry type labels
 define('REGISTRY_LABELS', [
     'rsst' => 'Registre de Santé et de Sécurité au Travail',

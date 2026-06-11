@@ -81,7 +81,11 @@ if ($page === 'login') {
 // agent should be auto-promoted. This ensures the promotion takes effect
 // immediately without requiring logout/login.
 if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'agent') {
+    // Priority: DB setting (Settings UI) > environment variable
     $superviseurUsernames = getConfig('app_superviseur_usernames', '');
+    if (empty($superviseurUsernames)) {
+        $superviseurUsernames = getenv('APP_SUPERVISEUR_USERNAMES') ?: '';
+    }
     if (!empty($superviseurUsernames)) {
         $users = array_map('trim', explode(',', strtolower($superviseurUsernames)));
         $currentUsername = strtolower($_SESSION['user']['username']);

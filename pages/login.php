@@ -48,7 +48,11 @@ if (isset($_SESSION['user'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo e(APP_NAME); ?> — Connexion</title>
-    <link rel="stylesheet" href="<?php echo assetUrl('css/style.css'); ?>">
+    <?php echo inlineCss('css/style.css'); ?>
+    <?php $faviconPng = inlineDataUri('favicon.png'); ?>
+    <?php $faviconIco = inlineDataUri('favicon.ico'); ?>
+    <?php if ($faviconPng): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>
+    <?php if ($faviconIco): ?><link rel="icon" type="image/x-icon" href="<?php echo $faviconIco; ?>"><?php endif; ?>
 </head>
 <body class="login-body">
     <a href="#login-form" class="skip-link">Aller au formulaire de connexion</a>

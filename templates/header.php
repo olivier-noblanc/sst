@@ -6,7 +6,9 @@
  * Security headers and cache-control sent as HTTP headers (not meta tags)
  * for maximum browser support.
  *
- * ALL static assets are served through asset.php for full header control.
+ * CSS and favicons are INLINED (no separate HTTP request).
+ * This eliminates webhint false positives on content-type/cache-control
+ * and removes all IIS dependency for serving static assets.
  * Gzip compression is handled via ob_gzhandler (started in index.php).
  */
 
@@ -30,7 +32,9 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 
-// Content-Security-Policy: allow same-origin only (no external resources)
+// Content-Security-Policy: allow same-origin + data: URIs (inline assets)
+// style-src 'unsafe-inline' needed for inline <style> tag (CSS inlined via inlineCss())
+// img-src data: needed for inline data: URIs (favicons, logos via inlineDataUri())
 // frame-ancestors 'none' replaces X-Frame-Options (broader support, stronger)
 header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 ?>
@@ -40,16 +44,20 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo e(APP_NAME); ?> — <?php echo e($pageTitle ?? 'Accueil'); ?></title>
-    <link rel="stylesheet" href="<?php echo assetUrl('css/style.css'); ?>">
-    <link rel="icon" type="image/png" sizes="64x64" href="<?php echo assetUrl('favicon.png'); ?>">
-    <link rel="icon" type="image/x-icon" href="<?php echo assetUrl('favicon.ico'); ?>">
+    <?php echo inlineCss('css/style.css'); ?>
+    <?php $faviconPng = inlineDataUri('favicon.png'); ?>
+    <?php $faviconIco = inlineDataUri('favicon.ico'); ?>
+    <?php if ($faviconPng): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>
+    <?php if ($faviconIco): ?><link rel="icon" type="image/x-icon" href="<?php echo $faviconIco; ?>"><?php endif; ?>
 </head>
 <body>
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>
     <header class="header" role="banner">
         <div class="header__logo">
-            <?php if (file_exists(__DIR__ . '/../public/img/logo-dreets.png')): ?>
-                <img src="<?php echo assetUrl('img/logo-dreets.png'); ?>" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
+            <?php
+            $logoDataUri = inlineDataUri('img/logo-dreets.png');
+            if ($logoDataUri): ?>
+                <img src="<?php echo $logoDataUri; ?>" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
             <?php else: ?>
                 <span class="header__logo-text"><?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?></span>
             <?php endif; ?>

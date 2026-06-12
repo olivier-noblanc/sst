@@ -3,6 +3,25 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.8.0] — 2026-06-12
+
+### Architecture — Assets inline : zéro dépendance IIS pour les assets statiques
+
+- **1** 🔴 **CSS inline via `<style>`** — Le CSS n'est plus servi par une requête HTTP séparée. La fonction `inlineCss('css/style.css')` lit le fichier et l'injecte directement dans le HTML via une balise `<style>`. Puisque toutes les pages HTML sont `Cache-Control: no-cache`, le navigateur revalide systématiquement — un cache CSS séparé n'apportait aucune benefit de performance. Le gzip (ob_gzhandler) compresse efficacement le CSS inline. **Élimine le faux positif webhint « content-type should be text/html »** car il n'y a plus de requête asset.php pour le CSS.
+- **2** 🔴 **Favicons en data URI** — Les favicons (`favicon.png`, `favicon.ico`) sont encodés en base64 et injectés via `data:image/png;base64,...` dans les attributs `href` des `<link rel="icon">`. La fonction `inlineDataUri()` lit le fichier et génère automatiquement la data URI. **Élimine le faux positif webhint sur le Content-Type du favicon** (charset, type MIME) et les avertissements Cache-Control max-age.
+- **3** 🔴 **Logo en data URI** — Le logo DREETS (`img/logo-dreets.png`), s'il existe, est également servi en data URI via `inlineDataUri()`.
+- **4** 🟡 **Règles URL Rewrite inbound supprimées du `web.config`** — Plus besoin de réécrire `/assets/...` → `asset.php?f=...`. Seule la règle outbound « Remove Server Header » reste. L'application ne dépend plus du module URL Rewrite IIS pour les assets — seul le header Server sortant l'utilise.
+- **5** 🟡 **`assetUrl()` rétrogradée** — Conservée pour les rares cas nécessitant une requête HTTP séparée (téléchargement de pièces jointes, exports). Le format redevient `asset.php?f=...&v=...`. Plus aucune page ne l'utilise pour le CSS ou les favicons.
+- **6** 🟡 **`router.php` simplifié** — Le routeur de développement ne gère plus les URLs `/assets/...`. Il ne fait que router `asset.php` (legacy) et `index.php`.
+- **7** 🟢 **`asset.php` conservé** — Reste disponible pour servir des assets si nécessaire (pièces jointes, exports CSV/PDF), mais n'est plus appelé pour le CSS ni les favicons.
+
+### Audit — Correctifs webhint résiduels (v3.7.3 reportés)
+
+- **8** 🔴 **Favicon Content-Type : `charset=utf-8` ajouté** — `image/vnd.microsoft.icon; charset=utf-8` dans `asset.php` (au cas où asset.php serait encore appelé pour un favicon).
+- **9** 🔴 **Cache-Control max-age = 180** — `asset.php` et `router.php` appliquent `max-age=180` à tous les assets (webhint exige ≤180). Le flag `immutable` est retiré.
+
+---
+
 ## [3.7.3] — 2026-06-12
 
 ### Audit — webhint : Content-Type, Cache-Control, URL d'assets

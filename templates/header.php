@@ -1,12 +1,9 @@
 <?php
 /**
  * Header Template — Application SST DREETS BFC
- * 
+ *
  * Blue header bar with logo, app title, user name, and logout link.
- */
-/**
- * Security headers — defense in depth against clickjacking, MIME sniffing, XSS escalation.
- * Sent as HTTP headers (not meta tags) for maximum browser support.
+ * Security headers sent as HTTP headers (not meta tags) for maximum browser support.
  */
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
@@ -31,7 +28,7 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
     <header class="header" role="banner">
         <div class="header__logo">
             <?php if (file_exists(__DIR__ . '/../public/img/logo-dreets.png')): ?>
-                <img src="img/logo-dreets.png" alt="DREETS BFC" class="header__logo-img">
+                <img src="img/logo-dreets.png" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
             <?php else: ?>
                 <span class="header__logo-text"><?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?></span>
             <?php endif; ?>
@@ -39,15 +36,12 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
         </div>
         <?php if (isset($_SESSION['user'])): ?>
         <div class="header__user">
+            <button type="button" class="header__menu-btn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="sidebar-nav">&#9776;</button>
             <span class="header__username">
                 <?php echo e($_SESSION['user']['prenom'] ?? ''); ?> <?php echo e($_SESSION['user']['nom'] ?? ''); ?>
-                <span class="badge <?php echo getRoleBadgeClass($_SESSION['user']['role'] ?? ''); ?>" style="margin-left:6px;font-size:11px;">
-                    <?php echo e(ROLE_LABELS[$_SESSION['user']['role'] ?? 'agent'] ?? 'Agent'); ?>
-                </span>
+                <span class="badge <?php echo getRoleBadgeClass($_SESSION['user']['role'] ?? ''); ?> badge--sm"><?php echo e(ROLE_LABELS[$_SESSION['user']['role'] ?? 'agent'] ?? 'Agent'); ?></span>
             </span>
-            <a href="<?php echo url('logout'); ?>" class="header__logout" title="Déconnexion">
-                ⇥ Déconnexion
-            </a>
+            <a href="<?php echo url('logout'); ?>" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
         </div>
         <?php endif; ?>
     </header>

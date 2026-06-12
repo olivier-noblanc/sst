@@ -1,6 +1,6 @@
 /* ============================================================
    Style Sheet — Application SST DREETS BFC
-   Version 1.0
+   Version 2.0
    Complete DREETS visual identity theme
    ============================================================ */
 
@@ -29,6 +29,21 @@
     --role-superviseur: #B22222;
     --role-chsct: #8E44AD;
 
+    /* Visibility badge colors */
+    --visibility-confidential: #6b7280;
+    --visibility-public: #22c55e;
+
+    /* Semantic colors */
+    --color-warning-bg: #fffbeb;
+    --color-warning-border: #fcd34d;
+    --color-warning-text: #92400e;
+    --color-danger-text: #b91c1c;
+    --color-danger-bg: #fef2f2;
+    --color-danger-border: #fca5a5;
+
+    /* Hover highlight (table rows) */
+    --hover-highlight: #E8F0FE;
+
     /* Layout */
     --sidebar-width: 220px;
     --header-height: 60px;
@@ -54,10 +69,26 @@
 
     /* Misc */
     --border-radius: 4px;
+    --border-radius-lg: 8px;
     --shadow: 0 2px 4px rgba(0,0,0,0.1);
     --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     --font-size-base: 14px;
+
+    /* Focus ring */
+    --focus-ring-color: rgba(0,86,163,0.4);
+    --focus-ring-offset: 2px;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+
+    /* z-index layers */
+    --z-sidebar: 90;
+    --z-header: 100;
+    --z-mobile-menu: 200;
+    --z-overlay: 150;
+    --z-skip-link: 9999;
 }
 
 /* ============================================================
@@ -65,21 +96,71 @@
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: var(--font-family);
     font-size: var(--font-size-base);
     color: var(--grey-900);
     background: var(--grey-100);
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 a { color: var(--color-primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-img { max-width: 100%; height: auto; }
+img { max-width: 100%; height: auto; display: block; }
 
 /* ============================================================
-   3. Header — Blue bar at top (#0056A3)
+   3. Focus Styles — Accessibility (keyboard navigation)
+   ============================================================ */
+:focus-visible {
+    outline: 3px solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ============================================================
+   4. Reduced Motion — Respect user preferences
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ============================================================
+   5. High Contrast — Improve visibility
+   ============================================================ */
+@media (prefers-contrast: high) {
+    :root {
+        --grey-300: #bbb;
+        --grey-400: #999;
+        --grey-500: #777;
+        --shadow: 0 2px 4px rgba(0,0,0,0.3);
+        --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .btn {
+        border: 2px solid currentColor;
+    }
+    .badge {
+        border: 1px solid rgba(0,0,0,0.3);
+    }
+}
+
+/* ============================================================
+   6. Header — Blue bar at top (#0056A3)
    ============================================================ */
 .header {
     height: var(--header-height);
@@ -93,7 +174,7 @@ img { max-width: 100%; height: auto; }
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: var(--z-header);
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
@@ -140,7 +221,7 @@ img { max-width: 100%; height: auto; }
     opacity: 0.8;
     padding: 6px 12px;
     border-radius: var(--border-radius);
-    transition: opacity 0.2s, background 0.2s;
+    transition: opacity var(--transition-base), background var(--transition-base);
 }
 .header__logout:hover {
     opacity: 1;
@@ -148,8 +229,26 @@ img { max-width: 100%; height: auto; }
     text-decoration: none;
 }
 
+/* Mobile hamburger button */
+.header__menu-btn {
+    display: none;
+    background: none;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: var(--border-radius);
+    color: white;
+    padding: 6px 10px;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    transition: background var(--transition-fast);
+}
+.header__menu-btn:hover,
+.header__menu-btn:focus-visible {
+    background: rgba(255,255,255,0.15);
+}
+
 /* ============================================================
-   4. Sidebar — Dark grey (#2C3E50), fixed
+   7. Sidebar — Dark grey (#2C3E50), fixed
    ============================================================ */
 .sidebar {
     width: var(--sidebar-width);
@@ -160,10 +259,26 @@ img { max-width: 100%; height: auto; }
     left: 0;
     bottom: 0;
     overflow-y: auto;
-    z-index: 90;
+    z-index: var(--z-sidebar);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: transform var(--transition-base);
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.4);
 }
 
 .sidebar__nav {
@@ -178,7 +293,7 @@ img { max-width: 100%; height: auto; }
     text-decoration: none;
     font-size: 14px;
     border-left: 3px solid transparent;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background var(--transition-base), border-color var(--transition-base);
 }
 
 .sidebar__item:hover {
@@ -205,8 +320,17 @@ img { max-width: 100%; height: auto; }
     border-top: 1px solid rgba(255,255,255,0.1);
 }
 
+/* Mobile overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: calc(var(--z-sidebar) - 1);
+}
+
 /* ============================================================
-   5. Main Content Area
+   8. Main Content Area
    ============================================================ */
 .main {
     margin-left: var(--sidebar-width);
@@ -222,7 +346,7 @@ img { max-width: 100%; height: auto; }
 }
 
 /* ============================================================
-   6. Footer
+   9. Footer
    ============================================================ */
 .footer {
     margin-top: auto;
@@ -237,7 +361,7 @@ img { max-width: 100%; height: auto; }
     color: var(--color-primary);
     text-decoration: none;
     font-weight: 600;
-    transition: color 0.15s ease, text-decoration 0.15s ease;
+    transition: color var(--transition-fast), text-decoration var(--transition-fast);
 }
 
 .footer-version:hover {
@@ -246,7 +370,7 @@ img { max-width: 100%; height: auto; }
 }
 
 /* ============================================================
-   7. Page Title
+   10. Page Title
    ============================================================ */
 .page-title {
     font-size: 22px;
@@ -258,7 +382,7 @@ img { max-width: 100%; height: auto; }
 }
 
 /* ============================================================
-   8. Cards
+   11. Cards
    ============================================================ */
 .card {
     background: white;
@@ -272,8 +396,25 @@ img { max-width: 100%; height: auto; }
 .card--rami { border-top: 4px solid var(--rami-color); }
 .card--dgi  { border-top: 4px solid var(--dgi-color); }
 
+/* Card with danger zone */
+.card--danger {
+    margin-top: 20px;
+    border-top: 4px solid var(--dgi-color);
+}
+
+/* Card title */
+.card__title {
+    margin-bottom: 16px;
+    font-size: 15px;
+}
+
+.card__subtitle {
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
 /* ============================================================
-   9. Home Page — Registry Cards (Blue #3498DB, Grey #7F8C8D, Red #E74C3C)
+   12. Home Page — Registry Cards
    ============================================================ */
 .registry-cards {
     display: flex;
@@ -287,7 +428,7 @@ img { max-width: 100%; height: auto; }
 }
 
 .registry-card {
-    border-radius: 8px;
+    border-radius: var(--border-radius-lg);
     padding: 30px 24px;
     color: white;
     text-align: center;
@@ -296,7 +437,7 @@ img { max-width: 100%; height: auto; }
     flex-direction: column;
     justify-content: space-between;
     box-shadow: var(--shadow-lg);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .registry-card:hover {
@@ -323,7 +464,7 @@ img { max-width: 100%; height: auto; }
     text-decoration: none;
     font-weight: 600;
     font-size: 14px;
-    transition: background 0.2s;
+    transition: background var(--transition-base);
 }
 
 .registry-card__btn:hover {
@@ -332,7 +473,7 @@ img { max-width: 100%; height: auto; }
 }
 
 /* ============================================================
-   10. Buttons — Primary blue, Secondary grey, Danger red, Success green
+   13. Buttons
    ============================================================ */
 .btn {
     display: inline-block;
@@ -344,8 +485,9 @@ img { max-width: 100%; height: auto; }
     cursor: pointer;
     text-decoration: none;
     text-align: center;
-    transition: opacity 0.2s, transform 0.1s;
+    transition: opacity var(--transition-base), transform var(--transition-fast);
     line-height: 1.4;
+    font-family: var(--font-family);
 }
 
 .btn:hover { opacity: 0.85; text-decoration: none; }
@@ -364,8 +506,20 @@ img { max-width: 100%; height: auto; }
 .btn--sm   { padding: 4px 10px; font-size: 12px; }
 .btn--full { width: 100%; display: block; }
 
+/* Button group (inline forms) */
+.btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-group--inline {
+    display: inline-flex;
+    gap: 8px;
+}
+
 /* ============================================================
-   11. Forms
+   14. Forms
    ============================================================ */
 .form-group {
     margin-bottom: 16px;
@@ -389,7 +543,7 @@ img { max-width: 100%; height: auto; }
     font-size: 14px;
     font-family: var(--font-family);
     background: white;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .form-group input:focus,
@@ -408,6 +562,23 @@ img { max-width: 100%; height: auto; }
 
 .form-group input:invalid:not(:placeholder-shown) {
     border-color: var(--dgi-color);
+}
+
+/* Form control — alternative class for consistent input styling */
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    font-family: var(--font-family);
+    background: white;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(0,86,163,0.2);
 }
 
 .form-hint {
@@ -434,6 +605,10 @@ img { max-width: 100%; height: auto; }
     gap: 16px;
 }
 
+.form-grid__full {
+    grid-column: 1 / -1;
+}
+
 @media (max-width: 768px) {
     .form-grid {
         grid-template-columns: 1fr;
@@ -446,10 +621,126 @@ img { max-width: 100%; height: auto; }
     margin-top: 24px;
     padding-top: 16px;
     border-top: 1px solid var(--grey-200);
+    flex-wrap: wrap;
+}
+
+/* Inline form (for button groups in tables) */
+.form--inline {
+    display: inline;
+}
+
+/* Checkbox label — flex layout for checkboxes with text */
+.label--checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.label--checkbox input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+/* Small label variant */
+.label--small {
+    font-weight: normal;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+}
+
+/* Confidential warning (CSS-only toggle, no JS) */
+.confidential-warning {
+    display: none;
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--border-radius-lg);
+    color: var(--color-warning-text);
+    font-size: 13px;
+}
+
+/* CSS :has() toggle — show warning when checkbox unchecked */
+.confidential-toggle:not(:has(.confidential-toggle__input:checked)) .confidential-warning {
+    display: block;
+}
+.confidential-toggle:has(.confidential-toggle__input:checked) .confidential-warning {
+    display: none;
+}
+
+/* Pour compte fields toggle (RAMI form) */
+.pour-compte-fields {
+    display: none;
+}
+.form-grid:has(#pour_compte:checked) .pour-compte-fields {
+    display: block;
+}
+.form-grid:not(:has(#pour_compte:checked)) .pour-compte-fields {
+    display: none;
+}
+
+/* Flex row for side-by-side inputs */
+.flex-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.flex-row > * {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Form row — grid layout */
+.form-row {
+    display: grid;
+    gap: 16px;
+}
+
+.form-row--2-1 {
+    grid-template-columns: 2fr 1fr;
+}
+
+.form-row--1-1 {
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+    .form-row--2-1,
+    .form-row--1-1 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Attachment preview */
+.attachment-preview {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attachment-remove-label {
+    font-size: 13px;
+    color: var(--color-danger-text);
+}
+
+.attachment-image {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--grey-200);
+    cursor: pointer;
 }
 
 /* ============================================================
-   12. Tables — Striped, sortable headers
+   15. Tables
    ============================================================ */
 .table-wrapper {
     overflow-x: auto;
@@ -484,13 +775,13 @@ th.sortable:hover {
 }
 
 th.sortable::after {
-    content: ' ↕';
+    content: ' \2195';  /* ↕ */
     opacity: 0.4;
     font-size: 11px;
 }
 
-th.sort-asc::after  { content: ' ↑'; opacity: 1; }
-th.sort-desc::after { content: ' ↓'; opacity: 1; }
+th.sort-asc::after  { content: ' \2191'; opacity: 1; }  /* ↑ */
+th.sort-desc::after { content: ' \2193'; opacity: 1; }  /* ↓ */
 
 td {
     padding: 10px 12px;
@@ -505,7 +796,7 @@ tr:nth-child(even) td {
 }
 
 tr:hover td {
-    background: #E8F0FE;
+    background: var(--hover-highlight);
 }
 
 /* Report detail table */
@@ -552,8 +843,29 @@ tr:hover td {
     border-top: 1px solid var(--grey-200);
 }
 
+/* Table cell alignment */
+.text-left   { text-align: left; }
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+/* Inactive row */
+.row--inactive {
+    opacity: 0.5;
+}
+
+/* Totals row */
+.row--totals {
+    background: var(--grey-100);
+    font-weight: 600;
+}
+
+/* Table with smaller font */
+.table--compact {
+    font-size: 13px;
+}
+
 /* ============================================================
-   13. Badges
+   16. Badges
    ============================================================ */
 .badge {
     display: inline-block;
@@ -576,8 +888,35 @@ tr:hover td {
 .badge--rami       { background: var(--rami-color); }
 .badge--dgi        { background: var(--dgi-color); }
 
+/* Visibility badges */
+.badge--confidential { background: var(--visibility-confidential); }
+.badge--public       { background: var(--visibility-public); }
+
+/* Badge size variants */
+.badge--sm { font-size: 11px; padding: 2px 8px; }
+
+/* Status indicator (active/inactive dot) */
+.status-dot {
+    font-size: 12px;
+}
+.status-dot--active {
+    color: var(--state-traite);
+}
+.status-dot--inactive {
+    color: var(--state-abandonne);
+}
+
+/* Inline code */
+.code-inline {
+    background: var(--grey-100);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+}
+
 /* ============================================================
-   14. KPI Cards (Statistics page)
+   17. KPI Cards (Statistics page)
    ============================================================ */
 .kpi-grid {
     display: flex;
@@ -623,7 +962,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   15. Alerts / Flash Messages
+   18. Alerts / Flash Messages
    ============================================================ */
 .alert {
     padding: 12px 16px;
@@ -638,7 +977,7 @@ tr:hover td {
 .alert--info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
 
 /* ============================================================
-   16. Pagination
+   19. Pagination
    ============================================================ */
 .pagination {
     display: flex;
@@ -678,7 +1017,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   17. Filter Bar
+   20. Filter Bar
    ============================================================ */
 .filter-bar {
     display: flex;
@@ -701,7 +1040,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   18. Login Page
+   21. Login Page
    ============================================================ */
 .login-body {
     background: var(--grey-200);
@@ -719,7 +1058,7 @@ tr:hover td {
 
 .login-card {
     background: white;
-    border-radius: 8px;
+    border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-lg);
     padding: 40px 32px;
 }
@@ -780,7 +1119,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   19. Print View
+   22. Print View
    ============================================================ */
 .print-view {
     max-width: 800px;
@@ -824,7 +1163,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   20. Confirm Dialog (inline)
+   23. Confirm Dialog (inline)
    ============================================================ */
 .confirm-box {
     background: #fff3cd;
@@ -846,63 +1185,69 @@ tr:hover td {
     justify-content: center;
 }
 
-/* ============================================================
-   21. Utility Classes
-   ============================================================ */
-.text-center { text-align: center; }
-.text-right  { text-align: right; }
-.text-muted  { color: var(--grey-500); }
-.text-small  { font-size: 12px; }
-.mt-0 { margin-top: 0; }
-.mt-2 { margin-top: 8px; }
-.mt-4 { margin-top: 16px; }
-.mb-0 { margin-bottom: 0; }
-.mb-2 { margin-bottom: 8px; }
-.mb-4 { margin-bottom: 16px; }
-.gap-2 { gap: 8px; }
-.gap-4 { gap: 16px; }
-.flex  { display: flex; }
-.flex-wrap { flex-wrap: wrap; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    white-space: nowrap;
-    border: 0;
+/* Confirm dialog for HTML5 <dialog> */
+.confirm-dialog__actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
 }
 
-/* Skip link — visible only on keyboard focus (accessibility) */
-.skip-link {
-    position: absolute;
-    top: -100px;
-    left: 0;
-    z-index: 9999;
-    padding: 8px 16px;
-    background: #1a3a5c;
-    color: #fff;
-    text-decoration: none;
+.confirm-dialog__actions form {
+    display: inline;
+}
+
+/* Inline confirmation (no JS) */
+.confirm-inline {
+    background: var(--grey-100);
+    padding: 16px;
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 12px;
+}
+
+.confirm-inline p {
     font-weight: 600;
-    font-size: 14px;
-    border-radius: 0 0 4px 0;
-}
-.skip-link:focus {
-    top: 0;
+    margin-bottom: 12px;
 }
 
-/* Synthesis table cell styles */
-.synthesis-cell-zero {
-    color: var(--grey-400);
+/* Warning panel */
+.warning-panel {
+    margin-top: 16px;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
 }
 
-.synthesis-cell-value {
+.warning-panel p {
     font-weight: 600;
+    color: var(--color-warning-text);
+}
+
+.warning-panel__hint {
+    font-size: 13px;
+    color: var(--grey-600);
+}
+
+/* Danger panel */
+.danger-panel {
+    margin-top: 16px;
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
+    border-radius: var(--border-radius-lg);
+    padding: 12px 16px;
+    color: var(--color-danger-text);
+    font-size: 13px;
+}
+
+/* Info panel */
+.info-panel {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--border-radius-lg);
+    color: var(--color-warning-text);
+    font-size: 12px;
 }
 
 /* ============================================================
@@ -967,7 +1312,7 @@ tr:hover td {
     text-decoration: none;
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
-    transition: color 0.2s, border-color 0.2s;
+    transition: color var(--transition-base), border-color var(--transition-base);
 }
 .settings-tab:hover {
     color: var(--color-primary);
@@ -979,12 +1324,471 @@ tr:hover td {
     font-weight: 600;
 }
 
+.tab-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--grey-200);
+    flex-wrap: wrap;
+}
+
 /* ============================================================
-   22. Print Styles
+   26. Changelog
+   ============================================================ */
+.changelog-content {
+    background: #fff;
+    border: 1px solid var(--grey-200);
+    border-radius: var(--border-radius-lg);
+    padding: 24px 32px;
+    max-width: 900px;
+    line-height: 1.7;
+}
+
+.changelog-content h1 {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 8px;
+    margin-top: 0;
+}
+
+.changelog-content h2 {
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    border-bottom: 1px solid var(--grey-200);
+    padding-bottom: 6px;
+    margin-top: 28px;
+}
+
+.changelog-content h3 {
+    font-size: 1.05rem;
+    color: var(--color-primary-dark);
+    margin-top: 18px;
+}
+
+.changelog-content ul {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.changelog-content li {
+    margin: 4px 0;
+}
+
+.changelog-content strong {
+    color: var(--color-primary);
+}
+
+.changelog-content code {
+    background: var(--grey-100);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.changelog-content hr {
+    border: none;
+    border-top: 1px solid var(--grey-200);
+    margin: 24px 0;
+}
+
+.changelog-content p {
+    margin: 8px 0;
+}
+
+/* ============================================================
+   27. Help / Documentation
+   ============================================================ */
+.help-profile-card {
+    border: 1px solid var(--grey-200);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+    border-left: 4px solid var(--rsst-color);
+}
+
+.help-profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+/* ============================================================
+   28. Settings — Add site form
+   ============================================================ */
+.add-site-form {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--grey-50);
+    border-radius: var(--border-radius-lg);
+    border: 1px dashed var(--grey-300);
+}
+
+.add-site-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+}
+
+@media (max-width: 768px) {
+    .add-site-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* SMTP test section */
+.smtp-test-section {
+    border: 1px dashed var(--grey-300);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+}
+
+.smtp-test-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+/* Visibility radios layout */
+.visibility-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.visibility-radio-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.visibility-radio-label input[type="radio"] {
+    margin-top: 3px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   29. Utility Classes
+   ============================================================ */
+.text-muted  { color: var(--grey-500); }
+.text-small  { font-size: 12px; }
+.mt-0 { margin-top: 0; }
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.mb-0 { margin-bottom: 0; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.flex  { display: flex; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Skip link — visible only on keyboard focus (accessibility) */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    z-index: var(--z-skip-link);
+    padding: 8px 16px;
+    background: #1a3a5c;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 0 0 var(--border-radius) 0;
+}
+.skip-link:focus {
+    top: 0;
+}
+
+/* Synthesis table cell styles */
+.synthesis-cell-zero {
+    color: var(--grey-400);
+}
+
+.synthesis-cell-value {
+    font-weight: 600;
+}
+
+/* User count info */
+.result-count {
+    margin-top: 12px;
+    color: var(--grey-500);
+    font-size: 12px;
+}
+
+/* Page header (changelog) */
+.page-header {
+    margin-bottom: 20px;
+}
+
+/* RGPD section */
+.rgpd-section {
+    margin-top: 20px;
+}
+
+.rgpd-section__desc {
+    color: var(--grey-500);
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+/* Separator */
+.separator {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--grey-200);
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    color: var(--grey-500);
+    padding: 24px;
+}
+
+/* Date range input group */
+.date-range {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.date-range span {
+    color: var(--grey-500);
+}
+
+/* Max-width container */
+.container--narrow {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Quick access links */
+.quick-access {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Visibility header */
+.section-header {
+    margin-bottom: 12px;
+}
+
+.section-header--danger {
+    color: var(--dgi-color);
+}
+
+/* Checkbox group */
+.checkbox-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+/* ============================================================
+   32. Content Pages (Preamble, Help)
+   ============================================================ */
+.content-section {
+    line-height: 1.7;
+}
+
+.content-section p {
+    margin-bottom: 16px;
+}
+
+.content-section h2 {
+    margin-bottom: 16px;
+    color: var(--color-primary);
+}
+
+.content-section h3 {
+    margin-bottom: 12px;
+}
+
+.content-section ul {
+    margin-top: 8px;
+    margin-left: 20px;
+    line-height: 1.8;
+}
+
+.content-section li {
+    margin-bottom: 4px;
+}
+
+/* Card with bottom spacing */
+.card--spaced {
+    margin-bottom: 16px;
+}
+
+/* Card with top spacing */
+.card--spaced-top {
+    margin-top: 16px;
+}
+
+/* Required asterisk (red) */
+.required-star {
+    color: var(--dgi-color);
+}
+
+/* ============================================================
+   29b. Help Page Styles
+   ============================================================ */
+.help-profile-card--superviseur {
+    border-left-color: var(--role-superviseur);
+}
+
+.help-profile-card--chsct {
+    border-left-color: var(--role-chsct);
+}
+
+.help-note {
+    font-size: 12px;
+    color: var(--grey-500);
+    margin-top: 10px;
+    border-top: 1px solid var(--grey-100);
+    padding-top: 8px;
+}
+
+.help-feature-list {
+    font-size: 13px;
+    margin: 0;
+    padding-left: 18px;
+}
+
+.help-description {
+    font-size: 13px;
+    color: var(--grey-600);
+    margin-bottom: 12px;
+}
+
+.help-description--title {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.help-note--inline {
+    border-top: none;
+    padding-top: 0;
+}
+
+.help-profile-card--rsst {
+    border-left: none;
+    border-top: 4px solid var(--rsst-color);
+}
+
+.help-profile-card--rsst h3 {
+    color: var(--rsst-color);
+}
+
+.help-profile-card--rami {
+    border-left: none;
+    border-top: 4px solid var(--rami-color);
+}
+
+.help-profile-card--rami h3 {
+    color: var(--rami-color);
+}
+
+.help-profile-card--dgi {
+    border-left: none;
+    border-top: 4px solid var(--dgi-color);
+}
+
+.help-profile-card--dgi h3 {
+    color: var(--dgi-color);
+}
+
+.help-workflow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.help-workflow .badge {
+    font-size: 13px;
+    padding: 6px 14px;
+}
+
+.help-case-label {
+    margin-bottom: 10px;
+}
+
+.help-case-body {
+    line-height: 1.8;
+}
+
+.help-case-body ol {
+    padding-left: 20px;
+}
+
+.help-warning-callout {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #92400e;
+}
+
+.help-auth-card--prod {
+    padding: 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+}
+
+.help-auth-card--prod h4 {
+    margin-bottom: 6px;
+    color: #166534;
+}
+
+.help-auth-card--dev {
+    padding: 12px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+}
+
+.help-auth-card--dev h4 {
+    margin-bottom: 6px;
+    color: #92400e;
+}
+
+.help-separator-row {
+    border-top: 2px solid var(--grey-200);
+}
+
+/* ============================================================
+   30. Print Styles
    ============================================================ */
 @media print {
-    .header, .sidebar, .filter-bar, .btn, .pagination, .print-hint,
-    .form-actions, .confirm-box, .footer {
+    .header, .sidebar, .sidebar-overlay, .filter-bar, .btn, .pagination, .print-hint,
+    .form-actions, .confirm-box, .footer, .header__menu-btn {
         display: none !important;
     }
     .main {
@@ -1015,38 +1819,67 @@ tr:hover td {
 }
 
 /* ============================================================
-   23. Responsive
+   31. Responsive
    ============================================================ */
 @media (max-width: 768px) {
-    .sidebar {
-        display: none;
+    /* Show hamburger button */
+    .header__menu-btn {
+        display: block;
     }
+
+    /* Sidebar slides in from left */
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: var(--z-mobile-menu);
+    }
+
+    .sidebar--open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay--visible {
+        display: block;
+    }
+
     .main {
         margin-left: 0;
     }
+
     .registry-cards {
         flex-direction: column;
     }
+
     .kpi-grid {
         flex-direction: column;
     }
+
     .filter-bar {
         flex-direction: column;
     }
+
     .form-grid {
         grid-template-columns: 1fr;
     }
+
     .report-detail__header {
         flex-direction: column;
         align-items: flex-start;
     }
+
     .header__title {
         display: none;
     }
+
     .form-actions {
         flex-direction: column;
     }
+
     .form-actions .btn {
         width: 100%;
+    }
+
+    .tab-bar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }

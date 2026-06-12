@@ -136,7 +136,7 @@ $pageTitle = 'Synthèse des signalements';
                 </tr>
                 <?php endforeach; ?>
                 <!-- Totals row -->
-                <tr style="background:var(--grey-100);font-weight:600;">
+                <tr class="row--totals">
                     <td><strong>Total</strong></td>
                     <?php foreach (['rsst', 'rami', 'dgi'] as $type): ?>
                         <?php foreach (['nouveau', 'en_cours', 'traite', 'total'] as $state): ?>

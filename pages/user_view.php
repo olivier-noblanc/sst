@@ -37,13 +37,13 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
         <div>
-            <h2 style="margin-bottom:4px;"><?php echo e($user['prenom'] . ' ' . $user['nom']); ?></h2>
-            <div style="display:flex;gap:8px;align-items:center;">
+            <h2 class="card__subtitle" style="margin-bottom:4px;"><?php echo e($user['prenom'] . ' ' . $user['nom']); ?></h2>
+            <div class="btn-group--inline" style="align-items:center;">
                 <span class="badge <?php echo getRoleBadgeClass($user['role']); ?>"><?php echo e(ROLE_LABELS[$user['role']] ?? $user['role']); ?></span>
                 <?php if ($user['is_active']): ?>
-                    <span style="color:var(--state-traite);font-size:12px;">● Actif</span>
+                    <span class="status-dot--active">&#x25CF; Actif</span>
                 <?php else: ?>
-                    <span style="color:var(--state-abandonne);font-size:12px;">● Inactif</span>
+                    <span class="status-dot--inactive">&#x25CF; Inactif</span>
                 <?php endif; ?>
             </div>
         </div>
@@ -65,7 +65,7 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
         </tr>
         <tr>
             <th>Identifiant</th>
-            <td><code style="background:var(--grey-100);padding:2px 6px;border-radius:3px;"><?php echo e($user['username']); ?></code></td>
+            <td><code class="code-inline"><?php echo e($user['username']); ?></code></td>
         </tr>
         <tr>
             <th>Rôle</th>
@@ -96,29 +96,29 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
 </div>
 
 <?php if ($user['is_active'] || $user['nom'] !== 'Anonymisé'): ?>
-<div class="card" style="margin-top:20px;">
-    <h3 style="margin-bottom:12px;color:var(--grey-600);">RGPD — Données personnelles</h3>
-    <p style="color:var(--grey-500);font-size:13px;margin-bottom:16px;">
+<div class="card rgpd-section" style="margin-top:20px;">
+    <h3 class="card__subtitle text-muted">RGPD — Données personnelles</h3>
+    <p class="rgpd-section__desc">
         Conformément au RGPD, l'utilisateur peut exercer son droit d'accès (export) ou d'effacement (anonymisation).
         L'anonymisation remplace les données personnelles par des placeholders et désactive le compte. Les signalements sont conservés.
     </p>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <div class="btn-group" style="flex-wrap:wrap;">
         <form method="POST" action="<?php echo url('user_edit', ['id' => (int) $user['id']]); ?>">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
             <input type="hidden" name="action" value="export_data">
-            <button type="submit" class="btn btn--outline" style="font-size:13px;">📥 Exporter les données (droit d'accès)</button>
+            <button type="submit" class="btn btn--outline text-small">&#x1F4E5; Exporter les données (droit d'accès)</button>
         </form>
         <?php if ($user['nom'] !== 'Anonymisé'): ?>
         <?php if (isset($_GET['confirm_anonymize'])): ?>
-        <span style="font-weight:600;color:var(--dgi-color);">⚠️ Anonymiser définitivement ?</span>
-        <form method="POST" action="<?php echo url('user_edit', ['id' => (int) $user['id']]); ?>" style="display:inline;">
+        <span class="section-header--danger">&#x26A0;&#xFE0F; Anonymiser définitivement ?</span>
+        <form method="POST" action="<?php echo url('user_edit', ['id' => (int) $user['id']]); ?>" class="form--inline">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
             <input type="hidden" name="action" value="anonymize">
-            <button type="submit" class="btn btn--danger" style="font-size:13px;">Oui, anonymiser</button>
+            <button type="submit" class="btn btn--danger text-small">Oui, anonymiser</button>
         </form>
-        <a href="<?php echo url('user_view', ['id' => (int) $user['id']]); ?>" class="btn btn--secondary" style="font-size:13px;">Annuler</a>
+        <a href="<?php echo url('user_view', ['id' => (int) $user['id']]); ?>" class="btn btn--secondary text-small">Annuler</a>
         <?php else: ?>
-        <a href="<?php echo url('user_view', ['id' => (int) $user['id'], 'confirm_anonymize' => 1]); ?>" class="btn btn--danger" style="font-size:13px;">🔒 Anonymiser (droit d'effacement)</a>
+        <a href="<?php echo url('user_view', ['id' => (int) $user['id'], 'confirm_anonymize' => 1]); ?>" class="btn btn--danger text-small">&#x1F512; Anonymiser (droit d'effacement)</a>
         <?php endif; ?>
         <?php endif; ?>
     </div>

@@ -119,7 +119,7 @@ $pageTitle = 'Statistiques';
 
 <!-- Table: Reports by site and registry -->
 <div class="card">
-    <h3 style="margin-bottom:16px;">Nombre de signalements réparti par <?php echo e(getConfig('app_label_unite', 'UR')); ?> et par registre</h3>
+    <h3 class="card__title">Nombre de signalements réparti par <?php echo e(getConfig('app_label_unite', 'UR')); ?> et par registre</h3>
     <div class="table-wrapper">
         <table>
             <thead>
@@ -142,7 +142,7 @@ $pageTitle = 'Statistiques';
                 </tr>
                 <?php endforeach; ?>
                 <!-- Totals row -->
-                <tr style="background:var(--grey-100);font-weight:600;">
+                <tr class="row--totals">
                     <td><strong>Total</strong></td>
                     <td style="text-align:center;" class="synthesis-cell-value"><?php echo $totalRsst; ?></td>
                     <td style="text-align:center;" class="synthesis-cell-value"><?php echo $totalDgi; ?></td>

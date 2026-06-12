@@ -1,0 +1,495 @@
+     1→<?php
+     2→/**
+     3→ * Help / Documentation Page — Application SST DREETS BFC
+     4→ * 
+     5→ * Documents the 3 user profiles, their permissions,
+     6→ * and the 3 registries with their specific features.
+     7→ * Conformant to the DIRECCTE SST reference documentation.
+     8→ */
+     9→$pageTitle = 'Documentation';
+    10→$userRole = $_SESSION['user']['role'] ?? 'agent';
+    11→?>
+    12→
+    13→<h1 class="page-title">&#x1F4DA; Documentation</h1>
+    14→
+    15→<!-- ============================================================ -->
+    16→<!-- Profils utilisateurs                                          -->
+    17→<!-- ============================================================ -->
+    18→<div class="card card--spaced content-section">
+    19→    <h2>&#x1F465; Profils utilisateurs</h2>
+    20→    <p class="help-description">L'application dispose de 3 profils avec des droits croissants. En production, le profil est attribué par un Superviseur via la gestion des utilisateurs, ou automatiquement via la liste des superviseurs configurée dans les Paramètres (utile pour une première installation).</p>
+    21→
+    22→    <div class="help-profiles-grid">
+    23→
+    24→        <!-- Agent -->
+    25→        <div class="help-profile-card">
+    26→            <h3>
+    27→                <span class="badge badge--agent badge--sm">Agent</span>
+    28→            </h3>
+    29→            <p class="help-description">Profil par défaut de tout nouvel utilisateur. L'agent peut signaler des événements et suivre les signalements de son site. À la première connexion, l'agent choisit son site (définitif, seul un superviseur peut le changer).</p>
+    30→            <ul class="help-feature-list">
+    31→                <li>Accéder à l'accueil</li>
+    32→                <li>Créer un signalement (RSST, RAMI, DGI)</li>
+    33→                <li>Consulter la liste des signalements de son site</li>
+    34→                <li>Voir le détail d'un signalement</li>
+    35→                <li>Modifier un signalement tant qu'il n'est pas traité</li>
+    36→                <li>Consulter le Préambule</li>
+    37→            </ul>
+    38→            <p class="help-note">
+    39→                &#x1F512; La visibilité des signalements dépend du paramétrage choisi par le superviseur : confidentiel (ses signalements uniquement), choix de l'agent (public ou confidentiel au dépôt), ou public (tous les signalements du site).
+    40→            </p>
+    41→        </div>
+    42→
+    43→        <!-- Superviseur -->
+    44→        <div class="help-profile-card help-profile-card--superviseur">
+    45→            <h3>
+    46→                <span class="badge badge--superviseur badge--sm">Superviseur</span>
+    47→            </h3>
+    48→            <p class="help-description">Profil d'administration. Le superviseur gère les réponses aux signalements, les utilisateurs et la configuration de l'application. Il peut également attribuer le rôle superviseur à d'autres utilisateurs.</p>
+    49→            <ul class="help-feature-list">
+    50→                <li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
+    51→                <li>Répondre à un signalement (passer en « En cours » ou « Traité »)</li>
+    52→                <li>Abandonner un signalement</li>
+    53→                <li>Voir les signalements de <strong>tous les sites</strong></li>
+    54→                <li>Accéder à la <strong>Synthèse</strong></li>
+    55→                <li>Accéder aux <strong>Statistiques</strong></li>
+    56→                <li><strong>Exporter</strong> les données</li>
+    57→                <li>Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver, attribuer les rôles)</li>
+    58→                <li>Configurer les <strong>paramètres</strong> (SMTP, notifications, application)</li>
+    59→                <li>Imprimer une fiche de signalement</li>
+    60→            </ul>
+    61→            <p class="help-note">
+    62→                &#x1F511; Peut être attribué par un autre superviseur via la gestion des utilisateurs, ou auto-attribué via <strong>Paramètres &rarr; Logins Windows des superviseurs</strong> (utile pour une première installation).
+    63→            </p>
+    64→        </div>
+    65→
+    66→        <!-- CHSCT -->
+    67→        <div class="help-profile-card help-profile-card--chsct">
+    68→            <h3>
+    69→                <span class="badge badge--chsct badge--sm">Membre CHSCT</span>
+    70→            </h3>
+    71→            <p class="help-description">Membre de la Commission Hygiène, Sécurité et Conditions de Travail. Accès en consultation élargie sur tous les sites pour le suivi des registres SST.</p>
+    72→            <ul class="help-feature-list">
+    73→                <li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
+    74→                <li>Voir les signalements de <strong>tous les sites</strong></li>
+    75→                <li>Accéder à la <strong>Synthèse</strong></li>
+    76→                <li>Accéder aux <strong>Statistiques</strong></li>
+    77→                <li><strong>Exporter</strong> les données</li>
+    78→            </ul>
+    79→            <p class="help-note">
+    80→                &#x26A0; Ne peut pas répondre aux signalements ni gérer les utilisateurs. Rôle de consultation uniquement.
+    81→            </p>
+    82→        </div>
+    83→    </div>
+    84→</div>
+    85→
+    86→<!-- ============================================================ -->
+    87→<!-- Tableau récapitulatif des droits                              -->
+    88→<!-- ============================================================ -->
+    89→<div class="card card--spaced content-section">
+    90→    <h2>&#x1F512; Tableau des droits</h2>
+    91→    <div class="table-wrapper">
+    92→        <table class="table table--compact" style="min-width:500px;">
+    93→            <thead>
+    94→                <tr>
+    95→                    <th style="text-align:left;">Fonctionnalit&eacute;</th>
+    96→                    <th class="text-center">Agent</th>
+    97→                    <th class="text-center">Superviseur</th>
+    98→                    <th class="text-center">CHSCT</th>
+    99→                </tr>
+   100→            </thead>
+   101→            <tbody>
+   102→                <tr>
+   103→                    <td>Cr&eacute;er un signalement</td>
+   104→                    <td class="text-center">&#x2705;</td>
+   105→                    <td class="text-center">&#x2705;</td>
+   106→                    <td class="text-center">&#x2705;</td>
+   107→                </tr>
+   108→                <tr>
+   109→                    <td>Voir ses signalements</td>
+   110→                    <td class="text-center">&#x2705;</td>
+   111→                    <td class="text-center">&#x2705;</td>
+   112→                    <td class="text-center">&#x2705;</td>
+   113→                </tr>
+   114→                <tr>
+   115→                    <td>Modifier un signalement (non trait&eacute;)</td>
+   116→                    <td class="text-center">&#x2705;</td>
+   117→                    <td class="text-center">&#x2705;</td>
+   118→                    <td class="text-center">&#x2705;</td>
+   119→                </tr>
+   120→                <tr>
+   121→                    <td>Voir les signalements de tous les sites</td>
+   122→                    <td class="text-center">&#x274C;</td>
+   123→                    <td class="text-center">&#x2705;</td>
+   124→                    <td class="text-center">&#x2705;</td>
+   125→                </tr>
+   126→                <tr>
+   127→                    <td>R&eacute;pondre &agrave; un signalement</td>
+   128→                    <td class="text-center">&#x274C;</td>
+   129→                    <td class="text-center">&#x2705;</td>
+   130→                    <td class="text-center">&#x274C;</td>
+   131→                </tr>
+   132→                <tr>
+   133→                    <td>Abandonner un signalement</td>
+   134→                    <td class="text-center">&#x274C;</td>
+   135→                    <td class="text-center">&#x2705;</td>
+   136→                    <td class="text-center">&#x274C;</td>
+   137→                </tr>
+   138→                <tr>
+   139→                    <td>Imprimer une fiche</td>
+   140→                    <td class="text-center">&#x274C;</td>
+   141→                    <td class="text-center">&#x2705;</td>
+   142→                    <td class="text-center">&#x274C;</td>
+   143→                </tr>
+   144→                <tr>
+   145→                    <td>Synth&egrave;se des signalements</td>
+   146→                    <td class="text-center">&#x274C;</td>
+   147→                    <td class="text-center">&#x2705;</td>
+   148→                    <td class="text-center">&#x2705;</td>
+   149→                </tr>
+   150→                <tr>
+   151→                    <td>Statistiques</td>
+   152→                    <td class="text-center">&#x274C;</td>
+   153→                    <td class="text-center">&#x2705;</td>
+   154→                    <td class="text-center">&#x2705;</td>
+   155→                </tr>
+   156→                <tr>
+   157→                    <td>Exporter les donn&eacute;es</td>
+   158→                    <td class="text-center">&#x274C;</td>
+   159→                    <td class="text-center">&#x2705;</td>
+   160→                    <td class="text-center">&#x2705;</td>
+   161→                </tr>
+   162→                <tr>
+   163→                    <td>G&eacute;rer les utilisateurs</td>
+   164→                    <td class="text-center">&#x274C;</td>
+   165→                    <td class="text-center">&#x2705;</td>
+   166→                    <td class="text-center">&#x274C;</td>
+   167→                </tr>
+   168→                <tr>
+   169→                    <td>Param&egrave;tres de l'application</td>
+   170→                    <td class="text-center">&#x274C;</td>
+   171→                    <td class="text-center">&#x2705;</td>
+   172→                    <td class="text-center">&#x274C;</td>
+   173→                </tr>
+   174→            </tbody>
+   175→        </table>
+   176→    </div>
+   177→</div>
+   178→
+   179→<!-- ============================================================ -->
+   180→<!-- Confidentialité des signalements                              -->
+   181→<!-- ============================================================ -->
+   182→<div class="card card--spaced content-section">
+   183→    <h2>&#x1F510; Confidentialit&eacute; des signalements</h2>
+   184→    <p class="help-description">La visibilit&eacute; des signalements d&eacute;pend du param&eacute;trage choisi par le superviseur dans les Param&egrave;tres de l'application :</p>
+   185→    <div class="table-wrapper">
+   186→        <table class="table table--compact">
+   187→            <thead>
+   188→                <tr>
+   189→                    <th>Mode</th>
+   190→                    <th>Visibilit&eacute; de l'agent</th>
+   191→                    <th>D&eacute;tail</th>
+   192→                </tr>
+   193→            </thead>
+   194→            <tbody>
+   195→                <tr>
+   196→                    <td><strong>Confidentiel</strong></td>
+   197→                    <td>Ses signalements uniquement</td>
+   198→                    <td>L'agent ne voit que ses propres signalements. Les autres agents ne voient rien de ses signalements, pas m&ecirc;me le titre. C'est le mode le plus restrictif.</td>
+   199→                </tr>
+   200→                <tr>
+   201→                    <td><strong>Choix de l'agent</strong></td>
+   202→                    <td>D&eacute;pend du choix au d&eacute;p&ocirc;t</td>
+   203→                    <td>L'agent choisit la visibilit&eacute; de chaque signalement lors de la cr&eacute;ation. Par d&eacute;faut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements (m&ecirc;me confidentiels).</td>
+   204→                </tr>
+   205→                <tr>
+   206→                    <td><strong>Visibilit&eacute; publique</strong></td>
+   207→                    <td>Tous les signalements du site</td>
+   208→                    <td>Tous les signalements du site sont visibles par tous les agents du site.</td>
+   209→                </tr>
+   210→                <tr style="border-top:2px solid var(--grey-200);">
+   211→                    <td><span class="badge badge--superviseur">Superviseur</span></td>
+   212→                    <td>Tous les sites</td>
+   213→                    <td>Le superviseur a acc&egrave;s &agrave; l'ensemble des signalements, tous sites confondus, y compris les confidentiels.</td>
+   214→                </tr>
+   215→                <tr>
+   216→                    <td><span class="badge badge--chsct">CHSCT</span></td>
+   217→                    <td>Tous les sites</td>
+   218→                    <td>Le membre CHSCT peut consulter tous les signalements, y compris les confidentiels, pour l'exercice de ses missions.</td>
+   219→                </tr>
+   220→            </tbody>
+   221→        </table>
+   222→    </div>
+   223→</div>
+   224→
+   225→<!-- ============================================================ -->
+   226→<!-- Les 3 registres                                               -->
+   227→<!-- ============================================================ -->
+   228→<div class="card card--spaced content-section">
+   229→    <h2>&#x1F4CB; Les 3 registres</h2>
+   230→
+   231→    <div class="help-profiles-grid">
+   232→
+   233→        <div class="help-profile-card" style="border-left:none;border-top:4px solid var(--rsst-color);">
+   234→            <h3 style="color:var(--rsst-color);">&#x1F4CB; RSST</h3>
+   235→            <p class="help-description" style="font-weight:600;margin-bottom:6px;">Registre de Sant&eacute; et de S&eacute;curit&eacute; au Travail</p>
+   236→            <p class="help-description">Signalement de tout &eacute;v&eacute;nement li&eacute; &agrave; la sant&eacute; ou la s&eacute;curit&eacute; au travail : conditions de travail dangereuses, &eacute;quipements d&eacute;fectueux, risques professionnels, etc.</p>
+   237→            <p class="help-note" style="border-top:none;padding-top:0;">Champ sp&eacute;cifique : <strong>Lieu</strong> de l'&eacute;v&eacute;nement.</p>
+   238→        </div>
+   239→
+   240→        <div class="help-profile-card" style="border-left:none;border-top:4px solid var(--rami-color);">
+   241→            <h3 style="color:var(--rami-color);">&#x26A0;&#xFE0F; RAMI</h3>
+   242→            <p class="help-description" style="font-weight:600;margin-bottom:6px;">Registre des Actes d'Agressions, de Menaces et d'Incivilit&eacute;s</p>
+   243→            <p class="help-description">Signalement d'agressions physiques ou verbales, de menaces, ou d'incivilit&eacute;s subies par un agent dans le cadre de ses fonctions.</p>
+   244→            <p class="help-note" style="border-top:none;padding-top:0;">Champ sp&eacute;cifique : <strong>&laquo; Pour le compte de &raquo;</strong> (signalement pour un tiers).</p>
+   245→        </div>
+   246→
+   247→        <div class="help-profile-card" style="border-left:none;border-top:4px solid var(--dgi-color);">
+   248→            <h3 style="color:var(--dgi-color);">&#x1F534; DGI</h3>
+   249→            <p class="help-description" style="font-weight:600;margin-bottom:6px;">Registre de signalement d'un Danger Grave et Imminent</p>
+   250→            <p class="help-description">Signalement d'une situation de danger grave et imminent n&eacute;cessitant une action imm&eacute;diate. Ce registre b&eacute;n&eacute;ficie d'une proc&eacute;dure acc&eacute;l&eacute;r&eacute;e.</p>
+   251→            <p class="help-note" style="border-top:none;padding-top:0;">Proc&eacute;dure : <strong>traitement prioritaire</strong>, notification imm&eacute;diate.</p>
+   252→        </div>
+   253→    </div>
+   254→</div>
+   255→
+   256→<!-- ============================================================ -->
+   257→<!-- Cycle de vie d'un signalement                                 -->
+   258→<!-- ============================================================ -->
+   259→<div class="card card--spaced content-section">
+   260→    <h2>&#x1F504; Cycle de vie d'un signalement</h2>
+   261→    <p class="help-description">Chaque signalement suit un workflow en 4 &eacute;tats :</p>
+   262→    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+   263→        <span class="badge badge--nouveau" style="font-size:13px;padding:6px 14px;">Nouveau</span>
+   264→        <span class="text-muted">&rarr;</span>
+   265→        <span class="badge badge--en-cours" style="font-size:13px;padding:6px 14px;">En cours</span>
+   266→        <span class="text-muted">&rarr;</span>
+   267→        <span class="badge badge--traite" style="font-size:13px;padding:6px 14px;">Traité</span>
+   268→        <span class="text-muted">ou</span>
+   269→        <span class="badge badge--abandonne" style="font-size:13px;padding:6px 14px;">Abandonné</span>
+   270→    </div>
+   271→    <div class="table-wrapper">
+   272→        <table class="table table--compact">
+   273→            <thead>
+   274→                <tr>
+   275→                    <th style="text-align:left;">&Eacute;tat</th>
+   276→                    <th style="text-align:left;">Description</th>
+   277→                    <th style="text-align:left;">Qui peut changer ?</th>
+   278→                </tr>
+   279→            </thead>
+   280→            <tbody>
+   281→                <tr>
+   282→                    <td><span class="badge badge--nouveau">Nouveau</span></td>
+   283→                    <td>Signalement cr&eacute;&eacute; par un agent, en attente de traitement</td>
+   284→                    <td>&Eacute;tat initial &agrave; la cr&eacute;ation</td>
+   285→                </tr>
+   286→                <tr>
+   287→                    <td><span class="badge badge--en-cours">En cours</span></td>
+   288→                    <td>Un superviseur a pris en charge le signalement</td>
+   289→                    <td>Superviseur (via &laquo; R&eacute;pondre &raquo;)</td>
+   290→                </tr>
+   291→                <tr>
+   292→                    <td><span class="badge badge--traite">Trait&eacute;</span></td>
+   293→                    <td>Le signalement a &eacute;t&eacute; trait&eacute; et une r&eacute;ponse a &eacute;t&eacute; apport&eacute;e</td>
+   294→                    <td>Superviseur (via &laquo; R&eacute;pondre &raquo;)</td>
+   295→                </tr>
+   296→                <tr>
+   297→                    <td><span class="badge badge--abandonne">Abandonn&eacute;</span></td>
+   298→                    <td>Le signalement a &eacute;t&eacute; abandonn&eacute; (hors d&eacute;lai, doublon, etc.)</td>
+   299→                    <td>Superviseur (via &laquo; Abandonner &raquo;)</td>
+   300→                </tr>
+   301→            </tbody>
+   302→        </table>
+   303→    </div>
+   304→</div>
+   305→
+   306→<!-- ============================================================ -->
+   307→<!-- Cas d'usage                                                   -->
+   308→<!-- ============================================================ -->
+   309→<div class="card card--spaced content-section">
+   310→    <h2>&#x1F3AF; Cas d'usage</h2>
+   311→    <p class="help-description">Sc&eacute;narios concrets d'utilisation de l'application selon le profil et la situation.</p>
+   312→
+   313→    <!-- CU1 : Agent signale -->
+   314→    <div class="help-profile-card card--spaced">
+   315→        <h3>CU1 — Un agent signale un &eacute;v&eacute;nement dans le registre RSST</h3>
+   316→        <p class="text-small text-muted" style="margin-bottom:10px;">Profil : Agent &bull; Registre : RSST</p>
+   317→        <div class="help-feature-list" style="line-height:1.8;">
+   318→            <strong>Situation :</strong> Jean, agent &agrave; l'UR C&ocirc;te-d'Or, constate que la rampe d'escalier du 2e &eacute;tage est desserr&eacute;e et pr&eacute;sente un risque de chute.<br><br>
+   319→            <strong>Parcours :</strong>
+   320→            <ol style="padding-left:20px;">
+   321→                <li>Jean se connecte &agrave; l'application (automatiquement via Windows Auth en prod)</li>
+   322→                <li>Sur l'accueil, il clique sur <strong>&laquo; Inscrire un signalement &raquo;</strong> sur la carte RSST</li>
+   323→                <li>Il remplit le formulaire :
+   324→                    <ul class="help-feature-list">
+   325→                        <li><strong>Objet</strong> : &laquo; Rampe d'escalier desserr&eacute;e - risque de chute &raquo;</li>
+   326→                        <li><strong>Date de l'&eacute;v&eacute;nement</strong> : date du jour</li>
+   327→                        <li><strong>Lieu</strong> : &laquo; B&acirc;timent principal, 2e &eacute;tage, escalier B &raquo;</li>
+   328→                        <li><strong>Description</strong> : d&eacute;tail de la situation observ&eacute;e</li>
+   329→                    </ul>
+   330→                </li>
+   331→                <li>Il valide &rarr; le signalement est cr&eacute;&eacute; avec le statut <span class="badge badge--nouveau">Nouveau</span> et la r&eacute;f&eacute;rence <code>rsst-25-001</code></li>
+   332→                <li>Un e-mail de notification est envoy&eacute; aux adresses configur&eacute;es pour ce site</li>
+   333→                <li>Jean peut suivre son signalement dans la liste RSST de son site</li>
+   334→            </ol>
+   335→        </div>
+   336→    </div>
+   337→
+   338→    <!-- CU2 : RAMI pour un tiers -->
+   339→    <div class="help-profile-card card--spaced">
+   340→        <h3>CU2 — Signalement RAMI pour le compte d'un coll&egrave;gue</h3>
+   341→        <p class="text-small text-muted" style="margin-bottom:10px;">Profil : Agent &bull; Registre : RAMI</p>
+   342→        <div class="help-feature-list" style="line-height:1.8;">
+   343→            <strong>Situation :</strong> Sophie, agent au Si&egrave;ge, est t&eacute;moin d'une agression verbale envers son coll&egrave;gue Pierre par un usager. Pierre est trop choqu&eacute; pour faire le signalement lui-m&ecirc;me.<br><br>
+   344→            <strong>Parcours :</strong>
+   345→            <ol style="padding-left:20px;">
+   346→                <li>Sophie clique sur <strong>&laquo; Inscrire un signalement &raquo;</strong> sur la carte RAMI</li>
+   347→                <li>Elle remplit le formulaire et coche <strong>&laquo; Pour le compte de &raquo;</strong> (champ sp&eacute;cifique RAMI)</li>
+   348→                <li>Elle s&eacute;lectionne <strong>Pierre Dupont</strong> dans la liste des agents comme b&eacute;n&eacute;ficiaire du signalement</li>
+   349→                <li>Elle d&eacute;crit les faits de mani&egrave;re objective avec date, heure et lieu</li>
+   350→                <li>Le signalement est enregistr&eacute; — Sophie appara&icirc;t comme d&eacute;clarant, Pierre comme &laquo; pour le compte de &raquo;</li>
+   351→            </ol>
+   352→        </div>
+   353→    </div>
+   354→
+   355→    <!-- CU3 : DGI urgence -->
+   356→    <div class="help-profile-card card--spaced">
+   357→        <h3>CU3 — Signalement d'un Danger Grave et Imminent (DGI)</h3>
+   358→        <p class="text-small text-muted" style="margin-bottom:10px;">Profil : Agent &bull; Registre : DGI</p>
+   359→        <div class="help-feature-list" style="line-height:1.8;">
+   360→            <strong>Situation :</strong> Marc, agent &agrave; l'UR Doubs, d&eacute;couvre une fuite de gaz dans les locaux. La situation n&eacute;cessite une intervention imm&eacute;diate.<br><br>
+   361→            <strong>Parcours :</strong>
+   362→            <ol style="padding-left:20px;">
+   363→                <li>Marc clique sur <strong>&laquo; Inscrire un signalement &raquo;</strong> sur la carte DGI (couleur rouge)</li>
+   364→                <li>Il signale le danger avec la mention <strong>Danger Grave et Imminent</strong></li>
+   365→                <li>Il pr&eacute;cise la nature du danger, le lieu exact et l'heure</li>
+   366→                <li>Le signalement est cr&eacute;&eacute; avec la r&eacute;f&eacute;rence <code>dgi-25-001</code> et une <strong>notification imm&eacute;diate</strong> est envoy&eacute;e aux superviseurs</li>
+   367→                <li>Le traitement est <strong>prioritaire</strong> — le superviseur doit r&eacute;pondre dans les plus brefs d&eacute;lais</li>
+   368→            </ol>
+   369→        </div>
+   370→    </div>
+   371→
+   372→    <!-- CU4 : Superviseur traite -->
+   373→    <div class="help-profile-card card--spaced">
+   374→        <h3>CU4 — Un superviseur traite un signalement</h3>
+   375→        <p class="text-small text-muted" style="margin-bottom:10px;">Profil : Superviseur &bull; Tous registres</p>
+   376→        <div class="help-feature-list" style="line-height:1.8;">
+   377→            <strong>Situation :</strong> Claire, superviseure, re&ccedil;oit la notification du signalement RSST de Jean (rampe desserr&eacute;e). Elle doit traiter le signalement.<br><br>
+   378→            <strong>Parcours :</strong>
+   379→            <ol style="padding-left:20px;">
+   380→                <li>Claire consulte la <strong>liste RSST</strong> ou le lien dans l'e-mail de notification</li>
+   381→                <li>Elle clique sur le signalement <code>rsst-25-001</code> pour voir le d&eacute;tail</li>
+   382→                <li>Elle clique sur <strong>&laquo; R&eacute;pondre &raquo;</strong></li>
+   383→                <li>Elle passe le statut &agrave; <span class="badge badge--en-cours">En cours</span> en indiquant : &laquo; Mission demand&eacute;e au service technique pour r&eacute;paration &raquo;</li>
+   384→                <li>Quelques jours plus tard, la rampe est r&eacute;par&eacute;e. Elle revient sur le signalement et le passe &agrave; <span class="badge badge--traite">Trait&eacute;</span> avec la r&eacute;ponse : &laquo; Rampe r&eacute;par&eacute;e le 12/06/2025. Contr&ocirc;le visuel effectu&eacute;. &raquo;</li>
+   385→                <li>Le d&eacute;clarant (Jean) peut voir la r&eacute;ponse dans le d&eacute;tail de son signalement</li>
+   386→            </ol>
+   387→        </div>
+   388→    </div>
+   389→
+   390→    <!-- CU5 : Superviseur abandonne -->
+   391→    <div class="help-profile-card card--spaced">
+   392→        <h3>CU5 — Un superviseur abandonne un signalement</h3>
+   393→        <p class="text-small text-muted" style="margin-bottom:10px;">Profil : Superviseur</p>
+   394→        <div class="help-feature-list" style="line-height:1.8;">
+   395→            <strong>Situation :</strong> Un signalement s'av&egrave;re &ecirc;tre un doublon ou ne pas relever du registre concern&eacute;.<br><br>
+   396→            <strong>Parcours :</strong>
+   397→            <ol style="padding-left:20px;">
+   398→                <li>Le superviseur consulte le signalement</li>
+   399→                <li>Il clique sur <strong>&laquo; Abandonner &raquo;</strong></li>
+   400→                <li>Il saisit un motif d'abandon (ex : &laquo; Doublon du signalement rsst-25-003 &raquo;)</li>
+   401→                <li>Le statut passe &agrave; <span class="badge badge--abandonne">Abandonn&eacute;</span></li>
+   402→            </ol>
+   403→        </div>
+   404→    </div>
+   405→
+   406→    <!-- CU6 : CHSCT consulte -->
+   407→    <div class="help-profile-card card--spaced">
+   408→        <h3>CU6 — Un membre CHSCT consulte les signalements</h3>
+   409→        <p class="text-small text-muted" style="margin-bottom:10px;">Profil : Membre CHSCT</p>
+   410→        <div class="help-feature-list" style="line-height:1.8;">
+   411→            <strong>Situation :</strong> Philippe, membre CHSCT, souhaite avoir une vue d'ensemble de l'activit&eacute; des 3 registres sur l'ensemble des sites.<br><br>
+   412→            <strong>Parcours :</strong>
+   413→            <ol style="padding-left:20px;">
+   414→                <li>Il acc&egrave;de &agrave; la <strong>Synth&egrave;se</strong> pour voir le nombre de signalements par registre, par site et par &eacute;tat</li>
+   415→                <li>Il consulte les <strong>Statistiques</strong> pour voir les tendances (&eacute;volution mensuelle, r&eacute;partition par site)</li>
+   416→                <li>Il utilise l'<strong>Export</strong> pour t&eacute;l&eacute;charger les donn&eacute;es au format CSV et les analyser dans Excel</li>
+   417→                <li>Il peut consulter le d&eacute;tail de n'importe quel signalement sur <strong>tous les sites</strong></li>
+   418→            </ol>
+   419→            <p style="margin-top:8px;padding:8px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">
+   420→                &#x26A0; Le membre CHSCT <strong>ne peut pas r&eacute;pondre</strong> aux signalements ni modifier les utilisateurs — il a un r&ocirc;le de consultation uniquement.
+   421→            </p>
+   422→        </div>
+   423→    </div>
+   424→
+   425→    <!-- CU7 : Superviseur gère utilisateurs -->
+   426→    <div class="help-profile-card card--spaced">
+   427→        <h3>CU7 — Un superviseur g&egrave;re les utilisateurs et la configuration</h3>
+   428→        <p class="text-small text-muted" style="margin-bottom:10px;">Profil : Superviseur uniquement</p>
+   429→        <div class="help-feature-list" style="line-height:1.8;">
+   430→            <strong>Situation :</strong> Un nouvel agent arrive &agrave; l'UR Jura. Il doit pouvoir utiliser l'application.<br><br>
+   431→            <strong>Parcours :</strong>
+   432→            <ol style="padding-left:20px;">
+   433→                <li><strong>En production</strong> : l'agent se connecte &rarr; son compte est <strong>automatiquement cr&eacute;&eacute;</strong> avec le r&ocirc;le Agent et sans site attribu&eacute;.</li>
+   434→                <li>L'agent est alors redirig&eacute; vers la page <strong>&laquo; Choisir mon site &raquo;</strong> — il s&eacute;lectionne son UR parmi les sites actifs. Ce choix est <strong>d&eacute;finitif</strong> pour l'agent (seul un superviseur peut le modifier ensuite).</li>
+   435→                <li>Le superviseur peut ensuite modifier le site ou le r&ocirc;le dans <strong>Utilisateurs</strong> si n&eacute;cessaire</li>
+   436→                <li>Il peut aussi <strong>d&eacute;sactiver</strong> un compte d'agent qui a quitt&eacute; la structure</li>
+   437→            </ol>
+   438→            <p class="help-feature-list" style="margin-top:8px;"><strong>Configuration initiale :</strong></p>
+   439→            <ol style="padding-left:20px;">
+   440→                <li>Dans <strong>Param&egrave;tres &rarr; Application</strong>, configurer le nom de l'organisation et le libell&eacute; des unit&eacute;s (UR, UD...)</li>
+   441→                <li>Dans <strong>Param&egrave;tres &rarr; Application</strong>, compl&eacute;ter la <strong>liste des logins superviseurs</strong> — ces utilisateurs seront automatiquement promus Superviseur lors de leur premi&egrave;re connexion via IIS (utile pour une premi&egrave;re installation)</li>
+   442→                <li>Dans <strong>Param&egrave;tres &rarr; SMTP</strong>, configurer le serveur d'envoi d'e-mails</li>
+   443→                <li>Dans <strong>Param&egrave;tres &rarr; Notifications</strong>, ajouter les adresses e-mail &agrave; notifier par site et/ou globalement</li>
+   444→            </ol>
+   445→        </div>
+   446→    </div>
+   447→
+   448→    <!-- CU8 : Impression -->
+   449→    <div class="help-profile-card card--spaced">
+   450→        <h3>CU8 — Imprimer une fiche de signalement</h3>
+   451→        <p class="text-small text-muted" style="margin-bottom:10px;">Profil : Superviseur uniquement</p>
+   452→        <div class="help-feature-list" style="line-height:1.8;">
+   453→            <strong>Situation :</strong> Le superviseur doit archiver une fiche papier ou la transmettre &agrave; un service partenaire.<br><br>
+   454→            <strong>Parcours :</strong>
+   455→            <ol style="padding-left:20px;">
+   456→                <li>Le superviseur ouvre le signalement</li>
+   457→                <li>Il clique sur <strong>&laquo; T&eacute;l&eacute;charger en PDF &raquo;</strong></li>
+   458→                <li>Un fichier PDF est g&eacute;n&eacute;r&eacute; et t&eacute;l&eacute;charg&eacute; automatiquement, pr&ecirc;t pour impression ou archivage</li>
+   459→            </ol>
+   460→        </div>
+   461→    </div>
+   462→</div>
+   463→
+   464→<!-- ============================================================ -->
+   465→<!-- Authentification                                              -->
+   466→<!-- ============================================================ -->
+   467→<div class="card card--spaced content-section">
+   468→    <h2>&#x1F510; Authentification</h2>
+   469→    <div class="help-profiles-grid">
+   470→        <div style="padding:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+   471→            <h4 style="margin-bottom:6px;color:#166534;">&#x1F5A5;&#xFE0F; Production (IIS)</h4>
+   472→            <p class="help-description">
+   473→                L'authentification est g&eacute;r&eacute;e par <strong>IIS Windows Authentication</strong>. 
+   474→                L'utilisateur est automatiquement authentifi&eacute; via son compte Windows Active Directory.
+   475→                Aucun formulaire de login n'est affich&eacute;. Son compte est cr&eacute;&eacute; automatiquement &agrave; la premi&egrave;re connexion.
+   476→                <br><br>
+   477→                <strong>Promotion automatique :</strong> si le login Windows figure dans la liste configur&eacute;e dans
+   478→                <strong>Param&egrave;tres &rarr; Application &rarr; Logins Windows des superviseurs</strong>,
+   479→                l'utilisateur est automatiquement promu Superviseur.
+   480→            </p>
+   481→        </div>
+   482→        <div style="padding:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+   483→            <h4 style="margin-bottom:6px;color:#92400e;">&#x2699;&#xFE0F; D&eacute;veloppement</h4>
+   484→            <p class="help-description">
+   485→                En mode d&eacute;veloppement, un <strong>formulaire de connexion mock</strong> permet de tester les diff&eacute;rents profils.
+   486→                Les comptes de test sont : <code>admin.dev</code>, <code>agent.dev</code>, <code>chsct.dev</code>.
+   487→            </p>
+   488→        </div>
+   489→    </div>
+   490→</div>
+   491→
+   492→<div class="card--spaced-top">
+   493→    <a href="<?php echo url('preamble'); ?>" class="btn btn--outline">&#x1F4D6; Lire le Pr&eacute;ambule</a>
+   494→</div>
+   495→

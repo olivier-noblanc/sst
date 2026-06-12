@@ -47,7 +47,7 @@ require __DIR__ . '/../templates/alert.php';
 <h1 class="page-title">Abandonner le signalement</h1>
 
 <div class="card <?php echo match($type) { 'rsst' => 'card--rsst', 'rami' => 'card--rami', 'dgi' => 'card--dgi', default => 'card--rsst' }; ?>">
-    <h2 style="margin-bottom:12px;">Signalement <?php echo e($report['reference']); ?></h2>
+    <h2 class="card__subtitle">Signalement <?php echo e($report['reference']); ?></h2>
     <table class="report-detail__table">
         <tbody>
             <tr>
@@ -71,10 +71,10 @@ require __DIR__ . '/../templates/alert.php';
 </div>
 
 <!-- Confirmation inline — pas de JavaScript -->
-<div class="card" style="margin-top:16px;background:#fffbeb;border:1px solid #fcd34d;">
-    <p style="font-weight:600;color:#92400e;">Êtes-vous sûr de vouloir abandonner le signalement <strong><?php echo e($report['reference']); ?></strong> ?</p>
-    <p style="font-size:13px;color:var(--grey-600);">Cette action est irréversible. Le signalement sera marqué comme abandonné.</p>
-    <div style="display:flex;gap:8px;margin-top:12px;">
+<div class="warning-panel">
+    <p>Êtes-vous sûr de vouloir abandonner le signalement <strong><?php echo e($report['reference']); ?></strong> ?</p>
+    <p class="warning-panel__hint">Cette action est irréversible. Le signalement sera marqué comme abandonné.</p>
+    <div class="btn-group">
         <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $uuid]); ?>">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
             <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid']); ?>">

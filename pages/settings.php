@@ -43,26 +43,26 @@ $pageTitle = 'Paramètres';
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Tabs -->
-<div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--grey-200);flex-wrap:wrap;">
+<div class="tab-bar">
     <a href="<?php echo url('settings', ['tab' => 'sites']); ?>"
        class="settings-tab <?php echo $activeTab === 'sites' ? 'settings-tab--active' : ''; ?>">
-        📍 Notifications par site
+        &#x1F4CD; Notifications par site
     </a>
     <a href="<?php echo url('settings', ['tab' => 'global']); ?>"
        class="settings-tab <?php echo $activeTab === 'global' ? 'settings-tab--active' : ''; ?>">
-        🌐 Notifications globales
+        &#x1F310; Notifications globales
     </a>
     <a href="<?php echo url('settings', ['tab' => 'smtp']); ?>"
        class="settings-tab <?php echo $activeTab === 'smtp' ? 'settings-tab--active' : ''; ?>">
-        📧 Configuration SMTP
+        &#x1F4E7; Configuration SMTP
     </a>
     <a href="<?php echo url('settings', ['tab' => 'manage_sites']); ?>"
        class="settings-tab <?php echo $activeTab === 'manage_sites' ? 'settings-tab--active' : ''; ?>">
-        🏢 Gestion des sites
+        &#x1F3E2; Gestion des sites
     </a>
     <a href="<?php echo url('settings', ['tab' => 'app']); ?>"
        class="settings-tab <?php echo $activeTab === 'app' ? 'settings-tab--active' : ''; ?>">
-        ⚙️ Paramètres de l'application
+        &#x2699;&#xFE0F; Paramètres de l'application
     </a>
 
 </div>
@@ -86,8 +86,8 @@ $pageTitle = 'Paramètres';
             }
         ?>
         <div class="card" style="margin-bottom:16px;">
-            <h3 style="margin-bottom:12px;font-size:15px;">
-                <span class="badge badge--rsst" style="font-size:11px;margin-right:6px;"><?php echo e($site['code']); ?></span>
+            <h3 class="card__subtitle">
+                <span class="badge badge--rsst badge--sm"><?php echo e($site['code']); ?></span>
                 <?php echo e($site['nom']); ?>
             </h3>
             <div class="form-group">
@@ -104,8 +104,8 @@ $pageTitle = 'Paramètres';
     <?php if ($activeTab === 'global'): ?>
     <!-- Notifications globales -->
     <div class="card">
-        <h3 style="margin-bottom:12px;">Adresses e-mail de notification globales</h3>
-        <p class="text-muted text-small mb-4">Ces adresses recevront des notifications pour tous les sites et tous les registres.</p>
+        <h3 class="card__subtitle">Adresses e-mail de notification globales</h3>
+        <p class="text-muted text-small" style="margin-bottom:16px;">Ces adresses recevront des notifications pour tous les sites et tous les registres.</p>
         <div class="form-group">
             <label for="global_emails">Adresses e-mail</label>
             <?php $globalEmailList = []; foreach ($globalEmails as $ge) { $globalEmailList[] = $ge['email']; } ?>
@@ -130,10 +130,10 @@ $pageTitle = 'Paramètres';
     <input type="hidden" name="tab" value="smtp">
 
     <div class="card">
-        <h3 style="margin-bottom:16px;">📧 Configuration SMTP</h3>
+        <h3 class="card__title">&#x1F4E7; Configuration SMTP</h3>
         <p class="text-muted text-small" style="margin-bottom:20px;">Configurez le serveur SMTP pour l'envoi des e-mails de notification.</p>
 
-        <div class="form-row" style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+        <div class="form-row form-row--2-1">
             <div class="form-group">
                 <label for="smtp_host">Serveur SMTP</label>
                 <input type="text" id="smtp_host" name="smtp_host" class="form-control"
@@ -148,7 +148,7 @@ $pageTitle = 'Paramètres';
             </div>
         </div>
 
-        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-row form-row--1-1">
             <div class="form-group">
                 <label for="smtp_user">Utilisateur SMTP</label>
                 <input type="text" id="smtp_user" name="smtp_user" class="form-control"
@@ -163,7 +163,7 @@ $pageTitle = 'Paramètres';
             </div>
         </div>
 
-        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-row form-row--1-1">
             <div class="form-group">
                 <label for="smtp_from">Adresse d'expédition</label>
                 <input type="email" id="smtp_from" name="smtp_from" class="form-control"
@@ -187,19 +187,19 @@ $pageTitle = 'Paramètres';
         </div>
     </div>
 
-    <div class="form-actions" style="flex-wrap:wrap;gap:8px;">
+    <div class="form-actions">
         <button type="submit" class="btn btn--success">Enregistrer les modifications</button>
         <a href="<?php echo url('settings', ['tab' => 'smtp']); ?>" class="btn btn--outline">Annuler</a>
     </div>
 </form>
 
 <!-- SMTP Test (separate form — POST + redirect, no JavaScript) -->
-<form method="POST" action="<?php echo url('smtp_test'); ?>" style="margin-top:12px;">
+<form method="POST" action="<?php echo url('smtp_test'); ?>" class="smtp-test-section">
     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-    <div class="card" style="border:1px dashed var(--grey-300);">
-        <h4 style="margin-bottom:12px;">🧪 Test d'envoi SMTP</h4>
+    <div class="card smtp-test-section">
+        <h4 class="card__subtitle">&#x1F9EA; Test d'envoi SMTP</h4>
         <p class="text-muted text-small" style="margin-bottom:12px;">Envoyez un e-mail de test pour vérifier la configuration SMTP ci-dessus.</p>
-        <div style="display:flex;gap:8px;align-items:end;">
+        <div class="smtp-test-row">
             <div class="form-group" style="margin-bottom:0;flex:1;max-width:350px;">
                 <label for="smtp_test_to">Adresse destinataire</label>
                 <input type="email" id="smtp_test_to" name="smtp_test_to" class="form-control"
@@ -218,7 +218,7 @@ $pageTitle = 'Paramètres';
     <input type="hidden" name="tab" value="app">
 
     <div class="card">
-        <h3 style="margin-bottom:16px;">⚙️ Paramètres de l'application</h3>
+        <h3 class="card__title">&#x2699;&#xFE0F; Paramètres de l'application</h3>
         <p class="text-muted text-small" style="margin-bottom:20px;">Configurez les paramètres généraux de l'application.</p>
 
         <div class="form-group">
@@ -257,43 +257,40 @@ $pageTitle = 'Paramètres';
             </small>
         </div>
 
-        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--grey-200);">
-            <h4 style="margin-bottom:12px;">🔒 Visibilité des signalements</h4>
+        <div class="separator">
+            <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
             <p class="text-muted text-small" style="margin-bottom:12px;">Détermine quels signalements les agents peuvent consulter dans les registres. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
-            <fieldset class="form-group" style="margin-bottom:0;border:none;padding:0;" id="visibility-radios">
+            <fieldset class="form-group visibility-radios" id="visibility-radios">
                 <legend style="font-weight:600;font-size:14px;margin-bottom:8px;padding:0;">Visibilité des signalements</legend>
                 <?php $currentVisibility = getConfig('app_report_visibility', 'agent_choice'); ?>
-                <div style="display:flex;flex-direction:column;gap:10px;">
-                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
+                <div class="visibility-radios">
+                    <label class="visibility-radio-label">
                         <input type="radio" name="app_report_visibility" value="confidential"
-                               <?php echo $currentVisibility === 'confidential' ? 'checked' : ''; ?>
-                               style="margin-top:3px;width:16px;height:16px;">
+                               <?php echo $currentVisibility === 'confidential' ? 'checked' : ''; ?>>
                         <div>
-                            <strong>Confidentiel</strong> <span style="color:var(--grey-500);font-size:12px;">(le plus restrictif)</span>
-                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">L'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.</div>
+                            <strong>Confidentiel</strong> <span class="text-muted text-small">(le plus restrictif)</span>
+                            <div class="text-muted text-small" style="margin-top:2px;">L'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.</div>
                         </div>
                     </label>
-                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
+                    <label class="visibility-radio-label">
                         <input type="radio" name="app_report_visibility" value="agent_choice"
-                               <?php echo $currentVisibility === 'agent_choice' ? 'checked' : ''; ?>
-                               style="margin-top:3px;width:16px;height:16px;">
+                               <?php echo $currentVisibility === 'agent_choice' ? 'checked' : ''; ?>>
                         <div>
-                            <strong>Choix de l'agent</strong> <span style="color:var(--grey-500);font-size:12px;">(confidentiel par défaut)</span>
-                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">L'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements.</div>
+                            <strong>Choix de l'agent</strong> <span class="text-muted text-small">(confidentiel par défaut)</span>
+                            <div class="text-muted text-small" style="margin-top:2px;">L'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements.</div>
                         </div>
                     </label>
-                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:normal;">
+                    <label class="visibility-radio-label">
                         <input type="radio" name="app_report_visibility" value="public"
-                               <?php echo $currentVisibility === 'public' ? 'checked' : ''; ?>
-                               style="margin-top:3px;width:16px;height:16px;">
+                               <?php echo $currentVisibility === 'public' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Visibilité publique</strong>
-                            <div style="color:var(--grey-600);font-size:12px;margin-top:2px;">Tous les signalements du site sont visibles par tous les agents du site.</div>
+                            <div class="text-muted text-small" style="margin-top:2px;">Tous les signalements du site sont visibles par tous les agents du site.</div>
                         </div>
                     </label>
                 </div>
-                <div class="agent-visibility-warning" style="margin-top:14px;padding:10px 14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;color:#92400e;font-size:12px;">
-                    ℹ️ <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CHSCT voient tous les signalements, y compris les confidentiels.
+                <div class="info-panel agent-visibility-warning">
+                    &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CHSCT voient tous les signalements, y compris les confidentiels.
                 </div>
             </fieldset>
         </div>
@@ -311,16 +308,16 @@ $pageTitle = 'Paramètres';
 <?php if ($activeTab === 'manage_sites'): ?>
 <!-- Sites Management -->
 <div class="card">
-    <h3 style="margin-bottom:16px;">🏢 Gestion des sites (<?php echo e(getConfig('app_label_unite', 'UR')); ?>)</h3>
+    <h3 class="card__title">&#x1F3E2; Gestion des sites (<?php echo e(getConfig('app_label_unite', 'UR')); ?>)</h3>
     <p class="text-muted text-small" style="margin-bottom:16px;">Gérez les sites disponibles. Les sites désactivés n'apparaissent plus dans les listes de choix (pour les nouveaux agents) mais les signalements existants restent accessibles.</p>
 
     <!-- Add new site form -->
-    <form method="POST" action="<?php echo url('settings'); ?>" style="margin-bottom:20px;padding:16px;background:var(--grey-50,#f9fafb);border-radius:8px;border:1px dashed var(--grey-300);">
+    <form method="POST" action="<?php echo url('settings'); ?>" class="add-site-form">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <input type="hidden" name="tab" value="manage_sites">
         <input type="hidden" name="action" value="add_site">
-        <h4 style="margin-bottom:12px;">+ Ajouter un site</h4>
-        <div style="display:grid;grid-template-columns:100px 1fr 1fr auto;gap:10px;align-items:end;">
+        <h4 class="card__subtitle">+ Ajouter un site</h4>
+        <div class="add-site-grid">
             <div class="form-group" style="margin-bottom:0;">
                 <label for="new_site_code">Code</label>
                 <input type="text" id="new_site_code" name="new_site_code" class="form-control"
@@ -341,7 +338,7 @@ $pageTitle = 'Paramètres';
     </form>
 
     <!-- Existing sites list -->
-    <table class="table" style="font-size:13px;">
+    <table class="table text-small">
         <thead>
             <tr>
                 <th>Code</th>
@@ -360,7 +357,7 @@ $pageTitle = 'Paramètres';
                 $reportCount = countReportsBySite($pdo, (int) $site['id']);
                 $isActive = !isset($site['is_active']) || $site['is_active'] == 1;
             ?>
-            <tr style="<?php echo !$isActive ? 'opacity:0.5;' : ''; ?>">
+            <tr class="<?php echo !$isActive ? 'row--inactive' : ''; ?>">
                 <td><strong><?php echo e($site['code']); ?></strong></td>
                 <td><?php echo e($site['nom']); ?></td>
                 <td><?php echo e($site['departement'] ?? '—'); ?></td>
@@ -368,14 +365,14 @@ $pageTitle = 'Paramètres';
                 <td style="text-align:center;"><?php echo $reportCount; ?></td>
                 <td>
                     <?php if ($isActive): ?>
-                        <span class="badge badge--traite" style="font-size:11px;">Actif</span>
+                        <span class="badge badge--traite badge--sm">Actif</span>
                     <?php else: ?>
-                        <span class="badge badge--abandonne" style="font-size:11px;">Inactif</span>
+                        <span class="badge badge--abandonne badge--sm">Inactif</span>
                     <?php endif; ?>
                 </td>
                 <td style="white-space:nowrap;">
                     <?php if ($isActive): ?>
-                    <form method="POST" action="<?php echo url('settings'); ?>" style="display:inline;">
+                    <form method="POST" action="<?php echo url('settings'); ?>" class="form--inline">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="tab" value="manage_sites">
                         <input type="hidden" name="action" value="toggle_site">
@@ -384,7 +381,7 @@ $pageTitle = 'Paramètres';
                         <button type="submit" class="btn btn--sm btn--outline">Désactiver</button>
                     </form>
                     <?php else: ?>
-                    <form method="POST" action="<?php echo url('settings'); ?>" style="display:inline;">
+                    <form method="POST" action="<?php echo url('settings'); ?>" class="form--inline">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="tab" value="manage_sites">
                         <input type="hidden" name="action" value="toggle_site">
@@ -397,8 +394,8 @@ $pageTitle = 'Paramètres';
                     <?php if ($userCount === 0 && $reportCount === 0): ?>
                     <?php if (isset($_GET['confirm_delete_site']) && (int) $_GET['confirm_delete_site'] === (int) $site['id']): ?>
                     <!-- Confirmation inline — pas de JavaScript -->
-                    <span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--dgi-color);font-weight:600;">⚠️ Supprimer <strong><?php echo e($site['code']); ?></strong> ?</span>
-                    <form method="POST" action="<?php echo url('settings'); ?>" style="display:inline;">
+                    <span class="section-header--danger" style="display:inline-flex;align-items:center;gap:6px;">&#x26A0;&#xFE0F; Supprimer <strong><?php echo e($site['code']); ?></strong> ?</span>
+                    <form method="POST" action="<?php echo url('settings'); ?>" class="form--inline">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="tab" value="manage_sites">
                         <input type="hidden" name="action" value="delete_site">
@@ -420,4 +417,3 @@ $pageTitle = 'Paramètres';
     </table>
 </div>
 <?php endif; ?>
-

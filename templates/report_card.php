@@ -1,9 +1,9 @@
 <?php
 /**
  * Report Card Template — Application SST DREETS BFC
- * 
+ *
  * Shared display for a single report view.
- * 
+ *
  * Required variables:
  *   $report    — Report data array with joined site and respondent info
  *   $responses — Array of response history entries
@@ -30,17 +30,22 @@ $canRespond = in_array($userRole, ['superviseur']);
 $canEdit = $isDeclarant && in_array($report['etat'], ['nouveau', 'en_cours']);
 $canAbandon = $isDeclarant && !in_array($report['etat'], ['abandonne', 'traite']);
 $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_cours']);
+
+// Ensure $csrfToken is available (set by index.php but may not be in scope)
+if (!isset($csrfToken)) {
+    $csrfToken = generateCsrfToken();
+}
 ?>
 
 <div class="card <?php echo $cardClass; ?>">
     <div class="report-detail">
         <div class="report-detail__header">
             <h2>Signalement — <?php echo e($report['reference']); ?></h2>
-            <div style="display:flex;gap:8px;align-items:center;">
+            <div class="btn-group">
                 <span class="badge <?php echo getRegistryBadgeClass($type); ?>"><?php echo e($registryLabel); ?></span>
                 <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>"><?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?></span>
                 <?php if (!empty($report['is_confidential'])): ?>
-                <span class="badge" style="background:#6b7280;">🔒 Confidentiel</span>
+                <span class="badge badge--confidential">&#128274; Confidentiel</span>
                 <?php endif; ?>
             </div>
         </div>
@@ -97,23 +102,19 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
                         $isImageAttachment = !empty($report['attachment_mime']) && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
                         ?>
                         <?php if ($isImageAttachment): ?>
-                            <div style="margin-bottom:8px;">
-                                <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>" 
+                            <div class="mb-2">
+                                <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>"
                                    title="<?php echo e($report['attachment_name']); ?> — Télécharger">
-                                    <img src="<?php echo url('report_attachment', ['uuid' => $report['uuid'], 'inline' => 1]); ?>" 
+                                    <img src="<?php echo url('report_attachment', ['uuid' => $report['uuid'], 'inline' => 1]); ?>"
                                          alt="<?php echo e($report['attachment_name']); ?>"
-                                         style="max-width:100%;max-height:400px;border-radius:6px;border:1px solid #e5e7eb;cursor:pointer;">
+                                         class="attachment-image" loading="lazy">
                                 </a>
                             </div>
-                            <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>" 
-                               class="btn btn--outline" style="font-size:13px;padding:4px 12px;">
-                                ⬇️ <?php echo e($report['attachment_name']); ?>
-                            </a>
+                            <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>"
+                               class="btn btn--outline btn--sm">&#11015; <?php echo e($report['attachment_name']); ?></a>
                         <?php else: ?>
-                            <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>" 
-                               class="btn btn--outline" style="font-size:13px;padding:4px 12px;">
-                                📎 <?php echo e($report['attachment_name']); ?>
-                            </a>
+                            <a href="<?php echo url('report_attachment', ['uuid' => $report['uuid']]); ?>"
+                               class="btn btn--outline btn--sm">&#128206; <?php echo e($report['attachment_name']); ?></a>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -170,8 +171,8 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
 
     <?php if ($canAbandon): ?>
         <?php if (isset($_GET['confirm_abandon'])): ?>
-        <span style="font-weight:600;color:var(--dgi-color);">⚠️ Abandonner ce signalement ?</span>
-        <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" style="display:inline;">
+        <span class="text-muted" style="font-weight:600;color:var(--dgi-color);">&#9888; Abandonner ce signalement ?</span>
+        <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="form--inline">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
             <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid']); ?>">
             <button type="submit" class="btn btn--danger">Oui, abandonner</button>
@@ -182,8 +183,6 @@ $canRespondToReport = $canRespond && in_array($report['etat'], ['nouveau', 'en_c
         <?php endif; ?>
     <?php endif; ?>
 
-    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank">Voir en PDF</a>
+    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Voir en PDF</a>
     <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>
-
-

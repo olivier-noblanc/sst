@@ -48,21 +48,21 @@ $pageTitle = 'Gestion des utilisateurs';
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Tabs -->
-<div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--grey-200);">
+<div class="tab-bar">
     <a href="<?php echo url('users', ['tab' => 'list']); ?>"
        class="settings-tab <?php echo $activeTab === 'list' ? 'settings-tab--active' : ''; ?>">
-        👥 Liste des utilisateurs
+        &#x1F465; Liste des utilisateurs
     </a>
     <a href="<?php echo url('users', ['tab' => 'create']); ?>"
        class="settings-tab <?php echo $activeTab === 'create' ? 'settings-tab--active' : ''; ?>">
-        ➕ Inscrire un utilisateur
+        &#x2795; Inscrire un utilisateur
     </a>
 </div>
 
 <?php if ($activeTab === 'list'): ?>
 <!-- Search bar -->
 <div class="filter-bar">
-    <form method="GET" action="index.php" style="display:flex;gap:12px;align-items:flex-end;flex:1;">
+    <form method="GET" action="index.php" class="form--inline" style="gap:12px;align-items:flex-end;flex:1;">
         <input type="hidden" name="page" value="users">
         <input type="hidden" name="tab" value="list">
         <div class="form-group" style="flex:1;margin-bottom:0;">
@@ -93,11 +93,11 @@ $pageTitle = 'Gestion des utilisateurs';
             <tbody>
                 <?php if (empty($allUsers)): ?>
                 <tr>
-                    <td colspan="7" style="text-align:center;color:var(--grey-500);padding:20px;">Aucun utilisateur trouvé</td>
+                    <td colspan="7" class="empty-state">Aucun utilisateur trouvé</td>
                 </tr>
                 <?php else: ?>
                 <?php foreach ($allUsers as $u): ?>
-                <tr <?php echo !$u['is_active'] ? 'style="opacity:0.5;"' : ''; ?>>
+                <tr class="<?php echo !$u['is_active'] ? 'row--inactive' : ''; ?>">
                     <td><?php echo e($u['nom']); ?></td>
                     <td><?php echo e($u['prenom']); ?></td>
                     <td><?php echo e($u['email'] ?? '—'); ?></td>
@@ -105,9 +105,9 @@ $pageTitle = 'Gestion des utilisateurs';
                     <td><?php echo e($u['site_nom'] ?? '—'); ?></td>
                     <td>
                         <?php if ($u['is_active']): ?>
-                            <span style="color:var(--state-traite);font-size:12px;">● Actif</span>
+                            <span class="status-dot--active">&#x25CF; Actif</span>
                         <?php else: ?>
-                            <span style="color:var(--state-abandonne);font-size:12px;">● Inactif</span>
+                            <span class="status-dot--inactive">&#x25CF; Inactif</span>
                         <?php endif; ?>
                     </td>
                     <td>
@@ -115,7 +115,7 @@ $pageTitle = 'Gestion des utilisateurs';
                         <?php if ($u['is_active']): ?>
                         <a href="<?php echo url('user_edit', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--primary">Éditer</a>
                         <?php else: ?>
-                        <form method="POST" action="<?php echo url('user_reactivate'); ?>" style="display:inline;">
+                        <form method="POST" action="<?php echo url('user_reactivate'); ?>" class="form--inline">
                             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                             <input type="hidden" name="user_id" value="<?php echo (int) $u['id']; ?>">
                             <button type="submit" class="btn btn--sm btn--success">Réactiver</button>
@@ -128,7 +128,7 @@ $pageTitle = 'Gestion des utilisateurs';
             </tbody>
         </table>
     </div>
-    <div style="margin-top:12px;color:var(--grey-500);font-size:12px;">
+    <div class="result-count">
         <?php echo count($allUsers); ?> utilisateur(s) affiché(s)
     </div>
 </div>
@@ -137,7 +137,7 @@ $pageTitle = 'Gestion des utilisateurs';
 <?php if ($activeTab === 'create'): ?>
 <!-- Create user form -->
 <div class="card">
-    <h3 style="margin-bottom:16px;">Inscrire un nouvel utilisateur</h3>
+    <h3 class="card__title">Inscrire un nouvel utilisateur</h3>
     <form method="POST" action="<?php echo url('user_create'); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
 

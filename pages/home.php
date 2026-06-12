@@ -44,7 +44,7 @@ if ($agentVisibility === 'confidential') {
     <!-- RSST Card -->
     <div class="registry-card registry-card--rsst">
         <div>
-            <div class="registry-card__icon">📋</div>
+            <div class="registry-card__icon">&#x1F4CB;</div>
             <div class="registry-card__title">Registre de Santé et de Sécurité au Travail</div>
             <div class="registry-card__subtitle">RSST</div>
         </div>
@@ -57,7 +57,7 @@ if ($agentVisibility === 'confidential') {
     <!-- RAMI Card -->
     <div class="registry-card registry-card--rami">
         <div>
-            <div class="registry-card__icon">⚠️</div>
+            <div class="registry-card__icon">&#x26A0;&#xFE0F;</div>
             <div class="registry-card__title">Registre des Actes d'Agressions, de Menaces et d'Incivilités</div>
             <div class="registry-card__subtitle">RAMI</div>
         </div>
@@ -70,7 +70,7 @@ if ($agentVisibility === 'confidential') {
     <!-- DGI Card -->
     <div class="registry-card registry-card--dgi">
         <div>
-            <div class="registry-card__icon">🔴</div>
+            <div class="registry-card__icon">&#x1F534;</div>
             <div class="registry-card__title">Registre de signalement d'un Danger Grave et Imminent</div>
             <div class="registry-card__subtitle">DGI</div>
         </div>
@@ -83,14 +83,14 @@ if ($agentVisibility === 'confidential') {
 
 <?php if (canSeeAllSites()): ?>
 <div class="card" style="margin-top:24px;">
-    <h3 style="margin-bottom:12px;">Accès rapide superviseur</h3>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <a href="<?php echo url('synthesis'); ?>" class="btn btn--outline">📊 Synthèse</a>
-        <a href="<?php echo url('statistics'); ?>" class="btn btn--outline">📈 Statistiques</a>
-        <a href="<?php echo url('export'); ?>" class="btn btn--outline">📥 Export</a>
+    <h3 class="card__subtitle">Accès rapide superviseur</h3>
+    <div class="quick-access">
+        <a href="<?php echo url('synthesis'); ?>" class="btn btn--outline">&#x1F4CA; Synthèse</a>
+        <a href="<?php echo url('statistics'); ?>" class="btn btn--outline">&#x1F4C8; Statistiques</a>
+        <a href="<?php echo url('export'); ?>" class="btn btn--outline">&#x1F4E5; Export</a>
         <?php if (hasRole('superviseur')): ?>
-        <a href="<?php echo url('users'); ?>" class="btn btn--outline">👥 Utilisateurs</a>
-        <a href="<?php echo url('settings'); ?>" class="btn btn--outline">⚙️ Paramètres</a>
+        <a href="<?php echo url('users'); ?>" class="btn btn--outline">&#x1F465; Utilisateurs</a>
+        <a href="<?php echo url('settings'); ?>" class="btn btn--outline">&#x2699;&#xFE0F; Paramètres</a>
         <?php endif; ?>
     </div>
 </div>

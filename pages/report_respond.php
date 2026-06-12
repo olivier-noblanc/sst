@@ -46,7 +46,7 @@ $formData = getFormData();
 
 <!-- Report Summary (read-only) -->
 <div class="card card--<?php echo e($registryType); ?>">
-    <h3 style="margin-bottom:12px;">Résumé du signalement</h3>
+    <h3 class="card__subtitle">Résumé du signalement</h3>
     <table class="report-detail__table">
         <tr>
             <th>Référence</th>
@@ -86,7 +86,7 @@ $formData = getFormData();
 <!-- Previous responses -->
 <?php if (!empty($responses)): ?>
 <div class="card">
-    <h3 style="margin-bottom:12px;">Historique des réponses</h3>
+    <h3 class="card__subtitle">Historique des réponses</h3>
     <div class="table-wrapper">
         <table>
             <thead>
@@ -114,7 +114,7 @@ $formData = getFormData();
 
 <!-- Response Form -->
 <div class="card">
-    <h3 style="margin-bottom:16px;">Formuler une réponse</h3>
+    <h3 class="card__title">Formuler une réponse</h3>
     <form method="POST" action="<?php echo url('report_respond', ['uuid' => $uuid]); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <input type="hidden" name="report_uuid" value="<?php echo e($uuid); ?>">

@@ -1,0 +1,576 @@
+     1→<?php
+     2→/**
+     3→ * Database — Application SST DREETS BFC
+     4→ * 
+     5→ * Provides a PDO singleton connection to the SQLite database.
+     6→ * Initializes the schema on first run.
+     7→ */
+     8→
+     9→/**
+    10→ * Get the PDO database connection (singleton).
+    11→ * On first call, creates the database and schema if they don't exist.
+    12→ * 
+    13→ * @return PDO
+    14→ */
+    15→function getDB(): PDO {
+    16→    static $pdo = null;
+    17→
+    18→    if ($pdo !== null) {
+    19→        return $pdo;
+    20→    }
+    21→
+    22→    // Ensure the data directory exists
+    23→    $dir = dirname(DB_PATH);
+    24→    if (!is_dir($dir)) {
+    25→        mkdir($dir, 0755, true);
+    26→    }
+    27→
+    28→    $isNew = !file_exists(DB_PATH);
+    29→
+    30→    $pdo = new PDO('sqlite:' . DB_PATH);
+    31→    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    32→    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    33→    $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+    34→
+    35→    // Enable foreign keys and WAL mode
+    36→    $pdo->exec('PRAGMA foreign_keys = ON;');
+    37→    $pdo->exec('PRAGMA journal_mode = WAL;');
+    38→
+    39→    // Initialize schema if this is a new database
+    40→    if ($isNew) {
+    41→        $schemaFile = __DIR__ . '/../schema.sql';
+    42→        if (file_exists($schemaFile)) {
+    43→            $sql = file_get_contents($schemaFile);
+    44→            $pdo->exec($sql);
+    45→        }
+    46→
+    47→        // Seed the sites table with default data
+    48→        seedDefaultData($pdo);
+    49→    }
+    50→
+    51→    // Auto-backup: create a snapshot if the DB has changed since last backup.
+    52→    // Lazy check — skips if fingerprint unchanged (zero I/O waste).
+    53→    // Must run BEFORE migrations so we have a clean pre-migration state.
+    54→    require_once __DIR__ . '/backup.php';
+    55→    try {
+    56→        performBackup($pdo);
+    57→    } catch (Exception $e) {
+    58→        // Backup failure must NOT block the application
+    59→        error_log('[SST-BACKUP] Auto-backup failed: ' . $e->getMessage());
+    60→    }
+    61→
+    62→    // Auto-migrate: ensure config_app table and new keys exist in existing databases
+    63→    // Backup before migration in case the schema changes break something
+    64→    $fingerprintBefore = getDbFingerprint($pdo);
+    65→    migrateSchema($pdo);
+    66→    migrateConfigKeys($pdo);
+    67→    $fingerprintAfter = getDbFingerprint($pdo);
+    68→    // If migrations changed the DB, ensure we have a pre-migration backup
+    69→    if ($fingerprintBefore['mtime'] !== $fingerprintAfter['mtime'] || $fingerprintBefore['size'] !== $fingerprintAfter['size']) {
+    70→        // Migration changed something — the pre-migration backup was already created
+    71→        // by performBackup() above. Update the marker so next backup detects further changes.
+    72→        setLastBackupFingerprint($fingerprintAfter);
+    73→    }
+    74→
+    75→    return $pdo;
+    76→}
+    77→
+    78→/**
+    79→ * Seed the database with default sites and dev users.
+    80→ * 
+    81→ * @param PDO $pdo
+    82→ */
+    83→function seedDefaultData(PDO $pdo): void {
+    84→    // Sites — DREETS BFC Unités Régionales
+    85→    // Only UR21 and UR25 by default — more can be added via Settings
+    86→    $sites = [
+    87→        ['UR21', 'UR Côte-d\'Or', 'Côte-d\'Or'],
+    88→        ['UR25', 'UR Doubs', 'Doubs'],
+    89→    ];
+    90→
+    91→    $stmt = $pdo->prepare('INSERT INTO sites (code, nom, departement) VALUES (:code, :nom, :departement)');
+    92→    foreach ($sites as $site) {
+    93→        $stmt->execute([
+    94→            ':code'        => $site[0],
+    95→            ':nom'         => $site[1],
+    96→            ':departement' => $site[2],
+    97→        ]);
+    98→    }
+    99→
+   100→    // Default dev users
+   101→    // site_id: 1 = UR21, 2 = UR25 (from the sites seeded above)
+   102→    $users = [
+   103→        ['admin.dev', 'Administrateur', 'Dev', 'admin.dev@dreets.gouv.fr', 'superviseur', 1],
+   104→        ['agent.dev', 'Dupont', 'Jean', 'agent.dev@dreets.gouv.fr', 'agent', null],
+   105→        ['chsct.dev', 'Bernard', 'Pierre', 'chsct.dev@dreets.gouv.fr', 'chsct', 2],
+   106→    ];
+   107→
+   108→    $stmt = $pdo->prepare('INSERT INTO users (username, nom, prenom, email, role, site_id) VALUES (:username, :nom, :prenom, :email, :role, :site_id)');
+   109→    foreach ($users as $user) {
+   110→        $stmt->execute([
+   111→            ':username' => $user[0],
+   112→            ':nom'      => $user[1],
+   113→            ':prenom'   => $user[2],
+   114→            ':email'    => $user[3],
+   115→            ':role'     => $user[4],
+   116→            ':site_id'  => $user[5],
+   117→        ]);
+   118→    }
+   119→}
+   120→
+   121→/**
+   122→ * Auto-migrate: create missing tables in existing databases.
+   123→ * This handles databases created before a table was added to the schema.
+   124→ * Uses CREATE TABLE IF NOT EXISTS so it's safe to run on every request.
+   125→ * 
+   126→ * @param PDO $pdo
+   127→ */
+   128→function migrateSchema(PDO $pdo): void {
+   129→    // List of tables that might be missing from older databases.
+   130→    // CREATE TABLE IF NOT EXISTS is safe — no-op if table already exists.
+   131→    $migrations = [
+   132→        'config_app' => 'CREATE TABLE IF NOT EXISTS config_app (
+   133→            cle TEXT PRIMARY KEY,
+   134→            valeur TEXT,
+   135→            type TEXT DEFAULT \'text\',
+   136→            categorie TEXT DEFAULT \'app\',
+   137→            libelle TEXT,
+   138→            modifiable INTEGER DEFAULT 1,
+   139→            created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+   140→            updated_at TEXT NOT NULL DEFAULT (datetime(\'now\'))
+   141→        )',
+   142→        'report_sequence' => 'CREATE TABLE IF NOT EXISTS report_sequence (
+   143→            id INTEGER PRIMARY KEY AUTOINCREMENT,
+   144→            type TEXT NOT NULL,
+   145→            year INTEGER NOT NULL,
+   146→            last_sequence INTEGER NOT NULL DEFAULT 0,
+   147→            UNIQUE(type, year)
+   148→        )',
+   149→        'notification_settings' => 'CREATE TABLE IF NOT EXISTS notification_settings (
+   150→            id INTEGER PRIMARY KEY AUTOINCREMENT,
+   151→            site_id INTEGER,
+   152→            type TEXT NOT NULL,
+   153→            registry TEXT NOT NULL,
+   154→            email TEXT NOT NULL,
+   155→            created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+   156→            FOREIGN KEY (site_id) REFERENCES sites(id)
+   157→        )',
+   158→        'report_responses' => 'CREATE TABLE IF NOT EXISTS report_responses (
+   159→            id INTEGER PRIMARY KEY AUTOINCREMENT,
+   160→            report_uuid TEXT NOT NULL,
+   161→            user_id INTEGER NOT NULL,
+   162→            reponse TEXT NOT NULL,
+   163→            nouvel_etat TEXT,
+   164→            created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+   165→            FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+   166→            FOREIGN KEY (user_id) REFERENCES users(id)
+   167→        )',
+   168→        'audit_log' => 'CREATE TABLE IF NOT EXISTS audit_log (
+   169→            id INTEGER PRIMARY KEY AUTOINCREMENT,
+   170→            user_id INTEGER,
+   171→            username TEXT NOT NULL,
+   172→            category TEXT NOT NULL,
+   173→            action TEXT NOT NULL,
+   174→            target_id INTEGER,
+   175→            target_type TEXT,
+   176→            details TEXT NOT NULL,
+   177→            context TEXT,
+   178→            ip_address TEXT,
+   179→            created_at TEXT NOT NULL DEFAULT (datetime(\'now\'))
+   180→        )',
+   181→    ];
+   182→
+   183→    foreach ($migrations as $table => $sql) {
+   184→        try {
+   185→            $pdo->exec($sql);
+   186→        } catch (Exception $e) {
+   187→            error_log("Migration warning for table $table: " . $e->getMessage());
+   188→        }
+   189→    }
+   190→
+   191→    // === Column migrations (SQLite cannot ALTER COLUMN, so we check pragmas) ===
+   192→
+   193→    // Add is_confidential column to reports table
+   194→    try {
+   195→        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+   196→        $hasConfidential = false;
+   197→        foreach ($cols as $col) {
+   198→            if ($col['name'] === 'is_confidential') {
+   199→                $hasConfidential = true;
+   200→                break;
+   201→            }
+   202→        }
+   203→        if (!$hasConfidential) {
+   204→            $pdo->exec('ALTER TABLE reports ADD COLUMN is_confidential INTEGER NOT NULL DEFAULT 1');
+   205→            // Migrate existing reports: if app_agent_visibility was 'site',
+   206→            // existing reports were public → set them to is_confidential = 0
+   207→            $vis = getConfig('app_agent_visibility', 'confidential');
+   208→            if ($vis === 'site') {
+   209→                $pdo->exec('UPDATE reports SET is_confidential = 0');
+   210→            }
+   211→            // Add index
+   212→            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
+   213→        }
+   214→    } catch (Exception $e) {
+   215→        error_log("Migration warning for reports.is_confidential: " . $e->getMessage());
+   216→    }
+   217→
+   218→    // Make users.site_id nullable for existing databases
+   219→    try {
+   220→        $cols = $pdo->query("PRAGMA table_info(users)")->fetchAll();
+   221→        foreach ($cols as $col) {
+   222→            if ($col['name'] === 'site_id' && $col['notnull'] === 1) {
+   223→                // SQLite doesn't support ALTER COLUMN — we recreate the table
+   224→                $pdo->exec('CREATE TABLE users_new (
+   225→                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+   226→                    username TEXT NOT NULL UNIQUE,
+   227→                    nom TEXT NOT NULL,
+   228→                    prenom TEXT NOT NULL,
+   229→                    email TEXT,
+   230→                    role TEXT NOT NULL DEFAULT \'agent\',
+   231→                    site_id INTEGER,
+   232→                    is_active INTEGER NOT NULL DEFAULT 1,
+   233→                    created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+   234→                    updated_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+   235→                    FOREIGN KEY (site_id) REFERENCES sites(id)
+   236→                )');
+   237→                $pdo->exec('INSERT INTO users_new SELECT * FROM users');
+   238→                $pdo->exec('DROP TABLE users');
+   239→                $pdo->exec('ALTER TABLE users_new RENAME TO users');
+   240→                break;
+   241→            }
+   242→        }
+   243→    } catch (Exception $e) {
+   244→        error_log("Migration warning for users.site_id nullable: " . $e->getMessage());
+   245→    }
+   246→
+   247→    // Add uuid column to reports table (for non-guessable URLs)
+   248→    try {
+   249→        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+   250→        $hasUuid = false;
+   251→        foreach ($cols as $col) {
+   252→            if ($col['name'] === 'uuid') {
+   253→                $hasUuid = true;
+   254→                break;
+   255→            }
+   256→        }
+   257→        if (!$hasUuid) {
+   258→            $pdo->exec('ALTER TABLE reports ADD COLUMN uuid TEXT');
+   259→            // Backfill existing reports with UUIDs
+   260→            $stmt = $pdo->query('SELECT id FROM reports WHERE uuid IS NULL');
+   261→            while ($row = $stmt->fetch()) {
+   262→                $hex = bin2hex(random_bytes(16));
+   263→                $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+   264→                $upd = $pdo->prepare('UPDATE reports SET uuid = :uuid WHERE id = :id');
+   265→                $upd->execute([':uuid' => $uuid, ':id' => $row['id']]);
+   266→            }
+   267→            $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+   268→        }
+   269→    } catch (Exception $e) {
+   270→        error_log("Migration warning for reports.uuid: " . $e->getMessage());
+   271→    }
+   272→
+   273→    // Migrate report_responses: report_id (integer) → report_uuid (text)
+   274→    try {
+   275→        $cols = $pdo->query("PRAGMA table_info(report_responses)")->fetchAll();
+   276→        $hasReportUuid = false;
+   277→        foreach ($cols as $col) {
+   278→            if ($col['name'] === 'report_uuid') {
+   279→                $hasReportUuid = true;
+   280→                break;
+   281→            }
+   282→        }
+   283→        if (!$hasReportUuid) {
+   284→            // Add report_uuid column
+   285→            $pdo->exec('ALTER TABLE report_responses ADD COLUMN report_uuid TEXT');
+   286→            // Backfill: map old report_id → report uuid
+   287→            $stmt = $pdo->query('SELECT rr.id, rr.report_id FROM report_responses rr WHERE rr.report_uuid IS NULL');
+   288→            while ($row = $stmt->fetch()) {
+   289→                $uuidStmt = $pdo->prepare('SELECT uuid FROM reports WHERE id = :id');
+   290→                $uuidStmt->execute([':id' => $row['report_id']]);
+   291→                $reportUuid = $uuidStmt->fetchColumn();
+   292→                if ($reportUuid) {
+   293→                    $upd = $pdo->prepare('UPDATE report_responses SET report_uuid = :uuid WHERE id = :id');
+   294→                    $upd->execute([':uuid' => $reportUuid, ':id' => $row['id']]);
+   295→                }
+   296→            }
+   297→            // Create index on new column
+   298→            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
+   299→        }
+   300→    } catch (Exception $e) {
+   301→        error_log("Migration warning for report_responses.report_uuid: " . $e->getMessage());
+   302→    }
+   303→
+   304→    // === Fix UUIDs with invalid variant bits ===
+   305→    // Old generateUuid() used | 0x8 instead of (& 0x3F | 0x80),
+   306→    // producing UUIDs whose 4th group starts with c-f instead of 8-b.
+   307→    // This migration fixes those UUIDs in both reports and report_responses.
+   308→    try {
+   309→        // Check if reports table has both 'id' and 'uuid' columns (old schema)
+   310→        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+   311→        $hasId = false;
+   312→        $hasUuid = false;
+   313→        foreach ($cols as $col) {
+   314→            if ($col['name'] === 'id') $hasId = true;
+   315→            if ($col['name'] === 'uuid') $hasUuid = true;
+   316→        }
+   317→
+   318→        // Backfill NULL UUIDs even if column already exists (migration might have been partial)
+   319→        if ($hasUuid) {
+   320→            $idCol = $hasId ? 'id' : 'rowid';
+   321→            $stmt = $pdo->query("SELECT $idCol FROM reports WHERE uuid IS NULL");
+   322→            while ($row = $stmt->fetch()) {
+   323→                $hex = bin2hex(random_bytes(16));
+   324→                $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+   325→                $upd = $pdo->prepare("UPDATE reports SET uuid = :uuid WHERE $idCol = :id");
+   326→                $upd->execute([':uuid' => $uuid, ':id' => $row[$idCol]]);
+   327→            }
+   328→        }
+   329→
+   330→        // Fix UUIDs with invalid variant bits (4th group starts with c-f)
+   331→        // Pattern: the 20th character (index 19) of UUID should be 8/9/a/b
+   332→        // If it's c/d/e/f, we fix it by applying & 0x3F | 0x80 to the variant byte
+   333→        if ($hasUuid) {
+   334→            $stmt = $pdo->query("SELECT uuid FROM reports WHERE uuid IS NOT NULL");
+   335→            $fixes = [];
+   336→            while ($row = $stmt->fetch()) {
+   337→                $oldUuid = $row['uuid'];
+   338→                $variantNibble = strtolower($oldUuid[19]);
+   339→                if (in_array($variantNibble, ['c', 'd', 'e', 'f'])) {
+   340→                    // Fix the variant byte: extract it, apply correct mask, rebuild UUID
+   341→                    $variantByte = hexdec(substr($oldUuid, 14, 2) . substr($oldUuid, 19, 2));
+   342→                    // Actually, let's fix just the variant nibble directly
+   343→                    // Map c→8, d→9, e→a, f→b (clear bits 6-7, set bit 7)
+   344→                    $nibbleMap = ['c' => '8', 'd' => '9', 'e' => 'a', 'f' => 'b'];
+   345→                    $newUuid = substr($oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr($oldUuid, 20);
+   346→                    $fixes[] = ['old' => $oldUuid, 'new' => $newUuid];
+   347→                }
+   348→            }
+   349→            foreach ($fixes as $fix) {
+   350→                // Update report_responses first (FK)
+   351→                $upd1 = $pdo->prepare('UPDATE report_responses SET report_uuid = :new WHERE report_uuid = :old');
+   352→                $upd1->execute([':new' => $fix['new'], ':old' => $fix['old']]);
+   353→                // Update reports (PK)
+   354→                $upd2 = $pdo->prepare('UPDATE reports SET uuid = :new WHERE uuid = :old');
+   355→                $upd2->execute([':new' => $fix['new'], ':old' => $fix['old']]);
+   356→            }
+   357→            if (count($fixes) > 0) {
+   358→                error_log('[SST-MIGRATION] Fixed ' . count($fixes) . ' report UUIDs with invalid variant bits.');
+   359→            }
+   360→        }
+   361→    } catch (Exception $e) {
+   362→        error_log("Migration warning for UUID variant fix: " . $e->getMessage());
+   363→    }
+   364→
+   365→    // Add attachment columns to reports table
+   366→    try {
+   367→        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+   368→        $hasAttachment = false;
+   369→        foreach ($cols as $col) {
+   370→            if ($col['name'] === 'attachment_blob') {
+   371→                $hasAttachment = true;
+   372→                break;
+   373→            }
+   374→        }
+   375→        if (!$hasAttachment) {
+   376→            $pdo->exec('ALTER TABLE reports ADD COLUMN attachment_blob BLOB');
+   377→            $pdo->exec('ALTER TABLE reports ADD COLUMN attachment_name TEXT');
+   378→            $pdo->exec('ALTER TABLE reports ADD COLUMN attachment_mime TEXT');
+   379→        }
+   380→    } catch (Exception $e) {
+   381→        error_log("Migration warning for attachment columns: " . $e->getMessage());
+   382→    }
+   383→
+   384→    // === FTS5 full-text search index ===
+   385→    try {
+   386→        $ftsCheck = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='reports_fts'");
+   387→        $ftsExists = ($ftsCheck !== false && $ftsCheck->fetch() !== false);
+   388→        if (!$ftsExists) {
+   389→            // Create FTS5 virtual table indexing objet and description
+   390→            $pdo->exec("CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid)");
+   391→            // Populate from existing reports
+   392→            $pdo->exec("INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL");
+   393→        }
+   394→    } catch (Exception $e) {
+   395→        // FTS5 may not be available on very old SQLite builds — non-critical
+   396→        error_log("Migration warning for FTS5: " . $e->getMessage());
+   397→    }
+   398→
+   399→    // === Schema version tracking ===
+   400→    try {
+   401→        $pdo->exec('CREATE TABLE IF NOT EXISTS schema_version (
+   402→            version     INTEGER PRIMARY KEY,
+   403→            description TEXT NOT NULL,
+   404→            applied_at  TEXT NOT NULL DEFAULT (datetime(\'now\'))
+   405→        )');
+   406→
+   407→        // Record baseline for existing databases that pre-date schema_version
+   408→        $stmt = $pdo->query('SELECT COUNT(*) FROM schema_version');
+   409→        $count = (int) $stmt->fetchColumn();
+   410→        if ($count === 0) {
+   411→            $pdo->exec("INSERT INTO schema_version (version, description) VALUES (1, 'Baseline — existing database before version tracking')");
+   412→        }
+   413→    } catch (Exception $e) {
+   414→        error_log("Migration warning for schema_version: " . $e->getMessage());
+   415→    }
+   416→
+   417→    // === Fix report_responses: make report_id nullable ===
+   418→    // Old migration created the table with report_id INTEGER NOT NULL, but the
+   419→    // code now uses report_uuid. The INSERT only provides report_uuid, so the
+   420→    // NOT NULL constraint on report_id causes a silent failure:
+   421→    //   respondToReport() → UPDATE succeeds → INSERT fails (constraint) →
+   422→    //   catch → rollback → return false → "déjà été traité" error.
+   423→    // Fix: recreate the table with report_id as nullable (SQLite can't ALTER COLUMN).
+   424→    try {
+   425→        $cols = $pdo->query("PRAGMA table_info(report_responses)")->fetchAll();
+   426→        $hasReportId = false;
+   427→        $reportIdNotNull = false;
+   428→        $hasReportUuid = false;
+   429→        foreach ($cols as $col) {
+   430→            if ($col['name'] === 'report_id') {
+   431→                $hasReportId = true;
+   432→                $reportIdNotNull = ((int)$col['notnull'] === 1);
+   433→            }
+   434→            if ($col['name'] === 'report_uuid') {
+   435→                $hasReportUuid = true;
+   436→            }
+   437→        }
+   438→        if ($hasReportId && $reportIdNotNull) {
+   439→            // Recreate the table with report_id as nullable
+   440→            $pdo->exec('CREATE TABLE report_responses_new (
+   441→                id INTEGER PRIMARY KEY AUTOINCREMENT,
+   442→                report_uuid TEXT,
+   443→                report_id INTEGER,
+   444→                user_id INTEGER NOT NULL,
+   445→                reponse TEXT NOT NULL,
+   446→                nouvel_etat TEXT,
+   447→                created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+   448→                FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+   449→                FOREIGN KEY (user_id) REFERENCES users(id)
+   450→            )');
+   451→            // Copy all existing data
+   452→            $pdo->exec('INSERT INTO report_responses_new (id, report_uuid, report_id, user_id, reponse, nouvel_etat, created_at)
+   453→                SELECT id, report_uuid, report_id, user_id, reponse, nouvel_etat, created_at FROM report_responses');
+   454→            // Swap tables
+   455→            $pdo->exec('DROP TABLE report_responses');
+   456→            $pdo->exec('ALTER TABLE report_responses_new RENAME TO report_responses');
+   457→            // Recreate indexes
+   458→            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
+   459→            error_log('[SST-MIGRATION] Fixed report_responses: report_id is now nullable (was NOT NULL, broke INSERT with report_uuid).');
+   460→        }
+   461→    } catch (Exception $e) {
+   462→        error_log('Migration warning for report_responses.report_id nullable: ' . $e->getMessage());
+   463→    }
+   464→
+   465→    // Also ensure indexes exist
+   466→    $indexes = [
+   467→        'CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)',
+   468→        'CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)',
+   469→        'CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)',
+   470→        'CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)',
+   471→        'CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)',
+   472→        'CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)',
+   473→        'CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)',
+   474→        'CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)',
+   475→        'CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)',
+   476→        'CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id)',
+   477→        'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)',
+   478→        'CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)',
+   479→        'CREATE INDEX IF NOT EXISTS idx_notification_settings_site_id ON notification_settings(site_id)',
+   480→        'CREATE INDEX IF NOT EXISTS idx_audit_log_category ON audit_log(category)',
+   481→        'CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id)',
+   482→        'CREATE INDEX IF NOT EXISTS idx_audit_log_target ON audit_log(target_type, target_id)',
+   483→        'CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at)',
+   484→    ];
+   485→    foreach ($indexes as $sql) {
+   486→        try {
+   487→            $pdo->exec($sql);
+   488→        } catch (Exception $e) {
+   489→            error_log("Index migration warning: " . $e->getMessage());
+   490→        }
+   491→    }
+   492→}
+   493→
+   494→/**
+   495→ * Auto-migrate: add missing config_app keys for existing databases.
+   496→ * This ensures that databases created before a key was added
+   497→ * will automatically receive it on next request.
+   498→ * 
+   499→ * @param PDO $pdo
+   500→ */
+   501→function migrateConfigKeys(PDO $pdo): void {
+   502→    $newKeys = [
+   503→        'app_superviseur_usernames' => ['', 'text', 'app', 'Logins Windows des superviseurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS. Utile pour une première installation.', 1],
+   504→        'app_agent_see_only_own' => ['0', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
+   505→        'app_agent_visibility' => ['agent_choice', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
+   506→        'app_report_visibility' => ['agent_choice', 'text', 'app', 'Visibilité des signalements : "confidential" (l\'agent ne voit que ses propres signalements), "agent_choice" (l\'agent choisit au cas par cas, confidentiel par défaut), "public" (tous les signalements du site sont visibles par tous les agents).', 1],
+   507→    ];
+   508→
+   509→    foreach ($newKeys as $cle => $data) {
+   510→        // Check if key already exists
+   511→        $stmt = $pdo->prepare('SELECT COUNT(*) FROM config_app WHERE cle = :cle');
+   512→        $stmt->execute([':cle' => $cle]);
+   513→        $exists = (int) $stmt->fetchColumn();
+   514→
+   515→        if ($exists === 0) {
+   516→            // For app_agent_visibility: migrate from old values
+   517→            $value = $data[0];
+   518→            if ($cle === 'app_agent_visibility') {
+   519→                // Check if key already exists with old value
+   520→                $stmt2 = $pdo->prepare('SELECT valeur FROM config_app WHERE cle = :cle');
+   521→                $stmt2->execute([':cle' => 'app_agent_visibility']);
+   522→                $existingValue = $stmt2->fetchColumn();
+   523→                if ($existingValue !== false) {
+   524→                    // Key exists but with old value — migrate it
+   525→                    if ($existingValue === 'site') {
+   526→                        $value = 'public'; // old "site" → new "public"
+   527→                    } elseif ($existingValue === 'own') {
+   528→                        $value = 'confidential'; // old "own" → new "confidential"
+   529→                    }
+   530→                    // Update the existing row instead of inserting
+   531→                    $stmt3 = $pdo->prepare('UPDATE config_app SET valeur = :valeur, libelle = :libelle, updated_at = datetime("now") WHERE cle = :cle');
+   532→                    $stmt3->execute([':valeur' => $value, ':libelle' => $data[3], ':cle' => $cle]);
+   533→                    continue; // Skip the INSERT below
+   534→                }
+   535→                // Key doesn't exist at all — also check old app_agent_see_only_own
+   536→                $stmt2 = $pdo->prepare('SELECT valeur FROM config_app WHERE cle = :cle');
+   537→                $stmt2->execute([':cle' => 'app_agent_see_only_own']);
+   538→                $oldValue = $stmt2->fetchColumn();
+   539→                if ($oldValue === '1') {
+   540→                    $value = 'confidential'; // Migrate: old "see only own" → new "confidential"
+   541→                }
+   542→            }
+   543→
+   544→            // For app_report_visibility: migrate from app_agent_visibility value
+   545→            if ($cle === 'app_report_visibility') {
+   546→                $stmt2 = $pdo->prepare('SELECT valeur FROM config_app WHERE cle = :cle');
+   547→                $stmt2->execute([':cle' => 'app_agent_visibility']);
+   548→                $oldVisValue = $stmt2->fetchColumn();
+   549→                if ($oldVisValue !== false) {
+   550→                    // Map old 2-mode value to new 3-mode value
+   551→                    if ($oldVisValue === 'confidential') {
+   552→                        $value = 'agent_choice'; // old "confidential" was actually agent_choice mode
+   553→                    } elseif ($oldVisValue === 'public') {
+   554→                        $value = 'public';
+   555→                    } elseif ($oldVisValue === 'site') {
+   556→                        $value = 'public';
+   557→                    } elseif ($oldVisValue === 'own') {
+   558→                        $value = 'confidential'; // old "own" = truly confidential
+   559→                    }
+   560→                    // else: keep default 'agent_choice'
+   561→                }
+   562→            }
+   563→
+   564→            $stmt = $pdo->prepare('INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUES (:cle, :valeur, :type, :categorie, :libelle, :modifiable)');
+   565→            $stmt->execute([
+   566→                ':cle'        => $cle,
+   567→                ':valeur'     => $value,
+   568→                ':type'       => $data[1],
+   569→                ':categorie'  => $data[2],
+   570→                ':libelle'    => $data[3],
+   571→                ':modifiable' => $data[4],
+   572→            ]);
+   573→        }
+   574→    }
+   575→}
+   576→

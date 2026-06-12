@@ -1,9 +1,9 @@
 <?php
 /**
  * Report Form Template — Application SST DREETS BFC
- * 
+ *
  * Shared form for creating and editing reports (RSST, RAMI, DGI).
- * 
+ *
  * Required variables:
  *   $type        — Registry type: 'rsst', 'rami', 'dgi'
  *   $action      — Form action URL
@@ -49,7 +49,7 @@ $submitBtnClass = $isEdit
     : 'btn--warning'; // orange/coral for create mode
 ?>
 <div class="card <?php echo $cardClass; ?>">
-    <h2 style="margin-bottom:16px;">
+    <h2 class="mb-4">
         <?php echo $isEdit ? 'Modifier le signalement' : 'Inscrire un signalement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>
 
@@ -100,7 +100,7 @@ $submitBtnClass = $isEdit
                 <?php endif; ?>
             </div>
 
-            <div class="form-group" style="grid-column: 1 / -1;">
+            <div class="form-group form-grid__full">
                 <label for="description">Description <span class="required">*</span></label>
                 <textarea id="description" name="description" rows="8" maxlength="20000" required
                           placeholder="Décrivez le signalement en détail..."
@@ -111,16 +111,16 @@ $submitBtnClass = $isEdit
                 <?php endif; ?>
             </div>
 
-            <div class="form-group" style="grid-column: 1 / -1;">
+            <div class="form-group form-grid__full">
                 <label for="attachment">Pièce jointe</label>
                 <input type="file" id="attachment" name="attachment"
                        accept=".jpg,.jpeg,.png,.gif,.pdf"
                        <?php echo isset($formErrors['attachment']) ? 'aria-describedby="err_attachment" aria-invalid="true"' : ''; ?>>
                 <span class="form-hint">Image (JPG, PNG, GIF) ou PDF — 10 Mo max. Optionnel.</span>
                 <?php if ($isEdit && !empty($report['attachment_name'])): ?>
-                    <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
-                        <span class="badge" style="background:#6b7280;">📎 <?php echo e($report['attachment_name']); ?></span>
-                        <label style="font-size:13px;color:#b91c1c;">
+                    <div class="attachment-preview">
+                        <span class="badge badge--confidential">&#128206; <?php echo e($report['attachment_name']); ?></span>
+                        <label class="attachment-remove-label">
                             <input type="checkbox" name="remove_attachment" value="1"> Supprimer la pièce jointe actuelle
                         </label>
                     </div>
@@ -149,42 +149,23 @@ $submitBtnClass = $isEdit
             <?php endif; ?>
 
             <?php if (reportVisibilityIsAgentChoice()): ?>
-            <div class="form-group" style="grid-column: 1 / -1;" id="confidential-toggle">
-                <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer;">
+            <div class="form-group form-grid__full confidential-toggle" id="confidential-toggle">
+                <label class="label--checkbox">
                     <input type="checkbox" name="is_confidential" id="is_confidential" value="1"
-                           style="width:auto;margin:0;"
+                           class="confidential-toggle__input"
                            <?php echo $val('is_confidential', '1') === '1' ? 'checked' : ''; ?>>
                     Signalement confidentiel
                 </label>
                 <span class="form-hint">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
                 <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                 <div class="confidential-warning">
-                    ⚠️ <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
+                    &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
                 </div>
             </div>
-            <style>
-            /* Affiche le warning uniquement quand la checkbox est décochée */
-            #confidential-toggle:not(:has(#is_confidential:checked)) .confidential-warning {
-                display: block;
-            }
-            #confidential-toggle:has(#is_confidential:checked) .confidential-warning {
-                display: none;
-            }
-            .confidential-warning {
-                display: none;
-                margin-top: 8px;
-                padding: 10px 14px;
-                background: #fffbeb;
-                border: 1px solid #fcd34d;
-                border-radius: 6px;
-                color: #92400e;
-                font-size: 13px;
-            }
-            </style>
             <?php elseif (reportVisibilityIsConfidential()): ?>
             <input type="hidden" name="is_confidential" value="1">
-            <div class="form-group" style="grid-column: 1 / -1;">
-                <span class="badge" style="background:#6b7280;">🔒 Confidentiel</span>
+            <div class="form-group form-grid__full">
+                <span class="badge badge--confidential">&#128274; Confidentiel</span>
                 <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du CHSCT.</span>
             </div>
             <?php elseif (reportVisibilityIsPublic()): ?>
@@ -202,24 +183,23 @@ $submitBtnClass = $isEdit
             </div>
 
             <?php if ($type === 'rami'): ?>
-            <div class="form-group" style="grid-column: 1 / -1;">
-                <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;cursor:pointer;">
+            <div class="form-group form-grid__full">
+                <label class="label--checkbox">
                     <input type="checkbox" name="pour_compte" id="pour_compte" value="1"
-                           style="width:auto;margin:0;"
                            <?php echo ($val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? 'checked' : ''; ?>>
                     Signaler pour le compte d'un autre agent
                 </label>
             </div>
 
-            <div id="pour_compte_fields" class="form-group" style="grid-column: 1 / -1;">
-                <div style="display:flex;gap:12px;flex-wrap:wrap;">
-                    <div style="flex:1;min-width:200px;">
+            <div id="pour_compte_fields" class="form-group form-grid__full pour-compte-fields">
+                <div class="flex-row">
+                    <div>
                         <label for="pour_compte_nom">Nom de l'agent</label>
                         <input type="text" id="pour_compte_nom" name="pour_compte_nom"
                                value="<?php echo e($val('pour_compte_nom')); ?>"
                                <?php echo isset($formErrors['pour_compte_nom']) ? 'aria-describedby="err_pour_compte_nom" aria-invalid="true"' : ''; ?>>
                     </div>
-                    <div style="flex:1;min-width:200px;">
+                    <div>
                         <label for="pour_compte_prenom">Prénom de l'agent</label>
                         <input type="text" id="pour_compte_prenom" name="pour_compte_prenom"
                                value="<?php echo e($val('pour_compte_prenom')); ?>">
@@ -241,11 +221,3 @@ $submitBtnClass = $isEdit
         </div>
     </form>
 </div>
-
-<?php if ($type === 'rami'): ?>
-<style>
-/* Toggle "pour le compte de" fields with CSS only — no JavaScript */
-.form-grid:not(:has(#pour_compte:checked)) #pour_compte_fields { display: none; }
-.form-grid:has(#pour_compte:checked) #pour_compte_fields { display: block; }
-</style>
-<?php endif; ?>

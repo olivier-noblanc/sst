@@ -32,18 +32,14 @@ $filters = [
 
 // Apply agent visibility restrictions
 if ($agentVisibility === 'confidential') {
-    // Most restrictive: agent sees ONLY their own reports
     $filters['force_site_id'] = $userSiteId;
     $filters['own_only'] = $userId;
 } elseif ($agentVisibility === 'agent_choice') {
-    // Agent sees public reports from their site + their own (even confidential)
     $filters['force_site_id'] = $userSiteId;
     $filters['confidential_filter'] = $userId;
 } elseif ($agentVisibility === 'public') {
-    // Agent sees all reports from their site only
     $filters['force_site_id'] = $userSiteId;
 }
-// else: 'all' — no restrictions (superviseur/chsct)
 
 // Pagination
 $pageNum = max(1, (int) ($_GET['p'] ?? 1));
@@ -76,7 +72,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="filter-bar">
-    <form method="GET" action="index.php" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;width:100%;">
+    <form method="GET" action="index.php" class="flex flex-wrap gap-4 items-center" style="width:100%;">
         <input type="hidden" name="page" value="report_list">
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
 
@@ -133,9 +129,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
             <tbody>
                 <?php if (empty($reports)): ?>
                 <tr>
-                    <td colspan="9" style="text-align:center;color:var(--grey-500);padding:24px;">
-                        Aucun signalement trouvé.
-                    </td>
+                    <td colspan="9" class="empty-state">Aucun signalement trouvé.</td>
                 </tr>
                 <?php else: ?>
                     <?php foreach ($reports as $report): ?>
@@ -143,7 +137,6 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         $isDeclarant = ((int) $report['declarant_id'] === $userId);
                         $canEdit = $isDeclarant && in_array($report['etat'], ['nouveau', 'en_cours']);
                         $canRespond = in_array($userRole, ['superviseur']) && in_array($report['etat'], ['nouveau', 'en_cours']);
-                        $canAbandon = $isDeclarant && !in_array($report['etat'], ['abandonne', 'traite']);
                     ?>
                     <tr>
                         <td><strong><?php echo e($report['reference']); ?></strong></td>
@@ -159,13 +152,13 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         </td>
                         <td>
                             <?php if (!empty($report['is_confidential'])): ?>
-                            <span class="badge" style="background:#6b7280;">🔒 Confidentiel</span>
+                            <span class="badge badge--confidential">&#128274; Confidentiel</span>
                             <?php else: ?>
-                            <span class="badge" style="background:#22c55e;">Public</span>
+                            <span class="badge badge--public">Public</span>
                             <?php endif; ?>
                         </td>
                         <td>
-                            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            <div class="btn-group">
                                 <a href="<?php echo url('report_view', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--outline">Voir</a>
                                 <?php if ($canEdit): ?>
                                 <a href="<?php echo url('report_edit', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--secondary">Modifier</a>

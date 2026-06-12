@@ -72,7 +72,8 @@ if ($action === 'anonymize') {
         auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
         setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
     } else {
-        setFlash('error', 'Erreur lors de l\'anonymisation.');
+        error_log('[SST-DB] anonymizeUser failed for user_id=' . $userId);
+        setFlash('error', 'Erreur lors de l\'anonymisation de l\'utilisateur. (user_id=' . $userId . ')');
     }
     redirect(url('user_view', ['id' => $userId]));
 }
@@ -173,7 +174,8 @@ try {
     setFlash('success', 'Utilisateur ' . e($prenom . ' ' . $nom) . ' mis à jour avec succès.');
 } catch (Exception $e) {
     $pdo->rollBack();
-    setFlash('error', 'Erreur lors de la mise à jour de l\'utilisateur.');
+    error_log('[SST-DB] user_edit failed: ' . $e->getMessage());
+    setFlash('error', 'Erreur lors de la mise à jour de l\'utilisateur : ' . e($e->getMessage()));
 }
 
 redirect(url('users'));

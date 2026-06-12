@@ -73,7 +73,8 @@ if ($success) {
     auditLog($pdo, 'site', 'edit', 'Site modifié : ' . $code . ' — ' . $nom, (int) $siteId, 'site');
     setFlash('success', 'Site ' . e($code . ' — ' . $nom) . ' mis à jour avec succès.');
 } else {
-    setFlash('error', 'Erreur lors de la mise à jour du site.');
+    error_log('[SST-DB] site_edit failed for site_id=' . $siteId);
+    setFlash('error', 'Erreur lors de la mise à jour du site. (site_id=' . $siteId . ')');
 }
 
 redirect(url('settings', ['tab' => 'manage_sites']));

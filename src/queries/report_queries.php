@@ -373,14 +373,14 @@ function abandonReport(PDO $pdo, string $uuid, int $userId): bool {
  * @param string $nouvelEtat   New state ('en_cours' or 'traite')
  * @return string 'true' on success, 'concurrent' if already modified, 'error' on DB failure
  */
-function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): string {
+function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): array {
     // Transaction: UPDATE reports + INSERT report_responses must be atomic.
     // Without this, a crash between the two queries would leave reports.reponse
     // updated but no history entry in report_responses = data inconsistency.
     //
-    // Returns: 'true'  — success
-    //          'concurrent' — report was modified by another session (rowCount = 0)
-    //          'error' — database exception (constraint violation, etc.)
+    // Returns: ['status' => 'true']     — success
+    //          ['status' => 'concurrent'] — report was modified by another session
+    //          ['status' => 'error', 'message' => '...'] — database exception
     $pdo->beginTransaction();
     try {
         // Update the report
@@ -406,7 +406,7 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
             // No row matched — the report was likely modified by another supervisor
             // between the handler's check and this UPDATE (race condition).
             $pdo->rollBack();
-            return 'concurrent';
+            return ['status' => 'concurrent'];
         }
 
         // Insert into response history
@@ -422,11 +422,11 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
         ]);
 
         $pdo->commit();
-        return 'true';
+        return ['status' => 'true'];
     } catch (Exception $e) {
         $pdo->rollBack();
         error_log('[SST-DB] respondToReport transaction failed: ' . $e->getMessage());
-        return 'error';
+        return ['status' => 'error', 'message' => $e->getMessage()];
     }
 }
 

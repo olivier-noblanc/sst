@@ -214,7 +214,8 @@ try {
     setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');
 } catch (Exception $e) {
     $pdo->rollBack();
-    setFlash('error', 'Erreur lors de l\'enregistrement des paramètres.');
+    error_log('[SST-DB] settings failed: ' . $e->getMessage());
+    setFlash('error', 'Erreur lors de l\'enregistrement des paramètres : ' . e($e->getMessage()));
 }
 
 redirect(url('settings', ['tab' => $tab]));

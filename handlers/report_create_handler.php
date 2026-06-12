@@ -198,7 +198,8 @@ try {
     setFlash('success', 'Signalement enregistré avec la référence ' . e($newReport['reference']));
     redirect(url('report_view', ['uuid' => $newUuid]));
 } catch (Exception $e) {
-    setFlash('error', 'Erreur lors de l\'enregistrement du signalement. Veuillez réessayer.');
+    error_log('[SST-DB] report_create failed: ' . $e->getMessage());
+    setFlash('error', 'Erreur lors de l\'enregistrement du signalement : ' . e($e->getMessage()));
     setFormData($_POST);
     redirect(url('report_create', ['type' => $type]));
 }

@@ -190,7 +190,7 @@ if ($updated) {
     auditLog($pdo, 'report', 'edit', 'Signalement modifié : ' . $report['reference'], (int) $report['id'] ?? null, 'report', ['reference' => $report['reference']]);
     setFlash('success', 'Signalement ' . e($report['reference']) . ' modifié avec succès.');
 } else {
-    setFlash('error', 'Impossible de modifier le signalement. Il a peut-être été traité ou abandonné entre-temps.');
+    setFlash('error', 'Impossible de modifier le signalement. Il a peut-être été traité ou abandonné entre-temps. (uuid=' . e($reportUuid) . ', user_id=' . $userId . ', etat=' . e($report['etat']) . ')');
 }
 
 redirect(url('report_view', ['uuid' => $reportUuid]));

@@ -89,7 +89,8 @@ try {
     auditLog($pdo, 'user', 'create', 'Utilisateur créé : ' . $prenom . ' ' . $nom, (int) $newId, 'user', ['username' => $username, 'role' => $role]);
     setFlash('success', 'Utilisateur ' . e($prenom . ' ' . $nom) . ' créé avec succès (ID: ' . $newId . ').');
 } catch (Exception $e) {
-    setFlash('error', 'Erreur lors de la création de l\'utilisateur. Veuillez réessayer.');
+    error_log('[SST-DB] user_create failed: ' . $e->getMessage());
+    setFlash('error', 'Erreur lors de la création de l\'utilisateur : ' . e($e->getMessage()));
     setFormData($_POST);
     redirect(url('users', ['tab' => 'create']));
 }

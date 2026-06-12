@@ -67,7 +67,8 @@ auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . count($reports) . ' s
 $filename = 'export_sst_' . date('Y-m-d_His') . '.csv';
 $tmpFile = tmpfile();
 if ($tmpFile === false) {
-    setFlash('error', 'Erreur lors de la génération du fichier.');
+    $err = error_get_last();
+    setFlash('error', 'Erreur lors de la génération du fichier (tmpfile) : ' . e($err['message'] ?? 'erreur inconnue'));
     redirect(url('export'));
 }
 

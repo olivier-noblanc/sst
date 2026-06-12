@@ -75,8 +75,8 @@ if ($updatedUser && !empty($updatedUser['site_id'])) {
     redirect(url('home'));
 } else {
     // DB update failed — this shouldn't happen, but handle gracefully
-    error_log("SST App: choose_site_handler failed for user $userId, site_id=$siteId");
-    setFlash('error', 'Erreur lors de l\'enregistrement de votre site. Veuillez réessayer ou contacter un superviseur.');
+    error_log("SST App: choose_site_handler failed for user $userId, site_id=$siteId: " . $e->getMessage());
+    setFlash('error', 'Erreur lors de l\'enregistrement de votre site : ' . e($e->getMessage()));
     session_write_close();
     redirect(url('choose_site'));
 }

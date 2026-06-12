@@ -62,7 +62,8 @@ if ($success) {
     auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' désactivé avec succès.');
 } else {
-    setFlash('error', 'Erreur lors de la désactivation de l\'utilisateur.');
+    error_log('[SST-DB] user_delete failed for user_id=' . $userId);
+    setFlash('error', 'Erreur lors de la désactivation de l\'utilisateur. (user_id=' . $userId . ')');
 }
 
 redirect(url('users'));

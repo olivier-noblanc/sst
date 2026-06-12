@@ -51,7 +51,8 @@ if ($success) {
     auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' réactivé avec succès.');
 } else {
-    setFlash('error', 'Erreur lors de la réactivation de l\'utilisateur.');
+    error_log('[SST-DB] user_reactivate failed for user_id=' . $userId);
+    setFlash('error', 'Erreur lors de la réactivation de l\'utilisateur. (user_id=' . $userId . ')');
 }
 
 redirect(url('users'));

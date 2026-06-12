@@ -58,6 +58,6 @@ if ($abandoned) {
     setFlash('success', 'Signalement ' . e($report['reference']) . ' abandonné.');
     redirect(url('report_list', ['type' => $type]));
 } else {
-    setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps.');
+    setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps. (uuid=' . e($reportUuid) . ', etat=' . e($report['etat']) . ')');
     redirect(url('report_view', ['uuid' => $reportUuid]));
 }

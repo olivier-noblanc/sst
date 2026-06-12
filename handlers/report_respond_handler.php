@@ -71,7 +71,7 @@ if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
 $userId = (int) $_SESSION['user']['id'];
 $result = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
 
-if ($result === 'true') {
+if ($result['status'] === 'true') {
     // Audit log
     require_once __DIR__ . '/../src/audit.php';
     auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . $report['reference'] . ' — état : ' . $nouvelEtat, (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
@@ -86,14 +86,12 @@ if ($result === 'true') {
 
     setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report['reference']) . '.');
 } else {
-    // $result is either 'concurrent' (report was modified by another session)
-    // or 'error' (database constraint or other failure)
-    if ($result === 'concurrent') {
+    if ($result['status'] === 'concurrent') {
         setFlash('error', 'Ce signalement a été modifié par un autre superviseur pendant votre saisie. Veuillez recommencer.');
     } else {
-        // Log detailed context for debugging (user_id, report_uuid, etc.)
-        error_log('[SST-RESPOND] respondToReport failed: result=' . $result . ' user_id=' . $userId . ' report_uuid=' . $reportUuid . ' nouvel_etat=' . $nouvelEtat);
-        setFlash('error', 'Erreur lors de l\'enregistrement de la réponse. Veuillez réessayer ou contacter l\'administrateur si le problème persiste.');
+        $errorMsg = $result['message'] ?? 'Erreur inconnue';
+        error_log('[SST-RESPOND] respondToReport failed: ' . $errorMsg . ' | user_id=' . $userId . ' report_uuid=' . $reportUuid);
+        setFlash('error', 'Erreur lors de l\'enregistrement de la réponse : ' . e($errorMsg));
     }
 }
 

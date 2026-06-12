@@ -78,7 +78,7 @@ $pageTitle = 'Gestion des utilisateurs';
 <!-- Users table -->
 <div class="card">
     <div class="table-wrapper">
-        <table>
+        <table aria-label="Liste des utilisateurs">
             <thead>
                 <tr>
                     <th>Nom</th>
@@ -93,7 +93,12 @@ $pageTitle = 'Gestion des utilisateurs';
             <tbody>
                 <?php if (empty($allUsers)): ?>
                 <tr>
-                    <td colspan="7" class="empty-state">Aucun utilisateur trouvé</td>
+                    <td colspan="7" class="empty-state">
+                        Aucun utilisateur trouvé.
+                        <div class="empty-state__cta">
+                            <a href="<?php echo url('users', ['tab' => 'create']); ?>" class="btn btn--primary btn--sm">+ Inscrire un utilisateur</a>
+                        </div>
+                    </td>
                 </tr>
                 <?php else: ?>
                 <?php foreach ($allUsers as $u): ?>
@@ -144,42 +149,49 @@ $pageTitle = 'Gestion des utilisateurs';
         <div class="form-grid">
             <div class="form-group">
                 <label for="nom">Nom <span class="required">*</span></label>
-                <input type="text" name="nom" id="nom" required maxlength="100" value="<?php echo e($formData['nom'] ?? ''); ?>">
-                <?php if (isset($formErrors['nom'])): ?><span class="form-error"><?php echo e($formErrors['nom']); ?></span><?php endif; ?>
+                <input type="text" name="nom" id="nom" required maxlength="100" value="<?php echo e($formData['nom'] ?? ''); ?>"
+                       <?php echo isset($formErrors['nom']) ? 'aria-describedby="err_nom" aria-invalid="true"' : ''; ?>>
+                <?php if (isset($formErrors['nom'])): ?><span class="form-error" id="err_nom"><?php echo e($formErrors['nom']); ?></span><?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="prenom">Prénom <span class="required">*</span></label>
-                <input type="text" name="prenom" id="prenom" required maxlength="100" value="<?php echo e($formData['prenom'] ?? ''); ?>">
-                <?php if (isset($formErrors['prenom'])): ?><span class="form-error"><?php echo e($formErrors['prenom']); ?></span><?php endif; ?>
+                <input type="text" name="prenom" id="prenom" required maxlength="100" value="<?php echo e($formData['prenom'] ?? ''); ?>"
+                       <?php echo isset($formErrors['prenom']) ? 'aria-describedby="err_prenom" aria-invalid="true"' : ''; ?>>
+                <?php if (isset($formErrors['prenom'])): ?><span class="form-error" id="err_prenom"><?php echo e($formErrors['prenom']); ?></span><?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" name="email" id="email" maxlength="200" value="<?php echo e($formData['email'] ?? ''); ?>">
-                <?php if (isset($formErrors['email'])): ?><span class="form-error"><?php echo e($formErrors['email']); ?></span><?php endif; ?>
+                <input type="email" name="email" id="email" maxlength="200" value="<?php echo e($formData['email'] ?? ''); ?>"
+                       <?php echo isset($formErrors['email']) ? 'aria-describedby="err_email" aria-invalid="true"' : ''; ?>>
+                <?php if (isset($formErrors['email'])): ?><span class="form-error" id="err_email"><?php echo e($formErrors['email']); ?></span><?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="username">Identifiant <span class="required">*</span></label>
-                <input type="text" name="username" id="username" required maxlength="100" value="<?php echo e($formData['username'] ?? ''); ?>">
-                <div class="form-hint">Identifiant de connexion Windows (ex: jean.martin)</div>
-                <?php if (isset($formErrors['username'])): ?><span class="form-error"><?php echo e($formErrors['username']); ?></span><?php endif; ?>
+                <input type="text" name="username" id="username" required maxlength="100" value="<?php echo e($formData['username'] ?? ''); ?>"
+                       aria-describedby="hint_username"
+                       <?php echo isset($formErrors['username']) ? 'aria-describedby="err_username" aria-invalid="true"' : ''; ?>>
+                <div class="form-hint" id="hint_username">Identifiant de connexion Windows (ex: jean.martin)</div>
+                <?php if (isset($formErrors['username'])): ?><span class="form-error" id="err_username"><?php echo e($formErrors['username']); ?></span><?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="role">Rôle <span class="required">*</span></label>
-                <select name="role" id="role" required>
+                <select name="role" id="role" required
+                        <?php echo isset($formErrors['role']) ? 'aria-describedby="err_role" aria-invalid="true"' : ''; ?>>
                     <?php foreach (ROLE_LABELS as $key => $label): ?>
                     <option value="<?php echo e($key); ?>" <?php echo ($formData['role'] ?? 'agent') === $key ? 'selected' : ''; ?>><?php echo e($label); ?></option>
                     <?php endforeach; ?>
                 </select>
-                <?php if (isset($formErrors['role'])): ?><span class="form-error"><?php echo e($formErrors['role']); ?></span><?php endif; ?>
+                <?php if (isset($formErrors['role'])): ?><span class="form-error" id="err_role"><?php echo e($formErrors['role']); ?></span><?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="site_id">Site <span class="required">*</span></label>
-                <select name="site_id" id="site_id" required>
+                <select name="site_id" id="site_id" required
+                        <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : ''; ?>>
                     <?php foreach ($sites as $site): ?>
                     <option value="<?php echo (int) $site['id']; ?>" <?php echo ($formData['site_id'] ?? 1) == $site['id'] ? 'selected' : ''; ?>><?php echo e($site['nom']); ?></option>
                     <?php endforeach; ?>
                 </select>
-                <?php if (isset($formErrors['site_id'])): ?><span class="form-error"><?php echo e($formErrors['site_id']); ?></span><?php endif; ?>
+                <?php if (isset($formErrors['site_id'])): ?><span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span><?php endif; ?>
             </div>
         </div>
 

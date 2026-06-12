@@ -94,8 +94,9 @@ $pageTitle = 'Paramètres';
                 <label for="site_emails_<?php echo e((string)$sId); ?>">Adresses e-mail de notification</label>
                 <textarea id="site_emails_<?php echo e((string)$sId); ?>" name="site_emails[<?php echo e((string)$sId); ?>]"
                           rows="3" class="form-control"
+                          aria-describedby="hint_site_emails_<?php echo e((string)$sId); ?>"
                           placeholder="Une adresse par ligne&#10;ex: jean.martin@dreets.gouv.fr&#10;sophie.dupont@dreets.gouv.fr"><?php echo e(implode("\n", $existingEmails)); ?></textarea>
-                <div class="form-hint">Une adresse e-mail par ligne. Laissez vide pour aucune notification.</div>
+                <div class="form-hint" id="hint_site_emails_<?php echo e((string)$sId); ?>">Une adresse e-mail par ligne. Laissez vide pour aucune notification.</div>
             </div>
         </div>
     <?php endforeach; ?>
@@ -110,8 +111,9 @@ $pageTitle = 'Paramètres';
             <label for="global_emails">Adresses e-mail</label>
             <?php $globalEmailList = []; foreach ($globalEmails as $ge) { $globalEmailList[] = $ge['email']; } ?>
             <textarea id="global_emails" name="global_emails" rows="4" class="form-control"
+                      aria-describedby="hint_global_emails"
                       placeholder="Une adresse par ligne&#10;ex: direction@dreets.gouv.fr&#10;chsct@dreets.gouv.fr"><?php echo e(implode("\n", $globalEmailList)); ?></textarea>
-            <div class="form-hint">Une adresse e-mail par ligne. Laissez vide pour aucune notification globale.</div>
+            <div class="form-hint" id="hint_global_emails">Une adresse e-mail par ligne. Laissez vide pour aucune notification globale.</div>
         </div>
     </div>
     <?php endif; ?>
@@ -338,7 +340,7 @@ $pageTitle = 'Paramètres';
     </form>
 
     <!-- Existing sites list -->
-    <table class="table text-small">
+    <table class="table text-small" aria-label="Paramètres de l'application">
         <thead>
             <tr>
                 <th>Code</th>

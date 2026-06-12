@@ -91,11 +91,11 @@ $pageTitle = 'Export des données';
             <div class="form-group">
                 <label>Période</label>
                 <div class="date-range">
-                    <input type="date" name="date_from" id="date_from" value="<?php echo e($formData['date_from'] ?? ''); ?>" placeholder="Début" style="flex:1;">
+                    <input type="date" name="date_from" id="date_from" value="<?php echo e($formData['date_from'] ?? ''); ?>" placeholder="Début" aria-describedby="hint_date_range" style="flex:1;">
                     <span>&agrave;</span>
-                    <input type="date" name="date_to" id="date_to" value="<?php echo e($formData['date_to'] ?? ''); ?>" placeholder="Fin" style="flex:1;">
+                    <input type="date" name="date_to" id="date_to" value="<?php echo e($formData['date_to'] ?? ''); ?>" placeholder="Fin" aria-describedby="hint_date_range" style="flex:1;">
                 </div>
-                <div class="form-hint">Laissez vide pour aucune restriction de date</div>
+                <div class="form-hint" id="hint_date_range">Laissez vide pour aucune restriction de date</div>
             </div>
         </div>
 

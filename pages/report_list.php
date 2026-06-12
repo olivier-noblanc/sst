@@ -118,7 +118,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 
 <div class="card">
     <div class="table-wrapper">
-        <table>
+        <table aria-label="Liste des signalements <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?>">
             <thead>
                 <tr>
                     <th>Référence</th>
@@ -135,7 +135,12 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
             <tbody>
                 <?php if (empty($reports)): ?>
                 <tr>
-                    <td colspan="9" class="empty-state">Aucun signalement trouvé.</td>
+                    <td colspan="9" class="empty-state">
+                        Aucun signalement trouvé.
+                        <div class="empty-state__cta">
+                            <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--primary btn--sm">+ Inscrire un signalement</a>
+                        </div>
+                    </td>
                 </tr>
                 <?php else: ?>
                     <?php foreach ($reports as $report): ?>

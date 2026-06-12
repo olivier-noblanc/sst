@@ -97,6 +97,14 @@ $menuItems = [
     var overlay = document.querySelector('.sidebar-overlay');
     if (!menuBtn || !sidebar) return;
 
+    // Focus trap: get all focusable elements inside sidebar
+    function getFocusableElements() {
+        var links = sidebar.querySelectorAll('a[href], button[href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        return Array.prototype.slice.call(links).filter(function(el) {
+            return !el.disabled && el.offsetParent !== null;
+        });
+    }
+
     function toggleMenu(open) {
         var isOpen = typeof open === 'boolean' ? open : !sidebar.classList.contains('sidebar--open');
         sidebar.classList.toggle('sidebar--open', isOpen);
@@ -104,6 +112,15 @@ $menuItems = [
         overlay.setAttribute('aria-hidden', !isOpen);
         menuBtn.setAttribute('aria-expanded', isOpen);
         menuBtn.textContent = isOpen ? '\u2715' : '\u2630';
+
+        // Focus management
+        if (isOpen) {
+            // Focus first item when opening
+            var focusable = getFocusableElements();
+            if (focusable.length > 0) {
+                setTimeout(function() { focusable[0].focus(); }, 50);
+            }
+        }
     }
 
     menuBtn.addEventListener('click', function() { toggleMenu(); });
@@ -114,6 +131,31 @@ $menuItems = [
         if (e.key === 'Escape' && sidebar.classList.contains('sidebar--open')) {
             toggleMenu(false);
             menuBtn.focus();
+        }
+    });
+
+    // Focus trap: keep focus within sidebar when open
+    sidebar.addEventListener('keydown', function(e) {
+        if (e.key !== 'Tab' || !sidebar.classList.contains('sidebar--open')) return;
+
+        var focusable = getFocusableElements();
+        if (focusable.length === 0) return;
+
+        var firstEl = focusable[0];
+        var lastEl = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+            // Shift+Tab: if on first element, wrap to last
+            if (document.activeElement === firstEl) {
+                e.preventDefault();
+                lastEl.focus();
+            }
+        } else {
+            // Tab: if on last element, wrap to first
+            if (document.activeElement === lastEl) {
+                e.preventDefault();
+                firstEl.focus();
+            }
         }
     });
 

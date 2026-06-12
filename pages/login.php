@@ -47,6 +47,8 @@ if (isset($_SESSION['user'])) {
     <link rel="stylesheet" href="<?php echo assetUrl('css/style.css'); ?>">
 </head>
 <body class="login-body">
+    <a href="#login-form" class="skip-link">Aller au formulaire de connexion</a>
+    <main id="main-content" role="main">
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
@@ -70,10 +72,11 @@ if (isset($_SESSION['user'])) {
 
             <form method="POST" action="<?php echo url('login'); ?>" class="login-form">
                 <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
-                <div class="form-group">
+                <div class="form-group" id="login-form">
                     <label for="username">Nom d'utilisateur</label>
                     <input type="text" id="username" name="username" required
                            placeholder="Ex: admin.dev ou agent.dev"
+                           autocomplete="username"
                            autofocus
                            value="<?php echo e($_POST['username'] ?? ''); ?>">
                 </div>
@@ -81,8 +84,10 @@ if (isset($_SESSION['user'])) {
                 <div class="form-group">
                     <label for="password">Mot de passe</label>
                     <input type="password" id="password" name="password"
-                           placeholder="(non vérifié en mode dev)">
-                    <span class="form-hint">Le mot de passe n'est pas vérifié en mode développement.</span>
+                           autocomplete="current-password"
+                           placeholder="(non vérifié en mode dev)"
+                           aria-describedby="hint_password">
+                    <span class="form-hint" id="hint_password">Le mot de passe n'est pas vérifié en mode développement.</span>
                 </div>
 
                 <button type="submit" class="btn btn--primary btn--full">Se connecter</button>
@@ -107,5 +112,6 @@ if (isset($_SESSION['user'])) {
             </div>
         </div>
     </div>
+    </main>
 </body>
 </html>

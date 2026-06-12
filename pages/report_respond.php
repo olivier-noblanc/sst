@@ -57,7 +57,7 @@ $formData = getFormData();
 <!-- Report Summary (read-only) -->
 <div class="card card--<?php echo e($registryType); ?>">
     <h3 class="card__subtitle">Résumé du signalement</h3>
-    <table class="report-detail__table">
+    <table class="report-detail__table" aria-label="Détails du signalement">
         <tr>
             <th>Référence</th>
             <td><?php echo e($report['reference']); ?></td>
@@ -98,7 +98,7 @@ $formData = getFormData();
 <div class="card">
     <h3 class="card__subtitle">Historique des réponses</h3>
     <div class="table-wrapper">
-        <table>
+        <table aria-label="Formulaire de réponse">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -131,21 +131,22 @@ $formData = getFormData();
 
         <div class="form-group">
             <label for="nouvel_etat">Nouvel état <span class="required">*</span></label>
-            <select name="nouvel_etat" id="nouvel_etat" required>
+            <select name="nouvel_etat" id="nouvel_etat" required
+                    <?php echo isset($formErrors['nouvel_etat']) ? 'aria-describedby="err_nouvel_etat" aria-invalid="true"' : ''; ?>>
                 <option value="en_cours" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === 'en_cours') ? 'selected' : ''; ?>>En cours</option>
                 <option value="traite" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === 'traite') ? 'selected' : ''; ?>>Traité</option>
             </select>
             <?php if (isset($formErrors['nouvel_etat'])): ?>
-                <span class="form-error"><?php echo e($formErrors['nouvel_etat']); ?></span>
+                <span class="form-error" id="err_nouvel_etat"><?php echo e($formErrors['nouvel_etat']); ?></span>
             <?php endif; ?>
         </div>
 
         <div class="form-group">
             <label for="reponse">Réponse <span class="required">*</span></label>
-            <textarea name="reponse" id="reponse" rows="6" maxlength="5000" required placeholder="Saisissez votre réponse..."><?php echo e($formData['reponse'] ?? ''); ?></textarea>
-            <div class="form-hint">Maximum 5000 caractères</div>
+            <textarea name="reponse" id="reponse" rows="6" maxlength="5000" required placeholder="Saisissez votre réponse..." aria-describedby="hint_reponse"><?php echo e($formData['reponse'] ?? ''); ?></textarea>
+            <div class="form-hint" id="hint_reponse">Maximum 5000 caractères</div>
             <?php if (isset($formErrors['reponse'])): ?>
-                <span class="form-error"><?php echo e($formErrors['reponse']); ?></span>
+                <span class="form-error" id="err_reponse"><?php echo e($formErrors['reponse']); ?></span>
             <?php endif; ?>
         </div>
 

@@ -50,7 +50,7 @@ if (!isset($csrfToken)) {
             </div>
         </div>
 
-        <table class="report-detail__table">
+        <table class="report-detail__table" aria-label="Détails du signalement">
             <tbody>
                 <tr>
                     <th>Référence</th>
@@ -128,7 +128,7 @@ if (!isset($csrfToken)) {
 <div class="card">
     <h3>Réponses (<?php echo count($responses); ?>)</h3>
     <div class="table-wrapper">
-        <table>
+        <table aria-label="Historique des réponses">
             <thead>
                 <tr>
                     <th>Date</th>

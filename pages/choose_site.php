@@ -19,7 +19,7 @@ $sites = getActiveSites($pdo);
 $labelUnite = getConfig('app_label_unite', 'UR');
 ?>
 
-<h1 class="page-title">&#x1F4CD; Choisissez votre <?php echo e($labelUnite); ?></h1>
+<h1 class="page-title"><span aria-hidden="true">&#x1F4CD;</span> Choisissez votre <?php echo e($labelUnite); ?></h1>
 
 <div class="card container--narrow">
     <p style="margin-bottom:8px;font-size:14px;">

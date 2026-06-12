@@ -10,7 +10,7 @@ $pageTitle = 'Documentation';
 $userRole = $_SESSION['user']['role'] ?? 'agent';
 ?>
 
-<h1 class="page-title">&#x1F4DA; Documentation</h1>
+<h1 class="page-title"><span aria-hidden="true">&#x1F4DA;</span> Documentation</h1>
 
 <!-- ============================================================ -->
 <!-- Profils utilisateurs                                          -->
@@ -89,7 +89,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
 <div class="card card--spaced content-section">
     <h2>&#x1F512; Tableau des droits</h2>
     <div class="table-wrapper">
-        <table class="table table--compact" style="min-width:500px;">
+        <table class="table table--compact" style="min-width:500px;" aria-label="Permissions par profil">
             <thead>
                 <tr>
                     <th class="text-left">Fonctionnalité</th>
@@ -183,7 +183,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
     <h2>&#x1F510; Confidentialité des signalements</h2>
     <p class="help-description">La visibilité des signalements dépend du paramétrage choisi par le superviseur dans les Paramètres de l'application :</p>
     <div class="table-wrapper">
-        <table class="table table--compact">
+        <table class="table table--compact" aria-label="Caractéristiques des registres">
             <thead>
                 <tr>
                     <th>Mode</th>
@@ -269,7 +269,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
         <span class="badge badge--abandonne">Abandonné</span>
     </div>
     <div class="table-wrapper">
-        <table class="table table--compact">
+        <table class="table table--compact" aria-label="Cycle de vie des signalements">
             <thead>
                 <tr>
                     <th class="text-left">État</th>

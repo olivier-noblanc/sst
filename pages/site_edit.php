@@ -47,17 +47,17 @@ $pageTitle = 'Éditer le site — ' . e($site['code'] . ' ' . $site['nom']);
             <div class="form-group">
                 <label for="code">Code <span class="required">*</span></label>
                 <input type="text" name="code" id="code" required maxlength="10" value="<?php echo e($editCode); ?>" placeholder="UR21">
-                <?php if (isset($formErrors['code'])): ?><span class="form-error"><?php echo e($formErrors['code']); ?></span><?php endif; ?>
+                <?php if (isset($formErrors['code'])): ?><span class="form-error" id="err_code"><?php echo e($formErrors['code']); ?></span><?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="nom">Nom <span class="required">*</span></label>
                 <input type="text" name="nom" id="nom" required maxlength="200" value="<?php echo e($editNom); ?>" placeholder="UR Côte-d'Or">
-                <?php if (isset($formErrors['nom'])): ?><span class="form-error"><?php echo e($formErrors['nom']); ?></span><?php endif; ?>
+                <?php if (isset($formErrors['nom'])): ?><span class="form-error" id="err_nom"><?php echo e($formErrors['nom']); ?></span><?php endif; ?>
             </div>
             <div class="form-group">
                 <label for="departement">Département</label>
                 <input type="text" name="departement" id="departement" maxlength="100" value="<?php echo e($editDepartement); ?>" placeholder="Côte-d'Or">
-                <?php if (isset($formErrors['departement'])): ?><span class="form-error"><?php echo e($formErrors['departement']); ?></span><?php endif; ?>
+                <?php if (isset($formErrors['departement'])): ?><span class="form-error" id="err_departement"><?php echo e($formErrors['departement']); ?></span><?php endif; ?>
             </div>
         </div>
 

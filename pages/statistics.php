@@ -121,7 +121,7 @@ $pageTitle = 'Statistiques';
 <div class="card">
     <h3 class="card__title">Nombre de signalements réparti par <?php echo e(getConfig('app_label_unite', 'UR')); ?> et par registre</h3>
     <div class="table-wrapper">
-        <table>
+        <table aria-label="Statistiques des signalements">
             <thead>
                 <tr>
                     <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>

@@ -106,7 +106,7 @@ $pageTitle = 'Synthèse des signalements';
 <!-- Synthesis Table -->
 <div class="card">
     <div class="table-wrapper">
-        <table>
+        <table aria-label="Synthèse des signalements par site">
             <thead>
                 <tr>
                     <th rowspan="2"><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>

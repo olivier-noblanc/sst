@@ -50,7 +50,7 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
         <a href="<?php echo url('user_edit', ['id' => (int) $user['id']]); ?>" class="btn btn--primary">Éditer</a>
     </div>
 
-    <table class="report-detail__table">
+    <table class="report-detail__table" aria-label="Informations utilisateur">
         <tr>
             <th>Nom</th>
             <td><?php echo e($user['nom']); ?></td>

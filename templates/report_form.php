@@ -90,8 +90,9 @@ $submitBtnClass = $isEdit
                 <input type="text" id="lieu" name="lieu"
                        value="<?php echo e($val('lieu')); ?>"
                        maxlength="200"
-                       placeholder="Ex: Bureau 204, UR25">
-                <span class="form-hint">200 caractères max.</span>
+                       placeholder="Ex: Bureau 204, UR25"
+                       aria-describedby="hint_lieu">
+                <span class="form-hint" id="hint_lieu">200 caractères max.</span>
             </div>
 
             <div class="form-group">
@@ -100,8 +101,8 @@ $submitBtnClass = $isEdit
                        value="<?php echo e($val('objet')); ?>"
                        maxlength="100" required
                        placeholder="Résumé du signalement"
-                       <?php echo isset($formErrors['objet']) ? 'aria-describedby="err_objet" aria-invalid="true"' : ''; ?>>
-                <span class="form-hint">100 caractères max.</span>
+                       <?php echo isset($formErrors['objet']) ? 'aria-describedby="err_objet" aria-invalid="true"' : 'aria-describedby="hint_objet"'; ?>>
+                <span class="form-hint" id="hint_objet">100 caractères max.</span>
                 <?php if (isset($formErrors['objet'])): ?>
                     <span class="form-error" id="err_objet"><?php echo e($formErrors['objet']); ?></span>
                 <?php endif; ?>
@@ -111,8 +112,9 @@ $submitBtnClass = $isEdit
                 <label for="description">Description <span class="required">*</span></label>
                 <textarea id="description" name="description" rows="8" maxlength="20000" required
                           placeholder="Décrivez le signalement en détail..."
-                          <?php echo isset($formErrors['description']) ? 'aria-describedby="err_description" aria-invalid="true"' : ''; ?>><?php echo e($val('description')); ?></textarea>
-                <span class="form-hint">20 000 caractères max.</span>
+                          <?php echo isset($formErrors['description']) ? 'aria-describedby="err_description char_count_description" aria-invalid="true"' : 'aria-describedby="hint_description char_count_description"'; ?>><?php echo e($val('description')); ?></textarea>
+                <span class="form-hint" id="hint_description">20 000 caractères max.</span>
+                <span class="char-counter" id="char_count_description" aria-live="polite"><?php echo mb_strlen($val('description')); ?>/20 000</span>
                 <?php if (isset($formErrors['description'])): ?>
                     <span class="form-error" id="err_description"><?php echo e($formErrors['description']); ?></span>
                 <?php endif; ?>
@@ -122,8 +124,8 @@ $submitBtnClass = $isEdit
                 <label for="attachment">Pièce jointe</label>
                 <input type="file" id="attachment" name="attachment"
                        accept=".jpg,.jpeg,.png,.gif,.pdf"
-                       <?php echo isset($formErrors['attachment']) ? 'aria-describedby="err_attachment" aria-invalid="true"' : ''; ?>>
-                <span class="form-hint">Image (JPG, PNG, GIF) ou PDF — 10 Mo max. Optionnel.</span>
+                       <?php echo isset($formErrors['attachment']) ? 'aria-describedby="err_attachment" aria-invalid="true"' : 'aria-describedby="hint_attachment"'; ?>>
+                <span class="form-hint" id="hint_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max. Optionnel.</span>
                 <?php if ($isEdit && !empty($report['attachment_name'])): ?>
                     <div class="attachment-preview">
                         <span class="badge badge--confidential">&#128206; <?php echo e($report['attachment_name']); ?></span>
@@ -193,6 +195,7 @@ $submitBtnClass = $isEdit
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">
                     <input type="checkbox" name="pour_compte" id="pour_compte" value="1"
+                           aria-controls="pour_compte_fields" aria-expanded="<?php echo ($val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? 'true' : 'false'; ?>"
                            <?php echo ($val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? 'checked' : ''; ?>>
                     Signaler pour le compte d'un autre agent
                 </label>
@@ -228,3 +231,32 @@ $submitBtnClass = $isEdit
         </div>
     </form>
 </div>
+
+<script>
+// Character counter for description textarea
+(function() {
+    var textarea = document.getElementById('description');
+    var counter = document.getElementById('char_count_description');
+    if (!textarea || !counter) return;
+    function updateCounter() {
+        var len = textarea.value.length;
+        counter.textContent = len.toLocaleString('fr-FR') + '/20\u00A0000';
+        if (len > 19000) {
+            counter.classList.add('char-counter--warning');
+        } else {
+            counter.classList.remove('char-counter--warning');
+        }
+    }
+    textarea.addEventListener('input', updateCounter);
+    updateCounter();
+})();
+
+// aria-expanded toggle for pour_compte checkbox
+(function() {
+    var cb = document.getElementById('pour_compte');
+    if (!cb) return;
+    cb.addEventListener('change', function() {
+        this.setAttribute('aria-expanded', this.checked ? 'true' : 'false');
+    });
+})();
+</script>

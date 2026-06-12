@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.8.2] — 2026-06-12
+
+### Correctif — Suppression migration report_id nullable (database table is locked)
+
+- **1** 🔴 **Migration `report_id nullable` supprimée** — La migration qui recréait la table `report_responses` pour rendre `report_id` nullable échouait systématiquement avec « database table is locked » sous IIS. SQLite ne supporte pas les écritures concurrentes : quand plusieurs processus PHP tentent la migration en même temps (DROP TABLE + CREATE TABLE + INSERT + ALTER TABLE), le verrou exclusif est refusé. **Cette migration n'est plus nécessaire** car depuis v3.8.1, l'INSERT fournit `report_id` via sous-requête `(SELECT id FROM reports WHERE uuid = ...)`. Le code fonctionne que `report_id` soit `NOT NULL` ou nullable.
+- **2** 🟢 **Nettoyage conservé** — Si une table orpheline `report_responses_new` existe (d'une ancienne tentative échouée), elle est supprimée. Cette opération est légère (DROP TABLE IF EXISTS) et ne provoque pas de verrouillage.
+
+---
+
 ## [3.8.1] — 2026-06-12
 
 ### Correctif — report_id NOT NULL : l'INSERT fournit désormais report_id

@@ -414,61 +414,24 @@ function migrateSchema(PDO $pdo): void {
         error_log("Migration warning for schema_version: " . $e->getMessage());
     }
 
-    // === Fix report_responses: make report_id nullable ===
-    // Old migration created the table with report_id INTEGER NOT NULL, but the
-    // code now uses report_uuid. The INSERT only provides report_uuid, so the
-    // NOT NULL constraint on report_id causes a silent failure:
-    //   respondToReport() → UPDATE succeeds → INSERT fails (constraint) →
-    //   catch → rollback → return false → "déjà été traité" error.
-    // Fix: recreate the table with report_id as nullable (SQLite can't ALTER COLUMN).
+    // === report_id NOT NULL: plus besoin de migration ===
+    // Anciennement, cette migration recréait la table pour rendre report_id nullable,
+    // car l'INSERT dans respondToReport() ne fournissait pas report_id.
+    // Depuis v3.8.1, l'INSERT fournit report_id via sous-requête :
+    //   (SELECT id FROM reports WHERE uuid = :report_uuid2)
+    // → L'INSERT fonctionne que report_id soit NOT NULL ou nullable.
+    // → La migration DROP/CREATE/ALTER causait "database table is locked" sous IIS
+    //   (SQLite ne supporte pas les écritures concurrentes).
+    // → Elle est supprimée : le code fonctionne sans elle.
+    // Nettoyage : supprimer la table orpheline _new si elle existe d'une ancienne tentative
     try {
-        // First: clean up any leftover _new table from a previously failed migration
         $newExists = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='report_responses_new'")->fetch();
         if ($newExists) {
             $pdo->exec('DROP TABLE report_responses_new');
             error_log('[SST-MIGRATION] Dropped orphaned report_responses_new table (leftover from failed migration).');
         }
-
-        $cols = $pdo->query("PRAGMA table_info(report_responses)")->fetchAll();
-        $hasReportId = false;
-        $reportIdNotNull = false;
-        $hasReportUuid = false;
-        foreach ($cols as $col) {
-            if ($col['name'] === 'report_id') {
-                $hasReportId = true;
-                $reportIdNotNull = ((int)$col['notnull'] === 1);
-            }
-            if ($col['name'] === 'report_uuid') {
-                $hasReportUuid = true;
-            }
-        }
-        if ($hasReportId && $reportIdNotNull) {
-            // Recreate the table with report_id as nullable
-            $pdo->exec('CREATE TABLE report_responses_new (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                report_uuid TEXT,
-                report_id INTEGER,
-                user_id INTEGER NOT NULL,
-                reponse TEXT NOT NULL,
-                nouvel_etat TEXT,
-                created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
-                FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )');
-            // Copy all existing data
-            $pdo->exec('INSERT INTO report_responses_new (id, report_uuid, report_id, user_id, reponse, nouvel_etat, created_at)
-                SELECT id, report_uuid, report_id, user_id, reponse, nouvel_etat, created_at FROM report_responses');
-            // Swap tables
-            $pdo->exec('DROP TABLE report_responses');
-            $pdo->exec('ALTER TABLE report_responses_new RENAME TO report_responses');
-            // Recreate indexes
-            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
-            error_log('[SST-MIGRATION] Fixed report_responses: report_id is now nullable (was NOT NULL, broke INSERT with report_uuid).');
-        }
     } catch (Exception $e) {
-        error_log('[SST-MIGRATION] report_responses.report_id nullable: ' . $e->getMessage());
-        // If migration failed, try to clean up the _new table so it doesn't block future attempts
-        try { $pdo->exec('DROP TABLE IF EXISTS report_responses_new'); } catch (Exception $e2) {}
+        error_log('[SST-MIGRATION] Cleanup report_responses_new: ' . $e->getMessage());
     }
 
     // Also ensure indexes exist

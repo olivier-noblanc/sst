@@ -157,12 +157,12 @@ function migrateSchema(PDO $pdo): void {
         )',
         'report_responses' => 'CREATE TABLE IF NOT EXISTS report_responses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            report_id INTEGER NOT NULL,
+            report_uuid TEXT NOT NULL,
             user_id INTEGER NOT NULL,
             reponse TEXT NOT NULL,
             nouvel_etat TEXT,
             created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
-            FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE,
+            FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )',
         'audit_log' => 'CREATE TABLE IF NOT EXISTS audit_log (
@@ -412,6 +412,54 @@ function migrateSchema(PDO $pdo): void {
         }
     } catch (Exception $e) {
         error_log("Migration warning for schema_version: " . $e->getMessage());
+    }
+
+    // === Fix report_responses: make report_id nullable ===
+    // Old migration created the table with report_id INTEGER NOT NULL, but the
+    // code now uses report_uuid. The INSERT only provides report_uuid, so the
+    // NOT NULL constraint on report_id causes a silent failure:
+    //   respondToReport() → UPDATE succeeds → INSERT fails (constraint) →
+    //   catch → rollback → return false → "déjà été traité" error.
+    // Fix: recreate the table with report_id as nullable (SQLite can't ALTER COLUMN).
+    try {
+        $cols = $pdo->query("PRAGMA table_info(report_responses)")->fetchAll();
+        $hasReportId = false;
+        $reportIdNotNull = false;
+        $hasReportUuid = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'report_id') {
+                $hasReportId = true;
+                $reportIdNotNull = ((int)$col['notnull'] === 1);
+            }
+            if ($col['name'] === 'report_uuid') {
+                $hasReportUuid = true;
+            }
+        }
+        if ($hasReportId && $reportIdNotNull) {
+            // Recreate the table with report_id as nullable
+            $pdo->exec('CREATE TABLE report_responses_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                report_uuid TEXT,
+                report_id INTEGER,
+                user_id INTEGER NOT NULL,
+                reponse TEXT NOT NULL,
+                nouvel_etat TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+                FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )');
+            // Copy all existing data
+            $pdo->exec('INSERT INTO report_responses_new (id, report_uuid, report_id, user_id, reponse, nouvel_etat, created_at)
+                SELECT id, report_uuid, report_id, user_id, reponse, nouvel_etat, created_at FROM report_responses');
+            // Swap tables
+            $pdo->exec('DROP TABLE report_responses');
+            $pdo->exec('ALTER TABLE report_responses_new RENAME TO report_responses');
+            // Recreate indexes
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
+            error_log('[SST-MIGRATION] Fixed report_responses: report_id is now nullable (was NOT NULL, broke INSERT with report_uuid).');
+        }
+    } catch (Exception $e) {
+        error_log('Migration warning for report_responses.report_id nullable: ' . $e->getMessage());
     }
 
     // Also ensure indexes exist

@@ -371,12 +371,16 @@ function abandonReport(PDO $pdo, string $uuid, int $userId): bool {
  * @param int    $userId       The responding user's ID
  * @param string $reponse      Response text
  * @param string $nouvelEtat   New state ('en_cours' or 'traite')
- * @return bool
+ * @return string 'true' on success, 'concurrent' if already modified, 'error' on DB failure
  */
-function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): bool {
+function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): string {
     // Transaction: UPDATE reports + INSERT report_responses must be atomic.
     // Without this, a crash between the two queries would leave reports.reponse
     // updated but no history entry in report_responses = data inconsistency.
+    //
+    // Returns: 'true'  — success
+    //          'concurrent' — report was modified by another session (rowCount = 0)
+    //          'error' — database exception (constraint violation, etc.)
     $pdo->beginTransaction();
     try {
         // Update the report
@@ -398,26 +402,31 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
 
         $updated = $stmt->rowCount() > 0;
 
-        if ($updated) {
-            // Insert into response history
-            $stmt = $pdo->prepare("
-                INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
-                VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
-            ");
-            $stmt->execute([
-                ':report_uuid' => $uuid,
-                ':user_id'     => $userId,
-                ':reponse'     => $reponse,
-                ':nouvel_etat' => $nouvelEtat,
-            ]);
+        if (!$updated) {
+            // No row matched — the report was likely modified by another supervisor
+            // between the handler's check and this UPDATE (race condition).
+            $pdo->rollBack();
+            return 'concurrent';
         }
 
+        // Insert into response history
+        $stmt = $pdo->prepare("
+            INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
+            VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
+        ");
+        $stmt->execute([
+            ':report_uuid' => $uuid,
+            ':user_id'     => $userId,
+            ':reponse'     => $reponse,
+            ':nouvel_etat' => $nouvelEtat,
+        ]);
+
         $pdo->commit();
-        return $updated;
+        return 'true';
     } catch (Exception $e) {
         $pdo->rollBack();
         error_log('[SST-DB] respondToReport transaction failed: ' . $e->getMessage());
-        return false;
+        return 'error';
     }
 }
 

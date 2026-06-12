@@ -2,6 +2,15 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [3.0.1] — 2026-06-12
+
+### Correctif — Réponse superviseur impossible sur signalement en cours
+
+- **F28** 🔴 **`report_id NOT NULL` bloquait l'INSERT dans `report_responses`** — la migration ayant ajouté `report_uuid` n'avait pas assoupli la contrainte `NOT NULL` sur l'ancienne colonne `report_id`. L'INSERT du code actuel ne fournit que `report_uuid`, pas `report_id` → violation de contrainte silencieuse → la transaction était rollbackée → message d'erreur trompeur « Le signalement a peut-être déjà été traité ». Correction : migration automatique qui recrée `report_responses` avec `report_id` nullable (SQLite ne supporte pas ALTER COLUMN). Le `CREATE TABLE IF NOT EXISTS` de la migration est aussi mis à jour pour utiliser `report_uuid` au lieu de `report_id`.
+- **F29** 🟠 **`respondToReport()` retourne un code au lieu de `bool`** — la fonction retourne désormais `'true'` (succès), `'concurrent'` (modifié par un autre superviseur entre-temps) ou `'error'` (erreur base de données). Le handler affiche un message spécifique à chaque cas au lieu du générique « peut-être déjà été traité ». L'UPDATE réussi mais l'INSERT qui échouait n'est plus masqué par un message ambigu.
+
+---
+
 ## [3.0.0] — 2026-06-12
 
 ### Sécurité — Headers HTTP

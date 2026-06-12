@@ -69,12 +69,12 @@ if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
 
 // Save response
 $userId = (int) $_SESSION['user']['id'];
-$success = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
+$result = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
 
-if ($success) {
+if ($result === true) {
     // Audit log
     require_once __DIR__ . '/../src/audit.php';
-    auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . $report['reference'] . ' — état : ' . $nouvelEtat, (int) $report['id'] ?? null, 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
+    auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . $report['reference'] . ' — état : ' . $nouvelEtat, (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
 
     // Notify declarant about the response (non-blocking — errors are logged, not shown to user)
     try {
@@ -86,7 +86,13 @@ if ($success) {
 
     setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report['reference']) . '.');
 } else {
-    setFlash('error', 'Erreur lors de l\'enregistrement de la réponse. Le signalement a peut-être déjà été traité.');
+    // $result is either 'concurrent' (report was modified by another session)
+    // or 'error' (database constraint or other failure)
+    if ($result === 'concurrent') {
+        setFlash('error', 'Ce signalement a été modifié par un autre superviseur pendant votre saisie. Veuillez recommencer.');
+    } else {
+        setFlash('error', 'Erreur lors de l\'enregistrement de la réponse. Veuillez réessayer ou contacter l\'administrateur si le problème persiste.');
+    }
 }
 
 redirect(url('report_view', ['uuid' => $reportUuid]));

@@ -154,7 +154,7 @@ catch {
 Write-Host ""
 $configFile = "$AppDir\src\config.php"
 if (Test-Path $configFile) {
-    $version = Select-String -Path $configFile -Pattern "APP_VERSION.*'([^']+)'" | ForEach-Object { $_.Matches[0].Groups[1].Value }
+    $version = Select-String -Path $configFile -Pattern "APP_VERSION'\s*,\s*'([^']+)'" | ForEach-Object { $_.Matches[0].Groups[1].Value }
     if ($version) {
         Write-Host "  Version : $version" -ForegroundColor Green
     }

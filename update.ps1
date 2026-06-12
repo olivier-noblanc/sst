@@ -1,5 +1,5 @@
 # ============================================================
-# update_sst.ps1 — Mise à jour de l'application SST
+# update.ps1 — Mise à jour de l'application SST
 #
 # Ce script effectue :
 #   1. Vérification des prérequis (Git, PHP)
@@ -12,9 +12,9 @@
 # Note : Les polices Marianne (woff2+woff) sont incluses dans le
 #        dépôt git (public/fonts/). Pas de téléchargement externe.
 #
-# Emplacement : C:\inetpub\sst\update_sst.ps1
+# Emplacement : C:\inetpub\sst\update.ps1
 # Utilisation : clic droit "Exécuter en tant qu'administrateur"
-#   ou : powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\update_sst.ps1
+#   ou : powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\update.ps1
 # ============================================================
 
 $ErrorActionPreference = "Stop"

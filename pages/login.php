@@ -8,6 +8,20 @@
  * This page is unreachable in prod (index.php redirects away).
  * This form exists ONLY for local development testing.
  */
+
+// === Cache-Control: no-cache for this dynamic page ===
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
+
+// === Security Headers (same as header.php — this page is standalone) ===
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+
 $pageTitle = 'Connexion';
 
 // Safety: if somehow accessed in prod, redirect away

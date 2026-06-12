@@ -163,12 +163,18 @@ rewind($tmpFile);
 $csv = stream_get_contents($tmpFile);
 fclose($tmpFile);
 
+// Disable gzip output buffer for file download
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
 // Send as download
 header('Content-Type: text/csv; charset=UTF-8');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('Content-Length: ' . strlen($csv));
-header('Cache-Control: no-cache, must-revalidate');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
+header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
 
 echo $csv;
 exit;

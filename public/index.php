@@ -4,7 +4,21 @@
  * 
  * All requests go through this file. It parses the 'page' query
  * parameter and dispatches to the appropriate page or handler.
+ *
+ * Gzip compression is enabled via ob_gzhandler for all PHP output.
+ * This is server-independent (works on Apache, IIS, Nginx, etc.).
  */
+
+// === Enable Gzip compression (PHP-level, server-independent) ===
+if (extension_loaded('zlib')
+    && !ini_get('zlib.output_compression')
+    && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
+    && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
+) {
+    ob_start('ob_gzhandler');
+} else {
+    ob_start();
+}
 
 require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/database.php';

@@ -491,6 +491,17 @@ $pdf->Cell(0, 5, utf8ToCp1252(
 // Output PDF inline (displayed in browser, not forced download)
 // 'I' = Content-Disposition: inline — le navigateur ouvre le PDF dans un onglet
 // L'utilisateur peut ensuite l'imprimer ou le télécharger depuis le visualiseur PDF.
+
+// Disable gzip output buffer for binary PDF output
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
+// Cache-Control: no-cache for this dynamically generated PDF
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
+
 $filename = 'signalement-' . $report['reference'] . '.pdf';
 $pdf->Output('I', $filename, true);
 exit;

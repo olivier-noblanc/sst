@@ -1,0 +1,1886 @@
+     1→     1→/* ============================================================
+     2→     2→   Style Sheet — Application SST DREETS BFC
+     3→     3→   Version 2.0
+     4→     4→   Complete DREETS visual identity theme
+     5→     5→   ============================================================ */
+     6→     6→
+     7→     7→/* ============================================================
+     8→     8→   1. CSS Custom Properties (Variables)
+     9→     9→   ============================================================ */
+    10→    10→:root {
+    11→    11→    /* Brand colors */
+    12→    12→    --color-primary: #0056A3;           /* DREETS blue (header bar) */
+    13→    13→    --color-primary-dark: #003D75;
+    14→    14→    --color-primary-light: #3498DB;
+    15→    15→
+    16→    16→    /* Registry colors */
+    17→    17→    --rsst-color: #2E5C8A;             /* Blue */
+    18→    18→    --rami-color: #6C6C6C;             /* Grey */
+    19→    19→    --dgi-color: #B22222;              /* Red */
+    20→    20→
+    21→    21→    /* State colors */
+    22→    22→    --state-nouveau: #2E5C8A;          /* Blue */
+    23→    23→    --state-en-cours: #E67E22;         /* Orange */
+    24→    24→    --state-traite: #27AE60;           /* Green */
+    25→    25→    --state-abandonne: #95A5A6;        /* Grey */
+    26→    26→
+    27→    27→    /* Role badge colors */
+    28→    28→    --role-agent: #2E5C8A;
+    29→    29→    --role-superviseur: #B22222;
+    30→    30→    --role-chsct: #8E44AD;
+    31→    31→
+    32→    32→    /* Visibility badge colors */
+    33→    33→    --visibility-confidential: #6b7280;
+    34→    34→    --visibility-public: #22c55e;
+    35→    35→
+    36→    36→    /* Semantic colors */
+    37→    37→    --color-warning-bg: #fffbeb;
+    38→    38→    --color-warning-border: #fcd34d;
+    39→    39→    --color-warning-text: #92400e;
+    40→    40→    --color-danger-text: #b91c1c;
+    41→    41→    --color-danger-bg: #fef2f2;
+    42→    42→    --color-danger-border: #fca5a5;
+    43→    43→
+    44→    44→    /* Hover highlight (table rows) */
+    45→    45→    --hover-highlight: #E8F0FE;
+    46→    46→
+    47→    47→    /* Layout */
+    48→    48→    --sidebar-width: 220px;
+    49→    49→    --header-height: 60px;
+    50→    50→    --content-padding: 24px;
+    51→    51→
+    52→    52→    /* Greys */
+    53→    53→    --grey-50: #FAFAFA;
+    54→    54→    --grey-100: #F5F5F5;
+    55→    55→    --grey-200: #EEEEEE;
+    56→    56→    --grey-300: #E0E0E0;
+    57→    57→    --grey-400: #BDBDBD;
+    58→    58→    --grey-500: #9E9E9E;
+    59→    59→    --grey-600: #757575;
+    60→    60→    --grey-700: #616161;
+    61→    61→    --grey-800: #424242;
+    62→    62→    --grey-900: #212121;
+    63→    63→
+    64→    64→    /* Sidebar */
+    65→    65→    --sidebar-bg: #2C3E50;
+    66→    66→    --sidebar-text: #CCCCCC;
+    67→    67→    --sidebar-hover: #34495E;
+    68→    68→    --sidebar-active: var(--color-primary-light);
+    69→    69→
+    70→    70→    /* Misc */
+    71→    71→    --border-radius: 4px;
+    72→    72→    --border-radius-lg: 8px;
+    73→    73→    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    74→    74→    --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+    75→    75→    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    76→    76→    --font-size-base: 14px;
+    77→    77→
+    78→    78→    /* Focus ring */
+    79→    79→    --focus-ring-color: rgba(0,86,163,0.4);
+    80→    80→    --focus-ring-offset: 2px;
+    81→    81→
+    82→    82→    /* Transitions */
+    83→    83→    --transition-fast: 0.15s ease;
+    84→    84→    --transition-base: 0.2s ease;
+    85→    85→
+    86→    86→    /* z-index layers */
+    87→    87→    --z-sidebar: 90;
+    88→    88→    --z-header: 100;
+    89→    89→    --z-mobile-menu: 200;
+    90→    90→    --z-overlay: 150;
+    91→    91→    --z-skip-link: 9999;
+    92→    92→}
+    93→    93→
+    94→    94→/* ============================================================
+    95→    95→   2. Reset & Base
+    96→    96→   ============================================================ */
+    97→    97→*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    98→    98→
+    99→    99→html {
+   100→   100→    scroll-behavior: smooth;
+   101→   101→}
+   102→   102→
+   103→   103→body {
+   104→   104→    font-family: var(--font-family);
+   105→   105→    font-size: var(--font-size-base);
+   106→   106→    color: var(--grey-900);
+   107→   107→    background: var(--grey-100);
+   108→   108→    line-height: 1.5;
+   109→   109→    -webkit-font-smoothing: antialiased;
+   110→   110→    -moz-osx-font-smoothing: grayscale;
+   111→   111→}
+   112→   112→
+   113→   113→a { color: var(--color-primary); text-decoration: none; }
+   114→   114→a:hover { text-decoration: underline; }
+   115→   115→
+   116→   116→img { max-width: 100%; height: auto; display: block; }
+   117→   117→
+   118→   118→/* ============================================================
+   119→   119→   3. Focus Styles — Accessibility (keyboard navigation)
+   120→   120→   ============================================================ */
+   121→   121→:focus-visible {
+   122→   122→    outline: 3px solid var(--focus-ring-color);
+   123→   123→    outline-offset: var(--focus-ring-offset);
+   124→   124→}
+   125→   125→
+   126→   126→/* Remove default focus for mouse users */
+   127→   127→:focus:not(:focus-visible) {
+   128→   128→    outline: none;
+   129→   129→}
+   130→   130→
+   131→   131→/* ============================================================
+   132→   132→   4. Reduced Motion — Respect user preferences
+   133→   133→   ============================================================ */
+   134→   134→@media (prefers-reduced-motion: reduce) {
+   135→   135→    *, *::before, *::after {
+   136→   136→        animation-duration: 0.01ms !important;
+   137→   137→        animation-iteration-count: 1 !important;
+   138→   138→        transition-duration: 0.01ms !important;
+   139→   139→        scroll-behavior: auto !important;
+   140→   140→    }
+   141→   141→}
+   142→   142→
+   143→   143→/* ============================================================
+   144→   144→   5. High Contrast — Improve visibility
+   145→   145→   ============================================================ */
+   146→   146→@media (prefers-contrast: high) {
+   147→   147→    :root {
+   148→   148→        --grey-300: #bbb;
+   149→   149→        --grey-400: #999;
+   150→   150→        --grey-500: #777;
+   151→   151→        --shadow: 0 2px 4px rgba(0,0,0,0.3);
+   152→   152→        --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+   153→   153→    }
+   154→   154→    .btn {
+   155→   155→        border: 2px solid currentColor;
+   156→   156→    }
+   157→   157→    .badge {
+   158→   158→        border: 1px solid rgba(0,0,0,0.3);
+   159→   159→    }
+   160→   160→}
+   161→   161→
+   162→   162→/* ============================================================
+   163→   163→   6. Header — Blue bar at top (#0056A3)
+   164→   164→   ============================================================ */
+   165→   165→.header {
+   166→   166→    height: var(--header-height);
+   167→   167→    background: var(--color-primary);
+   168→   168→    color: white;
+   169→   169→    display: flex;
+   170→   170→    align-items: center;
+   171→   171→    justify-content: space-between;
+   172→   172→    padding: 0 20px;
+   173→   173→    position: fixed;
+   174→   174→    top: 0;
+   175→   175→    left: 0;
+   176→   176→    right: 0;
+   177→   177→    z-index: var(--z-header);
+   178→   178→    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+   179→   179→}
+   180→   180→
+   181→   181→.header__logo {
+   182→   182→    display: flex;
+   183→   183→    align-items: center;
+   184→   184→    gap: 12px;
+   185→   185→}
+   186→   186→
+   187→   187→.header__logo-img {
+   188→   188→    height: 40px;
+   189→   189→}
+   190→   190→
+   191→   191→.header__logo-text {
+   192→   192→    background: rgba(255,255,255,0.2);
+   193→   193→    padding: 4px 12px;
+   194→   194→    border-radius: var(--border-radius);
+   195→   195→    font-weight: 700;
+   196→   196→    font-size: 16px;
+   197→   197→    letter-spacing: 1px;
+   198→   198→}
+   199→   199→
+   200→   200→.header__title {
+   201→   201→    font-size: 16px;
+   202→   202→    font-weight: 600;
+   203→   203→}
+   204→   204→
+   205→   205→.header__user {
+   206→   206→    display: flex;
+   207→   207→    align-items: center;
+   208→   208→    gap: 16px;
+   209→   209→    font-size: 13px;
+   210→   210→}
+   211→   211→
+   212→   212→.header__username {
+   213→   213→    display: flex;
+   214→   214→    align-items: center;
+   215→   215→    gap: 4px;
+   216→   216→}
+   217→   217→
+   218→   218→.header__logout {
+   219→   219→    color: white;
+   220→   220→    text-decoration: none;
+   221→   221→    opacity: 0.8;
+   222→   222→    padding: 6px 12px;
+   223→   223→    border-radius: var(--border-radius);
+   224→   224→    transition: opacity var(--transition-base), background var(--transition-base);
+   225→   225→}
+   226→   226→.header__logout:hover {
+   227→   227→    opacity: 1;
+   228→   228→    background: rgba(255,255,255,0.15);
+   229→   229→    text-decoration: none;
+   230→   230→}
+   231→   231→
+   232→   232→/* Mobile hamburger button */
+   233→   233→.header__menu-btn {
+   234→   234→    display: none;
+   235→   235→    background: none;
+   236→   236→    border: 2px solid rgba(255,255,255,0.6);
+   237→   237→    border-radius: var(--border-radius);
+   238→   238→    color: white;
+   239→   239→    padding: 6px 10px;
+   240→   240→    font-size: 20px;
+   241→   241→    cursor: pointer;
+   242→   242→    line-height: 1;
+   243→   243→    transition: background var(--transition-fast);
+   244→   244→}
+   245→   245→.header__menu-btn:hover,
+   246→   246→.header__menu-btn:focus-visible {
+   247→   247→    background: rgba(255,255,255,0.15);
+   248→   248→}
+   249→   249→
+   250→   250→/* ============================================================
+   251→   251→   7. Sidebar — Dark grey (#2C3E50), fixed
+   252→   252→   ============================================================ */
+   253→   253→.sidebar {
+   254→   254→    width: var(--sidebar-width);
+   255→   255→    background: var(--sidebar-bg);
+   256→   256→    color: var(--sidebar-text);
+   257→   257→    position: fixed;
+   258→   258→    top: var(--header-height);
+   259→   259→    left: 0;
+   260→   260→    bottom: 0;
+   261→   261→    overflow-y: auto;
+   262→   262→    z-index: var(--z-sidebar);
+   263→   263→    display: flex;
+   264→   264→    flex-direction: column;
+   265→   265→    justify-content: space-between;
+   266→   266→    transition: transform var(--transition-base);
+   267→   267→}
+   268→   268→
+   269→   269→/* Custom scrollbar for sidebar */
+   270→   270→.sidebar::-webkit-scrollbar {
+   271→   271→    width: 6px;
+   272→   272→}
+   273→   273→.sidebar::-webkit-scrollbar-track {
+   274→   274→    background: transparent;
+   275→   275→}
+   276→   276→.sidebar::-webkit-scrollbar-thumb {
+   277→   277→    background: rgba(255,255,255,0.2);
+   278→   278→    border-radius: 3px;
+   279→   279→}
+   280→   280→.sidebar::-webkit-scrollbar-thumb:hover {
+   281→   281→    background: rgba(255,255,255,0.4);
+   282→   282→}
+   283→   283→
+   284→   284→.sidebar__nav {
+   285→   285→    list-style: none;
+   286→   286→    padding: 8px 0;
+   287→   287→}
+   288→   288→
+   289→   289→.sidebar__item {
+   290→   290→    display: block;
+   291→   291→    padding: 12px 20px;
+   292→   292→    color: var(--sidebar-text);
+   293→   293→    text-decoration: none;
+   294→   294→    font-size: 14px;
+   295→   295→    border-left: 3px solid transparent;
+   296→   296→    transition: background var(--transition-base), border-color var(--transition-base);
+   297→   297→}
+   298→   298→
+   299→   299→.sidebar__item:hover {
+   300→   300→    background: var(--sidebar-hover);
+   301→   301→    text-decoration: none;
+   302→   302→}
+   303→   303→
+   304→   304→.sidebar__item--active {
+   305→   305→    background: var(--sidebar-hover);
+   306→   306→    border-left-color: var(--sidebar-active);
+   307→   307→    color: white;
+   308→   308→    font-weight: 600;
+   309→   309→}
+   310→   310→
+   311→   311→.sidebar__icon {
+   312→   312→    margin-right: 10px;
+   313→   313→    width: 18px;
+   314→   314→    text-align: center;
+   315→   315→    display: inline-block;
+   316→   316→}
+   317→   317→
+   318→   318→.sidebar__footer {
+   319→   319→    padding: 8px 0;
+   320→   320→    border-top: 1px solid rgba(255,255,255,0.1);
+   321→   321→}
+   322→   322→
+   323→   323→/* Mobile overlay */
+   324→   324→.sidebar-overlay {
+   325→   325→    display: none;
+   326→   326→    position: fixed;
+   327→   327→    inset: 0;
+   328→   328→    background: rgba(0,0,0,0.5);
+   329→   329→    z-index: calc(var(--z-sidebar) - 1);
+   330→   330→}
+   331→   331→
+   332→   332→/* ============================================================
+   333→   333→   8. Main Content Area
+   334→   334→   ============================================================ */
+   335→   335→.main {
+   336→   336→    margin-left: var(--sidebar-width);
+   337→   337→    margin-top: var(--header-height);
+   338→   338→    padding: var(--content-padding);
+   339→   339→    min-height: calc(100vh - var(--header-height));
+   340→   340→    display: flex;
+   341→   341→    flex-direction: column;
+   342→   342→}
+   343→   343→
+   344→   344→.main > :last-child {
+   345→   345→    flex: 1;
+   346→   346→}
+   347→   347→
+   348→   348→/* ============================================================
+   349→   349→   9. Footer
+   350→   350→   ============================================================ */
+   351→   351→.footer {
+   352→   352→    margin-top: auto;
+   353→   353→    padding: 16px 0;
+   354→   354→    text-align: center;
+   355→   355→    color: var(--grey-500);
+   356→   356→    font-size: 12px;
+   357→   357→    border-top: 1px solid var(--grey-200);
+   358→   358→}
+   359→   359→
+   360→   360→.footer-version {
+   361→   361→    color: var(--color-primary);
+   362→   362→    text-decoration: none;
+   363→   363→    font-weight: 600;
+   364→   364→    transition: color var(--transition-fast), text-decoration var(--transition-fast);
+   365→   365→}
+   366→   366→
+   367→   367→.footer-version:hover {
+   368→   368→    color: var(--color-primary-dark);
+   369→   369→    text-decoration: underline;
+   370→   370→}
+   371→   371→
+   372→   372→/* ============================================================
+   373→   373→   10. Page Title
+   374→   374→   ============================================================ */
+   375→   375→.page-title {
+   376→   376→    font-size: 22px;
+   377→   377→    font-weight: 600;
+   378→   378→    color: var(--grey-900);
+   379→   379→    margin-bottom: 20px;
+   380→   380→    padding-bottom: 10px;
+   381→   381→    border-bottom: 2px solid var(--grey-200);
+   382→   382→}
+   383→   383→
+   384→   384→/* ============================================================
+   385→   385→   11. Cards
+   386→   386→   ============================================================ */
+   387→   387→.card {
+   388→   388→    background: white;
+   389→   389→    border-radius: var(--border-radius);
+   390→   390→    box-shadow: var(--shadow);
+   391→   391→    padding: 20px;
+   392→   392→    margin-bottom: 20px;
+   393→   393→}
+   394→   394→
+   395→   395→.card--rsst { border-top: 4px solid var(--rsst-color); }
+   396→   396→.card--rami { border-top: 4px solid var(--rami-color); }
+   397→   397→.card--dgi  { border-top: 4px solid var(--dgi-color); }
+   398→   398→
+   399→   399→/* Card with danger zone */
+   400→   400→.card--danger {
+   401→   401→    margin-top: 20px;
+   402→   402→    border-top: 4px solid var(--dgi-color);
+   403→   403→}
+   404→   404→
+   405→   405→/* Card title */
+   406→   406→.card__title {
+   407→   407→    margin-bottom: 16px;
+   408→   408→    font-size: 15px;
+   409→   409→}
+   410→   410→
+   411→   411→.card__subtitle {
+   412→   412→    margin-bottom: 12px;
+   413→   413→    font-size: 15px;
+   414→   414→}
+   415→   415→
+   416→   416→/* ============================================================
+   417→   417→   12. Home Page — Registry Cards
+   418→   418→   ============================================================ */
+   419→   419→.registry-cards {
+   420→   420→    display: flex;
+   421→   421→    gap: 20px;
+   422→   422→    flex-wrap: wrap;
+   423→   423→}
+   424→   424→
+   425→   425→.registry-cards > * {
+   426→   426→    flex: 1;
+   427→   427→    min-width: 250px;
+   428→   428→}
+   429→   429→
+   430→   430→.registry-card {
+   431→   431→    border-radius: var(--border-radius-lg);
+   432→   432→    padding: 30px 24px;
+   433→   433→    color: white;
+   434→   434→    text-align: center;
+   435→   435→    min-height: 220px;
+   436→   436→    display: flex;
+   437→   437→    flex-direction: column;
+   438→   438→    justify-content: space-between;
+   439→   439→    box-shadow: var(--shadow-lg);
+   440→   440→    transition: transform var(--transition-base), box-shadow var(--transition-base);
+   441→   441→}
+   442→   442→
+   443→   443→.registry-card:hover {
+   444→   444→    transform: translateY(-2px);
+   445→   445→    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+   446→   446→}
+   447→   447→
+   448→   448→.registry-card--rsst { background: var(--rsst-color); }
+   449→   449→.registry-card--rami { background: var(--rami-color); }
+   450→   450→.registry-card--dgi  { background: var(--dgi-color); }
+   451→   451→
+   452→   452→.registry-card__icon { font-size: 36px; margin-bottom: 8px; }
+   453→   453→.registry-card__title { font-size: 15px; font-weight: 500; margin-bottom: 4px; opacity: 0.9; }
+   454→   454→.registry-card__subtitle { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+   455→   455→.registry-card__stat { font-size: 13px; opacity: 0.85; margin-top: 12px; }
+   456→   456→
+   457→   457→.registry-card__btn {
+   458→   458→    display: inline-block;
+   459→   459→    margin-top: 16px;
+   460→   460→    padding: 10px 24px;
+   461→   461→    border: 2px solid white;
+   462→   462→    border-radius: var(--border-radius);
+   463→   463→    color: white;
+   464→   464→    text-decoration: none;
+   465→   465→    font-weight: 600;
+   466→   466→    font-size: 14px;
+   467→   467→    transition: background var(--transition-base);
+   468→   468→}
+   469→   469→
+   470→   470→.registry-card__btn:hover {
+   471→   471→    background: rgba(255,255,255,0.2);
+   472→   472→    text-decoration: none;
+   473→   473→}
+   474→   474→
+   475→   475→/* ============================================================
+   476→   476→   13. Buttons
+   477→   477→   ============================================================ */
+   478→   478→.btn {
+   479→   479→    display: inline-block;
+   480→   480→    padding: 8px 18px;
+   481→   481→    border: none;
+   482→   482→    border-radius: var(--border-radius);
+   483→   483→    font-size: 14px;
+   484→   484→    font-weight: 500;
+   485→   485→    cursor: pointer;
+   486→   486→    text-decoration: none;
+   487→   487→    text-align: center;
+   488→   488→    transition: opacity var(--transition-base), transform var(--transition-fast);
+   489→   489→    line-height: 1.4;
+   490→   490→    font-family: var(--font-family);
+   491→   491→}
+   492→   492→
+   493→   493→.btn:hover { opacity: 0.85; text-decoration: none; }
+   494→   494→.btn:active { transform: scale(0.98); }
+   495→   495→
+   496→   496→.btn--primary   { background: var(--color-primary); color: white; }
+   497→   497→.btn--success   { background: var(--state-traite); color: white; }
+   498→   498→.btn--warning   { background: var(--state-en-cours); color: white; }
+   499→   499→.btn--danger    { background: var(--dgi-color); color: white; }
+   500→   500→.btn--secondary { background: var(--grey-500); color: white; }
+   501→   501→.btn--outline   { background: transparent; border: 1px solid var(--grey-400); color: var(--grey-700); }
+   502→   502→.btn--rsst      { background: var(--rsst-color); color: white; }
+   503→   503→.btn--rami      { background: var(--rami-color); color: white; }
+   504→   504→.btn--dgi       { background: var(--dgi-color); color: white; }
+   505→   505→
+   506→   506→.btn--sm   { padding: 4px 10px; font-size: 12px; }
+   507→   507→.btn--full { width: 100%; display: block; }
+   508→   508→
+   509→   509→/* Button group (inline forms) */
+   510→   510→.btn-group {
+   511→   511→    display: flex;
+   512→   512→    gap: 8px;
+   513→   513→    flex-wrap: wrap;
+   514→   514→}
+   515→   515→
+   516→   516→.btn-group--inline {
+   517→   517→    display: inline-flex;
+   518→   518→    gap: 8px;
+   519→   519→}
+   520→   520→
+   521→   521→/* ============================================================
+   522→   522→   14. Forms
+   523→   523→   ============================================================ */
+   524→   524→.form-group {
+   525→   525→    margin-bottom: 16px;
+   526→   526→}
+   527→   527→
+   528→   528→.form-group label {
+   529→   529→    display: block;
+   530→   530→    margin-bottom: 4px;
+   531→   531→    font-weight: 500;
+   532→   532→    color: var(--grey-700);
+   533→   533→    font-size: 13px;
+   534→   534→}
+   535→   535→
+   536→   536→.form-group input,
+   537→   537→.form-group select,
+   538→   538→.form-group textarea {
+   539→   539→    width: 100%;
+   540→   540→    padding: 8px 12px;
+   541→   541→    border: 1px solid var(--grey-300);
+   542→   542→    border-radius: var(--border-radius);
+   543→   543→    font-size: 14px;
+   544→   544→    font-family: var(--font-family);
+   545→   545→    background: white;
+   546→   546→    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+   547→   547→}
+   548→   548→
+   549→   549→.form-group input:focus,
+   550→   550→.form-group select:focus,
+   551→   551→.form-group textarea:focus {
+   552→   552→    outline: none;
+   553→   553→    border-color: var(--color-primary);
+   554→   554→    box-shadow: 0 0 0 2px rgba(0,86,163,0.2);
+   555→   555→}
+   556→   556→
+   557→   557→.form-group input[readonly] {
+   558→   558→    background: var(--grey-100);
+   559→   559→    color: var(--grey-600);
+   560→   560→    cursor: not-allowed;
+   561→   561→}
+   562→   562→
+   563→   563→.form-group input:invalid:not(:placeholder-shown) {
+   564→   564→    border-color: var(--dgi-color);
+   565→   565→}
+   566→   566→
+   567→   567→/* Form control — alternative class for consistent input styling */
+   568→   568→.form-control {
+   569→   569→    width: 100%;
+   570→   570→    padding: 8px 12px;
+   571→   571→    border: 1px solid var(--grey-300);
+   572→   572→    border-radius: var(--border-radius);
+   573→   573→    font-size: 14px;
+   574→   574→    font-family: var(--font-family);
+   575→   575→    background: white;
+   576→   576→    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+   577→   577→}
+   578→   578→.form-control:focus {
+   579→   579→    outline: none;
+   580→   580→    border-color: var(--color-primary);
+   581→   581→    box-shadow: 0 0 0 2px rgba(0,86,163,0.2);
+   582→   582→}
+   583→   583→
+   584→   584→.form-hint {
+   585→   585→    font-size: 12px;
+   586→   586→    color: var(--grey-500);
+   587→   587→    margin-top: 2px;
+   588→   588→}
+   589→   589→
+   590→   590→.form-error {
+   591→   591→    display: block;
+   592→   592→    color: var(--dgi-color);
+   593→   593→    font-size: 12px;
+   594→   594→    margin-top: 4px;
+   595→   595→    font-weight: 500;
+   596→   596→}
+   597→   597→
+   598→   598→.required {
+   599→   599→    color: var(--dgi-color);
+   600→   600→}
+   601→   601→
+   602→   602→.form-grid {
+   603→   603→    display: grid;
+   604→   604→    grid-template-columns: 1fr 1fr;
+   605→   605→    gap: 16px;
+   606→   606→}
+   607→   607→
+   608→   608→.form-grid__full {
+   609→   609→    grid-column: 1 / -1;
+   610→   610→}
+   611→   611→
+   612→   612→@media (max-width: 768px) {
+   613→   613→    .form-grid {
+   614→   614→        grid-template-columns: 1fr;
+   615→   615→    }
+   616→   616→}
+   617→   617→
+   618→   618→.form-actions {
+   619→   619→    display: flex;
+   620→   620→    gap: 12px;
+   621→   621→    margin-top: 24px;
+   622→   622→    padding-top: 16px;
+   623→   623→    border-top: 1px solid var(--grey-200);
+   624→   624→    flex-wrap: wrap;
+   625→   625→}
+   626→   626→
+   627→   627→/* Inline form (for button groups in tables) */
+   628→   628→.form--inline {
+   629→   629→    display: inline;
+   630→   630→}
+   631→   631→
+   632→   632→/* Checkbox label — flex layout for checkboxes with text */
+   633→   633→.label--checkbox {
+   634→   634→    display: flex;
+   635→   635→    align-items: center;
+   636→   636→    gap: 8px;
+   637→   637→    font-size: 14px;
+   638→   638→    font-weight: 600;
+   639→   639→    cursor: pointer;
+   640→   640→}
+   641→   641→
+   642→   642→.label--checkbox input[type="checkbox"] {
+   643→   643→    width: auto;
+   644→   644→    margin: 0;
+   645→   645→}
+   646→   646→
+   647→   647→/* Small label variant */
+   648→   648→.label--small {
+   649→   649→    font-weight: normal;
+   650→   650→    white-space: nowrap;
+   651→   651→    display: flex;
+   652→   652→    align-items: center;
+   653→   653→    gap: 4px;
+   654→   654→    font-size: 13px;
+   655→   655→}
+   656→   656→
+   657→   657→/* Confidential warning (CSS-only toggle, no JS) */
+   658→   658→.confidential-warning {
+   659→   659→    display: none;
+   660→   660→    margin-top: 8px;
+   661→   661→    padding: 10px 14px;
+   662→   662→    background: var(--color-warning-bg);
+   663→   663→    border: 1px solid var(--color-warning-border);
+   664→   664→    border-radius: var(--border-radius-lg);
+   665→   665→    color: var(--color-warning-text);
+   666→   666→    font-size: 13px;
+   667→   667→}
+   668→   668→
+   669→   669→/* CSS :has() toggle — show warning when checkbox unchecked */
+   670→   670→.confidential-toggle:not(:has(.confidential-toggle__input:checked)) .confidential-warning {
+   671→   671→    display: block;
+   672→   672→}
+   673→   673→.confidential-toggle:has(.confidential-toggle__input:checked) .confidential-warning {
+   674→   674→    display: none;
+   675→   675→}
+   676→   676→
+   677→   677→/* Pour compte fields toggle (RAMI form) */
+   678→   678→.pour-compte-fields {
+   679→   679→    display: none;
+   680→   680→}
+   681→   681→.form-grid:has(#pour_compte:checked) .pour-compte-fields {
+   682→   682→    display: block;
+   683→   683→}
+   684→   684→.form-grid:not(:has(#pour_compte:checked)) .pour-compte-fields {
+   685→   685→    display: none;
+   686→   686→}
+   687→   687→
+   688→   688→/* Flex row for side-by-side inputs */
+   689→   689→.flex-row {
+   690→   690→    display: flex;
+   691→   691→    gap: 12px;
+   692→   692→    flex-wrap: wrap;
+   693→   693→}
+   694→   694→
+   695→   695→.flex-row > * {
+   696→   696→    flex: 1;
+   697→   697→    min-width: 200px;
+   698→   698→}
+   699→   699→
+   700→   700→/* Form row — grid layout */
+   701→   701→.form-row {
+   702→   702→    display: grid;
+   703→   703→    gap: 16px;
+   704→   704→}
+   705→   705→
+   706→   706→.form-row--2-1 {
+   707→   707→    grid-template-columns: 2fr 1fr;
+   708→   708→}
+   709→   709→
+   710→   710→.form-row--1-1 {
+   711→   711→    grid-template-columns: 1fr 1fr;
+   712→   712→}
+   713→   713→
+   714→   714→@media (max-width: 768px) {
+   715→   715→    .form-row--2-1,
+   716→   716→    .form-row--1-1 {
+   717→   717→        grid-template-columns: 1fr;
+   718→   718→    }
+   719→   719→}
+   720→   720→
+   721→   721→/* Attachment preview */
+   722→   722→.attachment-preview {
+   723→   723→    margin-top: 6px;
+   724→   724→    display: flex;
+   725→   725→    align-items: center;
+   726→   726→    gap: 8px;
+   727→   727→}
+   728→   728→
+   729→   729→.attachment-remove-label {
+   730→   730→    font-size: 13px;
+   731→   731→    color: var(--color-danger-text);
+   732→   732→}
+   733→   733→
+   734→   734→.attachment-image {
+   735→   735→    max-width: 100%;
+   736→   736→    max-height: 400px;
+   737→   737→    border-radius: var(--border-radius-lg);
+   738→   738→    border: 1px solid var(--grey-200);
+   739→   739→    cursor: pointer;
+   740→   740→}
+   741→   741→
+   742→   742→/* ============================================================
+   743→   743→   15. Tables
+   744→   744→   ============================================================ */
+   745→   745→.table-wrapper {
+   746→   746→    overflow-x: auto;
+   747→   747→    border-radius: var(--border-radius);
+   748→   748→}
+   749→   749→
+   750→   750→table {
+   751→   751→    width: 100%;
+   752→   752→    border-collapse: collapse;
+   753→   753→    background: white;
+   754→   754→}
+   755→   755→
+   756→   756→th {
+   757→   757→    background: var(--grey-100);
+   758→   758→    text-align: left;
+   759→   759→    padding: 10px 12px;
+   760→   760→    font-weight: 600;
+   761→   761→    font-size: 13px;
+   762→   762→    color: var(--grey-700);
+   763→   763→    border-bottom: 2px solid var(--grey-300);
+   764→   764→    white-space: nowrap;
+   765→   765→    cursor: default;
+   766→   766→    user-select: none;
+   767→   767→}
+   768→   768→
+   769→   769→th.sortable {
+   770→   770→    cursor: pointer;
+   771→   771→}
+   772→   772→
+   773→   773→th.sortable:hover {
+   774→   774→    background: var(--grey-200);
+   775→   775→}
+   776→   776→
+   777→   777→th.sortable::after {
+   778→   778→    content: ' \2195';  /* ↕ */
+   779→   779→    opacity: 0.4;
+   780→   780→    font-size: 11px;
+   781→   781→}
+   782→   782→
+   783→   783→th.sort-asc::after  { content: ' \2191'; opacity: 1; }  /* ↑ */
+   784→   784→th.sort-desc::after { content: ' \2193'; opacity: 1; }  /* ↓ */
+   785→   785→
+   786→   786→td {
+   787→   787→    padding: 10px 12px;
+   788→   788→    border-bottom: 1px solid var(--grey-200);
+   789→   789→    font-size: 14px;
+   790→   790→    vertical-align: middle;
+   791→   791→}
+   792→   792→
+   793→   793→/* Striped rows */
+   794→   794→tr:nth-child(even) td {
+   795→   795→    background: var(--grey-50);
+   796→   796→}
+   797→   797→
+   798→   798→tr:hover td {
+   799→   799→    background: var(--hover-highlight);
+   800→   800→}
+   801→   801→
+   802→   802→/* Report detail table */
+   803→   803→.report-detail__table {
+   804→   804→    margin-top: 16px;
+   805→   805→}
+   806→   806→
+   807→   807→.report-detail__table th {
+   808→   808→    width: 200px;
+   809→   809→    background: transparent;
+   810→   810→    border-bottom: 1px solid var(--grey-200);
+   811→   811→    padding: 8px 12px;
+   812→   812→    vertical-align: top;
+   813→   813→}
+   814→   814→
+   815→   815→.report-detail__table td {
+   816→   816→    border-bottom: 1px solid var(--grey-200);
+   817→   817→    padding: 8px 12px;
+   818→   818→}
+   819→   819→
+   820→   820→.report-detail__header {
+   821→   821→    display: flex;
+   822→   822→    justify-content: space-between;
+   823→   823→    align-items: center;
+   824→   824→    flex-wrap: wrap;
+   825→   825→    gap: 8px;
+   826→   826→    margin-bottom: 8px;
+   827→   827→}
+   828→   828→
+   829→   829→/* Response section */
+   830→   830→.report-response {
+   831→   831→    background: var(--grey-50);
+   832→   832→    padding: 16px;
+   833→   833→    border-radius: var(--border-radius);
+   834→   834→    border-left: 4px solid var(--state-traite);
+   835→   835→    margin-top: 12px;
+   836→   836→}
+   837→   837→
+   838→   838→.report-response__meta {
+   839→   839→    margin-top: 12px;
+   840→   840→    font-size: 13px;
+   841→   841→    color: var(--grey-600);
+   842→   842→    padding-top: 8px;
+   843→   843→    border-top: 1px solid var(--grey-200);
+   844→   844→}
+   845→   845→
+   846→   846→/* Table cell alignment */
+   847→   847→.text-left   { text-align: left; }
+   848→   848→.text-center { text-align: center; }
+   849→   849→.text-right  { text-align: right; }
+   850→   850→
+   851→   851→/* Inactive row */
+   852→   852→.row--inactive {
+   853→   853→    opacity: 0.5;
+   854→   854→}
+   855→   855→
+   856→   856→/* Totals row */
+   857→   857→.row--totals {
+   858→   858→    background: var(--grey-100);
+   859→   859→    font-weight: 600;
+   860→   860→}
+   861→   861→
+   862→   862→/* Table with smaller font */
+   863→   863→.table--compact {
+   864→   864→    font-size: 13px;
+   865→   865→}
+   866→   866→
+   867→   867→/* ============================================================
+   868→   868→   16. Badges
+   869→   869→   ============================================================ */
+   870→   870→.badge {
+   871→   871→    display: inline-block;
+   872→   872→    padding: 3px 10px;
+   873→   873→    border-radius: 12px;
+   874→   874→    font-size: 12px;
+   875→   875→    font-weight: 600;
+   876→   876→    color: white;
+   877→   877→    white-space: nowrap;
+   878→   878→}
+   879→   879→
+   880→   880→.badge--nouveau    { background: var(--state-nouveau); }
+   881→   881→.badge--en-cours   { background: var(--state-en-cours); }
+   882→   882→.badge--traite     { background: var(--state-traite); }
+   883→   883→.badge--abandonne  { background: var(--state-abandonne); }
+   884→   884→.badge--agent      { background: var(--role-agent); }
+   885→   885→.badge--superviseur{ background: var(--role-superviseur); }
+   886→   886→.badge--chsct      { background: var(--role-chsct); }
+   887→   887→.badge--rsst       { background: var(--rsst-color); }
+   888→   888→.badge--rami       { background: var(--rami-color); }
+   889→   889→.badge--dgi        { background: var(--dgi-color); }
+   890→   890→
+   891→   891→/* Visibility badges */
+   892→   892→.badge--confidential { background: var(--visibility-confidential); }
+   893→   893→.badge--public       { background: var(--visibility-public); }
+   894→   894→
+   895→   895→/* Badge size variants */
+   896→   896→.badge--sm { font-size: 11px; padding: 2px 8px; }
+   897→   897→
+   898→   898→/* Status indicator (active/inactive dot) */
+   899→   899→.status-dot {
+   900→   900→    font-size: 12px;
+   901→   901→}
+   902→   902→.status-dot--active {
+   903→   903→    color: var(--state-traite);
+   904→   904→}
+   905→   905→.status-dot--inactive {
+   906→   906→    color: var(--state-abandonne);
+   907→   907→}
+   908→   908→
+   909→   909→/* Inline code */
+   910→   910→.code-inline {
+   911→   911→    background: var(--grey-100);
+   912→   912→    padding: 2px 6px;
+   913→   913→    border-radius: 3px;
+   914→   914→    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+   915→   915→    font-size: 0.9em;
+   916→   916→}
+   917→   917→
+   918→   918→/* ============================================================
+   919→   919→   17. KPI Cards (Statistics page)
+   920→   920→   ============================================================ */
+   921→   921→.kpi-grid {
+   922→   922→    display: flex;
+   923→   923→    gap: 16px;
+   924→   924→    flex-wrap: wrap;
+   925→   925→    margin-bottom: 24px;
+   926→   926→}
+   927→   927→
+   928→   928→.kpi-card {
+   929→   929→    flex: 1;
+   930→   930→    min-width: 200px;
+   931→   931→    background: white;
+   932→   932→    border-radius: var(--border-radius);
+   933→   933→    box-shadow: var(--shadow);
+   934→   934→    padding: 20px;
+   935→   935→    text-align: center;
+   936→   936→    border-top: 4px solid var(--color-primary);
+   937→   937→}
+   938→   938→
+   939→   939→.kpi-card--rsst { border-top-color: var(--rsst-color); }
+   940→   940→.kpi-card--rami { border-top-color: var(--rami-color); }
+   941→   941→.kpi-card--dgi  { border-top-color: var(--dgi-color); }
+   942→   942→.kpi-card--nouveau  { border-top-color: var(--state-nouveau); }
+   943→   943→.kpi-card--en-cours { border-top-color: var(--state-en-cours); }
+   944→   944→.kpi-card--traite   { border-top-color: var(--state-traite); }
+   945→   945→
+   946→   946→.kpi-card__value {
+   947→   947→    font-size: 32px;
+   948→   948→    font-weight: 700;
+   949→   949→    color: var(--grey-900);
+   950→   950→}
+   951→   951→
+   952→   952→.kpi-card__label {
+   953→   953→    font-size: 13px;
+   954→   954→    color: var(--grey-600);
+   955→   955→    margin-top: 4px;
+   956→   956→}
+   957→   957→
+   958→   958→.kpi-card__detail {
+   959→   959→    font-size: 11px;
+   960→   960→    color: var(--grey-500);
+   961→   961→    margin-top: 8px;
+   962→   962→}
+   963→   963→
+   964→   964→/* ============================================================
+   965→   965→   18. Alerts / Flash Messages
+   966→   966→   ============================================================ */
+   967→   967→.alert {
+   968→   968→    padding: 12px 16px;
+   969→   969→    border-radius: var(--border-radius);
+   970→   970→    margin-bottom: 16px;
+   971→   971→    font-size: 14px;
+   972→   972→}
+   973→   973→
+   974→   974→.alert--success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+   975→   975→.alert--error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+   976→   976→.alert--warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+   977→   977→.alert--info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+   978→   978→
+   979→   979→/* ============================================================
+   980→   980→   19. Pagination
+   981→   981→   ============================================================ */
+   982→   982→.pagination {
+   983→   983→    display: flex;
+   984→   984→    gap: 4px;
+   985→   985→    justify-content: center;
+   986→   986→    margin-top: 20px;
+   987→   987→    flex-wrap: wrap;
+   988→   988→}
+   989→   989→
+   990→   990→.pagination__link,
+   991→   991→.pagination__current {
+   992→   992→    display: inline-block;
+   993→   993→    padding: 6px 12px;
+   994→   994→    border: 1px solid var(--grey-300);
+   995→   995→    border-radius: var(--border-radius);
+   996→   996→    font-size: 13px;
+   997→   997→    text-decoration: none;
+   998→   998→    color: var(--grey-700);
+   999→   999→}
+  1000→  1000→
+  1001→  1001→.pagination__current {
+  1002→  1002→    background: var(--color-primary);
+  1003→  1003→    color: white;
+  1004→  1004→    border-color: var(--color-primary);
+  1005→  1005→    font-weight: 600;
+  1006→  1006→}
+  1007→  1007→
+  1008→  1008→.pagination__link:hover {
+  1009→  1009→    background: var(--grey-200);
+  1010→  1010→    text-decoration: none;
+  1011→  1011→}
+  1012→  1012→
+  1013→  1013→.pagination__ellipsis {
+  1014→  1014→    display: inline-block;
+  1015→  1015→    padding: 6px 8px;
+  1016→  1016→    color: var(--grey-500);
+  1017→  1017→}
+  1018→  1018→
+  1019→  1019→/* ============================================================
+  1020→  1020→   20. Filter Bar
+  1021→  1021→   ============================================================ */
+  1022→  1022→.filter-bar {
+  1023→  1023→    display: flex;
+  1024→  1024→    gap: 12px;
+  1025→  1025→    align-items: flex-end;
+  1026→  1026→    flex-wrap: wrap;
+  1027→  1027→    margin-bottom: 20px;
+  1028→  1028→    padding: 16px;
+  1029→  1029→    background: white;
+  1030→  1030→    border-radius: var(--border-radius);
+  1031→  1031→    box-shadow: var(--shadow);
+  1032→  1032→}
+  1033→  1033→
+  1034→  1034→.filter-bar .form-group {
+  1035→  1035→    margin-bottom: 0;
+  1036→  1036→}
+  1037→  1037→
+  1038→  1038→.filter-bar .btn {
+  1039→  1039→    margin-bottom: 0;
+  1040→  1040→}
+  1041→  1041→
+  1042→  1042→/* ============================================================
+  1043→  1043→   21. Login Page
+  1044→  1044→   ============================================================ */
+  1045→  1045→.login-body {
+  1046→  1046→    background: var(--grey-200);
+  1047→  1047→    display: flex;
+  1048→  1048→    align-items: center;
+  1049→  1049→    justify-content: center;
+  1050→  1050→    min-height: 100vh;
+  1051→  1051→}
+  1052→  1052→
+  1053→  1053→.login-container {
+  1054→  1054→    width: 100%;
+  1055→  1055→    max-width: 440px;
+  1056→  1056→    padding: 20px;
+  1057→  1057→}
+  1058→  1058→
+  1059→  1059→.login-card {
+  1060→  1060→    background: white;
+  1061→  1061→    border-radius: var(--border-radius-lg);
+  1062→  1062→    box-shadow: var(--shadow-lg);
+  1063→  1063→    padding: 40px 32px;
+  1064→  1064→}
+  1065→  1065→
+  1066→  1066→.login-header {
+  1067→  1067→    text-align: center;
+  1068→  1068→    margin-bottom: 24px;
+  1069→  1069→}
+  1070→  1070→
+  1071→  1071→.login-header h1 {
+  1072→  1072→    font-size: 20px;
+  1073→  1073→    color: var(--color-primary);
+  1074→  1074→    margin-bottom: 4px;
+  1075→  1075→}
+  1076→  1076→
+  1077→  1077→.login-subtitle {
+  1078→  1078→    color: var(--grey-600);
+  1079→  1079→    font-size: 14px;
+  1080→  1080→}
+  1081→  1081→
+  1082→  1082→.login-dev-badge {
+  1083→  1083→    display: inline-block;
+  1084→  1084→    background: #fff3cd;
+  1085→  1085→    color: #856404;
+  1086→  1086→    padding: 4px 12px;
+  1087→  1087→    border-radius: var(--border-radius);
+  1088→  1088→    font-size: 12px;
+  1089→  1089→    font-weight: 500;
+  1090→  1090→    margin-top: 8px;
+  1091→  1091→}
+  1092→  1092→
+  1093→  1093→.login-form .form-group {
+  1094→  1094→    margin-bottom: 20px;
+  1095→  1095→}
+  1096→  1096→
+  1097→  1097→.login-dev-info {
+  1098→  1098→    margin-top: 24px;
+  1099→  1099→    padding-top: 16px;
+  1100→  1100→    border-top: 1px solid var(--grey-200);
+  1101→  1101→    font-size: 13px;
+  1102→  1102→    color: var(--grey-600);
+  1103→  1103→}
+  1104→  1104→
+  1105→  1105→.login-dev-info ul {
+  1106→  1106→    margin: 8px 0 0 16px;
+  1107→  1107→    list-style: disc;
+  1108→  1108→}
+  1109→  1109→
+  1110→  1110→.login-dev-info li {
+  1111→  1111→    margin-bottom: 4px;
+  1112→  1112→}
+  1113→  1113→
+  1114→  1114→.login-dev-info code {
+  1115→  1115→    background: var(--grey-100);
+  1116→  1116→    padding: 1px 6px;
+  1117→  1117→    border-radius: 3px;
+  1118→  1118→    font-size: 12px;
+  1119→  1119→}
+  1120→  1120→
+  1121→  1121→/* ============================================================
+  1122→  1122→   22. Print View
+  1123→  1123→   ============================================================ */
+  1124→  1124→.print-view {
+  1125→  1125→    max-width: 800px;
+  1126→  1126→    margin: 0 auto;
+  1127→  1127→    padding: 40px;
+  1128→  1128→}
+  1129→  1129→
+  1130→  1130→.print-view__header {
+  1131→  1131→    text-align: center;
+  1132→  1132→    margin-bottom: 30px;
+  1133→  1133→    border-bottom: 2px solid var(--grey-900);
+  1134→  1134→    padding-bottom: 20px;
+  1135→  1135→}
+  1136→  1136→
+  1137→  1137→.print-view__title {
+  1138→  1138→    font-size: 20px;
+  1139→  1139→    font-weight: 700;
+  1140→  1140→    margin-top: 12px;
+  1141→  1141→}
+  1142→  1142→
+  1143→  1143→.print-view__field {
+  1144→  1144→    margin-bottom: 12px;
+  1145→  1145→}
+  1146→  1146→
+  1147→  1147→.print-view__label {
+  1148→  1148→    font-weight: 600;
+  1149→  1149→    color: var(--grey-600);
+  1150→  1150→    font-size: 13px;
+  1151→  1151→}
+  1152→  1152→
+  1153→  1153→.print-view__value {
+  1154→  1154→    font-size: 14px;
+  1155→  1155→    margin-top: 2px;
+  1156→  1156→}
+  1157→  1157→
+  1158→  1158→.print-hint {
+  1159→  1159→    text-align: center;
+  1160→  1160→    color: var(--grey-500);
+  1161→  1161→    font-size: 13px;
+  1162→  1162→    margin-bottom: 20px;
+  1163→  1163→}
+  1164→  1164→
+  1165→  1165→/* ============================================================
+  1166→  1166→   23. Confirm Dialog (inline)
+  1167→  1167→   ============================================================ */
+  1168→  1168→.confirm-box {
+  1169→  1169→    background: #fff3cd;
+  1170→  1170→    border: 1px solid #ffeeba;
+  1171→  1171→    border-radius: var(--border-radius);
+  1172→  1172→    padding: 20px;
+  1173→  1173→    text-align: center;
+  1174→  1174→    margin: 20px 0;
+  1175→  1175→}
+  1176→  1176→
+  1177→  1177→.confirm-box p {
+  1178→  1178→    margin-bottom: 16px;
+  1179→  1179→    font-weight: 500;
+  1180→  1180→}
+  1181→  1181→
+  1182→  1182→.confirm-box__actions {
+  1183→  1183→    display: flex;
+  1184→  1184→    gap: 12px;
+  1185→  1185→    justify-content: center;
+  1186→  1186→}
+  1187→  1187→
+  1188→  1188→/* Confirm dialog for HTML5 <dialog> */
+  1189→  1189→.confirm-dialog__actions {
+  1190→  1190→    display: flex;
+  1191→  1191→    gap: 12px;
+  1192→  1192→    margin-top: 16px;
+  1193→  1193→}
+  1194→  1194→
+  1195→  1195→.confirm-dialog__actions form {
+  1196→  1196→    display: inline;
+  1197→  1197→}
+  1198→  1198→
+  1199→  1199→/* Inline confirmation (no JS) */
+  1200→  1200→.confirm-inline {
+  1201→  1201→    background: var(--grey-100);
+  1202→  1202→    padding: 16px;
+  1203→  1203→    border-radius: var(--border-radius-lg);
+  1204→  1204→    margin-bottom: 12px;
+  1205→  1205→}
+  1206→  1206→
+  1207→  1207→.confirm-inline p {
+  1208→  1208→    font-weight: 600;
+  1209→  1209→    margin-bottom: 12px;
+  1210→  1210→}
+  1211→  1211→
+  1212→  1212→/* Warning panel */
+  1213→  1213→.warning-panel {
+  1214→  1214→    margin-top: 16px;
+  1215→  1215→    background: var(--color-warning-bg);
+  1216→  1216→    border: 1px solid var(--color-warning-border);
+  1217→  1217→    border-radius: var(--border-radius-lg);
+  1218→  1218→    padding: 16px;
+  1219→  1219→}
+  1220→  1220→
+  1221→  1221→.warning-panel p {
+  1222→  1222→    font-weight: 600;
+  1223→  1223→    color: var(--color-warning-text);
+  1224→  1224→}
+  1225→  1225→
+  1226→  1226→.warning-panel__hint {
+  1227→  1227→    font-size: 13px;
+  1228→  1228→    color: var(--grey-600);
+  1229→  1229→}
+  1230→  1230→
+  1231→  1231→/* Danger panel */
+  1232→  1232→.danger-panel {
+  1233→  1233→    margin-top: 16px;
+  1234→  1234→    background: var(--color-danger-bg);
+  1235→  1235→    border: 1px solid var(--color-danger-border);
+  1236→  1236→    border-radius: var(--border-radius-lg);
+  1237→  1237→    padding: 12px 16px;
+  1238→  1238→    color: var(--color-danger-text);
+  1239→  1239→    font-size: 13px;
+  1240→  1240→}
+  1241→  1241→
+  1242→  1242→/* Info panel */
+  1243→  1243→.info-panel {
+  1244→  1244→    margin-top: 14px;
+  1245→  1245→    padding: 10px 14px;
+  1246→  1246→    background: var(--color-warning-bg);
+  1247→  1247→    border: 1px solid var(--color-warning-border);
+  1248→  1248→    border-radius: var(--border-radius-lg);
+  1249→  1249→    color: var(--color-warning-text);
+  1250→  1250→    font-size: 12px;
+  1251→  1251→}
+  1252→  1252→
+  1253→  1253→/* ============================================================
+  1254→  1254→   24. Tag Input (Settings page)
+  1255→  1255→   ============================================================ */
+  1256→  1256→.tag-input-container {
+  1257→  1257→    border: 1px solid var(--grey-300);
+  1258→  1258→    border-radius: var(--border-radius);
+  1259→  1259→    padding: 8px;
+  1260→  1260→    background: white;
+  1261→  1261→}
+  1262→  1262→.tag-input-tags {
+  1263→  1263→    display: flex;
+  1264→  1264→    flex-wrap: wrap;
+  1265→  1265→    gap: 6px;
+  1266→  1266→    margin-bottom: 6px;
+  1267→  1267→}
+  1268→  1268→.tag-input-tag {
+  1269→  1269→    display: inline-flex;
+  1270→  1270→    align-items: center;
+  1271→  1271→    gap: 4px;
+  1272→  1272→    background: var(--grey-100);
+  1273→  1273→    border: 1px solid var(--grey-300);
+  1274→  1274→    border-radius: 16px;
+  1275→  1275→    padding: 4px 10px;
+  1276→  1276→    font-size: 13px;
+  1277→  1277→    color: var(--grey-800);
+  1278→  1278→}
+  1279→  1279→.tag-input-remove {
+  1280→  1280→    background: none;
+  1281→  1281→    border: none;
+  1282→  1282→    color: var(--grey-500);
+  1283→  1283→    cursor: pointer;
+  1284→  1284→    font-size: 16px;
+  1285→  1285→    line-height: 1;
+  1286→  1286→    padding: 0 2px;
+  1287→  1287→}
+  1288→  1288→.tag-input-remove:hover {
+  1289→  1289→    color: var(--dgi-color);
+  1290→  1290→}
+  1291→  1291→.tag-input-field {
+  1292→  1292→    flex: 1;
+  1293→  1293→    border: 1px solid var(--grey-200);
+  1294→  1294→    border-radius: var(--border-radius);
+  1295→  1295→    padding: 6px 10px;
+  1296→  1296→    font-size: 13px;
+  1297→  1297→    font-family: var(--font-family);
+  1298→  1298→}
+  1299→  1299→.tag-input-field:focus {
+  1300→  1300→    outline: none;
+  1301→  1301→    border-color: var(--color-primary);
+  1302→  1302→}
+  1303→  1303→
+  1304→  1304→/* ============================================================
+  1305→  1305→   25. Tabs (Settings, Users pages)
+  1306→  1306→   ============================================================ */
+  1307→  1307→.settings-tab {
+  1308→  1308→    padding: 10px 20px;
+  1309→  1309→    font-size: 14px;
+  1310→  1310→    font-weight: 500;
+  1311→  1311→    color: var(--grey-600);
+  1312→  1312→    text-decoration: none;
+  1313→  1313→    border-bottom: 3px solid transparent;
+  1314→  1314→    margin-bottom: -2px;
+  1315→  1315→    transition: color var(--transition-base), border-color var(--transition-base);
+  1316→  1316→}
+  1317→  1317→.settings-tab:hover {
+  1318→  1318→    color: var(--color-primary);
+  1319→  1319→    text-decoration: none;
+  1320→  1320→}
+  1321→  1321→.settings-tab--active {
+  1322→  1322→    color: var(--color-primary);
+  1323→  1323→    border-bottom-color: var(--color-primary);
+  1324→  1324→    font-weight: 600;
+  1325→  1325→}
+  1326→  1326→
+  1327→  1327→.tab-bar {
+  1328→  1328→    display: flex;
+  1329→  1329→    gap: 0;
+  1330→  1330→    margin-bottom: 20px;
+  1331→  1331→    border-bottom: 2px solid var(--grey-200);
+  1332→  1332→    flex-wrap: wrap;
+  1333→  1333→}
+  1334→  1334→
+  1335→  1335→/* ============================================================
+  1336→  1336→   26. Changelog
+  1337→  1337→   ============================================================ */
+  1338→  1338→.changelog-content {
+  1339→  1339→    background: #fff;
+  1340→  1340→    border: 1px solid var(--grey-200);
+  1341→  1341→    border-radius: var(--border-radius-lg);
+  1342→  1342→    padding: 24px 32px;
+  1343→  1343→    max-width: 900px;
+  1344→  1344→    line-height: 1.7;
+  1345→  1345→}
+  1346→  1346→
+  1347→  1347→.changelog-content h1 {
+  1348→  1348→    font-size: 1.5rem;
+  1349→  1349→    color: var(--color-primary);
+  1350→  1350→    border-bottom: 2px solid var(--color-primary);
+  1351→  1351→    padding-bottom: 8px;
+  1352→  1352→    margin-top: 0;
+  1353→  1353→}
+  1354→  1354→
+  1355→  1355→.changelog-content h2 {
+  1356→  1356→    font-size: 1.2rem;
+  1357→  1357→    color: var(--color-primary);
+  1358→  1358→    border-bottom: 1px solid var(--grey-200);
+  1359→  1359→    padding-bottom: 6px;
+  1360→  1360→    margin-top: 28px;
+  1361→  1361→}
+  1362→  1362→
+  1363→  1363→.changelog-content h3 {
+  1364→  1364→    font-size: 1.05rem;
+  1365→  1365→    color: var(--color-primary-dark);
+  1366→  1366→    margin-top: 18px;
+  1367→  1367→}
+  1368→  1368→
+  1369→  1369→.changelog-content ul {
+  1370→  1370→    margin: 8px 0;
+  1371→  1371→    padding-left: 24px;
+  1372→  1372→}
+  1373→  1373→
+  1374→  1374→.changelog-content li {
+  1375→  1375→    margin: 4px 0;
+  1376→  1376→}
+  1377→  1377→
+  1378→  1378→.changelog-content strong {
+  1379→  1379→    color: var(--color-primary);
+  1380→  1380→}
+  1381→  1381→
+  1382→  1382→.changelog-content code {
+  1383→  1383→    background: var(--grey-100);
+  1384→  1384→    padding: 1px 6px;
+  1385→  1385→    border-radius: 3px;
+  1386→  1386→    font-size: 0.9em;
+  1387→  1387→    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  1388→  1388→}
+  1389→  1389→
+  1390→  1390→.changelog-content hr {
+  1391→  1391→    border: none;
+  1392→  1392→    border-top: 1px solid var(--grey-200);
+  1393→  1393→    margin: 24px 0;
+  1394→  1394→}
+  1395→  1395→
+  1396→  1396→.changelog-content p {
+  1397→  1397→    margin: 8px 0;
+  1398→  1398→}
+  1399→  1399→
+  1400→  1400→/* ============================================================
+  1401→  1401→   27. Help / Documentation
+  1402→  1402→   ============================================================ */
+  1403→  1403→.help-profile-card {
+  1404→  1404→    border: 1px solid var(--grey-200);
+  1405→  1405→    border-radius: var(--border-radius-lg);
+  1406→  1406→    padding: 16px;
+  1407→  1407→    border-left: 4px solid var(--rsst-color);
+  1408→  1408→}
+  1409→  1409→
+  1410→  1410→.help-profiles-grid {
+  1411→  1411→    display: grid;
+  1412→  1412→    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  1413→  1413→    gap: 16px;
+  1414→  1414→}
+  1415→  1415→
+  1416→  1416→/* ============================================================
+  1417→  1417→   28. Settings — Add site form
+  1418→  1418→   ============================================================ */
+  1419→  1419→.add-site-form {
+  1420→  1420→    margin-bottom: 20px;
+  1421→  1421→    padding: 16px;
+  1422→  1422→    background: var(--grey-50);
+  1423→  1423→    border-radius: var(--border-radius-lg);
+  1424→  1424→    border: 1px dashed var(--grey-300);
+  1425→  1425→}
+  1426→  1426→
+  1427→  1427→.add-site-grid {
+  1428→  1428→    display: grid;
+  1429→  1429→    grid-template-columns: 100px 1fr 1fr auto;
+  1430→  1430→    gap: 10px;
+  1431→  1431→    align-items: end;
+  1432→  1432→}
+  1433→  1433→
+  1434→  1434→@media (max-width: 768px) {
+  1435→  1435→    .add-site-grid {
+  1436→  1436→        grid-template-columns: 1fr;
+  1437→  1437→    }
+  1438→  1438→}
+  1439→  1439→
+  1440→  1440→/* SMTP test section */
+  1441→  1441→.smtp-test-section {
+  1442→  1442→    border: 1px dashed var(--grey-300);
+  1443→  1443→    border-radius: var(--border-radius-lg);
+  1444→  1444→    padding: 16px;
+  1445→  1445→}
+  1446→  1446→
+  1447→  1447→.smtp-test-row {
+  1448→  1448→    display: flex;
+  1449→  1449→    gap: 8px;
+  1450→  1450→    align-items: flex-end;
+  1451→  1451→}
+  1452→  1452→
+  1453→  1453→/* Visibility radios layout */
+  1454→  1454→.visibility-radios {
+  1455→  1455→    display: flex;
+  1456→  1456→    flex-direction: column;
+  1457→  1457→    gap: 10px;
+  1458→  1458→}
+  1459→  1459→
+  1460→  1460→.visibility-radio-label {
+  1461→  1461→    display: flex;
+  1462→  1462→    align-items: flex-start;
+  1463→  1463→    gap: 10px;
+  1464→  1464→    cursor: pointer;
+  1465→  1465→    font-weight: normal;
+  1466→  1466→}
+  1467→  1467→
+  1468→  1468→.visibility-radio-label input[type="radio"] {
+  1469→  1469→    margin-top: 3px;
+  1470→  1470→    width: 16px;
+  1471→  1471→    height: 16px;
+  1472→  1472→    flex-shrink: 0;
+  1473→  1473→}
+  1474→  1474→
+  1475→  1475→/* ============================================================
+  1476→  1476→   29. Utility Classes
+  1477→  1477→   ============================================================ */
+  1478→  1478→.text-muted  { color: var(--grey-500); }
+  1479→  1479→.text-small  { font-size: 12px; }
+  1480→  1480→.mt-0 { margin-top: 0; }
+  1481→  1481→.mt-2 { margin-top: 8px; }
+  1482→  1482→.mt-4 { margin-top: 16px; }
+  1483→  1483→.mb-0 { margin-bottom: 0; }
+  1484→  1484→.mb-2 { margin-bottom: 8px; }
+  1485→  1485→.mb-4 { margin-bottom: 16px; }
+  1486→  1486→.gap-2 { gap: 8px; }
+  1487→  1487→.gap-4 { gap: 16px; }
+  1488→  1488→.flex  { display: flex; }
+  1489→  1489→.flex-wrap { flex-wrap: wrap; }
+  1490→  1490→.items-center { align-items: center; }
+  1491→  1491→.justify-between { justify-content: space-between; }
+  1492→  1492→
+  1493→  1493→.sr-only {
+  1494→  1494→    position: absolute;
+  1495→  1495→    width: 1px;
+  1496→  1496→    height: 1px;
+  1497→  1497→    padding: 0;
+  1498→  1498→    margin: -1px;
+  1499→  1499→    overflow: hidden;
+  1500→  1500→    clip: rect(0,0,0,0);
+  1501→  1501→    white-space: nowrap;
+  1502→  1502→    border: 0;
+  1503→  1503→}
+  1504→  1504→
+  1505→  1505→/* Skip link — visible only on keyboard focus (accessibility) */
+  1506→  1506→.skip-link {
+  1507→  1507→    position: absolute;
+  1508→  1508→    top: -100px;
+  1509→  1509→    left: 0;
+  1510→  1510→    z-index: var(--z-skip-link);
+  1511→  1511→    padding: 8px 16px;
+  1512→  1512→    background: #1a3a5c;
+  1513→  1513→    color: #fff;
+  1514→  1514→    text-decoration: none;
+  1515→  1515→    font-weight: 600;
+  1516→  1516→    font-size: 14px;
+  1517→  1517→    border-radius: 0 0 var(--border-radius) 0;
+  1518→  1518→}
+  1519→  1519→.skip-link:focus {
+  1520→  1520→    top: 0;
+  1521→  1521→}
+  1522→  1522→
+  1523→  1523→/* Synthesis table cell styles */
+  1524→  1524→.synthesis-cell-zero {
+  1525→  1525→    color: var(--grey-400);
+  1526→  1526→}
+  1527→  1527→
+  1528→  1528→.synthesis-cell-value {
+  1529→  1529→    font-weight: 600;
+  1530→  1530→}
+  1531→  1531→
+  1532→  1532→/* User count info */
+  1533→  1533→.result-count {
+  1534→  1534→    margin-top: 12px;
+  1535→  1535→    color: var(--grey-500);
+  1536→  1536→    font-size: 12px;
+  1537→  1537→}
+  1538→  1538→
+  1539→  1539→/* Page header (changelog) */
+  1540→  1540→.page-header {
+  1541→  1541→    margin-bottom: 20px;
+  1542→  1542→}
+  1543→  1543→
+  1544→  1544→/* RGPD section */
+  1545→  1545→.rgpd-section {
+  1546→  1546→    margin-top: 20px;
+  1547→  1547→}
+  1548→  1548→
+  1549→  1549→.rgpd-section__desc {
+  1550→  1550→    color: var(--grey-500);
+  1551→  1551→    font-size: 13px;
+  1552→  1552→    margin-bottom: 16px;
+  1553→  1553→}
+  1554→  1554→
+  1555→  1555→/* Separator */
+  1556→  1556→.separator {
+  1557→  1557→    margin-top: 20px;
+  1558→  1558→    padding-top: 16px;
+  1559→  1559→    border-top: 1px solid var(--grey-200);
+  1560→  1560→}
+  1561→  1561→
+  1562→  1562→/* Empty state */
+  1563→  1563→.empty-state {
+  1564→  1564→    text-align: center;
+  1565→  1565→    color: var(--grey-500);
+  1566→  1566→    padding: 24px;
+  1567→  1567→}
+  1568→  1568→
+  1569→  1569→/* Date range input group */
+  1570→  1570→.date-range {
+  1571→  1571→    display: flex;
+  1572→  1572→    gap: 8px;
+  1573→  1573→    align-items: center;
+  1574→  1574→}
+  1575→  1575→
+  1576→  1576→.date-range span {
+  1577→  1577→    color: var(--grey-500);
+  1578→  1578→}
+  1579→  1579→
+  1580→  1580→/* Max-width container */
+  1581→  1581→.container--narrow {
+  1582→  1582→    max-width: 600px;
+  1583→  1583→    margin: 0 auto;
+  1584→  1584→}
+  1585→  1585→
+  1586→  1586→/* Quick access links */
+  1587→  1587→.quick-access {
+  1588→  1588→    display: flex;
+  1589→  1589→    gap: 12px;
+  1590→  1590→    flex-wrap: wrap;
+  1591→  1591→}
+  1592→  1592→
+  1593→  1593→/* Visibility header */
+  1594→  1594→.section-header {
+  1595→  1595→    margin-bottom: 12px;
+  1596→  1596→}
+  1597→  1597→
+  1598→  1598→.section-header--danger {
+  1599→  1599→    color: var(--dgi-color);
+  1600→  1600→}
+  1601→  1601→
+  1602→  1602→/* Checkbox group */
+  1603→  1603→.checkbox-group {
+  1604→  1604→    display: flex;
+  1605→  1605→    gap: 16px;
+  1606→  1606→    flex-wrap: wrap;
+  1607→  1607→    margin-top: 4px;
+  1608→  1608→}
+  1609→  1609→
+  1610→  1610→/* ============================================================
+  1611→  1611→   32. Content Pages (Preamble, Help)
+  1612→  1612→   ============================================================ */
+  1613→  1613→.content-section {
+  1614→  1614→    line-height: 1.7;
+  1615→  1615→}
+  1616→  1616→
+  1617→  1617→.content-section p {
+  1618→  1618→    margin-bottom: 16px;
+  1619→  1619→}
+  1620→  1620→
+  1621→  1621→.content-section h2 {
+  1622→  1622→    margin-bottom: 16px;
+  1623→  1623→    color: var(--color-primary);
+  1624→  1624→}
+  1625→  1625→
+  1626→  1626→.content-section h3 {
+  1627→  1627→    margin-bottom: 12px;
+  1628→  1628→}
+  1629→  1629→
+  1630→  1630→.content-section ul {
+  1631→  1631→    margin-top: 8px;
+  1632→  1632→    margin-left: 20px;
+  1633→  1633→    line-height: 1.8;
+  1634→  1634→}
+  1635→  1635→
+  1636→  1636→.content-section li {
+  1637→  1637→    margin-bottom: 4px;
+  1638→  1638→}
+  1639→  1639→
+  1640→  1640→/* Card with bottom spacing */
+  1641→  1641→.card--spaced {
+  1642→  1642→    margin-bottom: 16px;
+  1643→  1643→}
+  1644→  1644→
+  1645→  1645→/* Card with top spacing */
+  1646→  1646→.card--spaced-top {
+  1647→  1647→    margin-top: 16px;
+  1648→  1648→}
+  1649→  1649→
+  1650→  1650→/* Required asterisk (red) */
+  1651→  1651→.required-star {
+  1652→  1652→    color: var(--dgi-color);
+  1653→  1653→}
+  1654→  1654→
+  1655→  1655→/* ============================================================
+  1656→  1656→   29b. Help Page Styles
+  1657→  1657→   ============================================================ */
+  1658→  1658→.help-profile-card--superviseur {
+  1659→  1659→    border-left-color: var(--role-superviseur);
+  1660→  1660→}
+  1661→  1661→
+  1662→  1662→.help-profile-card--chsct {
+  1663→  1663→    border-left-color: var(--role-chsct);
+  1664→  1664→}
+  1665→  1665→
+  1666→  1666→.help-note {
+  1667→  1667→    font-size: 12px;
+  1668→  1668→    color: var(--grey-500);
+  1669→  1669→    margin-top: 10px;
+  1670→  1670→    border-top: 1px solid var(--grey-100);
+  1671→  1671→    padding-top: 8px;
+  1672→  1672→}
+  1673→  1673→
+  1674→  1674→.help-feature-list {
+  1675→  1675→    font-size: 13px;
+  1676→  1676→    margin: 0;
+  1677→  1677→    padding-left: 18px;
+  1678→  1678→}
+  1679→  1679→
+  1680→  1680→.help-description {
+  1681→  1681→    font-size: 13px;
+  1682→  1682→    color: var(--grey-600);
+  1683→  1683→    margin-bottom: 12px;
+  1684→  1684→}
+  1685→  1685→
+  1686→  1686→.help-description--title {
+  1687→  1687→    font-weight: 600;
+  1688→  1688→    margin-bottom: 6px;
+  1689→  1689→}
+  1690→  1690→
+  1691→  1691→.help-note--inline {
+  1692→  1692→    border-top: none;
+  1693→  1693→    padding-top: 0;
+  1694→  1694→}
+  1695→  1695→
+  1696→  1696→.help-profile-card--rsst {
+  1697→  1697→    border-left: none;
+  1698→  1698→    border-top: 4px solid var(--rsst-color);
+  1699→  1699→}
+  1700→  1700→
+  1701→  1701→.help-profile-card--rsst h3 {
+  1702→  1702→    color: var(--rsst-color);
+  1703→  1703→}
+  1704→  1704→
+  1705→  1705→.help-profile-card--rami {
+  1706→  1706→    border-left: none;
+  1707→  1707→    border-top: 4px solid var(--rami-color);
+  1708→  1708→}
+  1709→  1709→
+  1710→  1710→.help-profile-card--rami h3 {
+  1711→  1711→    color: var(--rami-color);
+  1712→  1712→}
+  1713→  1713→
+  1714→  1714→.help-profile-card--dgi {
+  1715→  1715→    border-left: none;
+  1716→  1716→    border-top: 4px solid var(--dgi-color);
+  1717→  1717→}
+  1718→  1718→
+  1719→  1719→.help-profile-card--dgi h3 {
+  1720→  1720→    color: var(--dgi-color);
+  1721→  1721→}
+  1722→  1722→
+  1723→  1723→.help-workflow {
+  1724→  1724→    display: flex;
+  1725→  1725→    align-items: center;
+  1726→  1726→    gap: 8px;
+  1727→  1727→    flex-wrap: wrap;
+  1728→  1728→    margin-bottom: 16px;
+  1729→  1729→}
+  1730→  1730→
+  1731→  1731→.help-workflow .badge {
+  1732→  1732→    font-size: 13px;
+  1733→  1733→    padding: 6px 14px;
+  1734→  1734→}
+  1735→  1735→
+  1736→  1736→.help-case-label {
+  1737→  1737→    margin-bottom: 10px;
+  1738→  1738→}
+  1739→  1739→
+  1740→  1740→.help-case-body {
+  1741→  1741→    line-height: 1.8;
+  1742→  1742→}
+  1743→  1743→
+  1744→  1744→.help-case-body ol {
+  1745→  1745→    padding-left: 20px;
+  1746→  1746→}
+  1747→  1747→
+  1748→  1748→.help-warning-callout {
+  1749→  1749→    margin-top: 8px;
+  1750→  1750→    padding: 8px 12px;
+  1751→  1751→    background: #fffbeb;
+  1752→  1752→    border: 1px solid #fde68a;
+  1753→  1753→    border-radius: 6px;
+  1754→  1754→    font-size: 12px;
+  1755→  1755→    color: #92400e;
+  1756→  1756→}
+  1757→  1757→
+  1758→  1758→.help-auth-card--prod {
+  1759→  1759→    padding: 12px;
+  1760→  1760→    background: #f0fdf4;
+  1761→  1761→    border: 1px solid #bbf7d0;
+  1762→  1762→    border-radius: 8px;
+  1763→  1763→}
+  1764→  1764→
+  1765→  1765→.help-auth-card--prod h4 {
+  1766→  1766→    margin-bottom: 6px;
+  1767→  1767→    color: #166534;
+  1768→  1768→}
+  1769→  1769→
+  1770→  1770→.help-auth-card--dev {
+  1771→  1771→    padding: 12px;
+  1772→  1772→    background: #fffbeb;
+  1773→  1773→    border: 1px solid #fde68a;
+  1774→  1774→    border-radius: 8px;
+  1775→  1775→}
+  1776→  1776→
+  1777→  1777→.help-auth-card--dev h4 {
+  1778→  1778→    margin-bottom: 6px;
+  1779→  1779→    color: #92400e;
+  1780→  1780→}
+  1781→  1781→
+  1782→  1782→.help-separator-row {
+  1783→  1783→    border-top: 2px solid var(--grey-200);
+  1784→  1784→}
+  1785→  1785→
+  1786→  1786→/* ============================================================
+  1787→  1787→   30. Print Styles
+  1788→  1788→   ============================================================ */
+  1789→  1789→@media print {
+  1790→  1790→    .header, .sidebar, .sidebar-overlay, .filter-bar, .btn, .pagination, .print-hint,
+  1791→  1791→    .form-actions, .confirm-box, .footer, .header__menu-btn {
+  1792→  1792→        display: none !important;
+  1793→  1793→    }
+  1794→  1794→    .main {
+  1795→  1795→        margin: 0;
+  1796→  1796→        padding: 0;
+  1797→  1797→    }
+  1798→  1798→    body {
+  1799→  1799→        background: white;
+  1800→  1800→    }
+  1801→  1801→    .print-view {
+  1802→  1802→        padding: 0;
+  1803→  1803→    }
+  1804→  1804→    table {
+  1805→  1805→        font-size: 11px;
+  1806→  1806→    }
+  1807→  1807→    .badge {
+  1808→  1808→        border: 1px solid #333;
+  1809→  1809→        color: #333 !important;
+  1810→  1810→        background: transparent !important;
+  1811→  1811→    }
+  1812→  1812→    .registry-card {
+  1813→  1813→        break-inside: avoid;
+  1814→  1814→    }
+  1815→  1815→    .card {
+  1816→  1816→        box-shadow: none;
+  1817→  1817→        border: 1px solid #ccc;
+  1818→  1818→    }
+  1819→  1819→}
+  1820→  1820→
+  1821→  1821→/* ============================================================
+  1822→  1822→   31. Responsive
+  1823→  1823→   ============================================================ */
+  1824→  1824→@media (max-width: 768px) {
+  1825→  1825→    /* Show hamburger button */
+  1826→  1826→    .header__menu-btn {
+  1827→  1827→        display: block;
+  1828→  1828→    }
+  1829→  1829→
+  1830→  1830→    /* Sidebar slides in from left */
+  1831→  1831→    .sidebar {
+  1832→  1832→        transform: translateX(-100%);
+  1833→  1833→        z-index: var(--z-mobile-menu);
+  1834→  1834→    }
+  1835→  1835→
+  1836→  1836→    .sidebar--open {
+  1837→  1837→        transform: translateX(0);
+  1838→  1838→    }
+  1839→  1839→
+  1840→  1840→    .sidebar-overlay--visible {
+  1841→  1841→        display: block;
+  1842→  1842→    }
+  1843→  1843→
+  1844→  1844→    .main {
+  1845→  1845→        margin-left: 0;
+  1846→  1846→    }
+  1847→  1847→
+  1848→  1848→    .registry-cards {
+  1849→  1849→        flex-direction: column;
+  1850→  1850→    }
+  1851→  1851→
+  1852→  1852→    .kpi-grid {
+  1853→  1853→        flex-direction: column;
+  1854→  1854→    }
+  1855→  1855→
+  1856→  1856→    .filter-bar {
+  1857→  1857→        flex-direction: column;
+  1858→  1858→    }
+  1859→  1859→
+  1860→  1860→    .form-grid {
+  1861→  1861→        grid-template-columns: 1fr;
+  1862→  1862→    }
+  1863→  1863→
+  1864→  1864→    .report-detail__header {
+  1865→  1865→        flex-direction: column;
+  1866→  1866→        align-items: flex-start;
+  1867→  1867→    }
+  1868→  1868→
+  1869→  1869→    .header__title {
+  1870→  1870→        display: none;
+  1871→  1871→    }
+  1872→  1872→
+  1873→  1873→    .form-actions {
+  1874→  1874→        flex-direction: column;
+  1875→  1875→    }
+  1876→  1876→
+  1877→  1877→    .form-actions .btn {
+  1878→  1878→        width: 100%;
+  1879→  1879→    }
+  1880→  1880→
+  1881→  1881→    .tab-bar {
+  1882→  1882→        overflow-x: auto;
+  1883→  1883→        -webkit-overflow-scrolling: touch;
+  1884→  1884→    }
+  1885→  1885→}
+  1886→  1886→

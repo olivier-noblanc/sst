@@ -3,8 +3,18 @@
  * Header Template — Application SST DREETS BFC
  *
  * Blue header bar with logo, app title, user name, and logout link.
- * Security headers sent as HTTP headers (not meta tags) for maximum browser support.
+ * Security headers and cache-control sent as HTTP headers (not meta tags)
+ * for maximum browser support.
+ *
+ * Gzip compression is handled via ob_gzhandler (started in index.php).
  */
+
+// === Cache-Control: no-cache for all dynamic pages ===
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
+
+// === Security Headers ===
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('X-XSS-Protection: 1; mode=block');

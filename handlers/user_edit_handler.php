@@ -45,10 +45,18 @@ if ($action === 'export_data') {
     // Generate JSON export as download
     $filename = 'rgpd_export_user_' . $userId . '_' . date('Y-m-d') . '.json';
     $json = json_encode($userData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    // Disable gzip output buffer for file download
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
     header('Content-Type: application/json; charset=UTF-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Content-Length: ' . strlen($json));
-    header('Cache-Control: no-cache, must-revalidate');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
     echo $json;
     exit;
 }

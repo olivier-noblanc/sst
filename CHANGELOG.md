@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.8.1] — 2026-06-12
+
+### Correctif — report_id NOT NULL : l'INSERT fournit désormais report_id
+
+- **1** 🔴 **`respondToReport()` : INSERT inclut `report_id`** — L'INSERT dans `report_responses` ne fournissait pas `report_id`, ce qui échouait si la colonne était encore `NOT NULL` (migration pas encore passée sur le serveur). Correction : l'INSERT utilise une sous-requête `(SELECT id FROM reports WHERE uuid = :report_uuid2)` pour résoudre automatiquement le `report_id` à partir du `report_uuid`. **Fonctionne que la migration soit passée ou non** — c'est la solution définitive.
+- **2** 🟡 **`seed.php` même correctif** — L'INSERT de seed pour les réponses de démo inclut désormais `report_id` via la même sous-requête.
+
+---
+
 ## [3.8.0] — 2026-06-12
 
 ### Architecture — Assets inline : zéro dépendance IIS pour les assets statiques

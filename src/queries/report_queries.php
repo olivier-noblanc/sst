@@ -410,15 +410,19 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
         }
 
         // Insert into response history
+        // Include report_id via subquery (SELECT id FROM reports WHERE uuid = ...)
+        // This ensures the INSERT works even if report_id is still NOT NULL
+        // (migration to make it nullable may not have run on this server).
         $stmt = $pdo->prepare("
-            INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
-            VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
+            INSERT INTO report_responses (report_uuid, report_id, user_id, reponse, nouvel_etat)
+            VALUES (:report_uuid, (SELECT id FROM reports WHERE uuid = :report_uuid2), :user_id, :reponse, :nouvel_etat)
         ");
         $stmt->execute([
-            ':report_uuid' => $uuid,
-            ':user_id'     => $userId,
-            ':reponse'     => $reponse,
-            ':nouvel_etat' => $nouvelEtat,
+            ':report_uuid'  => $uuid,
+            ':report_uuid2' => $uuid,
+            ':user_id'      => $userId,
+            ':reponse'      => $reponse,
+            ':nouvel_etat'  => $nouvelEtat,
         ]);
 
         $pdo->commit();

@@ -147,6 +147,10 @@ if (!empty($errors)) {
 try {
     $pdo->beginTransaction();
 
+    $oldRole = $user['role'];
+    $roleChanged = ($role !== $oldRole);
+    $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($email));
+
     // Update main fields using query function
     updateUser($pdo, $userId, [
         'nom'      => $nom,
@@ -170,8 +174,25 @@ try {
     }
 
     require_once __DIR__ . '/../src/audit.php';
-    auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $prenom . ' ' . $nom, (int) $userId, 'user', ['role' => $role]);
-    setFlash('success', 'Utilisateur ' . e($prenom . ' ' . $nom) . ' mis à jour avec succès.');
+    auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $prenom . ' ' . $nom, (int) $userId, 'user', ['role' => $role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
+
+    // Send email notification for role change (non-blocking — errors are logged, not shown to user)
+    if ($notifyRoleChange) {
+        try {
+            require_once __DIR__ . '/../src/mail.php';
+            notifyRoleChange($pdo, $userId, $oldRole, $role);
+        } catch (Exception $mailEx) {
+            error_log('[SST-MAIL] Role change notification error: ' . $mailEx->getMessage());
+        }
+    }
+
+    $successMsg = 'Utilisateur ' . e($prenom . ' ' . $nom) . ' mis à jour avec succès.';
+    if ($notifyRoleChange) {
+        $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($email) . '.';
+    } elseif ($roleChanged && empty($email)) {
+        $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\'a été envoyé (adresse manquante).';
+    }
+    setFlash('success', $successMsg);
 } catch (Exception $e) {
     $pdo->rollBack();
     error_log('[SST-DB] user_edit failed: ' . $e->getMessage());

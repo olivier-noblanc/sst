@@ -3,6 +3,20 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.7.1] — 2026-06-12
+
+### Correctif — Migration report_responses bloquée
+
+- **1** 🔴 **`report_responses_new` orphelin bloquait la migration** — La migration rendant `report_id` nullable échouait à chaque requête car une table `report_responses_new` résiduelle d'une précédente tentative avortée existait déjà (`CREATE TABLE report_responses_new` → erreur « table already exists »). La migration ne passait jamais, laissant `report_id NOT NULL`, ce qui causait l'erreur `Integrity constraint violation: 19 NOT NULL constraint failed: report_responses.report_id` lors de l'INSERT par `respondToReport()`. Correction : la migration supprime d'abord la table orpheline `_new` si elle existe, puis nettoie aussi en cas d'échec (`DROP TABLE IF EXISTS report_responses_new` dans le catch).
+
+### Fonctionnalité — Notification par e-mail lors d'un changement de rôle
+
+- **2** 🔴 **E-mail de notification automatique lors d'un changement de rôle** — Nouvelle fonction `notifyRoleChange()` dans `src/mail.php`. Lorsqu'un superviseur modifie le rôle d'un utilisateur, un e-mail est envoyé à l'utilisateur pour l'informer du changement (ancien rôle → nouveau rôle) avec une description des permissions associées au nouveau rôle.
+- **3** 🟡 **Case à cocher « Avertir l'utilisateur par e-mail »** — Dans la page d'édition d'un utilisateur (`user_edit.php`), une case à cocher apparaît lorsque le rôle sélectionné diffère du rôle actuel ET que l'utilisateur a une adresse e-mail. Elle est cochée par défaut. Si l'utilisateur n'a pas d'e-mail, un message ⚠ est affiché dans le flash de succès.
+- **4** 🟢 **CSS `.checkbox-label`** — Nouvelle classe CSS pour le style des labels de checkbox (flex, gap, cursor pointer).
+
+---
+
 ## [3.7.0] — 2026-06-12
 
 ### Fonctionnalité — Notifications e-mail automatiques en cas d'erreur critique

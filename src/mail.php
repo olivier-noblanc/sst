@@ -302,6 +302,48 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array {
 }
 
 /**
+ * Notify a user that their role has been changed.
+ *
+ * @param PDO    $pdo     Database connection
+ * @param int    $userId  The user whose role changed
+ * @param string $oldRole Previous role
+ * @param string $newRole New role
+ */
+function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRole): void {
+    $user = getUserById($pdo, $userId);
+    if (!$user || empty($user['email'])) return;
+
+    $appName = getConfig('app_nom_organisation', 'DREETS BFC');
+    $oldLabel = ROLE_LABELS[$oldRole] ?? $oldRole;
+    $newLabel = ROLE_LABELS[$newRole] ?? $newRole;
+    $subject = "Changement de votre rôle dans $appName";
+
+    $body = "<html><body>";
+    $body .= "<h2>Changement de rôle</h2>";
+    $body .= "<p>Bonjour " . htmlspecialchars($user['prenom'] . ' ' . $user['nom']) . ",</p>";
+    $body .= "<p>Votre rôle dans l'application <strong>" . htmlspecialchars($appName) . "</strong> a été modifié par un administrateur :</p>";
+    $body .= "<table style=\"border-collapse:collapse; font-family:sans-serif; font-size:14px; margin:16px 0;\">";
+    $body .= "<tr><td style=\"padding:6px 16px; color:#888;\">Ancien rôle</td><td style=\"padding:6px 16px;\">" . htmlspecialchars($oldLabel) . "</td></tr>";
+    $body .= "<tr><td style=\"padding:6px 16px; color:#888;\">Nouveau rôle</td><td style=\"padding:6px 16px;\"><strong>" . htmlspecialchars($newLabel) . "</strong></td></tr>";
+    $body .= "</table>";
+
+    if ($newRole === 'superviseur') {
+        $body .= "<p>En tant que <strong>Superviseur</strong>, vous pouvez désormais : répondre aux signalements, gérer les utilisateurs, consulter la synthèse et les statistiques, exporter les données, et configurer les paramètres de l'application.</p>";
+    } elseif ($newRole === 'chsct') {
+        $body .= "<p>En tant que <strong>Membre CHSCT</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>";
+    } else {
+        $body .= "<p>En tant qu'<strong>Agent</strong>, vous pouvez créer des signalements et suivre leurs réponses.</p>";
+    }
+
+    $body .= "<p>Si vous pensez que cette modification est une erreur, veuillez contacter votre administrateur.</p>";
+    $body .= "<hr style=\"margin:16px 0; border:none; border-top:1px solid #ddd;\">";
+    $body .= "<p style=\"font-size:12px; color:#888;\">Cet e-mail a été envoyé automatiquement par l'application $appName. Ne pas répondre directement à ce message.</p>";
+    $body .= "</body></html>";
+
+    sendMail($user['email'], $subject, $body);
+}
+
+/**
  * Get base URL for links in emails.
  *
  * @return string

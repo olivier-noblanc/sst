@@ -98,6 +98,26 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
             </div>
         </div>
 
+        <?php if (!empty($editEmail) && $editRole !== $user['role']): ?>
+        <div class="separator">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="notify_role_change" value="1" checked>
+                    <span>Avertir l'utilisateur par e-mail du changement de rôle</span>
+                </label>
+                <small class="text-muted block mt-1">
+                    Un e-mail sera envoyé à <strong><?php echo e($editEmail); ?></strong> pour l'informer que son rôle passe de
+                    <strong><?php echo e(ROLE_LABELS[$user['role']] ?? $user['role']); ?></strong> à
+                    <strong><?php echo e(ROLE_LABELS[$editRole] ?? $editRole); ?></strong>.
+                </small>
+            </div>
+        </div>
+        <?php elseif (!empty($editEmail) && $editRole === $user['role']): ?>
+        <input type="hidden" name="notify_role_change" value="0">
+        <?php else: ?>
+        <input type="hidden" name="notify_role_change" value="0">
+        <?php endif; ?>
+
         <div class="form-actions">
             <button type="submit" class="btn btn--success">Mettre à jour</button>
             <a href="<?php echo url('users'); ?>" class="btn btn--secondary">Retour</a>

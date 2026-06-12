@@ -422,6 +422,13 @@ function migrateSchema(PDO $pdo): void {
     //   catch → rollback → return false → "déjà été traité" error.
     // Fix: recreate the table with report_id as nullable (SQLite can't ALTER COLUMN).
     try {
+        // First: clean up any leftover _new table from a previously failed migration
+        $newExists = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='report_responses_new'")->fetch();
+        if ($newExists) {
+            $pdo->exec('DROP TABLE report_responses_new');
+            error_log('[SST-MIGRATION] Dropped orphaned report_responses_new table (leftover from failed migration).');
+        }
+
         $cols = $pdo->query("PRAGMA table_info(report_responses)")->fetchAll();
         $hasReportId = false;
         $reportIdNotNull = false;
@@ -459,7 +466,9 @@ function migrateSchema(PDO $pdo): void {
             error_log('[SST-MIGRATION] Fixed report_responses: report_id is now nullable (was NOT NULL, broke INSERT with report_uuid).');
         }
     } catch (Exception $e) {
-        error_log('Migration warning for report_responses.report_id nullable: ' . $e->getMessage());
+        error_log('[SST-MIGRATION] report_responses.report_id nullable: ' . $e->getMessage());
+        // If migration failed, try to clean up the _new table so it doesn't block future attempts
+        try { $pdo->exec('DROP TABLE IF EXISTS report_responses_new'); } catch (Exception $e2) {}
     }
 
     // Also ensure indexes exist

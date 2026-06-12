@@ -43,6 +43,7 @@ $menuItems = [
     ['label' => 'Statistiques',   'icon' => '&#128200;', 'page' => 'statistics',          'params' => [],                                  'roles' => ['superviseur','chsct']],
     ['label' => 'Utilisateurs',   'icon' => '&#128101;', 'page' => 'users',               'params' => [],                                  'roles' => ['superviseur']],
     ['label' => 'Paramètres',     'icon' => '&#9881;',   'page' => 'settings',            'params' => [],                                  'roles' => ['superviseur']],
+    ['label' => 'Journal',        'icon' => '&#128220;', 'page' => 'logs',                'params' => [],                                  'roles' => ['superviseur']],
 ];
 ?>
 <!-- Hidden checkbox for CSS-only sidebar toggle (mobile) -->

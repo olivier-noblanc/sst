@@ -15,6 +15,20 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **6** 🟡 **`web.config` : accès anonyme pour `asset.php`** — Ajout d'une `<location path="asset.php">` permettant l'authentification anonyme uniquement pour ce script. Les assets n'ont pas besoin d'authentification Windows, éliminant la surcharge NTLM/Kerberos sur chaque requête CSS/image/font.
 - **7** 🟡 **CSP mise à jour** — Suppression de `script-src 'self'` (plus de JS du tout). La CSP est désormais `default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'`.
 
+### Correctif — Réponse superviseur toujours en erreur
+
+- **8** 🔴 **`respondToReport()` retourne `'true'` (string) mais le handler comparait avec `true` (booléen)** — La comparaison stricte `$result === true` échouait systématiquement car la fonction retourne la chaîne `'true'`, pas le booléen. Le superviseur ne pouvait jamais enregistrer de réponse — l'erreur « Erreur lors de l'enregistrement de la réponse » s'affichait à chaque tentative. Correction : `$result === 'true'` (comparaison de chaînes).
+- **9** 🟡 **Logging amélioré en cas d'échec** — Ajout de `error_log()` avec le contexte complet (result, user_id, report_uuid, nouvel_etat) pour faciliter le diagnostic si l'erreur se reproduit.
+
+### Fonctionnalité — Journal d'erreurs dans l'interface
+
+- **10** 🟢 **Page « Journal d'erreurs » dans le sidebar** — Nouvelle page `logs` accessible uniquement aux superviseurs, affichant le contenu du fichier `data/php-error.log` directement dans l'interface. Fini la nécessité d'accéder au serveur pour lire les logs. Les entrées sont affichées les plus récentes en premier, avec un affichage terminal sombre (Catppuccin) et une coloration par catégorie.
+- **11** 🟢 **Filtrage par catégorie** — Onglets de filtre : Tout, Fatal, Warnings, Base de données, E-mail, Réponses, Sauvegarde, Migration. Chaque catégorie a sa couleur de badge et sa bordure latérale.
+- **12** 🟢 **Bouton « Effacer les logs »** — Permet de vider le fichier de log en un clic (protégé par CSRF token et confirmation).
+- **13** 🟡 **Sidebar : entrée « Journal »** — Nouvel item dans le menu sidebar (icône 📜), visible uniquement pour les superviseurs, entre « Paramètres » et le footer.
+
+---
+
 ## [3.4.0] — 2026-06-12
 
 ### Audit — Sécurité HTTP, cache busting, zéro JavaScript

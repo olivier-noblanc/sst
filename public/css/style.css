@@ -2287,3 +2287,124 @@ tr:hover td {
 
 /* Contextual: Report card — abandon warning */
 .abandon-warning-text { font-weight: 600; color: var(--dgi-color); }
+
+/* ============================================================
+   31. Log Viewer Page
+   ============================================================ */
+.card__title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.card__title-row .card__subtitle {
+    margin: 0;
+}
+
+.tab-bar {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--grey-200);
+    padding-bottom: 0;
+    margin-bottom: 16px;
+}
+
+.tab {
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--grey-600);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover {
+    background: var(--grey-100);
+    color: var(--color-primary);
+}
+
+.tab--active {
+    color: var(--color-primary);
+    background: white;
+    border-color: var(--grey-200);
+    font-weight: 600;
+    margin-bottom: -2px;
+    border-bottom: 2px solid white;
+}
+
+.log-viewer {
+    background: #1e1e2e;
+    border-radius: 6px;
+    padding: 12px;
+    max-height: 70vh;
+    overflow-y: auto;
+    font-family: 'Sarasa Mono SC', 'Consolas', 'Monaco', monospace;
+}
+
+.log-entry {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 6px 8px;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    border-left: 3px solid transparent;
+}
+
+.log-entry:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.log-entry--fatal { border-left-color: #ef4444; }
+.log-entry--warning { border-left-color: #f59e0b; }
+.log-entry--db { border-left-color: #3b82f6; }
+.log-entry--mail { border-left-color: #8b5cf6; }
+.log-entry--backup { border-left-color: #06b6d4; }
+.log-entry--migration { border-left-color: #10b981; }
+.log-entry--audit { border-left-color: #6366f1; }
+.log-entry--respond { border-left-color: #f97316; }
+.log-entry--app { border-left-color: #ec4899; }
+.log-entry--info { border-left-color: #6b7280; }
+
+.log-entry__badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge--fatal { background: #ef4444; color: white; }
+.badge--warning { background: #f59e0b; color: #1e1e2e; }
+.badge--db { background: #3b82f6; color: white; }
+.badge--mail { background: #8b5cf6; color: white; }
+.badge--backup { background: #06b6d4; color: white; }
+.badge--migration { background: #10b981; color: white; }
+.badge--audit { background: #6366f1; color: white; }
+.badge--respond { background: #f97316; color: white; }
+.badge--app { background: #ec4899; color: white; }
+.badge--info { background: #6b7280; color: white; }
+
+.log-entry__text {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #cdd6f4;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+}
+
+.log-entry--fatal .log-entry__text { color: #f38ba8; }
+.log-entry--warning .log-entry__text { color: #fab387; }

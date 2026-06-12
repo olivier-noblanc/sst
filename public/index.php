@@ -54,6 +54,7 @@ $validPages = [
     'synthesis', 'export', 'statistics',
     'settings', 'site_edit',
     'users', 'user_edit', 'user_view',
+    'logs',
     'logout'
 ];
 
@@ -298,6 +299,7 @@ $pageTitle = match($page) {
     'site_edit'       => 'Éditer le site',
     'access_denied'   => 'Accès refusé',
     'user_create'     => 'Créer un utilisateur',
+    'logs'            => 'Journal d\'erreurs',
     default           => 'Accueil',
 };
 

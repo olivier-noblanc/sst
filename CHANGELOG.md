@@ -2,6 +2,15 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [3.2.1] — 2026-06-12
+
+### Infrastructure — Suppression .htaccess + web.config minimal
+
+- **1** 🔴 **`.htaccess` supprimé** — L'application est déployée sur IIS, le `.htaccess` est inutile et source de confusion. Tout est géré par PHP.
+- **2** 🟡 **`web.config` réduit au strict minimum** — Suppression de `customHeaders` (CSP, nosniff, etc. → gérés par PHP), suppression de `clientCache` (géré par PHP), suppression de `httpErrors`. Ne reste que : document par défaut, protection fichiers/dossiers sensibles, MIME types manquants (.woff, .woff2, .svg), authentification Windows.
+
+---
+
 ## [3.2.0] — 2026-06-12
 
 ### Correctif — CSS non chargé + headers HTTP conformes

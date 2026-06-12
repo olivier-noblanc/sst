@@ -21,6 +21,8 @@ header_remove('Expires');
 header_remove('Pragma');
 
 // === Cache-Control for dynamic pages ===
+// no-cache alone: browser must revalidate with server before using cached copy
+// Do NOT combine no-cache with max-age — it's contradictory per RFC 7234
 header('Cache-Control: no-cache');
 
 // === Security Headers ===

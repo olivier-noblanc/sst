@@ -2,6 +2,36 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [3.1.0] — 2026-06-12
+
+### Accessibilité — WCAG 2.1 (10/10)
+
+- **1** 🔴 **`<div class="main">` → `<main>`** — Le conteneur principal est désormais un landmark sémantique `<main id="main-content" role="main">`, conforme WCAG 2.1. Le skip-link pointe sur un véritable landmark.
+- **2** 🔴 **Login sans landmark ni skip-link** — Ajout de `<main role="main">` et d'un skip-link « Aller au formulaire de connexion » sur la page de connexion (standalone, sans header.php).
+- **3** 🟡 **`aria-describedby` sur tous les `.form-hint`** — Chaque hint de formulaire est désormais lié à son champ via `aria-describedby` : report_form (lieu, objet, description, attachment), login (password), users (username), user_edit (username), settings (emails), export (dates), report_respond (réponse).
+- **4** 🟡 **`aria-invalid` + `aria-describedby` + `id` sur form-error** — Tous les messages d'erreur de formulaire ont un `id` unique et sont liés au champ via `aria-describedby` + `aria-invalid="true"` : users.php (6 champs), user_edit.php (6 champs), site_edit.php (3 champs), report_respond.php (2 champs).
+- **5** 🟡 **`aria-label` sur les 14 tables** — Toutes les tables de données ont un `aria-label` descriptif : report_list, users, report_card (×2), report_respond (×2), report_abandon, user_view, synthesis, statistics, settings, help (×3).
+- **6** 🟡 **`aria-controls` + `aria-expanded` sur checkbox pour-compte** — Le checkbox « Signaler pour le compte d'un autre agent » déclare désormais `aria-controls="pour_compte_fields"` et `aria-expanded` dynamique via JS.
+- **7** 🟡 **Emojis dans `<h1>` avec `aria-hidden`** — Les emojis décoratifs dans les titres help.php et choose_site.php sont enveloppés dans `<span aria-hidden="true">` pour ne pas perturber les lecteurs d'écran.
+- **8** 🟡 **Focus trap sidebar mobile** — Quand la sidebar est ouverte sur mobile, le focus clavier est piégé à l'intérieur (Tab/Shift+Tab wrap). Le premier item reçoit le focus à l'ouverture.
+- **9** 🟡 **`autocomplete` sur le formulaire de login** — Ajout de `autocomplete="username"` et `autocomplete="current-password"` pour les gestionnaires de mots de passe et l'autofill navigateur.
+
+### UX — Facilité de prise en main
+
+- **10** 🟡 **Compteur de caractères sur la description** — Ajout d'un compteur en temps réel `X/20 000` avec `aria-live="polite"` et couleur d'avertissement au-dessus de 19 000 caractères.
+- **11** 🟡 **CTA sur les états vides** — Quand aucune donnée n'est trouvée, les listes affichent un bouton d'action : « + Inscrire un signalement » (report_list) et « + Inscrire un utilisateur » (users).
+- **12** 🟢 **Bouton « Retour en haut »** — Apparaît après 400px de scroll, smooth scroll vers le haut, accessible avec `aria-label`, responsive sur mobile.
+
+### Responsive — Petits écrans
+
+- **13** 🟡 **Breakpoint 480px** — Nouveau media query pour les petits téléphones : font-size réduite, header compact, username tronqué avec ellipsis, cards et tables adaptées, back-to-top button redimensionné.
+
+### Sécurité — Headers manquants
+
+- **14** 🟡 **choose_site.php sans headers** — Ajout des headers Cache-Control (no-store, no-cache, must-revalidate, max-age=0), Pragma, Expires et des security headers (X-Frame-Options, X-Content-Type-Options, CSP, etc.) sur la page choose_site.php qui sort avant le layout.
+
+---
+
 ## [3.0.1] — 2026-06-12
 
 ### Correctif — Réponse superviseur impossible sur signalement en cours

@@ -504,6 +504,7 @@ function migrateConfigKeys(PDO $pdo): void {
         'app_agent_see_only_own' => ['0', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
         'app_agent_visibility' => ['agent_choice', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
         'app_report_visibility' => ['agent_choice', 'text', 'app', 'Visibilité des signalements : "confidential" (l\'agent ne voit que ses propres signalements), "agent_choice" (l\'agent choisit au cas par cas, confidentiel par défaut), "public" (tous les signalements du site sont visibles par tous les agents).', 1],
+        'app_admin_email' => ['', 'email', 'app', 'Adresse e-mail de l\'administrateur technique. Les erreurs critiques (Fatal, E_ERROR, E_PARSE, etc.) seront automatiquement envoyées à cette adresse pour un diagnostic rapide. Laissez vide pour désactiver les notifications par e-mail.', 1],
     ];
 
     foreach ($newKeys as $cle => $data) {

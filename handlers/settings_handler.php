@@ -126,6 +126,15 @@ try {
         updateConfig($pdo, 'app_label_unite', $appLabelUnite);
         updateConfig($pdo, 'app_superviseur_usernames', $appSuperviseurUsernames);
 
+        // Admin email for error notifications
+        $appAdminEmail = trim($_POST['app_admin_email'] ?? '');
+        if (!empty($appAdminEmail) && !filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL)) {
+            $pdo->rollBack();
+            setFlash('error', 'L\'adresse e-mail de l\'administrateur technique n\'est pas valide.');
+            redirect(url('settings', ['tab' => 'app']));
+        }
+        updateConfig($pdo, 'app_admin_email', $appAdminEmail);
+
         // Report visibility setting (radio: confidential / agent_choice / public)
         $reportVisibility = $_POST['app_report_visibility'] ?? 'agent_choice';
         if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'])) {

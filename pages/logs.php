@@ -87,6 +87,9 @@ foreach ($logLines as $line) {
     } elseif (stripos($line, '[SST-RESPOND]') !== false) {
         $category = 'respond';
         $categoryLabel = 'Réponse';
+    } elseif (stripos($line, '[SST-ERROR-MAIL]') !== false) {
+        $category = 'mail';
+        $categoryLabel = 'E-mail';
     } elseif (stripos($line, 'SST App:') !== false) {
         $category = 'app';
         $categoryLabel = 'Application';

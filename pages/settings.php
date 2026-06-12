@@ -260,6 +260,21 @@ $pageTitle = 'Paramètres';
         </div>
 
         <div class="separator">
+            <h4 class="card__subtitle">&#x1F4E7; Administrateur technique</h4>
+            <p class="text-muted text-small mb-3">Les erreurs critiques (Fatal, Parse, etc.) seront automatiquement envoyées par e-mail à cette adresse pour un diagnostic rapide. Laissez vide pour désactiver.</p>
+            <div class="form-group">
+                <label for="app_admin_email">E-mail administrateur technique</label>
+                <input type="email" id="app_admin_email" name="app_admin_email" class="form-control"
+                       value="<?php echo e(getConfig('app_admin_email', '')); ?>"
+                       placeholder="admin.tech@dreets-bfc.gouv.fr">
+                <small class="text-muted block mt-1">
+                    Une même erreur ne déclenche qu'un seul e-mail toutes les 5 minutes pour éviter le spam.
+                    Consultez le <a href="<?php echo url('logs'); ?>">Journal d'erreurs</a> pour voir toutes les entrées.
+                </small>
+            </div>
+        </div>
+
+        <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
             <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans les registres. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
             <fieldset class="form-group visibility-radios" id="visibility-radios">

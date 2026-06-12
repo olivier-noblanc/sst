@@ -3,6 +3,20 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.7.0] — 2026-06-12
+
+### Fonctionnalité — Notifications e-mail automatiques en cas d'erreur critique
+
+- **1** 🔴 **Gestionnaire d'erreurs personnalisé** — Nouveau module `src/error_handler.php` qui intercepte toutes les erreurs PHP et envoie automatiquement un e-mail à l'administrateur technique configuré lorsque des erreurs critiques surviennent (Fatal error, Parse error, Core error, Compile error, Recoverable error). Les notices, warnings et deprecated ne déclenchent pas d'e-mail pour éviter le bruit.
+- **2** 🔴 **Clé de configuration `app_admin_email`** — Nouvelle clé dans la table `config_app`, configurable via l'onglet « Paramètres de l'application ». L'adresse e-mail de l'administrateur technique reçoit les alertes automatiques. Laissez vide pour désactiver les notifications.
+- **3** 🟡 **Anti-spam : limitation d'envoi** — Une même erreur ne déclenche qu'un seul e-mail toutes les 5 minutes (throttle basé sur un hash de l'erreur). Le fichier `data/error-throttle.json` stocke les horodatages des derniers envois. Les entrées de plus d'une heure sont automatiquement nettoyées.
+- **4** 🟡 **E-mail détaillé avec contexte** — Chaque notification contient : le type d'erreur, le message, le fichier et la ligne, l'URL de la requête, l'adresse IP, la date/heure, et un lien vers le journal d'erreurs dans l'interface.
+- **5** 🟡 **Champ « E-mail administrateur technique » dans les paramètres** — Nouveau champ dans l'onglet « Paramètres de l'application » de la page Paramètres, avec validation de l'adresse e-mail. Un texte d'aide explique le fonctionnement du throttle et renvoie vers la page Journal d'erreurs.
+- **6** 🟢 **Journal d'erreurs : catégorie `[SST-ERROR-MAIL]`** — Les entrées de log liées aux notifications d'erreurs sont désormais catégorisées sous « E-mail » dans le journal d'erreurs (page Logs), au même titre que `[SST-MAIL]`.
+- **7** 🟡 **Shutdown handler pour erreurs fatales** — En plus du `set_error_handler()`, un `register_shutdown_function()` attrape les erreurs fatales (E_ERROR, E_PARSE, etc.) qui bypassent le error handler standard.
+
+---
+
 ## [3.6.0] — 2026-06-12
 
 ### Sécurité — Tout passe par l'authentification Windows

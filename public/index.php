@@ -27,10 +27,15 @@ if (extension_loaded('zlib')
 }
 
 require_once __DIR__ . '/../src/config.php';
+require_once __DIR__ . '/../src/error_handler.php';
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/session.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
+
+// === Register custom error handler (email critical errors to admin) ===
+set_error_handler('sstErrorHandler');
+register_shutdown_function('sstShutdownHandler');
 
 // Composer autoloader (if present — no longer required since FPDF replaces mPDF)
 // FPDF is loaded directly in report_print.php via require_once.

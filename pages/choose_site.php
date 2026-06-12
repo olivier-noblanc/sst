@@ -5,7 +5,24 @@
  * Shown to agents on their first login when site_id is NULL.
  * The choice is irreversible for the agent — only a superviseur
  * can change it later via user management.
+ *
+ * NOTE: This page is rendered BEFORE the layout (no header.php).
+ * Cache-Control and security headers must be sent here.
  */
+
+// === Cache-Control: no-cache for this dynamic page ===
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
+
+// === Security Headers (same as header.php — this page bypasses layout) ===
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+
 $pageTitle = 'Choisir mon site';
 
 // Safety: if user already has a site, redirect away

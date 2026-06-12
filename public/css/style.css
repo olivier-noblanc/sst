@@ -5,6 +5,45 @@
    ============================================================ */
 
 /* ============================================================
+   0. Font Faces — Marianne (police officielle de l'État français)
+   ============================================================ */
+@font-face {
+    font-family: 'Marianne';
+    src: url('../fonts/Marianne-Regular.woff2') format('woff2'),
+         url('../fonts/Marianne-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Marianne';
+    src: url('../fonts/Marianne-Medium.woff2') format('woff2'),
+         url('../fonts/Marianne-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Marianne';
+    src: url('../fonts/Marianne-Bold.woff2') format('woff2'),
+         url('../fonts/Marianne-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Marianne';
+    src: url('../fonts/Marianne-Light.woff2') format('woff2'),
+         url('../fonts/Marianne-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================================================
    1. CSS Custom Properties (Variables)
    ============================================================ */
 :root {
@@ -72,7 +111,7 @@
     --border-radius-lg: 8px;
     --shadow: 0 2px 4px rgba(0,0,0,0.1);
     --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
-    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family: 'Marianne', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     --font-size-base: 14px;
 
     /* Focus ring */

@@ -9,11 +9,11 @@
  * This is server-independent (works on Apache, IIS, Nginx, etc.).
  */
 
-// === Remove X-Powered-By header (PHP version disclosure) ===
+// === Remove unwanted headers (PHP version disclosure, deprecated headers) ===
 header_remove('X-Powered-By');
-
-// === Remove Server version info ===
-header('Server: ');
+header_remove('Server');
+header_remove('Expires');
+header_remove('Pragma');
 
 // === Enable Gzip compression (PHP-level, server-independent) ===
 if (extension_loaded('zlib')
@@ -304,6 +304,7 @@ $pageTitle = match($page) {
 require __DIR__ . '/../templates/header.php';
 require __DIR__ . '/../templates/sidebar.php';
 ?>
+<span id="top" tabindex="-1"></span>
 <main id="main-content" class="main" role="main">
 <?php
 $pageFile = __DIR__ . '/../pages/' . $page . '.php';

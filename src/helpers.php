@@ -400,12 +400,16 @@ function clearConfigCache(): void {
 
 /**
  * Build a URL for a static asset (CSS, JS, images).
+ * Appends a cache-busting query string based on APP_VERSION
+ * so that browsers fetch fresh assets after each deployment.
  *
  * @param string $path  Asset path relative to public/ (e.g. 'css/style.css')
  * @return string
  */
 function assetUrl(string $path): string {
-    return $path;
+    $version = defined('APP_VERSION') ? APP_VERSION : '0';
+    $sep = (strpos($path, '?') === false) ? '?' : '&';
+    return $path . $sep . 'v=' . $version;
 }
 
 /**

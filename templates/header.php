@@ -12,18 +12,30 @@
 // === Remove X-Powered-By (PHP version disclosure) ===
 header_remove('X-Powered-By');
 
-// === Remove Server version info ===
-header('Server: ');
+// === Remove Server header version info ===
+// IIS may add its own Server header; we clear it via PHP
+if (function_exists('header_remove')) {
+    header_remove('Server');
+}
 
-// === Cache-Control: no-cache for all dynamic pages ===
+// === Remove Expires and Pragma headers (deprecated, replaced by Cache-Control) ===
+header_remove('Expires');
+header_remove('Pragma');
+
+// === Cache-Control for dynamic pages ===
+// no-cache = browser must revalidate with server before using cached copy
+// max-age=0 = stale immediately, must revalidate
+// This is the correct approach for dynamic HTML (not no-store which breaks back/forward)
 header('Cache-Control: no-cache, max-age=0');
 
 // === Security Headers ===
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
 // Content-Security-Policy: allow same-origin only (no external resources)
-// frame-ancestors 'none' replaces X-Frame-Options (broader support)
+// frame-ancestors 'none' replaces X-Frame-Options (broader support, stronger)
+// No X-Frame-Options header — CSP frame-ancestors is the modern replacement
 header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 ?>
 <!DOCTYPE html>
@@ -41,7 +53,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <header class="header" role="banner">
         <div class="header__logo">
             <?php if (file_exists(__DIR__ . '/../public/img/logo-dreets.png')): ?>
-                <img src="img/logo-dreets.png" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
+                <img src="<?php echo assetUrl('img/logo-dreets.png'); ?>" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
             <?php else: ?>
                 <span class="header__logo-text"><?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?></span>
             <?php endif; ?>
@@ -49,7 +61,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         </div>
         <?php if (isset($_SESSION['user'])): ?>
         <div class="header__user">
-            <button type="button" class="header__menu-btn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="sidebar-nav">&#9776;</button>
+            <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
             <span class="header__username">
                 <?php echo e($_SESSION['user']['prenom'] ?? ''); ?> <?php echo e($_SESSION['user']['nom'] ?? ''); ?>
                 <span class="badge <?php echo getRoleBadgeClass($_SESSION['user']['role'] ?? ''); ?> badge--sm"><?php echo e(ROLE_LABELS[$_SESSION['user']['role'] ?? 'agent'] ?? 'Agent'); ?></span>

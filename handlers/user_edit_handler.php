@@ -55,7 +55,9 @@ if ($action === 'export_data') {
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Content-Length: ' . strlen($json));
     header_remove('X-Powered-By');
-    header('Server: ');
+    header_remove('Server');
+    header_remove('Expires');
+    header_remove('Pragma');
     header('Cache-Control: no-cache, max-age=0');
     header('X-Content-Type-Options: nosniff');
     echo $json;

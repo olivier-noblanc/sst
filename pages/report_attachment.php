@@ -69,7 +69,9 @@ while (ob_get_level() > 0) {
 
 // Remove disclosing headers
 header_remove('X-Powered-By');
-header('Server: ');
+header_remove('Server');
+header_remove('Expires');
+header_remove('Pragma');
 
 // Check if inline mode is requested (for image preview in browser)
 $inline = !empty($_GET['inline']);

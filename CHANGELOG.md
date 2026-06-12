@@ -2,6 +2,21 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [3.4.0] — 2026-06-12
+
+### Audit — Sécurité HTTP, cache busting, zéro JavaScript
+
+- **1** 🔴 **Cache busting sur les assets statiques** — La fonction `assetUrl()` ne faisait qu'ajouter le chemin brut sans paramètre de version. Ajout de `?v=APP_VERSION` pour forcer le navigateur à recharger les ressources CSS/JS/images après chaque déploiement. Cela résout le signal « Resource should use cache busting but URL does not match configured patterns ».
+- **2** 🔴 **Suppression du header `Server` par `header_remove()`** — Tous les fichiers utilisaient `header('Server: ')` qui est inefficace sur IIS (le serveur réinsère sa valeur). Remplacement systématique par `header_remove('Server')` dans `index.php`, `header.php`, `login.php`, `choose_site.php`, `report_print.php`, `report_attachment.php`, `export_handler.php`, `user_edit_handler.php` et `router.php`. Le header `Server` ne doit contenir que le nom du serveur, sans version.
+- **3** 🔴 **Suppression des headers dépréciés `Expires` et `Pragma`** — Ces headers sont obsolètes et remplacés par `Cache-Control`. Ajout de `header_remove('Expires')` et `header_remove('Pragma')` dans tous les points d'entrée PHP pour nettoyer les headers HTTP.
+- **4** 🔴 **`X-Content-Type-Options: nosniff` appliqué à TOUS les assets statiques** — Le `router.php` ne l'ajoutait que pour les assets texte (css, js, json, svg). Désormais ajouté sur TOUS les assets statiques (images, fonts incluses) pour empêcher le MIME sniffing.
+- **5** 🟡 **Cache-Control intelligent dans `router.php`** — Les assets non versionnés (sans `?v=`) ont désormais un `max-age=180` (3 minutes) au lieu d'une longue durée, pour éviter les problèmes de cache périmé. Les assets versionnés conservent les longues durées (7 jours CSS/JS, 30 jours images, 1 an fonts).
+- **6** 🔴 **Suppression complète du JavaScript** — Conformément à la contrainte de durabilité 10 ans (zéro JS) :
+  - **Sidebar** : Remplacement du JS de toggle mobile par un checkbox CSS-only (`#sidebar-toggle`). Le label hamburger dans le header coche/décoche la checkbox cachée. CSS `:checked ~ .sidebar` ouvre le panneau. L'overlay est aussi un label pour la checkbox (cliquer ferme).
+  - **Bouton « retour en haut »** : Remplacement du JS `scroll`/`click` par un simple lien `<a href="#top">` qui utilise l'ancre `#top` placée en début de `<main>`. Plus besoin de JS pour la visibilité ni le défilement.
+- **7** 🟡 **Sécurité CSP : `frame-ancestors 'none'` remplace `X-Frame-Options`** — Suppression implicite de tout header `X-Frame-Options` (aucun n'était émis, mais le commentaire est clarifié). CSP `frame-ancestors 'none'` est le mécanisme moderne, avec un support plus large et des vérifications plus strictes.
+- **8** 🟡 **Header menu button → `<label>`** — Le bouton hamburger était un `<button>` qui nécessitait JS. Transformé en `<label for="sidebar-toggle">` pour fonctionner avec le checkbox hack CSS-only. Ajout de `tabindex="0"` pour l'accessibilité clavier.
+
 ## [3.3.0] — 2026-06-12
 
 ### Audit — Conformité 10/10 (compatibilité, performance, sécurité, bonnes pratiques)

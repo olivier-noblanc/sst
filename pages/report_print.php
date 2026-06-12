@@ -499,7 +499,9 @@ while (ob_get_level() > 0) {
 
 // Cache-Control: no-cache for this dynamically generated PDF
 header_remove('X-Powered-By');
-header('Server: ');
+header_remove('Server');
+header_remove('Expires');
+header_remove('Pragma');
 header('Cache-Control: no-cache, max-age=0');
 header('X-Content-Type-Options: nosniff');
 

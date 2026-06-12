@@ -5,15 +5,15 @@
  * This router file prevents the built-in server from crashing
  * by handling static files and routing PHP requests properly.
  *
- * Static files: served with correct Content-Type + Cache-Control.
+ * Static files: served with correct Content-Type + Cache-Control + security headers.
  * Gzip: enabled for PHP output only (not for already-compressed static files).
  */
 
-// === Remove X-Powered-By header ===
+// === Remove unwanted headers ===
 header_remove('X-Powered-By');
-
-// === Remove Server version info ===
-header('Server: ');
+header_remove('Server');
+header_remove('Expires');
+header_remove('Pragma');
 
 // Serve static files directly (before any output buffering)
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -44,22 +44,34 @@ if ($uri !== '/' && $uri !== '/index.php' && file_exists($publicPath . $uri)) {
         // Set Content-Type with proper charset
         header('Content-Type: ' . $mimeTypes[$ext]);
 
-        // Cache-Control for static assets
+        // Cache-Control for static assets with cache busting support
+        // If ?v= parameter is present, allow longer cache (asset is versioned)
+        $hasVersionParam = isset($_GET['v']);
         if (in_array($ext, ['css', 'js'])) {
-            header('Cache-Control: public, max-age=604800');
+            if ($hasVersionParam) {
+                header('Cache-Control: public, max-age=604800'); // 7 days when versioned
+            } else {
+                header('Cache-Control: public, max-age=180'); // 3 min unversioned
+            }
         } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'ico', 'svg', 'webp'])) {
-            header('Cache-Control: public, max-age=2592000');
+            if ($hasVersionParam) {
+                header('Cache-Control: public, max-age=2592000'); // 30 days when versioned
+            } else {
+                header('Cache-Control: public, max-age=180'); // 3 min unversioned
+            }
         } elseif (in_array($ext, ['woff', 'woff2', 'ttf', 'otf'])) {
-            header('Cache-Control: public, max-age=31536000');
+            if ($hasVersionParam) {
+                header('Cache-Control: public, max-age=31536000'); // 1 year when versioned
+            } else {
+                header('Cache-Control: public, max-age=180'); // 3 min unversioned
+            }
         }
 
         // Vary: Accept-Encoding for proper caching
         header('Vary: Accept-Encoding');
 
-        // X-Content-Type-Options for text-based assets only
-        if (in_array($ext, ['css', 'js', 'json', 'svg'])) {
-            header('X-Content-Type-Options: nosniff');
-        }
+        // X-Content-Type-Options: always set for all static assets
+        header('X-Content-Type-Options: nosniff');
 
         readfile($publicPath . $uri);
         return true;

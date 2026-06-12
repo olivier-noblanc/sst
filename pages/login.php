@@ -12,8 +12,10 @@
 // === Remove X-Powered-By (PHP version disclosure) ===
 header_remove('X-Powered-By');
 
-// === Remove Server version info ===
-header('Server: ');
+// === Remove unwanted headers (Server version, deprecated Expires/Pragma) ===
+header_remove('Server');
+header_remove('Expires');
+header_remove('Pragma');
 
 // === Cache-Control: no-cache for this dynamic page ===
 header('Cache-Control: no-cache, max-age=0');

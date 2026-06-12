@@ -229,7 +229,16 @@ img { max-width: 100%; height: auto; display: block; }
     text-decoration: none;
 }
 
-/* Mobile hamburger button */
+/* Hidden checkbox for CSS-only sidebar toggle */
+.sidebar-toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Mobile hamburger button (label for checkbox) */
 .header__menu-btn {
     display: none;
     background: none;
@@ -241,6 +250,8 @@ img { max-width: 100%; height: auto; display: block; }
     cursor: pointer;
     line-height: 1;
     transition: background var(--transition-fast);
+    -webkit-user-select: none;
+    user-select: none;
 }
 .header__menu-btn:hover,
 .header__menu-btn:focus-visible {
@@ -320,13 +331,14 @@ img { max-width: 100%; height: auto; display: block; }
     border-top: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Mobile overlay */
+/* Mobile overlay (label for checkbox — clicking closes) */
 .sidebar-overlay {
     display: none;
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.5);
     z-index: calc(var(--z-sidebar) - 1);
+    cursor: pointer;
 }
 
 /* ============================================================
@@ -1754,25 +1766,19 @@ tr:hover td {
     border-radius: 50%;
     background: var(--color-primary);
     color: #fff;
-    border: none;
-    cursor: pointer;
+    text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 20px;
     box-shadow: var(--shadow-lg);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity var(--transition-base), visibility var(--transition-base);
-}
-
-.back-to-top--visible {
-    opacity: 1;
-    visibility: visible;
+    transition: background var(--transition-base);
 }
 
 .back-to-top:hover {
     background: var(--color-primary-dark);
+    text-decoration: none;
+    color: #fff;
 }
 
 .back-to-top:focus-visible {
@@ -2001,8 +2007,8 @@ tr:hover td {
    30. Print Styles
    ============================================================ */
 @media print {
-    .header, .sidebar, .sidebar-overlay, .filter-bar, .btn, .pagination, .print-hint,
-    .form-actions, .confirm-box, .footer, .header__menu-btn,
+    .header, .sidebar, .sidebar-overlay, .sidebar-toggle-checkbox, .filter-bar, .btn, .pagination, .print-hint,
+    .form-actions, .confirm-box, .footer, .header__menu-btn, .back-to-top,
     .welcome-banner, .workflow-legend, .breadcrumb {
         display: none !important;
     }
@@ -2039,15 +2045,33 @@ tr:hover td {
 @media (max-width: 768px) {
     /* Show hamburger button */
     .header__menu-btn {
-        display: block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    /* Sidebar slides in from left */
+    /* Sidebar slides in from left (hidden by default) */
     .sidebar {
         transform: translateX(-100%);
         z-index: var(--z-mobile-menu);
     }
 
+    /* CSS-only sidebar toggle: checkbox:checked opens sidebar */
+    .sidebar-toggle-checkbox:checked ~ .sidebar {
+        transform: translateX(0);
+    }
+
+    /* CSS-only sidebar toggle: checkbox:checked shows overlay */
+    .sidebar-toggle-checkbox:checked ~ .sidebar-overlay {
+        display: block;
+    }
+
+    /* Hide the close icon label when sidebar is closed */
+    .sidebar-close-label {
+        display: none;
+    }
+
+    /* Legacy JS class — kept for backward compat but not needed */
     .sidebar--open {
         transform: translateX(0);
     }

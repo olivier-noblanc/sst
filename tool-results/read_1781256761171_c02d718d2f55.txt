@@ -1,0 +1,575 @@
+     1→# Changelog — Application SST DREETS BFC
+     2→
+     3→Toutes les modifications notables de ce projet sont documentées dans ce fichier.
+     4→
+     5→## [3.2.1] — 2026-06-12
+     6→
+     7→### Infrastructure — Suppression .htaccess + web.config minimal
+     8→
+     9→- **1** 🔴 **`.htaccess` supprimé** — L'application est déployée sur IIS, le `.htaccess` est inutile et source de confusion. Tout est géré par PHP.
+    10→- **2** 🟡 **`web.config` réduit au strict minimum** — Suppression de `customHeaders` (CSP, nosniff, etc. → gérés par PHP), suppression de `clientCache` (géré par PHP), suppression de `httpErrors`. Ne reste que : document par défaut, protection fichiers/dossiers sensibles, MIME types manquants (.woff, .woff2, .svg), authentification Windows.
+    11→
+    12→---
+    13→
+    14→## [3.2.0] — 2026-06-12
+    15→
+    16→### Correctif — CSS non chargé + headers HTTP conformes
+    17→
+    18→- **1** 🔴 **CSS servi avec `application/octet-stream` au lieu de `text/css`** — Le `.htaccess` appliquait `Header always set` sur TOUTES les réponses (CSS inclus), ce qui ajoutait CSP, X-Frame-Options, Cache-Control no-cache sur les assets statiques. Le navigateur bloquait le CSS. Correction : les security headers sont désormais envoyés uniquement par PHP (header.php), le `.htaccess` ne gère plus que le cache statique et les MIME types.
+    19→- **2** 🔴 **`Cache-Control` manquant sur les assets statiques** — Les fichiers CSS/JS/images n'avaient pas de `Cache-Control` propre. Le `.htaccess`, `router.php` et `web.config` servent désormais les assets statiques avec les bons headers : CSS/JS 7 jours, images 30 jours, fonts 1 an.
+    20→- **3** 🟡 **`Content-Type: text/css; charset=utf-8`** — Le CSS est désormais servi avec le charset explicite. Le `router.php` ajoute `charset=utf-8` à tous les types texte (CSS, JS, JSON, SVG).
+    21→- **4** 🟡 **Headers dépréciés supprimés** — `Pragma` (requête uniquement, pas réponse), `Expires` (remplacé par `Cache-Control`), `X-Frame-Options` (remplacé par CSP `frame-ancestors 'none'`), `X-XSS-Protection` (remplacé par CSP) supprimés de `header.php`, `login.php`, `choose_site.php`, `report_print.php`, `report_attachment.php`, `export_handler.php`, `user_edit_handler.php`.
+    22→- **5** 🟡 **`X-Powered-By` supprimé** — `header_remove('X-Powered-By')` ajouté dans `index.php`, `header.php`, `login.php` et `choose_site.php` pour ne pas divulguer la version PHP.
+    23→- **6** 🟡 **`web.config` IIS corrigé** — `staticContent` réécrit avec MIME types explicites et Cache-Control par type d'asset. `customHeaders` réduit aux seuls headers utiles (CSP, nosniff, Referrer-Policy, Permissions-Policy). `X-Frame-Options` et `X-XSS-Protection` retirés (redondants avec CSP).
+    24→- **7** 🟡 **`router.php` réécrit** — Les fichiers statiques sont servis AVANT l'output buffering gzip. Chaque type MIME a son charset. Seuls les assets texte ont `X-Content-Type-Options: nosniff`.
+    25→
+    26→---
+    27→
+    28→## [3.1.0] — 2026-06-12
+    29→
+    30→### Accessibilité — WCAG 2.1 (10/10)
+    31→
+    32→- **1** 🔴 **`<div class="main">` → `<main>`** — Le conteneur principal est désormais un landmark sémantique `<main id="main-content" role="main">`, conforme WCAG 2.1. Le skip-link pointe sur un véritable landmark.
+    33→- **2** 🔴 **Login sans landmark ni skip-link** — Ajout de `<main role="main">` et d'un skip-link « Aller au formulaire de connexion » sur la page de connexion (standalone, sans header.php).
+    34→- **3** 🟡 **`aria-describedby` sur tous les `.form-hint`** — Chaque hint de formulaire est désormais lié à son champ via `aria-describedby` : report_form (lieu, objet, description, attachment), login (password), users (username), user_edit (username), settings (emails), export (dates), report_respond (réponse).
+    35→- **4** 🟡 **`aria-invalid` + `aria-describedby` + `id` sur form-error** — Tous les messages d'erreur de formulaire ont un `id` unique et sont liés au champ via `aria-describedby` + `aria-invalid="true"` : users.php (6 champs), user_edit.php (6 champs), site_edit.php (3 champs), report_respond.php (2 champs).
+    36→- **5** 🟡 **`aria-label` sur les 14 tables** — Toutes les tables de données ont un `aria-label` descriptif : report_list, users, report_card (×2), report_respond (×2), report_abandon, user_view, synthesis, statistics, settings, help (×3).
+    37→- **6** 🟡 **`aria-controls` + `aria-expanded` sur checkbox pour-compte** — Le checkbox « Signaler pour le compte d'un autre agent » déclare désormais `aria-controls="pour_compte_fields"` et `aria-expanded` dynamique via JS.
+    38→- **7** 🟡 **Emojis dans `<h1>` avec `aria-hidden`** — Les emojis décoratifs dans les titres help.php et choose_site.php sont enveloppés dans `<span aria-hidden="true">` pour ne pas perturber les lecteurs d'écran.
+    39→- **8** 🟡 **Focus trap sidebar mobile** — Quand la sidebar est ouverte sur mobile, le focus clavier est piégé à l'intérieur (Tab/Shift+Tab wrap). Le premier item reçoit le focus à l'ouverture.
+    40→- **9** 🟡 **`autocomplete` sur le formulaire de login** — Ajout de `autocomplete="username"` et `autocomplete="current-password"` pour les gestionnaires de mots de passe et l'autofill navigateur.
+    41→
+    42→### UX — Facilité de prise en main
+    43→
+    44→- **10** 🟡 **Compteur de caractères sur la description** — Ajout d'un compteur en temps réel `X/20 000` avec `aria-live="polite"` et couleur d'avertissement au-dessus de 19 000 caractères.
+    45→- **11** 🟡 **CTA sur les états vides** — Quand aucune donnée n'est trouvée, les listes affichent un bouton d'action : « + Inscrire un signalement » (report_list) et « + Inscrire un utilisateur » (users).
+    46→- **12** 🟢 **Bouton « Retour en haut »** — Apparaît après 400px de scroll, smooth scroll vers le haut, accessible avec `aria-label`, responsive sur mobile.
+    47→
+    48→### Responsive — Petits écrans
+    49→
+    50→- **13** 🟡 **Breakpoint 480px** — Nouveau media query pour les petits téléphones : font-size réduite, header compact, username tronqué avec ellipsis, cards et tables adaptées, back-to-top button redimensionné.
+    51→
+    52→### Sécurité — Headers manquants
+    53→
+    54→- **14** 🟡 **choose_site.php sans headers** — Ajout des headers Cache-Control (no-store, no-cache, must-revalidate, max-age=0), Pragma, Expires et des security headers (X-Frame-Options, X-Content-Type-Options, CSP, etc.) sur la page choose_site.php qui sort avant le layout.
+    55→
+    56→---
+    57→
+    58→## [3.0.1] — 2026-06-12
+    59→
+    60→### Correctif — Réponse superviseur impossible sur signalement en cours
+    61→
+    62→- **F28** 🔴 **`report_id NOT NULL` bloquait l'INSERT dans `report_responses`** — la migration ayant ajouté `report_uuid` n'avait pas assoupli la contrainte `NOT NULL` sur l'ancienne colonne `report_id`. L'INSERT du code actuel ne fournit que `report_uuid`, pas `report_id` → violation de contrainte silencieuse → la transaction était rollbackée → message d'erreur trompeur « Le signalement a peut-être déjà été traité ». Correction : migration automatique qui recrée `report_responses` avec `report_id` nullable (SQLite ne supporte pas ALTER COLUMN). Le `CREATE TABLE IF NOT EXISTS` de la migration est aussi mis à jour pour utiliser `report_uuid` au lieu de `report_id`.
+    63→- **F29** 🟠 **`respondToReport()` retourne un code au lieu de `bool`** — la fonction retourne désormais `'true'` (succès), `'concurrent'` (modifié par un autre superviseur entre-temps) ou `'error'` (erreur base de données). Le handler affiche un message spécifique à chaque cas au lieu du générique « peut-être déjà été traité ». L'UPDATE réussi mais l'INSERT qui échouait n'est plus masqué par un message ambigu.
+    64→
+    65→---
+    66→
+    67→## [3.0.0] — 2026-06-12
+    68→
+    69→### Sécurité — Headers HTTP
+    70→
+    71→- **1** 🔴 Headers de sécurité ajoutés dans `header.php` — `X-Frame-Options: DENY` (anti-clickjacking), `X-Content-Type-Options: nosniff` (anti-MIME-sniffing), `X-XSS-Protection`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy` (same-origin uniquement). Défense en profondeur contre l'escalade XSS et les injections de contenu.
+    72→
+    73→### Conformité — Journal d'audit
+    74→
+    75→- **2** 🔴 **Table `audit_log` + fonctions** — traçabilité de toutes les actions significatives : connexion, création/édition/abandon/réponse de signalements, gestion des utilisateurs (CRUD, changement de rôle), modifications de sites, changements de paramètres, exports CSV, actions RGPD. Huit catégories (`auth`, `report`, `user`, `site`, `config`, `export`, `backup`, `gdpr`). Les entrées incluent utilisateur, horodatage, IP et contexte JSON. Fonctionne en mode non-bloquant — un échec de log ne casse jamais l'application.
+    76→
+    77→### Conformité — RGPD
+    78→
+    79→- **10** 🟠 **Droit d'accès et d'effacement** — deux actions RGPD ajoutées dans le profil utilisateur (`user_view.php`) : export JSON des données personnelles (droit d'accès art. 15) et anonymisation irréversible (droit d'effacement art. 17). L'anonymisation remplace noms et email par des placeholders, désactive le compte, mais conserve les signalements pour le registre. Les deux actions sont tracées dans l'audit log.
+    80→
+    81→### Recherche — FTS5
+    82→
+    83→- **11** 🟠 **Index plein texte FTS5** — table virtuelle `reports_fts` indexant `objet` et `description` pour une recherche rapide et pertinente. La migration crée l'index et peuple les données existantes. La recherche dans `getReportsByRegistry()` utilise FTS5 en priorité avec fallback LIKE si FTS5 n'est pas disponible. L'index est mis à jour à chaque création/édition de signalement.
+    84→
+    85→### Accessibilité
+    86→
+    87→- **8a** 🟡 **Skip link** — lien "Aller au contenu principal" visible uniquement au focus clavier (CSS pur, pas de JS). Permet de sauter la sidebar.
+    88→- **8b** 🟡 **`aria-hidden="true"`** sur tous les emoji du sidebar — les lecteurs d'écran ne lisent plus "clipboard", "warning sign" etc.
+    89→- **8c** 🟡 **`aria-describedby` + `aria-invalid`** sur les champs en erreur du formulaire de signalement — les erreurs sont maintenant programmatiquement associées à leur champ (6 champs : date, objet, description, pièce jointe, site, pour le compte de).
+    90→- **8d** 🟡 **`<fieldset>` + `<legend>`** sur les radio buttons de visibilité dans les paramètres — regroupement sémantique pour les lecteurs d'écran.
+    91→
+    92→### Technique
+    93→
+    94→- **13** 🟢 **`truncate()` corrigé** — `strlen()`/`substr()` remplacés par `mb_strlen()`/`mb_substr()` avec encodage UTF-8 explicite. Les coupures ne se font plus au milieu d'un caractère accentué (é, ê, ç).
+    95→
+    96→---
+    97→
+    98→## [2.9.0] — 2026-06-12
+    99→
+   100→### Fiabilité — SQLite
+   101→
+   102→- **S1/S2** 🔴 Transactions ajoutées sur `respondToReport()` et `createReport()` — l'UPDATE de `reports` + INSERT dans `report_responses` (et séquence + INSERT) sont désormais atomiques. Un crash entre les deux requêtes ne peut plus laisser la base incohérente.
+   103→- **S3** 🔴 **Stratégie de backup autonome** — `src/backup.php` : sauvegarde automatique via `VACUUM INTO` (SQL pure, pas de script externe, compatible IIS/Windows). Le backup ne se déclenche que si la base a changé depuis le dernier snapshot (comparaison filemtime + taille après checkpoint WAL). Zéro gaspillage de stockage si rien n'a bougé.
+   104→- **S4** 🟡 Rotation des backups — les 10 plus récents sont conservés dans `data/backups/`, les plus anciens sont supprimés automatiquement. Protection HTTP via `.htaccess` + `web.config`.
+   105→- **S5** 🟡 Backup pré-migration — avant chaque modification de schéma, un snapshot est créé. Permet de restaurer la base si une migration échoue.
+   106→- **S6** 🟡 **Table `schema_version`** — versionnage des migrations. Chaque migration appliquée est enregistrée avec un numéro de version et un horodatage. Les bases existantes reçoivent le baseline v1 automatiquement.
+   107→- **S7** 🟡 `data/backups/` ajouté au `.gitignore` — les snapshots ne polluent pas le dépôt.
+   108→
+   109→### Export CSV
+   110→
+   111→- **E1** 🔴 **`fputcsv()`** remplace la construction manuelle — les champs contenant des `;`, des guillemets ou des retours à la ligne sont correctement encadrés. Plus de CSV cassé.
+   112→- **E2** 🔴 **Historique multi-réponses exporté** — colonne `Historique réponses` avec toutes les réponses du signalement au format `[Date] Répondant (État) : Réponse`. Colonne `Nb réponses` pour le compteur.
+   113→- **E3** 🟠 Colonnes ajoutées : `Nom UR`, `Date création`, `Déclaré pour le compte de`, `Heure événement`, `Lieu`.
+   114→- **E4** 🟡 Description et réponse conservent leurs retours à la ligne (encapsulation `"` par `fputcsv`).
+   115→
+   116→---
+   117→
+   118→## [2.8.2] — 2026-06-12
+   119→
+   120→### Correctif
+   121→
+   122→- **F04** ↩️ `display_errors` rétabli à toujours activé — le paramétrage précédent (désactivation en prod) avait été appliqué sans accord. Les erreurs PHP sont de nouveau affichées en production comme en dev.
+   123→- **F07** 🟠 Affichage multi-réponses corrigé — un signalement peut recevoir plusieurs réponses du superviseur. La carte "Réponse" (unique, dernier seulement) et l'"Historique des réponses" étaient redondantes et masquaient ce fait. Remplacées par une seule section "Réponses (N)" listant toutes les réponses, dans le card HTML (`report_card.php`) et le PDF (`report_print.php`).
+   124→
+   125→---
+   126→
+   127→## [2.8.1] — 2026-06-12
+   128→
+   129→### Sécurité — Corrections de l'audit fonctionnel
+   130→
+   131→Corrections prioritaires issues de l'audit fonctionnel complet (31 constats) :
+   132→
+   133→- **F01** 🔴 `phpinfo.php` supprimé du dépôt — exposition complète de la config serveur en production
+   134→- **F02/F03** 🟡 Protection du dernier superviseur actif — impossible de rétrograder ou désactiver le dernier superviseur (`user_edit_handler.php` + `user_delete_handler.php`). Empêche le verrouillage admin de l'application.
+   135→- **F04** 🟡 `display_errors` désactivé en production — les erreurs PHP (requêtes SQL, chemins, variables) n'apparaissent plus aux utilisateurs. Reste activé en mode dev.
+   136→- **F09** 🟠 Superviseur peut créer des signalements pour n'importe quel site — le handler bloquait les superviseurs comme les agents (`site_id !== user.site_id`). Corrigé avec `canSeeAllSites()`.
+   137→- **F20** 🟠 Utilisateur désactivé : `findOrCreateUser()` cherche désormais les utilisateurs inactifs aussi — un utilisateur désactivé ne provoque plus de violation UNIQUE sur le username à la reconnexion via IIS.
+   138→
+   139→### Technique — Nettoyage et corrections
+   140→
+   141→- **F13/F14** Routes orphelines `user_create`, `user_delete`, `user_reactivate` retirées de `$validPages` — ces POST-only n'ont pas de page GET
+   142→- **F17** Requête `getAllSites()` inutile retirée de `report_edit.php` (dropdown site masqué en mode édition)
+   143→- **F18** Champs mot de passe supprimés du formulaire et du handler `user_edit` — l'auth est IIS, pas de mot de passe dans le schéma
+   144→- **F19** Validation de l'existence du `site_id` ajoutée dans `user_create_handler.php`
+   145→- **F24** Branche morte `elseif ($isEdit && !empty($report['is_confidential']))` retirée de `report_form.php` — les 3 modes de visibilité couvrent tous les cas
+   146→- **F25** Accents français corrigés dans `report_abandon.php` (événement, Êtes-vous sûr, irréversible, abandonné)
+   147→
+   148→---
+   149→
+   150→## [2.8.0] — 2026-06-11
+   151→
+   152→### Sécurité — Audit XSS complet
+   153→
+   154→Passage en revue systématique de toutes les sorties HTML. L'application utilisait déjà `e()` (alias `htmlspecialchars` avec `ENT_QUOTES` + `UTF-8`) de manière quasi systématique. Les quelques lacunes restantes sont corrigées :
+   155→
+   156→- `pages/changelog.php` : Parsedown n'avait pas `setSafeMode(true)` — le Markdown pouvait contenir du HTML brut (ex: `<img onerror=...>`). Safe Mode activé : les blocs HTML sont désormais échappés.
+   157→- `src/helpers.php` : `formatDateFR()` et `formatDateTimeFR()` retournaient la chaîne brute en fallback si le parsing échouait — désormais encodées via `e()` dans le chemin fallback (défense en profondeur).
+   158→- `templates/report_card.php` : 4 appels `formatDateFR`/`formatDateTimeFR` sans `e()` — corrigés.
+   159→- `pages/report_abandon.php` : `formatDateFR` sans `e()` — corrigé.
+   160→- `pages/report_list.php` : `formatDateFR` sans `e()` — corrigé.
+   161→- `pages/user_edit.php` : `value="<?php echo $userId ?>"` sans `e()` — corrigé (entier casté, mais principe).
+   162→- `pages/site_edit.php` : `value="<?php echo $siteId ?>"` sans `e()` — corrigé.
+   163→- `pages/settings.php` : IDs de site dans les attributs HTML sans `e()` — corrigés.
+   164→
+   165→### Sécurité — CSRF déjà complet
+   166→
+   167→Vérification que tous les handlers POST valident le token CSRF et que tous les formulaires l'envoient. **Déjà en place** : les 14 handlers vérifient `validateCsrfToken()` avec `hash_equals()`, et les 21 formulaires incluent le champ `csrf_token`. Aucune correction nécessaire.
+   168→
+   169→---
+   170→
+   171→## [2.7.3] — 2026-06-11
+   172→
+   173→### Technique — Case confidentiel invisible pour les superviseurs
+   174→
+   175→Les superviseurs ne voyaient pas la case « Signalement confidentiel » dans le formulaire de création/modification de signalement, même en mode « Au choix de l'agent ». Aucun `input hidden` n'était injecté non plus, donc le champ `is_confidential` n'était tout simplement pas envoyé. Cause : `getReportVisibility()` renvoie `'all'` pour les non-agents (lecture), et les fonctions `reportVisibilityIs*()` comparaient avec cette valeur — aucun match.
+   176→
+   177→- `src/helpers.php` : extraction de `getReportVisibilityMode()` (role-agnostic, lit la config brute) utilisée par les fonctions `reportVisibilityIs*()`. `getReportVisibility()` conserve son comportement pour la lecture/filtrage (retourne `'all'` pour les non-agents).
+   178→
+   179→### Technique — Alignement des checkboxes dans le formulaire
+   180→
+   181→Les checkboxes « Signalement confidentiel » et « Signaler pour le compte d'un autre agent » étaient affichées au-dessus de leur libellé au lieu d'être alignées à gauche du texte. Cause : le CSS global applique `width: 100%` à tous les `<input>` et `display: block` aux `<label>` dans `.form-group`.
+   182→
+   183→- `templates/report_form.php` : style inline sur les `<label>` (`display:flex; align-items:center; gap:8px`) et les `<input type="checkbox">` (`width:auto; margin:0`)
+   184→
+   185→---
+   186→
+   187→## [2.7.2] — 2026-06-11
+   188→
+   189→### Fonctionnalité — Colonne Visibilité dans la liste des signalements
+   190→
+   191→La liste des signalements (`report_list`) affiche désormais une colonne **Visibilité** indiquant si le signalement est 🔒 Confidentiel ou Public, avec des badges colorés (gris pour confidentiel, vert pour public). Cohérent avec le badge affiché dans la vue détaillée.
+   192→
+   193→- `pages/report_list.php` : ajout de la colonne « Visibilité » avec badge Confidentiel/Public
+   194→
+   195→### Technique — Corrections de bugs
+   196→
+   197→- `pages/settings.php` : les radios de visibilité n'étaient pas cochés sur le réglage en cours — `getReportVisibility()` renvoie `'all'` pour les superviseurs, qui ne correspond à aucune des 3 valeurs possibles. Remplacé par `getConfig('app_report_visibility', 'agent_choice')` qui lit directement la valeur en base.
+   198→- `DEPLOY.md` : la « Méthode 2 : Auto-promotion bootstrap » était impossible — un agent n'a pas accès aux Paramètres (`requireRole(['superviseur'])`). Réécriture de la section 9 : la Méthode 1 est désormais le script CLI `promote.php`, la Méthode 2 est la promotion par un superviseur existant, et la variable d'environnement est en méthode alternative.
+   199→
+   200→### Technique — Affichage de la version PHP
+   201→
+   202→- `templates/footer.php` : ajout de la version PHP (`PHP_VERSION`) dans le footer, après la version de l'application
+   203→
+   204→---
+   205→
+   206→## [2.7.1] — 2026-06-11
+   207→
+   208→### Technique — Correction de l'erreur « finfo not found »
+   209→
+   210→L'upload de pièces jointes provoquait une erreur fatale `Class "finfo" not found` lorsque l'extension PHP `fileinfo` n'était pas activée sur le serveur. Désormais, un message clair s'affiche à l'utilisateur demandant d'activer l'extension, sans contournement.
+   211→
+   212→- `src/helpers.php` : ajout de la fonction `getMimeType()` qui exige l'extension `fileinfo` — si absente, lève une `RuntimeException` avec le message : « L'extension PHP "fileinfo" est requise pour le téléchargement de pièces jointes. Veuillez l'activer dans php.ini : extension=fileinfo, puis redémarrer le serveur web. »
+   213→- `handlers/report_create_handler.php` : remplacement de `new finfo()` par `getMimeType()` avec `try/catch` pour afficher le message d'erreur dans le formulaire
+   214→- `handlers/report_edit_handler.php` : même remplacement
+   215→- `DEPLOY.md` : `fileinfo` ajouté aux extensions PHP **requises** (était absent), section de dépannage ajoutée
+   216→- `DEPLOY.md` : `extension=fileinfo` ajouté dans l'exemple `php.ini`
+   217→- `DEPLOY.md` : checklist de vérification mise à jour avec `fileinfo`
+   218→
+   219→---
+   220→
+   221→## [2.7.0] — 2026-06-11
+   222→
+   223→### Fonctionnalité — Images embarquées dans les PDF
+   224→
+   225→Les pièces jointes de type image (JPG, PNG, GIF) sont désormais intégrées directement dans le PDF généré par FPDF, au lieu d'afficher uniquement le nom du fichier. Le PDF est ainsi autonome et contient toutes les informations visuelles du signalement.
+   226→
+   227→- `pages/report_print.php` : après la section « Pièce jointe », si l'attachment est une image, le BLOB est écrit dans un fichier temporaire (`tempnam()`), intégré via `$pdf->Image()` avec des dimensions proportionnelles (max 180 mm de large, max 120 mm de haut, fond gris clair), puis le temp est supprimé immédiatement. Si l'intégration échoue, le PDF est quand même généré (le nom du fichier reste affiché). Les PDF en pièce jointe ne sont pas embarqués.
+   228→- `pages/report_attachment.php` : ajout du paramètre `inline=1` — les images sont servies avec `Content-Disposition: inline` pour affichage dans le navigateur (aperçu dans la page). Sans ce paramètre, le téléchargement forcé est conservé.
+   229→- `templates/report_card.php` : les images sont affichées en aperçu inline (`<img>` avec `max-height:400px`) au-dessus du bouton de téléchargement. Cliquer sur l'image lance le téléchargement. Les PDF restent en lien de téléchargement simple.
+   230→
+   231→### Technique — Mise à jour de la spécification
+   232→
+   233→- `SPEC.md` : `MAX_DESCRIPTION_LENGTH` corrigé de 5000 à 20000 (la valeur réelle dans config.php était déjà 20000, la spec était en retard). Ajout des constantes `MAX_ATTACHMENT_SIZE` et `ALLOWED_ATTACHMENT_MIMES` dans le tableau des constantes. Ajout des colonnes `attachment_blob`, `attachment_name`, `attachment_mime` dans le schéma de la table `reports`. Ajout de la route `report_attachment` dans la table des routes. Ajout du champ `attachment` dans le tableau des champs du formulaire. Section PDF mise à jour avec la description de l'embarquement d'images.
+   234→
+   235→---
+   236→
+   237→## [2.6.1] — 2026-06-11
+   238→
+   239→### Sécurité — Correction critique : génération UUID invalide
+   240→
+   241→La fonction `generateUuid()` utilisait `| 0x8` au lieu de `(& 0x3F | 0x80)` pour les bits de variante UUID v4. Cela produisait des UUID invalides dans environ 25 % des cas (4e groupe commençant par c, d, e ou f au lieu de 8, 9, a, b uniquement). La fonction `isValidUuid()` les rejetait, et `getReportByUuid()` retournait `null` → message « Signalement introuvable » au clic sur « Voir » depuis la liste.
+   242→
+   243→- `src/queries/report_queries.php` : `generateUuid()` corrigé — `& 0x3F | 0x80` au lieu de `| 0x8`
+   244→- `src/queries/report_queries.php` : `isValidUuid()` assoupli — accepte tout UUID bien formé (8-4-4-4-12 hex) pour la rétrocompatibilité avec les UUID existants mal formatés en base
+   245→- `src/database.php` : migration automatique qui corrige les UUID existants avec des bits de variante invalides (c→8, d→9, e→a, f→b) dans `reports` et `report_responses`
+   246→- `src/database.php` : backfill des UUID NULL même si la colonne existe déjà (migration partielle possible)
+   247→- `seed.php` : même correction sur la génération UUID
+   248→
+   249→### Fonctionnalité — Promotion superviseur immédiate
+   250→
+   251→La vérification de `app_superviseur_usernames` ne s'appliquait qu'au moment du login. Si l'utilisateur était déjà en session, modifier ce paramètre n'avait aucun effet jusqu'à la déconnexion/reconnexion. Désormais, la vérification s'exécute à chaque chargement de page : un agent dont le login figure dans la liste est promu superviseur immédiatement, sans déconnexion.
+   252→
+   253→- `public/index.php` : ajout du bloc « SUPERVISEUR PROMOTION CHECK » avant le rendu de chaque page
+   254→- `pages/settings.php` : libellé mis à jour — « immédiatement (dès la prochaine page consultée) » au lieu de « lors de leur connexion via IIS »
+   255→
+   256→### Technique — Détection automatique de l'environnement
+   257→
+   258→L'ancien système `define('APP_ENV', getenv('APP_ENV') ?: 'prod')` ne fonctionnait pas sur les serveurs non-IIS (Space-Z, Docker, Apache) : la variable d'environnement n'était pas définie, l'app restait en mode dev avec le formulaire de login, et l'utilisateur voyait « Mode développement » même en configurant `prod`. Le nouveau système détecte automatiquement : si `AUTH_USER` est disponible (IIS) → prod, sinon → dev.
+   259→
+   260→- `src/config.php` : détection en 3 niveaux — `APP_ENV_FORCE` (constante PHP) > `getenv('APP_ENV')` > auto-détection via `$_SERVER['AUTH_USER']`
+   261→- `pages/login.php` : badge « Mode sans IIS — authentification par identifiant » au lieu de « Mode développement » quand `AUTH_USER` n'est pas disponible ; ajout d'une aide pour devenir superviseur via les paramètres
+   262→- `README.md` : section installation mise à jour
+   263→- `DEPLOY.md` : section configuration mise à jour
+   264→
+   265→---
+   266→
+   267→## [2.6.0] — 2026-06-11
+   268→
+   269→### Sécurité — Migration des PK reports vers UUID
+   270→
+   271→Les identifiants primaires de la table `reports` passent d'entiers auto-incrémentés (`id`) à des **UUID v4** (`uuid`). Cela empêche l'énumération d'URL : un agent ne peut plus deviner l'existence d'autres signalements en incrémentant l'ID dans l'URL.
+   272→
+   273→- `schema.sql` : `reports.uuid TEXT PRIMARY KEY` remplace `reports.id INTEGER PRIMARY KEY`. La colonne `id` est entièrement supprimée.
+   274→- `src/queries/report_queries.php` : toutes les requêtes utilisent `uuid` au lieu de `id`. Ajout de `generateUuid()`, `isValidUuid()`, `getReportByUuid()`. Les fonctions `updateReport()`, `abandonReport()`, `respondToReport()` prennent désormais un UUID en paramètre.
+   275→- `report_responses.report_uuid` : clé étrangère vers `reports(uuid)` au lieu de `reports(id)`.
+   276→- Toutes les URLs de signalements utilisent `?uuid=...` au lieu de `?id=...` : `report_view`, `report_edit`, `report_abandon`, `report_respond`, `report_print`.
+   277→- `templates/sidebar.php` : lookup du type de registre via `uuid` au lieu de `id`.
+   278→- Validation UUID systématique dans chaque page/handler (`strlen($uuid) !== 36` ou `isValidUuid()`).
+   279→
+   280→### Sécurité — Contrôle d'autorisation dans report_print
+   281→
+   282→- `pages/report_print.php` : ajout du contrôle d'accès identique à `report_view.php`. Un agent ne peut plus imprimer un signalement auquel il n'a pas accès (site différent, confidentiel d'un autre agent, etc.). Auparavant, seul le format PDF était protégé par la non-devinabilité de l'ID entier.
+   283→
+   284→### Sécurité — Restriction du dropdown site pour les agents
+   285→
+   286→- `pages/report_create.php` : les agents ne voient que leur propre site dans le dropdown, les superviseurs/CHSCT voient tous les sites. Auparavant, `$canSelectSite` était calculé mais jamais utilisé dans le template, ce qui affichait tous les sites à tous les utilisateurs.
+   287→
+   288→### Technique — Corrections de syntaxe PHP
+   289→
+   290→- `pages/report_list.php` : 3 appels `url()` avec parenthèses en trop (`]))` au lieu de `]`). Fatal error PHP.
+   291→- `templates/report_form.php` : 1 appel `url()` avec parenthèse en trop. Fatal error PHP.
+   292→- `pages/report_print.php` : `SSTPDF::Header()` et `SSTPDF::Footer()` déclarées `public` au lieu de `protected` (FPDF les déclare publiques, la classe fille ne peut pas restreindre la visibilité).
+   293→
+   294→### Technique — Nettoyage du dépôt
+   295→
+   296→- `pdf_docs/` retiré du dépôt git et ajouté au `.gitignore` (80 fichiers, 14 128 lignes supprimées).
+   297→
+   298→---
+   299→
+   300→## [2.5.0] — 2026-06-11
+   301→
+   302→### Technique — Migration mPDF → FPDF
+   303→
+   304→Remplacement de **mPDF 8.2** (nécessite Composer, écrit des fichiers temporaires sur disque) par **FPDF 1.9** (zéro dépendance, zéro I/O disque, tout en mémoire). Ce changement élimine la dépendance Composer et garantit la pérennité du code (FPDF : 24 ans de stabilité d'API, 0 rupture de compatibilité depuis 2001).
+   305→
+   306→- `pages/report_print.php` : réécriture complète avec l'API FPDF (Cell, MultiCell, Rect, Line) au lieu de HTML/CSS via mPDF. Même rendu visuel : badges colorés, tableau d'historique, en-tête/pied de page, boîte de réponse avec bordure verte.
+   307→- `src/lib/fpdf/` : FPDF v1.9 inclus (fpdf.php + font/). Aucune dépendance Composer.
+   308→- `src/lib/fpdf/font/` : polices DejaVu Sans (Unicode TrueType, cp1252) pour le support des caractères français accentués.
+   309→- `composer.json` : dépendance `mpdf/mpdf` supprimée. Fichier vidé (`require: {}`).
+   310→- `public/index.php` : l'autoloader Composer n'est plus requis. Chargé conditionnellement si présent (rétro-compatible).
+   311→- `test_fpdf.php` : script de test autonome pour valider le rendu PDF (accents, badges, tableau, multiligne).
+   312→
+   313→### Technique — Simplification du déploiement
+   314→
+   315→- **Extensions PHP réduites** : seules `sqlite3`, `pdo_sqlite`, `mbstring` sont nécessaires. Les extensions `gd`, `xml`, `curl`, `zip` ne sont plus requises (elles étaient pour mPDF).
+   316→- **Plus besoin de Composer** : FPDF est inclus directement dans le projet. `composer install` n'est plus nécessaire au déploiement.
+   317→- **Plus de dossier temporaire** : FPDF génère le PDF entièrement en mémoire. Pas besoin de `sys_get_temp_dir()` ou de RAM disk.
+   318→- `DEPLOY.md` : mis à jour — suppression des sections Composer, extensions réduites, nouvelle structure sans `vendor/`.
+   319→- `README.md` : mis à jour — stack technique, installation simplifiée, structure sans `vendor/`.
+   320→- `update_sst.ps1` : script simplifié — étape Composer supprimée, seuls `git pull` + `iisreset` restent.
+   321→
+   322→---
+   323→
+   324→## [2.4.1] — 2026-06-11
+   325→
+   326→### Technique — Suppression totale du JavaScript
+   327→
+   328→Plus aucune ligne de JavaScript dans l'application. Toutes les confirmations utilisent désormais un mécanisme PHP inline (rechargement de page avec paramètre URL de confirmation) au lieu de `<dialog>` HTML5 + `onclick` + `<script>`.
+   329→
+   330→- `pages/user_edit.php` : confirmation suppression → `?confirm_delete=1` au lieu de `<dialog>` + `onclick`
+   331→- `pages/settings.php` : confirmation suppression site → `?confirm_delete_site={id}` au lieu de `<dialog>` + `onclick`
+   332→- `templates/report_card.php` : confirmation abandon → `?confirm_abandon=1` au lieu de `<dialog>` + `onclick`
+   333→- `pages/report_abandon.php` : confirmation inline PHP (l'ancien `require confirm_dialog.php` causait un fatal error)
+   334→- `templates/confirm_dialog.php` : supprimé (plus utilisé)
+   335→
+   336→### Technique — Corrections de bugs critiques (audit statique)
+   337→
+   338→- **C1 — Fatal error `confirm_dialog.php`** : `report_abandon.php` référençait le template supprimé → confirmation PHP inline
+   339→- **C2 — Pagination crash PHP 8** : la variable `$currentPage` du routeur (nom de page) écrasait celle de la pagination (numéro) → `$currentPageName` pour le routeur, `$currentPage = $pageNum` avant inclusion de la pagination
+   340→- **W4 — Session stale** : après modification d'un utilisateur, la session n'était pas complètement mise à jour (manquaient `site_code`, `site_nom`) → re-lecture complète depuis la DB avec JOIN
+   341→- **W1/W2 — Handlers orphelins** : `site_edit` et `user_reactivate` n'étaient pas routés → ajoutés au routing + boutons dans l'UI
+   342→- **I4 — CSV export** : colonne `Confidentiel` (Oui/Non) ajoutée à l'export
+   343→- **I3 — `phpinfo.php`** : supprimé (risque de sécurité)
+   344→
+   345→### Technique — Déploiement et infrastructure
+   346→
+   347→- `report_print.php` : FPDF génère le PDF en mémoire (pas de fichiers temporaires)
+   348→- `DEPLOY.md` : chemin corrigé `C:\inetpub\sst\` (était `C:\inetpub\wwwroot\sst\`)
+   349→- `DEPLOY.md` : section proxy Git Kerberos (`http.proxyAuthMethod negotiate`)
+   350→- `DEPLOY.md` : Composer derrière le proxy (variables d'environnement HTTP_PROXY/HTTPS_PROXY)
+   351→- `web.config` racine : URL Rewrite supprimé (inutile, routage par query string)
+   352→- `update_sst.ps1` : script PowerShell de déploiement automatisé (git pull + permissions + iisreset)
+   353→
+   354→### Technique — Avertissement décochage confidentiel
+   355→
+   356→- `templates/report_form.php` : warning CSS `:has()` affiché quand l'agent décoche « Signalement confidentiel » en mode « Choix de l'agent ». Pas de JavaScript, pur CSS.
+   357→
+   358→---
+   359→
+   360→## [2.4.0] — 2026-06-11
+   361→
+   362→### Fonctionnalités — Système de visibilité des signalements en 3 modes
+   363→
+   364→Passage d'un système à 2 modes (confidentiel / public) à un système à **3 modes** configurable par le superviseur dans Paramètres → Application :
+   365→
+   366→- **Mode « Confidentiel »** (le plus restrictif) : l'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.
+   367→- **Mode « Choix de l'agent »** (confidentiel par défaut) : l'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son site ainsi que ses propres signalements (même confidentiels).
+   368→- **Mode « Visibilité publique »** : tous les signalements du site sont visibles par tous les agents du site.
+   369→
+   370→### Technique — Changements
+   371→
+   372→- `src/config.php` : ajout de `REPORT_VISIBILITY_MODES` (constante), version 2.4.0
+   373→- `src/helpers.php` : `getReportVisibility()` remplace `getAgentVisibility()` (3 valeurs : `confidential`, `agent_choice`, `public`). Nouvelles fonctions `reportVisibilityIsConfidential()`, `reportVisibilityIsAgentChoice()`, `reportVisibilityIsPublic()`. Anciennes fonctions conservées comme alias dépréciés.
+   374→- `schema.sql` : nouvelle clé `app_report_visibility` (défaut `agent_choice`), clé `app_agent_visibility` marquée obsolète
+   375→- `handlers/settings_handler.php` : validation des 3 valeurs pour `app_report_visibility`, synchronisation avec les anciennes clés
+   376→- `pages/settings.php` : 3 radios au lieu de 2 pour la visibilité des signalements
+   377→- `pages/report_list.php` : filtre `own_only` pour le mode confidentiel strict, filtre `confidential_filter` pour le mode choix agent
+   378→- `src/queries/report_queries.php` : clause `own_only` (declarant_id = userId) pour le mode confidentiel
+   379→- `templates/report_form.php` : toggle confidentiel uniquement en mode « Choix de l'agent », badge + hidden input dans les autres modes
+   380→- `handlers/report_create_handler.php` : force `is_confidential` selon le mode (1 en confidentiel, 0 en public, choix en agent_choice)
+   381→- `handlers/report_edit_handler.php` : même logique que la création
+   382→- `pages/report_view.php` : contrôle d'accès pour les 3 modes (bloque même le titre en mode confidentiel)
+   383→- `pages/report_print.php` : contrôle d'accès pour les 3 modes
+   384→- `pages/home.php` : compteurs adaptés au mode (own only / public+own / all)
+   385→- `pages/preamble.php` : wording mis à jour pour les 3 modes
+   386→- `pages/help.php` : tableau de visibilité par mode (3 lignes) au lieu de par rôle
+   387→
+   388→### Nettoyage du dépôt Git
+   389→
+   390→- Restructuration du dépôt : le projet (`pdf_docs/sst/`) déplacé à la racine du repo
+   391→- Suppression de `download/` (script audit non lié), `upload/` (doublon du projet), `.env` (sécurité)
+   392→- Suppression de `data/sst.db` du suivi git
+   393→- `.gitignore` racine fusionné avec les règles du projet (vendor, data, .env, IDE, OS, pdf, zip)
+   394→
+   395→---
+   396→
+   397→## [2.3.0] — 2026-06-11
+   398→
+   399→### Fonctionnalités — Confidentialité des signalements par défaut, choix de l'agent
+   400→
+   401→- **Mode « Confidentiel par défaut »** : les signalements sont confidentiels par défaut. L'agent peut choisir de rendre son signalement public lors de la création ou de la modification en décochant la case « Signalement confidentiel ». En mode confidentiel, un agent voit les signalements publics de son site + ses propres signalements (même confidentiels).
+   402→- **Mode « Visibilité publique »** : tous les signalements du site sont visibles par tous les agents du site. Conforme au principe de transparence des registres SST. La case confidentiel n'est pas affichée dans ce mode.
+   403→- **Badge « 🔒 Confidentiel »** : affiché sur la vue détaillée et le PDF d'un signalement confidentiel.
+   404→- **Paramétrage admin** : le superviseur choisit le mode de visibilité dans Paramètres → Application. L'ancien réglage site/own est remplacé par confidentiel/public.
+   405→- **Migration automatique** : les bases existantes sont migrées automatiquement — colonne `is_confidential` ajoutée, ancien mode `site` → `public`, ancien mode `own` → `confidential`, les signalements existants conservent leur visibilité précédente.
+   406→- **Superviseurs et CHSCT** : voient tous les signalements y compris confidentiels, quel que soit le mode.
+   407→
+   408→### Technique — Fichiers modifiés
+   409→
+   410→- `schema.sql` : colonne `is_confidential` (INTEGER NOT NULL DEFAULT 1) dans `reports`, config par défaut `confidential`
+   411→- `src/database.php` : migration auto — ALTER TABLE + UPDATE + index pour `is_confidential`, migration des valeurs de config
+   412→- `src/helpers.php` : `getAgentVisibility()` renvoie `confidential`/`public` au lieu de `site`/`own`, ajout de `agentVisibilityIsConfidential()` et `agentVisibilityIsPublic()`, `canSeeAllSites()` simplifié
+   413→- `src/queries/report_queries.php` : `createReport()` avec `is_confidential`, `updateReport()` avec `is_confidential`, `getReportsByRegistry()` avec filtre `confidential_filter`, `countActiveReports()` avec paramètres `$userId` et `$confidentialMode`
+   414→- `templates/report_form.php` : case à cocher « Signalement confidentiel » (cochée par défaut) en mode confidentiel, badge en mode public
+   415→- `templates/report_card.php` : badge « 🔒 Confidentiel »
+   416→- `handlers/report_create_handler.php` : sauvegarde de `is_confidential`
+   417→- `handlers/report_edit_handler.php` : sauvegarde de `is_confidential` lors de la modification
+   418→- `pages/settings.php` : radios confidentiel/public au lieu de site/own, info au lieu d'avertissement
+   419→- `handlers/settings_handler.php` : validation `confidential`/`public`
+   420→- `pages/report_view.php` : contrôle d'accès avec `is_confidential`
+   421→- `pages/report_print.php` : contrôle d'accès + badge confidentiel dans le PDF
+   422→- `pages/report_list.php` : filtres `confidential_filter` / `force_site_id` selon le mode
+   423→- `pages/home.php` : compteurs avec filtre confidentiel
+   424→- `pages/preamble.php` : wording « confidentiel par défaut, l'agent peut le rendre public »
+   425→- `pages/help.php` : tableau de visibilité par rôle et par mode
+   426→- `src/config.php` : version 2.3.0
+   427→
+   428→---
+   429→
+   430→## [2.2.0] — 2026-06-10
+   431→
+   432→### Technique — Suppression du JavaScript personnalisé (zéro JS côté métier)
+   433→
+   434→Objectif : éliminer tout JavaScript personnalisé de l'application. Les seuls `onclick` restants sont des appels natifs `showModal()` HTML5 pour ouvrir des `<dialog>` — aucun framework, aucune logique métier en JS.
+   435→
+   436→- **synthesis.php** : les filtres année/site utilisaient `onchange="window.location.href=..."` → remplacés par un `<form method="GET">` avec bouton « Filtrer »
+   437→- **statistics.php** : le filtre année utilisait `onchange="window.location.href=..."` → remplacé par un `<form method="GET">` avec bouton « Filtrer »
+   438→- **export.php** : les checkboxes « Tous » utilisaient `onchange="...disabled=..."` → supprimés. Le handler côté serveur ignore déjà les selects quand la checkbox est cochée.
+   439→- **choose_site.php** : le `<script>` qui toggle le warning + `confirm()` → supprimé. Le warning est toujours visible, le select a `required` HTML5.
+   440→- **report_form.php** : le `<script>` qui toggle `pour_compte_fields` → remplacé par CSS `:has()` : `.form-grid:has(#pour_compte:checked) #pour_compte_fields { display: block; }`
+   441→- **settings.php — Tag input** : le système de tags avec `addTag()`, `syncHidden()`, `onclick`, `onkeydown` → remplacé par des `<textarea>` simples (une adresse e-mail par ligne). Le handler parse les lignes côté serveur.
+   442→- **settings.php — SMTP test** : le `fetch()` + `alert()` → remplacé par un formulaire POST classique. Le handler `smtp_test_handler.php` redirige avec flash message au lieu de retourner du JSON.
+   443→- **settings.php — Visibilité agent** : le `<script>` qui toggle le warning radio → remplacé par CSS `:has()` : `#visibility-radios:not(:has(input[value="site"]:checked)):not(:has(input[value="own"]:checked)) .agent-visibility-warning { display: none; }`
+   444→- **settings.php — Confirm suppressions** : les `onclick="return confirm(...)"` → remplacés par `<dialog>` HTML5 natif avec `showModal()`
+   445→- **user_edit.php** : le `onsubmit="return confirm(...)"` → remplacé par `<dialog>` HTML5 natif
+   446→- **report_card.php** + **confirm_dialog.php** : le `onclick="...style.display='block'"` → remplacé par `<dialog>` HTML5 natif
+   447→
+   448→### Technique — Fichiers modifiés
+   449→
+   450→- `pages/synthesis.php` : `<form method="GET">` + bouton Filtrer
+   451→- `pages/statistics.php` : `<form method="GET">` + bouton Filtrer
+   452→- `pages/export.php` : suppression des `onchange`, retrait des `disabled`
+   453→- `pages/choose_site.php` : suppression du `<script>`, warning toujours visible, `required` HTML5
+   454→- `pages/settings.php` : textarea au lieu de tags, formulaire POST pour SMTP test, CSS `:has()` pour warning, `<dialog>` pour confirmations
+   455→- `pages/user_edit.php` : `<dialog>` au lieu de `onsubmit confirm()`
+   456→- `templates/report_card.php` : `<dialog>` au lieu de `div` masqué
+   457→- `templates/confirm_dialog.php` : contenu `<dialog>` avec `formmethod="dialog"` natif
+   458→- `templates/report_form.php` : CSS `:has()` au lieu de `<script>`
+   459→- `handlers/settings_handler.php` : parse textarea (une adresse/ligne) au lieu de tableaux
+   460→- `handlers/smtp_test_handler.php` : redirect + flash au lieu de JSON
+   461→
+   462→---
+   463→
+   464→## [2.1.0] — 2026-06-10
+   465→
+   466→### Fonctionnalités — Changelog consultable dans l'UI
+   467→
+   468→- **Page Changelog** : le numéro de version dans le footer est désormais un lien cliquable vers `?page=changelog`, qui affiche le contenu du fichier `CHANGELOG.md` rendu en HTML.
+   469→- **Parsedown** : ajout du parseur Markdown `Parsedown.php` dans `src/lib/` (fichier unique, sans Composer) pour le rendu du changelog.
+   470→- **Pas d'export PDF** : le changelog est en lecture seule, aucun bouton d'export.
+   471→
+   472→### Fonctionnalités — Génération PDF des fiches de signalement
+   473→
+   474→- **Impression PDF native** : `report_print.php` génère désormais un PDF côté serveur via FPDF au lieu d'une vue HTML + `window.print()`. Plus de JavaScript pour l'impression.
+   475→- **Bouton « Télécharger en PDF »** : remplace l'ancien bouton « Imprimer la fiche » dans la vue détaillée d'un signalement.
+   476→- **PDF professionnel** : en-tête (organisation + référence), pied de page (pagination + date de génération), badges colorés pour le registre et l'état, tableau d'historique des réponses.
+   477→- **FPDF 1.9** : bibliothèque incluse directement, sans Composer. Zéro dépendance, zéro fichier temporaire.
+   478→
+   479→### Technique — Dépendances PHP
+   480→
+   481→- **composer.json** : fichier vidé (`require: {}`). Plus de dépendance mPDF.
+   482→- **Autoloader Composer** : `vendor/autoload.php` chargé conditionnellement dans `public/index.php` (rétro-compatible si vendor/ existe).
+   483→- **FPDF inclus** : `src/lib/fpdf/fpdf.php` + polices dans `src/lib/fpdf/font/`.
+   484→
+   485→### Technique — Fichiers modifiés
+   486→
+   487→- `pages/changelog.php` : nouvelle page — parse le CHANGELOG.md via Parsedown
+   488→- `pages/report_print.php` : réécrit — génération PDF FPDF au lieu de HTML + `window.print()`
+   489→- `pages/help.php` : CU8 mis à jour — « Télécharger en PDF » au lieu de « vue imprimable via le navigateur »
+   490→- `templates/footer.php` : version cliquable → lien vers `?page=changelog`
+   491→- `templates/report_card.php` : bouton « Imprimer la fiche » → « Télécharger en PDF »
+   492→- `public/index.php` : route `changelog`, titre page, autoload Composer
+   493→- `public/css/style.css` : styles `.footer-version` (lien cliquable dans le footer)
+   494→- `public/web.config` : hidden segment `vendor`
+   495→- `src/lib/Parsedown.php` : parseur Markdown (fichier unique)
+   496→- `composer.json` : `require: {}` (dépendance mPDF supprimée)
+   497→- `.gitignore` : exclusion de `vendor/`, `data/*.db`, IDE, OS
+   498→- `DEPLOY.md` : documentation simplifiée — plus de Composer, extensions réduites, structure sans `vendor/`
+   499→
+   500→---
+   501→
+   502→## [2.0.0] — 2026-06-10
+   503→
+   504→### Breaking Changes — Refonte du système de rôles
+   505→
+   506→- **Rôle Manager supprimé** : le rôle `manager` n'existe plus dans l'application. Il a été retiré de tous les fichiers : config.php, helpers.php, sidebar.php, handlers, pages, seed.php, promote.php, database.php, schema.sql, style.css, help.php. Les fonctionnalités de consultation élargie (tous les sites, synthèse, export, stats) sont déjà couvertes par le rôle CHSCT.
+   507→- **Système d'auto-promotion par préfixe supprimé** : le mécanisme `app_admin_prefix` (par défaut `adm.`) qui promouvait automatiquement les logins commençant par ce préfixe est supprimé. Ce système était source de confusion et de faille de sécurité potentielle.
+   508→- **Clé de config renommée** : `app_admin_usernames` → `app_superviseur_usernames` — le nom reflète désormais clairement son usage : liste de logins Windows séparés par virgules qui seront automatiquement promus Superviseur. Utile pour une première installation.
+   509→
+   510→### Attribution du rôle Superviseur (nouveau système)
+   511→
+   512→Deux méthodes pour obtenir le rôle Superviseur :
+   513→1. **Par un autre superviseur** via la gestion des utilisateurs dans l'interface
+   514→2. **Via la liste de config** `app_superviseur_usernames` (Paramètres → Application) — les utilisateurs de cette liste sont auto-promus à leur connexion via IIS
+   515→
+   516→### Sécurité — Corrections de confidentialité
+   517→
+   518→- **Visibilité agent par défaut = son site** : le défaut de `app_agent_visibility` passe de `'all'` à `'site'`. Par défaut, un agent ne voit que les signalements de son site.
+   519→- **Option 'all' supprimée** : l'option « Tous les signalements » n'est plus proposée dans les paramètres de visibilité agent. Seules les options « Son site » (par défaut) et « Ses propres signalements » sont disponibles.
+   520→- **Contrôle d'accès renforcé** : `canAccessReport()` dans helpers.php vérifie systématiquement que l'utilisateur a le droit d'accéder au signalement (déclarant, superviseur ou CHSCT).
+   521→- **Abandon de signalement** : réservé au superviseur uniquement (conforme à la documentation de référence).
+   522→
+   523→### Documentation
+   524→
+   525→- **help.php réécrit** : conforme à la documentation PDF de référence. 3 rôles uniquement (Agent, Superviseur, CHSCT). Section confidentialité ajoutée.
+   526→- **SPEC.md réécrit** : suppression des références LDAP, des fonctions obsolètes, du rôle Manager. Documentation du système de rôles à 3 profils.
+   527→- **README.md mis à jour** : reflète le nouveau système de rôles et d'attribution.
+   528→- **CHANGELOG.md mis à jour** : ce fichier.
+   529→
+   530→### Technique
+   531→
+   532→- `src/auth.php` : suppression des fonctions `determineProvisionRole()` (prefix + list) et `checkAndPromoteUser()` (prefix) — remplacées par un mécanisme simplifié basé uniquement sur la liste `app_superviseur_usernames`
+   533→- `src/config.php` : `ROLE_LABELS` ne contient plus que agent, superviseur, chsct. `APP_VERSION` → 2.0.0
+   534→- `src/helpers.php` : `getRoleBadgeClass()` sans manager, `canSeeAllSites()` sans manager, `getAgentVisibility()` défaut 'site'
+   535→- `schema.sql` : rôle commenté `'agent'|'superviseur'|'chsct'`, clé `app_superviseur_usernames` au lieu de `app_admin_prefix`/`app_admin_usernames`
+   536→- `src/database.php` : seed sans manager.dev, config keys mises à jour
+   537→- Tous les handlers et pages : retraits des références au rôle manager
+   538→- `public/css/style.css` : retrait de `--role-manager` et `.badge--manager`
+   539→- `promote.php` : rôles valides = agent, superviseur, chsct
+   540→
+   541→---
+   542→
+   543→## [1.1.0] — 2026-06-10
+   544→
+   545→### Sécurité — Corrections de confidentialité
+   546→
+   547→- **Vulnérabilité critique corrigée** : le défaut de `app_agent_visibility` passe de `'all'` à `'site'`. Par défaut, un agent ne voit plus que les signalements de son site.
+   548→- **Contrôle d'accès renforcé** : ajout de `canAccessReport()` dans helpers.php.
+   549→- **Rôle Manager corrigé** : le manager ne peut plus répondre aux signalements.
+   550→- **Abandon de signalement corrigé** : l'abandon est désormais réservé au superviseur.
+   551→- **Option 'all' supprimée des paramètres**.
+   552→
+   553→### Fonctionnalités métier ajoutées
+   554→
+   555→- **Réactivation d'utilisateur** : bouton « Réactiver » dans la liste des utilisateurs.
+   556→- **Modification de site** : bouton « Modifier » dans l'onglet « Gestion des sites ».
+   557→
+   558→### Code mort supprimé
+   559→
+   560→- `updateUserRole()`, `updateUserSite()`, `agentSeesOnlyOwn()` supprimées.
+   561→
+   562→---
+   563→
+   564→## [1.0.0] — 2025-06-05
+   565→
+   566→### Première version
+   567→
+   568→- Application SST DREETS BFC complète.
+   569→- 3 profils utilisateurs : Agent, Superviseur, CHSCT.
+   570→- 3 registres : RSST, RAMI, DGI.
+   571→- Authentification IIS Windows (prod) / mock login (dev).
+   572→- Notifications par e-mail, configuration SMTP.
+   573→- Statistiques, synthèse, export CSV.
+   574→- Gestion des utilisateurs et des sites.
+   575→

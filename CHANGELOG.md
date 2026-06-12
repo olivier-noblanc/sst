@@ -5,6 +5,10 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 ## [3.8.3] — 2026-06-12
 
+### Outil CLI — `nuclear-reset.php` : purge des signalements
+
+- **1** 🟡 **Script CLI `nuclear-reset.php`** — Outil de purge pour les phases de test. Supprime uniquement les données liées aux signalements (`reports`, `report_responses`, `report_sequence`, `audit_log`) et conserve les utilisateurs, sites, configuration et paramètres de notification. Demande confirmation en tapant `OUI` avant de supprimer. Réinitialise les compteurs auto-increment et lance un `VACUUM` SQLite. Usage : `php nuclear-reset.php`
+
 ### Nettoyage — Suppression code mort (report_id, sous-requêtes, migration)
 
 - **1** 🔴 **INSERT sans `report_id`** — L'INSERT dans `respondToReport()` et `seed.php` ne fournit plus `report_id`. La sous-requête `(SELECT id FROM reports WHERE uuid = ...)` est retirée. `report_id` est nullable depuis la migration one-shot exécutée sur le serveur.

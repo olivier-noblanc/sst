@@ -452,3 +452,28 @@ iisreset
 > Cela évite les conflits. La base SQLite (`data\sst.db`) est préservée car elle est dans `.gitignore`.
 > **Ne jamais utiliser `git pull`** sur le serveur de production — il peut créer des conflits de fusion
 > qui bloquent la mise à jour.
+
+### Purge des signalements (phase de test)
+
+Pour supprimer tous les signalements tout en conservant les utilisateurs, sites et configuration :
+
+```cmd
+cd C:\inetpub\sst
+php nuclear-reset.php
+```
+
+Le script affiche le nombre de signalements qui seront supprimés et demande une confirmation (taper `OUI`).
+
+**Ce qui est supprimé :**
+- `reports` — tous les signalements
+- `report_responses` — toutes les réponses des superviseurs
+- `report_sequence` — les compteurs de référence (rsst-25-001, etc.)
+- `audit_log` — le journal d'audit
+
+**Ce qui est conservé :**
+- `users` — tous les comptes utilisateurs
+- `sites` — les unités régionales
+- `config_app` — la configuration de l'application
+- `notification_settings` — les paramètres de notification email
+
+> **Note** : après un nuclear reset, les prochains signalements repartent à la séquence 001 de l'année en cours.

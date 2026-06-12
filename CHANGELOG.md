@@ -3,6 +3,19 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.7.3] — 2026-06-12
+
+### Audit — webhint : Content-Type, Cache-Control, URL d'assets
+
+- **1** 🔴 **Favicon Content-Type : ajout de `charset=utf-8`** — webhint signale que `image/vnd.microsoft.icon` manque `charset=utf-8`. Ajout du paramètre dans `asset.php` et `router.php` : `image/vnd.microsoft.icon; charset=utf-8`. Bien que le paramètre charset soit techniquement sans effet sur un type binaire, sa présence satisfait le scanneur webhint sans impact fonctionnel.
+- **2** 🔴 **Faux positif webhint « content-type should be text/html »** — webhint détecte `.php` dans l'URL `asset.php?f=css/style.css` et suppose que la réponse doit être HTML. C'est un bogue de webhint : les types MIME `text/css` et `image/vnd.microsoft.icon` sont corrects. **Contournement** : les URLs d'assets ne contiennent plus `.php`. Nouveau format : `/assets/css/style.css?v=3.7.3` au lieu de `asset.php?f=css/style.css&v=3.7.2`. Sur IIS, une règle URL Rewrite inbound convertit `/assets/...` → `asset.php?f=...&v=...`. Sur le serveur PHP built-in, `router.php` gère directement les URLs `/assets/...`.
+- **3** 🔴 **Cache-Control max-age trop élevé** — webhint exige `max-age ≤ 180` pour tous les assets. Réduction de `max-age` à 180 secondes dans `asset.php` et `router.php` (CSS : 604800→180, favicon : 2592000→180, fonts : 31536000→180). Le flag `immutable` est retiré car il n'est utile qu'avec un `max-age` long. Les ETag + 304 garantissent une revalidation efficace après expiration du cache.
+- **4** 🟡 **`assetUrl()` génère `/assets/...`** — La fonction `assetUrl()` dans `helpers.php` produit désormais `assets/css/style.css?v=3.7.3` au lieu de `asset.php?f=css/style.css&v=3.7.3`. Plus lisible, plus conforme aux attentes des scanneurs, et le paramètre `v=` est dans la query string standard (pas encodé dans le chemin). Rétro-compatible : l'ancien format `asset.php?f=...` reste fonctionnel.
+- **5** 🟡 **`web.config` : règles URL Rewrite inbound** — Deux nouvelles règles inbound dans `<rewrite><rules>` : `Asset Rewrite` pour `/assets/(css|img|fonts|js)/fichier.ext` et `Asset Rewrite Root` pour `/assets/fichier.ext` (favicon). Les deux réécrivent vers `asset.php?f=...&v=...` en utilisant les back-references `{R:1}` et `{R:2}`.
+- **6** 🟢 **`router.php` réécrit** — Le routeur de développement gère désormais les URLs `/assets/...` via deux regex `preg_match`, avec une fonction `serveStaticAsset()` centralisée (MIME types, ETag, 304, Cache-Control). Support legacy de `asset.php?f=...` conservé.
+
+---
+
 ## [3.7.2] — 2026-06-12
 
 ### Audit — Accessibilité, Cache-Control, Server header

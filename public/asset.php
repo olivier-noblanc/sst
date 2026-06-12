@@ -62,7 +62,7 @@ $allowedExtensions = [
     'jpeg'  => 'image/jpeg',
     'gif'   => 'image/gif',
     'svg'   => 'image/svg+xml; charset=utf-8',
-    'ico'   => 'image/vnd.microsoft.icon',
+    'ico'   => 'image/vnd.microsoft.icon; charset=utf-8',
     'webp'  => 'image/webp',
     'woff'  => 'font/woff',
     'woff2' => 'font/woff2',
@@ -139,31 +139,15 @@ header('Content-Type: ' . $allowedExtensions[$ext]);
 header('X-Content-Type-Options: nosniff');
 
 // === Cache-Control ===
-// Versioned assets (?v=...): long cache — browser won't re-request until version changes
-// Unversioned assets: short cache to allow updates
+// All assets: max-age=180 (webhint audit requires ≤180)
+// ETag + 304 handle revalidation efficiently — long max-age is unnecessary
+// 'immutable' omitted: only useful with long max-age (180s is too short to benefit)
 $hasVersion = isset($_GET['v']) && $_GET['v'] !== '';
 if ($hasVersion) {
-    $maxAges = [
-        'css' => 604800,       // 7 days
-        'js'  => 604800,       // 7 days
-        'png' => 2592000,      // 30 days
-        'jpg' => 2592000,
-        'jpeg' => 2592000,
-        'gif' => 2592000,
-        'svg' => 2592000,
-        'ico' => 2592000,
-        'webp' => 2592000,
-        'woff'  => 31536000,   // 1 year
-        'woff2' => 31536000,
-        'ttf'  => 31536000,
-        'otf'  => 31536000,
-        'json' => 604800,
-        'webmanifest' => 604800,
-    ];
-    $maxAge = $maxAges[$ext] ?? 604800;
-    header('Cache-Control: public, max-age=' . $maxAge . ', immutable');
+    // Versioned: cached for 180s, then revalidates via ETag/304
+    header('Cache-Control: public, max-age=180');
 } else {
-    // Unversioned: short cache, must revalidate
+    // Unversioned: same short cache, must revalidate
     header('Cache-Control: public, max-age=180');
 }
 

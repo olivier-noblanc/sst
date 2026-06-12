@@ -307,14 +307,17 @@ function clearConfigCache(): void {
  * This gives PHP complete control over Cache-Control, X-Content-Type-Options,
  * ETag, Last-Modified, and all other headers — regardless of IIS configuration.
  *
- * Example: assetUrl('css/style.css') → 'asset.php?f=css/style.css&v=3.6.0'
+ * Example: assetUrl('css/style.css') → 'assets/css/style.css?v=3.7.3'
+ *
+ * On IIS (production): URL Rewrite rule converts /assets/... → asset.php?f=...&v=...
+ * On PHP built-in server (dev): router.php handles /assets/... directly
  *
  * @param string $path  Asset path relative to public/ (e.g. 'css/style.css')
  * @return string
  */
 function assetUrl(string $path): string {
     $version = defined('APP_VERSION') ? APP_VERSION : '0';
-    return 'asset.php?f=' . urlencode($path) . '&v=' . urlencode($version);
+    return 'assets/' . $path . '?v=' . urlencode($version);
 }
 
 /**

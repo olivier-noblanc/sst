@@ -5,6 +5,9 @@
  * This router file prevents the built-in server from crashing
  * by handling static files and routing PHP requests properly.
  *
+ * Handles both /assets/css/style.css?v=... (new format) and
+ * asset.php?f=...&v=... (legacy format, backward compatible).
+ *
  * Static files: served with correct Content-Type + Cache-Control + security headers.
  * Gzip: enabled for PHP output only (not for already-compressed static files).
  */
@@ -15,67 +18,38 @@ header_remove('Server');
 header_remove('Expires');
 header_remove('Pragma');
 
-// Serve static files directly (before any output buffering)
+// Serve static files via /assets/... URL pattern (primary)
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $publicPath = __DIR__;
 
-if ($uri !== '/' && $uri !== '/index.php' && file_exists($publicPath . $uri)) {
-    $ext = strtolower(pathinfo($uri, PATHINFO_EXTENSION));
+// Handle /assets/... → serve file directly with proper headers
+// e.g. /assets/css/style.css?v=3.7.3 → public/css/style.css
+if (preg_match('#^/assets/(css|img|fonts|js)/(.+)$#', $uri, $matches)) {
+    $filePath = $publicPath . '/' . $matches[1] . '/' . $matches[2];
+    serveStaticAsset($filePath, $matches[2]);
+    return true;
+}
+// Handle /assets/filename.ext → root-level (favicon.ico, favicon.png)
+if (preg_match('#^/assets/([^/]+)$#', $uri, $matches)) {
+    $filePath = $publicPath . '/' . $matches[1];
+    serveStaticAsset($filePath, $matches[1]);
+    return true;
+}
 
-    // MIME types with charset for text formats
-    $mimeTypes = [
-        'css'   => 'text/css; charset=utf-8',
-        'js'    => 'application/javascript; charset=utf-8',
-        'png'   => 'image/png',
-        'jpg'   => 'image/jpeg',
-        'jpeg'  => 'image/jpeg',
-        'gif'   => 'image/gif',
-        'svg'   => 'image/svg+xml',
-        'ico'   => 'image/vnd.microsoft.icon',
-        'webp'  => 'image/webp',
-        'woff'  => 'font/woff',
-        'woff2' => 'font/woff2',
-        'ttf'   => 'font/ttf',
-        'otf'   => 'font/otf',
-        'json'  => 'application/json; charset=utf-8',
-    ];
-
-    if (isset($mimeTypes[$ext])) {
-        // Set Content-Type with proper charset
-        header('Content-Type: ' . $mimeTypes[$ext]);
-
-        // Cache-Control for static assets with cache busting support
-        // If ?v= parameter is present, allow longer cache (asset is versioned)
-        $hasVersionParam = isset($_GET['v']);
-        if (in_array($ext, ['css', 'js'])) {
-            if ($hasVersionParam) {
-                header('Cache-Control: public, max-age=604800'); // 7 days when versioned
-            } else {
-                header('Cache-Control: public, max-age=180'); // 3 min unversioned
-            }
-        } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'ico', 'svg', 'webp'])) {
-            if ($hasVersionParam) {
-                header('Cache-Control: public, max-age=2592000'); // 30 days when versioned
-            } else {
-                header('Cache-Control: public, max-age=180'); // 3 min unversioned
-            }
-        } elseif (in_array($ext, ['woff', 'woff2', 'ttf', 'otf'])) {
-            if ($hasVersionParam) {
-                header('Cache-Control: public, max-age=31536000'); // 1 year when versioned
-            } else {
-                header('Cache-Control: public, max-age=180'); // 3 min unversioned
-            }
+// Legacy: asset.php?f=...&v=... (backward compatible)
+if ($uri === '/asset.php') {
+    $file = $_GET['f'] ?? '';
+    if (!empty($file) && !str_contains($file, '..') && !str_starts_with($file, '/')) {
+        $filePath = $publicPath . '/' . $file;
+        if (file_exists($filePath) && is_file($filePath)) {
+            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            serveStaticAsset($filePath, $ext);
+            return true;
         }
-
-        // Vary: Accept-Encoding for proper caching
-        header('Vary: Accept-Encoding');
-
-        // X-Content-Type-Options: always set for all static assets
-        header('X-Content-Type-Options: nosniff');
-
-        readfile($publicPath . $uri);
-        return true;
     }
+    http_response_code(404);
+    echo 'Asset not found.';
+    return true;
 }
 
 // === Enable Gzip compression for PHP output only ===
@@ -91,3 +65,72 @@ if (extension_loaded('zlib')
 
 // Route everything else through index.php
 require __DIR__ . '/index.php';
+
+/**
+ * Serve a static asset with proper Content-Type, Cache-Control, and security headers.
+ */
+function serveStaticAsset(string $filePath, string $filenameOrExt): void {
+    if (!file_exists($filePath) || !is_file($filePath)) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'Asset not found.';
+        return;
+    }
+
+    $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+    // MIME types — same as asset.php for consistency
+    $mimeTypes = [
+        'css'   => 'text/css; charset=utf-8',
+        'js'    => 'application/javascript; charset=utf-8',
+        'png'   => 'image/png',
+        'jpg'   => 'image/jpeg',
+        'jpeg'  => 'image/jpeg',
+        'gif'   => 'image/gif',
+        'svg'   => 'image/svg+xml; charset=utf-8',
+        'ico'   => 'image/vnd.microsoft.icon; charset=utf-8',
+        'webp'  => 'image/webp',
+        'woff'  => 'font/woff',
+        'woff2' => 'font/woff2',
+        'ttf'   => 'font/ttf',
+        'otf'   => 'font/otf',
+        'json'  => 'application/json; charset=utf-8',
+        'webmanifest' => 'application/manifest+json; charset=utf-8',
+    ];
+
+    if (!isset($mimeTypes[$ext])) {
+        http_response_code(403);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'Asset type not allowed.';
+        return;
+    }
+
+    // Content-Type
+    header('Content-Type: ' . $mimeTypes[$ext]);
+
+    // X-Content-Type-Options
+    header('X-Content-Type-Options: nosniff');
+
+    // Cache-Control: max-age=180 for all (webhint audit ≤180)
+    header('Cache-Control: public, max-age=180');
+
+    // ETag
+    $fileMtime = filemtime($filePath);
+    $fileSize = filesize($filePath);
+    $etag = '"' . dechex($fileMtime) . '-' . dechex($fileSize) . '-' . dechex(crc32($filenameOrExt)) . '"';
+
+    // 304 Not Modified
+    $clientEtag = $_SERVER['HTTP_IF_NONE_MATCH'] ?? null;
+    if ($clientEtag !== null && trim($clientEtag, " \t\n\r\0\x0B\"") === trim($etag, '"')) {
+        http_response_code(304);
+        header('ETag: ' . $etag);
+        return;
+    }
+
+    header('ETag: ' . $etag);
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $fileMtime) . ' GMT');
+    header('Vary: Accept-Encoding');
+    header('Content-Length: ' . $fileSize);
+
+    readfile($filePath);
+}

@@ -5,13 +5,19 @@
  * Serves all static assets (CSS, images, fonts, icons) through PHP
  * for FULL control over HTTP headers. No reliance on IIS static file serving.
  *
- * Usage:  asset.php?f=css/style.css&v=3.4.0
+ * AUTHENTICATION: This script requires Windows Authentication on IIS.
+ * There is NO anonymous access — even assets go through Windows Auth.
+ * In dev mode (PHP built-in server), no authentication is needed.
+ *
+ * Usage:  asset.php?f=css/style.css&v=3.6.0
  *
  * Security:
  *   - Path traversal prevention (no .. or absolute paths)
  *   - Whitelisted extensions only
  *   - Whitelisted directories only
  *   - No PHP files served
+ *   - Direct HTTP access to css/, img/, fonts/, js/ is blocked by web.config
+ *     (hiddenSegments) — only this script can read them via filesystem
  *
  * Headers:
  *   - Correct Content-Type with charset

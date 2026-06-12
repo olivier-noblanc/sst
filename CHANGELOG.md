@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.6.0] — 2026-06-12
+
+### Sécurité — Tout passe par l'authentification Windows
+
+- **1** 🔴 **Accès anonyme supprimé pour `asset.php`** — Le bloc `<location path="asset.php">` qui activait l'authentification anonyme pour ce script a été supprimé du `web.config`. Désormais, **toutes les requêtes** — y compris les assets statiques (CSS, images, fonts) — nécessitent une authentification Windows. Aucune ressource de l'application n'est accessible sans authentification préalable.
+- **2** 🔴 **Accès direct aux assets statiques bloqué par IIS** — Les répertoires `css/`, `img/`, `fonts/` et `js/` sont ajoutés aux `<hiddenSegments>` du `web.config`. Toute requête HTTP directe vers ces répertoires (ex: `/css/style.css`) renvoie une erreur 404 par IIS. Seul `asset.php` peut lire ces fichiers via le système de fichiers PHP (`readfile()`), qui n'est pas affecté par les hiddenSegments IIS. Cela garantit qu'aucun asset ne peut être servi sans passer par PHP et donc sans authentification Windows.
+- **3** 🟡 **`asset.php` — Documentation mise à jour** — Les commentaires du script documentent désormais le fait que l'authentification Windows est requise en production, et que l'accès direct aux répertoires d'assets est bloqué par le `web.config`.
+- **4** 🟡 **`web.config` — Commentaires clarifiés** — Les commentaires expliquent que TOUT passe par Windows Auth, qu'aucune exception d'accès anonyme n'existe, et pourquoi les hiddenSegments sont utilisés pour forcer le passage par `asset.php`.
+
+---
+
 ## [3.5.0] — 2026-06-12
 
 ### Serveur d'assets PHP — Contrôle total des headers HTTP

@@ -307,7 +307,7 @@ function clearConfigCache(): void {
  * This gives PHP complete control over Cache-Control, X-Content-Type-Options,
  * ETag, Last-Modified, and all other headers — regardless of IIS configuration.
  *
- * Example: assetUrl('css/style.css') → 'asset.php?f=css/style.css&v=3.4.0'
+ * Example: assetUrl('css/style.css') → 'asset.php?f=css/style.css&v=3.6.0'
  *
  * @param string $path  Asset path relative to public/ (e.g. 'css/style.css')
  * @return string

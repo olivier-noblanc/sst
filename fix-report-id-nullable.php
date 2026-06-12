@@ -28,7 +28,7 @@ if (!is_writable($dbPath)) {
 
 try {
     $pdo = new PDO('sqlite:' . $dbPath);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::MODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec('PRAGMA journal_mode=WAL');
     $pdo->exec('PRAGMA busy_timeout=30000');
 

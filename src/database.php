@@ -414,26 +414,6 @@ function migrateSchema(PDO $pdo): void {
         error_log("Migration warning for schema_version: " . $e->getMessage());
     }
 
-    // === report_id NOT NULL: plus besoin de migration ===
-    // Anciennement, cette migration recréait la table pour rendre report_id nullable,
-    // car l'INSERT dans respondToReport() ne fournissait pas report_id.
-    // Depuis v3.8.1, l'INSERT fournit report_id via sous-requête :
-    //   (SELECT id FROM reports WHERE uuid = :report_uuid2)
-    // → L'INSERT fonctionne que report_id soit NOT NULL ou nullable.
-    // → La migration DROP/CREATE/ALTER causait "database table is locked" sous IIS
-    //   (SQLite ne supporte pas les écritures concurrentes).
-    // → Elle est supprimée : le code fonctionne sans elle.
-    // Nettoyage : supprimer la table orpheline _new si elle existe d'une ancienne tentative
-    try {
-        $newExists = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='report_responses_new'")->fetch();
-        if ($newExists) {
-            $pdo->exec('DROP TABLE report_responses_new');
-            error_log('[SST-MIGRATION] Dropped orphaned report_responses_new table (leftover from failed migration).');
-        }
-    } catch (Exception $e) {
-        error_log('[SST-MIGRATION] Cleanup report_responses_new: ' . $e->getMessage());
-    }
-
     // Also ensure indexes exist
     $indexes = [
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)',

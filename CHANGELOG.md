@@ -3,6 +3,16 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.8.3] — 2026-06-12
+
+### Nettoyage — Suppression code mort (report_id, sous-requêtes, migration)
+
+- **1** 🔴 **INSERT sans `report_id`** — L'INSERT dans `respondToReport()` et `seed.php` ne fournit plus `report_id`. La sous-requête `(SELECT id FROM reports WHERE uuid = ...)` est retirée. `report_id` est nullable depuis la migration one-shot exécutée sur le serveur.
+- **2** 🟡 **Bloc migration `report_responses_new` supprimé** — Le nettoyage de la table orpheline `report_responses_new` dans `database.php` est retiré (la migration one-shot a déjà tout nettoyé sur le serveur).
+- **3** 🟢 **Zéro trace résiduelle** — Plus aucune référence à `report_uuid2`, `report_responses_new`, ou la sous-requête `SELECT id FROM reports WHERE uuid` dans les INSERT.
+
+---
+
 ## [3.8.2] — 2026-06-12
 
 ### Correctif — Suppression migration report_id nullable (database table is locked)

@@ -454,12 +454,11 @@ foreach ($sampleReports as $report) {
     if (!empty($report['reponse']) && !empty($report['repondant_id'])) {
         $nouvelEtat = $report['etat'];
         $stmt2 = $pdo->prepare("
-            INSERT INTO report_responses (report_uuid, report_id, user_id, reponse, nouvel_etat)
-            VALUES (:report_uuid, (SELECT id FROM reports WHERE uuid = :report_uuid2), :user_id, :reponse, :nouvel_etat)
+            INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
+            VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
         ");
         $stmt2->execute([
             ':report_uuid'   => $reportUuid,
-            ':report_uuid2'  => $reportUuid,
             ':user_id'     => $report['repondant_id'],
             ':reponse'     => $report['reponse'],
             ':nouvel_etat' => $nouvelEtat,

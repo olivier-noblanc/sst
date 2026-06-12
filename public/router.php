@@ -31,7 +31,7 @@ if ($uri !== '/' && $uri !== '/index.php' && file_exists($publicPath . $uri)) {
         'jpeg'  => 'image/jpeg',
         'gif'   => 'image/gif',
         'svg'   => 'image/svg+xml',
-        'ico'   => 'image/x-icon',
+        'ico'   => 'image/vnd.microsoft.icon',
         'webp'  => 'image/webp',
         'woff'  => 'font/woff',
         'woff2' => 'font/woff2',

@@ -46,8 +46,8 @@ $menuItems = [
     ['label' => 'Journal',        'icon' => '&#128220;', 'page' => 'logs',                'params' => [],                                  'roles' => ['superviseur']],
 ];
 ?>
-<!-- Hidden checkbox for CSS-only sidebar toggle (mobile) -->
-<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox" aria-hidden="true" hidden>
+<!-- Hidden checkbox for CSS-only sidebar toggle (mobile) — tabindex="-1" prevents focus since hidden attr is not always sufficient -->
+<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox" tabindex="-1" hidden>
 <label for="sidebar-toggle" class="sidebar-overlay" aria-hidden="true"></label>
 <nav class="sidebar" id="sidebar-nav" role="navigation" aria-label="Menu principal">
     <ul class="sidebar__nav">

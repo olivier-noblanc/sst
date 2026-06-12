@@ -62,7 +62,7 @@ $allowedExtensions = [
     'jpeg'  => 'image/jpeg',
     'gif'   => 'image/gif',
     'svg'   => 'image/svg+xml; charset=utf-8',
-    'ico'   => 'image/x-icon',
+    'ico'   => 'image/vnd.microsoft.icon',
     'webp'  => 'image/webp',
     'woff'  => 'font/woff',
     'woff2' => 'font/woff2',

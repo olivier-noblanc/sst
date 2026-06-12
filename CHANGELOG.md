@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.7.2] — 2026-06-12
+
+### Audit — Accessibilité, Cache-Control, Server header
+
+- **1** 🔴 **ARIA : élément caché ne doit pas être focusable** — Le checkbox `#sidebar-toggle` avait `aria-hidden="true"` mais restait techniquement focusable au clavier (violation axe-core « ARIA hidden element must not contain focusable elements »). Remplacement par `tabindex="-1"` sans `aria-hidden` : l'attribut `hidden` le cache déjà de l'arbre d'accessibilité, `tabindex="-1"` empêche le focus programme.
+- **2** 🔴 **Cache-Control : `no-cache` sans `max-age=0`** — L'audit signalait que `max-age` ne doit pas coexister avec `no-cache` (redondance). Remplacement de `Cache-Control: no-cache, max-age=0` par `Cache-Control: no-cache` dans 7 fichiers (header.php, login.php, choose_site.php, report_print.php, report_attachment.php, export_handler.php, user_edit_handler.php). La directive `no-cache` seule suffit : elle impose la revalidation systématique.
+- **3** 🔴 **Header `Server: microsoft-iis/10.0` supprimé via web.config** — IIS ajoute le header Server APRÈS PHP, rendant `header_remove('Server')` inefficace. Ajout d'une règle URL Rewrite sortante dans `web.config` qui remplace la valeur de `RESPONSE_Server` par une chaîne vide. Prérequis : module URL Rewrite installé sur IIS (déjà requis par le projet).
+- **4** 🟡 **Favicon Content-Type standardisé** — `image/x-icon` remplacé par `image/vnd.microsoft.icon` (type MIME IANA officiel) dans `asset.php` et `router.php`. Pas de `charset` sur les types binaires.
+- **5** 🟡 **Faux positifs documentés** — L'audit signale que le `content-type` des assets CSS et favicon devrait être `text/html` : c'est une erreur de l'outil d'audit (les types `text/css` et `image/vnd.microsoft.icon` sont corrects). L'audit recommande aussi un `max-age ≤ 180` pour les assets versionnés avec `immutable` : c'est un faux positif (les assets versionnés avec cache busting doivent avoir un long cache pour la performance).
+
+---
+
 ## [3.7.1] — 2026-06-12
 
 ### Correctif — Migration report_responses bloquée

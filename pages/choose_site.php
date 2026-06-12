@@ -19,7 +19,7 @@ header_remove('Expires');
 header_remove('Pragma');
 
 // === Cache-Control: no-cache for this dynamic page ===
-header('Cache-Control: no-cache, max-age=0');
+header('Cache-Control: no-cache');
 
 // === Security Headers (same as header.php — this page bypasses layout) ===
 header('X-Content-Type-Options: nosniff');

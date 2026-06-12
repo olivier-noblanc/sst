@@ -58,7 +58,7 @@ if ($action === 'export_data') {
     header_remove('Server');
     header_remove('Expires');
     header_remove('Pragma');
-    header('Cache-Control: no-cache, max-age=0');
+    header('Cache-Control: no-cache');
     header('X-Content-Type-Options: nosniff');
     echo $json;
     exit;

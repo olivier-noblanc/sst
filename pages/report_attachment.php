@@ -84,7 +84,7 @@ $disposition = ($inline && $isImage) ? 'inline' : 'attachment';
 header('Content-Type: ' . $mime);
 header('Content-Disposition: ' . $disposition . '; filename="' . str_replace('"', '\\"', $name) . '"');
 header('Content-Length: ' . strlen($row['attachment_blob']));
-header('Cache-Control: no-cache, max-age=0');
+header('Cache-Control: no-cache');
 header('X-Content-Type-Options: nosniff');
 echo $row['attachment_blob'];
 exit;

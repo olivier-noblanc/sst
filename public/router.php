@@ -5,10 +5,62 @@
  * This router file prevents the built-in server from crashing
  * by handling static files and routing PHP requests properly.
  *
- * Gzip compression is enabled for both static files and PHP output.
+ * Static files: served with correct Content-Type + Cache-Control.
+ * Gzip: enabled for PHP output only (not for already-compressed static files).
  */
 
-// === Enable Gzip compression for all output ===
+// Serve static files directly (before any output buffering)
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$publicPath = __DIR__;
+
+if ($uri !== '/' && $uri !== '/index.php' && file_exists($publicPath . $uri)) {
+    $ext = strtolower(pathinfo($uri, PATHINFO_EXTENSION));
+
+    // MIME types with charset for text formats
+    $mimeTypes = [
+        'css'   => 'text/css; charset=utf-8',
+        'js'    => 'application/javascript; charset=utf-8',
+        'png'   => 'image/png',
+        'jpg'   => 'image/jpeg',
+        'jpeg'  => 'image/jpeg',
+        'gif'   => 'image/gif',
+        'svg'   => 'image/svg+xml',
+        'ico'   => 'image/x-icon',
+        'webp'  => 'image/webp',
+        'woff'  => 'font/woff',
+        'woff2' => 'font/woff2',
+        'ttf'   => 'font/ttf',
+        'otf'   => 'font/otf',
+        'json'  => 'application/json; charset=utf-8',
+    ];
+
+    if (isset($mimeTypes[$ext])) {
+        // Set Content-Type with proper charset
+        header('Content-Type: ' . $mimeTypes[$ext]);
+
+        // Cache-Control for static assets
+        if (in_array($ext, ['css', 'js'])) {
+            header('Cache-Control: public, max-age=604800');
+        } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'ico', 'svg', 'webp'])) {
+            header('Cache-Control: public, max-age=2592000');
+        } elseif (in_array($ext, ['woff', 'woff2', 'ttf', 'otf'])) {
+            header('Cache-Control: public, max-age=31536000');
+        }
+
+        // Vary: Accept-Encoding for proper caching
+        header('Vary: Accept-Encoding');
+
+        // X-Content-Type-Options for text-based assets only
+        if (in_array($ext, ['css', 'js', 'json', 'svg'])) {
+            header('X-Content-Type-Options: nosniff');
+        }
+
+        readfile($publicPath . $uri);
+        return true;
+    }
+}
+
+// === Enable Gzip compression for PHP output only ===
 if (extension_loaded('zlib')
     && !ini_get('zlib.output_compression')
     && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
@@ -17,49 +69,6 @@ if (extension_loaded('zlib')
     ob_start('ob_gzhandler');
 } else {
     ob_start();
-}
-
-// Serve static files directly
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$publicPath = __DIR__;
-
-// Check if the request is for a static file that exists
-if ($uri !== '/' && $uri !== '/index.php' && file_exists($publicPath . $uri)) {
-    // Serve the static file
-    $ext = pathinfo($uri, PATHINFO_EXTENSION);
-    $mimeTypes = [
-        'css' => 'text/css',
-        'js'  => 'application/javascript',
-        'png' => 'image/png',
-        'jpg' => 'image/jpeg',
-        'gif' => 'image/gif',
-        'svg' => 'image/svg+xml',
-        'ico' => 'image/x-icon',
-        'woff'  => 'font/woff',
-        'woff2' => 'font/woff2',
-        'ttf'   => 'font/ttf',
-        'json'  => 'application/json',
-    ];
-    
-    if (isset($mimeTypes[$ext])) {
-        header('Content-Type: ' . $mimeTypes[$ext]);
-
-        // Cache-Control for static assets
-        if (in_array($ext, ['css', 'js'])) {
-            header('Cache-Control: public, max-age=604800, immutable');
-        } elseif (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'ico', 'svg'])) {
-            header('Cache-Control: public, max-age=2592000');
-        } elseif (in_array($ext, ['woff', 'woff2', 'ttf'])) {
-            header('Cache-Control: public, max-age=31536000, immutable');
-        }
-
-        // Vary: Accept-Encoding for proper caching with gzip
-        header('Vary: Accept-Encoding');
-
-        readfile($publicPath . $uri);
-        ob_end_flush();
-        return true;
-    }
 }
 
 // Route everything else through index.php

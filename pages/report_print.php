@@ -499,8 +499,6 @@ while (ob_get_level() > 0) {
 
 // Cache-Control: no-cache for this dynamically generated PDF
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-header('Pragma: no-cache');
-header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
 
 $filename = 'signalement-' . $report['reference'] . '.pdf';
 $pdf->Output('I', $filename, true);

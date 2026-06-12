@@ -2,6 +2,20 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [3.2.0] — 2026-06-12
+
+### Correctif — CSS non chargé + headers HTTP conformes
+
+- **1** 🔴 **CSS servi avec `application/octet-stream` au lieu de `text/css`** — Le `.htaccess` appliquait `Header always set` sur TOUTES les réponses (CSS inclus), ce qui ajoutait CSP, X-Frame-Options, Cache-Control no-cache sur les assets statiques. Le navigateur bloquait le CSS. Correction : les security headers sont désormais envoyés uniquement par PHP (header.php), le `.htaccess` ne gère plus que le cache statique et les MIME types.
+- **2** 🔴 **`Cache-Control` manquant sur les assets statiques** — Les fichiers CSS/JS/images n'avaient pas de `Cache-Control` propre. Le `.htaccess`, `router.php` et `web.config` servent désormais les assets statiques avec les bons headers : CSS/JS 7 jours, images 30 jours, fonts 1 an.
+- **3** 🟡 **`Content-Type: text/css; charset=utf-8`** — Le CSS est désormais servi avec le charset explicite. Le `router.php` ajoute `charset=utf-8` à tous les types texte (CSS, JS, JSON, SVG).
+- **4** 🟡 **Headers dépréciés supprimés** — `Pragma` (requête uniquement, pas réponse), `Expires` (remplacé par `Cache-Control`), `X-Frame-Options` (remplacé par CSP `frame-ancestors 'none'`), `X-XSS-Protection` (remplacé par CSP) supprimés de `header.php`, `login.php`, `choose_site.php`, `report_print.php`, `report_attachment.php`, `export_handler.php`, `user_edit_handler.php`.
+- **5** 🟡 **`X-Powered-By` supprimé** — `header_remove('X-Powered-By')` ajouté dans `index.php`, `header.php`, `login.php` et `choose_site.php` pour ne pas divulguer la version PHP.
+- **6** 🟡 **`web.config` IIS corrigé** — `staticContent` réécrit avec MIME types explicites et Cache-Control par type d'asset. `customHeaders` réduit aux seuls headers utiles (CSP, nosniff, Referrer-Policy, Permissions-Policy). `X-Frame-Options` et `X-XSS-Protection` retirés (redondants avec CSP).
+- **7** 🟡 **`router.php` réécrit** — Les fichiers statiques sont servis AVANT l'output buffering gzip. Chaque type MIME a son charset. Seuls les assets texte ont `X-Content-Type-Options: nosniff`.
+
+---
+
 ## [3.1.0] — 2026-06-12
 
 ### Accessibilité — WCAG 2.1 (10/10)

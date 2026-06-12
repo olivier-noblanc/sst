@@ -79,7 +79,5 @@ header('Content-Type: ' . $mime);
 header('Content-Disposition: ' . $disposition . '; filename="' . str_replace('"', '\\"', $name) . '"');
 header('Content-Length: ' . strlen($row['attachment_blob']));
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-header('Pragma: no-cache');
-header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
 echo $row['attachment_blob'];
 exit;

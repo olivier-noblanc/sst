@@ -67,6 +67,10 @@ while (ob_get_level() > 0) {
     ob_end_clean();
 }
 
+// Remove disclosing headers
+header_remove('X-Powered-By');
+header('Server: ');
+
 // Check if inline mode is requested (for image preview in browser)
 $inline = !empty($_GET['inline']);
 
@@ -78,6 +82,7 @@ $disposition = ($inline && $isImage) ? 'inline' : 'attachment';
 header('Content-Type: ' . $mime);
 header('Content-Disposition: ' . $disposition . '; filename="' . str_replace('"', '\\"', $name) . '"');
 header('Content-Length: ' . strlen($row['attachment_blob']));
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: no-cache, max-age=0');
+header('X-Content-Type-Options: nosniff');
 echo $row['attachment_blob'];
 exit;

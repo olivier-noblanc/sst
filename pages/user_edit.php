@@ -109,7 +109,7 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
 <?php if ($user['is_active'] && (int) $user['id'] !== (int) ($_SESSION['user']['id'] ?? 0)): ?>
 <div class="card card--danger">
     <h3 class="section-header--danger">Zone dangereuse</h3>
-    <p class="text-muted" style="margin-bottom:16px;">La désactivation rendra le compte inutilisable. Cette action est réversible.</p>
+    <p class="text-muted mb-4">La désactivation rendra le compte inutilisable. Cette action est réversible.</p>
 
     <?php if (isset($_GET['confirm_delete'])): ?>
     <!-- Confirmation inline — pas de JavaScript -->

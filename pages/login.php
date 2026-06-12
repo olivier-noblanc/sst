@@ -12,14 +12,17 @@
 // === Remove X-Powered-By (PHP version disclosure) ===
 header_remove('X-Powered-By');
 
+// === Remove Server version info ===
+header('Server: ');
+
 // === Cache-Control: no-cache for this dynamic page ===
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: no-cache, max-age=0');
 
 // === Security Headers (same as header.php — this page is standalone) ===
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 
 $pageTitle = 'Connexion';
 
@@ -99,13 +102,13 @@ if (isset($_SESSION['user'])) {
                     <li><code>agent.dev</code> — Agent (choix du site au login)</li>
                     <li><code>chsct.dev</code> — Membre CHSCT (UR25 Doubs)</li>
                 </ul>
-                <p style="font-size:12px;color:var(--grey-500);margin-top:8px;">
+                <p class="text-small text-muted mt-2">
                     Tout autre nom d'utilisateur créera un compte agent automatiquement.
                 </p>
-                <p style="font-size:12px;color:var(--grey-500);margin-top:8px;">
+                <p class="text-small text-muted mt-2">
                     💡 Pour devenir superviseur, ajoutez votre identifiant dans <em>Paramètres → Application → Logins Windows des superviseurs</em>.
                 </p>
-                <p style="font-size:11px;color:var(--grey-400);margin-top:12px;border-top:1px solid var(--grey-200);padding-top:8px;">
+                <p class="login-disclaimer">
                     ⚠ Sur un serveur IIS en production, cette page n'existe pas. L'authentification est automatique via Windows Authentication.
                 </p>
             </div>

@@ -9,6 +9,12 @@
  * Gzip: enabled for PHP output only (not for already-compressed static files).
  */
 
+// === Remove X-Powered-By header ===
+header_remove('X-Powered-By');
+
+// === Remove Server version info ===
+header('Server: ');
+
 // Serve static files directly (before any output buffering)
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $publicPath = __DIR__;

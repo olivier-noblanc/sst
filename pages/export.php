@@ -25,7 +25,7 @@ $pageTitle = 'Export des données';
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="card">
-    <p class="text-muted" style="margin-bottom:16px;">
+    <p class="text-muted mb-4">
         Sélectionnez les critères de filtrage pour exporter les données en format CSV (séparateur point-virgule, compatible Excel).
     </p>
 
@@ -36,7 +36,7 @@ $pageTitle = 'Export des données';
             <!-- Registre -->
             <div class="form-group">
                 <label for="type">Registre</label>
-                <div class="btn-group--inline" style="align-items:center;">
+                <div class="btn-group--inline items-center">
                     <select name="type" id="type">
                         <option value="" <?php echo empty($formData['type']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <option value="rsst" <?php echo ($formData['type'] ?? '') === 'rsst' ? 'selected' : ''; ?>>RSST</option>
@@ -54,7 +54,7 @@ $pageTitle = 'Export des données';
             <!-- Site -->
             <div class="form-group">
                 <label for="site_id">Site</label>
-                <div class="btn-group--inline" style="align-items:center;">
+                <div class="btn-group--inline items-center">
                     <select name="site_id" id="site_id">
                         <option value="" <?php echo empty($formData['site_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($sites as $site): ?>
@@ -72,7 +72,7 @@ $pageTitle = 'Export des données';
             <!-- Agent -->
             <div class="form-group">
                 <label for="declarant_id">Agent</label>
-                <div class="btn-group--inline" style="align-items:center;">
+                <div class="btn-group--inline items-center">
                     <select name="declarant_id" id="declarant_id">
                         <option value="" <?php echo empty($formData['declarant_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($users as $u): ?>
@@ -91,9 +91,9 @@ $pageTitle = 'Export des données';
             <div class="form-group">
                 <label>Période</label>
                 <div class="date-range">
-                    <input type="date" name="date_from" id="date_from" value="<?php echo e($formData['date_from'] ?? ''); ?>" placeholder="Début" aria-describedby="hint_date_range" style="flex:1;">
+                    <input type="date" name="date_from" id="date_from" value="<?php echo e($formData['date_from'] ?? ''); ?>" placeholder="Début" aria-describedby="hint_date_range" class="flex-1">
                     <span>&agrave;</span>
-                    <input type="date" name="date_to" id="date_to" value="<?php echo e($formData['date_to'] ?? ''); ?>" placeholder="Fin" aria-describedby="hint_date_range" style="flex:1;">
+                    <input type="date" name="date_to" id="date_to" value="<?php echo e($formData['date_to'] ?? ''); ?>" placeholder="Fin" aria-describedby="hint_date_range" class="flex-1">
                 </div>
                 <div class="form-hint" id="hint_date_range">Laissez vide pour aucune restriction de date</div>
             </div>

@@ -89,7 +89,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
 <div class="card card--spaced content-section">
     <h2>&#x1F512; Tableau des droits</h2>
     <div class="table-wrapper">
-        <table class="table table--compact" style="min-width:500px;" aria-label="Permissions par profil">
+        <table class="table table--compact help-rights-table" aria-label="Permissions par profil">
             <thead>
                 <tr>
                     <th class="text-left">Fonctionnalité</th>

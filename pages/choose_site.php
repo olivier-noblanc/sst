@@ -13,14 +13,17 @@
 // === Remove X-Powered-By (PHP version disclosure) ===
 header_remove('X-Powered-By');
 
+// === Remove Server version info ===
+header('Server: ');
+
 // === Cache-Control: no-cache for this dynamic page ===
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: no-cache, max-age=0');
 
 // === Security Headers (same as header.php — this page bypasses layout) ===
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 
 $pageTitle = 'Choisir mon site';
 
@@ -38,10 +41,10 @@ $labelUnite = getConfig('app_label_unite', 'UR');
 <h1 class="page-title"><span aria-hidden="true">&#x1F4CD;</span> Choisissez votre <?php echo e($labelUnite); ?></h1>
 
 <div class="card container--narrow">
-    <p style="margin-bottom:8px;font-size:14px;">
+    <p class="choose-site-welcome">
         Bienvenue, <strong><?php echo e($_SESSION['user']['prenom'] ?? ''); ?> <?php echo e($_SESSION['user']['nom'] ?? ''); ?></strong>.
     </p>
-    <p class="text-muted text-small" style="margin-bottom:16px;">
+    <p class="text-muted text-small mb-4">
         Avant de continuer, vous devez sélectionner votre site (<?php echo e($labelUnite); ?>). 
         Ce choix est <strong>définitif</strong> — vous ne pourrez pas le modifier vous-même par la suite. 
         Seul un superviseur pourra le changer si nécessaire.

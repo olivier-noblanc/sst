@@ -35,10 +35,10 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+    <div class="user-profile-header">
         <div>
-            <h2 class="card__subtitle" style="margin-bottom:4px;"><?php echo e($user['prenom'] . ' ' . $user['nom']); ?></h2>
-            <div class="btn-group--inline" style="align-items:center;">
+            <h2 class="card__subtitle mb-1"><?php echo e($user['prenom'] . ' ' . $user['nom']); ?></h2>
+            <div class="btn-group--inline items-center">
                 <span class="badge <?php echo getRoleBadgeClass($user['role']); ?>"><?php echo e(ROLE_LABELS[$user['role']] ?? $user['role']); ?></span>
                 <?php if ($user['is_active']): ?>
                     <span class="status-dot--active">&#x25CF; Actif</span>
@@ -96,13 +96,13 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
 </div>
 
 <?php if ($user['is_active'] || $user['nom'] !== 'Anonymisé'): ?>
-<div class="card rgpd-section" style="margin-top:20px;">
+<div class="card rgpd-section mt-5">
     <h3 class="card__subtitle text-muted">RGPD — Données personnelles</h3>
     <p class="rgpd-section__desc">
         Conformément au RGPD, l'utilisateur peut exercer son droit d'accès (export) ou d'effacement (anonymisation).
         L'anonymisation remplace les données personnelles par des placeholders et désactive le compte. Les signalements sont conservés.
     </p>
-    <div class="btn-group" style="flex-wrap:wrap;">
+    <div class="btn-group flex-wrap">
         <form method="POST" action="<?php echo url('user_edit', ['id' => (int) $user['id']]); ?>">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
             <input type="hidden" name="action" value="export_data">

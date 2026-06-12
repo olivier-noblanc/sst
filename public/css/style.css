@@ -621,6 +621,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .breadcrumb__separator {
     color: var(--grey-400);
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -920,6 +921,7 @@ th {
     border-bottom: 2px solid var(--grey-300);
     white-space: nowrap;
     cursor: default;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -2200,3 +2202,64 @@ tr:hover td {
         font-size: 13px;
     }
 }
+
+/* ============================================================
+   30. Extracted Inline Styles — Utility & Contextual Classes
+   ============================================================ */
+
+/* Spacing utilities */
+.mt-1 { margin-top: 4px; }
+.mt-2px { margin-top: 2px; }
+.mt-5 { margin-top: 20px; }
+.mt-6 { margin-top: 24px; }
+.mb-1 { margin-bottom: 4px; }
+.mb-3 { margin-bottom: 12px; }
+.mb-5 { margin-bottom: 20px; }
+.my-4 { margin: 16px 0; }
+.gap-3 { gap: 12px; }
+
+/* Layout utilities */
+.flex-1 { flex: 1; }
+.w-full { width: 100%; }
+.align-self-end { align-self: flex-end; }
+.block { display: block; }
+.whitespace-nowrap { white-space: nowrap; }
+
+/* Contextual: Floating action button (report list) */
+.btn-float-right { float: right; margin-top: -4px; }
+
+/* Contextual: Filter search group (report list) */
+.filter-search-group { flex: 1; min-width: 200px; }
+
+/* Contextual: User profile header (user view) */
+.user-profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+
+/* Contextual: Login page disclaimer */
+.login-disclaimer { font-size: 11px; color: var(--grey-400); margin-top: 12px; border-top: 1px solid var(--grey-200); padding-top: 8px; }
+
+/* Contextual: Access denied page */
+.access-denied-card { padding: 40px 20px; }
+.access-denied-icon { font-size: 48px; margin-bottom: 16px; }
+
+/* Contextual: Help page rights table */
+.help-rights-table { min-width: 500px; }
+
+/* Contextual: Choose site page welcome text */
+.choose-site-welcome { margin-bottom: 8px; font-size: 14px; }
+
+/* Contextual: Synthesis table colored headers */
+.synthesis-th-rsst { text-align: center; background: var(--rsst-color); color: white; }
+.synthesis-th-rami { text-align: center; background: var(--rami-color); color: white; }
+.synthesis-th-dgi { text-align: center; background: var(--dgi-color); color: white; }
+
+/* Contextual: Settings — SMTP test field */
+.smtp-test-field { margin-bottom: 0; flex: 1; max-width: 350px; }
+
+/* Contextual: Settings — visibility legend */
+.visibility-legend { font-weight: 600; font-size: 14px; margin-bottom: 8px; padding: 0; }
+
+/* Contextual: Settings — confirm delete label */
+.confirm-delete-label { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Contextual: Report card — abandon warning */
+.abandon-warning-text { font-weight: 600; color: var(--dgi-color); }

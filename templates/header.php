@@ -12,8 +12,11 @@
 // === Remove X-Powered-By (PHP version disclosure) ===
 header_remove('X-Powered-By');
 
+// === Remove Server version info ===
+header('Server: ');
+
 // === Cache-Control: no-cache for all dynamic pages ===
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: no-cache, max-age=0');
 
 // === Security Headers ===
 header('X-Content-Type-Options: nosniff');
@@ -21,7 +24,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 // Content-Security-Policy: allow same-origin only (no external resources)
 // frame-ancestors 'none' replaces X-Frame-Options (broader support)
-header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 ?>
 <!DOCTYPE html>
 <html lang="fr">

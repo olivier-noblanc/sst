@@ -1006,8 +1006,7 @@ public function Output($dest='', $name='', $isUTF8=false)
 				// We send to a browser
 				header('Content-Type: application/pdf');
 				header('Content-Disposition: inline; '.$this->_httpencode('filename', $name, $isUTF8));
-				header('Cache-Control: private, max-age=0, must-revalidate');
-				header('Pragma: public');
+				header('Cache-Control: private, max-age=0');
 			}
 			echo $this->buffer;
 			break;
@@ -1016,8 +1015,7 @@ public function Output($dest='', $name='', $isUTF8=false)
 			$this->_checkoutput();
 			header('Content-Type: application/pdf');
 			header('Content-Disposition: attachment; '.$this->_httpencode('filename', $name, $isUTF8));
-			header('Cache-Control: private, max-age=0, must-revalidate');
-			header('Pragma: public');
+			header('Cache-Control: private, max-age=0');
 			echo $this->buffer;
 			break;
 		case 'F':

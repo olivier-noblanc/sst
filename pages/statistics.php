@@ -87,7 +87,7 @@ $pageTitle = 'Statistiques';
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="form-group" style="align-self:flex-end;">
+    <div class="form-group align-self-end">
         <button type="submit" class="btn btn--outline">Filtrer</button>
     </div>
 </form>
@@ -125,29 +125,29 @@ $pageTitle = 'Statistiques';
             <thead>
                 <tr>
                     <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
-                    <th style="text-align:center;">RSST</th>
-                    <th style="text-align:center;">DGI</th>
-                    <th style="text-align:center;">RAMI</th>
-                    <th style="text-align:center;">Total</th>
+                    <th class="text-center">RSST</th>
+                    <th class="text-center">DGI</th>
+                    <th class="text-center">RAMI</th>
+                    <th class="text-center">Total</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($tableData as $td): ?>
                 <tr>
                     <td><strong><?php echo e($td['code']); ?></strong> — <?php echo e($td['nom']); ?></td>
-                    <td style="text-align:center;" class="<?php echo $td['rsst'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rsst']; ?></td>
-                    <td style="text-align:center;" class="<?php echo $td['dgi'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['dgi']; ?></td>
-                    <td style="text-align:center;" class="<?php echo $td['rami'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rami']; ?></td>
-                    <td style="text-align:center;" class="synthesis-cell-value"><strong><?php echo $td['total']; ?></strong></td>
+                    <td class="text-center <?php echo $td['rsst'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rsst']; ?></td>
+                    <td class="text-center <?php echo $td['dgi'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['dgi']; ?></td>
+                    <td class="text-center <?php echo $td['rami'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rami']; ?></td>
+                    <td class="text-center synthesis-cell-value"><strong><?php echo $td['total']; ?></strong></td>
                 </tr>
                 <?php endforeach; ?>
                 <!-- Totals row -->
                 <tr class="row--totals">
                     <td><strong>Total</strong></td>
-                    <td style="text-align:center;" class="synthesis-cell-value"><?php echo $totalRsst; ?></td>
-                    <td style="text-align:center;" class="synthesis-cell-value"><?php echo $totalDgi; ?></td>
-                    <td style="text-align:center;" class="synthesis-cell-value"><?php echo $totalRami; ?></td>
-                    <td style="text-align:center;" class="synthesis-cell-value"><strong><?php echo $totalAll; ?></strong></td>
+                    <td class="text-center synthesis-cell-value"><?php echo $totalRsst; ?></td>
+                    <td class="text-center synthesis-cell-value"><?php echo $totalDgi; ?></td>
+                    <td class="text-center synthesis-cell-value"><?php echo $totalRami; ?></td>
+                    <td class="text-center synthesis-cell-value"><strong><?php echo $totalAll; ?></strong></td>
                 </tr>
             </tbody>
         </table>

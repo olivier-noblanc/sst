@@ -51,10 +51,13 @@ if ($action === 'export_data') {
         ob_end_clean();
     }
 
-    header('Content-Type: application/json; charset=UTF-8');
+    header('Content-Type: application/json; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Content-Length: ' . strlen($json));
-    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header_remove('X-Powered-By');
+    header('Server: ');
+    header('Cache-Control: no-cache, max-age=0');
+    header('X-Content-Type-Options: nosniff');
     echo $json;
     exit;
 }

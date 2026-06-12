@@ -12,6 +12,9 @@
 // === Remove X-Powered-By header (PHP version disclosure) ===
 header_remove('X-Powered-By');
 
+// === Remove Server version info ===
+header('Server: ');
+
 // === Enable Gzip compression (PHP-level, server-independent) ===
 if (extension_loaded('zlib')
     && !ini_get('zlib.output_compression')

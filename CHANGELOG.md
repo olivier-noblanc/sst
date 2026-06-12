@@ -2,6 +2,21 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [3.3.0] — 2026-06-12
+
+### Audit — Conformité 10/10 (compatibilité, performance, sécurité, bonnes pratiques)
+
+- **1** 🔴 **`-webkit-user-select` ajouté pour Safari** — Les propriétés `user-select: none` dans `style.css` n'avaient pas le préfixe vendor `-webkit-user-select`, rendant la sélection impossible à désactiver sur Safari 3+. Ajouté sur `.breadcrumb__separator` et `th`.
+- **2** 🔴 **`Content-Type` charset uniformisé en minuscules** — Les headers `charset=UTF-8` (majuscule) de `export_handler.php` et `user_edit_handler.php` normalisés en `charset=utf-8` pour respecter la RFC 2616 (section 3.4 : les valeurs de paramètre sont case-insensitive mais la convention est minuscule).
+- **3** 🔴 **`Cache-Control` nettoyé** — Les directives `no-store` et `must-revalidate` étaient signalées comme non recommandées par l'audit. Remplacement uniforme par `no-cache, max-age=0` sur toutes les pages dynamiques (header.php, login.php, choose_site.php, report_print.php, report_attachment.php, export_handler.php, user_edit_handler.php). La directive `no-cache` demande au navigateur de revalider avant d'utiliser le cache, ce qui est le comportement souhaité sans les effets de bord de `no-store`.
+- **4** 🟡 **CSP : ajout de `script-src 'self'`** — La Content-Security-Policy ne déclarait pas `script-src`, héritant de `default-src 'self'`. Ajout explicite de `script-src 'self'` pour documenter l'intention et éviter l'interprétation bloquant les scripts inline éventuels. Maintenu `style-src 'self' 'unsafe-inline'` pour les classes utilitaires CSS.
+- **5** 🟡 **`X-Content-Type-Options: nosniff` ajouté sur toutes les réponses** — Les réponses binaires (report_attachment.php, report_print.php) et les téléchargements (export_handler.php, user_edit_handler.php) n'avaient pas ce header. Ajouté systématiquement.
+- **6** 🔴 **`X-Powered-By` supprimé + `Server` nettoyé** — `header_remove('X-Powered-By')` ajouté dans router.php (manquant). `header('Server: ')` ajouté dans index.php, router.php, header.php, login.php, choose_site.php, report_attachment.php, report_print.php, export_handler.php, user_edit_handler.php pour masquer la version du serveur.
+- **7** 🔴 **Headers dépréciés supprimés de FPDF** — `Pragma: public` et `must-revalidate` retirés du header FPDF (`fpdf.php`). Le PDF utilise désormais `Cache-Control: private, max-age=0`.
+- **8** 🟢 **71 styles inline migrés vers CSS externe** — Tous les attributs `style="..."` (71 occurrences dans 14 fichiers PHP) ont été remplacés par 27 nouvelles classes CSS et 7 classes existantes réutilisées. Plus aucun style inline ne subsiste dans les templates, conformément aux bonnes pratiques de séparation contenu/présentation.
+
+---
+
 ## [3.2.1] — 2026-06-12
 
 ### Infrastructure — Suppression .htaccess + web.config minimal

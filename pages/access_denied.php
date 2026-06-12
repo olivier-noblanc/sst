@@ -7,10 +7,10 @@
  */
 $pageTitle = 'Accès refusé';
 ?>
-<div class="card empty-state" style="padding:40px 20px;">
-    <div style="font-size:48px;margin-bottom:16px;">&#x1F6AB;</div>
+<div class="card empty-state access-denied-card">
+    <div class="access-denied-icon">&#x1F6AB;</div>
     <h2>Accès refusé</h2>
-    <p class="text-muted" style="margin:16px 0;">
+    <p class="text-muted my-4">
         Vous n'avez pas les permissions nécessaires pour accéder à cette page.
     </p>
     <?php if (isset($_SESSION['user'])): ?>
@@ -20,7 +20,7 @@ $pageTitle = 'Accès refusé';
         </span>
     </p>
     <?php endif; ?>
-    <div style="margin-top:24px;">
+    <div class="mt-6">
         <a href="<?php echo url('home'); ?>" class="btn btn--primary">Retour à l'accueil</a>
     </div>
 </div>

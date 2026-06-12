@@ -171,7 +171,7 @@ if (!isset($csrfToken)) {
 
     <?php if ($canAbandon): ?>
         <?php if (isset($_GET['confirm_abandon'])): ?>
-        <span class="text-muted" style="font-weight:600;color:var(--dgi-color);">&#9888; Abandonner ce signalement ?</span>
+        <span class="text-muted abandon-warning-text">&#9888; Abandonner ce signalement ?</span>
         <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="form--inline">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
             <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid']); ?>">

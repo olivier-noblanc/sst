@@ -98,7 +98,7 @@ $pageTitle = 'Synthèse des signalements';
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="form-group" style="align-self:flex-end;">
+    <div class="form-group align-self-end">
         <button type="submit" class="btn btn--outline">Filtrer</button>
     </div>
 </form>
@@ -110,9 +110,9 @@ $pageTitle = 'Synthèse des signalements';
             <thead>
                 <tr>
                     <th rowspan="2"><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
-                    <th colspan="4" style="text-align:center;background:var(--rsst-color);color:white;">RSST</th>
-                    <th colspan="4" style="text-align:center;background:var(--rami-color);color:white;">RAMI</th>
-                    <th colspan="4" style="text-align:center;background:var(--dgi-color);color:white;">DGI</th>
+                    <th colspan="4" class="synthesis-th-rsst">RSST</th>
+                    <th colspan="4" class="synthesis-th-rami">RAMI</th>
+                    <th colspan="4" class="synthesis-th-dgi">DGI</th>
                     <th rowspan="2">Total</th>
                 </tr>
                 <tr>

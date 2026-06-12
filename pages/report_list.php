@@ -66,7 +66,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 
 <h1 class="page-title">
     Liste des fiches du registre <?php echo e(REGISTRY_LABELS[$type] ?? strtoupper($type)); ?>
-    <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary" style="float:right;margin-top:-4px;">+ Nouveau signalement</a>
+    <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 
 <nav class="breadcrumb" aria-label="Fil d'Ariane">
@@ -78,7 +78,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="filter-bar">
-    <form method="GET" action="index.php" class="flex flex-wrap gap-4 items-center" style="width:100%;">
+    <form method="GET" action="index.php" class="flex flex-wrap gap-4 items-center w-full">
         <input type="hidden" name="page" value="report_list">
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
 
@@ -107,7 +107,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
         </div>
         <?php endif; ?>
 
-        <div class="form-group" style="flex:1;min-width:200px;">
+        <div class="form-group filter-search-group">
             <label for="q">Recherche</label>
             <input type="text" id="q" name="q" value="<?php echo e($filters['q']); ?>" placeholder="Rechercher dans l'objet ou la description...">
         </div>

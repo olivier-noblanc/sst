@@ -85,7 +85,7 @@ $pageTitle = 'Paramètres';
                 }
             }
         ?>
-        <div class="card" style="margin-bottom:16px;">
+        <div class="card mb-4">
             <h3 class="card__subtitle">
                 <span class="badge badge--rsst badge--sm"><?php echo e($site['code']); ?></span>
                 <?php echo e($site['nom']); ?>
@@ -106,7 +106,7 @@ $pageTitle = 'Paramètres';
     <!-- Notifications globales -->
     <div class="card">
         <h3 class="card__subtitle">Adresses e-mail de notification globales</h3>
-        <p class="text-muted text-small" style="margin-bottom:16px;">Ces adresses recevront des notifications pour tous les sites et tous les registres.</p>
+        <p class="text-muted text-small mb-4">Ces adresses recevront des notifications pour tous les sites et tous les registres.</p>
         <div class="form-group">
             <label for="global_emails">Adresses e-mail</label>
             <?php $globalEmailList = []; foreach ($globalEmails as $ge) { $globalEmailList[] = $ge['email']; } ?>
@@ -133,7 +133,7 @@ $pageTitle = 'Paramètres';
 
     <div class="card">
         <h3 class="card__title">&#x1F4E7; Configuration SMTP</h3>
-        <p class="text-muted text-small" style="margin-bottom:20px;">Configurez le serveur SMTP pour l'envoi des e-mails de notification.</p>
+        <p class="text-muted text-small mb-5">Configurez le serveur SMTP pour l'envoi des e-mails de notification.</p>
 
         <div class="form-row form-row--2-1">
             <div class="form-group">
@@ -200,9 +200,9 @@ $pageTitle = 'Paramètres';
     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
     <div class="card smtp-test-section">
         <h4 class="card__subtitle">&#x1F9EA; Test d'envoi SMTP</h4>
-        <p class="text-muted text-small" style="margin-bottom:12px;">Envoyez un e-mail de test pour vérifier la configuration SMTP ci-dessus.</p>
+        <p class="text-muted text-small mb-3">Envoyez un e-mail de test pour vérifier la configuration SMTP ci-dessus.</p>
         <div class="smtp-test-row">
-            <div class="form-group" style="margin-bottom:0;flex:1;max-width:350px;">
+            <div class="form-group smtp-test-field">
                 <label for="smtp_test_to">Adresse destinataire</label>
                 <input type="email" id="smtp_test_to" name="smtp_test_to" class="form-control"
                        placeholder="destinataire@exemple.com" required>
@@ -221,7 +221,7 @@ $pageTitle = 'Paramètres';
 
     <div class="card">
         <h3 class="card__title">&#x2699;&#xFE0F; Paramètres de l'application</h3>
-        <p class="text-muted text-small" style="margin-bottom:20px;">Configurez les paramètres généraux de l'application.</p>
+        <p class="text-muted text-small mb-5">Configurez les paramètres généraux de l'application.</p>
 
         <div class="form-group">
             <label for="app_nom_organisation">Nom de l'organisation</label>
@@ -242,7 +242,7 @@ $pageTitle = 'Paramètres';
             <input type="text" id="app_label_unite" name="app_label_unite" class="form-control"
                    value="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"
                    placeholder="UR">
-            <small class="text-muted" style="display:block;margin-top:4px;">
+            <small class="text-muted block mt-1">
                 Exemple : UR, UD, Direction... Ce libellé est utilisé partout dans l'application.
             </small>
         </div>
@@ -252,7 +252,7 @@ $pageTitle = 'Paramètres';
             <input type="text" id="app_superviseur_usernames" name="app_superviseur_usernames" class="form-control"
                    value="<?php echo e(getConfig('app_superviseur_usernames', '')); ?>"
                    placeholder="jean.martin, sophie.dupont">
-            <small class="text-muted" style="display:block;margin-top:4px;">
+            <small class="text-muted block mt-1">
                 Séparés par des virgules. Ces utilisateurs seront automatiquement promus <strong>Superviseur</strong>
                 immédiatement (dès la prochaine page consultée). Utile pour désigner les premiers
                 superviseurs sans avoir à passer par la base de données.
@@ -261,9 +261,9 @@ $pageTitle = 'Paramètres';
 
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
-            <p class="text-muted text-small" style="margin-bottom:12px;">Détermine quels signalements les agents peuvent consulter dans les registres. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans les registres. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
             <fieldset class="form-group visibility-radios" id="visibility-radios">
-                <legend style="font-weight:600;font-size:14px;margin-bottom:8px;padding:0;">Visibilité des signalements</legend>
+                <legend class="visibility-legend">Visibilité des signalements</legend>
                 <?php $currentVisibility = getConfig('app_report_visibility', 'agent_choice'); ?>
                 <div class="visibility-radios">
                     <label class="visibility-radio-label">
@@ -271,7 +271,7 @@ $pageTitle = 'Paramètres';
                                <?php echo $currentVisibility === 'confidential' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Confidentiel</strong> <span class="text-muted text-small">(le plus restrictif)</span>
-                            <div class="text-muted text-small" style="margin-top:2px;">L'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.</div>
+                            <div class="text-muted text-small mt-2px">L'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.</div>
                         </div>
                     </label>
                     <label class="visibility-radio-label">
@@ -279,7 +279,7 @@ $pageTitle = 'Paramètres';
                                <?php echo $currentVisibility === 'agent_choice' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Choix de l'agent</strong> <span class="text-muted text-small">(confidentiel par défaut)</span>
-                            <div class="text-muted text-small" style="margin-top:2px;">L'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements.</div>
+                            <div class="text-muted text-small mt-2px">L'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements.</div>
                         </div>
                     </label>
                     <label class="visibility-radio-label">
@@ -287,7 +287,7 @@ $pageTitle = 'Paramètres';
                                <?php echo $currentVisibility === 'public' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Visibilité publique</strong>
-                            <div class="text-muted text-small" style="margin-top:2px;">Tous les signalements du site sont visibles par tous les agents du site.</div>
+                            <div class="text-muted text-small mt-2px">Tous les signalements du site sont visibles par tous les agents du site.</div>
                         </div>
                     </label>
                 </div>
@@ -311,7 +311,7 @@ $pageTitle = 'Paramètres';
 <!-- Sites Management -->
 <div class="card">
     <h3 class="card__title">&#x1F3E2; Gestion des sites (<?php echo e(getConfig('app_label_unite', 'UR')); ?>)</h3>
-    <p class="text-muted text-small" style="margin-bottom:16px;">Gérez les sites disponibles. Les sites désactivés n'apparaissent plus dans les listes de choix (pour les nouveaux agents) mais les signalements existants restent accessibles.</p>
+    <p class="text-muted text-small mb-4">Gérez les sites disponibles. Les sites désactivés n'apparaissent plus dans les listes de choix (pour les nouveaux agents) mais les signalements existants restent accessibles.</p>
 
     <!-- Add new site form -->
     <form method="POST" action="<?php echo url('settings'); ?>" class="add-site-form">
@@ -320,17 +320,17 @@ $pageTitle = 'Paramètres';
         <input type="hidden" name="action" value="add_site">
         <h4 class="card__subtitle">+ Ajouter un site</h4>
         <div class="add-site-grid">
-            <div class="form-group" style="margin-bottom:0;">
+            <div class="form-group mb-0">
                 <label for="new_site_code">Code</label>
                 <input type="text" id="new_site_code" name="new_site_code" class="form-control"
                        placeholder="UR21" required maxlength="10">
             </div>
-            <div class="form-group" style="margin-bottom:0;">
+            <div class="form-group mb-0">
                 <label for="new_site_nom">Nom</label>
                 <input type="text" id="new_site_nom" name="new_site_nom" class="form-control"
                        placeholder="UR Côte-d'Or" required>
             </div>
-            <div class="form-group" style="margin-bottom:0;">
+            <div class="form-group mb-0">
                 <label for="new_site_departement">Département</label>
                 <input type="text" id="new_site_departement" name="new_site_departement" class="form-control"
                        placeholder="Côte-d'Or">
@@ -346,8 +346,8 @@ $pageTitle = 'Paramètres';
                 <th>Code</th>
                 <th>Nom</th>
                 <th>Département</th>
-                <th style="text-align:center;">Agents</th>
-                <th style="text-align:center;">Signalements</th>
+                <th class="text-center">Agents</th>
+                <th class="text-center">Signalements</th>
                 <th>Statut</th>
                 <th>Actions</th>
             </tr>
@@ -363,8 +363,8 @@ $pageTitle = 'Paramètres';
                 <td><strong><?php echo e($site['code']); ?></strong></td>
                 <td><?php echo e($site['nom']); ?></td>
                 <td><?php echo e($site['departement'] ?? '—'); ?></td>
-                <td style="text-align:center;"><?php echo $userCount; ?></td>
-                <td style="text-align:center;"><?php echo $reportCount; ?></td>
+                <td class="text-center"><?php echo $userCount; ?></td>
+                <td class="text-center"><?php echo $reportCount; ?></td>
                 <td>
                     <?php if ($isActive): ?>
                         <span class="badge badge--traite badge--sm">Actif</span>
@@ -372,7 +372,7 @@ $pageTitle = 'Paramètres';
                         <span class="badge badge--abandonne badge--sm">Inactif</span>
                     <?php endif; ?>
                 </td>
-                <td style="white-space:nowrap;">
+                <td class="whitespace-nowrap">
                     <?php if ($isActive): ?>
                     <form method="POST" action="<?php echo url('settings'); ?>" class="form--inline">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
@@ -396,7 +396,7 @@ $pageTitle = 'Paramètres';
                     <?php if ($userCount === 0 && $reportCount === 0): ?>
                     <?php if (isset($_GET['confirm_delete_site']) && (int) $_GET['confirm_delete_site'] === (int) $site['id']): ?>
                     <!-- Confirmation inline — pas de JavaScript -->
-                    <span class="section-header--danger" style="display:inline-flex;align-items:center;gap:6px;">&#x26A0;&#xFE0F; Supprimer <strong><?php echo e($site['code']); ?></strong> ?</span>
+                    <span class="section-header--danger confirm-delete-label">&#x26A0;&#xFE0F; Supprimer <strong><?php echo e($site['code']); ?></strong> ?</span>
                     <form method="POST" action="<?php echo url('settings'); ?>" class="form--inline">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="tab" value="manage_sites">

@@ -169,10 +169,13 @@ while (ob_get_level() > 0) {
 }
 
 // Send as download
-header('Content-Type: text/csv; charset=UTF-8');
+header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('Content-Length: ' . strlen($csv));
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header_remove('X-Powered-By');
+header('Server: ');
+header('Cache-Control: no-cache, max-age=0');
+header('X-Content-Type-Options: nosniff');
 
 echo $csv;
 exit;

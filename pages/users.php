@@ -62,11 +62,11 @@ $pageTitle = 'Gestion des utilisateurs';
 <?php if ($activeTab === 'list'): ?>
 <!-- Search bar -->
 <div class="filter-bar">
-    <form method="GET" action="index.php" class="form--inline" style="gap:12px;align-items:flex-end;flex:1;">
+    <form method="GET" action="index.php" class="form--inline gap-3 align-self-end flex-1">
         <input type="hidden" name="page" value="users">
         <input type="hidden" name="tab" value="list">
-        <div class="form-group" style="flex:1;margin-bottom:0;">
-            <input type="text" name="q" value="<?php echo e($search); ?>" placeholder="Rechercher un utilisateur..." style="width:100%;">
+        <div class="form-group flex-1 mb-0">
+            <input type="text" name="q" value="<?php echo e($search); ?>" placeholder="Rechercher un utilisateur..." class="w-full">
         </div>
         <button type="submit" class="btn btn--primary">Rechercher</button>
         <?php if (!empty($search)): ?>

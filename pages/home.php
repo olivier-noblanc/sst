@@ -141,7 +141,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
 </div>
 
 <?php if (canSeeAllSites()): ?>
-<div class="card" style="margin-top:24px;">
+<div class="card mt-6">
     <h3 class="card__subtitle">Accès rapide superviseur</h3>
     <div class="quick-access">
         <a href="<?php echo url('synthesis'); ?>" class="btn btn--outline">&#x1F4CA; Synthèse</a>

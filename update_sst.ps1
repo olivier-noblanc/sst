@@ -1,20 +1,17 @@
 # ============================================================
-# update.ps1 — Mise à jour de l'application SST
+# update_sst.ps1 — Mise à jour de l'application SST
 #
 # Ce script effectue :
 #   1. Vérification des prérequis (Git, PHP)
-#   2. Git fetch + reset --hard (dossier IIS propre = remote)
-#   3. Vérification FPDF + polices Marianne
-#   4. Création des dossiers + permissions IIS
-#   5. Redémarrage IIS
+#   2. Git pull (via proxy Kerberos)
+#   3. Création des dossiers + permissions IIS
+#   4. Redémarrage IIS
 #
 # Note : Plus besoin de Composer — FPDF est inclus directement.
-# Note : Les polices Marianne (woff2+woff) sont incluses dans le
-#        dépôt git (public/fonts/). Pas de téléchargement externe.
 #
-# Emplacement : C:\inetpub\sst\update.ps1
+# Emplacement : C:\inetpub\sst\update_sst.ps1
 # Utilisation : clic droit "Exécuter en tant qu'administrateur"
-#   ou : powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\update.ps1
+#   ou : powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\update_sst.ps1
 # ============================================================
 
 $ErrorActionPreference = "Stop"
@@ -36,7 +33,7 @@ if (-not $isAdmin) {
 }
 
 # --- Vérifier les prérequis ---
-Write-Host "[0/5] Verification des prerequis..." -ForegroundColor Yellow
+Write-Host "[0/4] Verification des prerequis..." -ForegroundColor Yellow
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Host " ERREUR : Git n'est pas installe ou pas dans le PATH." -ForegroundColor Red
@@ -59,11 +56,12 @@ if (-not (Test-Path $AppDir)) {
 Set-Location $AppDir
 Write-Host "  OK : Git, PHP, dossier $AppDir" -ForegroundColor Green
 
-# --- 1. Git sync : fetch + reset --hard (dossier IIS = copie exacte du remote) ---
+# --- 1. Git sync (force le contenu du remote, écrase les modifs locales) ---
 Write-Host ""
-Write-Host "[1/5] Synchronisation git (fetch + reset --hard)..." -ForegroundColor Yellow
+Write-Host "[1/4] Telechargement des mises a jour (git fetch + reset --hard)..." -ForegroundColor Yellow
 
 try {
+    # Récupérer les objets du remote sans fusionner
     git fetch origin main 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "git fetch a echoue (code $LASTEXITCODE)"
@@ -80,7 +78,7 @@ try {
     # Nettoyer les fichiers non suivis (orphelins d'anciennes versions)
     git clean -fd 2>&1
 
-    Write-Host "  OK : Dossier synchronise sur origin/main" -ForegroundColor Green
+    Write-Host "  OK : Code synchronise sur origin/main" -ForegroundColor Green
 }
 catch {
     Write-Host ""
@@ -103,7 +101,7 @@ catch {
 
 # --- 2. Vérification FPDF ---
 Write-Host ""
-Write-Host "[2/5] Verification FPDF..." -ForegroundColor Yellow
+Write-Host "[2/4] Verification FPDF..." -ForegroundColor Yellow
 
 $fpdfPath = "$AppDir\src\lib\fpdf\fpdf.php"
 $fontPath = "$AppDir\src\lib\fpdf\font\DejaVuSans.json"
@@ -115,48 +113,9 @@ if ((Test-Path $fpdfPath) -and (Test-Path $fontPath)) {
     Write-Host "  Verifiez que src\lib\fpdf\ existe apres le git pull." -ForegroundColor DarkYellow
 }
 
-# --- 3. Vérification polices Marianne (woff2 + woff) ---
+# --- 3. Création des dossiers + permissions ---
 Write-Host ""
-Write-Host "[3/5] Verification polices Marianne (woff2 + woff)..." -ForegroundColor Yellow
-
-$fontsDir = "$AppDir\public\fonts"
-
-# Liste des polices Marianne incluses dans le dépôt git
-$marianneFonts = @(
-    'Marianne-Regular.woff2',
-    'Marianne-Regular.woff',
-    'Marianne-Medium.woff2',
-    'Marianne-Medium.woff',
-    'Marianne-Bold.woff2',
-    'Marianne-Bold.woff',
-    'Marianne-Light.woff2',
-    'Marianne-Light.woff'
-)
-
-$allPresent = $true
-foreach ($fileName in $marianneFonts) {
-    $filePath = Join-Path $fontsDir $fileName
-    if ((Test-Path $filePath) -and ((Get-Item $filePath).Length -gt 0)) {
-        $fileSize = (Get-Item $filePath).Length
-        Write-Host "  OK : $fileName ($('{0:N0}' -f $fileSize) octets)" -ForegroundColor Green
-    } else {
-        Write-Host "  MANQUANT : $fileName" -ForegroundColor Red
-        $allPresent = $false
-    }
-}
-
-if ($allPresent) {
-    Write-Host "  Toutes les polices Marianne sont presentes." -ForegroundColor Green
-} else {
-    Write-Host ""
-    Write-Host "  AVERTISSEMENT : Des polices Marianne sont manquantes." -ForegroundColor DarkYellow
-    Write-Host "  Elles devraient etre dans le depot git (public/fonts/)." -ForegroundColor DarkYellow
-    Write-Host "  Verifiez que le git fetch + reset --hard s'est bien passe." -ForegroundColor DarkYellow
-}
-
-# --- 4. Création des dossiers + permissions ---
-Write-Host ""
-Write-Host "[4/5] Configuration des dossiers et permissions..." -ForegroundColor Yellow
+Write-Host "[3/4] Configuration des dossiers et permissions..." -ForegroundColor Yellow
 
 $dirsToCreate = @(
     "$AppDir\data"
@@ -179,9 +138,9 @@ $acl.SetAccessRule($rule)
 Set-Acl $aclDir $acl
 Write-Host "  OK : Permissions IIS_IUSRS sur $aclDir" -ForegroundColor Green
 
-# --- 5. Redémarrage IIS ---
+# --- 4. Redémarrage IIS ---
 Write-Host ""
-Write-Host "[5/5] Redemarrage IIS..." -ForegroundColor Yellow
+Write-Host "[4/4] Redemarrage IIS..." -ForegroundColor Yellow
 
 try {
     iisreset /restart 2>&1 | Out-Null

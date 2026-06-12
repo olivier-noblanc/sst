@@ -103,7 +103,6 @@ function generateReference(string $type, string $year2, int $seq): string {
  * @return int
  */
 function getNextSequence(PDO $pdo, string $type, int $year): int {
-    // Try to insert, or increment if exists
     $stmt = $pdo->prepare("
         INSERT INTO report_sequence (type, year, last_sequence)
         VALUES (:type, :year, 1)
@@ -111,7 +110,6 @@ function getNextSequence(PDO $pdo, string $type, int $year): int {
     ");
     $stmt->execute([':type' => $type, ':year' => $year]);
 
-    // Read the new value
     $stmt = $pdo->prepare("
         SELECT last_sequence FROM report_sequence WHERE type = :type AND year = :year
     ");
@@ -121,9 +119,6 @@ function getNextSequence(PDO $pdo, string $type, int $year): int {
 
 /**
  * Get the registry color CSS variable name.
- * 
- * @param string $type  Registry type
- * @return string
  */
 function getRegistryColor(string $type): string {
     return match ($type) {
@@ -136,9 +131,6 @@ function getRegistryColor(string $type): string {
 
 /**
  * Get the badge CSS class for a report state.
- * 
- * @param string $etat  Report state
- * @return string
  */
 function getEtatBadgeClass(string $etat): string {
     return match ($etat) {
@@ -152,9 +144,6 @@ function getEtatBadgeClass(string $etat): string {
 
 /**
  * Get the badge CSS class for a registry type.
- * 
- * @param string $type  Registry type
- * @return string
  */
 function getRegistryBadgeClass(string $type): string {
     return match ($type) {
@@ -167,9 +156,6 @@ function getRegistryBadgeClass(string $type): string {
 
 /**
  * Get the badge CSS class for a user role.
- * 
- * @param string $role  User role
- * @return string
  */
 function getRoleBadgeClass(string $role): string {
     return match ($role) {
@@ -182,10 +168,6 @@ function getRoleBadgeClass(string $role): string {
 
 /**
  * Check if the current user can see all sites.
- * Superviseurs and CHSCT members always see all sites.
- * Agents never see all sites (they are restricted to their own site).
- * 
- * @return bool
  */
 function canSeeAllSites(): bool {
     if (!isset($_SESSION['user']['role'])) {
@@ -196,41 +178,22 @@ function canSeeAllSites(): bool {
 
 /**
  * Get the raw report visibility mode from config (role-agnostic).
- * Returns one of: 'confidential', 'agent_choice', 'public'
- * This is the actual setting value, regardless of the current user's role.
- * Used for form display (creation/edit) and handler logic.
- * 
- * @return string
  */
 function getReportVisibilityMode(): string {
     $value = getConfig('app_report_visibility', 'agent_choice');
-    // Backward compatibility: migrate old values
     if ($value === '0') return 'public';
     if ($value === '1') return 'confidential';
     if ($value === 'site') return 'public';
     if ($value === 'own') return 'confidential';
-    // Old 2-mode values
     if ($value === 'confidential') return 'confidential';
-    // Valid 3-mode values
     if (in_array($value, ['confidential', 'agent_choice', 'public'])) {
         return $value;
     }
-    return 'agent_choice'; // Default fallback
+    return 'agent_choice';
 }
 
 /**
  * Get the report visibility for the current user (for reading/filtering).
- * Returns one of: 'confidential', 'agent_choice', 'public', 'all'
- * 
- * - 'all'          : Non-agent roles see everything (superviseur, chsct, admin)
- * - 'confidential' : Agent sees ONLY their own reports (most restrictive)
- * - 'agent_choice' : Agent sees public reports from their site + their own reports (even confidential).
- *                    Agent can choose per-report visibility, defaulting to confidential.
- * - 'public'       : Agent sees all reports from their own site
- * 
- * Non-agent roles always get 'all'.
- * 
- * @return string
  */
 function getReportVisibility(): string {
     if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'agent') {
@@ -239,73 +202,35 @@ function getReportVisibility(): string {
     return getReportVisibilityMode();
 }
 
-/**
- * Get the agent visibility mode.
- * Backward-compatible alias for getReportVisibility().
- * 
- * @return string
- * @deprecated Use getReportVisibility() instead
- */
+/** @deprecated Use getReportVisibility() instead */
 function getAgentVisibility(): string {
     return getReportVisibility();
 }
 
-/**
- * Check if the report visibility mode is 'confidential' (most restrictive).
- * When true, agents see ONLY their own reports — nothing from other agents.
- * 
- * @return bool
- */
 function reportVisibilityIsConfidential(): bool {
     return getReportVisibilityMode() === 'confidential';
 }
 
-/**
- * Check if the report visibility mode is 'agent_choice'.
- * When true, agents can choose per-report visibility, defaulting to confidential.
- * They see public reports from their site + their own reports (even confidential).
- * 
- * @return bool
- */
 function reportVisibilityIsAgentChoice(): bool {
     return getReportVisibilityMode() === 'agent_choice';
 }
 
-/**
- * Check if the report visibility mode is 'public'.
- * When true, agents see all reports from their site.
- * 
- * @return bool
- */
 function reportVisibilityIsPublic(): bool {
     return getReportVisibilityMode() === 'public';
 }
 
-/**
- * Check if the agent visibility mode is 'confidential' (old name).
- * @deprecated Use reportVisibilityIsConfidential() or reportVisibilityIsAgentChoice() instead
- */
+/** @deprecated */
 function agentVisibilityIsConfidential(): bool {
     return in_array(getReportVisibilityMode(), ['confidential', 'agent_choice']);
 }
 
-/**
- * Check if the agent visibility mode is 'public' (old name).
- * @deprecated Use reportVisibilityIsPublic() instead
- */
+/** @deprecated */
 function agentVisibilityIsPublic(): bool {
     return getReportVisibilityMode() === 'public';
 }
 
 /**
  * Detect the MIME type of a file using the fileinfo extension.
- *
- * Requires the PHP fileinfo extension to be enabled.
- * If the extension is not available, throws a clear error message.
- *
- * @param string $filePath  Absolute path to the file
- * @return string  MIME type (e.g. 'image/jpeg')
- * @throws \RuntimeException  If the fileinfo extension is not available
  */
 function getMimeType(string $filePath): string {
     if (!class_exists('finfo')) {
@@ -324,10 +249,6 @@ function getMimeType(string $filePath): string {
 
 /**
  * Truncate a string to a given length with ellipsis.
- * 
- * @param string $string   The string to truncate
- * @param int    $length   Max length
- * @return string
  */
 function truncate(string $string, int $length = 50): string {
     if (mb_strlen($string, 'UTF-8') > $length) {
@@ -338,14 +259,9 @@ function truncate(string $string, int $length = 50): string {
 
 /**
  * Get a configuration value from the config_app table.
- * 
- * @param string $cle     Configuration key
- * @param string $default Default value if key not found
- * @return string
  */
 function getConfig(string $cle, string $default = ''): string {
     static $cache = [];
-    // Check if cache was cleared
     if (isset($GLOBALS['_config_cache_cleared']) && $GLOBALS['_config_cache_cleared']) {
         $cache = [];
         $GLOBALS['_config_cache_cleared'] = false;
@@ -368,48 +284,37 @@ function getConfig(string $cle, string $default = ''): string {
 
 /**
  * Update (or insert) a configuration value in the config_app table.
- * 
- * @param PDO    $pdo     Database connection
- * @param string $cle     Configuration key
- * @param string $valeur  New value
  */
 function updateConfig(PDO $pdo, string $cle, string $valeur): void {
     $stmt = $pdo->prepare('INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) 
         VALUES (:cle, :valeur, "", "", "", 1)
         ON CONFLICT(cle) DO UPDATE SET valeur = :valeur2, updated_at = datetime("now")');
     $stmt->execute([':cle' => $cle, ':valeur' => $valeur, ':valeur2' => $valeur]);
-
-    // Invalidate the static cache so getConfig() picks up the new value
     clearConfigCache();
 }
 
 /**
  * Clear the static cache used by getConfig().
- * Call this after updating config values to ensure fresh reads.
  */
 function clearConfigCache(): void {
-    // getConfig() uses a static $cache variable.
-    // We cannot directly clear it from outside, so we call getConfig
-    // with a special trick: we rely on the static scope.
-    // Instead, we use a reference approach by calling a closure bound to the function.
-    // The simplest approach: we call getConfig with a marker that resets the cache.
-    // However, since PHP static variables are per-function, we need a different approach.
-    // We'll use a global flag that getConfig checks.
     $GLOBALS['_config_cache_cleared'] = true;
 }
 
 /**
- * Build a URL for a static asset (CSS, JS, images).
- * Appends a cache-busting query string based on APP_VERSION
- * so that browsers fetch fresh assets after each deployment.
+ * Build a URL for a static asset (CSS, JS, images, fonts).
+ *
+ * Routes ALL assets through asset.php for full HTTP header control.
+ * This gives PHP complete control over Cache-Control, X-Content-Type-Options,
+ * ETag, Last-Modified, and all other headers — regardless of IIS configuration.
+ *
+ * Example: assetUrl('css/style.css') → 'asset.php?f=css/style.css&v=3.4.0'
  *
  * @param string $path  Asset path relative to public/ (e.g. 'css/style.css')
  * @return string
  */
 function assetUrl(string $path): string {
     $version = defined('APP_VERSION') ? APP_VERSION : '0';
-    $sep = (strpos($path, '?') === false) ? '?' : '&';
-    return $path . $sep . 'v=' . $version;
+    return 'asset.php?f=' . urlencode($path) . '&v=' . urlencode($version);
 }
 
 /**
@@ -423,24 +328,18 @@ function assetUrl(string $path): string {
  */
 function url(string $page, array $params = []): string {
     $queryParams = [];
-    
-    // Preserve XTransformPort if present (dev gateway mode)
     if (isset($_GET['XTransformPort'])) {
         $queryParams['XTransformPort'] = $_GET['XTransformPort'];
     }
-    
     $queryParams['page'] = $page;
     foreach ($params as $key => $value) {
         $queryParams[$key] = $value;
     }
-    
     return 'index.php?' . http_build_query($queryParams);
 }
 
 /**
  * Get today's date in ISO format (Y-m-d).
- * 
- * @return string
  */
 function todayISO(): string {
     return date('Y-m-d');
@@ -448,8 +347,6 @@ function todayISO(): string {
 
 /**
  * Get current time in HH:MM format.
- * 
- * @return string
  */
 function nowTime(): string {
     return date('H:i');

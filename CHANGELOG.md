@@ -2,14 +2,18 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+
 ## [3.5.0] — 2026-06-12
 
-### Correctif — Réponse superviseur toujours en erreur
+### Serveur d'assets PHP — Contrôle total des headers HTTP
 
-- **1** 🔴 **`respondToReport()` retourne `'true'` (string) mais le handler comparait avec `true` (booléen)** — La comparaison stricte `$result === true` échouait systématiquement car la fonction retourne la chaîne `'true'`, pas le booléen. Le superviseur ne pouvait jamais enregistrer de réponse — l'erreur « Erreur lors de l'enregistrement de la réponse » s'affichait à chaque tentative. Correction : `$result === 'true'` (comparaison de chaînes).
-- **2** 🟡 **Logging amélioré en cas d'échec** — Ajout de `error_log()` avec le contexte complet (result, user_id, report_uuid, nouvel_etat) pour faciliter le diagnostic si l'erreur se reproduit.
-
----
+- **1** 🔴 **`asset.php` — Serveur d'assets statiques en PHP** — Nouveau fichier `public/asset.php` qui sert TOUS les assets statiques (CSS, images, fonts, icônes) via PHP au lieu d'IIS. Cela donne un contrôle total sur les headers HTTP : `Content-Type` avec charset, `X-Content-Type-Options: nosniff`, `Cache-Control` avec `immutable` pour les assets versionnés, `ETag` pour les 304, `Last-Modified`, suppression de `X-Powered-By`/`Server`/`Expires`/`Pragma`. Sécurité : whitelist d'extensions, whitelist de répertoires, prévention de directory traversal.
+- **2** 🔴 **`assetUrl()` route via `asset.php`** — La fonction `assetUrl('css/style.css')` génère désormais `asset.php?f=css/style.css&v=3.5.0` au lieu de `css/style.css?v=3.5.0`. Tous les assets passent par le serveur PHP.
+- **3** 🔴 **Cache-Control `immutable`** — Les assets versionnés (`?v=`) reçoivent `Cache-Control: public, max-age=..., immutable`. Le flag `immutable` indique au navigateur que le contenu ne changera jamais pendant la durée du cache, éliminant les revalidations inutiles.
+- **4** 🟡 **Support ETag + 304 Not Modified** — `asset.php` génère un ETag basé sur `filemtime` + `filesize` + `crc32` du chemin. Si le client envoie `If-None-Match` ou `If-Modified-Since`, le serveur répond `304 Not Modified` sans renvoyer le contenu.
+- **5** 🟡 **Favicons servis via `asset.php`** — Les favicons (`favicon.png`, `favicon.ico`) dans `header.php` passent désormais par `assetUrl()` au lieu d'URLs directes.
+- **6** 🟡 **`web.config` : accès anonyme pour `asset.php`** — Ajout d'une `<location path="asset.php">` permettant l'authentification anonyme uniquement pour ce script. Les assets n'ont pas besoin d'authentification Windows, éliminant la surcharge NTLM/Kerberos sur chaque requête CSS/image/font.
+- **7** 🟡 **CSP mise à jour** — Suppression de `script-src 'self'` (plus de JS du tout). La CSP est désormais `default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'`.
 
 ## [3.4.0] — 2026-06-12
 
@@ -25,8 +29,6 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
   - **Bouton « retour en haut »** : Remplacement du JS `scroll`/`click` par un simple lien `<a href="#top">` qui utilise l'ancre `#top` placée en début de `<main>`. Plus besoin de JS pour la visibilité ni le défilement.
 - **7** 🟡 **Sécurité CSP : `frame-ancestors 'none'` remplace `X-Frame-Options`** — Suppression implicite de tout header `X-Frame-Options` (aucun n'était émis, mais le commentaire est clarifié). CSP `frame-ancestors 'none'` est le mécanisme moderne, avec un support plus large et des vérifications plus strictes.
 - **8** 🟡 **Header menu button → `<label>`** — Le bouton hamburger était un `<button>` qui nécessitait JS. Transformé en `<label for="sidebar-toggle">` pour fonctionner avec le checkbox hack CSS-only. Ajout de `tabindex="0"` pour l'accessibilité clavier.
-
----
 
 ## [3.3.0] — 2026-06-12
 

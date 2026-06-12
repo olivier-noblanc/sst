@@ -6,6 +6,7 @@
  * Security headers and cache-control sent as HTTP headers (not meta tags)
  * for maximum browser support.
  *
+ * ALL static assets are served through asset.php for full header control.
  * Gzip compression is handled via ob_gzhandler (started in index.php).
  */
 
@@ -13,19 +14,13 @@
 header_remove('X-Powered-By');
 
 // === Remove Server header version info ===
-// IIS may add its own Server header; we clear it via PHP
-if (function_exists('header_remove')) {
-    header_remove('Server');
-}
+header_remove('Server');
 
 // === Remove Expires and Pragma headers (deprecated, replaced by Cache-Control) ===
 header_remove('Expires');
 header_remove('Pragma');
 
 // === Cache-Control for dynamic pages ===
-// no-cache = browser must revalidate with server before using cached copy
-// max-age=0 = stale immediately, must revalidate
-// This is the correct approach for dynamic HTML (not no-store which breaks back/forward)
 header('Cache-Control: no-cache, max-age=0');
 
 // === Security Headers ===
@@ -35,8 +30,7 @@ header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 
 // Content-Security-Policy: allow same-origin only (no external resources)
 // frame-ancestors 'none' replaces X-Frame-Options (broader support, stronger)
-// No X-Frame-Options header — CSP frame-ancestors is the modern replacement
-header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -45,8 +39,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo e(APP_NAME); ?> — <?php echo e($pageTitle ?? 'Accueil'); ?></title>
     <link rel="stylesheet" href="<?php echo assetUrl('css/style.css'); ?>">
-    <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="64x64" href="<?php echo assetUrl('favicon.png'); ?>">
+    <link rel="icon" type="image/x-icon" href="<?php echo assetUrl('favicon.ico'); ?>">
 </head>
 <body>
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>

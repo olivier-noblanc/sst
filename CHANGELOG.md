@@ -2,6 +2,15 @@
 
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
+## [3.5.0] — 2026-06-12
+
+### Correctif — Réponse superviseur toujours en erreur
+
+- **1** 🔴 **`respondToReport()` retourne `'true'` (string) mais le handler comparait avec `true` (booléen)** — La comparaison stricte `$result === true` échouait systématiquement car la fonction retourne la chaîne `'true'`, pas le booléen. Le superviseur ne pouvait jamais enregistrer de réponse — l'erreur « Erreur lors de l'enregistrement de la réponse » s'affichait à chaque tentative. Correction : `$result === 'true'` (comparaison de chaînes).
+- **2** 🟡 **Logging amélioré en cas d'échec** — Ajout de `error_log()` avec le contexte complet (result, user_id, report_uuid, nouvel_etat) pour faciliter le diagnostic si l'erreur se reproduit.
+
+---
+
 ## [3.4.0] — 2026-06-12
 
 ### Audit — Sécurité HTTP, cache busting, zéro JavaScript
@@ -16,6 +25,8 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
   - **Bouton « retour en haut »** : Remplacement du JS `scroll`/`click` par un simple lien `<a href="#top">` qui utilise l'ancre `#top` placée en début de `<main>`. Plus besoin de JS pour la visibilité ni le défilement.
 - **7** 🟡 **Sécurité CSP : `frame-ancestors 'none'` remplace `X-Frame-Options`** — Suppression implicite de tout header `X-Frame-Options` (aucun n'était émis, mais le commentaire est clarifié). CSP `frame-ancestors 'none'` est le mécanisme moderne, avec un support plus large et des vérifications plus strictes.
 - **8** 🟡 **Header menu button → `<label>`** — Le bouton hamburger était un `<button>` qui nécessitait JS. Transformé en `<label for="sidebar-toggle">` pour fonctionner avec le checkbox hack CSS-only. Ajout de `tabindex="0"` pour l'accessibilité clavier.
+
+---
 
 ## [3.3.0] — 2026-06-12
 

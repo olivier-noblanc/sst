@@ -46,6 +46,16 @@ require __DIR__ . '/../templates/alert.php';
 
 <h1 class="page-title">Abandonner le signalement</h1>
 
+<nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <a href="<?php echo url('home'); ?>" class="breadcrumb__item">Accueil</a>
+    <span class="breadcrumb__separator">/</span>
+    <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="breadcrumb__item"><?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?></a>
+    <span class="breadcrumb__separator">/</span>
+    <a href="<?php echo url('report_view', ['uuid' => $uuid]); ?>" class="breadcrumb__item"><?php echo e($report['reference']); ?></a>
+    <span class="breadcrumb__separator">/</span>
+    <span class="breadcrumb__current">Abandonner</span>
+</nav>
+
 <div class="card <?php echo match($type) { 'rsst' => 'card--rsst', 'rami' => 'card--rami', 'dgi' => 'card--dgi', default => 'card--rsst' }; ?>">
     <h2 class="card__subtitle">Signalement <?php echo e($report['reference']); ?></h2>
     <table class="report-detail__table">

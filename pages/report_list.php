@@ -66,8 +66,14 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 
 <h1 class="page-title">
     Liste des fiches du registre <?php echo e(REGISTRY_LABELS[$type] ?? strtoupper($type)); ?>
-    <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--warning" style="float:right;margin-top:-4px;">+ Nouveau signalement</a>
+    <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary" style="float:right;margin-top:-4px;">+ Nouveau signalement</a>
 </h1>
+
+<nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <a href="<?php echo url('home'); ?>" class="breadcrumb__item">Accueil</a>
+    <span class="breadcrumb__separator">/</span>
+    <span class="breadcrumb__current"><?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?></span>
+</nav>
 
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 

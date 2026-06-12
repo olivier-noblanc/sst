@@ -46,9 +46,16 @@ $cardClass = match($type) {
 // Determine submit button class based on mode and registry type
 $submitBtnClass = $isEdit
     ? match($type) { 'rsst' => 'btn--rsst', 'rami' => 'btn--rami', 'dgi' => 'btn--dgi', default => 'btn--primary' }
-    : 'btn--warning'; // orange/coral for create mode
+    : 'btn--primary'; // blue for create mode (main action)
 ?>
 <div class="card <?php echo $cardClass; ?>">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+        <a href="<?php echo url('home'); ?>" class="breadcrumb__item">Accueil</a>
+        <span class="breadcrumb__separator">/</span>
+        <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="breadcrumb__item"><?php echo e($registryLabel); ?></a>
+        <span class="breadcrumb__separator">/</span>
+        <span class="breadcrumb__current"><?php echo $isEdit ? 'Modifier' : 'Nouveau signalement'; ?></span>
+    </nav>
     <h2 class="mb-4">
         <?php echo $isEdit ? 'Modifier le signalement' : 'Inscrire un signalement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>

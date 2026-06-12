@@ -467,9 +467,166 @@ img { max-width: 100%; height: auto; display: block; }
     transition: background var(--transition-base);
 }
 
+.registry-card__desc {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.registry-card__link {
+    display: inline-block;
+    margin-top: 8px;
+    color: white;
+    text-decoration: underline;
+    font-size: 13px;
+    opacity: 0.8;
+    transition: opacity var(--transition-base);
+}
+
+.registry-card__link:hover {
+    opacity: 1;
+}
+
 .registry-card__btn:hover {
     background: rgba(255,255,255,0.2);
     text-decoration: none;
+}
+
+/* ============================================================
+   12b. Welcome Banner — First-time user guidance
+   ============================================================ */
+.welcome-banner {
+    background: linear-gradient(135deg, #e8f0fe 0%, #d4e8ff 100%);
+    border: 1px solid var(--color-primary-light);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--border-radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+}
+
+.welcome-banner--new {
+    background: linear-gradient(135deg, #e8f0fe 0%, #c8e6ff 100%);
+    border-left-color: var(--color-primary);
+}
+
+.welcome-banner__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin-bottom: 8px;
+}
+
+.welcome-banner__text {
+    font-size: 14px;
+    color: var(--grey-700);
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.welcome-banner__legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0,86,163,0.15);
+}
+
+.welcome-banner__legend .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+}
+
+.welcome-banner__legend-text {
+    font-size: 12px;
+    color: var(--grey-600);
+    margin-right: 12px;
+}
+
+.welcome-banner__link {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: text-decoration var(--transition-fast);
+}
+
+.welcome-banner__link:hover {
+    text-decoration: underline;
+}
+
+/* ============================================================
+   12c. Workflow Legend — Status badge reference
+   ============================================================ */
+.workflow-legend {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    font-size: 12px;
+}
+
+.workflow-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.workflow-legend__item--muted {
+    opacity: 0.6;
+}
+
+.workflow-legend__text {
+    color: var(--grey-600);
+    font-size: 11px;
+}
+
+.workflow-legend__arrow {
+    color: var(--grey-400);
+    font-size: 16px;
+}
+
+/* ============================================================
+   12d. Breadcrumb — Navigation context
+   ============================================================ */
+.breadcrumb {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--grey-500);
+    flex-wrap: wrap;
+}
+
+.breadcrumb__item {
+    color: var(--grey-500);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.breadcrumb__item:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.breadcrumb__separator {
+    color: var(--grey-400);
+    user-select: none;
+}
+
+.breadcrumb__current {
+    color: var(--grey-700);
+    font-weight: 500;
 }
 
 /* ============================================================
@@ -1788,7 +1945,8 @@ tr:hover td {
    ============================================================ */
 @media print {
     .header, .sidebar, .sidebar-overlay, .filter-bar, .btn, .pagination, .print-hint,
-    .form-actions, .confirm-box, .footer, .header__menu-btn {
+    .form-actions, .confirm-box, .footer, .header__menu-btn,
+    .welcome-banner, .workflow-legend, .breadcrumb {
         display: none !important;
     }
     .main {
@@ -1881,5 +2039,27 @@ tr:hover td {
     .tab-bar {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    /* Welcome banner — stack vertically on mobile */
+    .welcome-banner__legend {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    /* Workflow legend — stack on mobile */
+    .workflow-legend {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .workflow-legend__arrow {
+        display: none;
+    }
+
+    /* Breadcrumb — wrap on mobile */
+    .breadcrumb {
+        font-size: 11px;
     }
 }

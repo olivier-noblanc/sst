@@ -42,6 +42,16 @@ $formData = getFormData();
 
 <h1 class="page-title">Répondre au signalement — <span class="badge <?php echo getRegistryBadgeClass($registryType); ?>"><?php echo e($report['reference']); ?></span></h1>
 
+<nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <a href="<?php echo url('home'); ?>" class="breadcrumb__item">Accueil</a>
+    <span class="breadcrumb__separator">/</span>
+    <a href="<?php echo url('report_list', ['type' => $registryType]); ?>" class="breadcrumb__item"><?php echo e($registryLabel); ?></a>
+    <span class="breadcrumb__separator">/</span>
+    <a href="<?php echo url('report_view', ['uuid' => $uuid]); ?>" class="breadcrumb__item"><?php echo e($report['reference']); ?></a>
+    <span class="breadcrumb__separator">/</span>
+    <span class="breadcrumb__current">Répondre</span>
+</nav>
+
 <?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Report Summary (read-only) -->

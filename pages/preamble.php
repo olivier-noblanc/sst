@@ -23,8 +23,8 @@ $pageTitle = 'Préambule';
 <div class="card card--rsst card--spaced content-section">
     <h3>&#x1F4CB; Registre de Santé et de Sécurité au Travail (RSST)</h3>
     <p>
-        <strong>Articles R4123-1 et suivants du Code du travail</strong><br>
-        Le registre de santé et de sécurité au travail est tenu à la disposition de l'ensemble du personnel. Il permet à tout agent de signaler toute situation de danger constatée dans l'exercice de ses fonctions, ainsi que toute proposition d'amélioration des conditions de travail.
+        <strong>Décret n° 82-453 du 28 mai 1982 relatif à l'hygiène et à la sécurité du travail ainsi qu'à la médecine professionnelle et préventive dans la fonction publique, article 3-2</strong> (modifié par le décret n° 2011-774 du 28 juin 2011)<br>
+        Le registre de santé et de sécurité au travail est tenu, dans chaque service, à la disposition de l'ensemble des agents (et, le cas échéant, des usagers) pour consultation. Il permet à tout agent de consigner ses observations et suggestions relatives à l'hygiène et à la sécurité, ainsi que de signaler toute situation de danger constatée dans l'exercice de ses fonctions.
     </p>
     <ul>
         <li>Risques liés aux locaux et équipements</li>
@@ -37,7 +37,12 @@ $pageTitle = 'Préambule';
 <div class="card card--rami card--spaced content-section">
     <h3>&#x26A0;&#xFE0F; Registre des Actes d'Agressions, de Menaces et d'Incivilités (RAMI)</h3>
     <p>
-        <strong>Article 1 du décret n° 2010-696 du 24 juin 2010</strong><br>
+        <!-- TODO (revue juridique/RH requise) : identifier le texte applicable au registre RAMI.
+        Piste : signalement des actes de violence, discrimination, harcèlement et agissements sexistes
+        (art. 6 quater A, loi n° 83-634 du 13/07/1983, issu de la loi n° 2019-828 du 06/08/2019).
+        Le décret d'application initial n° 2020-256 du 13/03/2020 a été abrogé le 01/02/2025 :
+        vérifier le texte en vigueur avant publication. NE PAS inventer de numéro de remplacement. -->
+        <strong>Cadre juridique à confirmer</strong> — Dispositif de signalement des actes de violence, de discrimination, de harcèlement et d'agissements sexistes (art. 6 quater A de la loi n° 83-634 du 13 juillet 1983, issu de la loi n° 2019-828 du 6 août 2019). Le texte d'application est en cours d'identification par le service juridique/RH.<br>
         Le registre des actes d'agressions, de menaces et d'incivilités permet de consigner tout acte de violence externe (usagers, tiers) ou interne (collègues, hiérarchie) subi par un agent dans le cadre de ses fonctions.
     </p>
     <ul>
@@ -52,7 +57,7 @@ $pageTitle = 'Préambule';
 <div class="card card--dgi card--spaced content-section">
     <h3>&#x1F534; Registre de signalement d'un Danger Grave et Imminent (DGI)</h3>
     <p>
-        <strong>Articles L4131-1 et suivants du Code du travail</strong><br>
+        <strong>Articles L4131-1 et suivants du Code du travail</strong> (droit de retrait) et <strong>article D4132-1 du Code du travail</strong> (formalisme du registre spécial — avis du représentant CSE/CHSCT exerçant son droit d'alerte)<br>
         Le registre de danger grave et imminent permet à tout agent de signaler une situation de danger grave et imminent, c'est-à-dire une menace pouvant entraîner un accident du travail grave ou une maladie professionnelle grave dans l'immédiat.
     </p>
     <ul>

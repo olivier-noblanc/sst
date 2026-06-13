@@ -276,40 +276,65 @@ $pageTitle = 'Paramètres';
 
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans les registres. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
-            <fieldset class="form-group visibility-radios" id="visibility-radios">
-                <legend class="visibility-legend">Visibilité des signalements</legend>
-                <?php $currentVisibility = getConfig('app_report_visibility', 'agent_choice'); ?>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
+
+            <?php
+            $registries = [
+                'rsst' => ['label' => 'RSST — Registre de Santé et Sécurité au Travail', 'default' => 'public', 'legal' => 'Décret n° 82-453 art. 3-2 : registre consultable par tout agent. La transparence est recommandée.'],
+                'rami' => ['label' => 'RAMI — Registre des Agressions, Menaces et Incivilités', 'default' => '', 'legal' => 'Données sensibles (art. 9 RGPD) : le mode confidentiel ou choix de l\'agent est recommandé.'],
+                'dgi'  => ['label' => 'DGI — Danger Grave et Imminent', 'default' => '', 'legal' => 'Articles L4131-1 et D4132-1 du Code du travail : le formalisme du registre spécial peut justifier un mode restrictif.'],
+            ];
+            foreach ($registries as $type => $info):
+                $configKey = 'app_report_visibility_' . $type;
+                $currentValue = getConfig($configKey, '');
+                // Fallback to global if per-registry key is empty
+                if ($currentValue === '') {
+                    $currentValue = getConfig('app_report_visibility', 'agent_choice');
+                }
+                $currentValue = normalizeVisibilityValue($currentValue);
+            ?>
+            <fieldset class="form-group visibility-radios" id="visibility-radios-<?php echo e($type); ?>">
+                <legend class="visibility-legend"><?php echo e($info['label']); ?></legend>
                 <div class="visibility-radios">
                     <label class="visibility-radio-label">
-                        <input type="radio" name="app_report_visibility" value="confidential"
-                               <?php echo $currentVisibility === 'confidential' ? 'checked' : ''; ?>>
+                        <input type="radio" name="<?php echo e($configKey); ?>" value="confidential"
+                               <?php echo $currentValue === 'confidential' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Confidentiel</strong> <span class="text-muted text-small">(le plus restrictif)</span>
-                            <div class="text-muted text-small mt-2px">L'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.</div>
+                            <div class="text-muted text-small mt-2px">L'agent ne voit que ses propres signalements.</div>
                         </div>
                     </label>
                     <label class="visibility-radio-label">
-                        <input type="radio" name="app_report_visibility" value="agent_choice"
-                               <?php echo $currentVisibility === 'agent_choice' ? 'checked' : ''; ?>>
+                        <input type="radio" name="<?php echo e($configKey); ?>" value="agent_choice"
+                               <?php echo $currentValue === 'agent_choice' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Choix de l'agent</strong> <span class="text-muted text-small">(confidentiel par défaut)</span>
-                            <div class="text-muted text-small mt-2px">L'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo e(getConfig('app_label_unite', 'UR')); ?> ainsi que ses propres signalements.</div>
+                            <div class="text-muted text-small mt-2px">L'agent choisit la visibilité de chaque signalement. Par défaut confidentiel.</div>
                         </div>
                     </label>
                     <label class="visibility-radio-label">
-                        <input type="radio" name="app_report_visibility" value="public"
-                               <?php echo $currentVisibility === 'public' ? 'checked' : ''; ?>>
+                        <input type="radio" name="<?php echo e($configKey); ?>" value="public"
+                               <?php echo $currentValue === 'public' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Visibilité publique</strong>
                             <div class="text-muted text-small mt-2px">Tous les signalements du site sont visibles par tous les agents du site.</div>
                         </div>
                     </label>
                 </div>
-                <div class="info-panel agent-visibility-warning">
-                    &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CHSCT voient tous les signalements, y compris les confidentiels.
+                <?php if ($type === 'rsst' && $currentValue !== 'public'): ?>
+                <div class="info-panel agent-visibility-warning" style="border-left-color: #e67e22;">
+                    &#x26A0;&#xFE0F; <strong>Avertissement réglementaire :</strong> Le décret n° 82-453 art. 3-2 prévoit que le RSST est tenu à la disposition de l'ensemble des agents. Un mode restrictif peut ne pas être conforme à cette obligation de transparence.
+                </div>
+                <?php endif; ?>
+                <div class="info-panel" style="border-left-color: #2E5C8A;">
+                    &#x2139;&#xFE0F; <?php echo e($info['legal']); ?>
                 </div>
             </fieldset>
+            <?php endforeach; ?>
+
+            <div class="info-panel agent-visibility-warning">
+                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CHSCT voient tous les signalements, y compris les confidentiels.
+            </div>
         </div>
     </div>
 

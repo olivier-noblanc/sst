@@ -142,6 +142,17 @@ try {
         }
         updateConfig($pdo, 'app_report_visibility', $reportVisibility);
 
+        // Per-registry visibility settings
+        $registryTypes = ['rsst', 'rami', 'dgi'];
+        foreach ($registryTypes as $type) {
+            $key = 'app_report_visibility_' . $type;
+            $value = $_POST[$key] ?? '';
+            if ($value !== '' && !in_array($value, ['confidential', 'agent_choice', 'public'])) {
+                $value = '';
+            }
+            updateConfig($pdo, $key, $value);
+        }
+
         // Legacy keys: keep in sync for backward compatibility
         updateConfig($pdo, 'app_agent_visibility', $reportVisibility);
         updateConfig($pdo, 'app_agent_see_only_own', $reportVisibility === 'confidential' ? '1' : '0');

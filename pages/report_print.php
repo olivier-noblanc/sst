@@ -27,29 +27,16 @@ if (!$report) {
     redirect(url('home'));
 }
 
-// Access control: depends on report visibility setting
+// Access control: centralized via canAccessReport()
 $user = $_SESSION['user'];
-$userSiteId = (int) $user['site_id'];
-$userId = (int) $user['id'];
-$userRole = $user['role'];
-$reportVisibility = getReportVisibility();
 
-// Superviseur/CHSCT can always see everything
-if (!in_array($userRole, ['superviseur', 'chsct'])) {
-    // Agent access control
-    if ((int) $report['site_id'] !== $userSiteId) {
-        setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
-        redirect(url('home'));
-    }
-    if ($reportVisibility === 'confidential' && (int) $report['declarant_id'] !== $userId) {
-        setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
-        redirect(url('home'));
-    }
-    if ($reportVisibility === 'agent_choice' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== $userId) {
-        setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
-        redirect(url('home'));
-    }
+if (!canAccessReport($report, $user)) {
+    setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
+    redirect(url('home'));
 }
+
+// Log confidential report access by supervisor/CHSCT
+logConfidentialReportAccess($pdo, $report, $user);
 
 // Get response history
 $responses = getReportResponses($pdo, $uuid);

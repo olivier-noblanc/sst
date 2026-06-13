@@ -6,6 +6,75 @@
  */
 
 /**
+ * Centralize access control for a report.
+ * Combines role, site, visibility mode and confidentiality checks.
+ *
+ * @param array $report  Row from `reports` (site_id, declarant_id, is_confidential, type)
+ * @param array $user    $_SESSION['user'] (id, site_id, role)
+ * @return bool
+ */
+function canAccessReport(array $report, array $user): bool {
+    // Superviseur/CHSCT can always see everything
+    if (in_array($user['role'], ['superviseur', 'chsct'], true)) {
+        return true;
+    }
+
+    // Agent can never see reports from other sites
+    if ((int) $report['site_id'] !== (int) $user['site_id']) {
+        return false;
+    }
+
+    $visibility = getReportVisibilityMode($report['type'] ?? null);
+
+    if ($visibility === 'confidential' && (int) $report['declarant_id'] !== (int) $user['id']) {
+        // In confidential mode, agent can ONLY see their own reports
+        return false;
+    }
+
+    if ($visibility === 'agent_choice' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== (int) $user['id']) {
+        // In agent_choice mode, agent cannot see other agents' confidential reports
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Log access to a confidential report by supervisor/CHSCT.
+ * Only logs when a superviseur/chsct consults a report with is_confidential=1
+ * that they did not file themselves.
+ *
+ * @param PDO   $pdo     Database connection
+ * @param array $report  Row from `reports`
+ * @param array $user    $_SESSION['user']
+ */
+function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void {
+    if ((int) $report['is_confidential'] !== 1) {
+        return;
+    }
+    if (!in_array($user['role'], ['superviseur', 'chsct'], true)) {
+        return;
+    }
+    if ((int) $report['declarant_id'] === (int) $user['id']) {
+        return;
+    }
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO report_access_log (report_uuid, user_id, role)
+            VALUES (:report_uuid, :user_id, :role)
+        ");
+        $stmt->execute([
+            ':report_uuid' => $report['uuid'],
+            ':user_id'     => (int) $user['id'],
+            ':role'        => $user['role'],
+        ]);
+    } catch (Exception $e) {
+        // Logging must NEVER break the application
+        error_log('[SST-ACCESS-LOG] Failed to log report access: ' . $e->getMessage());
+    }
+}
+
+/**
  * Escape HTML special characters. Use for ALL output.
  * 
  * @param string|null $string  The string to escape
@@ -177,15 +246,11 @@ function canSeeAllSites(): bool {
 }
 
 /**
- * Get the raw report visibility mode from config (role-agnostic).
+ * Normalize a raw config value into a valid visibility mode.
  */
-function getReportVisibilityMode(): string {
-    $value = getConfig('app_report_visibility', 'agent_choice');
-    if ($value === '0') return 'public';
-    if ($value === '1') return 'confidential';
-    if ($value === 'site') return 'public';
-    if ($value === 'own') return 'confidential';
-    if ($value === 'confidential') return 'confidential';
+function normalizeVisibilityValue(string $value): string {
+    if ($value === '0' || $value === 'site') return 'public';
+    if ($value === '1' || $value === 'own') return 'confidential';
     if (in_array($value, ['confidential', 'agent_choice', 'public'])) {
         return $value;
     }
@@ -193,13 +258,35 @@ function getReportVisibilityMode(): string {
 }
 
 /**
- * Get the report visibility for the current user (for reading/filtering).
+ * Get the raw report visibility mode from config (role-agnostic).
+ * Supports per-registry keys (app_report_visibility_rsst/rami/dgi)
+ * with fallback to the global key.
+ *
+ * @param string|null $type  Registry type ('rsst', 'rami', 'dgi') or null for global
  */
-function getReportVisibility(): string {
+function getReportVisibilityMode(?string $type = null): string {
+    if ($type !== null) {
+        $key = 'app_report_visibility_' . $type;
+        $value = getConfig($key, '');
+        if ($value !== '') {
+            return normalizeVisibilityValue($value);
+        }
+        // Fallback to global key if per-registry key is empty/not set
+    }
+    $value = getConfig('app_report_visibility', 'agent_choice');
+    return normalizeVisibilityValue($value);
+}
+
+/**
+ * Get the report visibility for the current user (for reading/filtering).
+ *
+ * @param string|null $type  Registry type ('rsst', 'rami', 'dgi') or null for global
+ */
+function getReportVisibility(?string $type = null): string {
     if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'agent') {
         return 'all';
     }
-    return getReportVisibilityMode();
+    return getReportVisibilityMode($type);
 }
 
 /** @deprecated Use getReportVisibility() instead */
@@ -207,16 +294,16 @@ function getAgentVisibility(): string {
     return getReportVisibility();
 }
 
-function reportVisibilityIsConfidential(): bool {
-    return getReportVisibilityMode() === 'confidential';
+function reportVisibilityIsConfidential(?string $type = null): bool {
+    return getReportVisibilityMode($type) === 'confidential';
 }
 
-function reportVisibilityIsAgentChoice(): bool {
-    return getReportVisibilityMode() === 'agent_choice';
+function reportVisibilityIsAgentChoice(?string $type = null): bool {
+    return getReportVisibilityMode($type) === 'agent_choice';
 }
 
-function reportVisibilityIsPublic(): bool {
-    return getReportVisibilityMode() === 'public';
+function reportVisibilityIsPublic(?string $type = null): bool {
+    return getReportVisibilityMode($type) === 'public';
 }
 
 /** @deprecated */

@@ -50,6 +50,17 @@ php -S localhost:8080 -t public/ public/router.php
 # Ouvrir http://localhost:8080/?page=login
 ```
 
+## Tests
+
+```bash
+# Test de la logique d'autorisation (canAccessReport)
+php tools/tests/test_can_access_report.php
+# Code de sortie : 0 = succès, 1 = échec
+
+# Anonymisation (dry-run)
+php tools/anonymize_old_reports.php --dry-run
+```
+
 ## Visibilité des signalements — 3 modes (configurable par le superviseur)
 
 | Mode | Description |

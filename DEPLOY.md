@@ -315,6 +315,11 @@ sendmail_from = noreply@dreets.gouv.fr
 - Restreindre l'accès IP au réseau DREETS si nécessaire
 - Activer le logging IIS
 - Sauvegarder régulièrement `data\sst.db`
+- **Sauvegarde planifiée** : un script PowerShell `tools\backup_sst_db.ps1` est fourni. Il effectue un checkpoint WAL puis copie la base avec un horodatage. Pour une sauvegarde quotidienne automatique, créer une tâche planifiée Windows :
+  ```
+ schtasks /create /tn "SST-Backup" /tr "powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\tools\backup_sst_db.ps1" /sc daily /st 02:00 /ru SYSTEM
+  ```
+  Les sauvegardes de plus de 30 jours sont automatiquement nettoyées par le script.
 - En production stable, on peut passer `errorMode="DetailedLocalOnly"` dans web.config
   (les erreurs PHP restent visibles grâce à `display_errors=On` dans config.php)
 
@@ -477,3 +482,26 @@ Le script affiche le nombre de signalements qui seront supprimés et demande une
 - `notification_settings` — les paramètres de notification email
 
 > **Note** : après un nuclear reset, les prochains signalements repartent à la séquence 001 de l'année en cours.
+
+### Conservation et anonymisation des signalements (RGPD)
+
+L'application dispose d'un mécanisme d'anonymisation des signalements anciens, configurable via le paramètre `app_retention_years` (dans **Paramètres → Application**).
+
+- **`0` (défaut)** : conservation illimitée, aucune anonymisation automatique.
+- **`N > 0`** : les signalements en état `traité` ou `abandonné` dont la `date_evenement` est antérieure à N années seront anonymisés (nom/prénom du déclarant remplacés par « Anonymisé »).
+
+> ⚠️ **Important** : la durée de conservation doit être validée par le DPO de la DREETS avant d'activer ce mécanisme. La valeur doit être cohérente avec les durées habituelles des registres SST/RH.
+
+Pour exécuter l'anonymisation manuellement :
+
+```cmd
+cd C:\inetpub\sst
+php tools\anonymize_old_reports.php          # Exécution réelle
+php tools\anonymize_old_reports.php --dry-run # Aperçu sans modification
+```
+
+Pour une exécution planifiée (mensuelle par exemple) :
+
+```cmd
+schtasks /create /tn "SST-Anonymize" /tr "php C:\inetpub\sst\tools\anonymize_old_reports.php" /sc monthly /d 1 /st 03:00 /ru SYSTEM
+```

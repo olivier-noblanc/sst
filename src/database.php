@@ -178,6 +178,15 @@ function migrateSchema(PDO $pdo): void {
             ip_address TEXT,
             created_at TEXT NOT NULL DEFAULT (datetime(\'now\'))
         )',
+        'report_access_log' => 'CREATE TABLE IF NOT EXISTS report_access_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_uuid TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            role TEXT NOT NULL,
+            accessed_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+            FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )',
     ];
 
     foreach ($migrations as $table => $sql) {
@@ -433,6 +442,9 @@ function migrateSchema(PDO $pdo): void {
         'CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id)',
         'CREATE INDEX IF NOT EXISTS idx_audit_log_target ON audit_log(target_type, target_id)',
         'CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at)',
+        'CREATE INDEX IF NOT EXISTS idx_report_access_log_report_uuid ON report_access_log(report_uuid)',
+        'CREATE INDEX IF NOT EXISTS idx_report_access_log_user_id ON report_access_log(user_id)',
+        'CREATE INDEX IF NOT EXISTS idx_report_access_log_accessed_at ON report_access_log(accessed_at)',
     ];
     foreach ($indexes as $sql) {
         try {
@@ -457,6 +469,10 @@ function migrateConfigKeys(PDO $pdo): void {
         'app_agent_visibility' => ['agent_choice', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
         'app_report_visibility' => ['agent_choice', 'text', 'app', 'Visibilité des signalements : "confidential" (l\'agent ne voit que ses propres signalements), "agent_choice" (l\'agent choisit au cas par cas, confidentiel par défaut), "public" (tous les signalements du site sont visibles par tous les agents).', 1],
         'app_admin_email' => ['', 'email', 'app', 'Adresse e-mail de l\'administrateur technique. Les erreurs critiques (Fatal, E_ERROR, E_PARSE, etc.) seront automatiquement envoyées à cette adresse pour un diagnostic rapide. Laissez vide pour désactiver les notifications par e-mail.', 1],
+        'app_report_visibility_rsst' => ['public', 'text', 'app', 'Visibilité des signalements RSST : "confidential", "agent_choice" ou "public". Par défaut "public" conformément au décret 82-453 art. 3-2 (registre consultable par tout agent).', 1],
+        'app_report_visibility_rami' => ['', 'text', 'app', 'Visibilité des signalements RAMI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1],
+        'app_report_visibility_dgi' => ['', 'text', 'app', 'Visibilité des signalements DGI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1],
+        'app_retention_years' => ['0', 'number', 'app', 'Durée de conservation des signalements traités/abandonnés (en années). 0 = désactivé (conservation illimitée). Doit être fixé après validation du DPO.', 1],
     ];
 
     foreach ($newKeys as $cle => $data) {

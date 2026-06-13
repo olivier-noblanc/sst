@@ -23,17 +23,12 @@ if (!$row || empty($row['attachment_blob'])) {
     exit('Fichier introuvable.');
 }
 
-// Access control: same as report_view
+// Access control: centralized via canAccessReport()
 $user = $_SESSION['user'] ?? null;
 if (!$user) {
     http_response_code(403);
     exit('Accès refusé.');
 }
-
-$userRole = $user['role'];
-$userSiteId = (int) $user['site_id'];
-$userId = (int) $user['id'];
-$reportVisibility = getReportVisibility();
 
 // Get full report for access check
 $report = getReportByUuid($pdo, $uuid);
@@ -42,21 +37,13 @@ if (!$report) {
     exit('Fichier introuvable.');
 }
 
-// Same access control as report_view
-if (!in_array($userRole, ['superviseur', 'chsct'])) {
-    if ((int) $report['site_id'] !== $userSiteId) {
-        http_response_code(403);
-        exit('Accès refusé.');
-    }
-    if ($reportVisibility === 'confidential' && (int) $report['declarant_id'] !== $userId) {
-        http_response_code(403);
-        exit('Accès refusé.');
-    }
-    if ($reportVisibility === 'agent_choice' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== $userId) {
-        http_response_code(403);
-        exit('Accès refusé.');
-    }
+if (!canAccessReport($report, $user)) {
+    http_response_code(403);
+    exit('Accès refusé.');
 }
+
+// Log confidential report access by supervisor/CHSCT
+logConfidentialReportAccess($pdo, $report, $user);
 
 // Serve the file
 $mime = $row['attachment_mime'] ?? 'application/octet-stream';

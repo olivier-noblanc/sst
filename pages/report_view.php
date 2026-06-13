@@ -20,35 +20,19 @@ if (!$report) {
     redirect(url('home'));
 }
 
-// Access control: depends on report visibility setting
+// Access control: centralized via canAccessReport()
 $user = $_SESSION['user'];
-$userSiteId = (int) $user['site_id'];
-$userId = (int) $user['id'];
-$userRole = $user['role'];
-$reportVisibility = getReportVisibility();
 
-// Superviseur/CHSCT can always see everything
-if (!in_array($userRole, ['superviseur', 'chsct'])) {
-    // Agent access control
-    if ((int) $report['site_id'] !== $userSiteId) {
-        // Agent can never see reports from other sites
-        setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
-        redirect(url('home'));
-    }
-    if ($reportVisibility === 'confidential' && (int) $report['declarant_id'] !== $userId) {
-        // In confidential mode, agent can ONLY see their own reports — not even the title
-        setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
-        redirect(url('home'));
-    }
-    if ($reportVisibility === 'agent_choice' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== $userId) {
-        // In agent_choice mode, agent cannot see other agents' confidential reports
-        setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
-        redirect(url('home'));
-    }
+if (!canAccessReport($report, $user)) {
+    setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
+    redirect(url('home'));
 }
 
+// Log confidential report access by supervisor/CHSCT
+logConfidentialReportAccess($pdo, $report, $user);
+
 // If report is abandoned and user is not declarant nor supervisor/chsct
-if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== $userId && !in_array($userRole, ['superviseur', 'chsct'])) {
+if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== (int) $user['id'] && !in_array($user['role'], ['superviseur', 'chsct'])) {
     setFlash('warning', 'Ce signalement a été abandonné.');
 }
 

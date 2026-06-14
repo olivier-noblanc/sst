@@ -40,3 +40,7 @@ pdf_docs/
 .tools/
 test_pdf_real.php
 tool-results/
+
+# Manuels — pas de manuel en .md, les maquettes HTML suffisent (voir AGENTS.md)
+docs/MANUEL_AGENT.md
+docs/MANUEL_SUPERVISEUR.md

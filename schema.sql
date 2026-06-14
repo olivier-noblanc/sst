@@ -57,6 +57,9 @@ CREATE TABLE IF NOT EXISTS reports (
     pour_compte_de  INTEGER,                         -- FK to users (nullable, RAMI only)
     pour_compte_nom TEXT,                            -- Denormalized name of the other agent
     pour_compte_prenom TEXT,                         -- Denormalized first name
+    -- RAMI structured fields (optional — for statistics by nature/type)
+    nature_auteur   TEXT,                            -- RAMI only: 'usager'|'collegue'|'hierarchie'|'tiers' (nullable)
+    type_acte       TEXT,                            -- RAMI only: 'verbal'|'physique'|'moral'|'sexiste'|'autre' (nullable)
     -- Assignment
     site_id         INTEGER NOT NULL,                -- FK to sites (UR where event occurred, always set)
     -- Confidentiality
@@ -154,7 +157,9 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
     ('app_report_visibility_rsst', 'public', 'text', 'app', 'Visibilité des signalements RSST : "confidential", "agent_choice" ou "public". Par défaut "public" conformément au décret 82-453 art. 3-2 (registre consultable par tout agent).', 1),
     ('app_report_visibility_rami', '', 'text', 'app', 'Visibilité des signalements RAMI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1),
     ('app_report_visibility_dgi', '', 'text', 'app', 'Visibilité des signalements DGI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1),
-    ('app_retention_years', '0', 'number', 'app', 'Durée de conservation des signalements traités/abandonnés (en années). 0 = désactivé (conservation illimitée). Doit être fixé après validation du DPO.', 1);
+    ('app_retention_years', '0', 'number', 'app', 'Durée de conservation des signalements traités/abandonnés (en années). 0 = désactivé (conservation illimitée). Doit être fixé après validation du DPO.', 1),
+    ('app_dpo_contact', '', 'text', 'app', 'Coordonnées du Délégué à la Protection des Données (DPO) — affichées dans la mention RGPD du préambule. Ex : dpo@dreets-bfc.gouv.fr', 1),
+    ('app_alert_delay_days', '0', 'number', 'app', 'Délai d''alerte en jours pour les signalements restés à l''état « Nouveau ». 0 = désactivé. Si > 0, un e-mail est envoyé aux superviseurs du site lorsqu''un signalement dépasse ce délai (via tools/check_delays.php en CRON).', 1);
 
 
 -- ============================================================

@@ -276,7 +276,7 @@ $pageTitle = 'Paramètres';
 
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du CHSCT voient toujours tous les signalements.</p>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du CSA/CHSCT voient toujours tous les signalements.</p>
 
             <?php
             $registries = [
@@ -333,7 +333,7 @@ $pageTitle = 'Paramètres';
             <?php endforeach; ?>
 
             <div class="info-panel agent-visibility-warning">
-                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CHSCT voient tous les signalements, y compris les confidentiels.
+                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CSA/CHSCT voient tous les signalements, y compris les confidentiels.
             </div>
         </div>
     </div>

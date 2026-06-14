@@ -57,6 +57,19 @@ $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
 $pourCompteNom = trim($_POST['pour_compte_nom'] ?? '');
 $pourComptePrenom = trim($_POST['pour_compte_prenom'] ?? '');
 $isConfidential = isset($_POST['is_confidential']) && $_POST['is_confidential'] === '1' ? 1 : 0;
+// RAMI structured fields
+$natureAuteur = trim($_POST['nature_auteur'] ?? '');
+$typeActe = trim($_POST['type_acte'] ?? '');
+// Validate nature_auteur (optional, must be one of allowed values if provided)
+$allowedNatureAuteur = ['usager', 'collegue', 'hierarchie', 'tiers'];
+if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur)) {
+    $natureAuteur = '';
+}
+// Validate type_acte (optional, must be one of allowed values if provided)
+$allowedTypeActe = ['verbal', 'physique', 'moral', 'sexiste', 'autre'];
+if (!empty($typeActe) && !in_array($typeActe, $allowedTypeActe)) {
+    $typeActe = '';
+}
 // Enforce visibility mode rules:
 // - 'public' mode → force is_confidential to 0 (all reports are public)
 // - 'confidential' mode → force is_confidential to 1 (all reports are confidential)
@@ -177,9 +190,13 @@ if ($removeAttachment) {
 if ($type === 'rami') {
     $updateData['pour_compte_nom'] = $pourCompte ? $pourCompteNom : null;
     $updateData['pour_compte_prenom'] = $pourCompte ? $pourComptePrenom : null;
+    $updateData['nature_auteur'] = $natureAuteur ?: null;
+    $updateData['type_acte'] = $typeActe ?: null;
 } else {
     $updateData['pour_compte_nom'] = null;
     $updateData['pour_compte_prenom'] = null;
+    $updateData['nature_auteur'] = null;
+    $updateData['type_acte'] = null;
 }
 
 // Update the report

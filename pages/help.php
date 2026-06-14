@@ -66,7 +66,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
         <!-- CHSCT -->
         <div class="help-profile-card help-profile-card--chsct">
             <h3>
-                <span class="badge badge--chsct badge--sm">Membre CHSCT</span>
+                <span class="badge badge--chsct badge--sm">Membre CSA/CHSCT</span>
             </h3>
             <p class="help-description">Membre de la Commission Hygiène, Sécurité et Conditions de Travail. Accès en consultation élargie sur tous les sites pour le suivi des registres SST.</p>
             <ul class="help-feature-list">
@@ -95,7 +95,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                     <th class="text-left">Fonctionnalité</th>
                     <th class="text-center">Agent</th>
                     <th class="text-center">Superviseur</th>
-                    <th class="text-center">CHSCT</th>
+                    <th class="text-center">CSA/CHSCT</th>
                 </tr>
             </thead>
             <tbody>
@@ -213,9 +213,9 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                     <td>Le superviseur a accès à l'ensemble des signalements, tous sites confondus, y compris les confidentiels.</td>
                 </tr>
                 <tr>
-                    <td><span class="badge badge--chsct">CHSCT</span></td>
+                    <td><span class="badge badge--chsct">CSA/CHSCT</span></td>
                     <td>Tous les sites</td>
-                    <td>Le membre CHSCT peut consulter tous les signalements, y compris les confidentiels, pour l'exercice de ses missions.</td>
+                    <td>Le membre CSA/CHSCT peut consulter tous les signalements, y compris les confidentiels, pour l'exercice de ses missions.</td>
                 </tr>
             </tbody>
         </table>
@@ -242,6 +242,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
             <p class="help-description help-description--title">Registre des Actes d'Agressions, de Menaces et d'Incivilités</p>
             <p class="help-description">Signalement d'agressions physiques ou verbales, de menaces, ou d'incivilités subies par un agent dans le cadre de ses fonctions.</p>
             <p class="help-note help-note--inline">Champ spécifique : <strong>« Pour le compte de »</strong> (signalement pour un tiers).</p>
+            <p class="help-note help-note--inline">Champ spécifique : <strong>Nature de l'auteur</strong> (usager / collègue / hiérarchie / tiers) et <strong>type d'acte</strong> (verbal / physique / moral / sexiste / autre) — optionnels mais recommandés pour les statistiques.</p>
         </div>
 
         <div class="help-profile-card help-profile-card--dgi">
@@ -249,6 +250,9 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
             <p class="help-description help-description--title">Registre de signalement d'un Danger Grave et Imminent</p>
             <p class="help-description">Signalement d'une situation de danger grave et imminent nécessitant une action immédiate. Ce registre bénéficie d'une procédure accélérée.</p>
             <p class="help-note help-note--inline">Procédure : <strong>traitement prioritaire</strong>, notification immédiate.</p>
+            <p class="help-note help-note--inline" style="background: #fff8e1; padding: 0.5rem; border-left: 3px solid #f0ad4e; border-radius: 3px; margin-top: 0.5rem;">
+                <strong>Clarification :</strong> Le formulaire vaut notification au sens <strong>L4131-1</strong> (droit de retrait individuel). La consignation formelle au sens <strong>D4132-1</strong> reste du ressort du représentant CSA/CHSCT — deux actes distincts.
+            </p>
         </div>
     </div>
 </div>
@@ -332,6 +336,8 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Un e-mail de notification est envoyé aux adresses configurées pour ce site</li>
                 <li>Jean peut suivre son signalement dans la liste RSST de son site</li>
             </ol>
+            <img src="docs/screenshots/cu1-accueil.png" alt="Page d'accueil avec les 3 cartes de registre (RSST, RAMI, DGI)" class="help-screenshot help-screenshot--placeholder" width="700">
+            <img src="docs/screenshots/cu1-formulaire-rsst.png" alt="Formulaire de création d'un signalement RSST rempli avec les champs date, lieu, objet et description" class="help-screenshot help-screenshot--placeholder" width="700">
         </div>
     </div>
 
@@ -345,10 +351,14 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
             <ol>
                 <li>Sophie clique sur <strong>« Inscrire un signalement »</strong> sur la carte RAMI</li>
                 <li>Elle remplit le formulaire et coche <strong>« Pour le compte de »</strong> (champ spécifique RAMI)</li>
-                <li>Elle sélectionne <strong>Pierre Dupont</strong> dans la liste des agents comme bénéficiaire du signalement</li>
+                <li>Elle saisit le <strong>prénom et le nom</strong> du bénéficiaire dans le champ texte libre (ex : Pierre Dupont)</li>
                 <li>Elle décrit les faits de manière objective avec date, heure et lieu</li>
                 <li>Le signalement est enregistré — Sophie apparaît comme déclarant, Pierre comme « pour le compte de »</li>
             </ol>
+            <p class="help-note" style="background: #e8f5e9; padding: 0.5rem; border-left: 3px solid #4caf50; border-radius: 3px; margin-top: 0.5rem;">
+                <strong>Que se passe-t-il après ?</strong> Votre signalement est envoyé aux superviseurs de votre site par notification e-mail. Un superviseur le prendra en charge, passera le statut à « En cours », puis à « Traité » avec une réponse. Vous pouvez suivre l'avancement dans la liste des signalements. En cas d'absence de réponse prolongée, le superviseur en sera alerté automatiquement.
+            </p>
+            <img src="docs/screenshots/cu2-formulaire-rami.png" alt="Formulaire RAMI avec la case « Pour le compte de » cochée et les champs nature_auteur et type_acte visibles" class="help-screenshot help-screenshot--placeholder" width="700">
         </div>
     </div>
 
@@ -366,6 +376,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Le signalement est créé avec la référence <code>dgi-25-001</code> et une <strong>notification immédiate</strong> est envoyée aux superviseurs</li>
                 <li>Le traitement est <strong>prioritaire</strong> — le superviseur doit répondre dans les plus brefs délais</li>
             </ol>
+            <img src="docs/screenshots/cu3-formulaire-dgi.png" alt="Formulaire DGI avec indication de procédure prioritaire et notification immédiate" class="help-screenshot help-screenshot--placeholder" width="700">
         </div>
     </div>
 
@@ -384,6 +395,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Quelques jours plus tard, la rampe est réparée. Elle revient sur le signalement et le passe à <span class="badge badge--traite">Traité</span> avec la réponse : « Rampe réparée le 12/06/2025. Contrôle visuel effectué. »</li>
                 <li>Le déclarant (Jean) peut voir la réponse dans le détail de son signalement</li>
             </ol>
+            <img src="docs/screenshots/cu4-repondre.png" alt="Formulaire de réponse du superviseur avec changement de statut En cours ou Traité" class="help-screenshot help-screenshot--placeholder" width="700">
         </div>
     </div>
 
@@ -400,15 +412,16 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Il saisit un motif d'abandon (ex : « Doublon du signalement rsst-25-003 »)</li>
                 <li>Le statut passe à <span class="badge badge--abandonne">Abandonné</span></li>
             </ol>
+            <img src="docs/screenshots/cu5-abandonner.png" alt="Formulaire d'abandon d'un signalement avec champ de motif" class="help-screenshot help-screenshot--placeholder" width="700">
         </div>
     </div>
 
     <!-- CU6 : CHSCT consulte -->
     <div class="help-profile-card card--spaced">
-        <h3>CU6 — Un membre CHSCT consulte les signalements</h3>
-        <p class="text-small text-muted help-case-label">Profil : Membre CHSCT</p>
+        <h3>CU6 — Un membre CSA/CHSCT consulte les signalements</h3>
+        <p class="text-small text-muted help-case-label">Profil : Membre CSA/CHSCT</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Philippe, membre CHSCT, souhaite avoir une vue d'ensemble de l'activité des 3 registres sur l'ensemble des sites.<br><br>
+            <strong>Situation :</strong> Philippe, membre CSA/CHSCT, souhaite avoir une vue d'ensemble de l'activité des 3 registres sur l'ensemble des sites.<br><br>
             <strong>Parcours :</strong>
             <ol>
                 <li>Il accède à la <strong>Synthèse</strong> pour voir le nombre de signalements par registre, par site et par état</li>
@@ -417,8 +430,9 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Il peut consulter le détail de n'importe quel signalement sur <strong>tous les sites</strong></li>
             </ol>
             <p class="help-warning-callout">
-                &#x26A0; Le membre CHSCT <strong>ne peut pas répondre</strong> aux signalements ni modifier les utilisateurs — il a un rôle de consultation uniquement.
+                &#x26A0; Le membre CSA/CHSCT <strong>ne peut pas répondre</strong> aux signalements ni modifier les utilisateurs — il a un rôle de consultation uniquement.
             </p>
+            <img src="docs/screenshots/cu6-synthese.png" alt="Page de synthèse montrant le nombre de signalements par registre, par site et par état" class="help-screenshot help-screenshot--placeholder" width="700">
         </div>
     </div>
 
@@ -442,6 +456,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Dans <strong>Paramètres &rarr; SMTP</strong>, configurer le serveur d'envoi d'e-mails</li>
                 <li>Dans <strong>Paramètres &rarr; Notifications</strong>, ajouter les adresses e-mail à notifier par site et/ou globalement</li>
             </ol>
+            <img src="docs/screenshots/cu7-utilisateurs.png" alt="Page de gestion des utilisateurs avec liste, rôles et sites d'affectation" class="help-screenshot help-screenshot--placeholder" width="700">
         </div>
     </div>
 
@@ -457,6 +472,7 @@ $userRole = $_SESSION['user']['role'] ?? 'agent';
                 <li>Il clique sur <strong>« Télécharger en PDF »</strong></li>
                 <li>Un fichier PDF est généré et téléchargé automatiquement, prêt pour impression ou archivage</li>
             </ol>
+            <img src="docs/screenshots/cu8-pdf.png" alt="Fiche de signalement générée en PDF pour impression ou archivage" class="help-screenshot help-screenshot--placeholder" width="700">
         </div>
     </div>
 </div>

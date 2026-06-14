@@ -92,6 +92,8 @@ $headers = [
     'Confidentiel',
     'Date création',
     'Déclaré pour le compte de',
+    'Nature de l\'auteur (RAMI)',
+    'Type d\'acte (RAMI)',
     'Nb réponses',
     'Dernière réponse',
     'Dernier répondant',
@@ -111,6 +113,23 @@ foreach ($reports as $row) {
     if (!empty($row['pour_compte_nom'])) {
         $pourCompte = trim(($row['pour_compte_prenom'] ?? '') . ' ' . $row['pour_compte_nom']);
     }
+
+    // Build RAMI structured fields labels
+    $natureAuteurLabels = [
+        'usager' => 'Usager',
+        'collegue' => 'Collègue',
+        'hierarchie' => 'Hiérarchie',
+        'tiers' => 'Tiers',
+    ];
+    $typeActeLabels = [
+        'verbal' => 'Verbal',
+        'physique' => 'Physique',
+        'moral' => 'Moral',
+        'sexiste' => 'Sexiste',
+        'autre' => 'Autre',
+    ];
+    $natureAuteurLabel = $natureAuteurLabels[$row['nature_auteur'] ?? ''] ?? '';
+    $typeActeLabel = $typeActeLabels[$row['type_acte'] ?? ''] ?? '';
 
     // Build response history as structured text
     // Format: [Date] Répondant (État) : Réponse | [Date] ...
@@ -149,6 +168,8 @@ foreach ($reports as $row) {
         !empty($row['is_confidential']) ? 'Oui' : 'Non',
         $csvEscape($row['created_at'] ?? ''),
         $csvEscape($pourCompte),
+        $csvEscape($natureAuteurLabel),
+        $csvEscape($typeActeLabel),
         $responseCount,
         $csvEscape($row['reponse'] ?? ''),
         $csvEscape(trim(($row['repondant_prenom'] ?? '') . ' ' . ($row['repondant_nom'] ?? ''))),

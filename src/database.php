@@ -391,6 +391,25 @@ function migrateSchema(PDO $pdo): void {
         error_log("Migration warning for attachment columns: " . $e->getMessage());
     }
 
+    // Add RAMI structured fields: nature_auteur and type_acte
+    try {
+        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $hasNatureAuteur = false;
+        $hasTypeActe = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'nature_auteur') $hasNatureAuteur = true;
+            if ($col['name'] === 'type_acte') $hasTypeActe = true;
+        }
+        if (!$hasNatureAuteur) {
+            $pdo->exec("ALTER TABLE reports ADD COLUMN nature_auteur TEXT");
+        }
+        if (!$hasTypeActe) {
+            $pdo->exec("ALTER TABLE reports ADD COLUMN type_acte TEXT");
+        }
+    } catch (Exception $e) {
+        error_log("Migration warning for RAMI structured fields: " . $e->getMessage());
+    }
+
     // === FTS5 full-text search index ===
     try {
         $ftsCheck = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='reports_fts'");
@@ -474,6 +493,8 @@ function migrateConfigKeys(PDO $pdo): void {
         'app_report_visibility_rami' => ['', 'text', 'app', 'Visibilité des signalements RAMI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1],
         'app_report_visibility_dgi' => ['', 'text', 'app', 'Visibilité des signalements DGI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1],
         'app_retention_years' => ['0', 'number', 'app', 'Durée de conservation des signalements traités/abandonnés (en années). 0 = désactivé (conservation illimitée). Doit être fixé après validation du DPO.', 1],
+        'app_dpo_contact' => ['', 'text', 'app', 'Coordonnées du Délégué à la Protection des Données (DPO) — affichées dans la mention RGPD du préambule. Ex : dpo@dreets-bfc.gouv.fr', 1],
+        'app_alert_delay_days' => ['0', 'number', 'app', 'Délai d\'alerte en jours pour les signalements restés à l\'état « Nouveau ». 0 = désactivé. Si > 0, un e-mail est envoyé aux superviseurs du site lorsqu\'un signalement dépasse ce délai (via tools/check_delays.php en CRON).', 1],
     ];
 
     foreach ($newKeys as $cle => $data) {

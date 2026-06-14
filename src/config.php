@@ -88,7 +88,7 @@ define('REGISTRY_SHORT_LABELS', [
 define('ROLE_LABELS', [
     'agent'       => 'Agent',
     'superviseur' => 'Superviseur',
-    'chsct'       => 'Membre CHSCT',
+    'chsct'       => 'Membre CSA/CHSCT',
 ]);
 
 // Report visibility modes (admin-configurable in Settings → Application)

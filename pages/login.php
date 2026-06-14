@@ -106,7 +106,7 @@ if (isset($_SESSION['user'])) {
                 <ul>
                     <li><code>admin.dev</code> — Superviseur (UR21 Côte-d'Or)</li>
                     <li><code>agent.dev</code> — Agent (choix du site au login)</li>
-                    <li><code>chsct.dev</code> — Membre CHSCT (UR25 Doubs)</li>
+                    <li><code>chsct.dev</code> — Membre CSA/CHSCT (UR25 Doubs)</li>
                 </ul>
                 <p class="text-small text-muted mt-2">
                     Tout autre nom d'utilisateur créera un compte agent automatiquement.

@@ -25,6 +25,23 @@ $kpis = getStatisticsKPIs($pdo, $year);
 // Get stats by site
 $statsBySite = getStatsBySite($pdo, $year);
 
+// Get RAMI structured stats
+$ramiStats = getRamiStructuredStats($pdo, $year);
+
+$natureAuteurLabels = [
+    'usager' => 'Usager',
+    'collegue' => 'Collègue',
+    'hierarchie' => 'Hiérarchie',
+    'tiers' => 'Tiers',
+];
+$typeActeLabels = [
+    'verbal' => 'Verbal',
+    'physique' => 'Physique',
+    'moral' => 'Moral',
+    'sexiste' => 'Sexiste',
+    'autre' => 'Autre',
+];
+
 // Count total active users
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE is_active = 1");
 $stmt->execute();
@@ -153,3 +170,59 @@ $pageTitle = 'Statistiques';
         </table>
     </div>
 </div>
+
+<!-- RAMI: Répartition par nature de l'auteur et type d'acte -->
+<?php if (!empty($ramiStats['by_nature_auteur']) || !empty($ramiStats['by_type_acte'])): ?>
+<div class="card" style="margin-top: 1.5rem;">
+    <h3 class="card__title">RAMI — Répartition par nature de l'auteur et type d'acte</h3>
+    <p class="text-muted text-small">Statistiques sur les signalements RAMI ayant renseigné les champs « Nature de l'auteur » et « Type d'acte ».</p>
+    <div class="help-profiles-grid">
+        <?php if (!empty($ramiStats['by_nature_auteur'])): ?>
+        <div>
+            <h4>Nature de l'auteur</h4>
+            <div class="table-wrapper">
+                <table aria-label="RAMI par nature de l'auteur">
+                    <thead>
+                        <tr>
+                            <th>Nature</th>
+                            <th class="text-center">Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($ramiStats['by_nature_auteur'] as $row): ?>
+                        <tr>
+                            <td><?php echo e($natureAuteurLabels[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
+                            <td class="text-center"><?php echo (int) $row['count']; ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
+        <?php if (!empty($ramiStats['by_type_acte'])): ?>
+        <div>
+            <h4>Type d'acte</h4>
+            <div class="table-wrapper">
+                <table aria-label="RAMI par type d'acte">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th class="text-center">Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($ramiStats['by_type_acte'] as $row): ?>
+                        <tr>
+                            <td><?php echo e($typeActeLabels[$row['type_acte']] ?? $row['type_acte']); ?></td>
+                            <td class="text-center"><?php echo (int) $row['count']; ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>

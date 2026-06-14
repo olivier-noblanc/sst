@@ -165,7 +165,7 @@ $submitBtnClass = $isEdit
                            <?php echo $val('is_confidential', '1') === '1' ? 'checked' : ''; ?>>
                     Signalement confidentiel
                 </label>
-                <span class="form-hint">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                <span class="form-hint">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CSA/CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
                 <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                 <div class="confidential-warning">
                     &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
@@ -175,7 +175,7 @@ $submitBtnClass = $isEdit
             <input type="hidden" name="is_confidential" value="1">
             <div class="form-group form-grid__full">
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
-                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du CHSCT.</span>
+                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du CSA/CHSCT.</span>
             </div>
             <?php elseif (reportVisibilityIsPublic()): ?>
             <input type="hidden" name="is_confidential" value="0">
@@ -218,6 +218,31 @@ $submitBtnClass = $isEdit
                 <?php if (isset($formErrors['pour_compte_nom'])): ?>
                     <span class="form-error" id="err_pour_compte_nom"><?php echo e($formErrors['pour_compte_nom']); ?></span>
                 <?php endif; ?>
+            </div>
+
+            <div class="form-group">
+                <label for="nature_auteur">Nature de l'auteur</label>
+                <select id="nature_auteur" name="nature_auteur">
+                    <option value="">— Non renseigné —</option>
+                    <option value="usager" <?php echo $val('nature_auteur') === 'usager' ? 'selected' : ''; ?>>Usager</option>
+                    <option value="collegue" <?php echo $val('nature_auteur') === 'collegue' ? 'selected' : ''; ?>>Collègue</option>
+                    <option value="hierarchie" <?php echo $val('nature_auteur') === 'hierarchie' ? 'selected' : ''; ?>>Hiérarchie</option>
+                    <option value="tiers" <?php echo $val('nature_auteur') === 'tiers' ? 'selected' : ''; ?>>Tiers</option>
+                </select>
+                <span class="form-hint">Optionnel — utile pour les statistiques du CSA/CHSCT.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="type_acte">Type d'acte</label>
+                <select id="type_acte" name="type_acte">
+                    <option value="">— Non renseigné —</option>
+                    <option value="verbal" <?php echo $val('type_acte') === 'verbal' ? 'selected' : ''; ?>>Verbal</option>
+                    <option value="physique" <?php echo $val('type_acte') === 'physique' ? 'selected' : ''; ?>>Physique</option>
+                    <option value="moral" <?php echo $val('type_acte') === 'moral' ? 'selected' : ''; ?>>Moral</option>
+                    <option value="sexiste" <?php echo $val('type_acte') === 'sexiste' ? 'selected' : ''; ?>>Sexiste</option>
+                    <option value="autre" <?php echo $val('type_acte') === 'autre' ? 'selected' : ''; ?>>Autre</option>
+                </select>
+                <span class="form-hint">Optionnel — utile pour les statistiques du CSA/CHSCT.</span>
             </div>
             <?php endif; ?>
         </div>

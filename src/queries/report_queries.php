@@ -60,12 +60,14 @@ function createReport(PDO $pdo, array $data): string {
                 uuid, reference, type, objet, description, date_evenement, heure_evenement,
                 lieu, declarant_id, declarant_nom, declarant_prenom,
                 pour_compte_de, pour_compte_nom, pour_compte_prenom,
+                nature_auteur, type_acte,
                 site_id, is_confidential, etat,
                 attachment_blob, attachment_name, attachment_mime
             ) VALUES (
                 :uuid, :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
                 :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
                 :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
+                :nature_auteur, :type_acte,
                 :site_id, :is_confidential, 'nouveau',
                 :attachment_blob, :attachment_name, :attachment_mime
             )
@@ -86,6 +88,8 @@ function createReport(PDO $pdo, array $data): string {
             ':pour_compte_de'    => $data['pour_compte_de'] ?? null,
             ':pour_compte_nom'   => $data['pour_compte_nom'] ?? null,
             ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
+            ':nature_auteur'     => $data['nature_auteur'] ?? null,
+            ':type_acte'         => $data['type_acte'] ?? null,
             ':site_id'           => $data['site_id'],
             ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
             ':attachment_blob'   => $data['attachment_blob'] ?? null,
@@ -294,6 +298,8 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
         'lieu = :lieu',
         'pour_compte_nom = :pour_compte_nom',
         'pour_compte_prenom = :pour_compte_prenom',
+        'nature_auteur = :nature_auteur',
+        'type_acte = :type_acte',
         'is_confidential = :is_confidential',
     ];
 
@@ -305,6 +311,8 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
         ':lieu'              => $data['lieu'] ?? null,
         ':pour_compte_nom'   => $data['pour_compte_nom'] ?? null,
         ':pour_compte_prenom'=> $data['pour_compte_prenom'] ?? null,
+        ':nature_auteur'     => $data['nature_auteur'] ?? null,
+        ':type_acte'         => $data['type_acte'] ?? null,
         ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
     ];
 

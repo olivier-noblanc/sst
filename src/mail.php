@@ -330,7 +330,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     if ($newRole === 'superviseur') {
         $body .= "<p>En tant que <strong>Superviseur</strong>, vous pouvez désormais : répondre aux signalements, gérer les utilisateurs, consulter la synthèse et les statistiques, exporter les données, et configurer les paramètres de l'application.</p>";
     } elseif ($newRole === 'chsct') {
-        $body .= "<p>En tant que <strong>Membre CHSCT</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>";
+        $body .= "<p>En tant que <strong>Membre CSA/CHSCT</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>";
     } else {
         $body .= "<p>En tant qu'<strong>Agent</strong>, vous pouvez créer des signalements et suivre leurs réponses.</p>";
     }

@@ -232,6 +232,45 @@ function getAvailableYears(PDO $pdo): array {
 }
 
 /**
+ * Get RAMI statistics by nature_auteur and type_acte.
+ * Returns counts grouped by nature_auteur and type_acte for RAMI reports.
+ * 
+ * @param PDO    $pdo     Database connection
+ * @param string $year    Year filter
+ * @return array  ['by_nature_auteur' => [...], 'by_type_acte' => [...]]
+ */
+function getRamiStructuredStats(PDO $pdo, string $year = ''): array {
+    $params = [];
+    $yearFilter = '';
+    if (!empty($year)) {
+        $yearFilter = " AND strftime('%Y', created_at) = :year";
+        $params[':year'] = $year;
+    }
+
+    // By nature_auteur
+    $sqlNature = "SELECT nature_auteur, COUNT(*) as count
+        FROM reports
+        WHERE type = 'rami' AND nature_auteur IS NOT NULL AND nature_auteur != ''{$yearFilter}
+        GROUP BY nature_auteur
+        ORDER BY count DESC";
+    $stmt = $pdo->prepare($sqlNature);
+    $stmt->execute($params);
+    $byNature = $stmt->fetchAll();
+
+    // By type_acte
+    $sqlType = "SELECT type_acte, COUNT(*) as count
+        FROM reports
+        WHERE type = 'rami' AND type_acte IS NOT NULL AND type_acte != ''{$yearFilter}
+        GROUP BY type_acte
+        ORDER BY count DESC";
+    $stmt = $pdo->prepare($sqlType);
+    $stmt->execute($params);
+    $byType = $stmt->fetchAll();
+
+    return ['by_nature_auteur' => $byNature, 'by_type_acte' => $byType];
+}
+
+/**
  * Get notification settings.
  * 
  * @param PDO $pdo  Database connection

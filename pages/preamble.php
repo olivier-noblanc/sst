@@ -68,16 +68,19 @@ $pageTitle = 'Préambule';
     <ul>
         <li>Danger nécessitant une action immédiate</li>
         <li>Risque d'accident grave ou de maladie professionnelle grave</li>
-        <li>Situation pouvant être constatée par un membre du CHSCT</li>
+        <li>Situation pouvant être constatée par un membre du CSA/CHSCT</li>
         <li>Droit de retrait en cas de danger grave et imminent</li>
     </ul>
+    <p class="help-note" style="margin-top: 0.75rem; padding: 0.75rem; background: #fff8e1; border-left: 4px solid #f0ad4e; border-radius: 4px;">
+        <strong>Clarification :</strong> Le formulaire de signalement DGI de cette application vaut <strong>notification au sens de l'article L4131-1 du Code du travail</strong> (droit de retrait individuel de l'agent). La <strong>consignation formelle</strong> sur le registre spécial prévue à l'article <strong>D4132-1</strong> relève du représentant CSA/CHSCT exerçant son droit d'alerte (L4131-2) — il s'agit de deux actes juridiques distincts. Cette application couvre le premier ; le second reste du ressort du CSA/CHSCT.
+    </p>
 </div>
 
 <div class="card content-section">
     <h3>Modalités de signalement</h3>
     <ul>
         <li>Tout agent peut inscrire un signalement dans le registre correspondant à la situation rencontrée.</li>
-        <li>Le signalement est confidentiel par défaut. Selon le paramétrage choisi par le superviseur, l'agent peut choisir de rendre son signalement public, ou celui-ci peut être visible par tous les agents du site. Les superviseurs et les membres du CHSCT ont accès à tous les signalements.</li>
+        <li>Le signalement est confidentiel par défaut. Selon le paramétrage choisi par le superviseur, l'agent peut choisir de rendre son signalement public, ou celui-ci peut être visible par tous les agents du site. Les superviseurs et les membres du CSA/CHSCT ont accès à tous les signalements.</li>
         <li>Les superviseurs s'engagent à traiter chaque signalement dans les meilleurs délais.</li>
         <li>Les signalements DGI font l'objet d'une procédure d'urgence.</li>
         <li>Aucune sanction ne peut être prise à l'encontre d'un agent pour avoir signalé une situation de danger.</li>
@@ -93,9 +96,22 @@ $pageTitle = 'Préambule';
 </div>
 
 <div class="card card--spaced-top content-section">
-    <h3>Protection des données</h3>
+    <h3>Protection des données — Mention d'information RGPD (art. 13)</h3>
     <p>
         Les données collectées dans le cadre de ces registres sont traitées conformément au <strong>Règlement Général sur la Protection des Données (RGPD)</strong> et à la loi Informatique et Libertés.
-        Seuls les personnes habilitées (superviseurs, membres du CHSCT) ont accès aux données en fonction de leur rôle et de leur site d'affectation.
+        Conformément à l'article 13 du RGPD, les informations suivantes sont portées à votre connaissance au moment de la collecte :
     </p>
+    <ul>
+        <li><strong>Finalité du traitement :</strong> recueil et suivi des signalements en matière de santé, sécurité et conditions de travail (registres RSST, RAMI et DGI), conformément aux obligations légales incombant à l'employeur.</li>
+        <li><strong>Base légale :</strong> article 6.1.e du RGPD — exécution d'une mission d'intérêt public relevant de la compétence de l'administration (gestion des registres obligatoires de santé et sécurité au travail dans la fonction publique).</li>
+        <li><strong>Responsable du traitement :</strong> <?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>.</li>
+        <li><strong>Contact DPO :</strong> <?php
+            $dpoContact = getConfig('app_dpo_contact', '');
+            echo $dpoContact ? e($dpoContact) : '<em>à compléter dans Paramètres &rarr; Application &rarr; Contact DPO</em>';
+        ?>.</li>
+        <li><strong>Durée de conservation :</strong> les signalements sont conservés pendant la durée nécessaire au suivi et au traitement, puis archivés conformément à la réglementation. La durée de conservation est paramétrable par le superviseur après validation du DPO.</li>
+        <li><strong>Personnes habilitées :</strong> seuls les superviseurs et les membres du CSA/CHSCT ont accès aux données en fonction de leur rôle et de leur site d'affectation.</li>
+        <li><strong>Vos droits :</strong> vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition concernant vos données personnelles. Pour les exercer, contactez le DPO à l'adresse indiquée ci-dessus.</li>
+        <li><strong>Droit de réclamation :</strong> vous avez le droit d'introduire une réclamation auprès de la Commission Nationale de l'Informatique et des Libertés (CNIL) — <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>.</li>
+    </ul>
 </div>

@@ -42,7 +42,6 @@ worklog.md
 .tools/
 test_pdf_real.php
 test_fpdf.php
-nuclear-reset.php
 scripts/screenshot_sst.sh
 
 # Internal session notes

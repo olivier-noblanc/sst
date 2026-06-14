@@ -467,7 +467,7 @@ Les identifiants primaires de la table `reports` passent d'entiers auto-incréme
 
 ### Sécurité — Restriction du dropdown site pour les agents
 
-- `pages/report_create.php` : les agents ne voient que leur propre site dans le dropdown, les superviseurs/CHSCT voient tous les sites. Auparavant, `$canSelectSite` était calculé mais jamais utilisé dans le template, ce qui affichait tous les sites à tous les utilisateurs.
+- `pages/report_create.php` : les agents ne voient que leur propre site dans le dropdown, les superviseurs/CSA/CHSCT voient tous les sites. Auparavant, `$canSelectSite` était calculé mais jamais utilisé dans le template, ce qui affichait tous les sites à tous les utilisateurs.
 
 ### Technique — Corrections de syntaxe PHP
 
@@ -547,7 +547,7 @@ Plus aucune ligne de JavaScript dans l'application. Toutes les confirmations uti
 
 Passage d'un système à 2 modes (confidentiel / public) à un système à **3 modes** configurable par le superviseur dans Paramètres → Application :
 
-- **Mode « Confidentiel »** (le plus restrictif) : l'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CHSCT voient tout.
+- **Mode « Confidentiel »** (le plus restrictif) : l'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CSA/CHSCT voient tout.
 - **Mode « Choix de l'agent »** (confidentiel par défaut) : l'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son site ainsi que ses propres signalements (même confidentiels).
 - **Mode « Visibilité publique »** : tous les signalements du site sont visibles par tous les agents du site.
 
@@ -587,7 +587,7 @@ Passage d'un système à 2 modes (confidentiel / public) à un système à **3 m
 - **Badge « 🔒 Confidentiel »** : affiché sur la vue détaillée et le PDF d'un signalement confidentiel.
 - **Paramétrage admin** : le superviseur choisit le mode de visibilité dans Paramètres → Application. L'ancien réglage site/own est remplacé par confidentiel/public.
 - **Migration automatique** : les bases existantes sont migrées automatiquement — colonne `is_confidential` ajoutée, ancien mode `site` → `public`, ancien mode `own` → `confidential`, les signalements existants conservent leur visibilité précédente.
-- **Superviseurs et CHSCT** : voient tous les signalements y compris confidentiels, quel que soit le mode.
+- **Superviseurs et CSA/CHSCT** : voient tous les signalements y compris confidentiels, quel que soit le mode.
 
 ### Technique — Fichiers modifiés
 
@@ -687,7 +687,7 @@ Objectif : éliminer tout JavaScript personnalisé de l'application. Les seuls `
 
 ### Breaking Changes — Refonte du système de rôles
 
-- **Rôle Manager supprimé** : le rôle `manager` n'existe plus dans l'application. Il a été retiré de tous les fichiers : config.php, helpers.php, sidebar.php, handlers, pages, seed.php, promote.php, database.php, schema.sql, style.css, help.php. Les fonctionnalités de consultation élargie (tous les sites, synthèse, export, stats) sont déjà couvertes par le rôle CHSCT.
+- **Rôle Manager supprimé** : le rôle `manager` n'existe plus dans l'application. Il a été retiré de tous les fichiers : config.php, helpers.php, sidebar.php, handlers, pages, seed.php, promote.php, database.php, schema.sql, style.css, help.php. Les fonctionnalités de consultation élargie (tous les sites, synthèse, export, stats) sont déjà couvertes par le rôle CSA/CHSCT.
 - **Système d'auto-promotion par préfixe supprimé** : le mécanisme `app_admin_prefix` (par défaut `adm.`) qui promouvait automatiquement les logins commençant par ce préfixe est supprimé. Ce système était source de confusion et de faille de sécurité potentielle.
 - **Clé de config renommée** : `app_admin_usernames` → `app_superviseur_usernames` — le nom reflète désormais clairement son usage : liste de logins Windows séparés par virgules qui seront automatiquement promus Superviseur. Utile pour une première installation.
 
@@ -701,12 +701,12 @@ Deux méthodes pour obtenir le rôle Superviseur :
 
 - **Visibilité agent par défaut = son site** : le défaut de `app_agent_visibility` passe de `'all'` à `'site'`. Par défaut, un agent ne voit que les signalements de son site.
 - **Option 'all' supprimée** : l'option « Tous les signalements » n'est plus proposée dans les paramètres de visibilité agent. Seules les options « Son site » (par défaut) et « Ses propres signalements » sont disponibles.
-- **Contrôle d'accès renforcé** : `canAccessReport()` dans helpers.php vérifie systématiquement que l'utilisateur a le droit d'accéder au signalement (déclarant, superviseur ou CHSCT).
+- **Contrôle d'accès renforcé** : `canAccessReport()` dans helpers.php vérifie systématiquement que l'utilisateur a le droit d'accéder au signalement (déclarant, superviseur ou CSA/CHSCT).
 - **Abandon de signalement** : réservé au superviseur uniquement (conforme à la documentation de référence).
 
 ### Documentation
 
-- **help.php réécrit** : conforme à la documentation PDF de référence. 3 rôles uniquement (Agent, Superviseur, CHSCT). Section confidentialité ajoutée.
+- **help.php réécrit** : conforme à la documentation PDF de référence. 3 rôles uniquement (Agent, Superviseur, CSA/CHSCT). Section confidentialité ajoutée.
 - **SPEC.md réécrit** : suppression des références LDAP, des fonctions obsolètes, du rôle Manager. Documentation du système de rôles à 3 profils.
 - **README.md mis à jour** : reflète le nouveau système de rôles et d'attribution.
 - **CHANGELOG.md mis à jour** : ce fichier.
@@ -750,7 +750,7 @@ Deux méthodes pour obtenir le rôle Superviseur :
 ### Première version
 
 - Application SST DREETS BFC complète.
-- 3 profils utilisateurs : Agent, Superviseur, CHSCT.
+- 3 profils utilisateurs : Agent, Superviseur, CSA/CHSCT.
 - 3 registres : RSST, RAMI, DGI.
 - Authentification IIS Windows (prod) / mock login (dev).
 - Notifications par e-mail, configuration SMTP.

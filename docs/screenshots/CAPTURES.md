@@ -2,15 +2,33 @@
 
 Ce document liste les captures d'écran à réaliser pour illustrer la page d'aide in-app (`pages/help.php`). Chaque capture correspond à un emplacement `<img>` avec la classe `help-screenshot` dans le code PHP.
 
-## Instructions
+## Maquettes HTML interactives
 
-1. Connectez-vous avec le profil indiqué.
-2. Naviguez vers l'URL indiquée.
+Des **maquettes HTML** sont disponibles dans ce dossier pour prévisualiser l'interface sans lancer l'application. Ouvrez-les directement dans un navigateur :
+
+| Fichier HTML | Cas d'usage | Description |
+|---|---|---|
+| `cu1-accueil.html` | CU1 | Page d'accueil avec les 3 cartes de registre (RSST, RAMI, DGI) |
+| `cu1-formulaire-rsst.html` | CU1 | Formulaire de création d'un signalement RSST rempli |
+| `cu2-formulaire-rami.html` | CU2 | Formulaire RAMI avec « Pour le compte de » coché et champs nature_auteur/type_acte |
+| `cu3-formulaire-dgi.html` | CU3 | Formulaire DGI avec avertissement de procédure prioritaire |
+| `cu4-repondre.html` | CU4 | Formulaire de réponse du superviseur avec changement de statut |
+| `cu5-abandonner.html` | CU5 | Formulaire d'abandon d'un signalement avec champ motif |
+| `cu6-synthese.html` | CU6 | Page de synthèse avec tableau par site et registre |
+| `cu7-utilisateurs.html` | CU7 | Gestion des utilisateurs avec rôles et sites d'affectation |
+| `cu8-pdf.html` | CU8 | Aperçu de la fiche de signalement générée en PDF |
+
+Ces maquettes utilisent les mêmes couleurs et la même identité visuelle que l'application réelle (DREETS BFC). Elles sont autonomes (CSS embarqué) et ne nécessitent aucun serveur.
+
+## Instructions pour les captures PNG
+
+1. Ouvrez le fichier HTML correspondant dans un navigateur (Chrome/Edge recommandé).
+2. Ajustez la fenêtre à la largeur souhaitée (1280 px recommandé).
 3. Réalisez la capture en plein écran ou de la zone pertinente.
-4. Enregistrez le fichier PNG dans ce dossier (`docs/screenshots/`) avec le nom exact indiqué.
+4. Enregistrez le fichier PNG dans ce dossier (`docs/screenshots/`) avec le nom exact indiqué ci-dessous.
 5. Les images seront servies depuis la racine du site — le chemin `src` dans `<img>` est `docs/screenshots/[nom].png`.
 
-## Liste des captures
+## Liste des captures PNG à réaliser
 
 ### CU1 — Agent signale RSST
 | Fichier | Profil | URL | Description |

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SST DREETS BFC — Accueil</title>
+<style>
+  :root {
+    --color-primary: #0056A3;
+    --color-primary-dark: #003D75;
+    --rsst-color: #2E5C8A;
+    --rami-color: #6C6C6C;
+    --dgi-color: #B22222;
+    --state-nouveau: #2E5C8A;
+    --state-en-cours: #E67E22;
+    --state-traite: #27AE60;
+    --state-abandonne: #95A5A6;
+    --role-agent: #2E5C8A;
+    --role-superviseur: #B22222;
+    --role-chsct: #8E44AD;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --sidebar-bg: #2C3E50;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-family);
+    background: #EBEEF3;
+    color: #2C3E50;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 56px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    position: relative;
+    z-index: 10;
+  }
+  .app-header .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .app-header .logo-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,.15);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700;
+  }
+  .app-header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: .3px;
+  }
+  .app-header h1 span { opacity: .7; font-weight: 400; }
+  .header-right {
+    display: flex; align-items: center; gap: 16px;
+    font-size: 13px;
+  }
+  .header-right .role-badge {
+    background: rgba(255,255,255,.15);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  .header-right .user-name { font-weight: 600; }
+
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 240px;
+    background: var(--sidebar-bg);
+    color: #ccc;
+    padding: 16px 0;
+    flex-shrink: 0;
+  }
+  .sidebar .nav-section {
+    padding: 8px 20px 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #7f8c9b;
+    font-weight: 600;
+  }
+  .sidebar .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar .nav-item:hover {
+    background: rgba(255,255,255,.06);
+    color: #fff;
+  }
+  .sidebar .nav-item.active {
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    border-left-color: #3498DB;
+  }
+  .sidebar .nav-icon {
+    width: 20px; text-align: center;
+    font-size: 16px;
+  }
+  .sidebar .nav-item .badge {
+    margin-left: auto;
+    background: #E74C3C;
+    color: #fff;
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  /* ── Main ── */
+  .main {
+    flex: 1;
+    padding: 28px 32px;
+    overflow-y: auto;
+  }
+
+  /* ── Welcome Banner ── */
+  .welcome-banner {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #1A6FB5 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 14px rgba(0,86,163,.3);
+  }
+  .welcome-banner .greeting h2 {
+    font-size: 22px; font-weight: 600; margin-bottom: 4px;
+  }
+  .welcome-banner .greeting p {
+    font-size: 14px; opacity: .85;
+  }
+  .welcome-banner .avatar {
+    width: 52px; height: 52px;
+    background: rgba(255,255,255,.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700;
+  }
+
+  /* ── State Legend ── */
+  .state-legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    padding: 12px 18px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    font-size: 13px;
+  }
+  .state-legend .legend-item {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .state-legend .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  /* ── Registry Cards ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .registry-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    transition: transform .15s, box-shadow .15s;
+    border-top: 4px solid transparent;
+  }
+  .registry-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  }
+  .registry-card.rsst { border-top-color: var(--rsst-color); }
+  .registry-card.rami { border-top-color: var(--rami-color); }
+  .registry-card.dgi  { border-top-color: var(--dgi-color); }
+
+  .card-header {
+    padding: 20px 22px 14px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .card-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #fff; flex-shrink: 0;
+  }
+  .rsst .card-icon { background: var(--rsst-color); }
+  .rami .card-icon { background: var(--rami-color); }
+  .dgi  .card-icon { background: var(--dgi-color); }
+
+  .card-title-group h3 {
+    font-size: 15px; font-weight: 600; line-height: 1.35;
+    margin-bottom: 2px;
+  }
+  .card-title-group .card-abbr {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: .5px;
+  }
+  .rsst .card-abbr { color: var(--rsst-color); }
+  .rami .card-abbr { color: var(--rami-color); }
+  .dgi  .card-abbr { color: var(--dgi-color); }
+
+  .card-body {
+    padding: 0 22px 18px;
+  }
+  .card-stat {
+    display: flex; align-items: baseline; gap: 6px;
+    margin-bottom: 14px;
+  }
+  .card-stat .number {
+    font-size: 28px; font-weight: 700;
+  }
+  .rsst .number { color: var(--rsst-color); }
+  .rami .number { color: var(--rami-color); }
+  .dgi  .number { color: var(--dgi-color); }
+  .card-stat .label {
+    font-size: 14px; color: #7f8c8d;
+  }
+
+  .card-action .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    transition: filter .15s;
+  }
+  .card-action .btn:hover { filter: brightness(1.1); }
+  .rsst .btn { background: var(--rsst-color); }
+  .rami .btn { background: var(--rami-color); }
+  .dgi  .btn { background: var(--dgi-color); }
+  .card-action .btn svg {
+    width: 16px; height: 16px;
+  }
+
+  /* ── Footer strip ── */
+  .footer-strip {
+    text-align: center;
+    padding: 14px;
+    font-size: 12px;
+    color: #95a5a6;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ Header ═══ -->
+<header class="app-header">
+  <div class="logo-area">
+    <div class="logo-icon">S</div>
+    <h1>SST DREETS <span>BFC</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="role-badge">Agent</span>
+    <span class="user-name">Jean Martin</span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ═══ Sidebar ═══ -->
+  <nav class="sidebar">
+    <div class="nav-section">Navigation</div>
+    <div class="nav-item active">
+      <span class="nav-icon">&#9776;</span> Accueil
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">&#9998;</span> RSST
+      <span class="badge">3</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">&#9888;</span> RAMI
+      <span class="badge">5</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">&#9889;</span> DGI
+      <span class="badge">1</span>
+    </div>
+
+    <div class="nav-section" style="margin-top:16px;">Mon compte</div>
+    <div class="nav-item">
+      <span class="nav-icon">&#9786;</span> Mon profil
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">&#9881;</span> Paramètres
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">&#10149;</span> Déconnexion
+    </div>
+  </nav>
+
+  <!-- ═══ Main Content ═══ -->
+  <main class="main">
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+      <div class="greeting">
+        <h2>Bienvenue, Jean Martin</h2>
+        <p>Direction régionale de l'Économie, de l'Emploi, du Travail et des Solidarités — Bourgogne-Franche-Comté</p>
+      </div>
+      <div class="avatar">JM</div>
+    </div>
+
+    <!-- State Legend -->
+    <div class="state-legend">
+      <div class="legend-item"><span class="dot" style="background:var(--state-nouveau)"></span> Nouveau</div>
+      <div class="legend-item"><span class="dot" style="background:var(--state-en-cours)"></span> En cours</div>
+      <div class="legend-item"><span class="dot" style="background:var(--state-traite)"></span> Traité</div>
+      <div class="legend-item"><span class="dot" style="background:var(--state-abandonne)"></span> Abandonné</div>
+    </div>
+
+    <!-- Registry Cards -->
+    <div class="cards-grid">
+
+      <!-- RSST Card -->
+      <div class="registry-card rsst">
+        <div class="card-header">
+          <div class="card-icon">&#9829;</div>
+          <div class="card-title-group">
+            <span class="card-abbr">RSST</span>
+            <h3>Registre de Santé et de Sécurité au Travail</h3>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-stat">
+            <span class="number">3</span>
+            <span class="label">signalements</span>
+          </div>
+          <div class="card-action">
+            <button class="btn">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+              Inscrire un signalement
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RAMI Card -->
+      <div class="registry-card rami">
+        <div class="card-header">
+          <div class="card-icon">&#9888;</div>
+          <div class="card-title-group">
+            <span class="card-abbr">RAMI</span>
+            <h3>Registre des Actes d'Agressions, de Menaces et d'Incivilités</h3>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-stat">
+            <span class="number">5</span>
+            <span class="label">signalements</span>
+          </div>
+          <div class="card-action">
+            <button class="btn">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+              Inscrire un signalement
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DGI Card -->
+      <div class="registry-card dgi">
+        <div class="card-header">
+          <div class="card-icon">&#9889;</div>
+          <div class="card-title-group">
+            <span class="card-abbr">DGI</span>
+            <h3>Registre de signalement d'un Danger Grave et Imminent</h3>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-stat">
+            <span class="number">1</span>
+            <span class="label">signalement</span>
+          </div>
+          <div class="card-action">
+            <button class="btn">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+              Inscrire un signalement
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-strip">
+      SST DREETS BFC &mdash; Application de gestion des registres de santé et sécurité au travail &copy; 2025
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

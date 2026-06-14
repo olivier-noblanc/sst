@@ -244,7 +244,7 @@ function determineProvisionRole(PDO $pdo, string $username): string {
  * @return array            Updated user data (role may be upgraded)
  */
 function checkAndPromoteUser(PDO $pdo, array $user, string $username): array {
-    // Only promote agents — not CHSCT or already-superviseur users
+    // Only promote agents — not CSA/CHSCT or already-superviseur users
     if ($user['role'] !== 'agent') {
         return $user;
     }

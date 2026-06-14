@@ -211,7 +211,7 @@ L'application inclut un script CLI pour promouvoir un utilisateur directement de
 **Exemples :**
 ```cmd
 php promote.php jean.martin superviseur    → promeut en Superviseur
-php promote.php sophie.dupont chsct        → promeut en membre CHSCT
+php promote.php sophie.dupont chsct        → promeut en membre CSA/CHSCT
 php promote.php pierre.bernard agent       → rétrograde en Agent
 ```
 

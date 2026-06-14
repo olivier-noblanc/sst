@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SST DREETS BFC — Fiche de signalement (PDF)</title>
+<style>
+  :root {
+    --color-primary: #0056A3;
+    --color-primary-dark: #003D75;
+    --rsst-color: #2E5C8A;
+    --rami-color: #6C6C6C;
+    --dgi-color: #B22222;
+    --state-nouveau: #2E5C8A;
+    --state-en-cours: #E67E22;
+    --state-traite: #27AE60;
+    --state-abandonne: #95A5A6;
+    --role-agent: #2E5C8A;
+    --role-superviseur: #B22222;
+    --role-chsct: #8E44AD;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --sidebar-bg: #2C3E50;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-family);
+    background: #7f8c9b;
+    color: #2C3E50;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+  }
+
+  /* ── PDF Page Container ── */
+  .pdf-page {
+    width: 210mm;
+    min-height: 297mm;
+    background: #fff;
+    box-shadow: 0 10px 40px rgba(0,0,0,.3);
+    padding: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── PDF Header ── */
+  .pdf-header {
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    color: #fff;
+    padding: 24px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pdf-header .left {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .pdf-header .logo-box {
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,.18);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700;
+  }
+  .pdf-header .app-title {
+    font-size: 18px; font-weight: 600;
+    letter-spacing: .3px;
+  }
+  .pdf-header .app-subtitle {
+    font-size: 12px; opacity: .75;
+    margin-top: 2px;
+  }
+  .pdf-header .right {
+    text-align: right;
+    font-size: 11px;
+    opacity: .75;
+    line-height: 1.6;
+  }
+
+  /* ── PDF Body ── */
+  .pdf-body {
+    flex: 1;
+    padding: 30px 36px;
+  }
+
+  /* ── Title ── */
+  .doc-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--color-primary);
+    position: relative;
+  }
+  .doc-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: var(--rsst-color);
+  }
+
+  /* ── Two-Column Layout ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 40px;
+    margin-bottom: 28px;
+  }
+  .info-field {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .info-field.full-width {
+    grid-column: 1 / -1;
+  }
+  .info-field .label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: #7f8c8d;
+  }
+  .info-field .value {
+    font-size: 14px;
+    color: #2C3E50;
+    line-height: 1.5;
+  }
+
+  /* ── State Badge (PDF version) ── */
+  .state-badge-pdf {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px; font-weight: 700;
+    background: rgba(46,92,138,.1);
+    color: var(--state-nouveau);
+    border: 1px solid rgba(46,92,138,.2);
+  }
+  .state-badge-pdf .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--state-nouveau);
+  }
+
+  /* ── Section Divider ── */
+  .section-divider {
+    border: none;
+    border-top: 1.5px solid #E2E8F0;
+    margin: 24px 0;
+  }
+
+  /* ── Full-Width Sections ── */
+  .doc-section {
+    margin-bottom: 22px;
+  }
+  .doc-section .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--color-primary);
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .doc-section .section-label::before {
+    content: '';
+    width: 4px; height: 14px;
+    background: var(--color-primary);
+    border-radius: 2px;
+  }
+  .doc-section .section-content {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #2C3E50;
+    padding-left: 12px;
+  }
+
+  /* ── No Response ── */
+  .no-response {
+    font-style: italic;
+    color: #95a5a6;
+    font-size: 13px;
+    padding-left: 12px;
+  }
+
+  /* ── PDF Footer ── */
+  .pdf-footer {
+    padding: 14px 36px;
+    border-top: 1.5px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #95a5a6;
+  }
+  .pdf-footer .left {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pdf-footer .logo-mini {
+    width: 20px; height: 20px;
+    background: var(--color-primary);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 10px; font-weight: 700;
+  }
+
+  /* ── Watermark (light) ── */
+  .pdf-page::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    width: 500px;
+    height: 120px;
+    border: 3px solid rgba(0,86,163,.03);
+    border-radius: 20px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .pdf-body, .pdf-header, .pdf-footer {
+    position: relative;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="pdf-page">
+
+  <!-- ═══ PDF Header ═══ -->
+  <div class="pdf-header">
+    <div class="left">
+      <div class="logo-box">S</div>
+      <div>
+        <div class="app-title">Application SST — DREETS BFC</div>
+        <div class="app-subtitle">Direction régionale de l'Économie, de l'Emploi, du Travail et des Solidarités</div>
+      </div>
+    </div>
+    <div class="right">
+      Bourgogne-Franche-Comté<br>
+      Registre de santé et sécurité au travail
+    </div>
+  </div>
+
+  <!-- ═══ PDF Body ═══ -->
+  <div class="pdf-body">
+
+    <!-- Title -->
+    <div class="doc-title">Fiche de signalement</div>
+
+    <!-- Two-Column Info -->
+    <div class="info-grid">
+      <div class="info-field">
+        <span class="label">Référence</span>
+        <span class="value" style="font-weight:700; color:var(--rsst-color);">rsst-25-001</span>
+      </div>
+      <div class="info-field">
+        <span class="label">État</span>
+        <span class="value">
+          <span class="state-badge-pdf"><span class="dot"></span>Nouveau</span>
+        </span>
+      </div>
+      <div class="info-field">
+        <span class="label">Registre</span>
+        <span class="value" style="font-weight:600;">RSST</span>
+      </div>
+      <div class="info-field">
+        <span class="label">Unité</span>
+        <span class="value">UR21 — Côte-d'Or</span>
+      </div>
+      <div class="info-field">
+        <span class="label">Date événement</span>
+        <span class="value">10/06/2025</span>
+      </div>
+      <div class="info-field">
+        <span class="label">Heure</span>
+        <span class="value">14:30</span>
+      </div>
+      <div class="info-field full-width">
+        <span class="label">Lieu</span>
+        <span class="value">Bâtiment principal, 2e étage, escalier B</span>
+      </div>
+      <div class="info-field full-width">
+        <span class="label">Déclarant</span>
+        <span class="value">Jean Martin</span>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Full-Width Sections -->
+    <div class="doc-section">
+      <div class="section-label">Objet</div>
+      <div class="section-content">
+        Rampe d'escalier desserrée — risque de chute
+      </div>
+    </div>
+
+    <div class="doc-section">
+      <div class="section-label">Description</div>
+      <div class="section-content">
+        La rampe de l'escalier B au 2e étage est desserrée à plusieurs endroits. Un agent a failli chuter en s'y appuyant. Une intervention rapide du service technique est nécessaire pour éviter un accident. La rampe présente un jeu significatif au niveau des fixations murales, particulièrement aux paliers des 1er et 2e étages. Le risque de chute est élevé pour les agents empruntant cet escalier quotidiennement.
+      </div>
+    </div>
+
+    <div class="doc-section">
+      <div class="section-label">Réponse</div>
+      <div class="no-response">Pas encore de réponse</div>
+    </div>
+
+  </div>
+
+  <!-- ═══ PDF Footer ═══ -->
+  <div class="pdf-footer">
+    <div class="left">
+      <div class="logo-mini">S</div>
+      <span>Document généré le 14/06/2025 — Application SST DREETS BFC</span>
+    </div>
+    <span>Page 1/1</span>
+  </div>
+
+</div>
+
+</body>
+</html>

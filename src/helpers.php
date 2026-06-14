@@ -14,7 +14,7 @@
  * @return bool
  */
 function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool {
-    // Superviseur/CHSCT can always see everything
+    // Superviseur/CSA/CHSCT can always see everything
     if (in_array($user['role'], ['superviseur', 'chsct'], true)) {
         return true;
     }
@@ -41,7 +41,7 @@ function canAccessReport(array $report, array $user, ?string $forcedVisibility =
 }
 
 /**
- * Log access to a confidential report by supervisor/CHSCT.
+ * Log access to a confidential report by supervisor/CSA/CHSCT.
  * Only logs when a superviseur/chsct consults a report with is_confidential=1
  * that they did not file themselves.
  *

@@ -44,7 +44,7 @@ Application web pour la gestion de trois registres de santé et sécurité au tr
 |------|------|-------------|
 | Agent | `agent` | Créer des signalements, consulter les signalements (selon visibilité), modifier ses propres signalements |
 | Superviseur | `superviseur` | Permissions agent + répondre aux signalements, abandonner des signalements, synthèse, export, statistiques, gestion des utilisateurs, paramètres |
-| Membre CHSCT | `chsct` | Consulter tous les signalements (tous sites), synthèse, export, statistiques — lecture seule, pas de réponse ni d'abandon |
+| Membre CSA/CHSCT | `chsct` | Consulter tous les signalements (tous sites), synthèse, export, statistiques — lecture seule, pas de réponse ni d'abandon |
 
 > **Note** : Il n'y a pas de rôle « Manager ». Les trois seuls rôles sont `agent`, `superviseur` et `chsct`.
 
@@ -426,11 +426,11 @@ Toutes les requêtes passent par `public/index.php`. Le pattern d'URL est :
 | `report_create` | `pages/report_create.php` | GET | Oui | Tous |
 | `report_create` | `handlers/report_create_handler.php` | POST | Oui | Tous |
 | `report_list` | `pages/report_list.php` | GET | Oui | Tous (filtré par visibilité) |
-| `report_view` | `pages/report_view.php` | GET+`&uuid={uuid}` | Oui | Déclarant, superviseur, CHSCT |
+| `report_view` | `pages/report_view.php` | GET+`&uuid={uuid}` | Oui | Déclarant, superviseur, CSA/CHSCT |
 | `report_edit` | `pages/report_edit.php` | GET+`&uuid={uuid}` | Oui | Déclarant uniquement |
 | `report_edit` | `handlers/report_edit_handler.php` | POST+`&uuid={uuid}` | Oui | Déclarant uniquement |
-| `report_print` | `pages/report_print.php` | GET+`&uuid={uuid}` | Oui | Déclarant, superviseur, CHSCT |
-| `report_attachment` | `pages/report_attachment.php` | GET+`&uuid={uuid}[&inline=1]` | Oui | Déclarant, superviseur, CHSCT |
+| `report_print` | `pages/report_print.php` | GET+`&uuid={uuid}` | Oui | Déclarant, superviseur, CSA/CHSCT |
+| `report_attachment` | `pages/report_attachment.php` | GET+`&uuid={uuid}[&inline=1]` | Oui | Déclarant, superviseur, CSA/CHSCT |
 | `report_abandon` | `pages/report_abandon.php` | GET+`&uuid={uuid}` | Oui | Superviseur uniquement |
 | `report_abandon` | `handlers/report_abandon_handler.php` | POST+`&uuid={uuid}` | Oui | Superviseur uniquement |
 | `report_respond` | `pages/report_respond.php` | GET+`&uuid={uuid}` | Oui | Superviseur uniquement |
@@ -552,7 +552,7 @@ Le compteur utilise `countActiveReports()`. Le filtrage dépend du mode de visib
 - **`confidential`** (défaut) : filtré par `site_id` + `(is_confidential = 0 OR declarant_id = :user_id)`
 - **`agent_choice`** : filtré par `site_id` + `(is_confidential = 0 OR declarant_id = :user_id)` (l'agent choisit la confidentialité au cas par cas)
 - **`public`** : filtré par `site_id` (tous les signalements du site sont visibles)
-- Pour superviseur/CHSCT : pas de filtre
+- Pour superviseur/CSA/CHSCT : pas de filtre
 
 ---
 
@@ -639,7 +639,7 @@ Boutons : « Valider » (couleur du registre), « Annuler » (retour à l'accuei
 - Titre : « Liste des signalements — RSST/RAMI/DGI »
 - Barre de filtres :
   - **État** : `<select>` — Tous, Nouveau, En cours, Traité, Abandonné
-  - **Site** : `<select>` — Tous + liste des sites (superviseur/CHSCT uniquement ; agent voit son site)
+  - **Site** : `<select>` — Tous + liste des sites (superviseur/CSA/CHSCT uniquement ; agent voit son site)
   - **Recherche** : `<input type="text">` — recherche dans `objet` et `description`
   - Bouton « Filtrer »
 - Tableau des résultats :
@@ -667,7 +667,7 @@ Boutons : « Valider » (couleur du registre), « Annuler » (retour à l'accuei
 ### 5.7 Consultation d'un signalement (`pages/report_view.php`)
 
 **URL** : `index.php?page=report_view&uuid={report_uuid}`
-**Accès** : Déclarant, superviseur, CHSCT (via `canAccessReport()`)
+**Accès** : Déclarant, superviseur, CSA/CHSCT (via `canAccessReport()`)
 **Méthode** : GET
 
 #### Contrôle d'accès
@@ -675,13 +675,13 @@ Boutons : « Valider » (couleur du registre), « Annuler » (retour à l'accuei
 La fonction `canAccessReport()` centralise les règles :
 - **Déclarant** : toujours accès à son propre signalement
 - **Superviseur** : accès à tous les signalements
-- **CHSCT** : accès à tous les signalements
+- **CSA/CHSCT** : accès à tous les signalements
 - **Agent** (non déclarant) : selon `getReportVisibility()` :
   - `'confidential'` → accès si signalement non confidentiel (`is_confidential = 0`) ET même site, ou si déclarant
   - `'agent_choice'` → accès si signalement non confidentiel (`is_confidential = 0`) ET même site, ou si déclarant (l'agent déclarant choisit la confidentialité au cas par cas)
   - `'public'` → accès si `report.site_id === user.site_id`
 
-Si le signalement est `abandonne` et que l'utilisateur n'est ni le déclarant ni superviseur/CHSCT, un avertissement est affiché.
+Si le signalement est `abandonne` et que l'utilisateur n'est ni le déclarant ni superviseur/CSA/CHSCT, un avertissement est affiché.
 
 #### Affichage
 Utilise le template `report_card.php` :
@@ -739,7 +739,7 @@ WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours
 ### 5.9 Télécharger en PDF (`pages/report_print.php`)
 
 **URL** : `index.php?page=report_print&uuid={report_uuid}`
-**Accès** : Déclarant, superviseur, CHSCT (même contrôle que `report_view` via `canAccessReport()`)
+**Accès** : Déclarant, superviseur, CSA/CHSCT (même contrôle que `report_view` via `canAccessReport()`)
 **Méthode** : GET
 
 #### Génération PDF côté serveur (FPDF 1.9)
@@ -984,7 +984,7 @@ Un avertissement réglementaire s'affiche si la visibilité est restreinte : les
 #### Onglet « Inscrire un utilisateur »
 Formulaire de création avec champs : nom, prénom, email, identifiant Windows, rôle (sélecteur `ROLE_LABELS`), site.
 
-Rôles disponibles dans le sélecteur : Agent, Superviseur, Membre CHSCT.
+Rôles disponibles dans le sélecteur : Agent, Superviseur, Membre CSA/CHSCT.
 
 ---
 
@@ -1066,7 +1066,7 @@ Centralise toutes les règles d'accès à un signalement. Un utilisateur peut co
 
 - Il est le **déclarant** du signalement (`report.declarant_id === user.id`), OU
 - Il a le rôle **superviseur**, OU
-- Il a le rôle **CHSCT**
+- Il a le rôle **CSA/CHSCT**
 
 Pour les agents (non déclarants du signalement consulté) :
 - Si `getReportVisibility() === 'confidential'` : accès si `report.is_confidential = 0` ET `report.site_id === user.site_id`
@@ -1083,14 +1083,14 @@ Pour les agents (non déclarants du signalement consulté) :
 | `agent_choice` | L'agent déclarant choisit la confidentialité au cas par cas (`is_confidential`), les autres agents voient les non confidentiels de leur site | Compromis flexibilité/transparence |
 | `public` | Tous les signalements du site sont visibles par tous les agents | Conforme au principe de transparence |
 
-Configurée via `app_report_visibility` dans `config_app`. Les superviseurs et CHSCT voient toujours tous les sites (`canSeeAllSites() === true`).
+Configurée via `app_report_visibility` dans `config_app`. Les superviseurs et CSA/CHSCT voient toujours tous les sites (`canSeeAllSites() === true`).
 
 - `'confidential'` (défaut) : l'agent voit les signalements publics de son site + ses propres signalements (même confidentiels). Chaque signalement a un flag `is_confidential` (défaut : 1). L'agent peut décocher ce flag lors de la création.
 - `'agent_choice'` : même comportement que `confidential` mais l'interface indique explicitement à l'agent qu'il peut choisir la visibilité de son signalement.
 - `'public'` : l'agent voit tous les signalements de son site. Le flag `is_confidential` est ignoré dans ce mode.
 
 Fonctions :
-- `getReportVisibility()` : retourne `'confidential'`, `'agent_choice'`, `'public'` ou `'all'` (superviseur/CHSCT)
+- `getReportVisibility()` : retourne `'confidential'`, `'agent_choice'`, `'public'` ou `'all'` (superviseur/CSA/CHSCT)
 - `reportVisibilityIsConfidential()` : `getReportVisibility() === 'confidential'`
 - `reportVisibilityIsAgentChoice()` : `getReportVisibility() === 'agent_choice'`
 - `reportVisibilityIsPublic()` : `getReportVisibility() === 'public'`
@@ -1187,7 +1187,7 @@ Les couleurs des registres sont définies via des variables CSS :
 | DGI | `badge--dgi` |
 | Agent | `badge--agent` |
 | Superviseur | `badge--superviseur` |
-| CHSCT | `badge--chsct` |
+| CSA/CHSCT | `badge--chsct` |
 | Nouveau | `badge--nouveau` |
 | En cours | `badge--en-cours` |
 | Traité | `badge--traite` |
@@ -1262,7 +1262,7 @@ Pas de fonctions. Définit les constantes et tableaux :
 - `REPORT_VISIBILITY_MODES` : `['confidential', 'agent_choice', 'public']`
 - `REGISTRY_LABELS` : `[rsst => ..., rami => ..., dgi => ...]`
 - `REGISTRY_SHORT_LABELS` : `[rsst => 'RSST', rami => 'RAMI', dgi => 'DGI']`
-- `ROLE_LABELS` : `[agent => 'Agent', superviseur => 'Superviseur', chsct => 'Membre CHSCT']`
+- `ROLE_LABELS` : `[agent => 'Agent', superviseur => 'Superviseur', chsct => 'Membre CSA/CHSCT']`
 - `ETAT_LABELS` : `[nouveau => 'Nouveau', en_cours => 'En cours', traite => 'Traité', abandonne => 'Abandonné']`
 
 ### `src/auth.php`
@@ -1307,7 +1307,7 @@ Pas de fonctions. Définit les constantes et tableaux :
 | `getEtatBadgeClass` | `(string $etat): string` | Classe CSS badge pour un état |
 | `getRegistryBadgeClass` | `(string $type): string` | Classe CSS badge pour un registre |
 | `getRoleBadgeClass` | `(string $role): string` | Classe CSS badge pour un rôle |
-| `canSeeAllSites` | `(): bool` | L'utilisateur peut-il voir tous les sites ? (superviseur/CHSCT uniquement) |
+| `canSeeAllSites` | `(): bool` | L'utilisateur peut-il voir tous les sites ? (superviseur/CSA/CHSCT uniquement) |
 | `getReportVisibility` | `(): string` | Mode de visibilité signalements : `'confidential'`, `'agent_choice'` ou `'public'` |
 | `reportVisibilityIsConfidential` | `(): bool` | Mode confidentiel ? |
 | `reportVisibilityIsAgentChoice` | `(): bool` | Mode choix de l'agent ? |

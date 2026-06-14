@@ -39,7 +39,7 @@ Le script effectue : `git pull` → vérification permissions → `iisreset`
 |------------|------|------|
 | admin.dev | Superviseur | UR21 Côte-d'Or |
 | agent.dev | Agent | À choisir au login |
-| chsct.dev | Membre CHSCT | UR25 Doubs |
+| chsct.dev | Membre CSA/CHSCT | UR25 Doubs |
 
 Mot de passe pour tous : `test`
 
@@ -69,7 +69,7 @@ php tools/anonymize_old_reports.php --dry-run
 | **Choix de l'agent** | L'agent choisit par signalement (public/confidentiel). Confidentiel par défaut. |
 | **Visibilité publique** | Tous les signalements du site sont visibles par tous les agents du site. |
 
-Les superviseurs et membres du CHSCT voient tous les signalements, y compris confidentiels, quel que soit le mode.
+Les superviseurs et membres du CSA/CHSCT voient tous les signalements, y compris confidentiels, quel que soit le mode.
 
 ## Structure
 
@@ -125,4 +125,4 @@ C:\inetpub\sst\
 |------|------------|
 | Agent | Créer, voir (selon mode de visibilité), modifier (ses signalements) |
 | Superviseur | Agent + Répondre, Abandonner, Synthèse, Export, Stats, Paramètres, Utilisateurs, Impression |
-| CHSCT | Vue élargie sur tous les sites (lecture), Synthèse, Export, Stats |
+| CSA/CHSCT | Vue élargie sur tous les sites (lecture), Synthèse, Export, Stats |

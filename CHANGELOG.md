@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.10.0] — 2026-06-14
+
+### Fonctionnalité — Lazy cron (tâches de maintenance au login)
+
+- **1** 🔴 **Lazy cron `src/cron.php`** — Les tâches de maintenance (alerte délais + anonymisation RGPD) s'exécutent automatiquement au login d'un utilisateur, sans cron système ni tâche planifiée Windows. Mécanisme : à chaque connexion (IIS auto-auth ou formulaire dev), `runLazyCron()` vérifie les timestamps `last_lazy_cron_*` dans `config_app` et n'exécute une tâche que si l'intervalle minimum est écoulé (24h pour check_delays, 7j pour anonymize). Les erreurs sont silencieuses (loguées, jamais bloquantes).
+- **2** 🔴 **`check_delays` via lazy cron** — L'alerte superviseurs pour les signalements en retard (`app_alert_delay_days > 0`) est désormais envoyée automatiquement au login, toutes les 24h minimum. Remplace la recommandation de cron système (`0 8 * * *`) dans l'en-tête de `tools/check_delays.php`. Le script CLI reste disponible pour les dry-run et l'exécution manuelle.
+- **3** 🟡 **`anonymize` via lazy cron** — L'anonymisation RGPD des signalements anciens (`app_retention_years > 0`) s'exécute automatiquement au login, tous les 7 jours minimum. Contrairement au script CLI, il n'y a pas de confirmation interactive — l'anonymisation procède automatiquement quand la période de retention est atteinte (validation DPO préalable obligatoire). Le script CLI reste disponible pour les dry-run et l'exécution manuelle avec confirmation.
+- **4** 🟢 **Clés système `config_app`** — Deux nouvelles clés `last_lazy_cron_check_delays` et `last_lazy_cron_anonymize` (catégorie `system`, `modifiable=0`) sont migrées automatiquement. Elles n'apparaissent pas dans l'interface Paramètres.
+- **5** 🟢 **DEPLOY.md mis à jour** — La section anonymisation ne recommande plus `schtasks /create` mais documente le lazy cron. Les scripts CLI restent documentés pour l'usage manuel.
+
+---
+
 ## [3.9.0] — 2026-06-14
 
 ### Corrections v4 — Audit SST DREETS BFC

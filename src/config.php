@@ -7,7 +7,7 @@
 
 // Application metadata
 define('APP_NAME', 'Application SST — DREETS BFC');
-define('APP_VERSION', '3.8.3');
+define('APP_VERSION', '3.10.0');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
 // Environment configuration:

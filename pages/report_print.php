@@ -151,7 +151,7 @@ $etatColors = [
 /**
  * Draw a colored badge (rounded rectangle with text).
  */
-function drawBadge(SSTPDF $pdf, string $text, array $bgColor, float $x = null, float $w = 0): void
+function drawBadge(SSTPDF $pdf, string $text, array $bgColor, ?float $x = null, float $w = 0): void
 {
     if ($x !== null) {
         $pdf->SetX($x);

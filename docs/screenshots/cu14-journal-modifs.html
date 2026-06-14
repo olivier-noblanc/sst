@@ -1,0 +1,3307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <base href="http://localhost:8765/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application SST — DREETS BFC — Page</title>
+    <style>/* ============================================================
+   Style Sheet — Application SST DREETS BFC
+   Version 2.0
+   Complete DREETS visual identity theme
+   ============================================================ */
+
+/* ============================================================
+   1. CSS Custom Properties (Variables)
+   ============================================================ */
+:root {
+    /* Brand colors */
+    --color-primary: #0056A3;           /* DREETS blue (header bar) */
+    --color-primary-dark: #003D75;
+    --color-primary-light: #3498DB;
+
+    /* Registry colors */
+    --rsst-color: #2E5C8A;             /* Blue */
+    --rami-color: #6C6C6C;             /* Grey */
+    --dgi-color: #B22222;              /* Red */
+
+    /* State colors */
+    --state-nouveau: #2E5C8A;          /* Blue */
+    --state-en-cours: #E67E22;         /* Orange */
+    --state-traite: #27AE60;           /* Green */
+    --state-abandonne: #95A5A6;        /* Grey */
+
+    /* Role badge colors */
+    --role-agent: #2E5C8A;
+    --role-superviseur: #B22222;
+    --role-chsct: #8E44AD;
+
+    /* Visibility badge colors */
+    --visibility-confidential: #6b7280;
+    --visibility-public: #22c55e;
+
+    /* Semantic colors */
+    --color-warning-bg: #fffbeb;
+    --color-warning-border: #fcd34d;
+    --color-warning-text: #92400e;
+    --color-danger-text: #b91c1c;
+    --color-danger-bg: #fef2f2;
+    --color-danger-border: #fca5a5;
+
+    /* Hover highlight (table rows) */
+    --hover-highlight: #E8F0FE;
+
+    /* Layout */
+    --sidebar-width: 220px;
+    --header-height: 60px;
+    --content-padding: 24px;
+
+    /* Greys */
+    --grey-50: #FAFAFA;
+    --grey-100: #F5F5F5;
+    --grey-200: #EEEEEE;
+    --grey-300: #E0E0E0;
+    --grey-400: #BDBDBD;
+    --grey-500: #9E9E9E;
+    --grey-600: #757575;
+    --grey-700: #616161;
+    --grey-800: #424242;
+    --grey-900: #212121;
+
+    /* Sidebar */
+    --sidebar-bg: #2C3E50;
+    --sidebar-text: #CCCCCC;
+    --sidebar-hover: #34495E;
+    --sidebar-active: var(--color-primary-light);
+
+    /* Misc */
+    --border-radius: 4px;
+    --border-radius-lg: 8px;
+    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-size-base: 14px;
+
+    /* Focus ring */
+    --focus-ring-color: rgba(0,86,163,0.4);
+    --focus-ring-offset: 2px;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+
+    /* z-index layers */
+    --z-sidebar: 90;
+    --z-header: 100;
+    --z-mobile-menu: 200;
+    --z-overlay: 150;
+    --z-skip-link: 9999;
+}
+
+/* ============================================================
+   2. Reset & Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--grey-900);
+    background: var(--grey-100);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: var(--color-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+img { max-width: 100%; height: auto; display: block; }
+
+/* ============================================================
+   3. Focus Styles — Accessibility (keyboard navigation)
+   ============================================================ */
+:focus-visible {
+    outline: 3px solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ============================================================
+   4. Reduced Motion — Respect user preferences
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ============================================================
+   5. High Contrast — Improve visibility
+   ============================================================ */
+@media (prefers-contrast: high) {
+    :root {
+        --grey-300: #bbb;
+        --grey-400: #999;
+        --grey-500: #777;
+        --shadow: 0 2px 4px rgba(0,0,0,0.3);
+        --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .btn {
+        border: 2px solid currentColor;
+    }
+    .badge {
+        border: 1px solid rgba(0,0,0,0.3);
+    }
+}
+
+/* ============================================================
+   6. Header — Blue bar at top (#0056A3)
+   ============================================================ */
+.header {
+    height: var(--header-height);
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-header);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.header__logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header__logo-img {
+    height: 40px;
+}
+
+.header__logo-text {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: var(--border-radius);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 1px;
+}
+
+.header__title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.header__user {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+}
+
+.header__username {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.header__logout {
+    color: white;
+    text-decoration: none;
+    opacity: 0.8;
+    padding: 6px 12px;
+    border-radius: var(--border-radius);
+    transition: opacity var(--transition-base), background var(--transition-base);
+}
+.header__logout:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.15);
+    text-decoration: none;
+}
+
+/* Hidden checkbox for CSS-only sidebar toggle */
+.sidebar-toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Mobile hamburger button (label for checkbox) */
+.header__menu-btn {
+    display: none;
+    background: none;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: var(--border-radius);
+    color: white;
+    padding: 6px 10px;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    transition: background var(--transition-fast);
+    -webkit-user-select: none;
+    user-select: none;
+}
+.header__menu-btn:hover,
+.header__menu-btn:focus-visible {
+    background: rgba(255,255,255,0.15);
+}
+
+/* ============================================================
+   7. Sidebar — Dark grey (#2C3E50), fixed
+   ============================================================ */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: var(--z-sidebar);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform var(--transition-base);
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.4);
+}
+
+.sidebar__nav {
+    list-style: none;
+    padding: 8px 0;
+}
+
+.sidebar__item {
+    display: block;
+    padding: 12px 20px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.sidebar__item:hover {
+    background: var(--sidebar-hover);
+    text-decoration: none;
+}
+
+.sidebar__item--active {
+    background: var(--sidebar-hover);
+    border-left-color: var(--sidebar-active);
+    color: white;
+    font-weight: 600;
+}
+
+.sidebar__icon {
+    margin-right: 10px;
+    width: 18px;
+    text-align: center;
+    display: inline-block;
+}
+
+.sidebar__footer {
+    padding: 8px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Mobile overlay (label for checkbox — clicking closes) */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: calc(var(--z-sidebar) - 1);
+    cursor: pointer;
+}
+
+/* ============================================================
+   8. Main Content Area
+   ============================================================ */
+.main {
+    margin-left: var(--sidebar-width);
+    margin-top: var(--header-height);
+    padding: var(--content-padding);
+    min-height: calc(100vh - var(--header-height));
+    display: flex;
+    flex-direction: column;
+}
+
+.main > :last-child {
+    flex: 1;
+}
+
+/* ============================================================
+   9. Footer
+   ============================================================ */
+.footer {
+    margin-top: auto;
+    padding: 16px 0;
+    text-align: center;
+    color: var(--grey-500);
+    font-size: 12px;
+    border-top: 1px solid var(--grey-200);
+}
+
+.footer-version {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color var(--transition-fast), text-decoration var(--transition-fast);
+}
+
+.footer-version:hover {
+    color: var(--color-primary-dark);
+    text-decoration: underline;
+}
+
+/* ============================================================
+   10. Page Title
+   ============================================================ */
+.page-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--grey-900);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--grey-200);
+}
+
+/* ============================================================
+   11. Cards
+   ============================================================ */
+.card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.card--rsst { border-top: 4px solid var(--rsst-color); }
+.card--rami { border-top: 4px solid var(--rami-color); }
+.card--dgi  { border-top: 4px solid var(--dgi-color); }
+
+/* Card with danger zone */
+.card--danger {
+    margin-top: 20px;
+    border-top: 4px solid var(--dgi-color);
+}
+
+/* Card title */
+.card__title {
+    margin-bottom: 16px;
+    font-size: 15px;
+}
+
+.card__subtitle {
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+/* ============================================================
+   12. Home Page — Registry Cards
+   ============================================================ */
+.registry-cards {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.registry-cards > * {
+    flex: 1;
+    min-width: 250px;
+}
+
+.registry-card {
+    border-radius: var(--border-radius-lg);
+    padding: 30px 24px;
+    color: white;
+    text-align: center;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.registry-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.registry-card--rsst { background: var(--rsst-color); }
+.registry-card--rami { background: var(--rami-color); }
+.registry-card--dgi  { background: var(--dgi-color); }
+
+.registry-card__icon { font-size: 36px; margin-bottom: 8px; }
+.registry-card__title { font-size: 15px; font-weight: 500; margin-bottom: 4px; opacity: 0.9; }
+.registry-card__subtitle { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+.registry-card__stat { font-size: 13px; opacity: 0.85; margin-top: 12px; }
+
+.registry-card__btn {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 24px;
+    border: 2px solid white;
+    border-radius: var(--border-radius);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background var(--transition-base);
+}
+
+.registry-card__desc {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.registry-card__link {
+    display: inline-block;
+    margin-top: 8px;
+    color: white;
+    text-decoration: underline;
+    font-size: 13px;
+    opacity: 0.8;
+    transition: opacity var(--transition-base);
+}
+
+.registry-card__link:hover {
+    opacity: 1;
+}
+
+.registry-card__btn:hover {
+    background: rgba(255,255,255,0.2);
+    text-decoration: none;
+}
+
+/* ============================================================
+   12b. Welcome Banner — First-time user guidance
+   ============================================================ */
+.welcome-banner {
+    background: linear-gradient(135deg, #e8f0fe 0%, #d4e8ff 100%);
+    border: 1px solid var(--color-primary-light);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--border-radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+}
+
+.welcome-banner--new {
+    background: linear-gradient(135deg, #e8f0fe 0%, #c8e6ff 100%);
+    border-left-color: var(--color-primary);
+}
+
+.welcome-banner__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    margin-bottom: 8px;
+}
+
+.welcome-banner__text {
+    font-size: 14px;
+    color: var(--grey-700);
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.welcome-banner__legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0,86,163,0.15);
+}
+
+.welcome-banner__legend .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+}
+
+.welcome-banner__legend-text {
+    font-size: 12px;
+    color: var(--grey-600);
+    margin-right: 12px;
+}
+
+.welcome-banner__link {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: text-decoration var(--transition-fast);
+}
+
+.welcome-banner__link:hover {
+    text-decoration: underline;
+}
+
+/* ============================================================
+   12c. Workflow Legend — Status badge reference
+   ============================================================ */
+.workflow-legend {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    font-size: 12px;
+}
+
+.workflow-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.workflow-legend__item--muted {
+    opacity: 0.6;
+}
+
+.workflow-legend__text {
+    color: var(--grey-600);
+    font-size: 11px;
+}
+
+.workflow-legend__arrow {
+    color: var(--grey-400);
+    font-size: 16px;
+}
+
+/* ============================================================
+   12d. Breadcrumb — Navigation context
+   ============================================================ */
+.breadcrumb {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--grey-500);
+    flex-wrap: wrap;
+}
+
+.breadcrumb__item {
+    color: var(--grey-500);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.breadcrumb__item:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.breadcrumb__separator {
+    color: var(--grey-400);
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.breadcrumb__current {
+    color: var(--grey-700);
+    font-weight: 500;
+}
+
+/* ============================================================
+   13. Buttons
+   ============================================================ */
+.btn {
+    display: inline-block;
+    padding: 8px 18px;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: opacity var(--transition-base), transform var(--transition-fast);
+    line-height: 1.4;
+    font-family: var(--font-family);
+}
+
+.btn:hover { opacity: 0.85; text-decoration: none; }
+.btn:active { transform: scale(0.98); }
+
+.btn--primary   { background: var(--color-primary); color: white; }
+.btn--success   { background: var(--state-traite); color: white; }
+.btn--warning   { background: var(--state-en-cours); color: white; }
+.btn--danger    { background: var(--dgi-color); color: white; }
+.btn--secondary { background: var(--grey-500); color: white; }
+.btn--outline   { background: transparent; border: 1px solid var(--grey-400); color: var(--grey-700); }
+.btn--rsst      { background: var(--rsst-color); color: white; }
+.btn--rami      { background: var(--rami-color); color: white; }
+.btn--dgi       { background: var(--dgi-color); color: white; }
+
+.btn--sm   { padding: 4px 10px; font-size: 12px; }
+.btn--full { width: 100%; display: block; }
+
+/* Button group (inline forms) */
+.btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-group--inline {
+    display: inline-flex;
+    gap: 8px;
+}
+
+/* ============================================================
+   14. Forms
+   ============================================================ */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: var(--grey-700);
+    font-size: 13px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    font-family: var(--font-family);
+    background: white;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(0,86,163,0.2);
+}
+
+.form-group input[readonly] {
+    background: var(--grey-100);
+    color: var(--grey-600);
+    cursor: not-allowed;
+}
+
+.form-group input:invalid:not(:placeholder-shown) {
+    border-color: var(--dgi-color);
+}
+
+/* Form control — alternative class for consistent input styling */
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    font-family: var(--font-family);
+    background: white;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(0,86,163,0.2);
+}
+
+.form-hint {
+    font-size: 12px;
+    color: var(--grey-500);
+    margin-top: 2px;
+}
+
+.form-error {
+    display: block;
+    color: var(--dgi-color);
+    font-size: 12px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.required {
+    color: var(--dgi-color);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-grid__full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--grey-200);
+    flex-wrap: wrap;
+}
+
+/* Inline form (for button groups in tables) */
+.form--inline {
+    display: inline;
+}
+
+/* Checkbox label — flex layout for checkboxes with text */
+.label--checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.label--checkbox input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+/* Small label variant */
+.label--small {
+    font-weight: normal;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+}
+
+/* Confidential warning (CSS-only toggle, no JS) */
+.confidential-warning {
+    display: none;
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--border-radius-lg);
+    color: var(--color-warning-text);
+    font-size: 13px;
+}
+
+/* CSS :has() toggle — show warning when checkbox unchecked */
+.confidential-toggle:not(:has(.confidential-toggle__input:checked)) .confidential-warning {
+    display: block;
+}
+.confidential-toggle:has(.confidential-toggle__input:checked) .confidential-warning {
+    display: none;
+}
+
+/* Pour compte fields toggle (RAMI form) */
+.pour-compte-fields {
+    display: none;
+}
+.form-grid:has(#pour_compte:checked) .pour-compte-fields {
+    display: block;
+}
+.form-grid:not(:has(#pour_compte:checked)) .pour-compte-fields {
+    display: none;
+}
+
+/* Flex row for side-by-side inputs */
+.flex-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.flex-row > * {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Form row — grid layout */
+.form-row {
+    display: grid;
+    gap: 16px;
+}
+
+.form-row--2-1 {
+    grid-template-columns: 2fr 1fr;
+}
+
+.form-row--1-1 {
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+    .form-row--2-1,
+    .form-row--1-1 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Attachment preview */
+.attachment-preview {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attachment-remove-label {
+    font-size: 13px;
+    color: var(--color-danger-text);
+}
+
+.attachment-image {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--grey-200);
+    cursor: pointer;
+}
+
+/* ============================================================
+   15. Tables
+   ============================================================ */
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--border-radius);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th {
+    background: var(--grey-100);
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--grey-700);
+    border-bottom: 2px solid var(--grey-300);
+    white-space: nowrap;
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+th.sortable {
+    cursor: pointer;
+}
+
+th.sortable:hover {
+    background: var(--grey-200);
+}
+
+th.sortable::after {
+    content: ' \2195';  /* ↕ */
+    opacity: 0.4;
+    font-size: 11px;
+}
+
+th.sort-asc::after  { content: ' \2191'; opacity: 1; }  /* ↑ */
+th.sort-desc::after { content: ' \2193'; opacity: 1; }  /* ↓ */
+
+td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--grey-200);
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+/* Striped rows */
+tr:nth-child(even) td {
+    background: var(--grey-50);
+}
+
+tr:hover td {
+    background: var(--hover-highlight);
+}
+
+/* Report detail table */
+.report-detail__table {
+    margin-top: 16px;
+}
+
+.report-detail__table th {
+    width: 200px;
+    background: transparent;
+    border-bottom: 1px solid var(--grey-200);
+    padding: 8px 12px;
+    vertical-align: top;
+}
+
+.report-detail__table td {
+    border-bottom: 1px solid var(--grey-200);
+    padding: 8px 12px;
+}
+
+.report-detail__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* Response section */
+.report-response {
+    background: var(--grey-50);
+    padding: 16px;
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--state-traite);
+    margin-top: 12px;
+}
+
+.report-response__meta {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--grey-600);
+    padding-top: 8px;
+    border-top: 1px solid var(--grey-200);
+}
+
+/* Table cell alignment */
+.text-left   { text-align: left; }
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+/* Inactive row */
+.row--inactive {
+    opacity: 0.5;
+}
+
+/* Totals row */
+.row--totals {
+    background: var(--grey-100);
+    font-weight: 600;
+}
+
+/* Table with smaller font */
+.table--compact {
+    font-size: 13px;
+}
+
+/* ============================================================
+   16. Badges
+   ============================================================ */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+}
+
+.badge--nouveau    { background: var(--state-nouveau); }
+.badge--en-cours   { background: var(--state-en-cours); }
+.badge--traite     { background: var(--state-traite); }
+.badge--abandonne  { background: var(--state-abandonne); }
+.badge--agent      { background: var(--role-agent); }
+.badge--superviseur{ background: var(--role-superviseur); }
+.badge--chsct      { background: var(--role-chsct); }
+.badge--rsst       { background: var(--rsst-color); }
+.badge--rami       { background: var(--rami-color); }
+.badge--dgi        { background: var(--dgi-color); }
+
+/* Visibility badges */
+.badge--confidential { background: var(--visibility-confidential); }
+.badge--public       { background: var(--visibility-public); }
+
+/* Badge size variants */
+.badge--sm { font-size: 11px; padding: 2px 8px; }
+
+/* Status indicator (active/inactive dot) */
+.status-dot {
+    font-size: 12px;
+}
+.status-dot--active {
+    color: var(--state-traite);
+}
+.status-dot--inactive {
+    color: var(--state-abandonne);
+}
+
+/* Inline code */
+.code-inline {
+    background: var(--grey-100);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+}
+
+/* ============================================================
+   17. KPI Cards (Statistics page)
+   ============================================================ */
+.kpi-grid {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.kpi-card {
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    text-align: center;
+    border-top: 4px solid var(--color-primary);
+}
+
+.kpi-card--rsst { border-top-color: var(--rsst-color); }
+.kpi-card--rami { border-top-color: var(--rami-color); }
+.kpi-card--dgi  { border-top-color: var(--dgi-color); }
+.kpi-card--nouveau  { border-top-color: var(--state-nouveau); }
+.kpi-card--en-cours { border-top-color: var(--state-en-cours); }
+.kpi-card--traite   { border-top-color: var(--state-traite); }
+
+.kpi-card__value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--grey-900);
+}
+
+.kpi-card__label {
+    font-size: 13px;
+    color: var(--grey-600);
+    margin-top: 4px;
+}
+
+.kpi-card__detail {
+    font-size: 11px;
+    color: var(--grey-500);
+    margin-top: 8px;
+}
+
+/* ============================================================
+   18. Alerts / Flash Messages
+   ============================================================ */
+.alert {
+    padding: 12px 16px;
+    border-radius: var(--border-radius);
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.alert--success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.alert--error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.alert--warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+.alert--info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+/* ============================================================
+   19. Pagination
+   ============================================================ */
+.pagination {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.pagination__link,
+.pagination__current {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--grey-700);
+}
+
+.pagination__current {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    font-weight: 600;
+}
+
+.pagination__link:hover {
+    background: var(--grey-200);
+    text-decoration: none;
+}
+
+.pagination__ellipsis {
+    display: inline-block;
+    padding: 6px 8px;
+    color: var(--grey-500);
+}
+
+/* ============================================================
+   20. Filter Bar
+   ============================================================ */
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
+.filter-bar .form-group {
+    margin-bottom: 0;
+}
+
+.filter-bar .btn {
+    margin-bottom: 0;
+}
+
+/* ============================================================
+   21. Login Page
+   ============================================================ */
+.login-body {
+    background: var(--grey-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 440px;
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 40px 32px;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.login-header h1 {
+    font-size: 20px;
+    color: var(--color-primary);
+    margin-bottom: 4px;
+}
+
+.login-subtitle {
+    color: var(--grey-600);
+    font-size: 14px;
+}
+
+.login-dev-badge {
+    display: inline-block;
+    background: #fff3cd;
+    color: #856404;
+    padding: 4px 12px;
+    border-radius: var(--border-radius);
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.login-form .form-group {
+    margin-bottom: 20px;
+}
+
+.login-dev-info {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--grey-200);
+    font-size: 13px;
+    color: var(--grey-600);
+}
+
+.login-dev-info ul {
+    margin: 8px 0 0 16px;
+    list-style: disc;
+}
+
+.login-dev-info li {
+    margin-bottom: 4px;
+}
+
+.login-dev-info code {
+    background: var(--grey-100);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* ============================================================
+   22. Print View
+   ============================================================ */
+.print-view {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+.print-view__header {
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid var(--grey-900);
+    padding-bottom: 20px;
+}
+
+.print-view__title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 12px;
+}
+
+.print-view__field {
+    margin-bottom: 12px;
+}
+
+.print-view__label {
+    font-weight: 600;
+    color: var(--grey-600);
+    font-size: 13px;
+}
+
+.print-view__value {
+    font-size: 14px;
+    margin-top: 2px;
+}
+
+.print-hint {
+    text-align: center;
+    color: var(--grey-500);
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+/* ============================================================
+   23. Confirm Dialog (inline)
+   ============================================================ */
+.confirm-box {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.confirm-box p {
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.confirm-box__actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* Confirm dialog for HTML5 <dialog> */
+.confirm-dialog__actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.confirm-dialog__actions form {
+    display: inline;
+}
+
+/* Inline confirmation (no JS) */
+.confirm-inline {
+    background: var(--grey-100);
+    padding: 16px;
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 12px;
+}
+
+.confirm-inline p {
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+/* Warning panel */
+.warning-panel {
+    margin-top: 16px;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+}
+
+.warning-panel p {
+    font-weight: 600;
+    color: var(--color-warning-text);
+}
+
+.warning-panel__hint {
+    font-size: 13px;
+    color: var(--grey-600);
+}
+
+/* Danger panel */
+.danger-panel {
+    margin-top: 16px;
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
+    border-radius: var(--border-radius-lg);
+    padding: 12px 16px;
+    color: var(--color-danger-text);
+    font-size: 13px;
+}
+
+/* Info panel */
+.info-panel {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
+    border-radius: var(--border-radius-lg);
+    color: var(--color-warning-text);
+    font-size: 12px;
+}
+
+/* ============================================================
+   24. Tag Input (Settings page)
+   ============================================================ */
+.tag-input-container {
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    padding: 8px;
+    background: white;
+}
+.tag-input-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+.tag-input-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--grey-100);
+    border: 1px solid var(--grey-300);
+    border-radius: 16px;
+    padding: 4px 10px;
+    font-size: 13px;
+    color: var(--grey-800);
+}
+.tag-input-remove {
+    background: none;
+    border: none;
+    color: var(--grey-500);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 2px;
+}
+.tag-input-remove:hover {
+    color: var(--dgi-color);
+}
+.tag-input-field {
+    flex: 1;
+    border: 1px solid var(--grey-200);
+    border-radius: var(--border-radius);
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: var(--font-family);
+}
+.tag-input-field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* ============================================================
+   25. Tabs (Settings, Users pages)
+   ============================================================ */
+.settings-tab {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--grey-600);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color var(--transition-base), border-color var(--transition-base);
+}
+.settings-tab:hover {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+.settings-tab--active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 600;
+}
+
+.tab-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--grey-200);
+    flex-wrap: wrap;
+}
+
+/* ============================================================
+   26. Changelog
+   ============================================================ */
+.changelog-content {
+    background: #fff;
+    border: 1px solid var(--grey-200);
+    border-radius: var(--border-radius-lg);
+    padding: 24px 32px;
+    max-width: 900px;
+    line-height: 1.7;
+}
+
+.changelog-content h1 {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 8px;
+    margin-top: 0;
+}
+
+.changelog-content h2 {
+    font-size: 1.2rem;
+    color: var(--color-primary);
+    border-bottom: 1px solid var(--grey-200);
+    padding-bottom: 6px;
+    margin-top: 28px;
+}
+
+.changelog-content h3 {
+    font-size: 1.05rem;
+    color: var(--color-primary-dark);
+    margin-top: 18px;
+}
+
+.changelog-content ul {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.changelog-content li {
+    margin: 4px 0;
+}
+
+.changelog-content strong {
+    color: var(--color-primary);
+}
+
+.changelog-content code {
+    background: var(--grey-100);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.changelog-content hr {
+    border: none;
+    border-top: 1px solid var(--grey-200);
+    margin: 24px 0;
+}
+
+.changelog-content p {
+    margin: 8px 0;
+}
+
+/* ============================================================
+   27. Help / Documentation
+   ============================================================ */
+.help-profile-card {
+    border: 1px solid var(--grey-200);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+    border-left: 4px solid var(--rsst-color);
+}
+
+.help-profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+/* ============================================================
+   28. Settings — Add site form
+   ============================================================ */
+.add-site-form {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--grey-50);
+    border-radius: var(--border-radius-lg);
+    border: 1px dashed var(--grey-300);
+}
+
+.add-site-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+}
+
+@media (max-width: 768px) {
+    .add-site-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* SMTP test section */
+.smtp-test-section {
+    border: 1px dashed var(--grey-300);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+}
+
+.smtp-test-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+/* Visibility radios layout */
+.visibility-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.visibility-radio-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.visibility-radio-label input[type="radio"] {
+    margin-top: 3px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-top: 3px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   29. Utility Classes
+   ============================================================ */
+.text-muted  { color: var(--grey-500); }
+.text-small  { font-size: 12px; }
+.mt-0 { margin-top: 0; }
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.mb-0 { margin-bottom: 0; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.flex  { display: flex; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Skip link — visible only on keyboard focus (accessibility) */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    z-index: var(--z-skip-link);
+    padding: 8px 16px;
+    background: #1a3a5c;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 0 0 var(--border-radius) 0;
+}
+.skip-link:focus {
+    top: 0;
+}
+
+/* Synthesis table cell styles */
+.synthesis-cell-zero {
+    color: var(--grey-400);
+}
+
+.synthesis-cell-value {
+    font-weight: 600;
+}
+
+/* User count info */
+.result-count {
+    margin-top: 12px;
+    color: var(--grey-500);
+    font-size: 12px;
+}
+
+/* Page header (changelog) */
+.page-header {
+    margin-bottom: 20px;
+}
+
+/* RGPD section */
+.rgpd-section {
+    margin-top: 20px;
+}
+
+.rgpd-section__desc {
+    color: var(--grey-500);
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+/* Separator */
+.separator {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--grey-200);
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    color: var(--grey-500);
+    padding: 24px;
+}
+
+.empty-state__cta {
+    margin-top: 12px;
+}
+
+/* Character counter for textarea */
+.char-counter {
+    display: block;
+    font-size: 12px;
+    color: var(--grey-500);
+    margin-top: 4px;
+    text-align: right;
+}
+
+.char-counter--warning {
+    color: var(--state-en-cours);
+    font-weight: 600;
+}
+
+/* Back to top button */
+.back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 80;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: var(--shadow-lg);
+    transition: background var(--transition-base);
+}
+
+.back-to-top:hover {
+    background: var(--color-primary-dark);
+    text-decoration: none;
+    color: #fff;
+}
+
+.back-to-top:focus-visible {
+    outline: 3px solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+}
+
+/* Date range input group */
+.date-range {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.date-range span {
+    color: var(--grey-500);
+}
+
+/* Max-width container */
+.container--narrow {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Quick access links */
+.quick-access {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Visibility header */
+.section-header {
+    margin-bottom: 12px;
+}
+
+.section-header--danger {
+    color: var(--dgi-color);
+}
+
+/* Checkbox group */
+.checkbox-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+/* ============================================================
+   32. Content Pages (Preamble, Help)
+   ============================================================ */
+.content-section {
+    line-height: 1.7;
+}
+
+.content-section p {
+    margin-bottom: 16px;
+}
+
+.content-section h2 {
+    margin-bottom: 16px;
+    color: var(--color-primary);
+}
+
+.content-section h3 {
+    margin-bottom: 12px;
+}
+
+.content-section ul {
+    margin-top: 8px;
+    margin-left: 20px;
+    line-height: 1.8;
+}
+
+.content-section li {
+    margin-bottom: 4px;
+}
+
+/* Card with bottom spacing */
+.card--spaced {
+    margin-bottom: 16px;
+}
+
+/* Card with top spacing */
+.card--spaced-top {
+    margin-top: 16px;
+}
+
+/* Required asterisk (red) */
+.required-star {
+    color: var(--dgi-color);
+}
+
+/* ============================================================
+   29b. Help Page Styles
+   ============================================================ */
+.help-profile-card--superviseur {
+    border-left-color: var(--role-superviseur);
+}
+
+.help-profile-card--chsct {
+    border-left-color: var(--role-chsct);
+}
+
+.help-note {
+    font-size: 12px;
+    color: var(--grey-500);
+    margin-top: 10px;
+    border-top: 1px solid var(--grey-100);
+    padding-top: 8px;
+}
+
+.help-feature-list {
+    font-size: 13px;
+    margin: 0;
+    padding-left: 18px;
+}
+
+.help-description {
+    font-size: 13px;
+    color: var(--grey-600);
+    margin-bottom: 12px;
+}
+
+.help-description--title {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.help-note--inline {
+    border-top: none;
+    padding-top: 0;
+}
+
+.help-profile-card--rsst {
+    border-left: none;
+    border-top: 4px solid var(--rsst-color);
+}
+
+.help-profile-card--rsst h3 {
+    color: var(--rsst-color);
+}
+
+.help-profile-card--rami {
+    border-left: none;
+    border-top: 4px solid var(--rami-color);
+}
+
+.help-profile-card--rami h3 {
+    color: var(--rami-color);
+}
+
+.help-profile-card--dgi {
+    border-left: none;
+    border-top: 4px solid var(--dgi-color);
+}
+
+.help-profile-card--dgi h3 {
+    color: var(--dgi-color);
+}
+
+.help-workflow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.help-workflow .badge {
+    font-size: 13px;
+    padding: 6px 14px;
+}
+
+.help-case-label {
+    margin-bottom: 10px;
+}
+
+.help-case-body {
+    line-height: 1.8;
+}
+
+.help-case-body ol {
+    padding-left: 20px;
+}
+
+.help-warning-callout {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #92400e;
+}
+
+.help-auth-card--prod {
+    padding: 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+}
+
+.help-auth-card--prod h4 {
+    margin-bottom: 6px;
+    color: #166534;
+}
+
+.help-auth-card--dev {
+    padding: 12px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+}
+
+.help-auth-card--dev h4 {
+    margin-bottom: 6px;
+    color: #92400e;
+}
+
+.help-separator-row {
+    border-top: 2px solid var(--grey-200);
+}
+
+/* Help page screenshot placeholders */
+.help-screenshot {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem auto;
+    border: 1px solid var(--grey-200, #e0e0e0);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.help-screenshot--placeholder {
+    min-height: 200px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Help page — Table of Contents */
+.help-toc {
+    background: var(--grey-50, #fafafa);
+    border: 1px solid var(--grey-200, #e0e0e0);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.help-toc__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-primary, #0056A3);
+}
+.help-toc__list {
+    margin: 0;
+    padding-left: 1.25rem;
+    column-count: 2;
+    column-gap: 2rem;
+}
+.help-toc__list li {
+    margin-bottom: 0.35rem;
+    break-inside: avoid;
+}
+.help-toc__list a {
+    color: var(--color-primary, #0056A3);
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.help-toc__list a:hover {
+    text-decoration: underline;
+}
+.help-toc__list ol {
+    margin-top: 0.25rem;
+    padding-left: 1rem;
+}
+.help-toc__list ol li {
+    margin-bottom: 0.2rem;
+}
+@media (max-width: 768px) {
+    .help-toc__list {
+        column-count: 1;
+    }
+}
+
+/* Help page — Screenshot iframes (collapsible) */
+.help-screenshot-details {
+    margin: 1rem 0;
+    border: 1px solid var(--grey-200, #e0e0e0);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.help-screenshot-summary {
+    cursor: pointer;
+    padding: 0.6rem 1rem;
+    background: var(--grey-100, #f5f5f5);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-primary, #0056A3);
+    transition: background 0.15s;
+    user-select: none;
+}
+.help-screenshot-summary:hover {
+    background: var(--grey-200, #e0e0e0);
+}
+.help-screenshot-wrapper {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+    border-top: 1px solid var(--grey-200, #e0e0e0);
+}
+.help-screenshot-iframe {
+    width: 1440px;
+    height: 900px;
+    border: none;
+    transform: scale(0.48);
+    transform-origin: top left;
+    pointer-events: none;
+}
+.help-screenshot-caption {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    color: var(--grey-400, #9e9e9e);
+    font-style: italic;
+    margin: 0;
+    border-top: 1px solid var(--grey-200, #e0e0e0);
+    background: var(--grey-50, #fafafa);
+}
+.help-screenshot-details[open] .help-screenshot-wrapper {
+    /* When expanded, allow scroll */
+    overflow: auto;
+    height: auto;
+    max-height: 80vh;
+}
+.help-screenshot-details[open] .help-screenshot-iframe {
+    transform: none;
+    width: 100%;
+    height: 900px;
+    pointer-events: auto;
+}
+@media (max-width: 1024px) {
+    .help-screenshot-iframe {
+        transform: scale(0.35);
+    }
+}
+@media (max-width: 768px) {
+    .help-screenshot-iframe {
+        transform: scale(0.25);
+    }
+}
+
+/* ============================================================
+   30. Print Styles
+   ============================================================ */
+@media print {
+    .header, .sidebar, .sidebar-overlay, .sidebar-toggle-checkbox, .filter-bar, .btn, .pagination, .print-hint,
+    .form-actions, .confirm-box, .footer, .header__menu-btn, .back-to-top,
+    .welcome-banner, .workflow-legend, .breadcrumb {
+        display: none !important;
+    }
+    .main {
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        background: white;
+    }
+    .print-view {
+        padding: 0;
+    }
+    table {
+        font-size: 11px;
+    }
+    .badge {
+        border: 1px solid #333;
+        color: #333 !important;
+        background: transparent !important;
+    }
+    .registry-card {
+        break-inside: avoid;
+    }
+    .card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* ============================================================
+   31. Responsive
+   ============================================================ */
+@media (max-width: 768px) {
+    /* Show hamburger button */
+    .header__menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Sidebar slides in from left (hidden by default) */
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: var(--z-mobile-menu);
+    }
+
+    /* CSS-only sidebar toggle: checkbox:checked opens sidebar */
+    .sidebar-toggle-checkbox:checked ~ .sidebar {
+        transform: translateX(0);
+    }
+
+    /* CSS-only sidebar toggle: checkbox:checked shows overlay */
+    .sidebar-toggle-checkbox:checked ~ .sidebar-overlay {
+        display: block;
+    }
+
+    /* Hide the close icon label when sidebar is closed */
+    .sidebar-close-label {
+        display: none;
+    }
+
+    /* Legacy JS class — kept for backward compat but not needed */
+    .sidebar--open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay--visible {
+        display: block;
+    }
+
+    .main {
+        margin-left: 0;
+    }
+
+    .registry-cards {
+        flex-direction: column;
+    }
+
+    .kpi-grid {
+        flex-direction: column;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-detail__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header__title {
+        display: none;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+
+    .tab-bar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Welcome banner — stack vertically on mobile */
+    .welcome-banner__legend {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    /* Workflow legend — stack on mobile */
+    .workflow-legend {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .workflow-legend__arrow {
+        display: none;
+    }
+
+    /* Breadcrumb — wrap on mobile */
+    .breadcrumb {
+        font-size: 11px;
+    }
+}
+
+/* ============================================================
+   32b. Small phones (480px and below)
+   ============================================================ */
+@media (max-width: 480px) {
+    html {
+        font-size: 13px;
+    }
+
+    .header {
+        padding: 0 12px;
+    }
+
+    .header__logo-text {
+        font-size: 13px;
+        padding: 3px 8px;
+    }
+
+    .header__user-name {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .login-container {
+        padding: 12px;
+    }
+
+    .login-card {
+        padding: 20px 16px;
+    }
+
+    .page-title {
+        font-size: 18px;
+    }
+
+    .registry-card {
+        padding: 16px;
+    }
+
+    .registry-card__title {
+        font-size: 14px;
+    }
+
+    .card {
+        padding: 14px;
+    }
+
+    .filter-bar {
+        padding: 12px;
+    }
+
+    .btn--sm {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+
+    .table-wrapper {
+        margin: -14px;
+    }
+
+    table {
+        font-size: 11px;
+    }
+
+    th, td {
+        padding: 6px 8px;
+    }
+
+    .back-to-top {
+        bottom: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .form-actions .btn {
+        font-size: 13px;
+    }
+}
+
+/* ============================================================
+   30. Extracted Inline Styles — Utility & Contextual Classes
+   ============================================================ */
+
+/* Spacing utilities */
+.mt-1 { margin-top: 4px; }
+.mt-2px { margin-top: 2px; }
+.mt-5 { margin-top: 20px; }
+.mt-6 { margin-top: 24px; }
+.mb-1 { margin-bottom: 4px; }
+.mb-3 { margin-bottom: 12px; }
+.mb-5 { margin-bottom: 20px; }
+.my-4 { margin: 16px 0; }
+.gap-3 { gap: 12px; }
+
+/* Layout utilities */
+.flex-1 { flex: 1; }
+.w-full { width: 100%; }
+.align-self-end { align-self: flex-end; }
+.block { display: block; }
+.whitespace-nowrap { white-space: nowrap; }
+
+/* Contextual: Floating action button (report list) */
+.btn-float-right { float: right; margin-top: -4px; }
+
+/* Contextual: Filter search group (report list) */
+.filter-search-group { flex: 1; min-width: 200px; }
+
+/* Contextual: User profile header (user view) */
+.user-profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+
+/* Contextual: Login page disclaimer */
+.login-disclaimer { font-size: 11px; color: var(--grey-400); margin-top: 12px; border-top: 1px solid var(--grey-200); padding-top: 8px; }
+
+/* Contextual: Access denied page */
+.access-denied-card { padding: 40px 20px; }
+.access-denied-icon { font-size: 48px; margin-bottom: 16px; }
+
+/* Contextual: Help page rights table */
+.help-rights-table { min-width: 500px; }
+
+/* Contextual: Choose site page welcome text */
+.choose-site-welcome { margin-bottom: 8px; font-size: 14px; }
+
+/* Contextual: Synthesis table colored headers */
+.synthesis-th-rsst { text-align: center; background: var(--rsst-color); color: white; }
+.synthesis-th-rami { text-align: center; background: var(--rami-color); color: white; }
+.synthesis-th-dgi { text-align: center; background: var(--dgi-color); color: white; }
+
+/* Contextual: Settings — SMTP test field */
+.smtp-test-field { margin-bottom: 0; flex: 1; max-width: 350px; }
+
+/* Contextual: Settings — visibility legend */
+.visibility-legend { font-weight: 600; font-size: 14px; margin-bottom: 8px; padding: 0; }
+
+/* Contextual: Settings — confirm delete label */
+.confirm-delete-label { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Contextual: Report card — abandon warning */
+.abandon-warning-text { font-weight: 600; color: var(--dgi-color); }
+
+/* ============================================================
+   31. Log Viewer Page
+   ============================================================ */
+.card__title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.card__title-row .card__subtitle {
+    margin: 0;
+}
+
+.tab-bar {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--grey-200);
+    padding-bottom: 0;
+    margin-bottom: 16px;
+}
+
+.tab {
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--grey-600);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover {
+    background: var(--grey-100);
+    color: var(--color-primary);
+}
+
+.tab--active {
+    color: var(--color-primary);
+    background: white;
+    border-color: var(--grey-200);
+    font-weight: 600;
+    margin-bottom: -2px;
+    border-bottom: 2px solid white;
+}
+
+.log-viewer {
+    background: #1e1e2e;
+    border-radius: 6px;
+    padding: 12px;
+    max-height: 70vh;
+    overflow-y: auto;
+    font-family: 'Sarasa Mono SC', 'Consolas', 'Monaco', monospace;
+}
+
+.log-entry {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 6px 8px;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    border-left: 3px solid transparent;
+}
+
+.log-entry:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.log-entry--fatal { border-left-color: #ef4444; }
+.log-entry--warning { border-left-color: #f59e0b; }
+.log-entry--db { border-left-color: #3b82f6; }
+.log-entry--mail { border-left-color: #8b5cf6; }
+.log-entry--backup { border-left-color: #06b6d4; }
+.log-entry--migration { border-left-color: #10b981; }
+.log-entry--audit { border-left-color: #6366f1; }
+.log-entry--respond { border-left-color: #f97316; }
+.log-entry--app { border-left-color: #ec4899; }
+.log-entry--info { border-left-color: #6b7280; }
+
+.log-entry__badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge--fatal { background: #ef4444; color: white; }
+.badge--warning { background: #f59e0b; color: #1e1e2e; }
+.badge--db { background: #3b82f6; color: white; }
+.badge--mail { background: #8b5cf6; color: white; }
+.badge--backup { background: #06b6d4; color: white; }
+.badge--migration { background: #10b981; color: white; }
+.badge--audit { background: #6366f1; color: white; }
+.badge--respond { background: #f97316; color: white; }
+.badge--app { background: #ec4899; color: white; }
+.badge--info { background: #6b7280; color: white; }
+
+.log-entry__text {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #cdd6f4;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+}
+
+.log-entry--fatal .log-entry__text { color: #f38ba8; }
+.log-entry--warning .log-entry__text { color: #fab387; }
+</style>            <link rel="icon" type="image/png" sizes="64x64" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAQAElEQVR4nL1ad3gUR5YvgRHJYJ995/V6g/E5+3aPs29vfcHf59tdzn+s13t7CATKKAcE2AJjwGBhCRQJEpIQRiAQCOU4GuVAFloQIirHkUY5S5M0qe5VV09PT0+Q7e+7e18heqqrq9/vhXqvqh/CDCmVyoGBgc7OzpaWltbW1ra2tnYDdRio04z4nYJhgmvzZ83n6bBOlBNgrLm5GXjr6+ubnZ2lnCP4Bz/aOtq7err7+/sHBweHGRoZGaF/ORo1pTGGuGtBP+3hj+HfEvTbJo4B4GdoaAgE3dvbC3jgJwGgUCmB+15JX790gHI/AjOPkxeMG2iCR5OTk/QvJWvX9Kc5ccMs3qUkeC9ccJgBBsEwKJUM9APb45MTCPgmsgfuh4eGAe3Y6NjEODTKxBSPpqen6V8btOgAOoY/jLueskJ8iQAY0AlIWSqVgiGBHhDgADSUewqa8g0zzjA0a0ZzlsjGAPMZzAdbuztjIIoQeKMYqC2Be6DW9jbp0CCoBm5wrHPzzhtIZpPmTcn2SP4jtuehxCHkYACrwDAoAZwBdff2gPjBvED2VOowlE4tNyUFQ+YX9Np8pKDfRqd8MaLYKAxgEgQNDIMSwIpQT08PJ37gnkqdcg9TKxlSWSd6V2kgruf7E38GQT8lDiRwBewBk5wSJBIJAhBwRcXPlz073YJyQa1SaxZsNxhDm6BTo1VDszEDS/Rx7pdaze/hwABXwB5VAjAMbMO6TwBw9kMByBUypUrBsq5Wa4C0aq1OY05aSjoNZZQOoz91ei0s0ho1vF8JF3qdVqth72oNZGFGM1IzRGGAHkC4HABwZQIAtAAAOPuBEQqlHLgH8VCGgBW2fQ8CRoFbJkSq01rUnx5O/899aQn3ZFqNiunUwwA6m54h+hQnCHqLxQk/mVsUCWAAJVArom5gCwDRPiNglq3vQQa+sXpBcf6BbOORbLStCDnnINd85F644WD6yTvTCvkcNiXbc3JyoaqgVkTdwDKAedkctR8QP+XewJzwldiMQPI90qEvywc+3H8FeYiQU94v/c8EigYO1I3/w65zyDkfuRau330pqKC7uVuiNH/eEnEwgBkAAFZE3UAIgFuCiAMw7gujOQC23zE9O1PWORNbdPuD2L+u9b+CXIDRgtd3pHnm9o5NjtExIPj91aMf7LkEGNDW3BVel987cjs8+1px69T4zJRuMRgCAHwNQCyzYEIWAcD1lFI1ODV9XzpV86Q7/lrf7ks3/vVY/S++yEVeJcg5FznnIf/KT8KyI26MymXT8IioHztFZ/zxcNqFZgUzhSqladr5eMEzwZXIORNtBRsrfmVX3m+i63dcvBpb113+oLOhb0IyPjUuJ4uHRQDgx3wNsAD4QUAAAOs1YB2DGH9xKvPFkLI1wUXIrwS554KFgCyJiXuJXt2d/3HC/TNltxvHFognaOWpj+Y2R2UjXxHyLEA+RdA2fHPlWP2kWjUDDHXL9DnX7/3p7IN39uYiXwCfRaaC5pqDvItXBBW9sKfq97sTqidgLLxdzbqyFpZVpcCELAMAoEYAOuBJ04jxbwNjgRv7z2vf2C/+IPKGY2LtrvyWzJuPG6TzOs08vGpej++1tHvmdP56bybyKkTeRShAhAJL2OZbjLwKXt91edPFpzVNT0c1VLiqx2MK0d2WvaJ2l+S630TdePvr0rVf1iH/ouc3HT32kEgfJLg4ABsmRAGI5/AbXrHv+J0sAKnowB5Av3q1RtkxrbjW3BVa1eOUWPHSvlo77yzkXYj8GY6DxHYBxdBYAEFi8jdADDDQtoznQio+ixXvLu6oampvGZMrVTLCK8hbr3ysx27RGfYOsbtqZCwAZmGFdWVxADQMmwO4NIRfdo3+XUhiG8bhVd2fhl1559urP9sjWhosQj45hCewE+A7qMwO+AZeg0TQ7JiGAovJX9LJ9qPtYgTAvEVoWyHyyoPxPwnJf/Nw9SdRYsczt5r1+OCV2qUOx1xypexShHUWAQDbJgAgOnAagKgBS6/BB3TA+AuOkZ99k9qJ8fuRt5ZsTUK+YuRfxoqWZZeyzmOU37aXkGbSaRhMVFRK8HtmI4/M2lEcU/ZkicOxz1Jb2cXUCgChBjgA4OkCAOFNeNXmCJeYHADwbmjNas9U8sqgMvL67aUW2DVoAMTPcgnDSCuxAMDQlgTkI++s4m71mVsS5Hjy46QmhnvMmRAEqO+1jJoD+OqmYrlDhG9SUQvGv9hXutInDQWWkcZyViLkntq6J6/5F7MjjYPNAAQWIc+sK48mLzWNLdka/+HxenYZtQIANo+wkbTsxBQAuAEFsKN6aplDxK4LVY8w/ruQ4hW+6cSOt4uFFkJaOShnXVDqzoqJ01fbk+raTtV1xtW0vxF2w94nHQWXMg+WmAAgOqQAwCuyU+4M5LTMLXVK/KeI61omwNNEkA+A5kJCADQbFQBgkjPsUzq6dFPU3vRrjWr83I7C5b6ZJgCM3Jeg4ArkJ3IKPTNqyAbof/6lI2tcThB4MIDTA7ko5QAQk/PKSbzRXditWuZy+ldhtQt6IQBBMif0AQqAmhBJh3QaCsCjcGipQ8yh7Pq7Crw6qGC5X45VDTAAtoSl9GEmDMEipie5gm8JAIgjdwmAUmPjmRAFEH+1U9SntXdNfu9wtVJHAOggBvAA0L3lIgBILOMBcMkbWOIQczivoUFmCoDjm2BgGAL+/EtMADBKAABrXeMXB+CZDfZWKtEvBwChVQqt3hyAZQ3A/gD2adYAOOf2A4Bv8/96Zx6vCsy39802BcDwAesSWZoqIDtw/PYsC0CvZsxY51UyvNL5BAqsIC2AGcyzfj6A+FoAoLN3Of3uN5UAQGMAABm+AADrA3RHRs8j6I7MogbsNkaH5hINrArKtffL5AOgAevZXWJoK3ZVgC+6HznfbwRANBBcOvSTbfErPy+HtnqneMX2YpJobOfB2F5KASRe6xL1qMEHwISoD+i0C7Af4gBw+3pWA/wtJQ3GFABgBugUwLai4SUbow9m3WpU4bU7C5f7ZxHuYUkJBqcsf8kj7utb8oHJmb6xye7xma6x6ZGpKY0hiFInHpMpe0cnusenoHVMyh8PTr4WepVZl8gM1JzsgoqQV9a5Bml+u3yZc9L6I1c12OgDAgB0S2kCwKIJYR2IUBdUMfnMxsiQizWPMf5bWEb9rjDcMxa/vfzv3Y/mjzKJF3kdR4R7DoA5/duppuXbzrFewcxG4oBXdk7zVMYjiAMJ/xJbz6RHRg3AVpG/qWc3NAIARhNitvOQxMMk+26pljtE+iYUQy60bn/5Ku80FsCOSgCwzj0yc5AzGD4Z95mCXqAP4xqNAEhQL1sWUGDnk1M1qE++0Wm3+eTvT7PpKKsBw56Yb0KLACCBTEsAxD7FaxwjN4Zf7iC50LXVnmfRjlLSGA1YB2CZhAAgODAAYHGDJa5Bjr8tuAO50OaMXswEAQBA+OeZELBqPFYRrEIWAaQP4Z+6RH8UkvAE489SH69xP4W2lzG2W4WCKl9zi8gf5fNmfm2BWADAvQEAZCivHiiHDM4vUWS/KfrzunmiAJ2azeQM2zFbAPhOzAdQp8K/9j/xpmdUjQrvrZ18wSmafTHjgs96nf/Dd09PVLUcq3gaU9UaVdFcdLNx1mhCpFV2zMSLGmKr26BF13SGih49F1K+1C+Xsk5nW+2R/Luk+2Cln+w/+9zWyJNtjFa1KqqBHwAA8g0TAHo1WM5/H0pZuzn8ZAvOHcbrXMNB8ET8bDwqpxsupomQa96f9yUS9fPigFu+1O5/opCXmGkFZN/DpuI0HSIAQC77rk6DjEBSsH8qmWUBWNPA8OiIZMAMAIQJejABTkMAwCqk1wxjHHa5YtnGmM2XOgDMhpA4EoyMMZWf2xAwW0LPSUwB+IgGmVyojDReNsruIhgAb3kcqZjFYffUaxyP/ungd214cQB9/RLLGjABoFODLGofddm7prz6pbgH46M5V2EnZcwFBMmcb7F5JPYulpoB4CXVAMBP5BJxAcLff8TftdsSF5VZzbiVVuADfCe2rAHOhCgAEsj0JBbMqLTrDlTZuaRk3+19OGvIiOhiagIANFDkFHZ2mPUBNg74lw6vcTluCFu8DIq3E8h7KG2YwKv8M5f7pD/oGZYzM+iZc0fuTMUCAP4yau7EhqMhktX6lE4s3RTrEHoOpLvlShuRqIAhCiCg5LdfJGVIcPPAyNP+4YcDE02SsY9O3V/pcRYFi0kz0QBx4lUeZ9+PuD6A8Z6zxcjp9IenHhjinx52M/Rc0fxwV6gB4+k0z4lZAMQSNNVy/Cu/Ey9tjUhswXdU+J99IkhOxuX3/BYAe/zCpQFF0EC6dgGFlnZktFVCeveaS3hGHxbPEPd90TnmVDvVnpbVgG0Tsh3IDABIVgJGGZlRhbYkvX24DizkQvU98IQlxtyYj6HUsFsvYbbF3KZezPoM7SGb5jLknnvoXNE4xh8nPrBzjHcLT+2j1s8kJoJjOQpgcnpqfNK6D7AbGhMAJKJDRBiZkf10Xw1yuXA8v24MY1i2V7olGbL8EhPjNlcLJ3v2ghjPCrdzb31dJcU448Yj5J6+xDPzXluf0hhDLJwr2nJiaxpgiZzx68Pv4+edT6zbFpUmwWCqG0JOwAJiAYAtDHT5r0R+pf/odrhqFFfP4fV+sfYOx7flDxO+9RouYC8OwKIJCTTAHqlrlXqNAlzti6R85HT+5a+qe+Z0Tf2Ta3aJl/hkswm2NQ3wDyBoFPfNh1Z2v3UE4/eO3EaOyX/Zd5qs/RA6tSrMc2LOB+hnMqsa4JzYGgA2qcJ4Yk72elg9YHAMTYa4lt6N3/WKBHESoVo7yeLLHkJ4QPnP3CJjGhWQBAYev4S2Xli7Q9zWPwSMk285Rg38QABWfcCgTejUkXNMTdEYXh8Yh5ySP0p6Mo1x3aMO++Bi5JMt3OwLATCZjx8sSkV51+5BsvaX9J5ntp76uUtMcgtmMn+ZRqvm7SJMACweyMw1wP8eQ7yA6EABTYHxrScdy3aWIbcrIEKIoFm9+P2A4+TEE3a9pgc+vOtK5Ct+0zsm4ZFqAuNvzuUj92zkmZdVVQ9S0S4oSGNeakhodSQOaJkdPfO9dXEA3I6M+0bG/0gDP+kHUBAVvDGxDb/mG4eck/896fG0DkPY+vnBWuRxkU0wTQ7eGNl7Zry4t7qhrQtk/2laxzKXxBdc4766DjFXCxPSmclxoDEjZwEsEB/mB7JZ4PfHACBKYM7pqbTgzdX3m5furEBumZD/PFDjxyoMO3qSb9KTU+MJbgXyLHI4/N0dGW7VYc/IVOSeA1nTxfLbM0T2Mo1qHqYl9mP6UYuuQtxnVgizYCVTM7PjkzYBcCdz5p/J4Cf5YKhSEGkRf9Ce78Dv+Scg54uvHLrZ0icFR3TL7XvePYEcONMFJ0D8Nx6JzlndALh9YOjVsDvI5eIrnifD76qo7IF18mFXreaLn77LbBm1DkBwMscepdO7qwAAAzxJREFULVr6yAeT0lcuqOTgD7AuPezsffnATeR06R3f+PgmNSwiZbcbn91dgzxzIEtbs6cafkJn3AP1uwEJyD1r1e7a2kby5QzUqFGxuaOAe4txALibm5PZyoWMR4s2P1TCLVIBwHzQp+vSrTns8O0F5FaAfEqjL5dAatAwh10jLrlFpd2VY1jsj6YVI19IHAr/sP9sySgzh5KYDVEmTd0tkXkqQQ+2FgfANyGLGKghkderQBVKGAnP/vlyz3LXZOSauv74g/5hstUHqbb2Sd6OuItcL9q7fvdfKW3jMzPALH2KatIa9+YmxK5CfBMS1Epwp9OCQGZRCfSog+oBLAFyDRB8amk9ySxcs94KSj7SIP+qbuaXvsnkw2ZwZUrJdfLpWKtUK+e4qhSQlLWv0XwA8C5OAwYAY5IB6Y8HQMMCFQwpzOGZU64EbziQgjwgtJUhr1LkIfrjoQsFEsYimGHUckhJgFq47NgAwJUaTM1MG7NRADA6OsoB4PaTAhMyq4xgX0CdgUEgh6ZUyFVKBeSuM3OzW7Olz3uee8k7xad4dF42B4s63IVGhqnYfNFGMQBXZ2Cx2MMkmeMDEGiAq/ewUJjCq8cgNrqgVCgNdVhymXpBNYdx/dP2xtZOObF46CSFGKQUhpfqCiY0n5lWqwg0YAKgt7eXVmwJ0mlapWRSF2RKXL+gvIfWJzFFVjJIPEjuIZfR4i8qFxtzWnyLeb0QNaGhkWFyKkErSLnPZMZgTFd6QwkVV3ikNiXBAEE/dVN+KZZggEnFFi3sMn0XNwnnwbTkDBiWDg32SvpQR0eHVCrllMB96uMX5YHsmGYkrpxO0GkYvzgJhll5ClYeFb9gzqTeTDrQ0dWJAER3b48AA4XBL7v8EVWVNoaZl1oKfppXXtJPYzQPBaclha/9kubWFjQnm29tb6Olx9SWuApifn3tzP8jWSv2BcZo9fHAIOEe2IYLUvwNgFra2rt7+/r7+wHZ0NAQLfvmV2zTYmZ+QbVF4g/+oTRmRoL6b2BscHCQFH9L+oD7rq4u8HJEF13w687urpa2VvgL65LEQP3/BzRgSuZ3uWvKAOUElntgDKy9raMd+AQPpgnI/wJYc7h2+kiGigAAAABJRU5ErkJggg==">    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,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"></head>
+<body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <header class="header" role="banner">
+        <div class="header__logo">
+                            <span class="header__logo-text">DREETS BFC</span>
+                        <span class="header__title">Application SST — DREETS BFC</span>
+        </div>
+                <div class="header__user">
+            <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
+            <span class="header__username">
+                Jean Dupont                <span class="badge badge--agent badge--sm">Agent</span>
+            </span>
+            <a href="index.php?page=logout" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
+        </div>
+            </header>
+<!-- Hidden checkbox for CSS-only sidebar toggle (mobile) — tabindex="-1" prevents focus since hidden attr is not always sufficient -->
+<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox" tabindex="-1" hidden>
+<label for="sidebar-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+<nav class="sidebar" id="sidebar-nav" role="navigation" aria-label="Menu principal">
+    <ul class="sidebar__nav">
+                                                    <li>
+                    <a href="index.php?page=home"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#127968;</span>
+                        Accueil                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=report_list&type=rsst"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#128203;</span>
+                        RSST                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=report_list&type=rami"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#9888;</span>
+                        RAMI                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=report_list&type=dgi"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#128308;</span>
+                        DGI                    </a>
+                </li>
+                                                                                                                                                </ul>
+
+    <div class="sidebar__footer">
+        <a href="index.php?page=help" class="sidebar__item">
+            <span class="sidebar__icon" aria-hidden="true">&#128218;</span>
+            Documentation
+        </a>
+        <a href="index.php?page=preamble" class="sidebar__item">
+            <span class="sidebar__icon" aria-hidden="true">&#128214;</span>
+            Préambule
+        </a>
+    </div>
+</nav>
+<span id="top" tabindex="-1"></span><main id="main-content" class="main" role="main">
+<div class="page-header">
+    <h1>Historique des modifications</h1>
+</div>
+
+    <div class="changelog-content">
+        <h1>Changelog — Application SST DREETS BFC</h1>
+<p>Toutes les modifications notables de ce projet sont documentées dans ce fichier.</p>
+<h2>[3.9.0] — 2026-06-14</h2>
+<h3>Corrections v4 — Audit SST DREETS BFC</h3>
+<ul>
+<li><strong>A</strong> 🔴 <strong>Références légales RAMI corrigées</strong> — Le bloc RAMI dans <code>pages/preamble.php</code> ne contient plus de TODO ni de « Cadre juridique à confirmer ». Remplacé par les références vérifiées sur Légifrance : Article L135-6 du CGFP (loi n° 2019-828), articles R135-1 à R135-10 du CGFP (décret n° 2024-1038 du 6 novembre 2024). Ajout des liens Légifrance pour RSST (Décret 82-453 art. 3-2) et DGI (Art. L4131-1 et D4132-1 Code du travail).</li>
+<li><strong>B</strong> 🔴 <strong>Anti-pattern de test corrigé</strong> — <code>canAccessReport()</code> dans <code>src/helpers.php</code> accepte désormais un 3ème paramètre optionnel <code>$forcedVisibility</code> pour injecter le mode de visibilité sans DB. Le test <code>tools/tests/test_can_access_report.php</code> appelle directement la vraie fonction (la copie locale <code>testCanAccessReport()</code> est supprimée). 79 cas couverts, comportement de production inchangé.</li>
+<li><strong>C</strong> 🔴 <strong>Protection anti-fixation de session activée</strong> — <code>login_handler.php</code> appelle désormais <code>safeSessionRegenerate()</code> au lieu du code commenté. Le fichier <code>session_patch.php</code> est inclus dans le bootstrap <code>index.php</code>. En production, l'ancienne session est détruite ; en dev, le drapeau <code>false</code> évite le crash du serveur intégré.</li>
+<li><strong>D</strong> 🟡 <strong>Header Content-Security-Policy ajouté</strong> — <code>public/web.config</code> inclut désormais un header CSP : <code>default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'</code>. <code>unsafe-inline</code> requis pour les styles/scripts inline existants. <code>frame-ancestors 'none'</code> complète X-Frame-Options.</li>
+<li><strong>E</strong> 🔴 <strong>Chiffrement de smtp_pass en base</strong> — Deux fonctions dédiées <code>encryptConfigValue()</code> et <code>decryptConfigValue()</code> dans <code>src/helpers.php</code> (AES-256-CBC, clé via variable d'environnement <code>SST_SECRET_KEY</code>). Lecture déchiffrée dans <code>src/mail.php</code>, écriture chiffrée dans <code>handlers/settings_handler.php</code>. Migration idempotente <code>migrateEncryptSmtpPass()</code> dans <code>src/database.php</code> chiffre automatiquement les valeurs en clair au premier démarrage. Section SST_SECRET_KEY ajoutée dans <code>DEPLOY.md</code>.</li>
+</ul>
+<hr />
+<h2>[3.8.3] — 2026-06-12</h2>
+<h3>Outil CLI — <code>nuclear-reset.php</code> : purge des signalements</h3>
+<ul>
+<li><strong>1</strong> 🟡 <strong>Script CLI <code>nuclear-reset.php</code></strong> — Outil de purge pour les phases de test. Supprime uniquement les données liées aux signalements (<code>reports</code>, <code>report_responses</code>, <code>report_sequence</code>, <code>audit_log</code>) et conserve les utilisateurs, sites, configuration et paramètres de notification. Demande confirmation en tapant <code>OUI</code> avant de supprimer. Réinitialise les compteurs auto-increment et lance un <code>VACUUM</code> SQLite. Usage : <code>php nuclear-reset.php</code></li>
+</ul>
+<h3>Nettoyage — Suppression code mort (report_id, sous-requêtes, migration)</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>INSERT sans <code>report_id</code></strong> — L'INSERT dans <code>respondToReport()</code> et <code>seed.php</code> ne fournit plus <code>report_id</code>. La sous-requête <code>(SELECT id FROM reports WHERE uuid = ...)</code> est retirée. <code>report_id</code> est nullable depuis la migration one-shot exécutée sur le serveur.</li>
+<li><strong>2</strong> 🟡 <strong>Bloc migration <code>report_responses_new</code> supprimé</strong> — Le nettoyage de la table orpheline <code>report_responses_new</code> dans <code>database.php</code> est retiré (la migration one-shot a déjà tout nettoyé sur le serveur).</li>
+<li><strong>3</strong> 🟢 <strong>Zéro trace résiduelle</strong> — Plus aucune référence à <code>report_uuid2</code>, <code>report_responses_new</code>, ou la sous-requête <code>SELECT id FROM reports WHERE uuid</code> dans les INSERT.</li>
+</ul>
+<hr />
+<h2>[3.8.2] — 2026-06-12</h2>
+<h3>Correctif — Suppression migration report_id nullable (database table is locked)</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>Migration <code>report_id nullable</code> supprimée</strong> — La migration qui recréait la table <code>report_responses</code> pour rendre <code>report_id</code> nullable échouait systématiquement avec « database table is locked » sous IIS. SQLite ne supporte pas les écritures concurrentes : quand plusieurs processus PHP tentent la migration en même temps (DROP TABLE + CREATE TABLE + INSERT + ALTER TABLE), le verrou exclusif est refusé. <strong>Cette migration n'est plus nécessaire</strong> car depuis v3.8.1, l'INSERT fournit <code>report_id</code> via sous-requête <code>(SELECT id FROM reports WHERE uuid = ...)</code>. Le code fonctionne que <code>report_id</code> soit <code>NOT NULL</code> ou nullable.</li>
+<li><strong>2</strong> 🟢 <strong>Nettoyage conservé</strong> — Si une table orpheline <code>report_responses_new</code> existe (d'une ancienne tentative échouée), elle est supprimée. Cette opération est légère (DROP TABLE IF EXISTS) et ne provoque pas de verrouillage.</li>
+</ul>
+<hr />
+<h2>[3.8.1] — 2026-06-12</h2>
+<h3>Correctif — report_id NOT NULL : l'INSERT fournit désormais report_id</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong><code>respondToReport()</code> : INSERT inclut <code>report_id</code></strong> — L'INSERT dans <code>report_responses</code> ne fournissait pas <code>report_id</code>, ce qui échouait si la colonne était encore <code>NOT NULL</code> (migration pas encore passée sur le serveur). Correction : l'INSERT utilise une sous-requête <code>(SELECT id FROM reports WHERE uuid = :report_uuid2)</code> pour résoudre automatiquement le <code>report_id</code> à partir du <code>report_uuid</code>. <strong>Fonctionne que la migration soit passée ou non</strong> — c'est la solution définitive.</li>
+<li><strong>2</strong> 🟡 <strong><code>seed.php</code> même correctif</strong> — L'INSERT de seed pour les réponses de démo inclut désormais <code>report_id</code> via la même sous-requête.</li>
+</ul>
+<hr />
+<h2>[3.8.0] — 2026-06-12</h2>
+<h3>Architecture — Assets inline : zéro dépendance IIS pour les assets statiques</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>CSS inline via <code>&lt;style&gt;</code></strong> — Le CSS n'est plus servi par une requête HTTP séparée. La fonction <code>inlineCss('css/style.css')</code> lit le fichier et l'injecte directement dans le HTML via une balise <code>&lt;style&gt;</code>. Puisque toutes les pages HTML sont <code>Cache-Control: no-cache</code>, le navigateur revalide systématiquement — un cache CSS séparé n'apportait aucune benefit de performance. Le gzip (ob_gzhandler) compresse efficacement le CSS inline. <strong>Élimine le faux positif webhint « content-type should be text/html »</strong> car il n'y a plus de requête asset.php pour le CSS.</li>
+<li><strong>2</strong> 🔴 <strong>Favicons en data URI</strong> — Les favicons (<code>favicon.png</code>, <code>favicon.ico</code>) sont encodés en base64 et injectés via <code>data:image/png;base64,...</code> dans les attributs <code>href</code> des <code>&lt;link rel="icon"&gt;</code>. La fonction <code>inlineDataUri()</code> lit le fichier et génère automatiquement la data URI. <strong>Élimine le faux positif webhint sur le Content-Type du favicon</strong> (charset, type MIME) et les avertissements Cache-Control max-age.</li>
+<li><strong>3</strong> 🔴 <strong>Logo en data URI</strong> — Le logo DREETS (<code>img/logo-dreets.png</code>), s'il existe, est également servi en data URI via <code>inlineDataUri()</code>.</li>
+<li><strong>4</strong> 🟡 <strong>Règles URL Rewrite inbound supprimées du <code>web.config</code></strong> — Plus besoin de réécrire <code>/assets/...</code> → <code>asset.php?f=...</code>. Seule la règle outbound « Remove Server Header » reste. L'application ne dépend plus du module URL Rewrite IIS pour les assets — seul le header Server sortant l'utilise.</li>
+<li><strong>5</strong> 🟡 <strong><code>assetUrl()</code> rétrogradée</strong> — Conservée pour les rares cas nécessitant une requête HTTP séparée (téléchargement de pièces jointes, exports). Le format redevient <code>asset.php?f=...&amp;v=...</code>. Plus aucune page ne l'utilise pour le CSS ou les favicons.</li>
+<li><strong>6</strong> 🟡 <strong><code>router.php</code> simplifié</strong> — Le routeur de développement ne gère plus les URLs <code>/assets/...</code>. Il ne fait que router <code>asset.php</code> (legacy) et <code>index.php</code>.</li>
+<li><strong>7</strong> 🟢 <strong><code>asset.php</code> conservé</strong> — Reste disponible pour servir des assets si nécessaire (pièces jointes, exports CSV/PDF), mais n'est plus appelé pour le CSS ni les favicons.</li>
+</ul>
+<h3>Audit — Correctifs webhint résiduels (v3.7.3 reportés)</h3>
+<ul>
+<li><strong>8</strong> 🔴 <strong>Favicon Content-Type : <code>charset=utf-8</code> ajouté</strong> — <code>image/vnd.microsoft.icon; charset=utf-8</code> dans <code>asset.php</code> (au cas où asset.php serait encore appelé pour un favicon).</li>
+<li><strong>9</strong> 🔴 <strong>Cache-Control max-age = 180</strong> — <code>asset.php</code> et <code>router.php</code> appliquent <code>max-age=180</code> à tous les assets (webhint exige ≤180). Le flag <code>immutable</code> est retiré.</li>
+</ul>
+<hr />
+<h2>[3.7.3] — 2026-06-12</h2>
+<h3>Audit — webhint : Content-Type, Cache-Control, URL d'assets</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>Favicon Content-Type : ajout de <code>charset=utf-8</code></strong> — webhint signale que <code>image/vnd.microsoft.icon</code> manque <code>charset=utf-8</code>. Ajout du paramètre dans <code>asset.php</code> et <code>router.php</code> : <code>image/vnd.microsoft.icon; charset=utf-8</code>. Bien que le paramètre charset soit techniquement sans effet sur un type binaire, sa présence satisfait le scanneur webhint sans impact fonctionnel.</li>
+<li><strong>2</strong> 🔴 <strong>Faux positif webhint « content-type should be text/html »</strong> — webhint détecte <code>.php</code> dans l'URL <code>asset.php?f=css/style.css</code> et suppose que la réponse doit être HTML. C'est un bogue de webhint : les types MIME <code>text/css</code> et <code>image/vnd.microsoft.icon</code> sont corrects. <strong>Contournement</strong> : les URLs d'assets ne contiennent plus <code>.php</code>. Nouveau format : <code>/assets/css/style.css?v=3.7.3</code> au lieu de <code>asset.php?f=css/style.css&amp;v=3.7.2</code>. Sur IIS, une règle URL Rewrite inbound convertit <code>/assets/...</code> → <code>asset.php?f=...&amp;v=...</code>. Sur le serveur PHP built-in, <code>router.php</code> gère directement les URLs <code>/assets/...</code>.</li>
+<li><strong>3</strong> 🔴 <strong>Cache-Control max-age trop élevé</strong> — webhint exige <code>max-age ≤ 180</code> pour tous les assets. Réduction de <code>max-age</code> à 180 secondes dans <code>asset.php</code> et <code>router.php</code> (CSS : 604800→180, favicon : 2592000→180, fonts : 31536000→180). Le flag <code>immutable</code> est retiré car il n'est utile qu'avec un <code>max-age</code> long. Les ETag + 304 garantissent une revalidation efficace après expiration du cache.</li>
+<li><strong>4</strong> 🟡 <strong><code>assetUrl()</code> génère <code>/assets/...</code></strong> — La fonction <code>assetUrl()</code> dans <code>helpers.php</code> produit désormais <code>assets/css/style.css?v=3.7.3</code> au lieu de <code>asset.php?f=css/style.css&amp;v=3.7.3</code>. Plus lisible, plus conforme aux attentes des scanneurs, et le paramètre <code>v=</code> est dans la query string standard (pas encodé dans le chemin). Rétro-compatible : l'ancien format <code>asset.php?f=...</code> reste fonctionnel.</li>
+<li><strong>5</strong> 🟡 <strong><code>web.config</code> : règles URL Rewrite inbound</strong> — Deux nouvelles règles inbound dans <code>&lt;rewrite&gt;&lt;rules&gt;</code> : <code>Asset Rewrite</code> pour <code>/assets/(css|img|fonts|js)/fichier.ext</code> et <code>Asset Rewrite Root</code> pour <code>/assets/fichier.ext</code> (favicon). Les deux réécrivent vers <code>asset.php?f=...&amp;v=...</code> en utilisant les back-references <code>{R:1}</code> et <code>{R:2}</code>.</li>
+<li><strong>6</strong> 🟢 <strong><code>router.php</code> réécrit</strong> — Le routeur de développement gère désormais les URLs <code>/assets/...</code> via deux regex <code>preg_match</code>, avec une fonction <code>serveStaticAsset()</code> centralisée (MIME types, ETag, 304, Cache-Control). Support legacy de <code>asset.php?f=...</code> conservé.</li>
+</ul>
+<hr />
+<h2>[3.7.2] — 2026-06-12</h2>
+<h3>Audit — Accessibilité, Cache-Control, Server header</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>ARIA : élément caché ne doit pas être focusable</strong> — Le checkbox <code>#sidebar-toggle</code> avait <code>aria-hidden="true"</code> mais restait techniquement focusable au clavier (violation axe-core « ARIA hidden element must not contain focusable elements »). Remplacement par <code>tabindex="-1"</code> sans <code>aria-hidden</code> : l'attribut <code>hidden</code> le cache déjà de l'arbre d'accessibilité, <code>tabindex="-1"</code> empêche le focus programme.</li>
+<li><strong>2</strong> 🔴 <strong>Cache-Control : <code>no-cache</code> sans <code>max-age=0</code></strong> — L'audit signalait que <code>max-age</code> ne doit pas coexister avec <code>no-cache</code> (redondance). Remplacement de <code>Cache-Control: no-cache, max-age=0</code> par <code>Cache-Control: no-cache</code> dans 7 fichiers (header.php, login.php, choose_site.php, report_print.php, report_attachment.php, export_handler.php, user_edit_handler.php). La directive <code>no-cache</code> seule suffit : elle impose la revalidation systématique.</li>
+<li><strong>3</strong> 🔴 <strong>Header <code>Server: microsoft-iis/10.0</code> supprimé via web.config</strong> — IIS ajoute le header Server APRÈS PHP, rendant <code>header_remove('Server')</code> inefficace. Ajout d'une règle URL Rewrite sortante dans <code>web.config</code> qui remplace la valeur de <code>RESPONSE_Server</code> par une chaîne vide. Prérequis : module URL Rewrite installé sur IIS (déjà requis par le projet).</li>
+<li><strong>4</strong> 🟡 <strong>Favicon Content-Type standardisé</strong> — <code>image/x-icon</code> remplacé par <code>image/vnd.microsoft.icon</code> (type MIME IANA officiel) dans <code>asset.php</code> et <code>router.php</code>. Pas de <code>charset</code> sur les types binaires.</li>
+<li><strong>5</strong> 🟡 <strong>Faux positifs documentés</strong> — L'audit signale que le <code>content-type</code> des assets CSS et favicon devrait être <code>text/html</code> : c'est une erreur de l'outil d'audit (les types <code>text/css</code> et <code>image/vnd.microsoft.icon</code> sont corrects). L'audit recommande aussi un <code>max-age ≤ 180</code> pour les assets versionnés avec <code>immutable</code> : c'est un faux positif (les assets versionnés avec cache busting doivent avoir un long cache pour la performance).</li>
+</ul>
+<hr />
+<h2>[3.7.1] — 2026-06-12</h2>
+<h3>Correctif — Migration report_responses bloquée</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong><code>report_responses_new</code> orphelin bloquait la migration</strong> — La migration rendant <code>report_id</code> nullable échouait à chaque requête car une table <code>report_responses_new</code> résiduelle d'une précédente tentative avortée existait déjà (<code>CREATE TABLE report_responses_new</code> → erreur « table already exists »). La migration ne passait jamais, laissant <code>report_id NOT NULL</code>, ce qui causait l'erreur <code>Integrity constraint violation: 19 NOT NULL constraint failed: report_responses.report_id</code> lors de l'INSERT par <code>respondToReport()</code>. Correction : la migration supprime d'abord la table orpheline <code>_new</code> si elle existe, puis nettoie aussi en cas d'échec (<code>DROP TABLE IF EXISTS report_responses_new</code> dans le catch).</li>
+</ul>
+<h3>Fonctionnalité — Notification par e-mail lors d'un changement de rôle</h3>
+<ul>
+<li><strong>2</strong> 🔴 <strong>E-mail de notification automatique lors d'un changement de rôle</strong> — Nouvelle fonction <code>notifyRoleChange()</code> dans <code>src/mail.php</code>. Lorsqu'un superviseur modifie le rôle d'un utilisateur, un e-mail est envoyé à l'utilisateur pour l'informer du changement (ancien rôle → nouveau rôle) avec une description des permissions associées au nouveau rôle.</li>
+<li><strong>3</strong> 🟡 <strong>Case à cocher « Avertir l'utilisateur par e-mail »</strong> — Dans la page d'édition d'un utilisateur (<code>user_edit.php</code>), une case à cocher apparaît lorsque le rôle sélectionné diffère du rôle actuel ET que l'utilisateur a une adresse e-mail. Elle est cochée par défaut. Si l'utilisateur n'a pas d'e-mail, un message ⚠ est affiché dans le flash de succès.</li>
+<li><strong>4</strong> 🟢 <strong>CSS <code>.checkbox-label</code></strong> — Nouvelle classe CSS pour le style des labels de checkbox (flex, gap, cursor pointer).</li>
+</ul>
+<hr />
+<h2>[3.7.0] — 2026-06-12</h2>
+<h3>Fonctionnalité — Notifications e-mail automatiques en cas d'erreur critique</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>Gestionnaire d'erreurs personnalisé</strong> — Nouveau module <code>src/error_handler.php</code> qui intercepte toutes les erreurs PHP et envoie automatiquement un e-mail à l'administrateur technique configuré lorsque des erreurs critiques surviennent (Fatal error, Parse error, Core error, Compile error, Recoverable error). Les notices, warnings et deprecated ne déclenchent pas d'e-mail pour éviter le bruit.</li>
+<li><strong>2</strong> 🔴 <strong>Clé de configuration <code>app_admin_email</code></strong> — Nouvelle clé dans la table <code>config_app</code>, configurable via l'onglet « Paramètres de l'application ». L'adresse e-mail de l'administrateur technique reçoit les alertes automatiques. Laissez vide pour désactiver les notifications.</li>
+<li><strong>3</strong> 🟡 <strong>Anti-spam : limitation d'envoi</strong> — Une même erreur ne déclenche qu'un seul e-mail toutes les 5 minutes (throttle basé sur un hash de l'erreur). Le fichier <code>data/error-throttle.json</code> stocke les horodatages des derniers envois. Les entrées de plus d'une heure sont automatiquement nettoyées.</li>
+<li><strong>4</strong> 🟡 <strong>E-mail détaillé avec contexte</strong> — Chaque notification contient : le type d'erreur, le message, le fichier et la ligne, l'URL de la requête, l'adresse IP, la date/heure, et un lien vers le journal d'erreurs dans l'interface.</li>
+<li><strong>5</strong> 🟡 <strong>Champ « E-mail administrateur technique » dans les paramètres</strong> — Nouveau champ dans l'onglet « Paramètres de l'application » de la page Paramètres, avec validation de l'adresse e-mail. Un texte d'aide explique le fonctionnement du throttle et renvoie vers la page Journal d'erreurs.</li>
+<li><strong>6</strong> 🟢 <strong>Journal d'erreurs : catégorie <code>[SST-ERROR-MAIL]</code></strong> — Les entrées de log liées aux notifications d'erreurs sont désormais catégorisées sous « E-mail » dans le journal d'erreurs (page Logs), au même titre que <code>[SST-MAIL]</code>.</li>
+<li><strong>7</strong> 🟡 <strong>Shutdown handler pour erreurs fatales</strong> — En plus du <code>set_error_handler()</code>, un <code>register_shutdown_function()</code> attrape les erreurs fatales (E_ERROR, E_PARSE, etc.) qui bypassent le error handler standard.</li>
+</ul>
+<hr />
+<h2>[3.6.0] — 2026-06-12</h2>
+<h3>Sécurité — Tout passe par l'authentification Windows</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>Accès anonyme supprimé pour <code>asset.php</code></strong> — Le bloc <code>&lt;location path="asset.php"&gt;</code> qui activait l'authentification anonyme pour ce script a été supprimé du <code>web.config</code>. Désormais, <strong>toutes les requêtes</strong> — y compris les assets statiques (CSS, images, fonts) — nécessitent une authentification Windows. Aucune ressource de l'application n'est accessible sans authentification préalable.</li>
+<li><strong>2</strong> 🔴 <strong>Accès direct aux assets statiques bloqué par IIS</strong> — Les répertoires <code>css/</code>, <code>img/</code>, <code>fonts/</code> et <code>js/</code> sont ajoutés aux <code>&lt;hiddenSegments&gt;</code> du <code>web.config</code>. Toute requête HTTP directe vers ces répertoires (ex: <code>/css/style.css</code>) renvoie une erreur 404 par IIS. Seul <code>asset.php</code> peut lire ces fichiers via le système de fichiers PHP (<code>readfile()</code>), qui n'est pas affecté par les hiddenSegments IIS. Cela garantit qu'aucun asset ne peut être servi sans passer par PHP et donc sans authentification Windows.</li>
+<li><strong>3</strong> 🟡 <strong><code>asset.php</code> — Documentation mise à jour</strong> — Les commentaires du script documentent désormais le fait que l'authentification Windows est requise en production, et que l'accès direct aux répertoires d'assets est bloqué par le <code>web.config</code>.</li>
+<li><strong>4</strong> 🟡 <strong><code>web.config</code> — Commentaires clarifiés</strong> — Les commentaires expliquent que TOUT passe par Windows Auth, qu'aucune exception d'accès anonyme n'existe, et pourquoi les hiddenSegments sont utilisés pour forcer le passage par <code>asset.php</code>.</li>
+</ul>
+<hr />
+<h2>[3.5.0] — 2026-06-12</h2>
+<h3>Serveur d'assets PHP — Contrôle total des headers HTTP</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong><code>asset.php</code> — Serveur d'assets statiques en PHP</strong> — Nouveau fichier <code>public/asset.php</code> qui sert TOUS les assets statiques (CSS, images, fonts, icônes) via PHP au lieu d'IIS. Cela donne un contrôle total sur les headers HTTP : <code>Content-Type</code> avec charset, <code>X-Content-Type-Options: nosniff</code>, <code>Cache-Control</code> avec <code>immutable</code> pour les assets versionnés, <code>ETag</code> pour les 304, <code>Last-Modified</code>, suppression de <code>X-Powered-By</code>/<code>Server</code>/<code>Expires</code>/<code>Pragma</code>. Sécurité : whitelist d'extensions, whitelist de répertoires, prévention de directory traversal.</li>
+<li><strong>2</strong> 🔴 <strong><code>assetUrl()</code> route via <code>asset.php</code></strong> — La fonction <code>assetUrl('css/style.css')</code> génère désormais <code>asset.php?f=css/style.css&amp;v=3.5.0</code> au lieu de <code>css/style.css?v=3.5.0</code>. Tous les assets passent par le serveur PHP.</li>
+<li><strong>3</strong> 🔴 <strong>Cache-Control <code>immutable</code></strong> — Les assets versionnés (<code>?v=</code>) reçoivent <code>Cache-Control: public, max-age=..., immutable</code>. Le flag <code>immutable</code> indique au navigateur que le contenu ne changera jamais pendant la durée du cache, éliminant les revalidations inutiles.</li>
+<li><strong>4</strong> 🟡 <strong>Support ETag + 304 Not Modified</strong> — <code>asset.php</code> génère un ETag basé sur <code>filemtime</code> + <code>filesize</code> + <code>crc32</code> du chemin. Si le client envoie <code>If-None-Match</code> ou <code>If-Modified-Since</code>, le serveur répond <code>304 Not Modified</code> sans renvoyer le contenu.</li>
+<li><strong>5</strong> 🟡 <strong>Favicons servis via <code>asset.php</code></strong> — Les favicons (<code>favicon.png</code>, <code>favicon.ico</code>) dans <code>header.php</code> passent désormais par <code>assetUrl()</code> au lieu d'URLs directes.</li>
+<li><strong>6</strong> 🟡 <strong><code>web.config</code> : accès anonyme pour <code>asset.php</code></strong> — Ajout d'une <code>&lt;location path="asset.php"&gt;</code> permettant l'authentification anonyme uniquement pour ce script. Les assets n'ont pas besoin d'authentification Windows, éliminant la surcharge NTLM/Kerberos sur chaque requête CSS/image/font.</li>
+<li><strong>7</strong> 🟡 <strong>CSP mise à jour</strong> — Suppression de <code>script-src 'self'</code> (plus de JS du tout). La CSP est désormais <code>default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'</code>.</li>
+</ul>
+<h3>Correctif — Réponse superviseur toujours en erreur</h3>
+<ul>
+<li><strong>8</strong> 🔴 <strong><code>respondToReport()</code> retourne <code>'true'</code> (string) mais le handler comparait avec <code>true</code> (booléen)</strong> — La comparaison stricte <code>$result === true</code> échouait systématiquement car la fonction retourne la chaîne <code>'true'</code>, pas le booléen. Le superviseur ne pouvait jamais enregistrer de réponse — l'erreur « Erreur lors de l'enregistrement de la réponse » s'affichait à chaque tentative. Correction : <code>$result === 'true'</code> (comparaison de chaînes).</li>
+<li><strong>9</strong> 🟡 <strong>Logging amélioré en cas d'échec</strong> — Ajout de <code>error_log()</code> avec le contexte complet (result, user_id, report_uuid, nouvel_etat) pour faciliter le diagnostic si l'erreur se reproduit.</li>
+</ul>
+<h3>Fonctionnalité — Journal d'erreurs dans l'interface</h3>
+<ul>
+<li><strong>10</strong> 🟢 <strong>Page « Journal d'erreurs » dans le sidebar</strong> — Nouvelle page <code>logs</code> accessible uniquement aux superviseurs, affichant le contenu du fichier <code>data/php-error.log</code> directement dans l'interface. Fini la nécessité d'accéder au serveur pour lire les logs. Les entrées sont affichées les plus récentes en premier, avec un affichage terminal sombre (Catppuccin) et une coloration par catégorie.</li>
+<li><strong>11</strong> 🟢 <strong>Filtrage par catégorie</strong> — Onglets de filtre : Tout, Fatal, Warnings, Base de données, E-mail, Réponses, Sauvegarde, Migration. Chaque catégorie a sa couleur de badge et sa bordure latérale.</li>
+<li><strong>12</strong> 🟢 <strong>Bouton « Effacer les logs »</strong> — Permet de vider le fichier de log en un clic (protégé par CSRF token et confirmation).</li>
+<li><strong>13</strong> 🟡 <strong>Sidebar : entrée « Journal »</strong> — Nouvel item dans le menu sidebar (icône 📜), visible uniquement pour les superviseurs, entre « Paramètres » et le footer.</li>
+</ul>
+<hr />
+<h2>[3.4.0] — 2026-06-12</h2>
+<h3>Audit — Sécurité HTTP, cache busting, zéro JavaScript</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>Cache busting sur les assets statiques</strong> — La fonction <code>assetUrl()</code> ne faisait qu'ajouter le chemin brut sans paramètre de version. Ajout de <code>?v=APP_VERSION</code> pour forcer le navigateur à recharger les ressources CSS/JS/images après chaque déploiement. Cela résout le signal « Resource should use cache busting but URL does not match configured patterns ».</li>
+<li><strong>2</strong> 🔴 <strong>Suppression du header <code>Server</code> par <code>header_remove()</code></strong> — Tous les fichiers utilisaient <code>header('Server: ')</code> qui est inefficace sur IIS (le serveur réinsère sa valeur). Remplacement systématique par <code>header_remove('Server')</code> dans <code>index.php</code>, <code>header.php</code>, <code>login.php</code>, <code>choose_site.php</code>, <code>report_print.php</code>, <code>report_attachment.php</code>, <code>export_handler.php</code>, <code>user_edit_handler.php</code> et <code>router.php</code>. Le header <code>Server</code> ne doit contenir que le nom du serveur, sans version.</li>
+<li><strong>3</strong> 🔴 <strong>Suppression des headers dépréciés <code>Expires</code> et <code>Pragma</code></strong> — Ces headers sont obsolètes et remplacés par <code>Cache-Control</code>. Ajout de <code>header_remove('Expires')</code> et <code>header_remove('Pragma')</code> dans tous les points d'entrée PHP pour nettoyer les headers HTTP.</li>
+<li><strong>4</strong> 🔴 <strong><code>X-Content-Type-Options: nosniff</code> appliqué à TOUS les assets statiques</strong> — Le <code>router.php</code> ne l'ajoutait que pour les assets texte (css, js, json, svg). Désormais ajouté sur TOUS les assets statiques (images, fonts incluses) pour empêcher le MIME sniffing.</li>
+<li><strong>5</strong> 🟡 <strong>Cache-Control intelligent dans <code>router.php</code></strong> — Les assets non versionnés (sans <code>?v=</code>) ont désormais un <code>max-age=180</code> (3 minutes) au lieu d'une longue durée, pour éviter les problèmes de cache périmé. Les assets versionnés conservent les longues durées (7 jours CSS/JS, 30 jours images, 1 an fonts).</li>
+<li><strong>6</strong> 🔴 <strong>Suppression complète du JavaScript</strong> — Conformément à la contrainte de durabilité 10 ans (zéro JS) :<ul>
+<li><strong>Sidebar</strong> : Remplacement du JS de toggle mobile par un checkbox CSS-only (<code>#sidebar-toggle</code>). Le label hamburger dans le header coche/décoche la checkbox cachée. CSS <code>:checked ~ .sidebar</code> ouvre le panneau. L'overlay est aussi un label pour la checkbox (cliquer ferme).</li>
+<li><strong>Bouton « retour en haut »</strong> : Remplacement du JS <code>scroll</code>/<code>click</code> par un simple lien <code>&lt;a href="#top"&gt;</code> qui utilise l'ancre <code>#top</code> placée en début de <code>&lt;main&gt;</code>. Plus besoin de JS pour la visibilité ni le défilement.</li>
+</ul>
+</li>
+<li><strong>7</strong> 🟡 <strong>Sécurité CSP : <code>frame-ancestors 'none'</code> remplace <code>X-Frame-Options</code></strong> — Suppression implicite de tout header <code>X-Frame-Options</code> (aucun n'était émis, mais le commentaire est clarifié). CSP <code>frame-ancestors 'none'</code> est le mécanisme moderne, avec un support plus large et des vérifications plus strictes.</li>
+<li><strong>8</strong> 🟡 <strong>Header menu button → <code>&lt;label&gt;</code></strong> — Le bouton hamburger était un <code>&lt;button&gt;</code> qui nécessitait JS. Transformé en <code>&lt;label for="sidebar-toggle"&gt;</code> pour fonctionner avec le checkbox hack CSS-only. Ajout de <code>tabindex="0"</code> pour l'accessibilité clavier.</li>
+</ul>
+<h2>[3.3.0] — 2026-06-12</h2>
+<h3>Audit — Conformité 10/10 (compatibilité, performance, sécurité, bonnes pratiques)</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong><code>-webkit-user-select</code> ajouté pour Safari</strong> — Les propriétés <code>user-select: none</code> dans <code>style.css</code> n'avaient pas le préfixe vendor <code>-webkit-user-select</code>, rendant la sélection impossible à désactiver sur Safari 3+. Ajouté sur <code>.breadcrumb__separator</code> et <code>th</code>.</li>
+<li><strong>2</strong> 🔴 <strong><code>Content-Type</code> charset uniformisé en minuscules</strong> — Les headers <code>charset=UTF-8</code> (majuscule) de <code>export_handler.php</code> et <code>user_edit_handler.php</code> normalisés en <code>charset=utf-8</code> pour respecter la RFC 2616 (section 3.4 : les valeurs de paramètre sont case-insensitive mais la convention est minuscule).</li>
+<li><strong>3</strong> 🔴 <strong><code>Cache-Control</code> nettoyé</strong> — Les directives <code>no-store</code> et <code>must-revalidate</code> étaient signalées comme non recommandées par l'audit. Remplacement uniforme par <code>no-cache, max-age=0</code> sur toutes les pages dynamiques (header.php, login.php, choose_site.php, report_print.php, report_attachment.php, export_handler.php, user_edit_handler.php). La directive <code>no-cache</code> demande au navigateur de revalider avant d'utiliser le cache, ce qui est le comportement souhaité sans les effets de bord de <code>no-store</code>.</li>
+<li><strong>4</strong> 🟡 <strong>CSP : ajout de <code>script-src 'self'</code></strong> — La Content-Security-Policy ne déclarait pas <code>script-src</code>, héritant de <code>default-src 'self'</code>. Ajout explicite de <code>script-src 'self'</code> pour documenter l'intention et éviter l'interprétation bloquant les scripts inline éventuels. Maintenu <code>style-src 'self' 'unsafe-inline'</code> pour les classes utilitaires CSS.</li>
+<li><strong>5</strong> 🟡 <strong><code>X-Content-Type-Options: nosniff</code> ajouté sur toutes les réponses</strong> — Les réponses binaires (report_attachment.php, report_print.php) et les téléchargements (export_handler.php, user_edit_handler.php) n'avaient pas ce header. Ajouté systématiquement.</li>
+<li><strong>6</strong> 🔴 <strong><code>X-Powered-By</code> supprimé + <code>Server</code> nettoyé</strong> — <code>header_remove('X-Powered-By')</code> ajouté dans router.php (manquant). <code>header('Server: ')</code> ajouté dans index.php, router.php, header.php, login.php, choose_site.php, report_attachment.php, report_print.php, export_handler.php, user_edit_handler.php pour masquer la version du serveur.</li>
+<li><strong>7</strong> 🔴 <strong>Headers dépréciés supprimés de FPDF</strong> — <code>Pragma: public</code> et <code>must-revalidate</code> retirés du header FPDF (<code>fpdf.php</code>). Le PDF utilise désormais <code>Cache-Control: private, max-age=0</code>.</li>
+<li><strong>8</strong> 🟢 <strong>71 styles inline migrés vers CSS externe</strong> — Tous les attributs <code>style="..."</code> (71 occurrences dans 14 fichiers PHP) ont été remplacés par 27 nouvelles classes CSS et 7 classes existantes réutilisées. Plus aucun style inline ne subsiste dans les templates, conformément aux bonnes pratiques de séparation contenu/présentation.</li>
+</ul>
+<hr />
+<h2>[3.2.1] — 2026-06-12</h2>
+<h3>Infrastructure — Suppression .htaccess + web.config minimal</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong><code>.htaccess</code> supprimé</strong> — L'application est déployée sur IIS, le <code>.htaccess</code> est inutile et source de confusion. Tout est géré par PHP.</li>
+<li><strong>2</strong> 🟡 <strong><code>web.config</code> réduit au strict minimum</strong> — Suppression de <code>customHeaders</code> (CSP, nosniff, etc. → gérés par PHP), suppression de <code>clientCache</code> (géré par PHP), suppression de <code>httpErrors</code>. Ne reste que : document par défaut, protection fichiers/dossiers sensibles, MIME types manquants (.woff, .woff2, .svg), authentification Windows.</li>
+</ul>
+<hr />
+<h2>[3.2.0] — 2026-06-12</h2>
+<h3>Correctif — CSS non chargé + headers HTTP conformes</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong>CSS servi avec <code>application/octet-stream</code> au lieu de <code>text/css</code></strong> — Le <code>.htaccess</code> appliquait <code>Header always set</code> sur TOUTES les réponses (CSS inclus), ce qui ajoutait CSP, X-Frame-Options, Cache-Control no-cache sur les assets statiques. Le navigateur bloquait le CSS. Correction : les security headers sont désormais envoyés uniquement par PHP (header.php), le <code>.htaccess</code> ne gère plus que le cache statique et les MIME types.</li>
+<li><strong>2</strong> 🔴 <strong><code>Cache-Control</code> manquant sur les assets statiques</strong> — Les fichiers CSS/JS/images n'avaient pas de <code>Cache-Control</code> propre. Le <code>.htaccess</code>, <code>router.php</code> et <code>web.config</code> servent désormais les assets statiques avec les bons headers : CSS/JS 7 jours, images 30 jours, fonts 1 an.</li>
+<li><strong>3</strong> 🟡 <strong><code>Content-Type: text/css; charset=utf-8</code></strong> — Le CSS est désormais servi avec le charset explicite. Le <code>router.php</code> ajoute <code>charset=utf-8</code> à tous les types texte (CSS, JS, JSON, SVG).</li>
+<li><strong>4</strong> 🟡 <strong>Headers dépréciés supprimés</strong> — <code>Pragma</code> (requête uniquement, pas réponse), <code>Expires</code> (remplacé par <code>Cache-Control</code>), <code>X-Frame-Options</code> (remplacé par CSP <code>frame-ancestors 'none'</code>), <code>X-XSS-Protection</code> (remplacé par CSP) supprimés de <code>header.php</code>, <code>login.php</code>, <code>choose_site.php</code>, <code>report_print.php</code>, <code>report_attachment.php</code>, <code>export_handler.php</code>, <code>user_edit_handler.php</code>.</li>
+<li><strong>5</strong> 🟡 <strong><code>X-Powered-By</code> supprimé</strong> — <code>header_remove('X-Powered-By')</code> ajouté dans <code>index.php</code>, <code>header.php</code>, <code>login.php</code> et <code>choose_site.php</code> pour ne pas divulguer la version PHP.</li>
+<li><strong>6</strong> 🟡 <strong><code>web.config</code> IIS corrigé</strong> — <code>staticContent</code> réécrit avec MIME types explicites et Cache-Control par type d'asset. <code>customHeaders</code> réduit aux seuls headers utiles (CSP, nosniff, Referrer-Policy, Permissions-Policy). <code>X-Frame-Options</code> et <code>X-XSS-Protection</code> retirés (redondants avec CSP).</li>
+<li><strong>7</strong> 🟡 <strong><code>router.php</code> réécrit</strong> — Les fichiers statiques sont servis AVANT l'output buffering gzip. Chaque type MIME a son charset. Seuls les assets texte ont <code>X-Content-Type-Options: nosniff</code>.</li>
+</ul>
+<hr />
+<h2>[3.1.0] — 2026-06-12</h2>
+<h3>Accessibilité — WCAG 2.1 (10/10)</h3>
+<ul>
+<li><strong>1</strong> 🔴 <strong><code>&lt;div class="main"&gt;</code> → <code>&lt;main&gt;</code></strong> — Le conteneur principal est désormais un landmark sémantique <code>&lt;main id="main-content" role="main"&gt;</code>, conforme WCAG 2.1. Le skip-link pointe sur un véritable landmark.</li>
+<li><strong>2</strong> 🔴 <strong>Login sans landmark ni skip-link</strong> — Ajout de <code>&lt;main role="main"&gt;</code> et d'un skip-link « Aller au formulaire de connexion » sur la page de connexion (standalone, sans header.php).</li>
+<li><strong>3</strong> 🟡 <strong><code>aria-describedby</code> sur tous les <code>.form-hint</code></strong> — Chaque hint de formulaire est désormais lié à son champ via <code>aria-describedby</code> : report_form (lieu, objet, description, attachment), login (password), users (username), user_edit (username), settings (emails), export (dates), report_respond (réponse).</li>
+<li><strong>4</strong> 🟡 <strong><code>aria-invalid</code> + <code>aria-describedby</code> + <code>id</code> sur form-error</strong> — Tous les messages d'erreur de formulaire ont un <code>id</code> unique et sont liés au champ via <code>aria-describedby</code> + <code>aria-invalid="true"</code> : users.php (6 champs), user_edit.php (6 champs), site_edit.php (3 champs), report_respond.php (2 champs).</li>
+<li><strong>5</strong> 🟡 <strong><code>aria-label</code> sur les 14 tables</strong> — Toutes les tables de données ont un <code>aria-label</code> descriptif : report_list, users, report_card (×2), report_respond (×2), report_abandon, user_view, synthesis, statistics, settings, help (×3).</li>
+<li><strong>6</strong> 🟡 <strong><code>aria-controls</code> + <code>aria-expanded</code> sur checkbox pour-compte</strong> — Le checkbox « Signaler pour le compte d'un autre agent » déclare désormais <code>aria-controls="pour_compte_fields"</code> et <code>aria-expanded</code> dynamique via JS.</li>
+<li><strong>7</strong> 🟡 <strong>Emojis dans <code>&lt;h1&gt;</code> avec <code>aria-hidden</code></strong> — Les emojis décoratifs dans les titres help.php et choose_site.php sont enveloppés dans <code>&lt;span aria-hidden="true"&gt;</code> pour ne pas perturber les lecteurs d'écran.</li>
+<li><strong>8</strong> 🟡 <strong>Focus trap sidebar mobile</strong> — Quand la sidebar est ouverte sur mobile, le focus clavier est piégé à l'intérieur (Tab/Shift+Tab wrap). Le premier item reçoit le focus à l'ouverture.</li>
+<li><strong>9</strong> 🟡 <strong><code>autocomplete</code> sur le formulaire de login</strong> — Ajout de <code>autocomplete="username"</code> et <code>autocomplete="current-password"</code> pour les gestionnaires de mots de passe et l'autofill navigateur.</li>
+</ul>
+<h3>UX — Facilité de prise en main</h3>
+<ul>
+<li><strong>10</strong> 🟡 <strong>Compteur de caractères sur la description</strong> — Ajout d'un compteur en temps réel <code>X/20 000</code> avec <code>aria-live="polite"</code> et couleur d'avertissement au-dessus de 19 000 caractères.</li>
+<li><strong>11</strong> 🟡 <strong>CTA sur les états vides</strong> — Quand aucune donnée n'est trouvée, les listes affichent un bouton d'action : « + Inscrire un signalement » (report_list) et « + Inscrire un utilisateur » (users).</li>
+<li><strong>12</strong> 🟢 <strong>Bouton « Retour en haut »</strong> — Apparaît après 400px de scroll, smooth scroll vers le haut, accessible avec <code>aria-label</code>, responsive sur mobile.</li>
+</ul>
+<h3>Responsive — Petits écrans</h3>
+<ul>
+<li><strong>13</strong> 🟡 <strong>Breakpoint 480px</strong> — Nouveau media query pour les petits téléphones : font-size réduite, header compact, username tronqué avec ellipsis, cards et tables adaptées, back-to-top button redimensionné.</li>
+</ul>
+<h3>Sécurité — Headers manquants</h3>
+<ul>
+<li><strong>14</strong> 🟡 <strong>choose_site.php sans headers</strong> — Ajout des headers Cache-Control (no-store, no-cache, must-revalidate, max-age=0), Pragma, Expires et des security headers (X-Frame-Options, X-Content-Type-Options, CSP, etc.) sur la page choose_site.php qui sort avant le layout.</li>
+</ul>
+<hr />
+<h2>[3.0.1] — 2026-06-12</h2>
+<h3>Correctif — Réponse superviseur impossible sur signalement en cours</h3>
+<ul>
+<li><strong>F28</strong> 🔴 <strong><code>report_id NOT NULL</code> bloquait l'INSERT dans <code>report_responses</code></strong> — la migration ayant ajouté <code>report_uuid</code> n'avait pas assoupli la contrainte <code>NOT NULL</code> sur l'ancienne colonne <code>report_id</code>. L'INSERT du code actuel ne fournit que <code>report_uuid</code>, pas <code>report_id</code> → violation de contrainte silencieuse → la transaction était rollbackée → message d'erreur trompeur « Le signalement a peut-être déjà été traité ». Correction : migration automatique qui recrée <code>report_responses</code> avec <code>report_id</code> nullable (SQLite ne supporte pas ALTER COLUMN). Le <code>CREATE TABLE IF NOT EXISTS</code> de la migration est aussi mis à jour pour utiliser <code>report_uuid</code> au lieu de <code>report_id</code>.</li>
+<li><strong>F29</strong> 🟠 <strong><code>respondToReport()</code> retourne un code au lieu de <code>bool</code></strong> — la fonction retourne désormais <code>'true'</code> (succès), <code>'concurrent'</code> (modifié par un autre superviseur entre-temps) ou <code>'error'</code> (erreur base de données). Le handler affiche un message spécifique à chaque cas au lieu du générique « peut-être déjà été traité ». L'UPDATE réussi mais l'INSERT qui échouait n'est plus masqué par un message ambigu.</li>
+</ul>
+<hr />
+<h2>[3.0.0] — 2026-06-12</h2>
+<h3>Sécurité — Headers HTTP</h3>
+<ul>
+<li><strong>1</strong> 🔴 Headers de sécurité ajoutés dans <code>header.php</code> — <code>X-Frame-Options: DENY</code> (anti-clickjacking), <code>X-Content-Type-Options: nosniff</code> (anti-MIME-sniffing), <code>X-XSS-Protection</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code>, <code>Content-Security-Policy</code> (same-origin uniquement). Défense en profondeur contre l'escalade XSS et les injections de contenu.</li>
+</ul>
+<h3>Conformité — Journal d'audit</h3>
+<ul>
+<li><strong>2</strong> 🔴 <strong>Table <code>audit_log</code> + fonctions</strong> — traçabilité de toutes les actions significatives : connexion, création/édition/abandon/réponse de signalements, gestion des utilisateurs (CRUD, changement de rôle), modifications de sites, changements de paramètres, exports CSV, actions RGPD. Huit catégories (<code>auth</code>, <code>report</code>, <code>user</code>, <code>site</code>, <code>config</code>, <code>export</code>, <code>backup</code>, <code>gdpr</code>). Les entrées incluent utilisateur, horodatage, IP et contexte JSON. Fonctionne en mode non-bloquant — un échec de log ne casse jamais l'application.</li>
+</ul>
+<h3>Conformité — RGPD</h3>
+<ul>
+<li><strong>10</strong> 🟠 <strong>Droit d'accès et d'effacement</strong> — deux actions RGPD ajoutées dans le profil utilisateur (<code>user_view.php</code>) : export JSON des données personnelles (droit d'accès art. 15) et anonymisation irréversible (droit d'effacement art. 17). L'anonymisation remplace noms et email par des placeholders, désactive le compte, mais conserve les signalements pour le registre. Les deux actions sont tracées dans l'audit log.</li>
+</ul>
+<h3>Recherche — FTS5</h3>
+<ul>
+<li><strong>11</strong> 🟠 <strong>Index plein texte FTS5</strong> — table virtuelle <code>reports_fts</code> indexant <code>objet</code> et <code>description</code> pour une recherche rapide et pertinente. La migration crée l'index et peuple les données existantes. La recherche dans <code>getReportsByRegistry()</code> utilise FTS5 en priorité avec fallback LIKE si FTS5 n'est pas disponible. L'index est mis à jour à chaque création/édition de signalement.</li>
+</ul>
+<h3>Accessibilité</h3>
+<ul>
+<li><strong>8a</strong> 🟡 <strong>Skip link</strong> — lien "Aller au contenu principal" visible uniquement au focus clavier (CSS pur, pas de JS). Permet de sauter la sidebar.</li>
+<li><strong>8b</strong> 🟡 <strong><code>aria-hidden="true"</code></strong> sur tous les emoji du sidebar — les lecteurs d'écran ne lisent plus "clipboard", "warning sign" etc.</li>
+<li><strong>8c</strong> 🟡 <strong><code>aria-describedby</code> + <code>aria-invalid</code></strong> sur les champs en erreur du formulaire de signalement — les erreurs sont maintenant programmatiquement associées à leur champ (6 champs : date, objet, description, pièce jointe, site, pour le compte de).</li>
+<li><strong>8d</strong> 🟡 <strong><code>&lt;fieldset&gt;</code> + <code>&lt;legend&gt;</code></strong> sur les radio buttons de visibilité dans les paramètres — regroupement sémantique pour les lecteurs d'écran.</li>
+</ul>
+<h3>Technique</h3>
+<ul>
+<li><strong>13</strong> 🟢 <strong><code>truncate()</code> corrigé</strong> — <code>strlen()</code>/<code>substr()</code> remplacés par <code>mb_strlen()</code>/<code>mb_substr()</code> avec encodage UTF-8 explicite. Les coupures ne se font plus au milieu d'un caractère accentué (é, ê, ç).</li>
+</ul>
+<hr />
+<h2>[2.9.0] — 2026-06-12</h2>
+<h3>Fiabilité — SQLite</h3>
+<ul>
+<li><strong>S1/S2</strong> 🔴 Transactions ajoutées sur <code>respondToReport()</code> et <code>createReport()</code> — l'UPDATE de <code>reports</code> + INSERT dans <code>report_responses</code> (et séquence + INSERT) sont désormais atomiques. Un crash entre les deux requêtes ne peut plus laisser la base incohérente.</li>
+<li><strong>S3</strong> 🔴 <strong>Stratégie de backup autonome</strong> — <code>src/backup.php</code> : sauvegarde automatique via <code>VACUUM INTO</code> (SQL pure, pas de script externe, compatible IIS/Windows). Le backup ne se déclenche que si la base a changé depuis le dernier snapshot (comparaison filemtime + taille après checkpoint WAL). Zéro gaspillage de stockage si rien n'a bougé.</li>
+<li><strong>S4</strong> 🟡 Rotation des backups — les 10 plus récents sont conservés dans <code>data/backups/</code>, les plus anciens sont supprimés automatiquement. Protection HTTP via <code>.htaccess</code> + <code>web.config</code>.</li>
+<li><strong>S5</strong> 🟡 Backup pré-migration — avant chaque modification de schéma, un snapshot est créé. Permet de restaurer la base si une migration échoue.</li>
+<li><strong>S6</strong> 🟡 <strong>Table <code>schema_version</code></strong> — versionnage des migrations. Chaque migration appliquée est enregistrée avec un numéro de version et un horodatage. Les bases existantes reçoivent le baseline v1 automatiquement.</li>
+<li><strong>S7</strong> 🟡 <code>data/backups/</code> ajouté au <code>.gitignore</code> — les snapshots ne polluent pas le dépôt.</li>
+</ul>
+<h3>Export CSV</h3>
+<ul>
+<li><strong>E1</strong> 🔴 <strong><code>fputcsv()</code></strong> remplace la construction manuelle — les champs contenant des <code>;</code>, des guillemets ou des retours à la ligne sont correctement encadrés. Plus de CSV cassé.</li>
+<li><strong>E2</strong> 🔴 <strong>Historique multi-réponses exporté</strong> — colonne <code>Historique réponses</code> avec toutes les réponses du signalement au format <code>[Date] Répondant (État) : Réponse</code>. Colonne <code>Nb réponses</code> pour le compteur.</li>
+<li><strong>E3</strong> 🟠 Colonnes ajoutées : <code>Nom UR</code>, <code>Date création</code>, <code>Déclaré pour le compte de</code>, <code>Heure événement</code>, <code>Lieu</code>.</li>
+<li><strong>E4</strong> 🟡 Description et réponse conservent leurs retours à la ligne (encapsulation <code>"</code> par <code>fputcsv</code>).</li>
+</ul>
+<hr />
+<h2>[2.8.2] — 2026-06-12</h2>
+<h3>Correctif</h3>
+<ul>
+<li><strong>F04</strong> ↩️ <code>display_errors</code> rétabli à toujours activé — le paramétrage précédent (désactivation en prod) avait été appliqué sans accord. Les erreurs PHP sont de nouveau affichées en production comme en dev.</li>
+<li><strong>F07</strong> 🟠 Affichage multi-réponses corrigé — un signalement peut recevoir plusieurs réponses du superviseur. La carte "Réponse" (unique, dernier seulement) et l'"Historique des réponses" étaient redondantes et masquaient ce fait. Remplacées par une seule section "Réponses (N)" listant toutes les réponses, dans le card HTML (<code>report_card.php</code>) et le PDF (<code>report_print.php</code>).</li>
+</ul>
+<hr />
+<h2>[2.8.1] — 2026-06-12</h2>
+<h3>Sécurité — Corrections de l'audit fonctionnel</h3>
+<p>Corrections prioritaires issues de l'audit fonctionnel complet (31 constats) :</p>
+<ul>
+<li><strong>F01</strong> 🔴 <code>phpinfo.php</code> supprimé du dépôt — exposition complète de la config serveur en production</li>
+<li><strong>F02/F03</strong> 🟡 Protection du dernier superviseur actif — impossible de rétrograder ou désactiver le dernier superviseur (<code>user_edit_handler.php</code> + <code>user_delete_handler.php</code>). Empêche le verrouillage admin de l'application.</li>
+<li><strong>F04</strong> 🟡 <code>display_errors</code> désactivé en production — les erreurs PHP (requêtes SQL, chemins, variables) n'apparaissent plus aux utilisateurs. Reste activé en mode dev.</li>
+<li><strong>F09</strong> 🟠 Superviseur peut créer des signalements pour n'importe quel site — le handler bloquait les superviseurs comme les agents (<code>site_id !== user.site_id</code>). Corrigé avec <code>canSeeAllSites()</code>.</li>
+<li><strong>F20</strong> 🟠 Utilisateur désactivé : <code>findOrCreateUser()</code> cherche désormais les utilisateurs inactifs aussi — un utilisateur désactivé ne provoque plus de violation UNIQUE sur le username à la reconnexion via IIS.</li>
+</ul>
+<h3>Technique — Nettoyage et corrections</h3>
+<ul>
+<li><strong>F13/F14</strong> Routes orphelines <code>user_create</code>, <code>user_delete</code>, <code>user_reactivate</code> retirées de <code>$validPages</code> — ces POST-only n'ont pas de page GET</li>
+<li><strong>F17</strong> Requête <code>getAllSites()</code> inutile retirée de <code>report_edit.php</code> (dropdown site masqué en mode édition)</li>
+<li><strong>F18</strong> Champs mot de passe supprimés du formulaire et du handler <code>user_edit</code> — l'auth est IIS, pas de mot de passe dans le schéma</li>
+<li><strong>F19</strong> Validation de l'existence du <code>site_id</code> ajoutée dans <code>user_create_handler.php</code></li>
+<li><strong>F24</strong> Branche morte <code>elseif ($isEdit &amp;&amp; !empty($report['is_confidential']))</code> retirée de <code>report_form.php</code> — les 3 modes de visibilité couvrent tous les cas</li>
+<li><strong>F25</strong> Accents français corrigés dans <code>report_abandon.php</code> (événement, Êtes-vous sûr, irréversible, abandonné)</li>
+</ul>
+<hr />
+<h2>[2.8.0] — 2026-06-11</h2>
+<h3>Sécurité — Audit XSS complet</h3>
+<p>Passage en revue systématique de toutes les sorties HTML. L'application utilisait déjà <code>e()</code> (alias <code>htmlspecialchars</code> avec <code>ENT_QUOTES</code> + <code>UTF-8</code>) de manière quasi systématique. Les quelques lacunes restantes sont corrigées :</p>
+<ul>
+<li><code>pages/changelog.php</code> : Parsedown n'avait pas <code>setSafeMode(true)</code> — le Markdown pouvait contenir du HTML brut (ex: <code>&lt;img onerror=...&gt;</code>). Safe Mode activé : les blocs HTML sont désormais échappés.</li>
+<li><code>src/helpers.php</code> : <code>formatDateFR()</code> et <code>formatDateTimeFR()</code> retournaient la chaîne brute en fallback si le parsing échouait — désormais encodées via <code>e()</code> dans le chemin fallback (défense en profondeur).</li>
+<li><code>templates/report_card.php</code> : 4 appels <code>formatDateFR</code>/<code>formatDateTimeFR</code> sans <code>e()</code> — corrigés.</li>
+<li><code>pages/report_abandon.php</code> : <code>formatDateFR</code> sans <code>e()</code> — corrigé.</li>
+<li><code>pages/report_list.php</code> : <code>formatDateFR</code> sans <code>e()</code> — corrigé.</li>
+<li><code>pages/user_edit.php</code> : <code>value="&lt;?php echo $userId ?&gt;"</code> sans <code>e()</code> — corrigé (entier casté, mais principe).</li>
+<li><code>pages/site_edit.php</code> : <code>value="&lt;?php echo $siteId ?&gt;"</code> sans <code>e()</code> — corrigé.</li>
+<li><code>pages/settings.php</code> : IDs de site dans les attributs HTML sans <code>e()</code> — corrigés.</li>
+</ul>
+<h3>Sécurité — CSRF déjà complet</h3>
+<p>Vérification que tous les handlers POST valident le token CSRF et que tous les formulaires l'envoient. <strong>Déjà en place</strong> : les 14 handlers vérifient <code>validateCsrfToken()</code> avec <code>hash_equals()</code>, et les 21 formulaires incluent le champ <code>csrf_token</code>. Aucune correction nécessaire.</p>
+<hr />
+<h2>[2.7.3] — 2026-06-11</h2>
+<h3>Technique — Case confidentiel invisible pour les superviseurs</h3>
+<p>Les superviseurs ne voyaient pas la case « Signalement confidentiel » dans le formulaire de création/modification de signalement, même en mode « Au choix de l'agent ». Aucun <code>input hidden</code> n'était injecté non plus, donc le champ <code>is_confidential</code> n'était tout simplement pas envoyé. Cause : <code>getReportVisibility()</code> renvoie <code>'all'</code> pour les non-agents (lecture), et les fonctions <code>reportVisibilityIs*()</code> comparaient avec cette valeur — aucun match.</p>
+<ul>
+<li><code>src/helpers.php</code> : extraction de <code>getReportVisibilityMode()</code> (role-agnostic, lit la config brute) utilisée par les fonctions <code>reportVisibilityIs*()</code>. <code>getReportVisibility()</code> conserve son comportement pour la lecture/filtrage (retourne <code>'all'</code> pour les non-agents).</li>
+</ul>
+<h3>Technique — Alignement des checkboxes dans le formulaire</h3>
+<p>Les checkboxes « Signalement confidentiel » et « Signaler pour le compte d'un autre agent » étaient affichées au-dessus de leur libellé au lieu d'être alignées à gauche du texte. Cause : le CSS global applique <code>width: 100%</code> à tous les <code>&lt;input&gt;</code> et <code>display: block</code> aux <code>&lt;label&gt;</code> dans <code>.form-group</code>.</p>
+<ul>
+<li><code>templates/report_form.php</code> : style inline sur les <code>&lt;label&gt;</code> (<code>display:flex; align-items:center; gap:8px</code>) et les <code>&lt;input type="checkbox"&gt;</code> (<code>width:auto; margin:0</code>)</li>
+</ul>
+<hr />
+<h2>[2.7.2] — 2026-06-11</h2>
+<h3>Fonctionnalité — Colonne Visibilité dans la liste des signalements</h3>
+<p>La liste des signalements (<code>report_list</code>) affiche désormais une colonne <strong>Visibilité</strong> indiquant si le signalement est 🔒 Confidentiel ou Public, avec des badges colorés (gris pour confidentiel, vert pour public). Cohérent avec le badge affiché dans la vue détaillée.</p>
+<ul>
+<li><code>pages/report_list.php</code> : ajout de la colonne « Visibilité » avec badge Confidentiel/Public</li>
+</ul>
+<h3>Technique — Corrections de bugs</h3>
+<ul>
+<li><code>pages/settings.php</code> : les radios de visibilité n'étaient pas cochés sur le réglage en cours — <code>getReportVisibility()</code> renvoie <code>'all'</code> pour les superviseurs, qui ne correspond à aucune des 3 valeurs possibles. Remplacé par <code>getConfig('app_report_visibility', 'agent_choice')</code> qui lit directement la valeur en base.</li>
+<li><code>DEPLOY.md</code> : la « Méthode 2 : Auto-promotion bootstrap » était impossible — un agent n'a pas accès aux Paramètres (<code>requireRole(['superviseur'])</code>). Réécriture de la section 9 : la Méthode 1 est désormais le script CLI <code>promote.php</code>, la Méthode 2 est la promotion par un superviseur existant, et la variable d'environnement est en méthode alternative.</li>
+</ul>
+<h3>Technique — Affichage de la version PHP</h3>
+<ul>
+<li><code>templates/footer.php</code> : ajout de la version PHP (<code>PHP_VERSION</code>) dans le footer, après la version de l'application</li>
+</ul>
+<hr />
+<h2>[2.7.1] — 2026-06-11</h2>
+<h3>Technique — Correction de l'erreur « finfo not found »</h3>
+<p>L'upload de pièces jointes provoquait une erreur fatale <code>Class "finfo" not found</code> lorsque l'extension PHP <code>fileinfo</code> n'était pas activée sur le serveur. Désormais, un message clair s'affiche à l'utilisateur demandant d'activer l'extension, sans contournement.</p>
+<ul>
+<li><code>src/helpers.php</code> : ajout de la fonction <code>getMimeType()</code> qui exige l'extension <code>fileinfo</code> — si absente, lève une <code>RuntimeException</code> avec le message : « L'extension PHP "fileinfo" est requise pour le téléchargement de pièces jointes. Veuillez l'activer dans php.ini : extension=fileinfo, puis redémarrer le serveur web. »</li>
+<li><code>handlers/report_create_handler.php</code> : remplacement de <code>new finfo()</code> par <code>getMimeType()</code> avec <code>try/catch</code> pour afficher le message d'erreur dans le formulaire</li>
+<li><code>handlers/report_edit_handler.php</code> : même remplacement</li>
+<li><code>DEPLOY.md</code> : <code>fileinfo</code> ajouté aux extensions PHP <strong>requises</strong> (était absent), section de dépannage ajoutée</li>
+<li><code>DEPLOY.md</code> : <code>extension=fileinfo</code> ajouté dans l'exemple <code>php.ini</code></li>
+<li><code>DEPLOY.md</code> : checklist de vérification mise à jour avec <code>fileinfo</code></li>
+</ul>
+<hr />
+<h2>[2.7.0] — 2026-06-11</h2>
+<h3>Fonctionnalité — Images embarquées dans les PDF</h3>
+<p>Les pièces jointes de type image (JPG, PNG, GIF) sont désormais intégrées directement dans le PDF généré par FPDF, au lieu d'afficher uniquement le nom du fichier. Le PDF est ainsi autonome et contient toutes les informations visuelles du signalement.</p>
+<ul>
+<li><code>pages/report_print.php</code> : après la section « Pièce jointe », si l'attachment est une image, le BLOB est écrit dans un fichier temporaire (<code>tempnam()</code>), intégré via <code>$pdf-&gt;Image()</code> avec des dimensions proportionnelles (max 180 mm de large, max 120 mm de haut, fond gris clair), puis le temp est supprimé immédiatement. Si l'intégration échoue, le PDF est quand même généré (le nom du fichier reste affiché). Les PDF en pièce jointe ne sont pas embarqués.</li>
+<li><code>pages/report_attachment.php</code> : ajout du paramètre <code>inline=1</code> — les images sont servies avec <code>Content-Disposition: inline</code> pour affichage dans le navigateur (aperçu dans la page). Sans ce paramètre, le téléchargement forcé est conservé.</li>
+<li><code>templates/report_card.php</code> : les images sont affichées en aperçu inline (<code>&lt;img&gt;</code> avec <code>max-height:400px</code>) au-dessus du bouton de téléchargement. Cliquer sur l'image lance le téléchargement. Les PDF restent en lien de téléchargement simple.</li>
+</ul>
+<h3>Technique — Mise à jour de la spécification</h3>
+<ul>
+<li><code>SPEC.md</code> : <code>MAX_DESCRIPTION_LENGTH</code> corrigé de 5000 à 20000 (la valeur réelle dans config.php était déjà 20000, la spec était en retard). Ajout des constantes <code>MAX_ATTACHMENT_SIZE</code> et <code>ALLOWED_ATTACHMENT_MIMES</code> dans le tableau des constantes. Ajout des colonnes <code>attachment_blob</code>, <code>attachment_name</code>, <code>attachment_mime</code> dans le schéma de la table <code>reports</code>. Ajout de la route <code>report_attachment</code> dans la table des routes. Ajout du champ <code>attachment</code> dans le tableau des champs du formulaire. Section PDF mise à jour avec la description de l'embarquement d'images.</li>
+</ul>
+<hr />
+<h2>[2.6.1] — 2026-06-11</h2>
+<h3>Sécurité — Correction critique : génération UUID invalide</h3>
+<p>La fonction <code>generateUuid()</code> utilisait <code>| 0x8</code> au lieu de <code>(&amp; 0x3F | 0x80)</code> pour les bits de variante UUID v4. Cela produisait des UUID invalides dans environ 25 % des cas (4e groupe commençant par c, d, e ou f au lieu de 8, 9, a, b uniquement). La fonction <code>isValidUuid()</code> les rejetait, et <code>getReportByUuid()</code> retournait <code>null</code> → message « Signalement introuvable » au clic sur « Voir » depuis la liste.</p>
+<ul>
+<li><code>src/queries/report_queries.php</code> : <code>generateUuid()</code> corrigé — <code>&amp; 0x3F | 0x80</code> au lieu de <code>| 0x8</code></li>
+<li><code>src/queries/report_queries.php</code> : <code>isValidUuid()</code> assoupli — accepte tout UUID bien formé (8-4-4-4-12 hex) pour la rétrocompatibilité avec les UUID existants mal formatés en base</li>
+<li><code>src/database.php</code> : migration automatique qui corrige les UUID existants avec des bits de variante invalides (c→8, d→9, e→a, f→b) dans <code>reports</code> et <code>report_responses</code></li>
+<li><code>src/database.php</code> : backfill des UUID NULL même si la colonne existe déjà (migration partielle possible)</li>
+<li><code>seed.php</code> : même correction sur la génération UUID</li>
+</ul>
+<h3>Fonctionnalité — Promotion superviseur immédiate</h3>
+<p>La vérification de <code>app_superviseur_usernames</code> ne s'appliquait qu'au moment du login. Si l'utilisateur était déjà en session, modifier ce paramètre n'avait aucun effet jusqu'à la déconnexion/reconnexion. Désormais, la vérification s'exécute à chaque chargement de page : un agent dont le login figure dans la liste est promu superviseur immédiatement, sans déconnexion.</p>
+<ul>
+<li><code>public/index.php</code> : ajout du bloc « SUPERVISEUR PROMOTION CHECK » avant le rendu de chaque page</li>
+<li><code>pages/settings.php</code> : libellé mis à jour — « immédiatement (dès la prochaine page consultée) » au lieu de « lors de leur connexion via IIS »</li>
+</ul>
+<h3>Technique — Détection automatique de l'environnement</h3>
+<p>L'ancien système <code>define('APP_ENV', getenv('APP_ENV') ?: 'prod')</code> ne fonctionnait pas sur les serveurs non-IIS (Space-Z, Docker, Apache) : la variable d'environnement n'était pas définie, l'app restait en mode dev avec le formulaire de login, et l'utilisateur voyait « Mode développement » même en configurant <code>prod</code>. Le nouveau système détecte automatiquement : si <code>AUTH_USER</code> est disponible (IIS) → prod, sinon → dev.</p>
+<ul>
+<li><code>src/config.php</code> : détection en 3 niveaux — <code>APP_ENV_FORCE</code> (constante PHP) &gt; <code>getenv('APP_ENV')</code> &gt; auto-détection via <code>$_SERVER['AUTH_USER']</code></li>
+<li><code>pages/login.php</code> : badge « Mode sans IIS — authentification par identifiant » au lieu de « Mode développement » quand <code>AUTH_USER</code> n'est pas disponible ; ajout d'une aide pour devenir superviseur via les paramètres</li>
+<li><code>README.md</code> : section installation mise à jour</li>
+<li><code>DEPLOY.md</code> : section configuration mise à jour</li>
+</ul>
+<hr />
+<h2>[2.6.0] — 2026-06-11</h2>
+<h3>Sécurité — Migration des PK reports vers UUID</h3>
+<p>Les identifiants primaires de la table <code>reports</code> passent d'entiers auto-incrémentés (<code>id</code>) à des <strong>UUID v4</strong> (<code>uuid</code>). Cela empêche l'énumération d'URL : un agent ne peut plus deviner l'existence d'autres signalements en incrémentant l'ID dans l'URL.</p>
+<ul>
+<li><code>schema.sql</code> : <code>reports.uuid TEXT PRIMARY KEY</code> remplace <code>reports.id INTEGER PRIMARY KEY</code>. La colonne <code>id</code> est entièrement supprimée.</li>
+<li><code>src/queries/report_queries.php</code> : toutes les requêtes utilisent <code>uuid</code> au lieu de <code>id</code>. Ajout de <code>generateUuid()</code>, <code>isValidUuid()</code>, <code>getReportByUuid()</code>. Les fonctions <code>updateReport()</code>, <code>abandonReport()</code>, <code>respondToReport()</code> prennent désormais un UUID en paramètre.</li>
+<li><code>report_responses.report_uuid</code> : clé étrangère vers <code>reports(uuid)</code> au lieu de <code>reports(id)</code>.</li>
+<li>Toutes les URLs de signalements utilisent <code>?uuid=...</code> au lieu de <code>?id=...</code> : <code>report_view</code>, <code>report_edit</code>, <code>report_abandon</code>, <code>report_respond</code>, <code>report_print</code>.</li>
+<li><code>templates/sidebar.php</code> : lookup du type de registre via <code>uuid</code> au lieu de <code>id</code>.</li>
+<li>Validation UUID systématique dans chaque page/handler (<code>strlen($uuid) !== 36</code> ou <code>isValidUuid()</code>).</li>
+</ul>
+<h3>Sécurité — Contrôle d'autorisation dans report_print</h3>
+<ul>
+<li><code>pages/report_print.php</code> : ajout du contrôle d'accès identique à <code>report_view.php</code>. Un agent ne peut plus imprimer un signalement auquel il n'a pas accès (site différent, confidentiel d'un autre agent, etc.). Auparavant, seul le format PDF était protégé par la non-devinabilité de l'ID entier.</li>
+</ul>
+<h3>Sécurité — Restriction du dropdown site pour les agents</h3>
+<ul>
+<li><code>pages/report_create.php</code> : les agents ne voient que leur propre site dans le dropdown, les superviseurs/CSA/CHSCT voient tous les sites. Auparavant, <code>$canSelectSite</code> était calculé mais jamais utilisé dans le template, ce qui affichait tous les sites à tous les utilisateurs.</li>
+</ul>
+<h3>Technique — Corrections de syntaxe PHP</h3>
+<ul>
+<li><code>pages/report_list.php</code> : 3 appels <code>url()</code> avec parenthèses en trop (<code>]))</code> au lieu de <code>]</code>). Fatal error PHP.</li>
+<li><code>templates/report_form.php</code> : 1 appel <code>url()</code> avec parenthèse en trop. Fatal error PHP.</li>
+<li><code>pages/report_print.php</code> : <code>SSTPDF::Header()</code> et <code>SSTPDF::Footer()</code> déclarées <code>public</code> au lieu de <code>protected</code> (FPDF les déclare publiques, la classe fille ne peut pas restreindre la visibilité).</li>
+</ul>
+<h3>Technique — Nettoyage du dépôt</h3>
+<ul>
+<li><code>pdf_docs/</code> retiré du dépôt git et ajouté au <code>.gitignore</code> (80 fichiers, 14 128 lignes supprimées).</li>
+</ul>
+<hr />
+<h2>[2.5.0] — 2026-06-11</h2>
+<h3>Technique — Migration mPDF → FPDF</h3>
+<p>Remplacement de <strong>mPDF 8.2</strong> (nécessite Composer, écrit des fichiers temporaires sur disque) par <strong>FPDF 1.9</strong> (zéro dépendance, zéro I/O disque, tout en mémoire). Ce changement élimine la dépendance Composer et garantit la pérennité du code (FPDF : 24 ans de stabilité d'API, 0 rupture de compatibilité depuis 2001).</p>
+<ul>
+<li><code>pages/report_print.php</code> : réécriture complète avec l'API FPDF (Cell, MultiCell, Rect, Line) au lieu de HTML/CSS via mPDF. Même rendu visuel : badges colorés, tableau d'historique, en-tête/pied de page, boîte de réponse avec bordure verte.</li>
+<li><code>src/lib/fpdf/</code> : FPDF v1.9 inclus (fpdf.php + font/). Aucune dépendance Composer.</li>
+<li><code>src/lib/fpdf/font/</code> : polices DejaVu Sans (Unicode TrueType, cp1252) pour le support des caractères français accentués.</li>
+<li><code>composer.json</code> : dépendance <code>mpdf/mpdf</code> supprimée. Fichier vidé (<code>require: {}</code>).</li>
+<li><code>public/index.php</code> : l'autoloader Composer n'est plus requis. Chargé conditionnellement si présent (rétro-compatible).</li>
+<li><code>test_fpdf.php</code> : script de test autonome pour valider le rendu PDF (accents, badges, tableau, multiligne).</li>
+</ul>
+<h3>Technique — Simplification du déploiement</h3>
+<ul>
+<li><strong>Extensions PHP réduites</strong> : seules <code>sqlite3</code>, <code>pdo_sqlite</code>, <code>mbstring</code> sont nécessaires. Les extensions <code>gd</code>, <code>xml</code>, <code>curl</code>, <code>zip</code> ne sont plus requises (elles étaient pour mPDF).</li>
+<li><strong>Plus besoin de Composer</strong> : FPDF est inclus directement dans le projet. <code>composer install</code> n'est plus nécessaire au déploiement.</li>
+<li><strong>Plus de dossier temporaire</strong> : FPDF génère le PDF entièrement en mémoire. Pas besoin de <code>sys_get_temp_dir()</code> ou de RAM disk.</li>
+<li><code>DEPLOY.md</code> : mis à jour — suppression des sections Composer, extensions réduites, nouvelle structure sans <code>vendor/</code>.</li>
+<li><code>README.md</code> : mis à jour — stack technique, installation simplifiée, structure sans <code>vendor/</code>.</li>
+<li><code>update_sst.ps1</code> : script simplifié — étape Composer supprimée, seuls <code>git pull</code> + <code>iisreset</code> restent.</li>
+</ul>
+<hr />
+<h2>[2.4.1] — 2026-06-11</h2>
+<h3>Technique — Suppression totale du JavaScript</h3>
+<p>Plus aucune ligne de JavaScript dans l'application. Toutes les confirmations utilisent désormais un mécanisme PHP inline (rechargement de page avec paramètre URL de confirmation) au lieu de <code>&lt;dialog&gt;</code> HTML5 + <code>onclick</code> + <code>&lt;script&gt;</code>.</p>
+<ul>
+<li><code>pages/user_edit.php</code> : confirmation suppression → <code>?confirm_delete=1</code> au lieu de <code>&lt;dialog&gt;</code> + <code>onclick</code></li>
+<li><code>pages/settings.php</code> : confirmation suppression site → <code>?confirm_delete_site={id}</code> au lieu de <code>&lt;dialog&gt;</code> + <code>onclick</code></li>
+<li><code>templates/report_card.php</code> : confirmation abandon → <code>?confirm_abandon=1</code> au lieu de <code>&lt;dialog&gt;</code> + <code>onclick</code></li>
+<li><code>pages/report_abandon.php</code> : confirmation inline PHP (l'ancien <code>require confirm_dialog.php</code> causait un fatal error)</li>
+<li><code>templates/confirm_dialog.php</code> : supprimé (plus utilisé)</li>
+</ul>
+<h3>Technique — Corrections de bugs critiques (audit statique)</h3>
+<ul>
+<li><strong>C1 — Fatal error <code>confirm_dialog.php</code></strong> : <code>report_abandon.php</code> référençait le template supprimé → confirmation PHP inline</li>
+<li><strong>C2 — Pagination crash PHP 8</strong> : la variable <code>$currentPage</code> du routeur (nom de page) écrasait celle de la pagination (numéro) → <code>$currentPageName</code> pour le routeur, <code>$currentPage = $pageNum</code> avant inclusion de la pagination</li>
+<li><strong>W4 — Session stale</strong> : après modification d'un utilisateur, la session n'était pas complètement mise à jour (manquaient <code>site_code</code>, <code>site_nom</code>) → re-lecture complète depuis la DB avec JOIN</li>
+<li><strong>W1/W2 — Handlers orphelins</strong> : <code>site_edit</code> et <code>user_reactivate</code> n'étaient pas routés → ajoutés au routing + boutons dans l'UI</li>
+<li><strong>I4 — CSV export</strong> : colonne <code>Confidentiel</code> (Oui/Non) ajoutée à l'export</li>
+<li><strong>I3 — <code>phpinfo.php</code></strong> : supprimé (risque de sécurité)</li>
+</ul>
+<h3>Technique — Déploiement et infrastructure</h3>
+<ul>
+<li><code>report_print.php</code> : FPDF génère le PDF en mémoire (pas de fichiers temporaires)</li>
+<li><code>DEPLOY.md</code> : chemin corrigé <code>C:\inetpub\sst\</code> (était <code>C:\inetpub\wwwroot\sst\</code>)</li>
+<li><code>DEPLOY.md</code> : section proxy Git Kerberos (<code>http.proxyAuthMethod negotiate</code>)</li>
+<li><code>DEPLOY.md</code> : Composer derrière le proxy (variables d'environnement HTTP_PROXY/HTTPS_PROXY)</li>
+<li><code>web.config</code> racine : URL Rewrite supprimé (inutile, routage par query string)</li>
+<li><code>update_sst.ps1</code> : script PowerShell de déploiement automatisé (git pull + permissions + iisreset)</li>
+</ul>
+<h3>Technique — Avertissement décochage confidentiel</h3>
+<ul>
+<li><code>templates/report_form.php</code> : warning CSS <code>:has()</code> affiché quand l'agent décoche « Signalement confidentiel » en mode « Choix de l'agent ». Pas de JavaScript, pur CSS.</li>
+</ul>
+<hr />
+<h2>[2.4.0] — 2026-06-11</h2>
+<h3>Fonctionnalités — Système de visibilité des signalements en 3 modes</h3>
+<p>Passage d'un système à 2 modes (confidentiel / public) à un système à <strong>3 modes</strong> configurable par le superviseur dans Paramètres → Application :</p>
+<ul>
+<li><strong>Mode « Confidentiel »</strong> (le plus restrictif) : l'agent ne voit que ses propres signalements. Les autres agents ne voient rien, pas même le titre. Les superviseurs et membres du CSA/CHSCT voient tout.</li>
+<li><strong>Mode « Choix de l'agent »</strong> (confidentiel par défaut) : l'agent choisit la visibilité de chaque signalement lors de la création (public ou confidentiel). Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son site ainsi que ses propres signalements (même confidentiels).</li>
+<li><strong>Mode « Visibilité publique »</strong> : tous les signalements du site sont visibles par tous les agents du site.</li>
+</ul>
+<h3>Technique — Changements</h3>
+<ul>
+<li><code>src/config.php</code> : ajout de <code>REPORT_VISIBILITY_MODES</code> (constante), version 2.4.0</li>
+<li><code>src/helpers.php</code> : <code>getReportVisibility()</code> remplace <code>getAgentVisibility()</code> (3 valeurs : <code>confidential</code>, <code>agent_choice</code>, <code>public</code>). Nouvelles fonctions <code>reportVisibilityIsConfidential()</code>, <code>reportVisibilityIsAgentChoice()</code>, <code>reportVisibilityIsPublic()</code>. Anciennes fonctions conservées comme alias dépréciés.</li>
+<li><code>schema.sql</code> : nouvelle clé <code>app_report_visibility</code> (défaut <code>agent_choice</code>), clé <code>app_agent_visibility</code> marquée obsolète</li>
+<li><code>handlers/settings_handler.php</code> : validation des 3 valeurs pour <code>app_report_visibility</code>, synchronisation avec les anciennes clés</li>
+<li><code>pages/settings.php</code> : 3 radios au lieu de 2 pour la visibilité des signalements</li>
+<li><code>pages/report_list.php</code> : filtre <code>own_only</code> pour le mode confidentiel strict, filtre <code>confidential_filter</code> pour le mode choix agent</li>
+<li><code>src/queries/report_queries.php</code> : clause <code>own_only</code> (declarant_id = userId) pour le mode confidentiel</li>
+<li><code>templates/report_form.php</code> : toggle confidentiel uniquement en mode « Choix de l'agent », badge + hidden input dans les autres modes</li>
+<li><code>handlers/report_create_handler.php</code> : force <code>is_confidential</code> selon le mode (1 en confidentiel, 0 en public, choix en agent_choice)</li>
+<li><code>handlers/report_edit_handler.php</code> : même logique que la création</li>
+<li><code>pages/report_view.php</code> : contrôle d'accès pour les 3 modes (bloque même le titre en mode confidentiel)</li>
+<li><code>pages/report_print.php</code> : contrôle d'accès pour les 3 modes</li>
+<li><code>pages/home.php</code> : compteurs adaptés au mode (own only / public+own / all)</li>
+<li><code>pages/preamble.php</code> : wording mis à jour pour les 3 modes</li>
+<li><code>pages/help.php</code> : tableau de visibilité par mode (3 lignes) au lieu de par rôle</li>
+</ul>
+<h3>Nettoyage du dépôt Git</h3>
+<ul>
+<li>Restructuration du dépôt : le projet (<code>pdf_docs/sst/</code>) déplacé à la racine du repo</li>
+<li>Suppression de <code>download/</code> (script audit non lié), <code>upload/</code> (doublon du projet), <code>.env</code> (sécurité)</li>
+<li>Suppression de <code>data/sst.db</code> du suivi git</li>
+<li><code>.gitignore</code> racine fusionné avec les règles du projet (vendor, data, .env, IDE, OS, pdf, zip)</li>
+</ul>
+<hr />
+<h2>[2.3.0] — 2026-06-11</h2>
+<h3>Fonctionnalités — Confidentialité des signalements par défaut, choix de l'agent</h3>
+<ul>
+<li><strong>Mode « Confidentiel par défaut »</strong> : les signalements sont confidentiels par défaut. L'agent peut choisir de rendre son signalement public lors de la création ou de la modification en décochant la case « Signalement confidentiel ». En mode confidentiel, un agent voit les signalements publics de son site + ses propres signalements (même confidentiels).</li>
+<li><strong>Mode « Visibilité publique »</strong> : tous les signalements du site sont visibles par tous les agents du site. Conforme au principe de transparence des registres SST. La case confidentiel n'est pas affichée dans ce mode.</li>
+<li><strong>Badge « 🔒 Confidentiel »</strong> : affiché sur la vue détaillée et le PDF d'un signalement confidentiel.</li>
+<li><strong>Paramétrage admin</strong> : le superviseur choisit le mode de visibilité dans Paramètres → Application. L'ancien réglage site/own est remplacé par confidentiel/public.</li>
+<li><strong>Migration automatique</strong> : les bases existantes sont migrées automatiquement — colonne <code>is_confidential</code> ajoutée, ancien mode <code>site</code> → <code>public</code>, ancien mode <code>own</code> → <code>confidential</code>, les signalements existants conservent leur visibilité précédente.</li>
+<li><strong>Superviseurs et CSA/CHSCT</strong> : voient tous les signalements y compris confidentiels, quel que soit le mode.</li>
+</ul>
+<h3>Technique — Fichiers modifiés</h3>
+<ul>
+<li><code>schema.sql</code> : colonne <code>is_confidential</code> (INTEGER NOT NULL DEFAULT 1) dans <code>reports</code>, config par défaut <code>confidential</code></li>
+<li><code>src/database.php</code> : migration auto — ALTER TABLE + UPDATE + index pour <code>is_confidential</code>, migration des valeurs de config</li>
+<li><code>src/helpers.php</code> : <code>getAgentVisibility()</code> renvoie <code>confidential</code>/<code>public</code> au lieu de <code>site</code>/<code>own</code>, ajout de <code>agentVisibilityIsConfidential()</code> et <code>agentVisibilityIsPublic()</code>, <code>canSeeAllSites()</code> simplifié</li>
+<li><code>src/queries/report_queries.php</code> : <code>createReport()</code> avec <code>is_confidential</code>, <code>updateReport()</code> avec <code>is_confidential</code>, <code>getReportsByRegistry()</code> avec filtre <code>confidential_filter</code>, <code>countActiveReports()</code> avec paramètres <code>$userId</code> et <code>$confidentialMode</code></li>
+<li><code>templates/report_form.php</code> : case à cocher « Signalement confidentiel » (cochée par défaut) en mode confidentiel, badge en mode public</li>
+<li><code>templates/report_card.php</code> : badge « 🔒 Confidentiel »</li>
+<li><code>handlers/report_create_handler.php</code> : sauvegarde de <code>is_confidential</code></li>
+<li><code>handlers/report_edit_handler.php</code> : sauvegarde de <code>is_confidential</code> lors de la modification</li>
+<li><code>pages/settings.php</code> : radios confidentiel/public au lieu de site/own, info au lieu d'avertissement</li>
+<li><code>handlers/settings_handler.php</code> : validation <code>confidential</code>/<code>public</code></li>
+<li><code>pages/report_view.php</code> : contrôle d'accès avec <code>is_confidential</code></li>
+<li><code>pages/report_print.php</code> : contrôle d'accès + badge confidentiel dans le PDF</li>
+<li><code>pages/report_list.php</code> : filtres <code>confidential_filter</code> / <code>force_site_id</code> selon le mode</li>
+<li><code>pages/home.php</code> : compteurs avec filtre confidentiel</li>
+<li><code>pages/preamble.php</code> : wording « confidentiel par défaut, l'agent peut le rendre public »</li>
+<li><code>pages/help.php</code> : tableau de visibilité par rôle et par mode</li>
+<li><code>src/config.php</code> : version 2.3.0</li>
+</ul>
+<hr />
+<h2>[2.2.0] — 2026-06-10</h2>
+<h3>Technique — Suppression du JavaScript personnalisé (zéro JS côté métier)</h3>
+<p>Objectif : éliminer tout JavaScript personnalisé de l'application. Les seuls <code>onclick</code> restants sont des appels natifs <code>showModal()</code> HTML5 pour ouvrir des <code>&lt;dialog&gt;</code> — aucun framework, aucune logique métier en JS.</p>
+<ul>
+<li><strong>synthesis.php</strong> : les filtres année/site utilisaient <code>onchange="window.location.href=..."</code> → remplacés par un <code>&lt;form method="GET"&gt;</code> avec bouton « Filtrer »</li>
+<li><strong>statistics.php</strong> : le filtre année utilisait <code>onchange="window.location.href=..."</code> → remplacé par un <code>&lt;form method="GET"&gt;</code> avec bouton « Filtrer »</li>
+<li><strong>export.php</strong> : les checkboxes « Tous » utilisaient <code>onchange="...disabled=..."</code> → supprimés. Le handler côté serveur ignore déjà les selects quand la checkbox est cochée.</li>
+<li><strong>choose_site.php</strong> : le <code>&lt;script&gt;</code> qui toggle le warning + <code>confirm()</code> → supprimé. Le warning est toujours visible, le select a <code>required</code> HTML5.</li>
+<li><strong>report_form.php</strong> : le <code>&lt;script&gt;</code> qui toggle <code>pour_compte_fields</code> → remplacé par CSS <code>:has()</code> : <code>.form-grid:has(#pour_compte:checked) #pour_compte_fields { display: block; }</code></li>
+<li><strong>settings.php — Tag input</strong> : le système de tags avec <code>addTag()</code>, <code>syncHidden()</code>, <code>onclick</code>, <code>onkeydown</code> → remplacé par des <code>&lt;textarea&gt;</code> simples (une adresse e-mail par ligne). Le handler parse les lignes côté serveur.</li>
+<li><strong>settings.php — SMTP test</strong> : le <code>fetch()</code> + <code>alert()</code> → remplacé par un formulaire POST classique. Le handler <code>smtp_test_handler.php</code> redirige avec flash message au lieu de retourner du JSON.</li>
+<li><strong>settings.php — Visibilité agent</strong> : le <code>&lt;script&gt;</code> qui toggle le warning radio → remplacé par CSS <code>:has()</code> : <code>#visibility-radios:not(:has(input[value="site"]:checked)):not(:has(input[value="own"]:checked)) .agent-visibility-warning { display: none; }</code></li>
+<li><strong>settings.php — Confirm suppressions</strong> : les <code>onclick="return confirm(...)"</code> → remplacés par <code>&lt;dialog&gt;</code> HTML5 natif avec <code>showModal()</code></li>
+<li><strong>user_edit.php</strong> : le <code>onsubmit="return confirm(...)"</code> → remplacé par <code>&lt;dialog&gt;</code> HTML5 natif</li>
+<li><strong>report_card.php</strong> + <strong>confirm_dialog.php</strong> : le <code>onclick="...style.display='block'"</code> → remplacé par <code>&lt;dialog&gt;</code> HTML5 natif</li>
+</ul>
+<h3>Technique — Fichiers modifiés</h3>
+<ul>
+<li><code>pages/synthesis.php</code> : <code>&lt;form method="GET"&gt;</code> + bouton Filtrer</li>
+<li><code>pages/statistics.php</code> : <code>&lt;form method="GET"&gt;</code> + bouton Filtrer</li>
+<li><code>pages/export.php</code> : suppression des <code>onchange</code>, retrait des <code>disabled</code></li>
+<li><code>pages/choose_site.php</code> : suppression du <code>&lt;script&gt;</code>, warning toujours visible, <code>required</code> HTML5</li>
+<li><code>pages/settings.php</code> : textarea au lieu de tags, formulaire POST pour SMTP test, CSS <code>:has()</code> pour warning, <code>&lt;dialog&gt;</code> pour confirmations</li>
+<li><code>pages/user_edit.php</code> : <code>&lt;dialog&gt;</code> au lieu de <code>onsubmit confirm()</code></li>
+<li><code>templates/report_card.php</code> : <code>&lt;dialog&gt;</code> au lieu de <code>div</code> masqué</li>
+<li><code>templates/confirm_dialog.php</code> : contenu <code>&lt;dialog&gt;</code> avec <code>formmethod="dialog"</code> natif</li>
+<li><code>templates/report_form.php</code> : CSS <code>:has()</code> au lieu de <code>&lt;script&gt;</code></li>
+<li><code>handlers/settings_handler.php</code> : parse textarea (une adresse/ligne) au lieu de tableaux</li>
+<li><code>handlers/smtp_test_handler.php</code> : redirect + flash au lieu de JSON</li>
+</ul>
+<hr />
+<h2>[2.1.0] — 2026-06-10</h2>
+<h3>Fonctionnalités — Changelog consultable dans l'UI</h3>
+<ul>
+<li><strong>Page Changelog</strong> : le numéro de version dans le footer est désormais un lien cliquable vers <code>?page=changelog</code>, qui affiche le contenu du fichier <code>CHANGELOG.md</code> rendu en HTML.</li>
+<li><strong>Parsedown</strong> : ajout du parseur Markdown <code>Parsedown.php</code> dans <code>src/lib/</code> (fichier unique, sans Composer) pour le rendu du changelog.</li>
+<li><strong>Pas d'export PDF</strong> : le changelog est en lecture seule, aucun bouton d'export.</li>
+</ul>
+<h3>Fonctionnalités — Génération PDF des fiches de signalement</h3>
+<ul>
+<li><strong>Impression PDF native</strong> : <code>report_print.php</code> génère désormais un PDF côté serveur via FPDF au lieu d'une vue HTML + <code>window.print()</code>. Plus de JavaScript pour l'impression.</li>
+<li><strong>Bouton « Télécharger en PDF »</strong> : remplace l'ancien bouton « Imprimer la fiche » dans la vue détaillée d'un signalement.</li>
+<li><strong>PDF professionnel</strong> : en-tête (organisation + référence), pied de page (pagination + date de génération), badges colorés pour le registre et l'état, tableau d'historique des réponses.</li>
+<li><strong>FPDF 1.9</strong> : bibliothèque incluse directement, sans Composer. Zéro dépendance, zéro fichier temporaire.</li>
+</ul>
+<h3>Technique — Dépendances PHP</h3>
+<ul>
+<li><strong>composer.json</strong> : fichier vidé (<code>require: {}</code>). Plus de dépendance mPDF.</li>
+<li><strong>Autoloader Composer</strong> : <code>vendor/autoload.php</code> chargé conditionnellement dans <code>public/index.php</code> (rétro-compatible si vendor/ existe).</li>
+<li><strong>FPDF inclus</strong> : <code>src/lib/fpdf/fpdf.php</code> + polices dans <code>src/lib/fpdf/font/</code>.</li>
+</ul>
+<h3>Technique — Fichiers modifiés</h3>
+<ul>
+<li><code>pages/changelog.php</code> : nouvelle page — parse le CHANGELOG.md via Parsedown</li>
+<li><code>pages/report_print.php</code> : réécrit — génération PDF FPDF au lieu de HTML + <code>window.print()</code></li>
+<li><code>pages/help.php</code> : CU8 mis à jour — « Télécharger en PDF » au lieu de « vue imprimable via le navigateur »</li>
+<li><code>templates/footer.php</code> : version cliquable → lien vers <code>?page=changelog</code></li>
+<li><code>templates/report_card.php</code> : bouton « Imprimer la fiche » → « Télécharger en PDF »</li>
+<li><code>public/index.php</code> : route <code>changelog</code>, titre page, autoload Composer</li>
+<li><code>public/css/style.css</code> : styles <code>.footer-version</code> (lien cliquable dans le footer)</li>
+<li><code>public/web.config</code> : hidden segment <code>vendor</code></li>
+<li><code>src/lib/Parsedown.php</code> : parseur Markdown (fichier unique)</li>
+<li><code>composer.json</code> : <code>require: {}</code> (dépendance mPDF supprimée)</li>
+<li><code>.gitignore</code> : exclusion de <code>vendor/</code>, <code>data/*.db</code>, IDE, OS</li>
+<li><code>DEPLOY.md</code> : documentation simplifiée — plus de Composer, extensions réduites, structure sans <code>vendor/</code></li>
+</ul>
+<hr />
+<h2>[2.0.0] — 2026-06-10</h2>
+<h3>Breaking Changes — Refonte du système de rôles</h3>
+<ul>
+<li><strong>Rôle Manager supprimé</strong> : le rôle <code>manager</code> n'existe plus dans l'application. Il a été retiré de tous les fichiers : config.php, helpers.php, sidebar.php, handlers, pages, seed.php, promote.php, database.php, schema.sql, style.css, help.php. Les fonctionnalités de consultation élargie (tous les sites, synthèse, export, stats) sont déjà couvertes par le rôle CSA/CHSCT.</li>
+<li><strong>Système d'auto-promotion par préfixe supprimé</strong> : le mécanisme <code>app_admin_prefix</code> (par défaut <code>adm.</code>) qui promouvait automatiquement les logins commençant par ce préfixe est supprimé. Ce système était source de confusion et de faille de sécurité potentielle.</li>
+<li><strong>Clé de config renommée</strong> : <code>app_admin_usernames</code> → <code>app_superviseur_usernames</code> — le nom reflète désormais clairement son usage : liste de logins Windows séparés par virgules qui seront automatiquement promus Superviseur. Utile pour une première installation.</li>
+</ul>
+<h3>Attribution du rôle Superviseur (nouveau système)</h3>
+<p>Deux méthodes pour obtenir le rôle Superviseur :</p>
+<ol>
+<li><strong>Par un autre superviseur</strong> via la gestion des utilisateurs dans l'interface</li>
+<li><strong>Via la liste de config</strong> <code>app_superviseur_usernames</code> (Paramètres → Application) — les utilisateurs de cette liste sont auto-promus à leur connexion via IIS</li>
+</ol>
+<h3>Sécurité — Corrections de confidentialité</h3>
+<ul>
+<li><strong>Visibilité agent par défaut = son site</strong> : le défaut de <code>app_agent_visibility</code> passe de <code>'all'</code> à <code>'site'</code>. Par défaut, un agent ne voit que les signalements de son site.</li>
+<li><strong>Option 'all' supprimée</strong> : l'option « Tous les signalements » n'est plus proposée dans les paramètres de visibilité agent. Seules les options « Son site » (par défaut) et « Ses propres signalements » sont disponibles.</li>
+<li><strong>Contrôle d'accès renforcé</strong> : <code>canAccessReport()</code> dans helpers.php vérifie systématiquement que l'utilisateur a le droit d'accéder au signalement (déclarant, superviseur ou CSA/CHSCT).</li>
+<li><strong>Abandon de signalement</strong> : réservé au superviseur uniquement (conforme à la documentation de référence).</li>
+</ul>
+<h3>Documentation</h3>
+<ul>
+<li><strong>help.php réécrit</strong> : conforme à la documentation PDF de référence. 3 rôles uniquement (Agent, Superviseur, CSA/CHSCT). Section confidentialité ajoutée.</li>
+<li><strong>SPEC.md réécrit</strong> : suppression des références LDAP, des fonctions obsolètes, du rôle Manager. Documentation du système de rôles à 3 profils.</li>
+<li><strong>README.md mis à jour</strong> : reflète le nouveau système de rôles et d'attribution.</li>
+<li><strong>CHANGELOG.md mis à jour</strong> : ce fichier.</li>
+</ul>
+<h3>Technique</h3>
+<ul>
+<li><code>src/auth.php</code> : suppression des fonctions <code>determineProvisionRole()</code> (prefix + list) et <code>checkAndPromoteUser()</code> (prefix) — remplacées par un mécanisme simplifié basé uniquement sur la liste <code>app_superviseur_usernames</code></li>
+<li><code>src/config.php</code> : <code>ROLE_LABELS</code> ne contient plus que agent, superviseur, chsct. <code>APP_VERSION</code> → 2.0.0</li>
+<li><code>src/helpers.php</code> : <code>getRoleBadgeClass()</code> sans manager, <code>canSeeAllSites()</code> sans manager, <code>getAgentVisibility()</code> défaut 'site'</li>
+<li><code>schema.sql</code> : rôle commenté <code>'agent'|'superviseur'|'chsct'</code>, clé <code>app_superviseur_usernames</code> au lieu de <code>app_admin_prefix</code>/<code>app_admin_usernames</code></li>
+<li><code>src/database.php</code> : seed sans manager.dev, config keys mises à jour</li>
+<li>Tous les handlers et pages : retraits des références au rôle manager</li>
+<li><code>public/css/style.css</code> : retrait de <code>--role-manager</code> et <code>.badge--manager</code></li>
+<li><code>promote.php</code> : rôles valides = agent, superviseur, chsct</li>
+</ul>
+<hr />
+<h2>[1.1.0] — 2026-06-10</h2>
+<h3>Sécurité — Corrections de confidentialité</h3>
+<ul>
+<li><strong>Vulnérabilité critique corrigée</strong> : le défaut de <code>app_agent_visibility</code> passe de <code>'all'</code> à <code>'site'</code>. Par défaut, un agent ne voit plus que les signalements de son site.</li>
+<li><strong>Contrôle d'accès renforcé</strong> : ajout de <code>canAccessReport()</code> dans helpers.php.</li>
+<li><strong>Rôle Manager corrigé</strong> : le manager ne peut plus répondre aux signalements.</li>
+<li><strong>Abandon de signalement corrigé</strong> : l'abandon est désormais réservé au superviseur.</li>
+<li><strong>Option 'all' supprimée des paramètres</strong>.</li>
+</ul>
+<h3>Fonctionnalités métier ajoutées</h3>
+<ul>
+<li><strong>Réactivation d'utilisateur</strong> : bouton « Réactiver » dans la liste des utilisateurs.</li>
+<li><strong>Modification de site</strong> : bouton « Modifier » dans l'onglet « Gestion des sites ».</li>
+</ul>
+<h3>Code mort supprimé</h3>
+<ul>
+<li><code>updateUserRole()</code>, <code>updateUserSite()</code>, <code>agentSeesOnlyOwn()</code> supprimées.</li>
+</ul>
+<hr />
+<h2>[1.0.0] — 2025-06-05</h2>
+<h3>Première version</h3>
+<ul>
+<li>Application SST DREETS BFC complète.</li>
+<li>3 profils utilisateurs : Agent, Superviseur, CSA/CHSCT.</li>
+<li>3 registres : RSST, RAMI, DGI.</li>
+<li>Authentification IIS Windows (prod) / mock login (dev).</li>
+<li>Notifications par e-mail, configuration SMTP.</li>
+<li>Statistiques, synthèse, export CSV.</li>
+<li>Gestion des utilisateurs et des sites.</li>
+</ul>    </div>
+</main>    <footer class="footer" role="contentinfo">
+        <p>&copy; 2026 DREETS Bourgogne-Franche-Comté — Application SST <a href="index.php?page=changelog" class="footer-version" title="Voir l'historique des modifications">v3.8.3</a> — PHP 8.4.16 — D&eacute;veloppeur : Olivier Noblanc</p>
+    </footer>
+    <a href="#top" class="back-to-top" aria-label="Retour en haut" title="Retour en haut">&#x25B2;</a>
+</main><!-- end #main-content -->
+</body>
+</html>

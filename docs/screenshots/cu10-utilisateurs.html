@@ -1,4 +1,11 @@
-/* ============================================================
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <base href="http://localhost:8765/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application SST — DREETS BFC — Page</title>
+    <style>/* ============================================================
    Style Sheet — Application SST DREETS BFC
    Version 2.0
    Complete DREETS visual identity theme
@@ -2082,43 +2089,70 @@ tr:hover td {
     }
 }
 
-/* Help page — Screenshot blocks (always visible, not collapsible) */
-.help-screenshot-block {
-    margin: 1.5rem 0;
+/* Help page — Screenshot iframes (collapsible) */
+.help-screenshot-details {
+    margin: 1rem 0;
     border: 1px solid var(--grey-200, #e0e0e0);
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
-    background: #fff;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-.help-screenshot-label {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
+.help-screenshot-summary {
+    cursor: pointer;
+    padding: 0.6rem 1rem;
+    background: var(--grey-100, #f5f5f5);
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--color-primary, #0056A3);
-    margin: 0;
-    background: var(--grey-50, #fafafa);
-    border-bottom: 1px solid var(--grey-200, #e0e0e0);
+    transition: background 0.15s;
+    user-select: none;
+}
+.help-screenshot-summary:hover {
+    background: var(--grey-200, #e0e0e0);
 }
 .help-screenshot-wrapper {
     position: relative;
     width: 100%;
-    height: 600px;
-    overflow: auto;
+    height: 500px;
+    overflow: hidden;
+    border-top: 1px solid var(--grey-200, #e0e0e0);
 }
 .help-screenshot-iframe {
-    width: 100%;
+    width: 1440px;
     height: 900px;
     border: none;
+    transform: scale(0.48);
+    transform-origin: top left;
+    pointer-events: none;
+}
+.help-screenshot-caption {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    color: var(--grey-400, #9e9e9e);
+    font-style: italic;
+    margin: 0;
+    border-top: 1px solid var(--grey-200, #e0e0e0);
+    background: var(--grey-50, #fafafa);
+}
+.help-screenshot-details[open] .help-screenshot-wrapper {
+    /* When expanded, allow scroll */
+    overflow: auto;
+    height: auto;
+    max-height: 80vh;
+}
+.help-screenshot-details[open] .help-screenshot-iframe {
+    transform: none;
+    width: 100%;
+    height: 900px;
+    pointer-events: auto;
 }
 @media (max-width: 1024px) {
-    .help-screenshot-wrapper {
-        height: 500px;
+    .help-screenshot-iframe {
+        transform: scale(0.35);
     }
 }
 @media (max-width: 768px) {
-    .help-screenshot-wrapper {
-        height: 350px;
+    .help-screenshot-iframe {
+        transform: scale(0.25);
     }
 }
 
@@ -2527,3 +2561,348 @@ tr:hover td {
 
 .log-entry--fatal .log-entry__text { color: #f38ba8; }
 .log-entry--warning .log-entry__text { color: #fab387; }
+</style>            <link rel="icon" type="image/png" sizes="64x64" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAQAElEQVR4nL1ad3gUR5YvgRHJYJ995/V6g/E5+3aPs29vfcHf59tdzn+s13t7CATKKAcE2AJjwGBhCRQJEpIQRiAQCOU4GuVAFloQIirHkUY5S5M0qe5VV09PT0+Q7e+7e18heqqrq9/vhXqvqh/CDCmVyoGBgc7OzpaWltbW1ra2tnYDdRio04z4nYJhgmvzZ83n6bBOlBNgrLm5GXjr6+ubnZ2lnCP4Bz/aOtq7err7+/sHBweHGRoZGaF/ORo1pTGGuGtBP+3hj+HfEvTbJo4B4GdoaAgE3dvbC3jgJwGgUCmB+15JX790gHI/AjOPkxeMG2iCR5OTk/QvJWvX9Kc5ccMs3qUkeC9ccJgBBsEwKJUM9APb45MTCPgmsgfuh4eGAe3Y6NjEODTKxBSPpqen6V8btOgAOoY/jLueskJ8iQAY0AlIWSqVgiGBHhDgADSUewqa8g0zzjA0a0ZzlsjGAPMZzAdbuztjIIoQeKMYqC2Be6DW9jbp0CCoBm5wrHPzzhtIZpPmTcn2SP4jtuehxCHkYACrwDAoAZwBdff2gPjBvED2VOowlE4tNyUFQ+YX9Np8pKDfRqd8MaLYKAxgEgQNDIMSwIpQT08PJ37gnkqdcg9TKxlSWSd6V2kgruf7E38GQT8lDiRwBewBk5wSJBIJAhBwRcXPlz073YJyQa1SaxZsNxhDm6BTo1VDszEDS/Rx7pdaze/hwABXwB5VAjAMbMO6TwBw9kMByBUypUrBsq5Wa4C0aq1OY05aSjoNZZQOoz91ei0s0ho1vF8JF3qdVqth72oNZGFGM1IzRGGAHkC4HABwZQIAtAAAOPuBEQqlHLgH8VCGgBW2fQ8CRoFbJkSq01rUnx5O/899aQn3ZFqNiunUwwA6m54h+hQnCHqLxQk/mVsUCWAAJVArom5gCwDRPiNglq3vQQa+sXpBcf6BbOORbLStCDnnINd85F644WD6yTvTCvkcNiXbc3JyoaqgVkTdwDKAedkctR8QP+XewJzwldiMQPI90qEvywc+3H8FeYiQU94v/c8EigYO1I3/w65zyDkfuRau330pqKC7uVuiNH/eEnEwgBkAAFZE3UAIgFuCiAMw7gujOQC23zE9O1PWORNbdPuD2L+u9b+CXIDRgtd3pHnm9o5NjtExIPj91aMf7LkEGNDW3BVel987cjs8+1px69T4zJRuMRgCAHwNQCyzYEIWAcD1lFI1ODV9XzpV86Q7/lrf7ks3/vVY/S++yEVeJcg5FznnIf/KT8KyI26MymXT8IioHztFZ/zxcNqFZgUzhSqladr5eMEzwZXIORNtBRsrfmVX3m+i63dcvBpb113+oLOhb0IyPjUuJ4uHRQDgx3wNsAD4QUAAAOs1YB2DGH9xKvPFkLI1wUXIrwS554KFgCyJiXuJXt2d/3HC/TNltxvHFognaOWpj+Y2R2UjXxHyLEA+RdA2fHPlWP2kWjUDDHXL9DnX7/3p7IN39uYiXwCfRaaC5pqDvItXBBW9sKfq97sTqidgLLxdzbqyFpZVpcCELAMAoEYAOuBJ04jxbwNjgRv7z2vf2C/+IPKGY2LtrvyWzJuPG6TzOs08vGpej++1tHvmdP56bybyKkTeRShAhAJL2OZbjLwKXt91edPFpzVNT0c1VLiqx2MK0d2WvaJ2l+S630TdePvr0rVf1iH/ouc3HT32kEgfJLg4ABsmRAGI5/AbXrHv+J0sAKnowB5Av3q1RtkxrbjW3BVa1eOUWPHSvlo77yzkXYj8GY6DxHYBxdBYAEFi8jdADDDQtoznQio+ixXvLu6oampvGZMrVTLCK8hbr3ysx27RGfYOsbtqZCwAZmGFdWVxADQMmwO4NIRfdo3+XUhiG8bhVd2fhl1559urP9sjWhosQj45hCewE+A7qMwO+AZeg0TQ7JiGAovJX9LJ9qPtYgTAvEVoWyHyyoPxPwnJf/Nw9SdRYsczt5r1+OCV2qUOx1xypexShHUWAQDbJgAgOnAagKgBS6/BB3TA+AuOkZ99k9qJ8fuRt5ZsTUK+YuRfxoqWZZeyzmOU37aXkGbSaRhMVFRK8HtmI4/M2lEcU/ZkicOxz1Jb2cXUCgChBjgA4OkCAOFNeNXmCJeYHADwbmjNas9U8sqgMvL67aUW2DVoAMTPcgnDSCuxAMDQlgTkI++s4m71mVsS5Hjy46QmhnvMmRAEqO+1jJoD+OqmYrlDhG9SUQvGv9hXutInDQWWkcZyViLkntq6J6/5F7MjjYPNAAQWIc+sK48mLzWNLdka/+HxenYZtQIANo+wkbTsxBQAuAEFsKN6aplDxK4LVY8w/ruQ4hW+6cSOt4uFFkJaOShnXVDqzoqJ01fbk+raTtV1xtW0vxF2w94nHQWXMg+WmAAgOqQAwCuyU+4M5LTMLXVK/KeI61omwNNEkA+A5kJCADQbFQBgkjPsUzq6dFPU3vRrjWr83I7C5b6ZJgCM3Jeg4ArkJ3IKPTNqyAbof/6lI2tcThB4MIDTA7ko5QAQk/PKSbzRXditWuZy+ldhtQt6IQBBMif0AQqAmhBJh3QaCsCjcGipQ8yh7Pq7Crw6qGC5X45VDTAAtoSl9GEmDMEipie5gm8JAIgjdwmAUmPjmRAFEH+1U9SntXdNfu9wtVJHAOggBvAA0L3lIgBILOMBcMkbWOIQczivoUFmCoDjm2BgGAL+/EtMADBKAABrXeMXB+CZDfZWKtEvBwChVQqt3hyAZQ3A/gD2adYAOOf2A4Bv8/96Zx6vCsy39802BcDwAesSWZoqIDtw/PYsC0CvZsxY51UyvNL5BAqsIC2AGcyzfj6A+FoAoLN3Of3uN5UAQGMAABm+AADrA3RHRs8j6I7MogbsNkaH5hINrArKtffL5AOgAevZXWJoK3ZVgC+6HznfbwRANBBcOvSTbfErPy+HtnqneMX2YpJobOfB2F5KASRe6xL1qMEHwISoD+i0C7Af4gBw+3pWA/wtJQ3GFABgBugUwLai4SUbow9m3WpU4bU7C5f7ZxHuYUkJBqcsf8kj7utb8oHJmb6xye7xma6x6ZGpKY0hiFInHpMpe0cnusenoHVMyh8PTr4WepVZl8gM1JzsgoqQV9a5Bml+u3yZc9L6I1c12OgDAgB0S2kCwKIJYR2IUBdUMfnMxsiQizWPMf5bWEb9rjDcMxa/vfzv3Y/mjzKJF3kdR4R7DoA5/duppuXbzrFewcxG4oBXdk7zVMYjiAMJ/xJbz6RHRg3AVpG/qWc3NAIARhNitvOQxMMk+26pljtE+iYUQy60bn/5Ku80FsCOSgCwzj0yc5AzGD4Z95mCXqAP4xqNAEhQL1sWUGDnk1M1qE++0Wm3+eTvT7PpKKsBw56Yb0KLACCBTEsAxD7FaxwjN4Zf7iC50LXVnmfRjlLSGA1YB2CZhAAgODAAYHGDJa5Bjr8tuAO50OaMXswEAQBA+OeZELBqPFYRrEIWAaQP4Z+6RH8UkvAE489SH69xP4W2lzG2W4WCKl9zi8gf5fNmfm2BWADAvQEAZCivHiiHDM4vUWS/KfrzunmiAJ2azeQM2zFbAPhOzAdQp8K/9j/xpmdUjQrvrZ18wSmafTHjgs96nf/Dd09PVLUcq3gaU9UaVdFcdLNx1mhCpFV2zMSLGmKr26BF13SGih49F1K+1C+Xsk5nW+2R/Luk+2Cln+w/+9zWyJNtjFa1KqqBHwAA8g0TAHo1WM5/H0pZuzn8ZAvOHcbrXMNB8ET8bDwqpxsupomQa96f9yUS9fPigFu+1O5/opCXmGkFZN/DpuI0HSIAQC77rk6DjEBSsH8qmWUBWNPA8OiIZMAMAIQJejABTkMAwCqk1wxjHHa5YtnGmM2XOgDMhpA4EoyMMZWf2xAwW0LPSUwB+IgGmVyojDReNsruIhgAb3kcqZjFYffUaxyP/ungd214cQB9/RLLGjABoFODLGofddm7prz6pbgH46M5V2EnZcwFBMmcb7F5JPYulpoB4CXVAMBP5BJxAcLff8TftdsSF5VZzbiVVuADfCe2rAHOhCgAEsj0JBbMqLTrDlTZuaRk3+19OGvIiOhiagIANFDkFHZ2mPUBNg74lw6vcTluCFu8DIq3E8h7KG2YwKv8M5f7pD/oGZYzM+iZc0fuTMUCAP4yau7EhqMhktX6lE4s3RTrEHoOpLvlShuRqIAhCiCg5LdfJGVIcPPAyNP+4YcDE02SsY9O3V/pcRYFi0kz0QBx4lUeZ9+PuD6A8Z6zxcjp9IenHhjinx52M/Rc0fxwV6gB4+k0z4lZAMQSNNVy/Cu/Ey9tjUhswXdU+J99IkhOxuX3/BYAe/zCpQFF0EC6dgGFlnZktFVCeveaS3hGHxbPEPd90TnmVDvVnpbVgG0Tsh3IDABIVgJGGZlRhbYkvX24DizkQvU98IQlxtyYj6HUsFsvYbbF3KZezPoM7SGb5jLknnvoXNE4xh8nPrBzjHcLT+2j1s8kJoJjOQpgcnpqfNK6D7AbGhMAJKJDRBiZkf10Xw1yuXA8v24MY1i2V7olGbL8EhPjNlcLJ3v2ghjPCrdzb31dJcU448Yj5J6+xDPzXluf0hhDLJwr2nJiaxpgiZzx68Pv4+edT6zbFpUmwWCqG0JOwAJiAYAtDHT5r0R+pf/odrhqFFfP4fV+sfYOx7flDxO+9RouYC8OwKIJCTTAHqlrlXqNAlzti6R85HT+5a+qe+Z0Tf2Ta3aJl/hkswm2NQ3wDyBoFPfNh1Z2v3UE4/eO3EaOyX/Zd5qs/RA6tSrMc2LOB+hnMqsa4JzYGgA2qcJ4Yk72elg9YHAMTYa4lt6N3/WKBHESoVo7yeLLHkJ4QPnP3CJjGhWQBAYev4S2Xli7Q9zWPwSMk285Rg38QABWfcCgTejUkXNMTdEYXh8Yh5ySP0p6Mo1x3aMO++Bi5JMt3OwLATCZjx8sSkV51+5BsvaX9J5ntp76uUtMcgtmMn+ZRqvm7SJMACweyMw1wP8eQ7yA6EABTYHxrScdy3aWIbcrIEKIoFm9+P2A4+TEE3a9pgc+vOtK5Ct+0zsm4ZFqAuNvzuUj92zkmZdVVQ9S0S4oSGNeakhodSQOaJkdPfO9dXEA3I6M+0bG/0gDP+kHUBAVvDGxDb/mG4eck/896fG0DkPY+vnBWuRxkU0wTQ7eGNl7Zry4t7qhrQtk/2laxzKXxBdc4766DjFXCxPSmclxoDEjZwEsEB/mB7JZ4PfHACBKYM7pqbTgzdX3m5furEBumZD/PFDjxyoMO3qSb9KTU+MJbgXyLHI4/N0dGW7VYc/IVOSeA1nTxfLbM0T2Mo1qHqYl9mP6UYuuQtxnVgizYCVTM7PjkzYBcCdz5p/J4Cf5YKhSEGkRf9Ce78Dv+Scg54uvHLrZ0icFR3TL7XvePYEcONMFJ0D8Nx6JzlndALh9YOjVsDvI5eIrnifD76qo7IF18mFXreaLn77LbBm1DkBwMscepdO7qwAAAzxJREFULVr6yAeT0lcuqOTgD7AuPezsffnATeR06R3f+PgmNSwiZbcbn91dgzxzIEtbs6cafkJn3AP1uwEJyD1r1e7a2kby5QzUqFGxuaOAe4txALibm5PZyoWMR4s2P1TCLVIBwHzQp+vSrTns8O0F5FaAfEqjL5dAatAwh10jLrlFpd2VY1jsj6YVI19IHAr/sP9sySgzh5KYDVEmTd0tkXkqQQ+2FgfANyGLGKghkderQBVKGAnP/vlyz3LXZOSauv74g/5hstUHqbb2Sd6OuItcL9q7fvdfKW3jMzPALH2KatIa9+YmxK5CfBMS1Epwp9OCQGZRCfSog+oBLAFyDRB8amk9ySxcs94KSj7SIP+qbuaXvsnkw2ZwZUrJdfLpWKtUK+e4qhSQlLWv0XwA8C5OAwYAY5IB6Y8HQMMCFQwpzOGZU64EbziQgjwgtJUhr1LkIfrjoQsFEsYimGHUckhJgFq47NgAwJUaTM1MG7NRADA6OsoB4PaTAhMyq4xgX0CdgUEgh6ZUyFVKBeSuM3OzW7Olz3uee8k7xad4dF42B4s63IVGhqnYfNFGMQBXZ2Cx2MMkmeMDEGiAq/ewUJjCq8cgNrqgVCgNdVhymXpBNYdx/dP2xtZOObF46CSFGKQUhpfqCiY0n5lWqwg0YAKgt7eXVmwJ0mlapWRSF2RKXL+gvIfWJzFFVjJIPEjuIZfR4i8qFxtzWnyLeb0QNaGhkWFyKkErSLnPZMZgTFd6QwkVV3ikNiXBAEE/dVN+KZZggEnFFi3sMn0XNwnnwbTkDBiWDg32SvpQR0eHVCrllMB96uMX5YHsmGYkrpxO0GkYvzgJhll5ClYeFb9gzqTeTDrQ0dWJAER3b48AA4XBL7v8EVWVNoaZl1oKfppXXtJPYzQPBaclha/9kubWFjQnm29tb6Olx9SWuApifn3tzP8jWSv2BcZo9fHAIOEe2IYLUvwNgFra2rt7+/r7+wHZ0NAQLfvmV2zTYmZ+QbVF4g/+oTRmRoL6b2BscHCQFH9L+oD7rq4u8HJEF13w687urpa2VvgL65LEQP3/BzRgSuZ3uWvKAOUElntgDKy9raMd+AQPpgnI/wJYc7h2+kiGigAAAABJRU5ErkJggg==">    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,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"></head>
+<body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <header class="header" role="banner">
+        <div class="header__logo">
+                            <span class="header__logo-text">DREETS BFC</span>
+                        <span class="header__title">Application SST — DREETS BFC</span>
+        </div>
+                <div class="header__user">
+            <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
+            <span class="header__username">
+                Dev Administrateur                <span class="badge badge--superviseur badge--sm">Superviseur</span>
+            </span>
+            <a href="index.php?page=logout" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
+        </div>
+            </header>
+<!-- Hidden checkbox for CSS-only sidebar toggle (mobile) — tabindex="-1" prevents focus since hidden attr is not always sufficient -->
+<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox" tabindex="-1" hidden>
+<label for="sidebar-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+<nav class="sidebar" id="sidebar-nav" role="navigation" aria-label="Menu principal">
+    <ul class="sidebar__nav">
+                                                    <li>
+                    <a href="index.php?page=home"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#127968;</span>
+                        Accueil                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=report_list&type=rsst"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#128203;</span>
+                        RSST                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=report_list&type=rami"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#9888;</span>
+                        RAMI                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=report_list&type=dgi"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#128308;</span>
+                        DGI                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=synthesis"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#128202;</span>
+                        Synthèse                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=export"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#128229;</span>
+                        Export                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=statistics"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#128200;</span>
+                        Statistiques                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=users"
+                       class="sidebar__item sidebar__item--active"
+                       aria-current="page">
+                        <span class="sidebar__icon" aria-hidden="true">&#128101;</span>
+                        Utilisateurs                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=settings"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#9881;</span>
+                        Paramètres                    </a>
+                </li>
+                                                                <li>
+                    <a href="index.php?page=logs"
+                       class="sidebar__item"
+                       >
+                        <span class="sidebar__icon" aria-hidden="true">&#128220;</span>
+                        Journal                    </a>
+                </li>
+                        </ul>
+
+    <div class="sidebar__footer">
+        <a href="index.php?page=help" class="sidebar__item">
+            <span class="sidebar__icon" aria-hidden="true">&#128218;</span>
+            Documentation
+        </a>
+        <a href="index.php?page=preamble" class="sidebar__item">
+            <span class="sidebar__icon" aria-hidden="true">&#128214;</span>
+            Préambule
+        </a>
+    </div>
+</nav>
+<span id="top" tabindex="-1"></span><main id="main-content" class="main" role="main">
+<h1 class="page-title">Gestion des utilisateurs</h1>
+
+
+<!-- Tabs -->
+<div class="tab-bar">
+    <a href="index.php?page=users&tab=list"
+       class="settings-tab settings-tab--active">
+        &#x1F465; Liste des utilisateurs
+    </a>
+    <a href="index.php?page=users&tab=create"
+       class="settings-tab ">
+        &#x2795; Inscrire un utilisateur
+    </a>
+</div>
+
+<!-- Search bar -->
+<div class="filter-bar">
+    <form method="GET" action="index.php" class="form--inline gap-3 align-self-end flex-1">
+        <input type="hidden" name="page" value="users">
+        <input type="hidden" name="tab" value="list">
+        <div class="form-group flex-1 mb-0">
+            <input type="text" name="q" value="" placeholder="Rechercher un utilisateur..." class="w-full">
+        </div>
+        <button type="submit" class="btn btn--primary">Rechercher</button>
+            </form>
+</div>
+
+<!-- Users table -->
+<div class="card">
+    <div class="table-wrapper">
+        <table aria-label="Liste des utilisateurs">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Site</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                                                <tr class="">
+                    <td>Administrateur</td>
+                    <td>Dev</td>
+                    <td>admin.dev@dreets.gouv.fr</td>
+                    <td><span class="badge badge--superviseur">Superviseur</span></td>
+                    <td>UR Côte-d&#039;Or</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=1" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=1" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Benjamin</td>
+                    <td>Marc</td>
+                    <td>marc.benjamin@dreets.gouv.fr</td>
+                    <td><span class="badge badge--superviseur">Superviseur</span></td>
+                    <td>UR Doubs</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=5" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=5" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Bernard</td>
+                    <td>Pierre</td>
+                    <td>chsct.dev@dreets.gouv.fr</td>
+                    <td><span class="badge badge--chsct">Membre CSA/CHSCT</span></td>
+                    <td>UR Doubs</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=3" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=3" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Brun</td>
+                    <td>Anne</td>
+                    <td>anne.brun@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>UR Nièvre</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=10" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=10" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Dupont</td>
+                    <td>Jean</td>
+                    <td>agent.dev@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>—</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=2" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=2" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Dupont</td>
+                    <td>Jean</td>
+                    <td>jean.dupont@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>Siège DREETS BFC</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=6" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=6" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Durand</td>
+                    <td>Isabelle</td>
+                    <td>isabelle.durand@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>UR Territoire de Belfort</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=12" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=12" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Leroy</td>
+                    <td>Marie</td>
+                    <td>marie.leroy@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>UR Côte-d&#039;Or</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=13" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=13" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Moreau</td>
+                    <td>Pierre</td>
+                    <td>pierre.moreau@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>UR Jura</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=7" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=7" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Petit</td>
+                    <td>Luc</td>
+                    <td>luc.petit@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>UR Haute-Saône</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=11" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=11" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Richard</td>
+                    <td>Claude</td>
+                    <td>claude.richard@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>UR Yonne</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=9" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=9" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Robert</td>
+                    <td>Sophie</td>
+                    <td>sophie.robert@dreets.gouv.fr</td>
+                    <td><span class="badge badge--agent">Agent</span></td>
+                    <td>UR Saône-et-Loire</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=8" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=8" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                <tr class="">
+                    <td>Rousseau</td>
+                    <td>Nathalie</td>
+                    <td>nathalie.rousseau@dreets.gouv.fr</td>
+                    <td><span class="badge badge--superviseur">Superviseur</span></td>
+                    <td>Siège DREETS BFC</td>
+                    <td>
+                                                    <span class="status-dot--active">&#x25CF; Actif</span>
+                                            </td>
+                    <td>
+                        <a href="index.php?page=user_view&id=4" class="btn btn--sm btn--outline">Voir</a>
+                                                <a href="index.php?page=user_edit&id=4" class="btn btn--sm btn--primary">Éditer</a>
+                                            </td>
+                </tr>
+                                            </tbody>
+        </table>
+    </div>
+    <div class="result-count">
+        13 utilisateur(s) affiché(s)
+    </div>
+</div>
+
+</main>    <footer class="footer" role="contentinfo">
+        <p>&copy; 2026 DREETS Bourgogne-Franche-Comté — Application SST <a href="index.php?page=changelog" class="footer-version" title="Voir l'historique des modifications">v3.8.3</a> — PHP 8.4.16 — D&eacute;veloppeur : Olivier Noblanc</p>
+    </footer>
+    <a href="#top" class="back-to-top" aria-label="Retour en haut" title="Retour en haut">&#x25B2;</a>
+</main><!-- end #main-content -->
+</body>
+</html>

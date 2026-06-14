@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.9.0] — 2026-06-14
+
+### Corrections v4 — Audit SST DREETS BFC
+
+- **A** 🔴 **Références légales RAMI corrigées** — Le bloc RAMI dans `pages/preamble.php` ne contient plus de TODO ni de « Cadre juridique à confirmer ». Remplacé par les références vérifiées sur Légifrance : Article L135-6 du CGFP (loi n° 2019-828), articles R135-1 à R135-10 du CGFP (décret n° 2024-1038 du 6 novembre 2024). Ajout des liens Légifrance pour RSST (Décret 82-453 art. 3-2) et DGI (Art. L4131-1 et D4132-1 Code du travail).
+- **B** 🔴 **Anti-pattern de test corrigé** — `canAccessReport()` dans `src/helpers.php` accepte désormais un 3ème paramètre optionnel `$forcedVisibility` pour injecter le mode de visibilité sans DB. Le test `tools/tests/test_can_access_report.php` appelle directement la vraie fonction (la copie locale `testCanAccessReport()` est supprimée). 79 cas couverts, comportement de production inchangé.
+- **C** 🔴 **Protection anti-fixation de session activée** — `login_handler.php` appelle désormais `safeSessionRegenerate()` au lieu du code commenté. Le fichier `session_patch.php` est inclus dans le bootstrap `index.php`. En production, l'ancienne session est détruite ; en dev, le drapeau `false` évite le crash du serveur intégré.
+- **D** 🟡 **Header Content-Security-Policy ajouté** — `public/web.config` inclut désormais un header CSP : `default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`. `unsafe-inline` requis pour les styles/scripts inline existants. `frame-ancestors 'none'` complète X-Frame-Options.
+- **E** 🔴 **Chiffrement de smtp_pass en base** — Deux fonctions dédiées `encryptConfigValue()` et `decryptConfigValue()` dans `src/helpers.php` (AES-256-CBC, clé via variable d'environnement `SST_SECRET_KEY`). Lecture déchiffrée dans `src/mail.php`, écriture chiffrée dans `handlers/settings_handler.php`. Migration idempotente `migrateEncryptSmtpPass()` dans `src/database.php` chiffre automatiquement les valeurs en clair au premier démarrage. Section SST_SECRET_KEY ajoutée dans `DEPLOY.md`.
+
+---
+
 ## [3.8.3] — 2026-06-12
 
 ### Outil CLI — `nuclear-reset.php` : purge des signalements

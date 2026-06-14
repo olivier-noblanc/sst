@@ -64,6 +64,7 @@ function getDB(): PDO {
     $fingerprintBefore = getDbFingerprint($pdo);
     migrateSchema($pdo);
     migrateConfigKeys($pdo);
+    migrateEncryptSmtpPass($pdo);
     $fingerprintAfter = getDbFingerprint($pdo);
     // If migrations changed the DB, ensure we have a pre-migration backup
     if ($fingerprintBefore['mtime'] !== $fingerprintAfter['mtime'] || $fingerprintBefore['size'] !== $fingerprintAfter['size']) {
@@ -540,5 +541,37 @@ function migrateConfigKeys(PDO $pdo): void {
                 ':modifiable' => $data[4],
             ]);
         }
+    }
+}
+
+/**
+ * Auto-migrate: encrypt plaintext smtp_pass values in config_app.
+ * If the value does not start with "enc:" and is not empty,
+ * encrypt it with encryptConfigValue() and update the row.
+ * This silently migrates existing installations on first boot.
+ *
+ * Idempotent: once the value starts with "enc:", this is a no-op.
+ *
+ * @param PDO $pdo
+ */
+function migrateEncryptSmtpPass(PDO $pdo): void {
+    try {
+        $stmt = $pdo->prepare("SELECT valeur FROM config_app WHERE cle = 'smtp_pass'");
+        $stmt->execute();
+        $value = $stmt->fetchColumn();
+
+        // Only encrypt if there's a non-empty value that is not already encrypted
+        if ($value !== false && $value !== '' && !str_starts_with((string) $value, 'enc:')) {
+            $encrypted = encryptConfigValue((string) $value);
+            if (str_starts_with($encrypted, 'enc:')) {
+                $upd = $pdo->prepare("UPDATE config_app SET valeur = :valeur, updated_at = datetime('now') WHERE cle = 'smtp_pass'");
+                $upd->execute([':valeur' => $encrypted]);
+                error_log('[SST-MIGRATION] smtp_pass automatically encrypted (plaintext → enc: prefix).');
+            } else {
+                error_log('[SST-MIGRATION] smtp_pass encryption failed — SST_SECRET_KEY may be missing. Password remains in plaintext until the key is configured.');
+            }
+        }
+    } catch (Exception $e) {
+        error_log('[SST-MIGRATION] smtp_pass encryption migration warning: ' . $e->getMessage());
     }
 }

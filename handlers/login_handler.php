@@ -27,7 +27,7 @@ $user = mockLogin($username);
 
 if ($user) {
     // Regenerate session ID to prevent session fixation attacks
-    // session_regenerate_id(false) // Disabled for dev server;
+    safeSessionRegenerate(); // Protège contre la fixation de session (désactivé en DEV_MODE)
     
     // Redirect to intended URL if set, otherwise home
     $intendedUrl = $_SESSION['intended_url'] ?? url('home');

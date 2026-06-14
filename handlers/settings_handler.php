@@ -90,7 +90,7 @@ try {
         updateConfig($pdo, 'smtp_user', $smtpUser);
         // Only update password if a non-empty value is provided
         if (!empty($smtpPass)) {
-            updateConfig($pdo, 'smtp_pass', $smtpPass);
+            updateConfig($pdo, 'smtp_pass', encryptConfigValue($smtpPass));
         }
         updateConfig($pdo, 'smtp_from', $smtpFrom);
         updateConfig($pdo, 'smtp_encryption', $smtpEncryption);

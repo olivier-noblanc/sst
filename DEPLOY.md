@@ -295,6 +295,33 @@ smtp_port = 25
 sendmail_from = noreply@dreets.gouv.fr
 ```
 
+### Variable d'environnement SST_SECRET_KEY (requis)
+
+SST_SECRET_KEY doit être définie comme variable d'environnement IIS (niveau "Application Pool"
+ou "Site") avant la mise en production. Longueur minimale : 32 caractères.
+
+Cette clé est utilisée pour chiffrer le mot de passe SMTP stocké en base de données (`config_app`).
+Sans cette clé, le mot de passe reste en clair et un avertissement est consigné dans les logs.
+
+Commande PowerShell :
+```powershell
+[System.Environment]::SetEnvironmentVariable("SST_SECRET_KEY", "votre-clé-32-chars-minimum", "Machine")
+# Redémarrer IIS après modification.
+```
+
+Via IIS Manager (FastCGI Environment Variables) :
+1. Ouvrir IIS Manager → Sélectionner le site SST
+2. Double-cliquer sur **FastCGI Settings**
+3. Sélectionner `C:\php\php-cgi.exe` → **Edit...**
+4. Développer **Environment Variables** → **Add...**
+   - Name : `SST_SECRET_KEY`
+   - Value : votre clé de 32 caractères minimum
+5. Cliquer sur **OK** puis redémarrer IIS : `iisreset`
+
+Si la variable est absente au démarrage, l'application consigne un avertissement dans les logs et
+le mot de passe SMTP ne peut pas être chiffré (il reste en clair). La migration automatique chiffre
+les valeurs en clair existantes dès le premier démarrage où SST_SECRET_KEY est configurée.
+
 ### 11. Vérification du déploiement
 
 1. Accéder à l'URL du site dans un navigateur

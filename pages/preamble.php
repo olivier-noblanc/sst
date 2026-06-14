@@ -24,6 +24,7 @@ $pageTitle = 'Préambule';
     <h3>&#x1F4CB; Registre de Santé et de Sécurité au Travail (RSST)</h3>
     <p>
         <strong>Décret n° 82-453 du 28 mai 1982 relatif à l'hygiène et à la sécurité du travail ainsi qu'à la médecine professionnelle et préventive dans la fonction publique, article 3-2</strong> (modifié par le décret n° 2011-774 du 28 juin 2011)<br>
+        <small>Source : <a href="https://www.legifrance.gouv.fr/loda/id/LEGIARTI000024283910" target="_blank" rel="noopener">Décret 82-453 art. 3-2 — Légifrance</a></small><br>
         Le registre de santé et de sécurité au travail est tenu, dans chaque service, à la disposition de l'ensemble des agents (et, le cas échéant, des usagers) pour consultation. Il permet à tout agent de consigner ses observations et suggestions relatives à l'hygiène et à la sécurité, ainsi que de signaler toute situation de danger constatée dans l'exercice de ses fonctions.
     </p>
     <ul>
@@ -37,13 +38,16 @@ $pageTitle = 'Préambule';
 <div class="card card--rami card--spaced content-section">
     <h3>&#x26A0;&#xFE0F; Registre des Actes d'Agressions, de Menaces et d'Incivilités (RAMI)</h3>
     <p>
-        <!-- TODO (revue juridique/RH requise) : identifier le texte applicable au registre RAMI.
-        Piste : signalement des actes de violence, discrimination, harcèlement et agissements sexistes
-        (art. 6 quater A, loi n° 83-634 du 13/07/1983, issu de la loi n° 2019-828 du 06/08/2019).
-        Le décret d'application initial n° 2020-256 du 13/03/2020 a été abrogé le 01/02/2025 :
-        vérifier le texte en vigueur avant publication. NE PAS inventer de numéro de remplacement. -->
-        <strong>Cadre juridique à confirmer</strong> — Dispositif de signalement des actes de violence, de discrimination, de harcèlement et d'agissements sexistes (art. 6 quater A de la loi n° 83-634 du 13 juillet 1983, issu de la loi n° 2019-828 du 6 août 2019). Le texte d'application est en cours d'identification par le service juridique/RH.<br>
-        Le registre des actes d'agressions, de menaces et d'incivilités permet de consigner tout acte de violence externe (usagers, tiers) ou interne (collègues, hiérarchie) subi par un agent dans le cadre de ses fonctions.
+        <strong>Article L135-6 du Code général de la fonction publique (CGFP)</strong>,
+        instauré par la loi n° 2019-828 du 6 août 2019 de transformation de la fonction publique
+        et mis en œuvre par les articles <strong>R135-1 à R135-10 du CGFP</strong>
+        (décret n° 2024-1038 du 6 novembre 2024, en vigueur depuis le 1er février 2025).<br>
+        <small>Sources : <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044427582" target="_blank" rel="noopener">Art. L135-6 CGFP — Légifrance</a>
+        &bull; <a href="https://www.legifrance.gouv.fr/codes/id/LEGIARTI000050546729/2025-02-01" target="_blank" rel="noopener">Art. R135-1 à R135-10 CGFP — Légifrance</a></small><br>
+        Ce dispositif oblige tout employeur public à mettre en place un mécanisme de recueil des signalements
+        des agents s'estimant victimes d'atteintes volontaires à leur intégrité physique, d'actes de violence,
+        de discrimination, de harcèlement moral ou sexuel, d'agissements sexistes, de menaces ou de tout acte
+        d'intimidation. Il permet également de recueillir les signalements de témoins de tels agissements.
     </p>
     <ul>
         <li>Agressions physiques ou verbales</li>
@@ -58,6 +62,7 @@ $pageTitle = 'Préambule';
     <h3>&#x1F534; Registre de signalement d'un Danger Grave et Imminent (DGI)</h3>
     <p>
         <strong>Articles L4131-1 et suivants du Code du travail</strong> (droit de retrait) et <strong>article D4132-1 du Code du travail</strong> (formalisme du registre spécial — avis du représentant CSE/CHSCT exerçant son droit d'alerte)<br>
+        <small>Sources : <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006902454" target="_blank" rel="noopener">Art. L4131-1 Code du travail — Légifrance</a> &bull; <a href="https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000036484010" target="_blank" rel="noopener">Art. D4132-1 Code du travail — Légifrance</a></small><br>
         Le registre de danger grave et imminent permet à tout agent de signaler une situation de danger grave et imminent, c'est-à-dire une menace pouvant entraîner un accident du travail grave ou une maladie professionnelle grave dans l'immédiat.
     </p>
     <ul>

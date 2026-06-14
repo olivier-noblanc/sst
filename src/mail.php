@@ -55,7 +55,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     $host = getConfig('smtp_host', '');
     $port = (int) getConfig('smtp_port', '25');
     $user = getConfig('smtp_user', '');
-    $pass = getConfig('smtp_pass', '');
+    $pass = decryptConfigValue(getConfig('smtp_pass', ''));
     $encryption = getConfig('smtp_encryption', 'none');
     $from = getConfig('smtp_from', 'noreply@dreets-bfc.gouv.fr');
 

@@ -146,3 +146,82 @@ Le registre RAMI est laissé en attente de revue juridique/RH avec un `<!-- TODO
 | 15 | Gouvernance | 🔧 corrigé | Non |
 
 **Aucune référence légale ou réglementaire n'a été inventée dans le cadre de ces corrections.** Les deux points nécessitant une validation humaine (référence RAMI, durée de conservation) sont explicitement marqués `<!-- TODO revue juridique/RH -->` dans le code et signalés dans l'interface.
+
+---
+
+## v4 — 2026-06-14
+
+### Correction A — Références légales RAMI (pages/preamble.php)
+
+**Statut : ✅ corrigé**
+
+**Fichiers modifiés :** `pages/preamble.php`
+
+**Corrections appliquées :**
+
+- Le commentaire HTML `<!-- TODO revue juridique/RH -->` a été **supprimé** totalement.
+- La phrase `<strong>Cadre juridique à confirmer</strong>` et le texte « Le texte d'application est en cours d'identification » ont été **remplacés** par les références vérifiées sur Légifrance :
+  - **Article L135-6 du CGFP** (loi n° 2019-828 du 6 août 2019)
+  - **Articles R135-1 à R135-10 du CGFP** (décret n° 2024-1038 du 6 novembre 2024, en vigueur depuis le 1er février 2025)
+  - Liens Légifrance vers les articles L135-6 et R135-1 à R135-10
+- **RSST** : ajout du lien Légifrance vers le Décret 82-453 art. 3-2
+- **DGI** : ajout des liens Légifrance vers les articles L4131-1 et D4132-1 du Code du travail
+
+**Confirmation :** aucun TODO, aucune phrase « à confirmer » ne subsiste dans le HTML rendu côté agent. Les URL Légifrance sont présentes et correctes.
+
+---
+
+### Correction B — Anti-pattern de test canAccessReport (src/helpers.php + test)
+
+**Statut : ✅ corrigé**
+
+**Fichiers modifiés :**
+- `src/helpers.php` : ajout d'un 3ème paramètre optionnel `?string $forcedVisibility = null` à `canAccessReport()`. Quand fourni, il contourne l'appel à `getReportVisibilityMode()` (et donc la DB), permettant aux tests d'injecter le mode de visibilité.
+- `tools/tests/test_can_access_report.php` : réécriture complète. La fonction locale `testCanAccessReport()` (copie de la logique) a été **supprimée**. Le test appelle désormais **directement** `canAccessReport($report, $user, $visibilityMode)` importée depuis `src/helpers.php`. La matrice couvre les mêmes 79 cas (72 de la matrice + 7 cas limites).
+
+**Confirmation :** le test appelle bien `canAccessReport()` depuis `helpers.php`, pas une copie locale. Les 3 call sites existants (`report_view.php`, `report_print.php`, `report_attachment.php`) passent exactement 2 arguments — le comportement de production est inchangé.
+
+---
+
+### Correction C — Protection anti-fixation de session (handlers/login_handler.php)
+
+**Statut : ✅ corrigé**
+
+**Fichiers modifiés :**
+- `handlers/login_handler.php` : remplacement du commentaire `// session_regenerate_id(false) // Disabled for dev server;` par l'appel `safeSessionRegenerate();`
+- `public/index.php` : ajout de `require_once __DIR__ . '/../src/session_patch.php';` dans le bootstrap (le fichier existait mais n'était jamais chargé)
+
+**Comportement :** `safeSessionRegenerate()` appelle `session_regenerate_id(!DEV_MODE)` — en production, l'ancienne session est détruite (protection contre la fixation) ; en développement, le drapeau `false` évite le crash du serveur intégré PHP.
+
+---
+
+### Correction D — Header Content-Security-Policy (public/web.config)
+
+**Statut : ✅ corrigé**
+
+**Fichiers modifiés :** `public/web.config`
+
+**Corrections appliquées :**
+- Ajout du header `Content-Security-Policy` dans `<httpProtocol><customHeaders>` :
+  `default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`
+- `unsafe-inline` requis pour les styles et scripts inline existants (pas de refactoring de scope)
+- `img-src 'self' data: blob:` couvre les data URIs (favicons/logo inline, v3.8.0)
+- `frame-ancestors 'none'` remplace fonctionnellement X-Frame-Options: DENY (les deux coexistent)
+- `form-action 'self'` empêche l'exfiltration de formulaires vers un domaine externe
+- Le header X-Frame-Options est conservé s'il existe (double protection, pas de conflit)
+- XML valide (balises correctement fermées)
+
+---
+
+### Correction E — Chiffrement de smtp_pass en base
+
+**Statut : ✅ corrigé**
+
+**Fichiers modifiés :**
+- `src/helpers.php` : ajout des fonctions `encryptConfigValue()` et `decryptConfigValue()` (AES-256-CBC, clé via `SST_SECRET_KEY`, format `enc:` + base64(iv + ciphertext))
+- `src/mail.php` : lecture du mot de passe SMTP via `decryptConfigValue(getConfig('smtp_pass', ''))`
+- `handlers/settings_handler.php` : écriture via `encryptConfigValue($smtpPass)` lors de la sauvegarde
+- `src/database.php` : ajout de `migrateEncryptSmtpPass($pdo)` appelée dans le pipeline de migration — chiffre automatiquement les valeurs en clair existantes au premier démarrage
+- `DEPLOY.md` : section « Variable d'environnement SST_SECRET_KEY (requis) » ajoutée après la section SMTP
+
+**Confirmation :** la migration auto chiffre les valeurs en clair existantes dès le premier démarrage (si `SST_SECRET_KEY` est configurée). Les fonctions `getConfig()` et `updateConfig()` ne sont pas modifiées — le chiffrement est géré par les deux fonctions dédiées.

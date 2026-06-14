@@ -494,7 +494,9 @@ function migrateConfigKeys(PDO $pdo): void {
         'app_report_visibility_dgi' => ['', 'text', 'app', 'Visibilité des signalements DGI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1],
         'app_retention_years' => ['0', 'number', 'app', 'Durée de conservation des signalements traités/abandonnés (en années). 0 = désactivé (conservation illimitée). Doit être fixé après validation du DPO.', 1],
         'app_dpo_contact' => ['', 'text', 'app', 'Coordonnées du Délégué à la Protection des Données (DPO) — affichées dans la mention RGPD du préambule. Ex : dpo@dreets-bfc.gouv.fr', 1],
-        'app_alert_delay_days' => ['0', 'number', 'app', 'Délai d\'alerte en jours pour les signalements restés à l\'état « Nouveau ». 0 = désactivé. Si > 0, un e-mail est envoyé aux superviseurs du site lorsqu\'un signalement dépasse ce délai (via tools/check_delays.php en CRON).', 1],
+        'app_alert_delay_days' => ['0', 'number', 'app', 'Délai d\'alerte en jours pour les signalements restés à l\'état « Nouveau ». 0 = désactivé. Si > 0, un e-mail est envoyé aux superviseurs du site lorsqu\'un signalement dépasse ce délai (via lazy cron au login).', 1],
+        'last_lazy_cron_check_delays' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron check_delays. Ne pas modifier manuellement.', 0],
+        'last_lazy_cron_anonymize' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron anonymize. Ne pas modifier manuellement.', 0],
     ];
 
     foreach ($newKeys as $cle => $data) {

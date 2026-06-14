@@ -519,16 +519,12 @@ L'application dispose d'un mécanisme d'anonymisation des signalements anciens, 
 
 > ⚠️ **Important** : la durée de conservation doit être validée par le DPO de la DREETS avant d'activer ce mécanisme. La valeur doit être cohérente avec les durées habituelles des registres SST/RH.
 
-Pour exécuter l'anonymisation manuellement :
+**Exécution automatique (lazy cron)** : l'anonymisation s'exécute automatiquement via le mécanisme de lazy cron au login d'un utilisateur (toutes les 7 jours minimum, voir `src/cron.php`). Aucune tâche planifiée système n'est nécessaire.
+
+Pour une exécution manuelle (dry-run ou test) :
 
 ```cmd
 cd C:\inetpub\sst
 php tools\anonymize_old_reports.php          # Exécution réelle
 php tools\anonymize_old_reports.php --dry-run # Aperçu sans modification
-```
-
-Pour une exécution planifiée (mensuelle par exemple) :
-
-```cmd
-schtasks /create /tn "SST-Anonymize" /tr "php C:\inetpub\sst\tools\anonymize_old_reports.php" /sc monthly /d 1 /st 03:00 /ru SYSTEM
 ```

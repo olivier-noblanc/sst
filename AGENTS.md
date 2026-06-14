@@ -24,8 +24,9 @@
 
 ### Structure du dépôt
 - `docs/screenshots/` : captures HTML + CAPTURES.md
-- `tools/` : scripts CLI (anonymize_old_reports.php, check_delays.php, backup_sst_db.ps1)
-- `src/` : logique métier (queries, auth, mail, helpers, database, audit, config)
+- `tools/` : scripts CLI manuels (anonymize_old_reports.php, check_delays.php, backup_sst_db.ps1)
+- `src/` : logique métier (queries, auth, mail, helpers, database, audit, config, cron)
+- `src/cron.php` : lazy cron — tâches de maintenance déclenchées au login (check_delays + anonymize). Pas de cron système.
 - `pages/` : pages PHP rendues côté serveur
 - `handlers/` : handlers POST (création, édition, réponse, export)
 - `templates/` : composants réutilisables (header, footer, form, etc.)

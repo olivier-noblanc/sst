@@ -73,6 +73,14 @@ if (!isset($_SESSION['user'])) {
     $autoUser = getAuthenticatedUser();
     if ($autoUser) {
         $_SESSION['user'] = $autoUser;
+
+        // Lazy cron: trigger maintenance tasks on login (no system cron)
+        require_once __DIR__ . '/../src/cron.php';
+        try {
+            runLazyCron(getDB());
+        } catch (Exception $e) {
+            error_log('[SST-CRON] Lazy cron failed on IIS auto-auth: ' . $e->getMessage());
+        }
     }
 }
 

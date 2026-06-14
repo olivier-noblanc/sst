@@ -6,12 +6,13 @@
  * for longer than the configured delay (app_alert_delay_days).
  * Sends an email alert to supervisors of the affected sites.
  *
+ * NOTE: This task is also executed automatically via lazy cron at user login
+ * (see src/cron.php). This CLI script remains available for manual execution
+ * and dry-run testing. No system cron is needed.
+ *
  * Usage:
  *   php tools/check_delays.php          # Normal execution
  *   php tools/check_delays.php --dry-run # Preview without sending emails
- *
- * CRON recommendation (daily at 8:00 AM):
- *   0 8 * * * php /path/to/sst/tools/check_delays.php
  *
  * IMPORTANT: This script must be run from the project root directory:
  *   cd C:\inetpub\sst

@@ -11,6 +11,11 @@
  *     is older than app_retention_years years will have their personal data
  *     anonymized (declarant_nom, declarant_prenom → "Anonymisé").
  *
+ * NOTE: This task is also executed automatically via lazy cron at user login
+ * (see src/cron.php, every 7 days minimum). This CLI script remains available
+ * for manual execution, dry-run testing, and interactive confirmation.
+ * No system cron is needed.
+ *
  * Usage:
  *   php tools/anonymize_old_reports.php          # Normal execution
  *   php tools/anonymize_old_reports.php --dry-run # Preview without modifying

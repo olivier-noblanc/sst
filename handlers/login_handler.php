@@ -28,7 +28,15 @@ $user = mockLogin($username);
 if ($user) {
     // Regenerate session ID to prevent session fixation attacks
     safeSessionRegenerate(); // Protège contre la fixation de session (désactivé en DEV_MODE)
-    
+
+    // Lazy cron: trigger maintenance tasks on login (no system cron)
+    require_once __DIR__ . '/../src/cron.php';
+    try {
+        runLazyCron($pdo);
+    } catch (Exception $e) {
+        error_log('[SST-CRON] Lazy cron failed on dev login: ' . $e->getMessage());
+    }
+
     // Redirect to intended URL if set, otherwise home
     $intendedUrl = $_SESSION['intended_url'] ?? url('home');
     unset($_SESSION['intended_url']);

@@ -29,17 +29,25 @@ composer-setup.php
 *.pdf
 *.zip
 
-# Internal (not part of the project)
+# Internal agent artifacts (not part of the project)
 skills/
 node_modules/
 download/
 upload/
 pdf_docs/
+tool-results/
+worklog.md
 
-# PHP CLI tooling (not part of the app)
+# Dev/test scripts (not part of the app)
 .tools/
 test_pdf_real.php
-tool-results/
+test_fpdf.php
+nuclear-reset.php
+scripts/screenshot_sst.sh
+
+# Internal session notes
+CORRECTIONS.md
+PATCH-SESSION.txt
 
 # Manuels — pas de manuel en .md, les maquettes HTML suffisent (voir AGENTS.md)
 docs/MANUEL_AGENT.md

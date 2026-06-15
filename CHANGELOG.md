@@ -11,6 +11,7 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **2** 🟢 **Captures d'écran PNG annotées dans `docs/screenshots/`** — 23 fichiers PNG avec annotations (badges numérotés, flèches, descriptions) pour chaque page de l'application. Scripts de génération : `tools/capture_screenshots.py` (Playwright) et `tools/annotate_screenshots.py` (Pillow). Copie automatisée dans `update_sst.ps1` (étape 2/5).
 - **3** 🟡 **`update_sst.bat` supprimé** — Remplacé par `update_sst.ps1` (plus robuste, inclut la copie des screenshots PNG, détection auto de la branche main/master). Les fichiers `*.bat` sont dans `.gitignore`.
 - **4** 🟡 **`update_sst.ps1` amélioré** — Fetch de toutes les branches (`+refs/heads/*`), détection auto de la branche par défaut (main/master), `reset --hard` + `checkout -B` robuste, copie des PNG annotés, nettoyage de l'ancienne branche master.
+- **5** 🟡 **Correction annotations identiques** — Le script `annotate_screenshots.py` générait des annotations identiques sur toutes les images (les clés du dictionnaire `ANNOTATIONS` ne correspondaient pas aux noms de fichiers PNG capturés). Corrigé : chaque screenshot a désormais ses propres callouts numérotés avec descriptions spécifiques.
 
 ---
 

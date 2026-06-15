@@ -10,7 +10,7 @@
 $pageTitle = 'Documentation';
 $userRole = $_SESSION['user']['role'] ?? 'agent';
 $labelUnite = e(getConfig('app_label_unite', 'UR'));
-$screenshotBase = 'screenshots';
+$screenshotBase = 'asset.php?f=screenshots';
 ?>
 
 <h1 class="page-title">Documentation</h1>
@@ -576,6 +576,7 @@ $screenshotBase = 'screenshots';
 function helpScreenshot(string $src, string $alt): string {
     $id = 'ss-' . substr(md5($src), 0, 8);
     // Convert .html extension to .png for image path
+    // Serve via asset.php (IIS Windows Auth blocks direct static file access)
     $imgSrc = preg_replace('/\.html$/', '.png', $src);
     return <<<HTML
     <div class="help-screenshot-block" id="{$id}">

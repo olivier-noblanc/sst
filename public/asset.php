@@ -80,7 +80,7 @@ if (!isset($allowedExtensions[$ext])) {
 }
 
 // === Security: whitelisted directories ===
-$allowedDirs = ['css/', 'img/', 'fonts/', 'js/', ''];
+$allowedDirs = ['css/', 'img/', 'fonts/', 'js/', 'screenshots/', ''];
 $dirAllowed = false;
 foreach ($allowedDirs as $dir) {
     if ($dir === '' && !str_contains($file, '/')) {

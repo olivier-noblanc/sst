@@ -86,13 +86,13 @@ $submitBtnClass = $isEdit
             </div>
 
             <div class="form-group">
-                <label for="lieu">Lieu</label>
+                <label for="lieu"><?php echo $type === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></label>
                 <input type="text" id="lieu" name="lieu"
                        value="<?php echo e($val('lieu')); ?>"
                        maxlength="200"
-                       placeholder="Ex: Bureau 204, UR25"
+                       placeholder="<?php echo $type === 'dgi' ? 'Ex: Bureau 204, mise en place de signalisation' : 'Ex: Bureau 204, UR25'; ?>"
                        aria-describedby="hint_lieu">
-                <span class="form-hint" id="hint_lieu">200 caractères max.</span>
+                <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo $type === 'dgi' ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
             </div>
 
             <div class="form-group">

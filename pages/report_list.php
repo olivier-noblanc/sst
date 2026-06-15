@@ -65,7 +65,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 ?>
 
 <h1 class="page-title">
-    Liste des fiches du registre <?php echo e(REGISTRY_LABELS[$type] ?? strtoupper($type)); ?>
+    Liste des fiches — <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?>
     <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 

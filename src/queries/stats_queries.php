@@ -102,14 +102,14 @@ function getExportData(PDO $pdo, array $filters = []): array {
 }
 
 /**
- * Get KPI statistics for the statistics page.
+ * Get indicateurs statistics for the statistics page.
  * 
  * @param PDO    $pdo     Database connection
  * @param string $year    Year filter
  * @param int    $siteId  Optional site filter
  * @return array
  */
-function getStatisticsKPIs(PDO $pdo, string $year = '', int $siteId = 0): array {
+function getStatisticsIndicateurs(PDO $pdo, string $year = '', int $siteId = 0): array {
     $params = [];
 
     $sql = "

@@ -2,7 +2,7 @@
 /**
  * Statistics Page — Application SST DREETS BFC
  * 
- * KPI dashboard with cards and table by site.
+ * Tableau de bord avec cartes indicateurs et répartition par site.
  * Access: superviseur, chsct
  */
 requireRole(['superviseur', 'chsct']);
@@ -19,8 +19,8 @@ if (empty($availableYears)) {
     $availableYears = [date('Y')];
 }
 
-// Get KPIs
-$kpis = getStatisticsKPIs($pdo, $year);
+// Get indicateurs
+$indicateurs = getStatisticsIndicateurs($pdo, $year);
 
 // Get stats by site
 $statsBySite = getStatsBySite($pdo, $year);
@@ -109,28 +109,28 @@ $pageTitle = 'Statistiques';
     </div>
 </form>
 
-<!-- KPI Cards -->
-<div class="kpi-grid">
-    <div class="kpi-card">
-        <div class="kpi-card__value"><?php echo $totalUsers; ?></div>
-        <div class="kpi-card__label">Nombre d'inscrits</div>
+<!-- Cartes indicateurs -->
+<div class="indicateur-grid">
+    <div class="indicateur-card">
+        <div class="indicateur-card__value"><?php echo $totalUsers; ?></div>
+        <div class="indicateur-card__label">Nombre d'inscrits</div>
     </div>
-    <div class="kpi-card">
-        <div class="kpi-card__value"><?php echo $kpis['total_reports']; ?></div>
-        <div class="kpi-card__label">Total signalements</div>
-        <div class="kpi-card__detail"><?php echo $kpis['total_nouveau']; ?> nouveaux · <?php echo $kpis['total_en_cours']; ?> en cours · <?php echo $kpis['total_traite']; ?> traités</div>
+    <div class="indicateur-card">
+        <div class="indicateur-card__value"><?php echo $indicateurs['total_reports']; ?></div>
+        <div class="indicateur-card__label">Total signalements</div>
+        <div class="indicateur-card__detail"><?php echo $indicateurs['total_nouveau']; ?> nouveaux · <?php echo $indicateurs['total_en_cours']; ?> en cours · <?php echo $indicateurs['total_traite']; ?> traités</div>
     </div>
-    <div class="kpi-card kpi-card--rsst">
-        <div class="kpi-card__value"><?php echo $kpis['total_rsst']; ?></div>
-        <div class="kpi-card__label">Signalements RSST</div>
+    <div class="indicateur-card indicateur-card--rsst">
+        <div class="indicateur-card__value"><?php echo $indicateurs['total_rsst']; ?></div>
+        <div class="indicateur-card__label">Signalements RSST</div>
     </div>
-    <div class="kpi-card kpi-card--dgi">
-        <div class="kpi-card__value"><?php echo $kpis['total_dgi']; ?></div>
-        <div class="kpi-card__label">Signalements DGI</div>
+    <div class="indicateur-card indicateur-card--dgi">
+        <div class="indicateur-card__value"><?php echo $indicateurs['total_dgi']; ?></div>
+        <div class="indicateur-card__label">Signalements DGI</div>
     </div>
-    <div class="kpi-card kpi-card--rami">
-        <div class="kpi-card__value"><?php echo $kpis['total_rami']; ?></div>
-        <div class="kpi-card__label">Signalements RAMI</div>
+    <div class="indicateur-card indicateur-card--rami">
+        <div class="indicateur-card__value"><?php echo $indicateurs['total_rami']; ?></div>
+        <div class="indicateur-card__label">Signalements RAMI</div>
     </div>
 </div>
 

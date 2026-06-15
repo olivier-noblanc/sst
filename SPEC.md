@@ -153,7 +153,7 @@ sst-app/
 │   ├── report_respond.php               # Répondre à un signalement (superviseur uniquement)
 │   ├── synthesis.php                    # Synthèse croisée des signalements
 │   ├── export.php                       # Export CSV avec filtres
-│   ├── statistics.php                   # Statistiques et KPI
+│   ├── statistics.php                   # Statistiques et indicateurs
 │   ├── settings.php                     # Paramètres : notifications, SMTP, application, gestion des sites
 │   ├── users.php                        # Gestion des utilisateurs (liste + inscription)
 │   ├── user_edit.php                    # Édition d'un utilisateur
@@ -909,7 +909,7 @@ Bouton : « Exporter en CSV »
 #### Affichage
 - Titre : « Statistiques »
 - Filtres : Année + Site
-- Cartes KPI : total signalements, nouveaux, en cours, traités, abandonnés, par registre
+- Cartes indicateurs : total signalements, nouveaux, en cours, traités, abandonnés, par registre
 - Tableau par site : Site | Total | Nouveau | En cours | Traité | Abandonné | RSST | RAMI | DGI
 
 ---
@@ -1387,7 +1387,7 @@ Pas de fonctions. Définit les constantes et tableaux :
 |----------|-----------|-------------|
 | `getSynthesisData` | `(PDO $pdo, string $year, int $siteId): array` | Données de synthèse par site/registre/état |
 | `getExportData` | `(PDO $pdo, array $filters): array` | Données pour export CSV avec filtres dynamiques |
-| `getStatisticsKPIs` | `(PDO $pdo, string $year, int $siteId): array` | KPI statistiques globaux |
+| `getStatisticsIndicateurs` | `(PDO $pdo, string $year, int $siteId): array` | Indicateurs statistiques globaux |
 | `getStatsBySite` | `(PDO $pdo, string $year, int $siteId): array` | Statistiques par site |
 | `countReportsByRegistryAndSite` | `(PDO $pdo, string $type, int $siteId): int` | Comptage par registre et site |
 | `getAvailableYears` | `(PDO $pdo): array` | Années disponibles dans les signalements |

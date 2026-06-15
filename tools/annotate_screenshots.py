@@ -189,9 +189,9 @@ ELEMENT_ANNOTATIONS = {
     ],
     "cu6-statistiques.html": [
         (".filter-bar", "Filtres période"),
-        (".kpi-card--rsst", "KPI RSST"),
-        (".kpi-card--rami", "KPI RAMI"),
-        (".kpi-card--dgi", "KPI DGI"),
+        (".indicateur-card--rsst", "Indicateur RSST"),
+        (".indicateur-card--rami", "Indicateur RAMI"),
+        (".indicateur-card--dgi", "Indicateur DGI"),
     ],
     "cu7-synthese.html": [
         (".filter-bar", "Filtres"),

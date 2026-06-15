@@ -6,6 +6,7 @@
  * Access: superviseur only (admin tool)
  */
 requireRole(['superviseur']);
+require_once __DIR__ . '/../src/audit.php';
 
 $activeTab = $_GET['tab'] ?? 'errors';
 

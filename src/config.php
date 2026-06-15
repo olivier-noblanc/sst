@@ -10,7 +10,8 @@ define('APP_NAME', 'Application SST — DREETS BFC');
 // APP_VERSION is the FALLBACK version — the real version is read from CHANGELOG.md by getAppVersion().
 // This constant is only used if the changelog file is unreadable.
 // To change the displayed version, add a new entry at the top of CHANGELOG.md.
-define('APP_VERSION', '3.10.0');
+// IMPORTANT: Keep this in sync with the latest CHANGELOG.md entry as a safety net.
+define('APP_VERSION', '3.13.0');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
 // Environment configuration:

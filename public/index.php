@@ -316,7 +316,7 @@ $pageTitle = match($page) {
     'site_edit'       => 'Éditer le site',
     'access_denied'   => 'Accès refusé',
     'user_create'     => 'Créer un utilisateur',
-    'logs'            => 'Journal d\'erreurs',
+    'logs'            => 'Journal',
     default           => 'Accueil',
 };
 

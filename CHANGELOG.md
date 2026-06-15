@@ -3,6 +3,16 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.13.0] — 2026-06-15
+
+### Correction — getVersion robustesse multi-chemins + Changelog diagnostic + Audit log require manquant
+
+- **1** 🔴 **Robustesse de `getAppVersion()` — résolution multi-chemins** — La fonction `getAppVersion()` tentait un seul chemin (`dirname(__DIR__) . '/CHANGELOG.md'`) pour localiser le changelog. En cas d'échec (chemin non résolu, permissions IIS, symlinks), elle tombait silencieusement sur le fallback `APP_VERSION` qui pouvait être périmé. Désormais, la fonction essaie plusieurs stratégies de résolution dans l'ordre : (1) constante `CHANGELOG_PATH` si définie, (2) `dirname(__DIR__)` (standard), (3) `__DIR__ . '/..'` (alternative), (4) `$_SERVER['DOCUMENT_ROOT']` (IIS), (5) `$_SERVER['SCRIPT_FILENAME']` (point d'entrée). Chaque candidat est normalisé via `realpath()` avant vérification `is_readable()`. La constante `APP_VERSION` a été synchronisée à `3.12.0` pour que le fallback reste cohérent.
+- **2** 🔴 **Page Changelog — diagnostic en mode dev** — La page `changelog.php` utilisait un seul chemin fixe et affichait seulement « fichier introuvable » en cas d'échec, sans aide au diagnostic. Améliorations : (a) même stratégie multi-chemins que `getAppVersion()`, (b) détection d'erreur Parsedown (bibliothèque absente, rendu vide, erreur de lecture), (c) en mode dev, affichage détaillé des chemins testés et de leur accessibilité dans un `<details>` dépliable.
+- **3** 🔴 **Journal d'audit — `require_once` manquant** — La page `pages/logs.php` appelait `getAuditLog()` sans charger `src/audit.php`, provoquant une erreur fatale « Call to undefined function » lors de l'accès à l'onglet Journal d'audit. Ajout du `require_once __DIR__ . '/../src/audit.php'` en tête de page.
+
+---
+
 ## [3.12.0] — 2026-06-15
 
 ### Correction — Version automatique depuis le changelog + Menu Incarner illisible + Screenshots CU5 + Journal d'audit

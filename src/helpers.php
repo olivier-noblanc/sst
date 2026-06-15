@@ -393,6 +393,12 @@ function clearConfigCache(): void {
  * Parses the first "## [x.y.z]" heading to extract the version number.
  * Falls back to the APP_VERSION constant if the changelog is unreadable.
  * The version is NEVER stored in the database — it is derived from the changelog.
+ *
+ * Path resolution tries multiple locations in order:
+ *   1. CHANGELOG_PATH constant (if defined — e.g. in config.php)
+ *   2. dirname(__DIR__) . '/CHANGELOG.md'  (project root relative to src/)
+ *   3. __DIR__ . '/../CHANGELOG.md'         (alternative relative path)
+ *   4. $_SERVER['DOCUMENT_ROOT'] fallback   (IIS: resolves from web root)
  */
 function getAppVersion(): string {
     static $cached = null;
@@ -400,19 +406,43 @@ function getAppVersion(): string {
         return $cached;
     }
 
-    $changelogPath = defined('CHANGELOG_PATH')
-        ? CHANGELOG_PATH
-        : dirname(__DIR__) . '/CHANGELOG.md';
+    // Try multiple path resolution strategies for robustness across deployments
+    $candidatePaths = [];
 
-    if (is_readable($changelogPath)) {
-        $content = file_get_contents($changelogPath);
-        if ($content && preg_match('/^##\s*\[(\d+\.\d+\.\d+)\]/m', $content, $m)) {
-            $cached = $m[1];
-            return $cached;
+    // 1. Explicit override via constant
+    if (defined('CHANGELOG_PATH')) {
+        $candidatePaths[] = CHANGELOG_PATH;
+    }
+
+    // 2. Relative to src/ directory (standard: dirname(__DIR__) = project root)
+    $candidatePaths[] = dirname(__DIR__) . '/CHANGELOG.md';
+
+    // 3. Alternative: two levels up from src/ (handles edge cases with symlinks)
+    $candidatePaths[] = __DIR__ . '/../CHANGELOG.md';
+
+    // 4. IIS: resolve from document root (public/) going one level up
+    if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+        $candidatePaths[] = rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . '/../CHANGELOG.md';
+    }
+
+    // 5. Entry point directory (where index.php lives) going one level up
+    if (!empty($_SERVER['SCRIPT_FILENAME'])) {
+        $candidatePaths[] = dirname(dirname($_SERVER['SCRIPT_FILENAME'])) . '/CHANGELOG.md';
+    }
+
+    foreach ($candidatePaths as $path) {
+        // Normalize path (handles /../ and backslashes on Windows)
+        $path = realpath($path) ?: $path;
+        if (is_readable($path)) {
+            $content = file_get_contents($path);
+            if ($content && preg_match('/^##\s*\[(\d+\.\d+\.\d+)\]/m', $content, $m)) {
+                $cached = $m[1];
+                return $cached;
+            }
         }
     }
 
-    // Fallback: constant from config.php
+    // Fallback: constant from config.php (keep in sync with CHANGELOG.md)
     $cached = defined('APP_VERSION') ? APP_VERSION : '0';
     return $cached;
 }

@@ -21,6 +21,9 @@
 .DS_Store
 Thumbs.db
 
+# Batch files (replaced by .ps1)
+*.bat
+
 # PHP
 composer.phar
 composer-setup.php

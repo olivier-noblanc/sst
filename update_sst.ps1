@@ -4,8 +4,9 @@
 # Ce script effectue :
 #   1. Vérification des prérequis (Git, PHP)
 #   2. Git pull (via proxy Kerberos)
-#   3. Création des dossiers + permissions IIS
-#   4. Redémarrage IIS
+#   3. Copie des captures d'écran (docs/screenshots/ → public/screenshots/)
+#   4. Création des dossiers + permissions IIS
+#   5. Redémarrage IIS
 #
 # Note : Plus besoin de Composer — FPDF est inclus directement.
 #
@@ -33,7 +34,7 @@ if (-not $isAdmin) {
 }
 
 # --- Vérifier les prérequis ---
-Write-Host "[0/4] Verification des prerequis..." -ForegroundColor Yellow
+Write-Host "[0/5] Verification des prerequis..." -ForegroundColor Yellow
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Host " ERREUR : Git n'est pas installe ou pas dans le PATH." -ForegroundColor Red
@@ -101,7 +102,27 @@ catch {
 
 # --- 2. Vérification FPDF ---
 Write-Host ""
-Write-Host "[2/4] Verification FPDF..." -ForegroundColor Yellow
+Write-Host "[2/5] Copie des captures d'ecran..." -ForegroundColor Yellow
+
+$srcScreenshots = "$AppDir\docs\screenshots"
+$dstScreenshots = "$AppDir\public\screenshots"
+
+if (Test-Path $srcScreenshots) {
+    if (-not (Test-Path $dstScreenshots)) {
+        New-Item -ItemType Directory -Path $dstScreenshots -Force | Out-Null
+    }
+    # Copier tous les .html (écraser si existant)
+    Copy-Item -Path "$srcScreenshots\*.html" -Destination $dstScreenshots -Force
+    $count = (Get-ChildItem "$dstScreenshots\*.html").Count
+    Write-Host "  OK : $count capture(s) copiee(s) vers public\screenshots\" -ForegroundColor Green
+} else {
+    Write-Host "  AVERTISSEMENT : dossier docs\screenshots\ introuvable" -ForegroundColor DarkYellow
+    Write-Host "  Les captures d'ecran ne seront pas disponibles dans la page Documentation." -ForegroundColor DarkYellow
+}
+
+# --- 3. Vérification FPDF ---
+Write-Host ""
+Write-Host "[3/5] Verification FPDF..." -ForegroundColor Yellow
 
 $fpdfPath = "$AppDir\src\lib\fpdf\fpdf.php"
 $fontPath = "$AppDir\src\lib\fpdf\font\DejaVuSans.json"
@@ -113,9 +134,9 @@ if ((Test-Path $fpdfPath) -and (Test-Path $fontPath)) {
     Write-Host "  Verifiez que src\lib\fpdf\ existe apres le git pull." -ForegroundColor DarkYellow
 }
 
-# --- 3. Création des dossiers + permissions ---
+# --- 4. Création des dossiers + permissions ---
 Write-Host ""
-Write-Host "[3/4] Configuration des dossiers et permissions..." -ForegroundColor Yellow
+Write-Host "[4/5] Configuration des dossiers et permissions..." -ForegroundColor Yellow
 
 $dirsToCreate = @(
     "$AppDir\data"
@@ -138,9 +159,9 @@ $acl.SetAccessRule($rule)
 Set-Acl $aclDir $acl
 Write-Host "  OK : Permissions IIS_IUSRS sur $aclDir" -ForegroundColor Green
 
-# --- 4. Redémarrage IIS ---
+# --- 5. Redémarrage IIS ---
 Write-Host ""
-Write-Host "[4/4] Redemarrage IIS..." -ForegroundColor Yellow
+Write-Host "[5/5] Redemarrage IIS..." -ForegroundColor Yellow
 
 try {
     iisreset /restart 2>&1 | Out-Null

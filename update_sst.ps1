@@ -63,6 +63,8 @@ Write-Host " Detection de la branche par defaut..." -ForegroundColor Yellow
 
 # Récupérer toutes les refs du remote pour détecter la branche par défaut
 # GitHub peut utiliser 'main' ou 'master' selon l'âge du dépôt
+$savedPref = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
 try {
     git fetch origin 2>&1 | Out-Null
 }
@@ -73,13 +75,26 @@ catch {
 $remoteBranch = $null
 
 # Méthode 1 : lire origin/HEAD (symref vers la branche par défaut)
+# Si origin/HEAD n'existe pas, on la crée avec 'git remote set-head --auto'
 $headRef = git symbolic-ref refs/remotes/origin/HEAD 2>$null
 if ($headRef -match 'refs/remotes/origin/(.+)') {
     $remoteBranch = $Matches[1]
     Write-Host "  Branche par defaut (origin/HEAD) : $remoteBranch" -ForegroundColor Green
 }
+if (-not $remoteBranch) {
+    # origin/HEAD n'existe pas (clone --single-branch, ancien clone, etc.)
+    # Créer le symref en demandant à Git de le déduire du remote
+    $setHeadResult = git remote set-head origin --auto 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $headRef = git symbolic-ref refs/remotes/origin/HEAD 2>$null
+        if ($headRef -match 'refs/remotes/origin/(.+)') {
+            $remoteBranch = $Matches[1]
+            Write-Host "  Branche par defaut (set-head --auto) : $remoteBranch" -ForegroundColor Green
+        }
+    }
+}
 
-# Méthode 2 : si origin/HEAD n'existe pas, essayer main puis master
+# Méthode 2 : lister les branches remote et chercher main puis master
 if (-not $remoteBranch) {
     $remoteBranches = git branch -r 2>$null
     if ($remoteBranches -match 'origin/main') {
@@ -100,6 +115,8 @@ if (-not $remoteBranch) {
         Write-Host "  Branche locale utilisee : $remoteBranch" -ForegroundColor DarkYellow
     }
 }
+
+$ErrorActionPreference = $savedPref
 
 if (-not $remoteBranch) {
     Write-Host " ERREUR : Impossible de detecter la branche par defaut." -ForegroundColor Red

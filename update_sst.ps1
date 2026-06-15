@@ -180,9 +180,9 @@ if (Test-Path $srcScreenshots) {
     if (-not (Test-Path $dstScreenshots)) {
         New-Item -ItemType Directory -Path $dstScreenshots -Force | Out-Null
     }
-    # Copier tous les .html (écraser si existant)
-    Copy-Item -Path "$srcScreenshots\*.html" -Destination $dstScreenshots -Force
-    $count = (Get-ChildItem "$dstScreenshots\*.html").Count
+    # Copier tous les .png (captures annotées, écraser si existant)
+    Copy-Item -Path "$srcScreenshots\*.png" -Destination $dstScreenshots -Force
+    $count = (Get-ChildItem "$dstScreenshots\*.png").Count
     Write-Host "  OK : $count capture(s) copiee(s) vers public\screenshots\" -ForegroundColor Green
 } else {
     Write-Host "  AVERTISSEMENT : dossier docs\screenshots\ introuvable" -ForegroundColor DarkYellow

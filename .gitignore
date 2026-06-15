@@ -55,7 +55,7 @@ PATCH-SESSION.txt
 docs/MANUEL_AGENT.md
 docs/MANUEL_SUPERVISEUR.md
 
-# Captures HTML servies (copie de docs/screenshots/, régénérées par render_page.php)
+# Captures PNG servies (copie de docs/screenshots/, régénérées par capture_screenshots.py)
 public/screenshots/
 
 # PHP CLI render tool (dev only, not part of the app)

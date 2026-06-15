@@ -3,7 +3,8 @@
  * Help / Documentation Page — Application SST DREETS BFC
  * 
  * Refonte complète de la documentation intégrée.
- * Captures d'écran HTML réelles de l'application.
+ * Captures d'écran PNG annotées (flèches + labels numérotés).
+ * Imprimables, sans iframe — compatibles CSP frame-ancestors 'none'.
  * Navigation par ancres — contenu toujours visible, rien de pliable.
  */
 $pageTitle = 'Documentation';
@@ -569,15 +570,18 @@ $screenshotBase = 'screenshots';
 <?php
 /**
  * Generate a visible screenshot block (no collapsible details).
- * Renders the iframe directly — always visible, never folded.
+ * Renders an annotated PNG image — always visible, never folded, printable.
+ * Converts .html source path to .png automatically.
  */
 function helpScreenshot(string $src, string $alt): string {
     $id = 'ss-' . substr(md5($src), 0, 8);
+    // Convert .html extension to .png for image path
+    $imgSrc = preg_replace('/\.html$/', '.png', $src);
     return <<<HTML
     <div class="help-screenshot-block" id="{$id}">
         <p class="help-screenshot-label">{$alt}</p>
         <div class="help-screenshot-wrapper">
-            <iframe src="{$src}" class="help-screenshot-iframe" title="{$alt}" loading="lazy" sandbox="allow-same-origin"></iframe>
+            <img src="{$imgSrc}" alt="{$alt}" class="help-screenshot-img" loading="lazy" />
         </div>
     </div>
     HTML;

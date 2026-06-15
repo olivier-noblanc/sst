@@ -7,9 +7,10 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 ### Correction — CSP frame-ancestors bloque les iframes de la page d'aide
 
-- **1** 🔴 **CSP `frame-ancestors 'none'` → `'self'`** — La directive `frame-ancestors 'none'` dans la CSP bloquait l'affichage des captures d'écran HTML dans la page Documentation (help.php). Les `<iframe>` contenant les screenshots retournaient une erreur "CSP blocked frame ancestors". Correction : `frame-ancestors 'self'` dans `templates/header.php`, `pages/login.php`, `pages/choose_site.php` et `public/web.config`. Le framing same-origin est autorisé (nécessaire pour les iframes de help.php), le framing cross-origin reste bloqué (protection anti-clickjacking conservée).
-- **2** 🟢 **Captures d'écran servies dans `public/screenshots/`** — Les 23 fichiers HTML de captures d'écran (de `docs/screenshots/`) sont copiés dans `public/screenshots/` pour être servis par le serveur web. Ce répertoire est dans `.gitignore` (régénéré par `render_page.php`). La copie est automatisée dans `update_sst.ps1` (étape 3).
-- **3** 🟡 **`update_sst.bat` supprimé** — Remplacé par `update_sst.ps1` (plus robuste, inclut la copie des screenshots). Les fichiers `*.bat` sont dans `.gitignore`.
+- **1** 🔴 **CSP `frame-ancestors 'none'` conservé — iframes remplacées par images PNG annotées** — La page Documentation (`help.php`) n'utilise plus d'`<iframe>` pour afficher les captures d'écran. Les 23 captures HTML ont été converties en images PNG annotées (numérotation + flèches + descriptions) via Playwright + Pillow. Avantages : imprimables, compatibles `frame-ancestors 'none'` (sécurité maximale anti-clickjacking), pas de problème CSP.
+- **2** 🟢 **Captures d'écran PNG annotées dans `docs/screenshots/`** — 23 fichiers PNG avec annotations (badges numérotés, flèches, descriptions) pour chaque page de l'application. Scripts de génération : `tools/capture_screenshots.py` (Playwright) et `tools/annotate_screenshots.py` (Pillow). Copie automatisée dans `update_sst.ps1` (étape 2/5).
+- **3** 🟡 **`update_sst.bat` supprimé** — Remplacé par `update_sst.ps1` (plus robuste, inclut la copie des screenshots PNG, détection auto de la branche main/master). Les fichiers `*.bat` sont dans `.gitignore`.
+- **4** 🟡 **`update_sst.ps1` amélioré** — Fetch de toutes les branches (`+refs/heads/*`), détection auto de la branche par défaut (main/master), `reset --hard` + `checkout -B` robuste, copie des PNG annotés, nettoyage de l'ancienne branche master.
 
 ---
 

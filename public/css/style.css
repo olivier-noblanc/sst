@@ -862,6 +862,19 @@ img { max-width: 100%; height: auto; display: block; }
     box-shadow: 0 0 0 2px rgba(0,86,163,0.2);
 }
 
+.form-control-readonly {
+    display: inline-block;
+    padding: 8px 12px;
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    font-family: var(--font-family);
+    font-weight: 600;
+    background: var(--grey-100);
+    color: var(--grey-700);
+    letter-spacing: 0.5px;
+}
+
 .form-hint {
     font-size: 12px;
     color: var(--grey-500);

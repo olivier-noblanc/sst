@@ -242,14 +242,13 @@ catch {
 
 # --- Version déployée ---
 Write-Host ""
-# Try reading version from SQLite database (authoritative source)
-$dbFile = "$AppDir\data\sst.db"
+# Read version from CHANGELOG.md (authoritative source — matches what PHP shows)
+$changelogFile = "$AppDir\CHANGELOG.md"
 $version = $null
-if (Test-Path $dbFile) {
-    try {
-        $version = & sqlite3 $dbFile "SELECT valeur FROM config_app WHERE cle = 'app_version';" 2>$null
-    } catch {
-        # sqlite3 not available — fall back to config.php
+if (Test-Path $changelogFile) {
+    $match = Select-String -Path $changelogFile -Pattern '^##\s*\[(\d+\.\d+\.\d+)\]' | Select-Object -First 1
+    if ($match) {
+        $version = $match.Matches[0].Groups[1].Value
     }
 }
 # Fallback: read from config.php (the hardcoded fallback constant)

@@ -389,16 +389,32 @@ function clearConfigCache(): void {
 }
 
 /**
- * Get the application version from the database (config_app table).
- * Falls back to the APP_VERSION constant if the DB is unreachable or the key is empty.
- * This is the canonical way to read the version — APP_VERSION is only a fallback.
+ * Get the application version from the first entry in CHANGELOG.md.
+ * Parses the first "## [x.y.z]" heading to extract the version number.
+ * Falls back to the APP_VERSION constant if the changelog is unreadable.
+ * The version is NEVER stored in the database — it is derived from the changelog.
  */
 function getAppVersion(): string {
-    $dbVersion = getConfig('app_version', '');
-    if ($dbVersion !== '') {
-        return $dbVersion;
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
     }
-    return defined('APP_VERSION') ? APP_VERSION : '0';
+
+    $changelogPath = defined('CHANGELOG_PATH')
+        ? CHANGELOG_PATH
+        : dirname(__DIR__) . '/CHANGELOG.md';
+
+    if (is_readable($changelogPath)) {
+        $content = file_get_contents($changelogPath);
+        if ($content && preg_match('/^##\s*\[(\d+\.\d+\.\d+)\]/m', $content, $m)) {
+            $cached = $m[1];
+            return $cached;
+        }
+    }
+
+    // Fallback: constant from config.php
+    $cached = defined('APP_VERSION') ? APP_VERSION : '0';
+    return $cached;
 }
 
 /**

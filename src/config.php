@@ -7,9 +7,9 @@
 
 // Application metadata
 define('APP_NAME', 'Application SST — DREETS BFC');
-// APP_VERSION is the FALLBACK version — the real version is stored in config_app (DB).
-// The function getAppVersion() returns the DB value, or this constant if the DB is unreachable.
-// To change the displayed version, update it via Paramètres → Application (not here).
+// APP_VERSION is the FALLBACK version — the real version is read from CHANGELOG.md by getAppVersion().
+// This constant is only used if the changelog file is unreadable.
+// To change the displayed version, add a new entry at the top of CHANGELOG.md.
 define('APP_VERSION', '3.10.0');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 

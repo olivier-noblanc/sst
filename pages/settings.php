@@ -224,15 +224,11 @@ $pageTitle = 'Paramètres';
         <p class="text-muted text-small mb-5">Configurez les paramètres généraux de l'application.</p>
 
         <div class="form-group">
-            <label for="app_version">Version de l'application</label>
-            <input type="text" id="app_version" name="app_version" class="form-control"
-                   value="<?php echo e(getAppVersion()); ?>"
-                   placeholder="3.10.0" pattern="[0-9]+\.[0-9]+\.[0-9]+"
-                   aria-describedby="hint_app_version">
+            <label>Version de l'application</label>
+            <div class="form-control-readonly"><?php echo e(getAppVersion()); ?></div>
             <small class="text-muted block mt-1" id="hint_app_version">
-                Format semver (ex: 3.10.0). Cette version est affichée dans le pied de page et utilisée pour
-                le cache-busting des assets CSS/JS. Modifiez-la après chaque déploiement pour forcer
-                les navigateurs à recharger les ressources.
+                La version est lue automatiquement depuis le fichier CHANGELOG.md. 
+                Pour la modifier, mettez à jour la première entrée du changelog.
             </small>
         </div>
 

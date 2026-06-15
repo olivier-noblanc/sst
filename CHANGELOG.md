@@ -3,6 +3,16 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.12.0] — 2026-06-15
+
+### Correction — Version automatique depuis le changelog + Menu Incarner illisible + Screenshots CU5
+
+- **1** 🔴 **Version de l'application lue automatiquement depuis CHANGELOG.md** — La version n'est plus modifiable manuellement dans Paramètres → Application. Elle est désormais déduite automatiquement de la première entrée `## [x.y.z]` du fichier `CHANGELOG.md` via la fonction `getAppVersion()`. Cela garantit que la version affichée est toujours en concordance avec le changelog. La clé `app_version` a été retirée de la base de données et du formulaire de paramètres (affichage en lecture seule). La constante `APP_VERSION` dans `config.php` reste un fallback si le changelog est illisible.
+- **2** 🔴 **Menu « Incarner » illisible** — Le menu déroulant d'incarnation de rôle affichait du texte blanc sur fond blanc car la variable CSS `--color-text` n'existait pas. Corrigé : `color: var(--grey-900)`, fond de survol `var(--grey-100)`, couleur de hover `var(--color-primary)`. Les emojis Unicode ont été remplacés par des caractères fiables sur Windows.
+- **3** 🔴 **Réorganisation des captures d'écran CU5** — Les screenshots préfixés `cu5-*` étaient utilisés dans plusieurs sections sans rapport avec le cas d'usage CU5. Renommage : `cu5-liste-signalements` → `consultation-liste-signalements`, `cu5-voir-signalement` → `consultation-voir-rsst`, `cu5-voir-rami` → `consultation-voir-rami`, `cu5-voir-dgi` → `consultation-voir-dgi`, `cu5-repondre-signalement` → `cu4-repondre-signalement`, `cu5-modifier-signalement` → `cu4-modifier-signalement`. Ajout des captures RAMI/DGI dans la section Cycle de vie et des captures répondre/modifier dans CU4.
+
+---
+
 ## [3.11.0] — 2026-06-15
 
 ### Fonctionnalité — Version pilotée par la base de données + Incarnation de rôle + Corrections

@@ -61,3 +61,8 @@ public/screenshots/
 # PHP CLI render tool (dev only, not part of the app)
 render_page.php
 sst_init.php
+
+# Node.js / Playwright
+node_modules/
+test-results/
+playwright-report/

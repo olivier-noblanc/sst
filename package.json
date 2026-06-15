@@ -1,0 +1,30 @@
+{
+  "name": "sst",
+  "version": "1.0.0",
+  "description": "Plateforme des Registres en Santé et Sécurité au Travail",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "test:debug": "npx playwright test --debug"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://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@github.com/olivier-noblanc/sst.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/olivier-noblanc/sst/issues"
+  },
+  "homepage": "https://github.com/olivier-noblanc/sst#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.61.0"
+  }
+}

@@ -2624,3 +2624,138 @@ tr:hover td {
     </div>
 </nav>
 <span id="top" tabindex="-1"></span><main id="main-content" class="main" role="main">
+<h1 class="page-title">Modifier le signalement — <span class="badge badge--rsst">rsst-26-001</span></h1>
+
+<nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <a href="index.php?page=home" class="breadcrumb__item">Accueil</a>
+    <span class="breadcrumb__separator">/</span>
+    <a href="index.php?page=report_list&type=rsst" class="breadcrumb__item">RSST</a>
+    <span class="breadcrumb__separator">/</span>
+    <a href="index.php?page=report_view&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="breadcrumb__item">rsst-26-001</a>
+    <span class="breadcrumb__separator">/</span>
+    <span class="breadcrumb__current">Modifier</span>
+</nav>
+
+<div class="card card--rsst">
+    <h3 class="card__title">Modifier le signalement</h3>
+    <form method="POST" action="index.php?page=report_edit&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" enctype="multipart/form-data" novalidate>
+        <input type="hidden" name="csrf_token" value="REDACTED">
+        <input type="hidden" name="report_uuid" value="a1b2c3d4-e5f6-7890-abcd-ef0123456789">
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="date_evenement">Date de l'événement <span class="required">*</span></label>
+                <input type="date" id="date_evenement" name="date_evenement"
+                       value="2026-02-15"
+                       required max="2026-06-14">
+            </div>
+
+            <div class="form-group">
+                <label for="heure_evenement">Heure de l'événement</label>
+                <input type="time" id="heure_evenement" name="heure_evenement"
+                       value="09:30">
+            </div>
+
+            <div class="form-group">
+                <label for="lieu">Lieu</label>
+                <input type="text" id="lieu" name="lieu"
+                       value="Bureaux 2ème étage, Siège DREETS BFC"
+                       maxlength="200"
+                       placeholder="Ex: Bureau 204, UR25"
+                       aria-describedby="hint_lieu">
+                <span class="form-hint" id="hint_lieu">200 caractères max.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="objet">Objet <span class="required">*</span></label>
+                <input type="text" id="objet" name="objet"
+                       value="Problème de ventilation dans les bureaux du 2ème étage"
+                       maxlength="100" required
+                       placeholder="Résumé du signalement"
+                       aria-describedby="hint_objet">
+                <span class="form-hint" id="hint_objet">100 caractères max.</span>
+            </div>
+
+            <div class="form-group form-grid__full">
+                <label for="description">Description <span class="required">*</span></label>
+                <textarea id="description" name="description" rows="8" maxlength="20000" required
+                          placeholder="Décrivez le signalement en détail..."
+                          aria-describedby="hint_description char_count_description">La ventilation dans les bureaux du 2ème étage est défaillante depuis plusieurs semaines. Les agents signalent des maux de tête et une gêne respiratoire. Le système de climatisation n'a pas été entretenu depuis plus d'un an.</textarea>
+                <span class="form-hint" id="hint_description">20 000 caractères max.</span>
+                <span class="char-counter" id="char_count_description" aria-live="polite">210/20 000</span>
+            </div>
+
+            <div class="form-group form-grid__full">
+                <label for="attachment">Pièce jointe</label>
+                <input type="file" id="attachment" name="attachment"
+                       accept=".jpg,.jpeg,.png,.gif,.pdf"
+                       aria-describedby="hint_attachment">
+                <span class="form-hint" id="hint_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max. Optionnel.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="site_id">UR <span class="required">*</span></label>
+                <select id="site_id" name="site_id" required>
+                    <option value="1" selected>Siège DREETS BFC</option>
+                    <option value="2">UR 21 — Dijon</option>
+                    <option value="3">UR 25 — Besançon</option>
+                </select>
+            </div>
+
+            <div class="form-group form-grid__full confidential-toggle" id="confidential-toggle">
+                <label class="label--checkbox">
+                    <input type="checkbox" name="is_confidential" id="is_confidential" value="1"
+                           class="confidential-toggle__input">
+                    Signalement confidentiel
+                </label>
+                <span class="form-hint">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CSA/CHSCT. Décochez pour le rendre visible par tous les agents de votre UR.</span>
+                <div class="confidential-warning">
+                    &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre UR, y compris son objet et sa description.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="declarant_nom">Déclarant — Nom</label>
+                <input type="text" id="declarant_nom" value="Dupont" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="declarant_prenom">Déclarant — Prénom</label>
+                <input type="text" id="declarant_prenom" value="Jean" readonly>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn--primary">Enregistrer</button>
+            <a href="index.php?page=report_view&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Character counter for description textarea
+(function() {
+    var textarea = document.getElementById('description');
+    var counter = document.getElementById('char_count_description');
+    if (!textarea || !counter) return;
+    function updateCounter() {
+        var len = textarea.value.length;
+        counter.textContent = len.toLocaleString('fr-FR') + '/20\u00A0000';
+        if (len > 19000) {
+            counter.classList.add('char-counter--warning');
+        } else {
+            counter.classList.remove('char-counter--warning');
+        }
+    }
+    textarea.addEventListener('input', updateCounter);
+    updateCounter();
+})();
+</script>
+
+</main>    <footer class="footer" role="contentinfo">
+        <p>&copy; 2026 DREETS Bourgogne-Franche-Comté — Application SST <a href="index.php?page=changelog" class="footer-version" title="Voir l'historique des modifications">v3.8.3</a> — PHP 8.4.16 — D&eacute;veloppeur : Olivier Noblanc</p>
+    </footer>
+    <a href="#top" class="back-to-top" aria-label="Retour en haut" title="Retour en haut">&#x25B2;</a>
+</main><!-- end #main-content -->
+</body>
+</html>

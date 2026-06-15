@@ -12,6 +12,7 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **3** 🟡 **`update_sst.bat` supprimé** — Remplacé par `update_sst.ps1` (plus robuste, inclut la copie des screenshots PNG, détection auto de la branche main/master). Les fichiers `*.bat` sont dans `.gitignore`.
 - **4** 🟡 **`update_sst.ps1` amélioré** — Fetch de toutes les branches (`+refs/heads/*`), détection auto de la branche par défaut (main/master), `reset --hard` + `checkout -B` robuste, copie des PNG annotés, nettoyage de l'ancienne branche master.
 - **5** 🟡 **Correction annotations identiques** — Le script `annotate_screenshots.py` générait des annotations identiques sur toutes les images (les clés du dictionnaire `ANNOTATIONS` ne correspondaient pas aux noms de fichiers PNG capturés). Corrigé : chaque screenshot a désormais ses propres callouts numérotés avec descriptions spécifiques.
+- **6** 🔴 **Correction positions annotations — détection Playwright des vrais éléments HTML** — Les annotations étaient positionnées via des pourcentages à l'aveugle, ce qui plaçait les cibles sur les mauvais éléments UI. Le script `annotate_screenshots.py` utilise désormais Playwright pour détecter automatiquement la position réelle de chaque élément HTML (header, sidebar, cards, forms, tableaux, boutons) via les sélecteurs CSS. 6 fichiers HTML tronqués (cu5-*) ont été complétés avec leur contenu manquant.
 
 ---
 

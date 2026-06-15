@@ -245,7 +245,9 @@ img { max-width: 100%; height: auto; display: block; }
     pointer-events: none;
 }
 .impersonate-btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     color: white;
     background: rgba(255,255,255,0.15);
     border: 1px solid rgba(255,255,255,0.4);
@@ -257,10 +259,49 @@ img { max-width: 100%; height: auto; display: block; }
     -webkit-user-select: none;
     user-select: none;
 }
+
+/* Two theater masks icon (comedy + tragedy) — pure CSS */
+.impersonate-icon {
+    display: inline-block;
+    position: relative;
+    width: 18px;
+    height: 14px;
+}
+.impersonate-icon::before,
+.impersonate-icon::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 9px;
+    height: 12px;
+    border: 1.5px solid white;
+    border-radius: 50% 50% 50% 50% / 35% 35% 65% 65%;
+}
+/* Left mask (happy — comedy) */
+.impersonate-icon::before {
+    left: 0;
+    background: rgba(255,255,255,0.2);
+}
+/* Right mask (sad — tragedy), slightly offset */
+.impersonate-icon::after {
+    right: 0;
+    top: 2px;
+    background: rgba(255,255,255,0.12);
+    border-style: dashed;
+}
+
 .impersonate-btn:hover,
 .impersonate-btn:focus-visible {
     background: rgba(255,255,255,0.3);
     outline: none;
+}
+.impersonate-btn:hover .impersonate-icon::before,
+.impersonate-btn:focus-visible .impersonate-icon::before {
+    background: rgba(255,255,255,0.35);
+}
+.impersonate-btn:hover .impersonate-icon::after,
+.impersonate-btn:focus-visible .impersonate-icon::after {
+    background: rgba(255,255,255,0.25);
 }
 .impersonate-menu {
     display: none;
@@ -338,6 +379,28 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .impersonate-banner__btn:hover {
     background: rgba(255,255,255,0.35);
+}
+
+/* Banner variant: larger masks with dark border on orange background */
+.impersonate-icon--banner {
+    width: 22px;
+    height: 17px;
+    vertical-align: middle;
+    margin-right: 2px;
+}
+.impersonate-icon--banner::before,
+.impersonate-icon--banner::after {
+    width: 11px;
+    height: 15px;
+    border-color: rgba(255,255,255,0.9);
+    border-width: 2px;
+}
+.impersonate-icon--banner::before {
+    background: rgba(255,255,255,0.25);
+}
+.impersonate-icon--banner::after {
+    background: rgba(255,255,255,0.15);
+    top: 2px;
 }
 
 /* Hidden checkbox for CSS-only sidebar toggle */

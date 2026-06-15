@@ -78,7 +78,7 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
             ?>
             <div class="impersonate-dropdown">
                 <input type="checkbox" id="impersonate-toggle" class="impersonate-toggle" aria-hidden="true">
-                <label for="impersonate-toggle" class="impersonate-btn" role="button" tabindex="0" aria-haspopup="true" title="Incarner un rôle">Incarner &#9662;</label>
+                <label for="impersonate-toggle" class="impersonate-btn" role="button" tabindex="0" aria-haspopup="true" title="Incarner un rôle"><span class="impersonate-icon" aria-hidden="true"></span> Incarner</label>
                 <div class="impersonate-menu" role="menu">
                     <form method="POST" action="<?php echo url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">

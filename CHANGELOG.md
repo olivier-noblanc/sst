@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.10.1] — 2026-06-15
+
+### Correction — CSP frame-ancestors bloque les iframes de la page d'aide
+
+- **1** 🔴 **CSP `frame-ancestors 'none'` → `'self'`** — La directive `frame-ancestors 'none'` dans la CSP bloquait l'affichage des captures d'écran HTML dans la page Documentation (help.php). Les `<iframe>` contenant les screenshots retournaient une erreur "CSP blocked frame ancestors". Correction : `frame-ancestors 'self'` dans `templates/header.php`, `pages/login.php`, `pages/choose_site.php` et `public/web.config`. Le framing same-origin est autorisé (nécessaire pour les iframes de help.php), le framing cross-origin reste bloqué (protection anti-clickjacking conservée).
+- **2** 🟢 **Captures d'écran servies dans `public/screenshots/`** — Les 23 fichiers HTML de captures d'écran (de `docs/screenshots/`) sont copiés dans `public/screenshots/` pour être servis par le serveur web. Ce répertoire est dans `.gitignore` (régénéré par `render_page.php`).
+
+---
+
 ## [3.10.0] — 2026-06-14
 
 ### Fonctionnalité — Lazy cron (tâches de maintenance au login)

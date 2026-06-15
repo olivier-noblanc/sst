@@ -126,6 +126,10 @@ try {
         updateConfig($pdo, 'app_label_unite', $appLabelUnite);
         updateConfig($pdo, 'app_superviseur_usernames', $appSuperviseurUsernames);
 
+        // DPO contact (displayed in RGPD preamble)
+        $appDpoContact = trim($_POST['app_dpo_contact'] ?? '');
+        updateConfig($pdo, 'app_dpo_contact', $appDpoContact);
+
         // Admin email for error notifications
         $appAdminEmail = trim($_POST['app_admin_email'] ?? '');
         if (!empty($appAdminEmail) && !filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL)) {

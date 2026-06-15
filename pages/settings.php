@@ -260,6 +260,21 @@ $pageTitle = 'Paramètres';
         </div>
 
         <div class="separator">
+            <h4 class="card__subtitle">&#x1F512; Délégué à la Protection des Données (DPO)</h4>
+            <p class="text-muted text-small mb-3">Les coordonnées du DPO sont affichées dans la mention RGPD du <a href="<?php echo url('preamble'); ?>">Préambule</a>, conformément à l'article 13 du RGPD.</p>
+            <div class="form-group">
+                <label for="app_dpo_contact">Contact DPO</label>
+                <input type="text" id="app_dpo_contact" name="app_dpo_contact" class="form-control"
+                       value="<?php echo e(getConfig('app_dpo_contact', '')); ?>"
+                       placeholder="dpo@dreets-bfc.gouv.fr — M. Jean Martin, Délégué à la Protection des Données">
+                <small class="text-muted block mt-1">
+                    Adresse e-mail et/ou nom du DPO. Ce texte apparaît dans la mention d'information RGPD
+                    du Préambule, à la ligne « Contact DPO ». Laissez vide pour afficher le message par défaut.
+                </small>
+            </div>
+        </div>
+
+        <div class="separator">
             <h4 class="card__subtitle">&#x1F4E7; Administrateur technique</h4>
             <p class="text-muted text-small mb-3">Les erreurs critiques (Fatal, Parse, etc.) seront automatiquement envoyées par e-mail à cette adresse pour un diagnostic rapide. Laissez vide pour désactiver.</p>
             <div class="form-group">

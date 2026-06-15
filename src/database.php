@@ -483,7 +483,11 @@ function migrateSchema(PDO $pdo): void {
  * @param PDO $pdo
  */
 function migrateConfigKeys(PDO $pdo): void {
+    // Determine default version from the constant (defined in config.php)
+    $defaultVersion = defined('APP_VERSION') ? APP_VERSION : '3.10.0';
+
     $newKeys = [
+        'app_version' => [$defaultVersion, 'text', 'app', 'Version de l\'application (format semver, ex: 3.10.0). Affichée dans le pied de page et utilisée pour le cache-busting des assets. Modifiable via Paramètres → Application.', 1],
         'app_superviseur_usernames' => ['', 'text', 'app', 'Logins Windows des superviseurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS. Utile pour une première installation.', 1],
         'app_agent_see_only_own' => ['0', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
         'app_agent_visibility' => ['agent_choice', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],

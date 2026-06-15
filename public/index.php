@@ -61,7 +61,7 @@ $validPages = [
     'settings', 'site_edit',
     'users', 'user_edit', 'user_view',
     'logs',
-    'logout'
+    'impersonate', 'logout'
 ];
 
 $page = $_GET['page'] ?? 'home';
@@ -115,7 +115,9 @@ if ($page === 'login') {
 // If app_superviseur_usernames is set in config, check if the current
 // agent should be auto-promoted. This ensures the promotion takes effect
 // immediately without requiring logout/login.
-if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'agent') {
+// Skip this check during impersonation — we don't want to accidentally promote
+// a superviseur who is temporarily impersonating an agent.
+if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'agent' && !isset($_SESSION['impersonated_role'])) {
     // Priority: DB setting (Settings UI) > environment variable
     $superviseurUsernames = getConfig('app_superviseur_usernames', '');
     if (empty($superviseurUsernames)) {
@@ -224,6 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'user_create'    => __DIR__ . '/../handlers/user_create_handler.php',
         'user_delete'    => __DIR__ . '/../handlers/user_delete_handler.php',
         'user_reactivate' => __DIR__ . '/../handlers/user_reactivate_handler.php',
+        'impersonate'    => __DIR__ . '/../handlers/impersonate_handler.php',
     ];
     if (isset($handlerMap[$page])) {
         require $handlerMap[$page];

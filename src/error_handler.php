@@ -134,7 +134,7 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
 
     // Build email content
     $appName = defined('APP_NAME') ? APP_NAME : 'Application SST';
-    $appVersion = defined('APP_VERSION') ? APP_VERSION : 'inconnue';
+    $appVersion = function_exists('getAppVersion') ? getAppVersion() : (defined('APP_VERSION') ? APP_VERSION : 'inconnue');
     $requestUri = $_SERVER['REQUEST_URI'] ?? 'CLI';
     $httpMethod = $_SERVER['REQUEST_METHOD'] ?? '';
     $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';

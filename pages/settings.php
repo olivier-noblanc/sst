@@ -224,6 +224,19 @@ $pageTitle = 'Paramètres';
         <p class="text-muted text-small mb-5">Configurez les paramètres généraux de l'application.</p>
 
         <div class="form-group">
+            <label for="app_version">Version de l'application</label>
+            <input type="text" id="app_version" name="app_version" class="form-control"
+                   value="<?php echo e(getAppVersion()); ?>"
+                   placeholder="3.10.0" pattern="[0-9]+\.[0-9]+\.[0-9]+"
+                   aria-describedby="hint_app_version">
+            <small class="text-muted block mt-1" id="hint_app_version">
+                Format semver (ex: 3.10.0). Cette version est affichée dans le pied de page et utilisée pour
+                le cache-busting des assets CSS/JS. Modifiez-la après chaque déploiement pour forcer
+                les navigateurs à recharger les ressources.
+            </small>
+        </div>
+
+        <div class="form-group">
             <label for="app_nom_organisation">Nom de l'organisation</label>
             <input type="text" id="app_nom_organisation" name="app_nom_organisation" class="form-control"
                    value="<?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?>"

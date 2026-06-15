@@ -70,7 +70,33 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
                 <?php echo e($_SESSION['user']['prenom'] ?? ''); ?> <?php echo e($_SESSION['user']['nom'] ?? ''); ?>
                 <span class="badge <?php echo getRoleBadgeClass($_SESSION['user']['role'] ?? ''); ?> badge--sm"><?php echo e(ROLE_LABELS[$_SESSION['user']['role'] ?? 'agent'] ?? 'Agent'); ?></span>
             </span>
+            <?php
+            // Impersonation dropdown: only for superviseurs who are NOT already impersonating
+            $isImpersonating = isset($_SESSION['impersonated_role']);
+            $realRole = $_SESSION['real_role'] ?? $_SESSION['user']['role'] ?? '';
+            if ($realRole === 'superviseur' && !$isImpersonating):
+            ?>
+            <div class="impersonate-dropdown">
+                <input type="checkbox" id="impersonate-toggle" class="impersonate-toggle" aria-hidden="true">
+                <label for="impersonate-toggle" class="impersonate-btn" role="button" tabindex="0" aria-haspopup="true" title="Incarner un rôle">&#x1F3AD; Incarner</label>
+                <div class="impersonate-menu" role="menu">
+                    <form method="POST" action="<?php echo url('impersonate'); ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                        <input type="hidden" name="action" value="start">
+                        <input type="hidden" name="target_role" value="agent">
+                        <button type="submit" class="impersonate-menu__item" role="menuitem">&#x1F464; Agent</button>
+                    </form>
+                    <form method="POST" action="<?php echo url('impersonate'); ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                        <input type="hidden" name="action" value="start">
+                        <input type="hidden" name="target_role" value="chsct">
+                        <button type="submit" class="impersonate-menu__item" role="menuitem">&#x1F4CA; Membre CSA/CHSCT</button>
+                    </form>
+                </div>
+            </div>
+            <?php endif; ?>
             <a href="<?php echo url('logout'); ?>" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
         </div>
         <?php endif; ?>
     </header>
+    <?php require __DIR__ . '/impersonate_banner.php'; ?>

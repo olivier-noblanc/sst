@@ -141,6 +141,7 @@ CREATE TABLE IF NOT EXISTS config_app (
 
 -- Default configuration values
 INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUES
+    ('app_version', '3.10.0', 'text', 'app', 'Version de l''application (format semver, ex: 3.10.0). Affichée dans le pied de page et utilisée pour le cache-busting des assets. Modifiable via Paramètres → Application.', 1),
     ('app_nom_organisation', 'DREETS BFC', 'text', 'app', 'Nom de l''organisation', 1),
     ('app_nom_complet', 'DREETS Bourgogne-Franche-Comté', 'text', 'app', 'Nom complet', 1),
     ('app_label_unite', 'UR', 'text', 'app', 'Libellé des unités (UD, UR, etc.)', 1),

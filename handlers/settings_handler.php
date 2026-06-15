@@ -98,6 +98,7 @@ try {
 
     if ($tab === 'app') {
         // Update application settings
+        $appVersion = trim($_POST['app_version'] ?? '');
         $appNomOrganisation = trim($_POST['app_nom_organisation'] ?? '');
         $appNomComplet = trim($_POST['app_nom_complet'] ?? '');
         $appLabelUnite = trim($_POST['app_label_unite'] ?? '');
@@ -105,6 +106,9 @@ try {
 
         // Validate: none should be empty (admin usernames can be empty)
         $errors = [];
+        if (empty($appVersion) || !preg_match('/^\d+\.\d+\.\d+$/', $appVersion)) {
+            $errors[] = 'La version doit suivre le format semver (ex: 3.10.0).';
+        }
         if (empty($appNomOrganisation)) {
             $errors[] = 'Le nom de l\'organisation est requis.';
         }
@@ -121,6 +125,7 @@ try {
             redirect(url('settings', ['tab' => 'app']));
         }
 
+        updateConfig($pdo, 'app_version', $appVersion);
         updateConfig($pdo, 'app_nom_organisation', $appNomOrganisation);
         updateConfig($pdo, 'app_nom_complet', $appNomComplet);
         updateConfig($pdo, 'app_label_unite', $appLabelUnite);

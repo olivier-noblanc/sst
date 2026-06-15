@@ -3,6 +3,20 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.11.0] — 2026-06-15
+
+### Fonctionnalité — Version pilotée par la base de données + Incarnation de rôle
+
+- **1** 🔴 **Version de l'application stockée en base de données** — La version affichée dans le pied de page et utilisée pour le cache-busting des assets n'est plus codée en dur dans `config.php`. Elle est lue depuis la clé `app_version` de la table `config_app` via la nouvelle fonction `getAppVersion()`. La constante `APP_VERSION` dans `config.php` reste un fallback si la base est indisponible. La version est modifiable dans Paramètres → Application (champ « Version de l'application », format semver obligatoire). Les fichiers modifiés : `src/helpers.php` (fonction `getAppVersion()`), `src/config.php` (commentaire de fallback), `src/database.php` (migration `app_version`), `schema.sql`, `templates/footer.php`, `src/error_handler.php`, `pages/settings.php`, `handlers/settings_handler.php`.
+- **2** 🔴 **Incarnation de rôle (impersonation) pour les superviseurs** — Un superviseur peut temporairement basculer vers le rôle Agent ou Membre CSA/CHSCT pour voir l'application avec les mêmes restrictions de visibilité et d'accès que ce rôle. Cela permet de vérifier le comportement perçu par un agent (signalements visibles, menus accessibles) sans avoir à se déconnecter ni créer un compte de test. Le mécanisme est accessible via un menu déroulant « 🎭 Incarner » dans l'en-tête bleu, visible uniquement pour les superviseurs qui ne sont pas déjà en mode incarnation.
+- **3** 🔴 **Bannière d'avertissement orange en mode incarnation** — Lorsqu'un superviseur incarne un rôle, une bannière orange fixe s'affiche sous l'en-tête avec le message « Vous incarnez le rôle [Agent/CSA/CHSCT] » et un bouton « Reprendre mon rôle » qui restaure immédiatement le rôle de superviseur. La bannière est visible sur toutes les pages, y compris la page d'accès refusé (quand l'agent incarné tente d'accéder à une page réservée aux superviseurs). Le CSS décale le contenu principal pour ne pas masquer la bannière.
+- **4** 🟡 **Menu déroulant CSS-only (sans JavaScript)** — Le menu « Incarner » utilise la technique checkbox + label, cohérente avec l'approche zéro-JavaScript de l'application. Le checkbox caché contrôle l'affichage du sous-menu via `:checked ~ .menu`. L'accessibilité est assurée par `role="button"`, `tabindex="0"`, `aria-haspopup` et `role="menuitem"`.
+- **5** 🟢 **Traçabilité d'audit** — Les actions d'incarnation (début et fin) sont enregistrées dans le journal d'audit (`audit_log`) avec la catégorie `auth` et les actions `impersonate_start` / `impersonate_stop`. Le contexte JSON inclut le rôle réel et le rôle incarné.
+- **6** 🟡 **Protection contre la promotion automatique** — La vérification de promotion automatique superviseur (via `app_superviseur_usernames`) est désactivée pendant l'incarnation d'un agent, pour éviter qu'un superviseur incarnant un agent ne soit « promu » par erreur.
+- **7** 🟢 **Handler `impersonate_handler.php`** — Nouveau handler POST avec validation CSRF, vérification de rôle (superviseur uniquement), validation du rôle cible (agent ou chsct uniquement), et journalisation d'audit.
+
+---
+
 ## [3.10.1] — 2026-06-15
 
 ### Correction — CSP frame-ancestors bloque les iframes de la page d'aide

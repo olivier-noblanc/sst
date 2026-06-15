@@ -242,12 +242,25 @@ catch {
 
 # --- Version déployée ---
 Write-Host ""
-$configFile = "$AppDir\src\config.php"
-if (Test-Path $configFile) {
-    $version = Select-String -Path $configFile -Pattern "APP_VERSION'\s*,\s*'([^']+)'" | ForEach-Object { $_.Matches[0].Groups[1].Value }
-    if ($version) {
-        Write-Host "  Version : $version" -ForegroundColor Green
+# Try reading version from SQLite database (authoritative source)
+$dbFile = "$AppDir\data\sst.db"
+$version = $null
+if (Test-Path $dbFile) {
+    try {
+        $version = & sqlite3 $dbFile "SELECT valeur FROM config_app WHERE cle = 'app_version';" 2>$null
+    } catch {
+        # sqlite3 not available — fall back to config.php
     }
+}
+# Fallback: read from config.php (the hardcoded fallback constant)
+if (-not $version) {
+    $configFile = "$AppDir\src\config.php"
+    if (Test-Path $configFile) {
+        $version = Select-String -Path $configFile -Pattern "APP_VERSION'\s*,\s*'([^']+)'" | ForEach-Object { $_.Matches[0].Groups[1].Value }
+    }
+}
+if ($version) {
+    Write-Host "  Version : $version" -ForegroundColor Green
 }
 
 $gitLog = git log -1 --format="%h - %s (%cr)" 2>$null

@@ -389,6 +389,19 @@ function clearConfigCache(): void {
 }
 
 /**
+ * Get the application version from the database (config_app table).
+ * Falls back to the APP_VERSION constant if the DB is unreachable or the key is empty.
+ * This is the canonical way to read the version — APP_VERSION is only a fallback.
+ */
+function getAppVersion(): string {
+    $dbVersion = getConfig('app_version', '');
+    if ($dbVersion !== '') {
+        return $dbVersion;
+    }
+    return defined('APP_VERSION') ? APP_VERSION : '0';
+}
+
+/**
  * Build a URL for a static asset (CSS, JS, images, fonts).
  *
  * DEPRECATED for CSS/favicons: these are now inlined via inlineCss() and inlineDataUri().
@@ -399,7 +412,7 @@ function clearConfigCache(): void {
  * @return string
  */
 function assetUrl(string $path): string {
-    $version = defined('APP_VERSION') ? APP_VERSION : '0';
+    $version = getAppVersion();
     return 'asset.php?f=' . urlencode($path) . '&v=' . urlencode($version);
 }
 

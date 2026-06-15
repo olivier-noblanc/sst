@@ -229,6 +229,114 @@ img { max-width: 100%; height: auto; display: block; }
     text-decoration: none;
 }
 
+/* ============================================================
+   Impersonation dropdown (CSS-only, zero JavaScript)
+   Uses the checkbox+label pattern consistent with the sidebar toggle.
+   ============================================================ */
+.impersonate-dropdown {
+    position: relative;
+    display: inline-block;
+}
+.impersonate-toggle {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+.impersonate-btn {
+    display: inline-block;
+    color: white;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: var(--border-radius);
+    padding: 4px 10px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    -webkit-user-select: none;
+    user-select: none;
+}
+.impersonate-btn:hover,
+.impersonate-btn:focus-visible {
+    background: rgba(255,255,255,0.3);
+    outline: none;
+}
+.impersonate-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    min-width: 200px;
+    overflow: hidden;
+}
+.impersonate-toggle:checked ~ .impersonate-menu {
+    display: block;
+}
+.impersonate-menu__item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: var(--color-text);
+    transition: background var(--transition-fast);
+}
+.impersonate-menu__item:hover {
+    background: var(--color-bg-light);
+}
+
+/* ============================================================
+   Impersonation banner (orange warning, fixed below header)
+   ============================================================ */
+.impersonate-banner {
+    background: #e67e22;
+    color: white;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.impersonate-banner__text {
+    font-size: 0.9em;
+}
+.impersonate-banner__hint {
+    opacity: 0.85;
+    font-size: 0.9em;
+}
+.impersonate-banner__form {
+    margin: 0;
+    flex-shrink: 0;
+}
+.impersonate-banner__btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: var(--border-radius);
+    padding: 5px 14px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 600;
+    transition: background var(--transition-fast);
+    white-space: nowrap;
+}
+.impersonate-banner__btn:hover {
+    background: rgba(255,255,255,0.35);
+}
+
 /* Hidden checkbox for CSS-only sidebar toggle */
 .sidebar-toggle-checkbox {
     position: absolute;

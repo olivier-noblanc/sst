@@ -62,11 +62,12 @@ Write-Host ""
 Write-Host "[1/5] Telechargement des mises a jour..." -ForegroundColor Yellow
 
 try {
-    # Récupérer toutes les refs du remote
-    # GitHub peut utiliser 'main' ou 'master' selon l'âge du dépôt
+    # Récupérer TOUTES les branches du remote, pas seulement celle trackée.
+    # Un clone --single-branch (ou ancien clone master) ne fetch que sa branche
+    # par défaut. Ce refspec explicite force la récupération de TOUTES les branches.
     $savedPref = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
-    $fetchOutput = git fetch origin 2>&1
+    $fetchOutput = git fetch origin "+refs/heads/*:refs/remotes/origin/*" 2>&1
     $fetchExit = $LASTEXITCODE
     $ErrorActionPreference = $savedPref
 
@@ -108,28 +109,45 @@ try {
 
     Write-Host "  Branche distante : $remoteBranch" -ForegroundColor Gray
 
-    # checkout -B : crée la branche si elle n'existe pas, ou la recrée
-    # sur le tracking branch. Gère le cas master → main proprement.
+    # reset --hard fonctionne depuis n'importe quel état (y compris detached HEAD)
+    # et n'a pas besoin que la branche locale existe.
     $ErrorActionPreference = "Continue"
-    $null = git checkout -B $remoteBranch "origin/$remoteBranch" 2>&1
+    $null = git reset --hard "origin/$remoteBranch" 2>&1
+    $resetExit = $LASTEXITCODE
+    $ErrorActionPreference = $savedPref
+
+    if ($resetExit -ne 0) {
+        throw "git reset --hard origin/$remoteBranch a echoue (code $resetExit)"
+    }
+
+    # Maintenant que HEAD pointe sur le bon commit, créer/basculer la branche locale
+    $ErrorActionPreference = "Continue"
+    $null = git checkout -B $remoteBranch 2>&1
     $checkoutExit = $LASTEXITCODE
     $ErrorActionPreference = $savedPref
 
     if ($checkoutExit -ne 0) {
-        throw "git checkout -B $remoteBranch a echoue (code $checkoutExit)"
+        # checkout -B a échoué mais reset --hard a marché → les fichiers sont à jour
+        # On est en detached HEAD, c'est fonctionnel même si pas idéal
+        Write-Host "  AVERTISSEMENT : checkout -B $remoteBranch echoue (detached HEAD)" -ForegroundColor DarkYellow
+        Write-Host "  Les fichiers sont a jour mais la branche locale n'est pas attachee." -ForegroundColor DarkYellow
     }
 
     # Nettoyer les fichiers non suivis (orphelins d'anciennes versions)
     git clean -fd 2>&1 | Out-Null
 
-    # Supprimer l'ancienne branche locale si elle était 'master' et qu'on est passé à 'main'
-    $localBranches = git branch 2>$null
-    if ($remoteBranch -eq 'main' -and ($localBranches -match 'master')) {
-        $null = git branch -D master 2>$null
-        Write-Host "  Ancienne branche 'master' supprimee" -ForegroundColor DarkYellow
+    # Supprimer l'ancienne branche locale si migration master→main
+    if ($remoteBranch -eq 'main') {
+        $localBranches = git branch 2>$null
+        if ($localBranches -match 'master') {
+            $null = git branch -D master 2>$null
+            Write-Host "  Ancienne branche 'master' supprimee" -ForegroundColor DarkYellow
+        }
     }
 
-    Write-Host "  OK : Code synchronise sur origin/$remoteBranch" -ForegroundColor Green
+    # Afficher le commit déployé
+    $gitLog = git log -1 --format="%h %s" 2>$null
+    Write-Host "  OK : Code synchronise sur origin/$remoteBranch ($gitLog)" -ForegroundColor Green
 }
 catch {
     Write-Host ""
@@ -144,9 +162,9 @@ catch {
     Write-Host "     > git config --global http.proxy http://PROXY:PORT" -ForegroundColor Gray
     Write-Host "     > git config --global http.proxyAuthMethod negotiate" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "   - Branche inexistante (main vs master)" -ForegroundColor White
-    Write-Host "     > git branch -r                          # liste les branches remote" -ForegroundColor Gray
-    Write-Host "     > git fetch origin && git checkout -B main origin/main" -ForegroundColor Gray
+    Write-Host "   - Clone single-branch bloque la branche" -ForegroundColor White
+    Write-Host "     > git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'" -ForegroundColor Gray
+    Write-Host "     > git fetch origin" -ForegroundColor Gray
     Read-Host "Appuyez sur Entree pour quitter"
     exit 1
 }

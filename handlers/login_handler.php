@@ -32,6 +32,7 @@ if ($user) {
     // Lazy cron: trigger maintenance tasks on login (no system cron)
     require_once __DIR__ . '/../src/cron.php';
     try {
+        $pdo = getDB();
         runLazyCron($pdo);
     } catch (Exception $e) {
         error_log('[SST-CRON] Lazy cron failed on dev login: ' . $e->getMessage());
@@ -41,6 +42,7 @@ if ($user) {
     $intendedUrl = $_SESSION['intended_url'] ?? url('home');
     unset($_SESSION['intended_url']);
     require_once __DIR__ . '/../src/audit.php';
+    $pdo = $pdo ?? getDB();
     auditLog($pdo, 'auth', 'login', 'Connexion : ' . $user['prenom'] . ' ' . $user['nom'], (int) $user['id'], 'user', ['username' => $user['username']]);
     setFlash('success', 'Bienvenue, ' . $user['prenom'] . ' ' . $user['nom'] . ' !');
     redirect($intendedUrl);

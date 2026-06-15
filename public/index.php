@@ -16,11 +16,13 @@ header_remove('Expires');
 header_remove('Pragma');
 
 // === Enable Gzip compression (PHP-level, server-independent) ===
-if (extension_loaded('zlib')
+// Skip gzip on PHP built-in dev server — ob_gzhandler crashes it
+$useGzip = (extension_loaded('zlib')
     && !ini_get('zlib.output_compression')
     && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
     && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
-) {
+    && php_sapi_name() !== 'cli-server');
+if ($useGzip) {
     ob_start('ob_gzhandler');
 } else {
     ob_start();

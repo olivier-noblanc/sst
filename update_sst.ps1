@@ -57,13 +57,64 @@ if (-not (Test-Path $AppDir)) {
 Set-Location $AppDir
 Write-Host "  OK : Git, PHP, dossier $AppDir" -ForegroundColor Green
 
+# --- Détecter la branche par défaut du remote ---
+Write-Host ""
+Write-Host " Detection de la branche par defaut..." -ForegroundColor Yellow
+
+# Récupérer toutes les refs du remote pour détecter la branche par défaut
+# GitHub peut utiliser 'main' ou 'master' selon l'âge du dépôt
+try {
+    git fetch origin 2>&1 | Out-Null
+}
+catch {
+    # Si fetch échoue ici, on continuera — l'erreur sera interceptée à l'étape 1
+}
+
+$remoteBranch = $null
+
+# Méthode 1 : lire origin/HEAD (symref vers la branche par défaut)
+$headRef = git symbolic-ref refs/remotes/origin/HEAD 2>$null
+if ($headRef -match 'refs/remotes/origin/(.+)') {
+    $remoteBranch = $Matches[1]
+    Write-Host "  Branche par defaut (origin/HEAD) : $remoteBranch" -ForegroundColor Green
+}
+
+# Méthode 2 : si origin/HEAD n'existe pas, essayer main puis master
+if (-not $remoteBranch) {
+    $remoteBranches = git branch -r 2>$null
+    if ($remoteBranches -match 'origin/main') {
+        $remoteBranch = 'main'
+    } elseif ($remoteBranches -match 'origin/master') {
+        $remoteBranch = 'master'
+    }
+    if ($remoteBranch) {
+        Write-Host "  Branche detectee (branch -r) : $remoteBranch" -ForegroundColor Green
+    }
+}
+
+# Méthode 3 : dernier recours — lire la branche locale courante
+if (-not $remoteBranch) {
+    $localBranch = git rev-parse --abbrev-ref HEAD 2>$null
+    if ($localBranch -and $localBranch -ne 'HEAD') {
+        $remoteBranch = $localBranch
+        Write-Host "  Branche locale utilisee : $remoteBranch" -ForegroundColor DarkYellow
+    }
+}
+
+if (-not $remoteBranch) {
+    Write-Host " ERREUR : Impossible de detecter la branche par defaut." -ForegroundColor Red
+    Write-Host " Verifiez que le depot Git est bien clone et que le remote 'origin' existe." -ForegroundColor Yellow
+    Read-Host "Appuyez sur Entree pour quitter"
+    exit 1
+}
+
 # --- 1. Git sync (force le contenu du remote, écrase les modifs locales) ---
 Write-Host ""
-Write-Host "[1/4] Telechargement des mises a jour (git fetch + reset --hard)..." -ForegroundColor Yellow
+Write-Host "[1/5] Telechargement des mises a jour (git fetch + reset --hard)..." -ForegroundColor Yellow
 
 try {
     # Récupérer les objets du remote sans fusionner
-    git fetch origin main 2>&1
+    git fetch origin $remoteBranch 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "git fetch a echoue (code $LASTEXITCODE)"
     }
@@ -71,7 +122,7 @@ try {
     # Forcer le répertoire de travail à correspondre exactement au remote
     # Cela écrase toute modification locale (conflits, fichiers modifiés, etc.)
     # La base SQLite dans data/ est ignorée par .gitignore donc elle est préservée.
-    git reset --hard origin/main 2>&1
+    git reset --hard "origin/$remoteBranch" 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "git reset --hard a echoue (code $LASTEXITCODE)"
     }
@@ -79,7 +130,11 @@ try {
     # Nettoyer les fichiers non suivis (orphelins d'anciennes versions)
     git clean -fd 2>&1
 
-    Write-Host "  OK : Code synchronise sur origin/main" -ForegroundColor Green
+    # S'assurer que la branche locale suit le remote
+    git checkout $remoteBranch 2>&1 | Out-Null
+    git branch --set-upstream-to="origin/$remoteBranch" $remoteBranch 2>$null | Out-Null
+
+    Write-Host "  OK : Code synchronise sur origin/$remoteBranch" -ForegroundColor Green
 }
 catch {
     Write-Host ""
@@ -93,9 +148,9 @@ catch {
     Write-Host "     > git config --global http.proxy http://PROXY:PORT" -ForegroundColor Gray
     Write-Host "     > git config --global http.proxyAuthMethod negotiate" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "   - Depot local corrompu" -ForegroundColor White
-    Write-Host "     > cd $AppDir && git status" -ForegroundColor Gray
-    Write-Host "     > git fetch origin main && git reset --hard origin/main" -ForegroundColor Gray
+    Write-Host "   - Branche inexistante (main vs master)" -ForegroundColor White
+    Write-Host "     > git branch -r                          # liste les branches remote" -ForegroundColor Gray
+    Write-Host "     > git fetch origin && git reset --hard origin/main   # ou origin/master" -ForegroundColor Gray
     Read-Host "Appuyez sur Entree pour quitter"
     exit 1
 }

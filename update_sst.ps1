@@ -57,105 +57,84 @@ if (-not (Test-Path $AppDir)) {
 Set-Location $AppDir
 Write-Host "  OK : Git, PHP, dossier $AppDir" -ForegroundColor Green
 
-# --- Détecter la branche par défaut du remote ---
+# --- 1. Git sync (force le contenu du remote, écrase les modifs locales) ---
 Write-Host ""
-Write-Host " Detection de la branche par defaut..." -ForegroundColor Yellow
+Write-Host "[1/5] Telechargement des mises a jour..." -ForegroundColor Yellow
 
-# Récupérer toutes les refs du remote pour détecter la branche par défaut
-# GitHub peut utiliser 'main' ou 'master' selon l'âge du dépôt
-$savedPref = $ErrorActionPreference
-$ErrorActionPreference = "Continue"
 try {
-    git fetch origin 2>&1 | Out-Null
-}
-catch {
-    # Si fetch échoue ici, on continuera — l'erreur sera interceptée à l'étape 1
-}
+    # Récupérer toutes les refs du remote
+    # GitHub peut utiliser 'main' ou 'master' selon l'âge du dépôt
+    $savedPref = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $fetchOutput = git fetch origin 2>&1
+    $fetchExit = $LASTEXITCODE
+    $ErrorActionPreference = $savedPref
 
-$remoteBranch = $null
+    if ($fetchExit -ne 0) {
+        throw "git fetch a echoue (code $fetchExit)`n$fetchOutput"
+    }
 
-# Méthode 1 : lire origin/HEAD (symref vers la branche par défaut)
-# Si origin/HEAD n'existe pas, on la crée avec 'git remote set-head --auto'
-$headRef = git symbolic-ref refs/remotes/origin/HEAD 2>$null
-if ($headRef -match 'refs/remotes/origin/(.+)') {
-    $remoteBranch = $Matches[1]
-    Write-Host "  Branche par defaut (origin/HEAD) : $remoteBranch" -ForegroundColor Green
-}
-if (-not $remoteBranch) {
-    # origin/HEAD n'existe pas (clone --single-branch, ancien clone, etc.)
-    # Créer le symref en demandant à Git de le déduire du remote
-    $setHeadResult = git remote set-head origin --auto 2>$null
-    if ($LASTEXITCODE -eq 0) {
+    # Détecter la branche par défaut du remote
+    $remoteBranch = $null
+
+    # Méthode 1 : origin/HEAD (symref)
+    $headRef = git symbolic-ref refs/remotes/origin/HEAD 2>$null
+    if ($headRef -match 'refs/remotes/origin/(.+)') {
+        $remoteBranch = $Matches[1]
+    }
+
+    # Méthode 2 : créer origin/HEAD si elle n'existe pas
+    if (-not $remoteBranch) {
+        $null = git remote set-head origin --auto 2>$null
         $headRef = git symbolic-ref refs/remotes/origin/HEAD 2>$null
         if ($headRef -match 'refs/remotes/origin/(.+)') {
             $remoteBranch = $Matches[1]
-            Write-Host "  Branche par defaut (set-head --auto) : $remoteBranch" -ForegroundColor Green
         }
     }
-}
 
-# Méthode 2 : lister les branches remote et chercher main puis master
-if (-not $remoteBranch) {
-    $remoteBranches = git branch -r 2>$null
-    if ($remoteBranches -match 'origin/main') {
-        $remoteBranch = 'main'
-    } elseif ($remoteBranches -match 'origin/master') {
-        $remoteBranch = 'master'
-    }
-    if ($remoteBranch) {
-        Write-Host "  Branche detectee (branch -r) : $remoteBranch" -ForegroundColor Green
-    }
-}
-
-# Méthode 3 : dernier recours — lire la branche locale courante
-if (-not $remoteBranch) {
-    $localBranch = git rev-parse --abbrev-ref HEAD 2>$null
-    if ($localBranch -and $localBranch -ne 'HEAD') {
-        $remoteBranch = $localBranch
-        Write-Host "  Branche locale utilisee : $remoteBranch" -ForegroundColor DarkYellow
-    }
-}
-
-$ErrorActionPreference = $savedPref
-
-if (-not $remoteBranch) {
-    Write-Host " ERREUR : Impossible de detecter la branche par defaut." -ForegroundColor Red
-    Write-Host " Verifiez que le depot Git est bien clone et que le remote 'origin' existe." -ForegroundColor Yellow
-    Read-Host "Appuyez sur Entree pour quitter"
-    exit 1
-}
-
-# --- 1. Git sync (force le contenu du remote, écrase les modifs locales) ---
-Write-Host ""
-Write-Host "[1/5] Telechargement des mises a jour (git fetch + reset --hard)..." -ForegroundColor Yellow
-
-try {
-    # Récupérer les objets du remote sans fusionner
-    git fetch origin $remoteBranch 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "git fetch a echoue (code $LASTEXITCODE)"
+    # Méthode 3 : lister les branches remote (main puis master)
+    if (-not $remoteBranch) {
+        $remoteBranches = git branch -r 2>$null
+        if ($remoteBranches -match 'origin/main') {
+            $remoteBranch = 'main'
+        } elseif ($remoteBranches -match 'origin/master') {
+            $remoteBranch = 'master'
+        }
     }
 
-    # Forcer le répertoire de travail à correspondre exactement au remote
-    # Cela écrase toute modification locale (conflits, fichiers modifiés, etc.)
-    # La base SQLite dans data/ est ignorée par .gitignore donc elle est préservée.
-    git reset --hard "origin/$remoteBranch" 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "git reset --hard a echoue (code $LASTEXITCODE)"
+    if (-not $remoteBranch) {
+        throw "Impossible de detecter la branche par defaut du remote"
+    }
+
+    Write-Host "  Branche distante : $remoteBranch" -ForegroundColor Gray
+
+    # checkout -B : crée la branche si elle n'existe pas, ou la recrée
+    # sur le tracking branch. Gère le cas master → main proprement.
+    $ErrorActionPreference = "Continue"
+    $null = git checkout -B $remoteBranch "origin/$remoteBranch" 2>&1
+    $checkoutExit = $LASTEXITCODE
+    $ErrorActionPreference = $savedPref
+
+    if ($checkoutExit -ne 0) {
+        throw "git checkout -B $remoteBranch a echoue (code $checkoutExit)"
     }
 
     # Nettoyer les fichiers non suivis (orphelins d'anciennes versions)
-    git clean -fd 2>&1
+    git clean -fd 2>&1 | Out-Null
 
-    # S'assurer que la branche locale suit le remote
-    git checkout $remoteBranch 2>&1 | Out-Null
-    git branch --set-upstream-to="origin/$remoteBranch" $remoteBranch 2>$null | Out-Null
+    # Supprimer l'ancienne branche locale si elle était 'master' et qu'on est passé à 'main'
+    $localBranches = git branch 2>$null
+    if ($remoteBranch -eq 'main' -and ($localBranches -match 'master')) {
+        $null = git branch -D master 2>$null
+        Write-Host "  Ancienne branche 'master' supprimee" -ForegroundColor DarkYellow
+    }
 
     Write-Host "  OK : Code synchronise sur origin/$remoteBranch" -ForegroundColor Green
 }
 catch {
     Write-Host ""
     Write-Host " ERREUR : la synchronisation Git a echoue." -ForegroundColor Red
+    Write-Host "  $_" -ForegroundColor Red
     Write-Host ""
     Write-Host " Causes possibles :" -ForegroundColor Yellow
     Write-Host "   - Token GitHub expire (password auth not supported)" -ForegroundColor White
@@ -167,7 +146,7 @@ catch {
     Write-Host ""
     Write-Host "   - Branche inexistante (main vs master)" -ForegroundColor White
     Write-Host "     > git branch -r                          # liste les branches remote" -ForegroundColor Gray
-    Write-Host "     > git fetch origin && git reset --hard origin/main   # ou origin/master" -ForegroundColor Gray
+    Write-Host "     > git fetch origin && git checkout -B main origin/main" -ForegroundColor Gray
     Read-Host "Appuyez sur Entree pour quitter"
     exit 1
 }

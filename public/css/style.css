@@ -287,11 +287,14 @@ img { max-width: 100%; height: auto; display: block; }
     text-align: left;
     cursor: pointer;
     font-size: 0.9em;
-    color: var(--color-text);
+    color: var(--grey-900);
     transition: background var(--transition-fast);
+    font-family: var(--font-family);
+    line-height: 1.4;
 }
 .impersonate-menu__item:hover {
-    background: var(--color-bg-light);
+    background: var(--grey-100);
+    color: var(--color-primary);
 }
 
 /* ============================================================

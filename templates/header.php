@@ -78,19 +78,19 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
             ?>
             <div class="impersonate-dropdown">
                 <input type="checkbox" id="impersonate-toggle" class="impersonate-toggle" aria-hidden="true">
-                <label for="impersonate-toggle" class="impersonate-btn" role="button" tabindex="0" aria-haspopup="true" title="Incarner un rôle">&#x1F3AD; Incarner</label>
+                <label for="impersonate-toggle" class="impersonate-btn" role="button" tabindex="0" aria-haspopup="true" title="Incarner un rôle">Incarner &#9662;</label>
                 <div class="impersonate-menu" role="menu">
                     <form method="POST" action="<?php echo url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
                         <input type="hidden" name="target_role" value="agent">
-                        <button type="submit" class="impersonate-menu__item" role="menuitem">&#x1F464; Agent</button>
+                        <button type="submit" class="impersonate-menu__item" role="menuitem">Agent</button>
                     </form>
                     <form method="POST" action="<?php echo url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
                         <input type="hidden" name="target_role" value="chsct">
-                        <button type="submit" class="impersonate-menu__item" role="menuitem">&#x1F4CA; Membre CSA/CHSCT</button>
+                        <button type="submit" class="impersonate-menu__item" role="menuitem">Membre CSA/CHSCT</button>
                     </form>
                 </div>
             </div>

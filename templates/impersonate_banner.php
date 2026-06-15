@@ -10,7 +10,7 @@
 <?php if (isset($_SESSION['impersonated_role'])): ?>
 <div class="impersonate-banner" role="alert">
     <span class="impersonate-banner__text">
-        &#x1F3AD; Vous incarnez le rôle <strong><?php echo e(ROLE_LABELS[$_SESSION['impersonated_role']] ?? $_SESSION['impersonated_role']); ?></strong>
+        &#9888; Vous incarnez le rôle <strong><?php echo e(ROLE_LABELS[$_SESSION['impersonated_role']] ?? $_SESSION['impersonated_role']); ?></strong>
         <span class="impersonate-banner__hint">— vous voyez l'application avec les mêmes restrictions que ce rôle.</span>
     </span>
     <form method="POST" action="<?php echo url('impersonate'); ?>" class="impersonate-banner__form">

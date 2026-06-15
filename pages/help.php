@@ -343,8 +343,10 @@ $screenshotBase = 'asset.php?f=screenshots';
         </table>
     </div>
 
-    <?php echo helpScreenshot($screenshotBase . '/cu5-liste-signalements.html', "Liste des signalements avec filtres et badges d'état"); ?>
-    <?php echo helpScreenshot($screenshotBase . '/cu5-voir-signalement.html', "Vue détaillée d'un signalement RSST avec son historique"); ?>
+    <?php echo helpScreenshot($screenshotBase . '/consultation-liste-signalements.html', "Liste des signalements avec filtres et badges d'état"); ?>
+    <?php echo helpScreenshot($screenshotBase . '/consultation-voir-rsst.html', "Vue détaillée d'un signalement RSST avec son historique"); ?>
+    <?php echo helpScreenshot($screenshotBase . '/consultation-voir-rami.html', "Vue détaillée d'un signalement RAMI"); ?>
+    <?php echo helpScreenshot($screenshotBase . '/consultation-voir-dgi.html', "Vue détaillée d'un signalement DGI"); ?>
 </div>
 
 <!-- ============================================================ -->
@@ -435,8 +437,9 @@ $screenshotBase = 'asset.php?f=screenshots';
                 <li>Quelques jours plus tard, la rampe est réparée. Elle revient sur le signalement et le passe à <span class="badge badge--traite">Traité</span> avec la réponse : « Rampe réparée le 12/06/2025. Contrôle visuel effectué. »</li>
                 <li>Le déclarant (Jean) peut voir la réponse dans le détail de son signalement</li>
             </ol>
-            <?php echo helpScreenshot($screenshotBase . '/cu5-voir-signalement.html', "Vue détaillée d'un signalement RSST en cours de traitement"); ?>
-            <?php echo helpScreenshot($screenshotBase . '/cu5-repondre-signalement.html', "Formulaire de réponse du superviseur avec changement de statut En cours ou Traité"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/consultation-voir-rsst.html', "Vue détaillée d'un signalement RSST en cours de traitement"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu4-repondre-signalement.html', "Formulaire de réponse du superviseur avec changement de statut En cours ou Traité"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu4-modifier-signalement.html', "Formulaire de modification d'un signalement"); ?>
         </div>
     </div>
 
@@ -455,6 +458,7 @@ $screenshotBase = 'asset.php?f=screenshots';
                 <li>Le signalement reste visible dans la liste mais marqué comme abandonné avec le motif</li>
             </ol>
             <?php echo helpScreenshot($screenshotBase . '/cu5-liste-signalements-sup.html', "Liste des signalements vue par le superviseur avec les actions Répondre et Abandonner"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu1-accueil-superviseur.html', "Page d'accueil du superviseur avec accès à tous les registres et sites"); ?>
         </div>
     </div>
 

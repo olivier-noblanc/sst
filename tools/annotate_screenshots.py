@@ -139,13 +139,18 @@ ELEMENT_ANNOTATIONS = {
         ("#description", "Description danger"),
         ("#lieu", "Lieu / Mesures"),
     ],
-    "cu5-liste-signalements.html": [
-        (".btn-float-right", "Nouveau signalement"),
-        (".filter-bar", "Filtres état / recherche"),
-        ("input#q", "Recherche"),
-        (".badge--nouveau, .badge--en-cours", "Badges d'état"),
-        (".badge--confidential, .badge--public", "Visibilité"),
-        (".btn-group", "Actions"),
+    "cu4-repondre-signalement.html": [
+        (".card--rsst .card__subtitle", "Résumé signalement"),
+        (".report-detail__table", "Détails signalement"),
+        ("#nouvel_etat", "Changement statut"),
+        ("#reponse", "Commentaire"),
+        (".form-actions .btn--primary", "Valider"),
+    ],
+    "cu4-modifier-signalement.html": [
+        (".card--rsst h2", "Modification"),
+        ("form .form-group", "Champs modifiables"),
+        (".confidential-toggle", "Confidentialité"),
+        (".form-actions .btn--rsst", "Enregistrer"),
     ],
     "cu5-liste-signalements-sup.html": [
         (".btn-float-right", "Nouveau signalement"),
@@ -155,37 +160,32 @@ ELEMENT_ANNOTATIONS = {
         (".badge--confidential, .badge--public", "Visibilité"),
         (".btn--sm.btn--primary", "Répondre"),
     ],
-    "cu5-voir-signalement.html": [
+    "consultation-liste-signalements.html": [
+        (".btn-float-right", "Nouveau signalement"),
+        (".filter-bar", "Filtres état / recherche"),
+        ("input#q", "Recherche"),
+        (".badge--nouveau, .badge--en-cours", "Badges d'état"),
+        (".badge--confidential, .badge--public", "Visibilité"),
+        (".btn-group", "Actions"),
+    ],
+    "consultation-voir-rsst.html": [
         (".report-detail__header h2", "Signalement RSST"),
         (".report-detail__table", "Détails signalement"),
         (".btn-group .badge--nouveau", "État"),
         (".badge--confidential", "Visibilité"),
         (".btn--danger", "Abandonner"),
     ],
-    "cu5-voir-rami.html": [
+    "consultation-voir-rami.html": [
         (".report-detail__header h2", "Signalement RAMI"),
         (".report-detail__table", "Détails signalement"),
         (".report-detail__table tbody tr:nth-child(9) th", "Pour le compte de"),
         (".card h3", "Réponses"),
     ],
-    "cu5-voir-dgi.html": [
+    "consultation-voir-dgi.html": [
         (".report-detail__header h2", "Signalement DGI"),
         (".danger-panel", "Procédure prioritaire"),
         (".report-detail__table", "Détails signalement"),
         (".card h3", "Réponses"),
-    ],
-    "cu5-modifier-signalement.html": [
-        (".card--rsst h2", "Modification"),
-        ("form .form-group", "Champs modifiables"),
-        (".confidential-toggle", "Confidentialité"),
-        (".form-actions .btn--rsst", "Enregistrer"),
-    ],
-    "cu5-repondre-signalement.html": [
-        (".card--rsst .card__subtitle", "Résumé signalement"),
-        (".report-detail__table", "Détails signalement"),
-        ("#nouvel_etat", "Changement statut"),
-        ("#reponse", "Commentaire"),
-        (".form-actions .btn--primary", "Valider"),
     ],
     "cu6-statistiques.html": [
         (".filter-bar", "Filtres période"),

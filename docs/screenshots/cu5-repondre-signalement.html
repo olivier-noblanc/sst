@@ -2666,18 +2666,15 @@ tr:hover td {
     </div>
 </nav>
 <span id="top" tabindex="-1"></span><main id="main-content" class="main" role="main">
-<h1 class="page-title">Répondre au signalement — <span class="badge badge--rsst">rsst-26-001</span></h1>
-
 <nav class="breadcrumb" aria-label="Fil d'Ariane">
     <a href="index.php?page=home" class="breadcrumb__item">Accueil</a>
     <span class="breadcrumb__separator">/</span>
     <a href="index.php?page=report_list&type=rsst" class="breadcrumb__item">RSST</a>
     <span class="breadcrumb__separator">/</span>
-    <a href="index.php?page=report_view&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="breadcrumb__item">rsst-26-001</a>
+    <a href="index.php?page=report_view&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="breadcrumb__item">RSST-26-001</a>
     <span class="breadcrumb__separator">/</span>
     <span class="breadcrumb__current">Répondre</span>
 </nav>
-
 
 <!-- Report Summary (read-only) -->
 <div class="card card--rsst">
@@ -2685,7 +2682,7 @@ tr:hover td {
     <table class="report-detail__table" aria-label="Détails du signalement">
         <tr>
             <th>Référence</th>
-            <td>rsst-26-001</td>
+            <td>RSST-26-001</td>
         </tr>
         <tr>
             <th>Registre</th>
@@ -2701,7 +2698,7 @@ tr:hover td {
         </tr>
         <tr>
             <th>UR</th>
-            <td>Siège DREETS BFC</td>
+            <td>Siège DREETS BFC (SIEGE)</td>
         </tr>
         <tr>
             <th>Objet</th>
@@ -2718,8 +2715,6 @@ tr:hover td {
     </table>
 </div>
 
-<!-- Previous responses -->
-
 <!-- Response Form -->
 <div class="card">
     <h3 class="card__title">Formuler une réponse</h3>
@@ -2729,18 +2724,17 @@ tr:hover td {
 
         <div class="form-group">
             <label for="nouvel_etat">Nouvel état <span class="required">*</span></label>
-            <select name="nouvel_etat" id="nouvel_etat" required
-                    >
-                <option value="en_cours" >En cours</option>
-                <option value="traite" >Traité</option>
+            <select name="nouvel_etat" id="nouvel_etat" required>
+                <option value="en_cours">En cours</option>
+                <option value="traite">Traité</option>
             </select>
-                    </div>
+        </div>
 
         <div class="form-group">
             <label for="reponse">Réponse <span class="required">*</span></label>
             <textarea name="reponse" id="reponse" rows="6" maxlength="5000" required placeholder="Saisissez votre réponse..." aria-describedby="hint_reponse"></textarea>
             <div class="form-hint" id="hint_reponse">Maximum 5000 caractères</div>
-                    </div>
+        </div>
 
         <div class="form-actions">
             <button type="submit" class="btn btn--primary">Enregistrer les modifications</button>

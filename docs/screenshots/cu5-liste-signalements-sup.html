@@ -2666,106 +2666,125 @@ tr:hover td {
     </div>
 </nav>
 <span id="top" tabindex="-1"></span><main id="main-content" class="main" role="main">
-<h1 class="page-title">Liste des signalements <span class="badge badge--superviseur">Superviseur</span></h1>
+<h1 class="page-title">
+    Liste des fiches du registre RSST
+    <a href="index.php?page=report_create&type=rsst" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
+</h1>
 
 <nav class="breadcrumb" aria-label="Fil d'Ariane">
     <a href="index.php?page=home" class="breadcrumb__item">Accueil</a>
     <span class="breadcrumb__separator">/</span>
-    <span class="breadcrumb__current">Signalements</span>
+    <span class="breadcrumb__current">RSST</span>
 </nav>
 
 <div class="filter-bar">
-    <div class="form-group">
-        <label for="filter-registry">Registre</label>
-        <select id="filter-registry" name="registry">
-            <option value="">Tous les registres</option>
-            <option value="rsst">RSST</option>
-            <option value="rami">RAMI</option>
-            <option value="dgi">DGI</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="filter-state">État</label>
-        <select id="filter-state" name="state">
-            <option value="">Tous les états</option>
-            <option value="nouveau">Nouveau</option>
-            <option value="en_cours">En cours</option>
-            <option value="traite">Traité</option>
-            <option value="abandonne">Abandonné</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="filter-search">Recherche</label>
-        <input type="text" id="filter-search" name="search" placeholder="Rechercher un signalement...">
-    </div>
-    <button class="btn btn--primary btn--sm">Filtrer</button>
+    <form method="GET" action="index.php" class="flex flex-wrap gap-4 items-center w-full">
+        <input type="hidden" name="page" value="report_list">
+        <input type="hidden" name="type" value="rsst">
+
+        <div class="form-group">
+            <label for="etat">État</label>
+            <select id="etat" name="etat">
+                <option value="">Tous</option>
+                <option value="nouveau">Nouveau</option>
+                <option value="en_cours">En cours</option>
+                <option value="traite">Traité</option>
+                <option value="abandonne">Abandonné</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="site">Site (UR)</label>
+            <select id="site" name="site">
+                <option value="">Tous</option>
+                <option value="1">SIEGE — Siège DREETS BFC</option>
+                <option value="2">UR21 — Dijon</option>
+                <option value="3">UR25 — Besançon</option>
+            </select>
+        </div>
+
+        <div class="form-group filter-search-group">
+            <label for="q">Recherche</label>
+            <input type="text" id="q" name="q" value="" placeholder="Rechercher dans l'objet ou la description...">
+        </div>
+
+        <button type="submit" class="btn btn--primary">Filtrer</button>
+    </form>
 </div>
 
-<div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-                <th>Réf.</th>
-                <th>Date</th>
-                <th>Objet</th>
-                <th>Registre</th>
-                <th>État</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><a href="index.php?page=report_view&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789">rsst-26-001</a></td>
-                <td>15/02/2026</td>
-                <td>Problème de ventilation dans les bureaux du 2ème étage</td>
-                <td><span class="badge badge--rsst">RSST</span></td>
-                <td><span class="badge badge--nouveau">Nouveau</span></td>
-                <td>
-                    <a href="index.php?page=report_view&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--sm btn--outline">Voir</a>
-                    <a href="index.php?page=report_respond&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--sm btn--primary">Répondre</a>
-                    <a href="index.php?page=report_abandon&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--sm btn--outline">Abandonner</a>
-                </td>
-            </tr>
-            <tr>
-                <td><a href="index.php?page=report_view&uuid=b2c3d4e5-f6a7-8901-bcde-f01234567890">rami-26-001</a></td>
-                <td>03/03/2026</td>
-                <td>Agression verbale d'un usager à l'accueil</td>
-                <td><span class="badge badge--rami">RAMI</span></td>
-                <td><span class="badge badge--en-cours">En cours</span></td>
-                <td>
-                    <a href="index.php?page=report_view&uuid=b2c3d4e5-f6a7-8901-bcde-f01234567890" class="btn btn--sm btn--outline">Voir</a>
-                    <a href="index.php?page=report_respond&uuid=b2c3d4e5-f6a7-8901-bcde-f01234567890" class="btn btn--sm btn--primary">Répondre</a>
-                    <a href="index.php?page=report_abandon&uuid=b2c3d4e5-f6a7-8901-bcde-f01234567890" class="btn btn--sm btn--outline">Abandonner</a>
-                </td>
-            </tr>
-            <tr>
-                <td><a href="index.php?page=report_view&uuid=c3d4e5f6-a7b8-9012-cdef-012345678901">dgi-26-001</a></td>
-                <td>10/04/2026</td>
-                <td>Fuite de gaz dans la chaufferie du bâtiment B</td>
-                <td><span class="badge badge--dgi">DGI</span></td>
-                <td><span class="badge badge--traite">Traité</span></td>
-                <td>
-                    <a href="index.php?page=report_view&uuid=c3d4e5f6-a7b8-9012-cdef-012345678901" class="btn btn--sm btn--outline">Voir</a>
-                </td>
-            </tr>
-            <tr class="row--inactive">
-                <td><a href="index.php?page=report_view&uuid=d4e5f6a7-b8c9-0123-defa-123456789012">rsst-26-002</a></td>
-                <td>22/05/2026</td>
-                <td>Éclairage défaillant dans le parking souterrain</td>
-                <td><span class="badge badge--rsst">RSST</span></td>
-                <td><span class="badge badge--abandonne">Abandonné</span></td>
-                <td>
-                    <a href="index.php?page=report_view&uuid=d4e5f6a7-b8c9-0123-defa-123456789012" class="btn btn--sm btn--outline">Voir</a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<div class="card">
+    <div class="table-wrapper">
+        <table aria-label="Liste des signalements RSST">
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Date</th>
+                    <th>Objet</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>UR</th>
+                    <th>État</th>
+                    <th>Visibilité</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>RSST-26-001</strong></td>
+                    <td>15/02/2026</td>
+                    <td>Problème de ventilation dans les bureaux du 2ème étage</td>
+                    <td>Dupont</td>
+                    <td>Jean</td>
+                    <td>SIEGE</td>
+                    <td><span class="badge badge--nouveau">Nouveau</span></td>
+                    <td><span class="badge badge--confidential">&#128274; Confidentiel</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="index.php?page=report_view&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--sm btn--outline">Voir</a>
+                            <a href="index.php?page=report_respond&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--sm btn--primary">Répondre</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>RSST-26-002</strong></td>
+                    <td>22/05/2026</td>
+                    <td>Éclairage défaillant dans le parking souterrain</td>
+                    <td>Martin</td>
+                    <td>Paul</td>
+                    <td>UR25</td>
+                    <td><span class="badge badge--en-cours">En cours</span></td>
+                    <td><span class="badge badge--public">Public</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="index.php?page=report_view&uuid=d4e5f6a7-b8c9-0123-defa-123456789012" class="btn btn--sm btn--outline">Voir</a>
+                            <a href="index.php?page=report_respond&uuid=d4e5f6a7-b8c9-0123-defa-123456789012" class="btn btn--sm btn--primary">Répondre</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>RSST-26-003</strong></td>
+                    <td>01/06/2026</td>
+                    <td>Absence de signalisation sortie de secours</td>
+                    <td>Morel</td>
+                    <td>Philippe</td>
+                    <td>UR21</td>
+                    <td><span class="badge badge--traite">Traité</span></td>
+                    <td><span class="badge badge--public">Public</span></td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="index.php?page=report_view&uuid=e5f6a7b8-c9d0-1234-efab-234567890123" class="btn btn--sm btn--outline">Voir</a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <div class="pagination">
     <span class="pagination__current">1</span>
-    <a href="?page=report_list&p=2" class="pagination__link">2</a>
-    <a href="?page=report_list&p=2" class="pagination__link">Suivant ›</a>
+    <a href="?page=report_list&type=rsst&p=2" class="pagination__link">2</a>
+    <a href="?page=report_list&type=rsst&p=2" class="pagination__link">Suivant ›</a>
 </div>
 
 </main>    <footer class="footer" role="contentinfo">

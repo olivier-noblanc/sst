@@ -2624,70 +2624,76 @@ tr:hover td {
     </div>
 </nav>
 <span id="top" tabindex="-1"></span><main id="main-content" class="main" role="main">
-<h1 class="page-title">Signalement — <span class="badge badge--rsst">rsst-26-001</span></h1>
-
 <nav class="breadcrumb" aria-label="Fil d'Ariane">
     <a href="index.php?page=home" class="breadcrumb__item">Accueil</a>
     <span class="breadcrumb__separator">/</span>
     <a href="index.php?page=report_list&type=rsst" class="breadcrumb__item">RSST</a>
     <span class="breadcrumb__separator">/</span>
-    <span class="breadcrumb__current">rsst-26-001</span>
+    <span class="breadcrumb__current">RSST-26-001</span>
 </nav>
 
 <div class="card card--rsst">
-    <div class="report-detail__header">
-        <h3 class="card__title">Détails du signalement</h3>
-        <span class="badge badge--nouveau">Nouveau</span>
+    <div class="report-detail">
+        <div class="report-detail__header">
+            <h2>Signalement — RSST-26-001</h2>
+            <div class="btn-group">
+                <span class="badge badge--rsst">RSST</span>
+                <span class="badge badge--nouveau">Nouveau</span>
+                <span class="badge badge--confidential">&#128274; Confidentiel</span>
+            </div>
+        </div>
+
+        <table class="report-detail__table" aria-label="Détails du signalement">
+            <tbody>
+                <tr>
+                    <th>Référence</th>
+                    <td>RSST-26-001</td>
+                </tr>
+                <tr>
+                    <th>Date de l'événement</th>
+                    <td>15/02/2026</td>
+                </tr>
+                <tr>
+                    <th>Heure de l'événement</th>
+                    <td>09:30</td>
+                </tr>
+                <tr>
+                    <th>Lieu</th>
+                    <td>Bureaux 2ème étage, Siège DREETS BFC</td>
+                </tr>
+                <tr>
+                    <th>Objet</th>
+                    <td>Problème de ventilation dans les bureaux du 2ème étage</td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td>La ventilation dans les bureaux du 2ème étage est défaillante depuis plusieurs semaines. Les agents signalent des maux de tête et une gêne respiratoire. Le système de climatisation n&#039;a pas été entretenu depuis plus d&#039;un an.</td>
+                </tr>
+                <tr>
+                    <th>Déclarant</th>
+                    <td>Jean Dupont</td>
+                </tr>
+                <tr>
+                    <th>UR</th>
+                    <td>Siège DREETS BFC (SIEGE)</td>
+                </tr>
+                <tr>
+                    <th>Date de création</th>
+                    <td>15/02/2026 à 09h30</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    <table class="report-detail__table" aria-label="Détails du signalement">
-        <tr>
-            <th>Référence</th>
-            <td>rsst-26-001</td>
-        </tr>
-        <tr>
-            <th>Registre</th>
-            <td><span class="badge badge--rsst">RSST</span></td>
-        </tr>
-        <tr>
-            <th>Date de l'événement</th>
-            <td>15/02/2026</td>
-        </tr>
-        <tr>
-            <th>Déclarant</th>
-            <td>Jean Dupont</td>
-        </tr>
-        <tr>
-            <th>UR</th>
-            <td>Siège DREETS BFC</td>
-        </tr>
-        <tr>
-            <th>Objet</th>
-            <td>Problème de ventilation dans les bureaux du 2ème étage</td>
-        </tr>
-        <tr>
-            <th>Description</th>
-            <td>La ventilation dans les bureaux du 2ème étage est défaillante depuis plusieurs semaines. Les agents signalent des maux de tête et une gêne respiratoire. Le système de climatisation n&#039;a pas été entretenu depuis plus d&#039;un an.</td>
-        </tr>
-        <tr>
-            <th>État</th>
-            <td><span class="badge badge--nouveau">Nouveau</span></td>
-        </tr>
-    </table>
 </div>
 
 <div class="card">
-    <h3 class="card__title">Historique</h3>
-    <div class="report-response">
-        <strong>Création du signalement</strong>
-        <p>Déclaré par Jean Dupont le 15/02/2026 à 09h30</p>
-        <div class="report-response__meta">
-            État initial : <span class="badge badge--nouveau">Nouveau</span>
-        </div>
-    </div>
+    <h3>Réponses (0)</h3>
 </div>
 
 <div class="form-actions">
-    <a href="index.php?page=report_edit&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--primary">Modifier</a>
+    <a href="index.php?page=report_edit&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--secondary">Modifier</a>
+    <a href="index.php?page=report_view&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789&confirm_abandon=1" class="btn btn--danger">Abandonner le signalement</a>
+    <a href="index.php?page=report_print&uuid=a1b2c3d4-e5f6-7890-abcd-ef0123456789" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Voir en PDF</a>
     <a href="index.php?page=report_list&type=rsst" class="btn btn--secondary">Retour à la liste</a>
 </div>
 

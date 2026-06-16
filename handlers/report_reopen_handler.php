@@ -3,7 +3,7 @@
  * Report Reopen Handler — Application SST DREETS BFC
  * 
  * POST handler: reopen a report that was traite or abandonne.
- * Access: superviseur or original declarant
+ * Access: superviseur or CHSCT only (not declarant — French labor law)
  */
 
 validatePostRequest(url('home'));
@@ -27,31 +27,43 @@ if (!in_array($report['etat'], ['traite', 'abandonne'])) {
     redirect(url('report_view', ['uuid' => $reportUuid]));
 }
 
-// Check user is supervisor or the original declarant
+// Check user is supervisor or CHSCT (P0-3: declarant may NOT reopen)
 $user = currentUser();
 $userId = (int) $user['id'];
 $userRole = $user['role'] ?? 'agent';
-$isDeclarant = ((int) $report['declarant_id'] === $userId);
 
-if (!$isDeclarant && !in_array($userRole, ['superviseur', 'chsct'])) {
-    setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement.');
+if (!in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
+    setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs et le CHSCT peuvent réouvrir un signalement.');
     redirect(url('report_view', ['uuid' => $reportUuid]));
 }
 
-// Reopen the report: set etat to en_cours
+// Reopen the report: set etat to 'reouvert' (P0-1)
 $pdo = getDB();
 
 try {
     $pdo->beginTransaction();
 
-    // Update report state
+    // Insert state history BEFORE changing state
+    $stmt = $pdo->prepare("
+        INSERT INTO report_state_history (report_uuid, etat_precedent, etat_suivant, user_id, motif)
+        VALUES (:report_uuid, :etat_precedent, :etat_suivant, :user_id, :motif)
+    ");
+    $stmt->execute([
+        ':report_uuid'    => $reportUuid,
+        ':etat_precedent' => $report['etat'],
+        ':etat_suivant'   => ETAT_REOUVERT,
+        ':user_id'        => $userId,
+        ':motif'          => $motifReouverture,
+    ]);
+
+    // Update report state (P0-1: use 'reouvert' instead of 'en_cours')
     $stmt = $pdo->prepare("
         UPDATE reports
-        SET etat = 'en_cours',
+        SET etat = :nouvel_etat,
             updated_at = datetime('now')
         WHERE uuid = :uuid AND etat IN ('traite', 'abandonne')
     ");
-    $stmt->execute([':uuid' => $reportUuid]);
+    $stmt->execute([':uuid' => $reportUuid, ':nouvel_etat' => ETAT_REOUVERT]);
 
     $updated = $stmt->rowCount() > 0;
 
@@ -70,7 +82,7 @@ try {
         ':report_uuid' => $reportUuid,
         ':user_id'     => $userId,
         ':reponse'     => 'Réouverture du signalement. Motif : ' . $motifReouverture,
-        ':nouvel_etat' => 'en_cours',
+        ':nouvel_etat' => ETAT_REOUVERT,
     ]);
 
     $pdo->commit();

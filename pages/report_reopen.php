@@ -4,19 +4,17 @@
  *
  * Shows a form to reopen a report that was traite or abandonne.
  * URL: index.php?page=report_reopen&uuid={report_uuid}
- * Access: supervisor/chsct or the original declarant.
+ * Access: supervisor/chsct only (not declarant — French labor law).
  */
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
-// Access control: must be supervisor/chsct or original declarant
+// Access control: must be supervisor or CHSCT (P0-3: declarant may NOT reopen)
 $user = currentUser();
-$userId = (int) $user['id'];
 $userRole = $user['role'] ?? 'agent';
-$isDeclarant = ((int) $report['declarant_id'] === $userId);
 
-if (!$isDeclarant && !in_array($userRole, ['superviseur', 'chsct'])) {
-    setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement.');
+if (!in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
+    setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs et le CHSCT peuvent réouvrir un signalement.');
     redirect(url('report_view', ['uuid' => $uuid]));
 }
 
@@ -75,8 +73,16 @@ $flash = getFlash();
 <?php endif; ?>
 
 <div class="warning-panel">
+    <?php if ($report['type'] === TYPE_DGI): ?>
+    <div class="alert alert--danger" role="alert">
+        <strong>Attention — Registre DGI</strong><br>
+        La réouverture d'un signalement DGI signifie que le danger grave et imminent n'a pas été résolu. 
+        Conformément à l'article L4131-2 du Code du travail, le CSE/CSA/CHSCT sera informé de cette réouverture.
+    </div>
+    <?php endif; ?>
+
     <p>Vous êtes sur le point de réouvrir le signalement <strong><?php echo e($report['reference']); ?></strong>.</p>
-    <p class="warning-panel__hint">Le signalement repassera à l'état « En cours ». Veuillez indiquer le motif de cette réouverture.</p>
+    <p class="warning-panel__hint">Le signalement repassera à l'état « Réouvert ». Veuillez indiquer le motif de cette réouverture.</p>
 
     <form method="POST" action="<?php echo url('report_reopen', ['uuid' => $uuid]); ?>" class="mt-4">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">

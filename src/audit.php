@@ -93,6 +93,11 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
         $params[':q2'] = '%' . $filters['q'] . '%';
     }
 
+    if (!empty($filters['username'])) {
+        $where .= " AND username = :filter_username";
+        $params[':filter_username'] = $filters['username'];
+    }
+
     // Count
     $countSql = "SELECT COUNT(*) FROM audit_log WHERE $where";
     $stmt = $pdo->prepare($countSql);

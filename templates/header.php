@@ -42,6 +42,7 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
 </head>
 <body>
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <a href="#main-nav" class="skip-link">Aller à la navigation</a>
     <header class="header" role="banner">
         <div class="header__logo">
             <?php

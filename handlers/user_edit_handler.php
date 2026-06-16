@@ -66,6 +66,10 @@ if ($user['role'] === ROLE_SUPERVISEUR && $role !== ROLE_SUPERVISEUR) {
     if (isLastActiveSuperviseur($pdo)) {
         $errors['role'] = 'Impossible de rétrograder le dernier superviseur actif. Nommez un autre superviseur d\'abord.';
     }
+    // Require explicit confirmation for superviseur → agent demotion
+    if ($role === ROLE_AGENT && empty($_POST['confirm_demotion'])) {
+        $errors['role'] = 'Veuillez confirmer la rétrogradation en cochant la case de confirmation.';
+    }
 }
 
 // Note: No password field — auth is via IIS Windows Authentication

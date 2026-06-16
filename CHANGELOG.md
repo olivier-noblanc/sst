@@ -3,6 +3,43 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.20.0] — 2026-06-17
+
+### Juridique — Conformité de la réouverture (avis Compliance + Juridique)
+
+- **1** 🔴 **`report_reopen_handler.php` — État `reouvert` au lieu de `en_cours`** — La réouverture passait directement à `en_cours`, rendant impossible la distinction entre un signalement en cours pour la première fois et un signalement rouvert. Le Code du travail (D4132-1) exige cette distinction pour l'inspection du travail. Le handler utilise désormais `ETAT_REOUVERT` comme état cible.
+- **2** 🔴 **`report_queries.php` — Archivage de la réponse initiale avant écrasement** — `respondToReport()` écrasait `reports.reponse`, `repondant_id` et `date_reponse` lors d'une nouvelle réponse à un signalement rouvert, détruisant la réponse initiale du superviseur. Cela violait le principe d'immutabilité des registres (L4711-3, art. 5(1)(f) RGPD). Ajout d'une étape d'archivage dans `report_responses` avec le préfixe `[Réponse initiale archivée]` avant l'UPDATE.
+- **3** 🔴 **`report_reopen_handler.php` — Réouverture restreinte aux superviseurs/CHSCT** — Le déclarant (agent) pouvait réouvrir son propre signalement sans l'accord du superviseur. En droit du travail, le traitement relève de la responsabilité de l'employeur (L4121-1). L'agent ne peut plus réouvrir — seuls les rôles `superviseur` et `chsct` le peuvent.
+- **4** 🟡 **`report_reopen.php` — Avertissement DGI spécifique** — Ajout d'un bandeau d'alerte pour les signalements DGI : « La réouverture d'un signalement DGI signifie que le danger grave et imminent n'a pas été résolu. Conformément à l'article L4131-2 du Code du travail, le CSE/CSA/CHSCT sera informé. »
+- **5** 🟡 **`database.php` — Table `report_state_history`** — Nouvelle table de traçabilité des transitions d'état : `report_uuid`, `etat_precedent`, `etat_suivant`, `user_id`, `motif`, `created_at`. Index sur `report_uuid` et `created_at`. Alimentée automatiquement par le handler de réouverture.
+
+### CSS — Audit approfondi, 15 corrections
+
+- **6** 🔴 **`style.css` — `var(--border)` indéfini** — La variable `--border` était utilisée mais jamais définie dans `:root`. La table de synthèse mobile n'affichait aucune bordure. Ajout de `--border: var(--grey-300)` dans `:root`.
+- **7** 🔴 **`style.css` — `.alert--danger` manquante** — `changelog.php` utilise `alert--danger` mais seule `.alert--error` existait. L'alerte s'affichait sans style. Ajout de la classe manquante.
+- **8** 🔴 **`style.css` — Typo `.header__user-name` → `.header__username`** — Le sélecteur CSS utilisait un tiret mais le template PHP un underscore. Le tronquage du nom sur mobile (480px) ne fonctionnait pas.
+- **9** 🟡 **`style.css` — Contraste `.badge--abandonne` WCAG AA** — Blanc sur `#95A5A6` = ratio 2.8:1 (insuffisant). Changé en `#7B8D8E` → ratio ~4.6:1.
+- **10** 🟡 **`style.css` — Suppression CSS mort** — Retrait de `.report-response`, `.sortable`, `.sidebar-close-label`, `.sidebar--open`, `.sidebar-overlay--visible`, `.help-screenshot--placeholder`, `.required-star` (~50 lignes).
+- **11** 🟡 **`style.css` — Fusion doublons** — Merge de `.back-to-top:hover` (2→1), suppression du doublon `.form-grid` mobile, suppression du `:not(:has())` redondant sur `.pour-compte-fields`.
+- **12** 🟡 **`style.css` — Variables CSS pour couleurs codées en dur** — `.impersonate-banner` → `var(--state-en-cours)`, `.skip-link` → `var(--color-primary-dark)`.
+- **13** 🟡 **`style.css` — Breakpoint mobile impersonate-banner** — Ajout `flex-direction: column` sur mobile pour éviter le débordement.
+- **14** 🟡 **`style.css` — Print styles complétés** — Ajout `@page { margin: 15mm; size: A4; }` et masquage de `.impersonate-banner`, `.tab-bar`, `.report-nav`, `.help-toc` en impression.
+- **15** 🟢 **`style.css` — Nettoyage** — Suppression de `-webkit-overflow-scrolling: touch` (déprécié), consolidation `.checkbox-label`/`.label--checkbox`, renumérotation des sections (1-37), conversion `rem`→`px` dans help-toc.
+
+### Produit — Backlog complété
+
+- **16** 🟡 **`report_abandon_handler.php` — Notification superviseur sur abandon** — Les superviseurs du site reçoivent désormais un e-mail lorsqu'un signalement est abandonné. Contenu : référence, registre, objet, déclarant, lien vers le signalement.
+- **17** 🟡 **`user_edit.php` — Confirmation avant démotion de rôle** — Ajout d'une case à cocher `confirm_demotion` obligatoire lorsqu'un superviseur est rétrogradé en agent. Le handler refuse la modification sans cette confirmation.
+- **18** 🟡 **`header.php` + `sidebar.php` — Skip link navigation** — Ajout d'un second skip link « Aller à la navigation » avec `id="main-nav"` sur la sidebar. Conformité WCAG 2.4.1.
+- **19** 🟡 **`report_card.php` — Avertissement nouvelle fenêtre** — Ajout de `<span class="sr-only">(nouvelle fenêtre)</span>` sur les liens `target="_blank"`.
+- **20** 🟡 **`report_form.php` — Retrait de `novalidate`** — La validation HTML5 native du navigateur est désormais active en première passe avant la validation serveur.
+- **21** 🟡 **`mail.php` — Helper `buildEmailBody()`** — Fonction utilitaire pour construire des e-mails HTML avec en-tête/pied cohérents. Pattern KISS, sans moteur de template.
+- **22** 🟡 **`logs.php` + `audit.php` — Filtrage du journal d'audit** — Ajout d'un filtre par nom d'utilisateur (`?user=xxx`). UI avec champ de recherche et bouton Filtrer.
+- **23** 🟡 **`settings_handler.php` — Test SMTP automatique à la sauvegarde** — Après enregistrement de la config SMTP, un e-mail de test est envoyé automatiquement avec flash de résultat (succès/échec).
+- **24** 🟡 **`login_handler.php` — Rate limiting connexion** — Maximum 5 tentatives par 15 minutes en mode dev. Reset du compteur sur connexion réussie. Message avec temps restant.
+- **25** 🟡 **`report_list.php` — Lien export filtré** — Ajout d'un lien « Exporter les signalements filtrés » pour les superviseurs/CHSCT en haut de la liste.
+- **26** 🟢 **`tests/bootstrap.php` — Constante `MAX_OBJECT_LENGTH` corrigée** — La valeur de test (200) divergeait de la production (100). Corrigée à 100.
+
 ## [3.19.0] — 2026-06-17
 
 ### Sécurité — Corrections critiques (LFI, path traversal, guards CLI)

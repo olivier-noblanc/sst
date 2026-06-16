@@ -344,6 +344,32 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
 }
 
 /**
+ * Build a consistent HTML email body with a branded wrapper.
+ *
+ * KISS approach: one shared template for all emails instead of
+ * duplicating <html><body><h2>...</h2>... in every function.
+ *
+ * @param string $title    Email heading (e.g. "Nouveau signalement")
+ * @param string $content  HTML content (paragraphs, tables, etc.)
+ * @param string $siteName Organization name for footer (optional)
+ * @return string Complete HTML email body
+ */
+function buildEmailBody(string $title, string $content, string $siteName = ''): string {
+    if (empty($siteName)) {
+        $siteName = getConfig('app_nom_organisation', 'DREETS BFC');
+    }
+
+    $body = "<html><body>";
+    $body .= "<h2>" . htmlspecialchars($title) . "</h2>";
+    $body .= $content;
+    $body .= "<hr style='margin:16px 0; border:none; border-top:1px solid #ddd;'>";
+    $body .= "<p style='font-size:12px; color:#888;'>Cet e-mail a été envoyé automatiquement par l'application $siteName. Ne pas répondre directement à ce message.</p>";
+    $body .= "</body></html>";
+
+    return $body;
+}
+
+/**
  * Get base URL for links in emails.
  *
  * @return string

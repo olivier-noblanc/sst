@@ -69,6 +69,10 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
     <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 
+<?php if (in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])): ?>
+<p class="mb-3"><a href="<?php echo url('export'); ?>" class="btn btn--sm btn--outline">&#x1F4E5; Exporter les signalements filtrés</a></p>
+<?php endif; ?>
+
 <?php echo renderBreadcrumb([
     ['url' => url('home'), 'label' => 'Accueil'],
     ['label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)],

@@ -38,7 +38,7 @@ if (strlen($reponse) > 5000) {
 $report = fetchReportOrRedirect($reportUuid);
 
 // Verify report state
-if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS])) {
+if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT])) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
     redirect(url('report_view', ['uuid' => $reportUuid]));
 }

@@ -58,7 +58,7 @@ $submitBtnClass = $isEdit
         <?php echo $isEdit ? 'Modifier le signalement' : 'Inscrire un signalement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>
 
-    <form method="POST" action="<?php echo e($action); ?>" enctype="multipart/form-data" novalidate>
+    <form method="POST" action="<?php echo e($action); ?>" enctype="multipart/form-data">
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <?php if ($isEdit): ?>

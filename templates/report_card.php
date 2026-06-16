@@ -29,7 +29,7 @@ $isDeclarant = ((int) $report['declarant_id'] === $userId);
 $canEdit = canEditReport($report, $userId);
 $canAbandon = $isDeclarant && !in_array($report['etat'], [ETAT_ABANDONNE, ETAT_TRAITE]);
 $canRespondToReport = canRespondToReport($report, $userRole);
-$canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE]) && ($isDeclarant || in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT]));
+$canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE]) && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 // Ensure $csrfToken is available (set by index.php but may not be in scope)
 if (!isset($csrfToken)) {
@@ -182,6 +182,6 @@ if (!isset($csrfToken)) {
         <a href="<?php echo url('report_reopen', ['uuid' => $report['uuid']]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
     <?php endif; ?>
 
-    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Voir en PDF</a>
+    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Voir en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
     <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>

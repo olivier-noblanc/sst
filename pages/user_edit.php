@@ -53,6 +53,19 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
         ?>
 
         <?php if (!empty($editEmail) && $editRole !== $user['role']): ?>
+        <?php if ($user['role'] === ROLE_SUPERVISEUR && $editRole === ROLE_AGENT): ?>
+        <div class="separator">
+            <div class="alert alert--danger">
+                <strong>Attention :</strong> Vous êtes sur le point de rétrograder un superviseur en agent. Cette action est significative.
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="confirm_demotion" value="1" required>
+                    <span>Je confirme la rétrogradation de <strong><?php echo e($user['prenom'] . ' ' . $user['nom']); ?></strong> de Superviseur à Agent</span>
+                </label>
+            </div>
+        </div>
+        <?php endif; ?>
         <div class="separator">
             <div class="form-group">
                 <label class="checkbox-label">

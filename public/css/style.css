@@ -22,7 +22,7 @@
     --state-nouveau: #2E5C8A;          /* Blue */
     --state-en-cours: #E67E22;         /* Orange */
     --state-traite: #27AE60;           /* Green */
-    --state-abandonne: #95A5A6;        /* Grey */
+    --state-abandonne: #7B8D8E;        /* Grey (WCAG AA compliant) */
 
     /* Role badge colors */
     --role-agent: #2E5C8A;
@@ -89,6 +89,9 @@
     --z-mobile-menu: 200;
     --z-overlay: 150;
     --z-skip-link: 9999;
+
+    /* Border */
+    --border: var(--grey-300);
 }
 
 /* ============================================================
@@ -366,7 +369,7 @@ img { max-width: 100%; height: auto; display: block; }
    Impersonation banner (orange warning, fixed below header)
    ============================================================ */
 .impersonate-banner {
-    background: #e67e22;
+    background: var(--state-en-cours);
     color: white;
     padding: 8px 20px;
     display: flex;
@@ -704,7 +707,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* ============================================================
-   12b. Welcome Banner — First-time user guidance
+   13. Welcome Banner — First-time user guidance
    ============================================================ */
 .welcome-banner {
     background: linear-gradient(135deg, #e8f0fe 0%, #d4e8ff 100%);
@@ -841,7 +844,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* ============================================================
-   13. Buttons
+   14. Buttons
    ============================================================ */
 .btn {
     display: inline-block;
@@ -887,7 +890,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* ============================================================
-   14. Forms
+   15. Forms
    ============================================================ */
 .form-group {
     margin-bottom: 16px;
@@ -1195,9 +1198,6 @@ img { max-width: 100%; height: auto; display: block; }
 .form-grid:has(#pour_compte:checked) .pour-compte-fields {
     display: block;
 }
-.form-grid:not(:has(#pour_compte:checked)) .pour-compte-fields {
-    display: none;
-}
 
 /* Flex row for side-by-side inputs */
 .flex-row {
@@ -1254,7 +1254,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* ============================================================
-   15. Tables
+   16. Tables
    ============================================================ */
 .table-wrapper {
     overflow-x: auto;
@@ -1346,23 +1346,6 @@ th {
     user-select: none;
 }
 
-th.sortable {
-    cursor: pointer;
-}
-
-th.sortable:hover {
-    background: var(--grey-200);
-}
-
-th.sortable::after {
-    content: ' \2195';  /* ↕ */
-    opacity: 0.4;
-    font-size: 11px;
-}
-
-th.sort-asc::after  { content: ' \2191'; opacity: 1; }  /* ↑ */
-th.sort-desc::after { content: ' \2193'; opacity: 1; }  /* ↓ */
-
 td {
     padding: 10px 12px;
     border-bottom: 1px solid var(--grey-200);
@@ -1433,23 +1416,6 @@ tr:hover td {
     margin-bottom: 8px;
 }
 
-/* Response section */
-.report-response {
-    background: var(--grey-50);
-    padding: 16px;
-    border-radius: var(--border-radius);
-    border-left: 4px solid var(--state-traite);
-    margin-top: 12px;
-}
-
-.report-response__meta {
-    margin-top: 12px;
-    font-size: 13px;
-    color: var(--grey-600);
-    padding-top: 8px;
-    border-top: 1px solid var(--grey-200);
-}
-
 /* Table cell alignment */
 .text-left   { text-align: left; }
 .text-center { text-align: center; }
@@ -1472,7 +1438,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   16. Badges
+   17. Badges
    ============================================================ */
 .badge {
     display: inline-block;
@@ -1524,7 +1490,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   17. Cartes indicateurs (page Statistiques)
+   18. Cartes indicateurs (page Statistiques)
    ============================================================ */
 .indicateur-grid {
     display: flex;
@@ -1570,7 +1536,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   18. Alerts / Flash Messages
+   19. Alerts / Flash Messages
    ============================================================ */
 .alert {
     padding: 12px 16px;
@@ -1581,11 +1547,12 @@ tr:hover td {
 
 .alert--success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 .alert--error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.alert--danger  { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 .alert--warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 .alert--info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
 
 /* ============================================================
-   19. Pagination
+   20. Pagination
    ============================================================ */
 .pagination {
     display: flex;
@@ -1625,7 +1592,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   20. Filter Bar
+   21. Filter Bar
    ============================================================ */
 .filter-bar {
     display: flex;
@@ -1662,7 +1629,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   21. Login Page
+   22. Login Page
    ============================================================ */
 .login-body {
     background: var(--grey-200);
@@ -1741,7 +1708,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   22. Print View
+   23. Print View
    ============================================================ */
 .print-view {
     max-width: 800px;
@@ -1785,7 +1752,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   23. Confirm Dialog (inline)
+   24. Confirm Dialog (inline)
    ============================================================ */
 .confirm-box {
     background: #fff3cd;
@@ -1873,7 +1840,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   24. Tag Input (Settings page)
+   25. Tag Input (Settings page)
    ============================================================ */
 .tag-input-container {
     border: 1px solid var(--grey-300);
@@ -1924,7 +1891,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   25. Tabs (Settings, Users pages)
+   26. Tabs (Settings, Users pages)
    ============================================================ */
 .settings-tab {
     padding: 10px 20px;
@@ -1948,7 +1915,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   26. Changelog
+   27. Changelog
    ============================================================ */
 .changelog-content {
     background: #fff;
@@ -2013,7 +1980,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   27. Help / Documentation
+   28. Help / Documentation
    ============================================================ */
 .help-profile-card {
     border: 1px solid var(--grey-200);
@@ -2029,7 +1996,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   28. Settings — Add site form
+   29. Settings — Add site form
    ============================================================ */
 .add-site-form {
     margin-bottom: 20px;
@@ -2089,13 +2056,24 @@ tr:hover td {
 
 .checkbox-label {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
     font-weight: normal;
+    cursor: pointer;
 }
 
 .checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox-label--top {
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.checkbox-label--top input[type="checkbox"] {
     margin-top: 3px;
     width: 16px;
     height: 16px;
@@ -2103,7 +2081,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   29. Utility Classes
+   30. Utility Classes
    ============================================================ */
 .text-muted  { color: var(--grey-500); }
 .text-small  { font-size: 12px; }
@@ -2139,7 +2117,7 @@ tr:hover td {
     left: 0;
     z-index: var(--z-skip-link);
     padding: 8px 16px;
-    background: #1a3a5c;
+    background: var(--color-primary-dark);
     color: #fff;
     text-decoration: none;
     font-weight: 600;
@@ -2250,9 +2228,6 @@ tr:hover td {
 }
 .back-to-top:hover {
     opacity: 1;
-}
-
-.back-to-top:hover {
     background: var(--color-primary-dark);
     text-decoration: none;
     color: #fff;
@@ -2305,7 +2280,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   32. Content Pages (Preamble, Help)
+   31. Content Pages (Preamble, Help)
    ============================================================ */
 .content-section {
     line-height: 1.7;
@@ -2344,13 +2319,9 @@ tr:hover td {
     margin-top: 16px;
 }
 
-/* Required asterisk (red) */
-.required-star {
-    color: var(--dgi-color);
-}
 
 /* ============================================================
-   29b. Help Page Styles
+   32. Help Page Styles
    ============================================================ */
 .help-profile-card--superviseur {
     border-left-color: var(--role-superviseur);
@@ -2490,53 +2461,45 @@ tr:hover td {
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-.help-screenshot--placeholder {
-    min-height: 200px;
-    background: #f5f5f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 /* Help page — Table of Contents */
 .help-toc {
     background: var(--grey-50, #fafafa);
     border: 1px solid var(--grey-200, #e0e0e0);
     border-radius: 8px;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.5rem;
+    padding: 20px 24px;
+    margin-bottom: 24px;
 }
 .help-toc__title {
-    font-size: 1rem;
+    font-size: 16px;
     font-weight: 600;
-    margin: 0 0 0.75rem 0;
+    margin: 0 0 12px 0;
     color: var(--color-primary, #0056A3);
 }
 .help-toc__list {
     margin: 0;
-    padding-left: 1.25rem;
+    padding-left: 20px;
     column-count: 2;
-    column-gap: 2rem;
+    column-gap: 32px;
 }
 .help-toc__list li {
-    margin-bottom: 0.35rem;
+    margin-bottom: 5.6px;
     break-inside: avoid;
 }
 .help-toc__list a {
     color: var(--color-primary, #0056A3);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 14.4px;
     line-height: 1.5;
 }
 .help-toc__list a:hover {
     text-decoration: underline;
 }
 .help-toc__list ol {
-    margin-top: 0.25rem;
-    padding-left: 1rem;
+    margin-top: 4px;
+    padding-left: 16px;
 }
 .help-toc__list ol li {
-    margin-bottom: 0.2rem;
+    margin-bottom: 3.2px;
 }
 @media (max-width: 768px) {
     .help-toc__list {
@@ -2581,7 +2544,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   30. Print Styles
+   33. Print Styles
    ============================================================ */
 @media print {
     .header, .sidebar, .sidebar-overlay, .sidebar-toggle-checkbox, .filter-bar, .btn, .pagination, .print-hint,
@@ -2589,6 +2552,7 @@ tr:hover td {
     .welcome-banner, .workflow-legend, .breadcrumb {
         display: none !important;
     }
+    .impersonate-banner, .tab-bar, .report-nav, .help-toc { display: none !important; }
     .main {
         margin: 0;
         padding: 0;
@@ -2616,8 +2580,10 @@ tr:hover td {
     }
 }
 
+@page { margin: 15mm; size: A4; }
+
 /* ============================================================
-   31. Responsive
+   34. Responsive
    ============================================================ */
 @media (max-width: 768px) {
     /* Show hamburger button */
@@ -2640,20 +2606,6 @@ tr:hover td {
 
     /* CSS-only sidebar toggle: checkbox:checked shows overlay */
     .sidebar-toggle-checkbox:checked ~ .sidebar-overlay {
-        display: block;
-    }
-
-    /* Hide the close icon label when sidebar is closed */
-    .sidebar-close-label {
-        display: none;
-    }
-
-    /* Legacy JS class — kept for backward compat but not needed */
-    .sidebar--open {
-        transform: translateX(0);
-    }
-
-    .sidebar-overlay--visible {
         display: block;
     }
 
@@ -2698,10 +2650,6 @@ tr:hover td {
         align-items: stretch;
     }
 
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
     .report-detail__header {
         flex-direction: column;
         align-items: flex-start;
@@ -2733,7 +2681,6 @@ tr:hover td {
 
     .tab-bar {
         overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
         flex-wrap: nowrap;
     }
 
@@ -2763,10 +2710,17 @@ tr:hover td {
     .breadcrumb {
         font-size: 11px;
     }
+
+    .impersonate-banner {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 0.85em;
+        padding: 6px 12px;
+    }
 }
 
 /* ============================================================
-   32b. Small phones (480px and below)
+   35. Small phones (480px and below)
    ============================================================ */
 @media (max-width: 480px) {
     html {
@@ -2782,7 +2736,7 @@ tr:hover td {
         padding: 3px 8px;
     }
 
-    .header__user-name {
+    .header__username {
         max-width: 100px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -2848,7 +2802,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   30. Extracted Inline Styles — Utility & Contextual Classes
+   36. Extracted Inline Styles — Utility & Contextual Classes
    ============================================================ */
 
 /* Spacing utilities */
@@ -2947,7 +2901,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   31. Log Viewer Page
+   37. Log Viewer Page
    ============================================================ */
 .card__title-row {
     display: flex;
@@ -2970,7 +2924,6 @@ tr:hover td {
     padding-bottom: 0;
     margin-bottom: 16px;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
 }
 

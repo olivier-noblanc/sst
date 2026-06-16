@@ -174,5 +174,5 @@ function canEditReport(array $report, int $userId): bool {
  * @return bool
  */
 function canRespondToReport(array $report, string $role): bool {
-    return in_array($role, [ROLE_SUPERVISEUR]) && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS]);
+    return in_array($role, [ROLE_SUPERVISEUR]) && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT]);
 }

@@ -80,6 +80,28 @@ try {
         }
         updateConfig($pdo, 'smtp_from', $smtpFrom);
         updateConfig($pdo, 'smtp_encryption', $smtpEncryption);
+
+        // Auto-test SMTP connection after saving
+        if (!empty($smtpHost)) {
+            require_once __DIR__ . '/../src/mail.php';
+            $testTo = $smtpFrom;
+            if (!empty($testTo) && filter_var($testTo, $smtpPass !== '' ? FILTER_VALIDATE_EMAIL : FILTER_VALIDATE_EMAIL)) {
+                $appName = getConfig('app_nom_organisation', 'DREETS BFC');
+                $testSubject = 'Test de connexion SMTP';
+                $testBody = "<html><body><h2>Test SMTP</h2><p>Ce message confirme que la connexion SMTP est fonctionnelle.</p></body></html>";
+                $sent = sendMail($testTo, $testSubject, $testBody);
+                if ($sent) {
+                    setFlash('success', 'Configuration SMTP enregistrée. Un e-mail de test a été envoyé à ' . e($testTo) . '.');
+                } else {
+                    setFlash('warning', 'Configuration SMTP enregistrée, mais l\'envoi de l\'e-mail de test a échoué. Vérifiez les paramètres SMTP.');
+                }
+                // Skip the generic success message below
+                $tab = 'smtp';
+                $pdo->commit();
+                auditLog($pdo, 'config', 'update', 'Paramètres SMTP modifiés (test ' . ($sent ? 'réussi' : 'échoué') . ')', null, 'config', ['tab' => 'smtp']);
+                redirect(url('settings', ['tab' => 'smtp']));
+            }
+        }
     }
 
     if ($tab === 'app') {

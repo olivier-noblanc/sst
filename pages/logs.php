@@ -117,6 +117,9 @@ if ($activeTab === 'audit') {
     if (!empty($_GET['category'])) {
         $auditFilters['category'] = $_GET['category'];
     }
+    if (!empty($_GET['user'])) {
+        $auditFilters['username'] = trim($_GET['user']);
+    }
     if (!empty($_GET['q'])) {
         $auditFilters['q'] = trim($_GET['q']);
     }
@@ -252,6 +255,10 @@ $auditActionLabels = [
             </select>
         </div>
         <div class="filter-bar__group">
+            <label for="audit-user" class="filter-bar__label">Utilisateur</label>
+            <input type="text" id="audit-user" name="user" class="form-control form-control--search" placeholder="Nom d'utilisateur…" value="<?php echo e($_GET['user'] ?? ''); ?>">
+        </div>
+        <div class="filter-bar__group">
             <label for="audit-q" class="filter-bar__label">Recherche</label>
             <input type="text" id="audit-q" name="q" class="form-control form-control--search" placeholder="Utilisateur, détail…" value="<?php echo e($_GET['q'] ?? ''); ?>">
         </div>
@@ -316,6 +323,7 @@ $auditActionLabels = [
             $paginationParams = array_filter([
                 'tab'      => 'audit',
                 'category' => $_GET['category'] ?? '',
+                'user'     => $_GET['user'] ?? '',
                 'q'        => $_GET['q'] ?? '',
                 'date_from'=> $_GET['date_from'] ?? '',
                 'date_to'  => $_GET['date_to'] ?? '',

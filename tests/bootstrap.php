@@ -9,10 +9,9 @@
 // Define constants that config.php expects — only if not already defined.
 // This avoids "Constant already defined" warnings when helpers.php loads config.php.
 //
-// NOTE: The values here may differ from config.php (e.g. MAX_OBJECT_LENGTH is 200
-// here vs 100 in config.php). That's intentional — tests use larger limits to
-// exercise boundary conditions. If config.php is loaded after us (it is, via
-// helpers.php), the defined() guards prevent overwriting.
+// NOTE: The values here may differ from config.php. That's intentional —
+// tests use certain values for isolation. If config.php is loaded after us
+// (it is, via helpers.php), the defined() guards prevent overwriting.
 
 if (!defined('DEV_MODE')) define('DEV_MODE', true);
 // APP_VERSION is no longer defined in config.php — version comes from CHANGELOG.md.
@@ -21,7 +20,7 @@ if (!defined('APP_VERSION')) define('APP_VERSION', '0.0.0');
 define('CHANGELOG_PATH', __DIR__ . '/../CHANGELOG.md');
 
 // Define config constants normally set by config.php
-if (!defined('MAX_OBJECT_LENGTH')) define('MAX_OBJECT_LENGTH', 200);
+if (!defined('MAX_OBJECT_LENGTH')) define('MAX_OBJECT_LENGTH', 100);
 if (!defined('MAX_DESCRIPTION_LENGTH')) define('MAX_DESCRIPTION_LENGTH', 5000);
 if (!defined('MAX_LIEU_LENGTH')) define('MAX_LIEU_LENGTH', 200);
 if (!defined('MAX_ATTACHMENT_SIZE')) define('MAX_ATTACHMENT_SIZE', 10485760);

@@ -495,6 +495,26 @@ function migrateSchema(PDO $pdo): void {
     } catch (Exception $e) {
         error_log("Migration warning for users.site_chosen_at: " . $e->getMessage());
     }
+
+    // === Add report_state_history table ===
+    // Tracks state transitions for audit/legal compliance (especially reopenings).
+    try {
+        $pdo->exec('CREATE TABLE IF NOT EXISTS report_state_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_uuid TEXT NOT NULL,
+            etat_precedent TEXT NOT NULL,
+            etat_suivant TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            motif TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
+            FOREIGN KEY (report_uuid) REFERENCES reports(uuid),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_state_history_report ON report_state_history(report_uuid)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_state_history_created ON report_state_history(created_at)');
+    } catch (Exception $e) {
+        error_log("Migration warning for report_state_history: " . $e->getMessage());
+    }
 }
 
 /**

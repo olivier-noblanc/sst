@@ -402,12 +402,38 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
     // Without this, a crash between the two queries would leave reports.reponse
     // updated but no history entry in report_responses = data inconsistency.
     //
+    // P0-1: 'reouvert' is now a valid state for responding (alongside 'nouveau' and 'en_cours').
+    // P0-2: When responding to a 'reouvert' report, archive the existing response into
+    //       report_responses BEFORE overwriting, to preserve the initial supervisor response
+    //       (legal principle of register immutability).
+    //
     // Returns: ['status' => 'true']     — success
     //          ['status' => 'concurrent'] — report was modified by another session
     //          ['status' => 'error', 'message' => '...'] — database exception
     $pdo->beginTransaction();
     try {
-        // Update the report
+        // P0-2: If the report is in 'reouvert' state, archive the current response
+        // into report_responses before it gets overwritten by the UPDATE below.
+        // This preserves the initial supervisor response for legal compliance.
+        $checkStmt = $pdo->prepare("SELECT etat, reponse, repondant_id, date_reponse FROM reports WHERE uuid = :uuid");
+        $checkStmt->execute([':uuid' => $uuid]);
+        $current = $checkStmt->fetch();
+
+        if ($current && $current['etat'] === ETAT_REOUVERT && !empty($current['reponse'])) {
+            // Archive the original response before it's overwritten
+            $archiveStmt = $pdo->prepare("
+                INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
+                VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
+            ");
+            $archiveStmt->execute([
+                ':report_uuid' => $uuid,
+                ':user_id'     => (int) $current['repondant_id'],
+                ':reponse'     => '[Réponse initiale archivée] ' . $current['reponse'],
+                ':nouvel_etat' => ETAT_TRAITE,
+            ]);
+        }
+
+        // Update the report (P0-1: 'reouvert' added to valid states)
         $stmt = $pdo->prepare("
             UPDATE reports
             SET etat = :nouvel_etat,
@@ -415,7 +441,7 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
                 repondant_id = :user_id,
                 date_reponse = datetime('now'),
                 updated_at = datetime('now')
-            WHERE uuid = :uuid AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')
+            WHERE uuid = :uuid AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "', '" . ETAT_REOUVERT . "')
         ");
         $stmt->execute([
             ':nouvel_etat' => $nouvelEtat,

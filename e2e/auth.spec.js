@@ -46,12 +46,12 @@ test.describe('Login Page', () => {
     await page.goto('/index.php?page=login');
     
     // Fill login form
-    await page.locator('#username').fill('test.superviseur');
+    await page.locator('#username').fill('admin.dev');
     await page.locator('#password').fill('test');
     await page.locator('button[type="submit"]').click();
     
-    // Should redirect to home page
-    await expect(page).toHaveURL(/page=home/, { timeout: 10000 });
+    // Should redirect to home page (or choose_site if no site assigned)
+    await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
     
     // Should show welcome message
     await expect(page.locator('.alert--success')).toContainText(/Bienvenue/);
@@ -63,12 +63,12 @@ test.describe('Login Page', () => {
   test('should login as agent successfully', async ({ page }) => {
     await page.goto('/index.php?page=login');
     
-    await page.locator('#username').fill('test.agent');
+    await page.locator('#username').fill('agent.dev');
     await page.locator('#password').fill('test');
     await page.locator('button[type="submit"]').click();
     
-    // Should redirect to home page
-    await expect(page).toHaveURL(/page=home/, { timeout: 10000 });
+    // Should redirect to choose_site (agent.dev has no site assigned)
+    await expect(page).toHaveURL(/page=choose_site/, { timeout: 10000 });
     
     await expect(page.locator('.alert--success')).toContainText(/Bienvenue/);
   });
@@ -91,10 +91,10 @@ test.describe('Logout', () => {
   test('should logout and redirect to login page', async ({ page }) => {
     // Login first
     await page.goto('/index.php?page=login');
-    await page.locator('#username').fill('test.superviseur');
+    await page.locator('#username').fill('admin.dev');
     await page.locator('#password').fill('test');
     await page.locator('button[type="submit"]').click();
-    await expect(page).toHaveURL(/page=home/, { timeout: 10000 });
+    await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
     
     // Click logout
     await page.goto('/index.php?page=logout');
@@ -123,7 +123,7 @@ test.describe('Authentication Protection', () => {
     await expect(page).toHaveURL(/page=login/, { timeout: 10000 });
     
     // Login
-    await page.locator('#username').fill('test.superviseur');
+    await page.locator('#username').fill('admin.dev');
     await page.locator('#password').fill('test');
     await page.locator('button[type="submit"]').click();
     

@@ -24,8 +24,8 @@ test.describe('Full Report Lifecycle Navigation', () => {
     await page.goto('/index.php?page=home');
     await expect(page.locator('.registry-card--rsst')).toBeVisible();
 
-    // Step 2: Click "Inscrire" on RSST card → create form
-    await page.locator('.registry-card--rsst a:has-text("Inscrire")').click();
+    // Step 2: Click "Signaler" on RSST card → create form
+    await page.locator('.registry-card--rsst a:has-text("Signaler")').click();
     await expect(page).toHaveURL(/page=report_create.*type=rsst/);
     await expect(page.locator('#objet')).toBeVisible();
 
@@ -269,9 +269,9 @@ test.describe('Cross-Page Navigation Flows', () => {
   });
 
   test('should navigate from home card to create and then to list', async ({ page }) => {
-    // Click "Inscrire" on RSST card
+    // Click "Signaler" on RSST card
     await page.goto('/index.php?page=home');
-    await page.locator('.registry-card--rsst a:has-text("Inscrire")').click();
+    await page.locator('.registry-card--rsst a:has-text("Signaler")').click();
     await expect(page).toHaveURL(/page=report_create.*type=rsst/);
 
     // Go back, then click "Voir"

@@ -597,21 +597,21 @@ Affichée automatiquement quand un utilisateur authentifié n'a pas encore chois
 - Icône : 📋
 - Titre : « Registre de Santé et de Sécurité au Travail »
 - Sous-titre : « RSST »
-- Bouton : « Inscrire un signalement » → `report_create&type=rsst`
+- Bouton : « Signaler un événement » → `report_create&type=rsst`
 - Stat : « X signalements enregistrés »
 
 **Carte RAMI** (fond gris `var(--rami-color)`, texte blanc)
 - Icône : ⚠️
 - Titre : « Registre des Actes d'Agressions, de Menaces et d'Incivilités »
 - Sous-titre : « RAMI »
-- Bouton : « Inscrire un signalement » → `report_create&type=rami`
+- Bouton : « Signaler un événement » → `report_create&type=rami`
 - Stat : « X signalements enregistrés »
 
 **Carte DGI** (fond rouge `var(--dgi-color)`, texte blanc)
 - Icône : 🔴
 - Titre : « Registre de signalement d'un Danger Grave et Imminent »
 - Sous-titre : « DGI »
-- Bouton : « Inscrire un signalement » → `report_create&type=dgi`
+- Bouton : « Signaler un événement » → `report_create&type=dgi`
 - Stat : « X signalements enregistrés »
 
 Le compteur utilise `countActiveReports()`. Le filtrage dépend du mode de visibilité (`app_report_visibility`) :
@@ -646,7 +646,7 @@ Aucune donnée dynamique, aucun formulaire.
 **Méthode** : GET (affichage), POST (traitement via handler)
 
 #### Affichage
-- Titre adapté au type : « Inscrire un signalement — RSST/RAMI/DGI »
+- Titre adapté au type : « Signaler un événement — RSST/RAMI/DGI »
 - Bande de couleur en haut du formulaire correspondant au registre
 - Champs du formulaire :
 

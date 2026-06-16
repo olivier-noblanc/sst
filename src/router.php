@@ -103,7 +103,7 @@ function getPageTitle(string $page): string {
         'help'            => 'Documentation',
         'changelog'       => 'Historique des modifications',
         'choose_site'     => 'Choisir mon site',
-        'report_create'   => 'Inscrire un signalement — ' . (REGISTRY_SHORT_LABELS[$_GET['type'] ?? ''] ?? ''),
+        'report_create'   => 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$_GET['type'] ?? ''] ?? ''),
         'report_list'     => 'Liste des fiches — ' . (REGISTRY_SHORT_LABELS[$_GET['type'] ?? ''] ?? ''),
         'report_view'     => 'Signalement',
         'report_edit'     => 'Modifier le signalement',

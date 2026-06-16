@@ -365,7 +365,7 @@ $screenshotBase = 'asset.php?f=screenshots';
             <strong>Parcours :</strong>
             <ol>
                 <li>Jean se connecte à l'application (automatiquement via Windows Auth en production)</li>
-                <li>Sur l'accueil, il clique sur <strong>« Inscrire un signalement »</strong> sur la carte RSST (carte bleue)</li>
+                <li>Sur l'accueil, il clique sur <strong>« Signaler un événement »</strong> sur la carte RSST (carte bleue)</li>
                 <li>Il remplit le formulaire :
                     <ul class="help-feature-list">
                         <li><strong>Objet</strong> : « Rampe d'escalier desserrée - risque de chute »</li>
@@ -391,7 +391,7 @@ $screenshotBase = 'asset.php?f=screenshots';
             <strong>Situation :</strong> Sophie, agent au Siège, est témoin d'une agression verbale envers son collègue Pierre par un usager. Pierre est trop choqué pour faire le signalement lui-même. Sophie va signaler l'événement pour le compte de Pierre.<br><br>
             <strong>Parcours :</strong>
             <ol>
-                <li>Sophie clique sur <strong>« Inscrire un signalement »</strong> sur la carte RAMI (carte grise)</li>
+                <li>Sophie clique sur <strong>« Signaler un événement »</strong> sur la carte RAMI (carte grise)</li>
                 <li>Elle remplit le formulaire et sélectionne un agent dans le champ <strong>« Pour le compte de »</strong> (champ spécifique RAMI, avec recherche par nom)</li>
                 <li>Elle renseigne les champs optionnels mais recommandés : <strong>Nature de l'auteur</strong> (ex : Usager) et <strong>Type d'acte</strong> (ex : Verbal)</li>
                 <li>Elle décrit les faits de manière objective avec date, heure et lieu</li>
@@ -412,7 +412,7 @@ $screenshotBase = 'asset.php?f=screenshots';
             <strong>Situation :</strong> Marc, agent à l'<?php echo $labelUnite; ?> Doubs, découvre une fuite de gaz dans les locaux. La situation nécessite une intervention immédiate et constitue un danger grave et imminent pour les occupants du bâtiment.<br><br>
             <strong>Parcours :</strong>
             <ol>
-                <li>Marc clique sur <strong>« Inscrire un signalement »</strong> sur la carte DGI (carte rouge, signalant l'urgence)</li>
+                <li>Marc clique sur <strong>« Signaler un événement »</strong> sur la carte DGI (carte rouge, signalant l'urgence)</li>
                 <li>Un bandeau d'avertissement rappelle la procédure DGI et la distinction L4131-1 / D4132-1</li>
                 <li>Il signale le danger en précisant la nature, le lieu exact et l'heure</li>
                 <li>Le signalement est créé avec la référence <code>dgi-26-001</code> et une <strong>notification immédiate</strong> est envoyée aux superviseurs</li>

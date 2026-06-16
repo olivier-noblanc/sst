@@ -13,7 +13,7 @@ if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {
     redirect(url('home'));
 }
 
-$pageTitle = 'Inscrire un signalement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
+$pageTitle = 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
 
 $pdo = getDB();
 $user = currentUser();

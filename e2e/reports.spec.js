@@ -372,13 +372,13 @@ test.describe('Home Page Registry Cards', () => {
     await expect(page.locator('.registry-card--dgi')).toBeVisible();
   });
 
-  test('should have "Inscrire" and "Voir" links on each card', async ({ page }) => {
+  test('should have "Signaler" and "Voir" links on each card', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
-    // Each card should have an "Inscrire un signalement" link and "Voir les signalements" link
+    // Each card should have an "Signaler un signalement" link and "Voir les signalements" link
     for (const type of ['rsst', 'rami', 'dgi']) {
       const card = page.locator(`.registry-card--${type}`);
-      await expect(card.locator('a:has-text("Inscrire")')).toBeVisible();
+      await expect(card.locator('a:has-text("Signaler")')).toBeVisible();
       await expect(card.locator('a:has-text("Voir")')).toBeVisible();
     }
   });
@@ -386,8 +386,8 @@ test.describe('Home Page Registry Cards', () => {
   test('should navigate to create report from registry card', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
-    // Click "Inscrire" on RSST card
-    await page.locator('.registry-card--rsst a:has-text("Inscrire")').click();
+    // Click "Signaler" on RSST card
+    await page.locator('.registry-card--rsst a:has-text("Signaler")').click();
     await expect(page).toHaveURL(/page=report_create.*type=rsst/);
   });
 

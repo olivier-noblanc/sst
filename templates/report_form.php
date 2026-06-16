@@ -55,7 +55,7 @@ $submitBtnClass = $isEdit
         ['label' => $isEdit ? 'Modifier' : 'Nouveau signalement'],
     ]); ?>
     <h2 class="mb-4">
-        <?php echo $isEdit ? 'Modifier le signalement' : 'Inscrire un signalement'; ?> — <?php echo e($registryFullLabel); ?>
+        <?php echo $isEdit ? 'Modifier le signalement' : 'Signaler un événement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>
 
     <form method="POST" action="<?php echo e($action); ?>" enctype="multipart/form-data">
@@ -261,7 +261,7 @@ $submitBtnClass = $isEdit
 
         <div class="form-actions">
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">
-                <?php echo $isEdit ? 'Enregistrer' : 'Valider son signalement'; ?>
+                <?php echo $isEdit ? 'Enregistrer' : 'Envoyer le signalement'; ?>
             </button>
             <a href="<?php echo $isEdit && $report ? url('report_view', ['uuid' => $report['uuid']]) : url('home'); ?>"
                class="btn btn--secondary">Annuler</a>

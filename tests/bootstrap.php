@@ -8,7 +8,9 @@
 
 // Define constants that config.php expects
 define('DEV_MODE', true);
-define('APP_VERSION', '3.14.0');
+// APP_VERSION is no longer defined in config.php — version comes from CHANGELOG.md.
+// Defined here as a safety net for test isolation (getAppVersion() reads the real changelog).
+define('APP_VERSION', '0.0.0');
 define('CHANGELOG_PATH', __DIR__ . '/../CHANGELOG.md');
 
 // Define config constants normally set by config.php

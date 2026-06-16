@@ -52,7 +52,7 @@ function clearConfigCache(): void {
 /**
  * Get the application version from the first entry in CHANGELOG.md.
  * Parses the first "## [x.y.z]" heading to extract the version number.
- * Falls back to the APP_VERSION constant if the changelog is unreadable.
+ * Falls back to '0.0.0' if the changelog is unreadable (visible problem, not hidden).
  * The version is NEVER stored in the database — it is derived from the changelog.
  *
  * Path resolution tries multiple locations in order:
@@ -104,7 +104,8 @@ function getAppVersion(): string {
         }
     }
 
-    // Fallback: constant from config.php (keep in sync with CHANGELOG.md)
-    $cached = defined('APP_VERSION') ? APP_VERSION : '0';
+    // Fallback: changelog is unreadable — return '0.0.0' so the problem is visible
+    // (a hidden stale version is worse than an obviously wrong one)
+    $cached = defined('APP_VERSION') ? APP_VERSION : '0.0.0';
     return $cached;
 }

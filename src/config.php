@@ -111,3 +111,19 @@ define('ETAT_LABELS', [
     'traite'     => 'Traité',
     'abandonne'  => 'Abandonné',
 ]);
+
+// RAMI structured field labels (shared by statistics, export, and validation)
+define('RAMI_NATURE_AUTEUR_LABELS', [
+    'usager'    => 'Usager',
+    'collegue'  => 'Collègue',
+    'hierarchie'=> 'Hiérarchie',
+    'tiers'     => 'Tiers',
+]);
+
+define('RAMI_TYPE_ACTE_LABELS', [
+    'verbal'  => 'Verbal',
+    'physique'=> 'Physique',
+    'moral'   => 'Moral',
+    'sexiste' => 'Sexiste',
+    'autre'   => 'Autre',
+]);

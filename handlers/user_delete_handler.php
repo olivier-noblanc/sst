@@ -31,14 +31,9 @@ if (!$user) {
 }
 
 // Soft delete — guard: prevent deactivating the last active superviseur
-if ($user['role'] === 'superviseur') {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = 'superviseur' AND is_active = 1");
-    $stmt->execute();
-    $activeSups = (int) $stmt->fetchColumn();
-    if ($activeSups <= 1) {
-        setFlash('error', 'Impossible de désactiver le dernier superviseur actif. Nommez un autre superviseur d\'abord.');
-        redirect(url('users'));
-    }
+if ($user['role'] === 'superviseur' && isLastActiveSuperviseur($pdo)) {
+    setFlash('error', 'Impossible de désactiver le dernier superviseur actif. Nommez un autre superviseur d\'abord.');
+    redirect(url('users'));
 }
 
 $success = deactivateUser($pdo, $userId);

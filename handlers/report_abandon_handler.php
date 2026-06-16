@@ -11,34 +11,16 @@ validatePostRequest(url('home'));
 
 // Get report UUID from form
 $reportUuid = trim($_POST['report_uuid'] ?? '');
-if ($reportUuid === '' || !isValidUuid($reportUuid)) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
-
-$pdo = getDB();
-$report = getReportByUuid($pdo, $reportUuid);
-
-if (!$report) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
+$report = fetchReportOrRedirect($reportUuid);
 
 $user = $_SESSION['user'];
 $userId = (int) $user['id'];
 $type = $report['type'];
 
-// Ownership check
-if ((int) $report['declarant_id'] !== $userId) {
-    setFlash('error', 'Vous ne pouvez abandonner que vos propres signalements.');
-    redirect(url('report_view', ['uuid' => $reportUuid]));
-}
+requireReportOwnership($report, $userId, $reportUuid, 'abandonner');
+requireReportEditable($report, $reportUuid, 'abandonné');
 
-// State check (from DB, not form)
-if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
-    setFlash('error', 'Ce signalement ne peut plus être abandonné (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
-    redirect(url('report_view', ['uuid' => $reportUuid]));
-}
+$pdo = getDB();
 
 // Abandon the report (soft delete)
 $abandoned = abandonReport($pdo, $reportUuid, $userId);

@@ -28,24 +28,8 @@ $statsBySite = getStatsBySite($pdo, $year);
 // Get RAMI structured stats
 $ramiStats = getRamiStructuredStats($pdo, $year);
 
-$natureAuteurLabels = [
-    'usager' => 'Usager',
-    'collegue' => 'Collègue',
-    'hierarchie' => 'Hiérarchie',
-    'tiers' => 'Tiers',
-];
-$typeActeLabels = [
-    'verbal' => 'Verbal',
-    'physique' => 'Physique',
-    'moral' => 'Moral',
-    'sexiste' => 'Sexiste',
-    'autre' => 'Autre',
-];
-
 // Count total active users
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE is_active = 1");
-$stmt->execute();
-$totalUsers = (int) $stmt->fetchColumn();
+$totalUsers = countActiveUsers($pdo);
 
 // Build table data by site
 $sites = getAllSites($pdo);
@@ -190,7 +174,7 @@ $pageTitle = 'Statistiques';
                     <tbody>
                         <?php foreach ($ramiStats['by_nature_auteur'] as $row): ?>
                         <tr>
-                            <td><?php echo e($natureAuteurLabels[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
+                            <td><?php echo e(RAMI_NATURE_AUTEUR_LABELS[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -213,7 +197,7 @@ $pageTitle = 'Statistiques';
                     <tbody>
                         <?php foreach ($ramiStats['by_type_acte'] as $row): ?>
                         <tr>
-                            <td><?php echo e($typeActeLabels[$row['type_acte']] ?? $row['type_acte']); ?></td>
+                            <td><?php echo e(RAMI_TYPE_ACTE_LABELS[$row['type_acte']] ?? $row['type_acte']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
                         </tr>
                         <?php endforeach; ?>

@@ -63,10 +63,7 @@ $email = trim($_POST['email'] ?? '');
 
 // Guard: prevent demoting the last active superviseur
 if ($user['role'] === 'superviseur' && $role !== 'superviseur') {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = 'superviseur' AND is_active = 1");
-    $stmt->execute();
-    $activeSups = (int) $stmt->fetchColumn();
-    if ($activeSups <= 1) {
+    if (isLastActiveSuperviseur($pdo)) {
         $errors['role'] = 'Impossible de rétrograder le dernier superviseur actif. Nommez un autre superviseur d\'abord.';
     }
 }
@@ -101,12 +98,9 @@ try {
 
     $pdo->commit();
 
-    // Update session if editing self — re-read full user with site info
+    // Update session if editing self
     if ((int) $_SESSION['user']['id'] === $userId) {
-        $freshUser = getUserById($pdo, $userId);
-        if ($freshUser) {
-            $_SESSION['user'] = $freshUser;
-        }
+        refreshCurrentUser($pdo);
     }
 
     auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $prenom . ' ' . $nom, (int) $userId, 'user', ['role' => $role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);

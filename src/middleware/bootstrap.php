@@ -53,17 +53,8 @@ function checkSuperviseurPromotion(): void {
     $stmt->execute([':id' => (int) $_SESSION['user']['id']]);
 
     if ($stmt->rowCount() > 0) {
-        // Promotion applied — update session
-        $_SESSION['user']['role'] = 'superviseur';
-        // Refresh full user data from DB (includes site_code, site_nom, etc.)
-        $freshStmt = $pdo->prepare(
-            userSelectWithSite() . ' WHERE u.id = :id'
-        );
-        $freshStmt->execute([':id' => (int) $_SESSION['user']['id']]);
-        $freshUser = $freshStmt->fetch();
-        if ($freshUser) {
-            $_SESSION['user'] = $freshUser;
-        }
+        // Promotion applied — refresh session from DB
+        refreshCurrentUser($pdo);
         error_log("SST App: Auto-promoted user '$currentUsername' to superviseur (config list rule, session refresh)");
     }
 }
@@ -88,15 +79,10 @@ function checkUserSiteAssignment(): void {
     // Re-check from DB — the handler might have updated the DB
     // but the session didn't persist (edge case on some IIS configs)
     $pdo = getDB();
-    $freshUser = $pdo->prepare(
-        userSelectWithSite() . ' WHERE u.id = :id'
-    );
-    $freshUser->execute([':id' => (int) $_SESSION['user']['id']]);
-    $dbUser = $freshUser->fetch();
+    $refreshed = refreshCurrentUser($pdo);
 
-    if ($dbUser && !empty($dbUser['site_id'])) {
-        // DB has the site but session didn't — fix the session
-        $_SESSION['user'] = $dbUser;
+    if ($refreshed && !empty(currentUser()['site_id'])) {
+        // DB has the site but session didn't — now fixed by refreshCurrentUser
     } else {
         // Really no site — redirect to choose_site
         redirect(url('choose_site'));

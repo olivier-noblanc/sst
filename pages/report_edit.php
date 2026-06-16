@@ -7,34 +7,14 @@
  * URL: index.php?page=report_edit&uuid={report_uuid}
  */
 $uuid = $_GET['uuid'] ?? '';
-
-if (!isValidUuid($uuid)) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
-
-$pdo = getDB();
-$report = getReportByUuid($pdo, $uuid);
-
-if (!$report) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
+$report = fetchReportOrRedirect($uuid);
 
 // Access control: only the declarant can edit
 $user = $_SESSION['user'];
 $userId = (int) $user['id'];
 
-if ((int) $report['declarant_id'] !== $userId) {
-    setFlash('error', 'Vous ne pouvez modifier que vos propres signalements.');
-    redirect(url('report_view', ['uuid' => $uuid]));
-}
-
-// Check state: can only edit if nouveau or en_cours
-if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
-    setFlash('error', 'Ce signalement ne peut plus être modifié (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
-    redirect(url('report_view', ['uuid' => $uuid]));
-}
+requireReportOwnership($report, $userId, $uuid, 'modifier');
+requireReportEditable($report, $uuid, 'modifié');
 
 $pageTitle = 'Modifier le signalement — ' . $report['reference'];
 

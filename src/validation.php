@@ -65,12 +65,12 @@ function validateReportAttachment(array &$errors): array {
  * @return array ['nature_auteur' => string, 'type_acte' => string]
  */
 function validateRamiFields(string $natureAuteur, string $typeActe): array {
-    $allowedNatureAuteur = ['usager', 'collegue', 'hierarchie', 'tiers'];
+    $allowedNatureAuteur = array_keys(RAMI_NATURE_AUTEUR_LABELS);
     if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur)) {
         $natureAuteur = '';
     }
 
-    $allowedTypeActe = ['verbal', 'physique', 'moral', 'sexiste', 'autre'];
+    $allowedTypeActe = array_keys(RAMI_TYPE_ACTE_LABELS);
     if (!empty($typeActe) && !in_array($typeActe, $allowedTypeActe)) {
         $typeActe = '';
     }
@@ -176,6 +176,68 @@ function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pou
 }
 
 // ============================================================================
+// Report Fetch & Access Guards
+// ============================================================================
+
+/**
+ * Fetch a report by UUID or redirect with an error flash.
+ *
+ * Combines UUID validation, DB fetch, and null-check into a single call.
+ * Before this function, the same 8-line pattern was duplicated in 8 files.
+ *
+ * @param string $uuid         The report UUID (from $_GET or $_POST)
+ * @param string $fallbackUrl  URL to redirect to on failure
+ * @return array  The report data (never returns null — redirects instead)
+ */
+function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array {
+    if ($fallbackUrl === '') {
+        $fallbackUrl = url('home');
+    }
+    if (!isValidUuid($uuid)) {
+        setFlash('error', 'Signalement introuvable.');
+        redirect($fallbackUrl);
+    }
+    $pdo = getDB();
+    $report = getReportByUuid($pdo, $uuid);
+    if (!$report) {
+        setFlash('error', 'Signalement introuvable.');
+        redirect($fallbackUrl);
+    }
+    return $report;
+}
+
+/**
+ * Verify that the current user owns the report (is the declarant).
+ * Redirects to report_view with an error if not the owner.
+ *
+ * @param array  $report  Report data from DB
+ * @param int    $userId  Current user's ID
+ * @param string $uuid    Report UUID (for redirect URL)
+ * @param string $verb    Verb for the error message ('modifier', 'abandonner', etc.)
+ */
+function requireReportOwnership(array $report, int $userId, string $uuid, string $verb = 'modifier'): void {
+    if ((int) $report['declarant_id'] !== $userId) {
+        setFlash('error', 'Vous ne pouvez ' . $verb . ' que vos propres signalements.');
+        redirect(url('report_view', ['uuid' => $uuid]));
+    }
+}
+
+/**
+ * Verify that the report is in an editable state (nouveau or en_cours).
+ * Redirects to report_view with an error if not.
+ *
+ * @param array  $report  Report data from DB
+ * @param string $uuid    Report UUID (for redirect URL)
+ * @param string $verb    Verb for the error message ('modifié', 'abandonné', etc.)
+ */
+function requireReportEditable(array $report, string $uuid, string $verb = 'modifié'): void {
+    if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
+        setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
+        redirect(url('report_view', ['uuid' => $uuid]));
+    }
+}
+
+// ============================================================================
 // User Validation
 // ============================================================================
 
@@ -246,4 +308,23 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array {
     }
 
     return $errors;
+}
+
+// ============================================================================
+// Superviseur Guards
+// ============================================================================
+
+/**
+ * Check if a user is the last active superviseur in the system.
+ *
+ * Used to prevent demoting or deactivating the last superviseur,
+ * which would lock everyone out of admin functions.
+ *
+ * @param PDO $pdo  Database connection
+ * @return bool     True if there is only one active superviseur
+ */
+function isLastActiveSuperviseur(PDO $pdo): bool {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = 'superviseur' AND is_active = 1");
+    $stmt->execute();
+    return (int) $stmt->fetchColumn() <= 1;
 }

@@ -100,21 +100,8 @@ foreach ($reports as $row) {
     }
 
     // Build RAMI structured fields labels
-    $natureAuteurLabels = [
-        'usager' => 'Usager',
-        'collegue' => 'Collègue',
-        'hierarchie' => 'Hiérarchie',
-        'tiers' => 'Tiers',
-    ];
-    $typeActeLabels = [
-        'verbal' => 'Verbal',
-        'physique' => 'Physique',
-        'moral' => 'Moral',
-        'sexiste' => 'Sexiste',
-        'autre' => 'Autre',
-    ];
-    $natureAuteurLabel = $natureAuteurLabels[$row['nature_auteur'] ?? ''] ?? '';
-    $typeActeLabel = $typeActeLabels[$row['type_acte'] ?? ''] ?? '';
+    $natureAuteurLabel = RAMI_NATURE_AUTEUR_LABELS[$row['nature_auteur'] ?? ''] ?? '';
+    $typeActeLabel = RAMI_TYPE_ACTE_LABELS[$row['type_acte'] ?? ''] ?? '';
 
     // Build response history as structured text
     // Format: [Date] Répondant (État) : Réponse | [Date] ...

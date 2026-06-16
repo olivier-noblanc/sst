@@ -38,6 +38,19 @@ define('ROLE_LABELS', [
     'superviseur' => 'Superviseur',
     'chsct'       => 'CSA/CHSCT',
 ]);
+define('RAMI_NATURE_AUTEUR_LABELS', [
+    'usager'    => 'Usager',
+    'collegue'  => 'Collègue',
+    'hierarchie'=> 'Hiérarchie',
+    'tiers'     => 'Tiers',
+]);
+define('RAMI_TYPE_ACTE_LABELS', [
+    'verbal'  => 'Verbal',
+    'physique'=> 'Physique',
+    'moral'   => 'Moral',
+    'sexiste' => 'Sexiste',
+    'autre'   => 'Autre',
+]);
 
 // Mock $_SERVER for CLI
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';

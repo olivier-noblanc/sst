@@ -8,34 +8,14 @@
  * No JavaScript — pure PHP inline confirmation.
  */
 $uuid = $_GET['uuid'] ?? '';
-
-if (!isValidUuid($uuid)) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
-
-$pdo = getDB();
-$report = getReportByUuid($pdo, $uuid);
-
-if (!$report) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
+$report = fetchReportOrRedirect($uuid);
 
 // Access control: only the declarant
 $user = $_SESSION['user'];
 $userId = (int) $user['id'];
 
-if ((int) $report['declarant_id'] !== $userId) {
-    setFlash('error', 'Vous ne pouvez abandonner que vos propres signalements.');
-    redirect(url('report_view', ['uuid' => $uuid]));
-}
-
-// Check state: can only abandon if nouveau or en_cours
-if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
-    setFlash('error', 'Ce signalement ne peut plus être abandonné (etat : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
-    redirect(url('report_view', ['uuid' => $uuid]));
-}
+requireReportOwnership($report, $userId, $uuid, 'abandonner');
+requireReportEditable($report, $uuid, 'abandonné');
 
 $pageTitle = 'Abandonner le signalement — ' . $report['reference'];
 $type = $report['type'];

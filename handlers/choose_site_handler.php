@@ -43,16 +43,10 @@ $stmt = $pdo->prepare('UPDATE users SET site_id = :site_id, updated_at = datetim
 $stmt->execute([':site_id' => $siteId, ':id' => $userId]);
 
 // Re-read the user from DB to get the authoritative state
-$stmt = $pdo->prepare(
-    userSelectWithSite() . ' WHERE u.id = :id'
-);
-$stmt->execute([':id' => $userId]);
-$updatedUser = $stmt->fetch();
+refreshCurrentUser($pdo);
+$updatedUser = currentUser();
 
 if ($updatedUser && !empty($updatedUser['site_id'])) {
-    // Update session with the fresh DB data
-    $_SESSION['user'] = $updatedUser;
-
     // Clear intended URL
     unset($_SESSION['intended_url']);
     setFlash('success', 'Votre site a été défini : ' . $site['code'] . ' — ' . $site['nom'] . '. Bienvenue !');

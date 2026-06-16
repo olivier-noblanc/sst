@@ -6,19 +6,7 @@
  * URL: index.php?page=report_view&uuid={report_uuid}
  */
 $uuid = $_GET['uuid'] ?? '';
-
-if (!isValidUuid($uuid)) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
-
-$pdo = getDB();
-$report = getReportByUuid($pdo, $uuid);
-
-if (!$report) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
+$report = fetchReportOrRedirect($uuid);
 
 // Access control: centralized via canAccessReport()
 $user = $_SESSION['user'];
@@ -29,6 +17,7 @@ if (!canAccessReport($report, $user)) {
 }
 
 // Log confidential report access by supervisor/CHSCT
+$pdo = getDB();
 logConfidentialReportAccess($pdo, $report, $user);
 
 // If report is abandoned and user is not declarant nor supervisor/chsct

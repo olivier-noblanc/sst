@@ -9,12 +9,6 @@
 validatePostRequest(url('home'), ['superviseur']);
 
 $reportUuid = trim($_POST['report_uuid'] ?? '');
-if ($reportUuid === '' || !isValidUuid($reportUuid)) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
-
-$pdo = getDB();
 
 // Validate nouvel_etat
 $nouvelEtat = trim($_POST['nouvel_etat'] ?? '');
@@ -41,11 +35,7 @@ if (strlen($reponse) > 5000) {
 }
 
 // Get the report
-$report = getReportByUuid($pdo, $reportUuid);
-if (!$report) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
+$report = fetchReportOrRedirect($reportUuid);
 
 // Verify report state
 if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
@@ -54,6 +44,7 @@ if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
 }
 
 // Save response
+$pdo = getDB();
 $userId = (int) $_SESSION['user']['id'];
 $result = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
 

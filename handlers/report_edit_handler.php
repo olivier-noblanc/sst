@@ -10,33 +10,15 @@ validatePostRequest(url('home'));
 
 // Get report UUID
 $reportUuid = trim($_POST['report_uuid'] ?? '');
-if ($reportUuid === '' || !isValidUuid($reportUuid)) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
-
-$pdo = getDB();
-$report = getReportByUuid($pdo, $reportUuid);
-
-if (!$report) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
+$report = fetchReportOrRedirect($reportUuid);
 
 $user = $_SESSION['user'];
 $userId = (int) $user['id'];
 
-// Ownership check
-if ((int) $report['declarant_id'] !== $userId) {
-    setFlash('error', 'Vous ne pouvez modifier que vos propres signalements.');
-    redirect(url('report_view', ['uuid' => $reportUuid]));
-}
+requireReportOwnership($report, $userId, $reportUuid, 'modifier');
+requireReportEditable($report, $reportUuid, 'modifié');
 
-// State check (re-check from DB, not form)
-if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
-    setFlash('error', 'Ce signalement ne peut plus être modifié (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
-    redirect(url('report_view', ['uuid' => $reportUuid]));
-}
+$pdo = getDB();
 
 // Gather input
 $dateEvenement = trim($_POST['date_evenement'] ?? '');

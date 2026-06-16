@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.15.0] — 2026-06-16
+
+### Refactoring — fetchReportOrRedirect, guards ownership/editable, refreshCurrentUser, isLastActiveSuperviseur, labels RAMI centralisés, countActiveUsers
+
+- **1** 🔴 **`fetchReportOrRedirect()` — pattern UUID+fetch+null-check consolidé** — Le bloc `isValidUuid()` + `getReportByUuid()` + redirect « Signalement introuvable » (8 lignes) était dupliqué dans 8 fichiers (5 pages + 3 handlers). Extraction de `fetchReportOrRedirect($uuid, $fallbackUrl)` dans `src/validation.php` qui combine validation UUID, récupération en base et redirection en un seul appel. Les 8 fichiers passent de 8 lignes à 1 ligne chacun.
+- **2** 🔴 **`requireReportOwnership()` + `requireReportEditable()` — guards d'accès signalement** — Le vérification d'appartenance (declarant_id vs userId) et de state éditable (nouveau/en_cours) était dupliquée dans 4 fichiers (report_edit, report_abandon en page + handler). Extraction de deux fonctions dans `src/validation.php` : `requireReportOwnership($report, $userId, $uuid, $verb)` et `requireReportEditable($report, $uuid, $verb)`. Le paramètre `$verb` permet de personnaliser le message (« modifier », « abandonner »).
+- **3** 🔴 **`refreshCurrentUser()` utilisée — session refresh mutualisée** — La fonction `refreshCurrentUser($pdo)` existait déjà dans `src/user_context.php` mais n'était appelée nulle part. Trois fichiers faisaient manuellement `getUserById() + $_SESSION['user'] = ...` : `user_edit_handler.php`, `choose_site_handler.php`, `src/middleware/bootstrap.php` (2 occurrences). Tous remplacés par `refreshCurrentUser($pdo)`, qui gère en plus la préservation de l'état d'incarnation.
+- **4** 🔴 **`isLastActiveSuperviseur()` — guard dernier superviseur mutualisé** — La requête `SELECT COUNT(*) FROM users WHERE role = 'superviseur' AND is_active = 1` avec vérification `<= 1` était dupliquée dans `user_edit_handler.php` et `user_delete_handler.php`. Extraction de `isLastActiveSuperviseur(PDO $pdo): bool` dans `src/validation.php`.
+- **5** 🟡 **Labels RAMI centralisés en constantes** — Les tableaux associatifs `$natureAuteurLabels` et `$typeActeLabels` étaient définis dans 3 fichiers (statistics.php, export_handler.php, validation.php). Remplacés par les constantes `RAMI_NATURE_AUTEUR_LABELS` et `RAMI_TYPE_ACTE_LABELS` définies dans `src/config.php`. La fonction `validateRamiFields()` utilise désormais `array_keys(RAMI_NATURE_AUTEUR_LABELS)` au lieu de valeurs codées en dur, garantissant la cohérence entre validation et affichage.
+- **6** 🟢 **`countActiveUsers()` — SQL brute remplacée par fonction existante** — La page `statistics.php` exécutait `$pdo->prepare("SELECT COUNT(*) FROM users WHERE is_active = 1")` alors que `countActiveUsers($pdo)` existait déjà dans `src/queries/user_queries.php`. Remplacement direct.
+
 ## [3.14.0] — 2026-06-16
 
 ### Refactoring — Démantèlement du monolithe helpers.php, extraction des validations, centralisation des téléchargements, PHPUnit, CSS dédié, sous-templates settings

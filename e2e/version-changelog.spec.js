@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 /**
  * Helper: Login as superviseur before each test
  */
-async function loginAs(page, username = 'test.superviseur') {
+async function loginAs(page, username = 'admin.dev') {
   await page.goto('/index.php?page=login');
   await page.locator('#username').fill(username);
   await page.locator('#password').fill('test');

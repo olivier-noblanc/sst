@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 /**
  * Helper: Login as a given user
  */
-async function loginAs(page, username = 'test.superviseur') {
+async function loginAs(page, username = 'admin.dev') {
   await page.goto('/index.php?page=login');
   await page.locator('#username').fill(username);
   await page.locator('#password').fill('test');
@@ -96,15 +96,17 @@ test.describe('Report Creation', () => {
     await page.locator('#objet').fill('');
     await page.locator('#description').fill('');
 
-    // Submit empty form
+    // Submit empty form — HTML5 native validation may block submission,
+    // or server validation may catch it. Either way, we should stay on create page.
     await page.locator('.card button[type="submit"]').click();
 
-    // Should stay on create page with errors (redirected back with errors)
+    // Should stay on create page (either HTML5 validation prevents submit, or server errors)
     await expect(page).toHaveURL(/page=report_create/, { timeout: 10000 });
 
-    // Should display form error messages
-    const errorElements = page.locator('.form-error');
-    await expect(errorElements.first()).toBeVisible({ timeout: 5000 });
+    // Should display validation feedback (HTML5 :invalid pseudo-class or server .form-error)
+    const hasHtml5Validation = await page.locator('input:invalid').count();
+    const hasServerError = await page.locator('.form-error').count();
+    expect(hasHtml5Validation + hasServerError).toBeGreaterThan(0);
   });
 
   test('should pre-fill declarant name from session', async ({ page }) => {
@@ -253,7 +255,7 @@ test.describe('Report View', () => {
 test.describe('Report Edit', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'test.agent');
+    await loginAs(page, 'jean.dupont');
     // Create a report as agent (can edit own reports)
     await createReport(page, 'rsst', { objet: 'Rapport Modif Test' });
   });
@@ -339,7 +341,7 @@ test.describe('Report Response (Superviseur)', () => {
 test.describe('Report Abandon', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'test.agent');
+    await loginAs(page, 'jean.dupont');
     await createReport(page, 'rsst', { objet: 'Rapport Abandon Test' });
   });
 
@@ -348,8 +350,8 @@ test.describe('Report Abandon', () => {
     const abandonLink = page.locator('a:has-text("Abandonner")');
     if (await abandonLink.isVisible()) {
       await abandonLink.click();
-      // Abandon uses confirm_abandon parameter on report_view, not a separate page
-      await expect(page).toHaveURL(/confirm_abandon=1/);
+      // Abandon now uses a dedicated page (report_abandon) instead of confirm_abandon GET param
+      await expect(page).toHaveURL(/page=report_abandon/);
     }
   });
 

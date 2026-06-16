@@ -5,7 +5,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-async function loginAs(page, username = 'test.superviseur') {
+async function loginAs(page, username = 'admin.dev') {
   await page.goto('/index.php?page=login');
   await page.locator('#username').fill(username);
   await page.locator('#password').fill('test');
@@ -109,8 +109,8 @@ test.describe('Page Layout', () => {
   test('should have skip link for accessibility', async ({ page }) => {
     await page.goto('/index.php?page=home');
     
-    const skipLink = page.locator('.skip-link');
-    await expect(skipLink).toBeAttached();
+    const skipLinks = page.locator('.skip-link');
+    await expect(skipLinks).toHaveCount(2); // Main content + navigation skip links
   });
 
 });

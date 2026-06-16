@@ -6,7 +6,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-async function loginAs(page, username = 'test.superviseur') {
+async function loginAs(page, username = 'admin.dev') {
   await page.goto('/index.php?page=login');
   await page.locator('#username').fill(username);
   await page.locator('#password').fill('test');
@@ -17,7 +17,7 @@ async function loginAs(page, username = 'test.superviseur') {
 test.describe('Agent Role Access', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'test.agent');
+    await loginAs(page, 'jean.dupont');
   });
 
   test('should access home page', async ({ page }) => {
@@ -124,7 +124,7 @@ test.describe('Agent Role Access', () => {
 test.describe('Superviseur Role Access', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'test.superviseur');
+    await loginAs(page, 'admin.dev');
   });
 
   test('should access all pages available to superviseur', async ({ page }) => {
@@ -192,7 +192,7 @@ test.describe('CHSCT Role Access', () => {
     // For now, we'll test that the sidebar shows CHSCT-specific items
     // when logged in as a user with chsct role
     // Since there's no chsct test account, we skip by checking role availability
-    await loginAs(page, 'test.superviseur');
+    await loginAs(page, 'admin.dev');
   });
 
   test('should show synthesis/export/statistics for CHSCT role in sidebar', async ({ page }) => {

@@ -93,7 +93,7 @@ test.describe('New User Onboarding', () => {
   test('should NOT redirect to choose_site for existing users with site', async ({ page }) => {
     // Login with an existing user that already has a site
     await page.goto('/index.php?page=login');
-    await page.locator('#username').fill('test.superviseur');
+    await page.locator('#username').fill('admin.dev');
     await page.locator('#password').fill('test');
     await page.locator('form button[type="submit"]').click();
 

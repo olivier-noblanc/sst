@@ -7,10 +7,10 @@
  * Visible on all pages when impersonation is active.
  */
 ?>
-<?php if (isset($_SESSION['impersonated_role'])): ?>
+<?php if (isImpersonatingRole()): ?>
 <div class="impersonate-banner" role="alert">
     <span class="impersonate-banner__text">
-        <span class="impersonate-icon impersonate-icon--banner" aria-hidden="true"></span> Vous incarnez le rôle <strong><?php echo e(ROLE_LABELS[$_SESSION['impersonated_role']] ?? $_SESSION['impersonated_role']); ?></strong>
+        <span class="impersonate-icon impersonate-icon--banner" aria-hidden="true"></span> Vous incarnez le rôle <strong><?php echo e(ROLE_LABELS[getImpersonatedRole()] ?? getImpersonatedRole()); ?></strong>
         <span class="impersonate-banner__hint">— vous voyez l'application avec les mêmes restrictions que ce rôle.</span>
     </span>
     <form method="POST" action="<?php echo url('impersonate'); ?>" class="impersonate-banner__form">

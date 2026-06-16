@@ -10,7 +10,7 @@ if (!isset($currentPage)) {
     $currentPage = $_GET['page'] ?? 'home';
 }
 
-$userRole = $_SESSION['user']['role'] ?? 'agent';
+$userRole = currentUserRole() ?: 'agent';
 
 // Determine the active registry type for report subpages
 $activeRegistryType = $_GET['type'] ?? null;

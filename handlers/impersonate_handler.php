@@ -9,7 +9,7 @@
  * Security:
  *   - Only superviseurs can impersonate
  *   - Only lower-privilege roles (agent, chsct) can be impersonated
- *   - The real role is preserved in $_SESSION['real_role']
+ *   - The real role is preserved in session via startImpersonation()
  *   - All actions are logged in the audit trail
  *   - Impersonation only changes the session, not the database
  */
@@ -17,7 +17,7 @@
 validatePostRequest(url('home'));
 
 // Must be authenticated
-if (!isset($_SESSION['user'])) {
+if (!isUserLoggedIn()) {
     redirect(url('home'));
 }
 
@@ -28,7 +28,7 @@ if ($action === 'start') {
     $targetRole = $_POST['target_role'] ?? '';
 
     // Only superviseurs can impersonate (check real_role if already impersonating)
-    $effectiveRole = $_SESSION['real_role'] ?? $_SESSION['user']['role'];
+    $effectiveRole = getRealRole() ?? currentUserRole();
     if ($effectiveRole !== 'superviseur') {
         setFlash('error', 'Seuls les superviseurs peuvent incarner un autre rôle.');
         redirect(url('home'));
@@ -41,23 +41,18 @@ if ($action === 'start') {
     }
 
     // Don't impersonate if already impersonating the same role
-    if (isset($_SESSION['impersonated_role']) && $_SESSION['impersonated_role'] === $targetRole) {
+    if (getImpersonatedRole() === $targetRole) {
         redirect(url('home'));
     }
 
-    // Save the real role (only if not already impersonating)
-    if (!isset($_SESSION['real_role'])) {
-        $_SESSION['real_role'] = $_SESSION['user']['role'];
-    }
-
-    // Switch to the impersonated role
-    $_SESSION['user']['role'] = $targetRole;
-    $_SESSION['impersonated_role'] = $targetRole;
+    // Save the real role and switch to the impersonated role
+    $realRole = getRealRole() ?? currentUserRole();
+    startImpersonation($realRole, $targetRole);
 
     // Audit log
     $pdo = getDB();
     auditLog($pdo, 'auth', 'impersonate_start', 'Incarnation du rôle ' . (ROLE_LABELS[$targetRole] ?? $targetRole), null, 'user', [
-        'real_role'  => $_SESSION['real_role'],
+        'real_role'  => $realRole,
         'impersonated_role' => $targetRole,
     ]);
 
@@ -67,18 +62,13 @@ if ($action === 'start') {
 
 // === STOP IMPERSONATION (restore real role) ===
 if ($action === 'stop') {
-    if (!isset($_SESSION['real_role'])) {
+    $realRole = stopImpersonation();
+    if ($realRole === null) {
         // Not impersonating — nothing to do
         redirect(url('home'));
     }
 
-    $realRole = $_SESSION['real_role'];
-    $impersonatedRole = $_SESSION['impersonated_role'] ?? 'inconnu';
-
-    // Restore the real role
-    $_SESSION['user']['role'] = $realRole;
-    unset($_SESSION['real_role']);
-    unset($_SESSION['impersonated_role']);
+    $impersonatedRole = getImpersonatedRole() ?? 'inconnu';
 
     // Audit log
     $pdo = getDB();

@@ -24,7 +24,7 @@ if (!$row || empty($row['attachment_blob'])) {
 }
 
 // Access control: centralized via canAccessReport()
-$user = $_SESSION['user'] ?? null;
+$user = currentUser();
 if (!$user) {
     http_response_code(403);
     exit('Accès refusé.');

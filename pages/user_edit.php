@@ -80,7 +80,7 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
 </div>
 
 <!-- Delete user (soft delete) -->
-<?php if ($user['is_active'] && (int) $user['id'] !== (int) ($_SESSION['user']['id'] ?? 0)): ?>
+<?php if ($user['is_active'] && (int) $user['id'] !== currentUserId()): ?>
 <div class="card card--danger">
     <h3 class="section-header--danger">Zone dangereuse</h3>
     <p class="text-muted mb-4">La désactivation rendra le compte inutilisable. Cette action est réversible.</p>

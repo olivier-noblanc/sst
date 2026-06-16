@@ -17,32 +17,34 @@
 - Exception : les références légales exactes du Code du travail (ex : « CSE/CHSCT » dans D4132-1) sont inchangées.
 
 ### Captures d'écran
-- Les captures sont au format **HTML** (DOM rendu complet avec CSS inline), pas PNG.
-- Elles sont générées via `render_page.php` (PHP CLI) qui rend chaque page avec les vraies données et templates.
+- Les captures sont au format **PNG annoté** (numérotation + flèches + descriptions).
+- Elles sont générées en deux étapes : `capture_screenshots.py` (HTML→PNG via Playwright) puis `annotate_screenshots.py` (ajout des callouts via Pillow + détection de positions via Playwright).
+- Les fichiers HTML source sont dans `docs/screenshots/` (DOM rendu avec CSS inline).
+- Les PNG annotés finaux sont dans `public/screenshots/` (servis aux navigateurs) et copiés dans `docs/screenshots/`.
 - Voir `docs/screenshots/CAPTURES.md` pour la liste complète et la procédure de régénération.
-- Les captures servies au navigateur sont dans `public/screenshots/` (copie de `docs/screenshots/`).
 
 ### Structure du dépôt
-- `docs/screenshots/` : captures HTML + CAPTURES.md
-- `tools/` : scripts CLI manuels (anonymize_old_reports.php, check_delays.php, backup_sst_db.ps1)
+- `docs/screenshots/` : captures HTML source + PNG annotés + CAPTURES.md
+- `tools/` : scripts CLI manuels (capture_screenshots.py, annotate_screenshots.py, anonymize_old_reports.php, check_delays.php, backup_sst_db.ps1)
 - `src/` : logique métier (queries, auth, mail, helpers, database, audit, config, cron)
+- `src/helpers/` : modules utilitaires (access.php, formatting.php, http.php, config.php, crypto.php, assets.php)
 - `src/cron.php` : lazy cron — tâches de maintenance déclenchées au login (check_delays + anonymize). Pas de cron système.
 - `pages/` : pages PHP rendues côté serveur
 - `handlers/` : handlers POST (création, édition, réponse, export)
-- `templates/` : composants réutilisables (header, footer, form, etc.)
+- `templates/` : composants réutilisables (header, footer, form, user_form_fields, breadcrumb, etc.)
+- `tests/` : tests unitaires PHPUnit (54 tests, 131 assertions)
 - `nuclear-reset.php` : purge des signalements (CLI uniquement, guard php_sapi_name)
 
 ## Générer les captures d'écran
 
 ```bash
-# 1. Initialiser la base de données avec les données de test
-/home/z/my-project/scripts/php-sst.sh /home/z/my-project/scripts/init_sst_db.php
+# 1. Capturer les HTML en PNG (Playwright, 1280px de large)
+cd /path/to/sst
+python3 tools/capture_screenshots.py
 
-# 2. Capturer chaque page
-cd /home/z/my-project/sst-repo
-/home/z/my-project/scripts/php-sst.sh render_page.php "home" "agent.dev" "docs/screenshots/cu1-accueil.html"
-# ... etc. (voir CAPTURES.md pour la liste complète)
+# 2. Ajouter les annotations (callouts numérotés avec flèches)
+#    Les positions sont détectées automatiquement via les sélecteurs CSS dans Playwright
+python3 tools/annotate_screenshots.py
 
-# 3. Copier les captures dans public/screenshots/
-cp docs/screenshots/*.html public/screenshots/
+# Les PNG annotés sont dans public/screenshots/ et docs/screenshots/
 ```

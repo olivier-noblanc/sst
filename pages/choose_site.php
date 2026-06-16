@@ -24,7 +24,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 $pageTitle = 'Choisir mon site';
 
 // Safety: if user already has a site, redirect away
-if (!empty($_SESSION['user']['site_id'])) {
+if (currentUserHasSite()) {
     redirect(url('home'));
 }
 
@@ -38,7 +38,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
 
 <div class="card container--narrow">
     <p class="choose-site-welcome">
-        Bienvenue, <strong><?php echo e($_SESSION['user']['prenom'] ?? ''); ?> <?php echo e($_SESSION['user']['nom'] ?? ''); ?></strong>.
+        Bienvenue, <strong><?php echo e(currentUserDisplayName()); ?></strong>.
     </p>
     <p class="text-muted text-small mb-4">
         Avant de continuer, vous devez sélectionner votre site (<?php echo e($labelUnite); ?>). 

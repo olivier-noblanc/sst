@@ -35,8 +35,8 @@
  */
 function getAuthenticatedUser(): ?array {
     // If user is already in session, return it (avoids DB hit on every request)
-    if (isset($_SESSION['user'])) {
-        return $_SESSION['user'];
+    if (isUserLoggedIn()) {
+        return getUserSession();
     }
 
     // Production mode: IIS provides AUTH_USER automatically
@@ -54,7 +54,7 @@ function getAuthenticatedUser(): ?array {
 
         $user = findOrCreateUser($username);
         if ($user) {
-            $_SESSION['user'] = $user;
+            setUserSession($user);
             return $user;
         }
     }
@@ -193,7 +193,7 @@ function mockLogin(string $username): ?array {
 
     $user = findOrCreateUser($username);
     if ($user) {
-        $_SESSION['user'] = $user;
+        setUserSession($user);
         return $user;
     }
 

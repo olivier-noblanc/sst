@@ -21,13 +21,13 @@
  * a superviseur who is temporarily impersonating an agent.
  */
 function checkSuperviseurPromotion(): void {
-    if (!isset($_SESSION['user'])) {
+    if (!isUserLoggedIn()) {
         return;
     }
-    if ($_SESSION['user']['role'] !== 'agent') {
+    if (!isAgent()) {
         return;
     }
-    if (isset($_SESSION['impersonated_role'])) {
+    if (isImpersonatingRole()) {
         return;
     }
 
@@ -41,7 +41,7 @@ function checkSuperviseurPromotion(): void {
     }
 
     $users = array_map('trim', explode(',', strtolower($superviseurUsernames)));
-    $currentUsername = strtolower($_SESSION['user']['username']);
+    $currentUsername = strtolower(currentUserUsername());
 
     if (!in_array($currentUsername, $users)) {
         return;
@@ -50,7 +50,7 @@ function checkSuperviseurPromotion(): void {
     // Promote in database
     $pdo = getDB();
     $stmt = $pdo->prepare("UPDATE users SET role = 'superviseur', updated_at = datetime('now') WHERE id = :id AND role = 'agent'");
-    $stmt->execute([':id' => (int) $_SESSION['user']['id']]);
+    $stmt->execute([':id' => currentUserId()]);
 
     if ($stmt->rowCount() > 0) {
         // Promotion applied — refresh session from DB
@@ -69,10 +69,10 @@ function checkSuperviseurPromotion(): void {
  * This MUST be called after authentication and choose_site handling.
  */
 function checkUserSiteAssignment(): void {
-    if (!isset($_SESSION['user'])) {
+    if (!isUserLoggedIn()) {
         return;
     }
-    if (!empty($_SESSION['user']['site_id'])) {
+    if (currentUserHasSite()) {
         return;
     }
 

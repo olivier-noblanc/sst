@@ -29,8 +29,8 @@
  */
 function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = []): void {
     try {
-        $userId = (int) ($_SESSION['user']['id'] ?? 0);
-        $username = $_SESSION['user']['username'] ?? 'system';
+        $userId = currentUserId();
+        $username = currentUserUsername() ?: 'system';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
 
         $stmt = $pdo->prepare("

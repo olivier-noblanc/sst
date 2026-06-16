@@ -24,7 +24,7 @@ $pageTitle = 'Connexion';
 
 // Safety: if somehow accessed in prod, redirect away
 if (!DEV_MODE) {
-    if (isset($_SESSION['user'])) {
+    if (isUserLoggedIn()) {
         redirect(url('home'));
     }
     die('Erreur : cette page n\'est pas accessible en production. '
@@ -32,7 +32,7 @@ if (!DEV_MODE) {
 }
 
 // If already authenticated, redirect to home
-if (isset($_SESSION['user'])) {
+if (isUserLoggedIn()) {
     redirect(url('home'));
 }
 ?>

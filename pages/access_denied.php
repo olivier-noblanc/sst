@@ -8,10 +8,10 @@
  */
 $pageTitle = 'Accès refusé';
 ?>
-<?php if (isset($_SESSION['impersonated_role'])): ?>
+<?php if (isImpersonatingRole()): ?>
 <div class="impersonate-banner" role="alert">
     <span class="impersonate-banner__text">
-        &#x1F3AD; Vous incarnez le rôle <strong><?php echo e(ROLE_LABELS[$_SESSION['impersonated_role']] ?? $_SESSION['impersonated_role']); ?></strong>
+        &#x1F3AD; Vous incarnez le rôle <strong><?php echo e(ROLE_LABELS[getImpersonatedRole()] ?? getImpersonatedRole()); ?></strong>
         <span class="impersonate-banner__hint">— les pages réservées aux superviseurs ne sont pas accessibles dans ce mode.</span>
     </span>
     <form method="POST" action="<?php echo url('impersonate'); ?>" class="impersonate-banner__form">
@@ -27,16 +27,16 @@ $pageTitle = 'Accès refusé';
     <p class="text-muted my-4">
         Vous n'avez pas les permissions nécessaires pour accéder à cette page.
     </p>
-    <?php if (isset($_SESSION['user'])): ?>
+    <?php if (isUserLoggedIn()): ?>
     <p class="text-muted text-small">
-        Votre rôle : <span class="badge <?php echo getRoleBadgeClass($_SESSION['user']['role']); ?>">
-            <?php echo e(ROLE_LABELS[$_SESSION['user']['role']] ?? $_SESSION['user']['role']); ?>
+        Votre rôle : <span class="badge <?php echo getRoleBadgeClass(currentUserRole()); ?>">
+            <?php echo e(ROLE_LABELS[currentUserRole()] ?? currentUserRole()); ?>
         </span>
     </p>
     <?php endif; ?>
-    <?php if (isset($_SESSION['impersonated_role'])): ?>
+    <?php if (isImpersonatingRole()): ?>
     <p class="text-muted text-small mt-2">
-        Vous incarnez actuellement le rôle <strong><?php echo e(ROLE_LABELS[$_SESSION['impersonated_role']] ?? $_SESSION['impersonated_role']); ?></strong>.
+        Vous incarnez actuellement le rôle <strong><?php echo e(ROLE_LABELS[getImpersonatedRole()] ?? getImpersonatedRole()); ?></strong>.
         Reprenez votre rôle de superviseur pour accéder à cette page.
     </p>
     <?php endif; ?>

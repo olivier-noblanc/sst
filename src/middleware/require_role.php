@@ -13,12 +13,13 @@
  * @param array $roles  Array of allowed role strings
  */
 function requireRole(array $roles): void {
-    if (!isset($_SESSION['user']['role'])) {
+    $role = currentUserRole();
+    if (empty($role)) {
         require __DIR__ . '/../../pages/access_denied.php';
         exit;
     }
 
-    if (!in_array($_SESSION['user']['role'], $roles)) {
+    if (!in_array($role, $roles, true)) {
         require __DIR__ . '/../../pages/access_denied.php';
         exit;
     }
@@ -31,7 +32,8 @@ function requireRole(array $roles): void {
  * @return bool
  */
 function hasRole(string $role): bool {
-    return isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === $role;
+    $currentRole = currentUserRole();
+    return !empty($currentRole) && $currentRole === $role;
 }
 
 /**
@@ -41,5 +43,6 @@ function hasRole(string $role): bool {
  * @return bool
  */
 function hasAnyRole(array $roles): bool {
-    return isset($_SESSION['user']['role']) && in_array($_SESSION['user']['role'], $roles);
+    $currentRole = currentUserRole();
+    return !empty($currentRole) && in_array($currentRole, $roles, true);
 }

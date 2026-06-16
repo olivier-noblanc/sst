@@ -42,15 +42,15 @@ Elles sont intégrées dans la page de Documentation (`help.php`) via des `<img>
 ## Régénération
 
 ```bash
-# 1. Capturer les HTML en PNG (Playwright)
+# 1. Capturer les HTML en PNG (Playwright, 1280px de large)
 python3 tools/capture_screenshots.py
 
-# 2. Ajouter les annotations (Pillow)
+# 2. Ajouter les annotations (Pillow + Playwright pour détection de positions)
 python3 tools/annotate_screenshots.py
-
-# 3. Copier les PNG dans public/screenshots/ (ou lancer update_sst.ps1)
-cp docs/screenshots/*.png public/screenshots/
 ```
 
-Les annotations sont définies dans `tools/annotate_screenshots.py` (dictionnaire `ANNOTATIONS`).
-Chaque entrée contient des tuples `(x_pct, y_pct, description)` en pourcentage de la taille de l'image.
+Les annotations sont définies dans `tools/annotate_screenshots.py` (dictionnaire `ELEMENT_ANNOTATIONS`).
+Chaque entrée mappe un fichier HTML à une liste de tuples `(sélecteur_CSS, description)`.
+Playwright détecte automatiquement la position de chaque élément dans le DOM rendu, puis Pillow dessine les callouts (badges numérotés + flèches + descriptions) aux coordonnées réelles sur le PNG.
+
+Les PNG annotés sont copiés automatiquement dans `public/screenshots/` et `docs/screenshots/`.

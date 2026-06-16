@@ -19,7 +19,7 @@ if (!isset($report)) $report = null;
 if (!isset($formErrors)) $formErrors = getFormErrors();
 if (!isset($formData)) $formData = getFormData();
 
-$user = $_SESSION['user'] ?? [];
+$user = currentUser() ?? [];
 
 // Determine values: prefer form data (on validation error), then report data, then defaults
 $val = function(string $field, string $default = '') use ($formData, $report, $isEdit) {

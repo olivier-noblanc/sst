@@ -53,17 +53,17 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
             <?php endif; ?>
             <span class="header__title"><?php echo e(APP_NAME); ?></span>
         </div>
-        <?php if (isset($_SESSION['user'])): ?>
+        <?php if (isUserLoggedIn()): ?>
         <div class="header__user">
             <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
             <span class="header__username">
-                <?php echo e($_SESSION['user']['prenom'] ?? ''); ?> <?php echo e($_SESSION['user']['nom'] ?? ''); ?>
-                <span class="badge <?php echo getRoleBadgeClass($_SESSION['user']['role'] ?? ''); ?> badge--sm"><?php echo e(ROLE_LABELS[$_SESSION['user']['role'] ?? 'agent'] ?? 'Agent'); ?></span>
+                <?php echo e(currentUserDisplayName()); ?>
+                <span class="badge <?php echo getRoleBadgeClass(currentUserRole()); ?> badge--sm"><?php echo e(ROLE_LABELS[currentUserRole()] ?? 'Agent'); ?></span>
             </span>
             <?php
             // Impersonation dropdown: only for superviseurs who are NOT already impersonating
-            $isImpersonating = isset($_SESSION['impersonated_role']);
-            $realRole = $_SESSION['real_role'] ?? $_SESSION['user']['role'] ?? '';
+            $isImpersonating = isImpersonatingRole();
+            $realRole = getRealRole() ?? currentUserRole();
             if ($realRole === 'superviseur' && !$isImpersonating):
             ?>
             <div class="impersonate-dropdown">

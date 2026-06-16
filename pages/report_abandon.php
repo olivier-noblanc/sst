@@ -11,7 +11,7 @@ $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 // Access control: only the declarant
-$user = $_SESSION['user'];
+$user = currentUser();
 $userId = (int) $user['id'];
 
 requireReportOwnership($report, $userId, $uuid, 'abandonner');

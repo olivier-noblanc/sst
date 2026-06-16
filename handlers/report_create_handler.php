@@ -15,7 +15,7 @@ if (!in_array($type, ['rsst', 'rami', 'dgi'])) {
     redirect(url('home'));
 }
 
-$user = $_SESSION['user'];
+$user = currentUser();
 $pdo = getDB();
 
 // Gather input

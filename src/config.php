@@ -41,13 +41,13 @@ if (defined('APP_ENV_FORCE')) {
 
 define('DEV_MODE', APP_ENV === 'dev');
 
-// Error handling: ALWAYS display errors (even in production)
-// This is intentional: the app must always show PHP errors on screen
-// for immediate diagnosis, even on IIS in production.
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
+// Error handling: environment-dependent
+// DEV : errors displayed on screen for immediate diagnosis.
+// PROD: errors are logged and emailed (see error_handler.php),
+//       but NOT displayed to users — they see a clean error page instead.
+ini_set('display_errors', DEV_MODE ? '1' : '0');
+ini_set('display_startup_errors', DEV_MODE ? '1' : '0');
 error_reporting(E_ALL);
-// Also log errors to file
 ini_set('log_errors', '1');
 ini_set('error_log', __DIR__ . '/../data/php-error.log');
 

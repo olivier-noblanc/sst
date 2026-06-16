@@ -3,8 +3,15 @@
  * Session Management — Application SST DREETS BFC
  * 
  * Handles session startup, CSRF token generation/validation,
- * and flash message storage/retrieval.
+ * flash message storage/retrieval, and session state access.
+ *
+ * All $_SESSION access is centralized through these functions.
+ * No other file should read or write $_SESSION directly.
  */
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Session startup
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
  * Start the PHP session with secure settings.
@@ -24,6 +31,141 @@ function startSession(): void {
         session_start();
     }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// User session — authentication state
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Check if a user is currently logged in.
+ *
+ * @return bool
+ */
+function isUserLoggedIn(): bool {
+    return isset($_SESSION['user']);
+}
+
+/**
+ * Store the full user data array in session.
+ *
+ * @param array $user  User data from DB
+ */
+function setUserSession(array $user): void {
+    $_SESSION['user'] = $user;
+}
+
+/**
+ * Get the current user's full data array from session.
+ *
+ * @return array|null  The user array or null if not authenticated
+ */
+function getUserSession(): ?array {
+    return $_SESSION['user'] ?? null;
+}
+
+/**
+ * Clear the entire session (used for logout).
+ */
+function clearSession(): void {
+    $_SESSION = [];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Intended URL — redirect after login
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Store the intended URL for post-login redirect.
+ *
+ * @param string $url  The URL to redirect to after login
+ */
+function setIntendedUrl(string $url): void {
+    $_SESSION['intended_url'] = $url;
+}
+
+/**
+ * Get the intended URL (without clearing it).
+ *
+ * @return string|null  The URL or null
+ */
+function getIntendedUrl(): ?string {
+    return $_SESSION['intended_url'] ?? null;
+}
+
+/**
+ * Get and clear the intended URL.
+ *
+ * @return string|null  The URL or null
+ */
+function clearIntendedUrl(): ?string {
+    $url = $_SESSION['intended_url'] ?? null;
+    unset($_SESSION['intended_url']);
+    return $url;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Impersonation — role switching by superviseur
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Start impersonating a different role.
+ * Saves the real role and switches the user's effective role.
+ *
+ * @param string $realRole    The user's real role (before impersonation)
+ * @param string $targetRole  The role to impersonate
+ */
+function startImpersonation(string $realRole, string $targetRole): void {
+    $_SESSION['real_role'] = $realRole;
+    $_SESSION['impersonated_role'] = $targetRole;
+    $_SESSION['user']['role'] = $targetRole;
+}
+
+/**
+ * Stop impersonation and restore the real role.
+ *
+ * @return string|null  The restored real role, or null if not impersonating
+ */
+function stopImpersonation(): ?string {
+    if (!isset($_SESSION['real_role'])) {
+        return null;
+    }
+    $realRole = $_SESSION['real_role'];
+    $_SESSION['user']['role'] = $realRole;
+    unset($_SESSION['real_role']);
+    unset($_SESSION['impersonated_role']);
+    return $realRole;
+}
+
+/**
+ * Check if the user is currently impersonating a role.
+ *
+ * @return bool
+ */
+function isImpersonatingRole(): bool {
+    return isset($_SESSION['real_role']);
+}
+
+/**
+ * Get the impersonated role (or null if not impersonating).
+ *
+ * @return string|null
+ */
+function getImpersonatedRole(): ?string {
+    return $_SESSION['impersonated_role'] ?? null;
+}
+
+/**
+ * Get the real role (before impersonation).
+ *
+ * @return string|null  The real role, or null if not impersonating
+ */
+function getRealRole(): ?string {
+    return $_SESSION['real_role'] ?? null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CSRF token
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
  * Generate a CSRF token and store it in the session.
@@ -51,6 +193,10 @@ function validateCsrfToken(string $token): bool {
     return hash_equals($_SESSION['csrf_token'], $token);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Flash messages
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /**
  * Store a flash message in the session.
  * 
@@ -74,6 +220,10 @@ function getFlash(): ?array {
     }
     return null;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Form data & errors (repopulation after validation failure)
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
  * Store form data in session for repopulation after validation error.

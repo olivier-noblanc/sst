@@ -80,10 +80,11 @@ function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
  * Check if the current user can see all sites.
  */
 function canSeeAllSites(): bool {
-    if (!isset($_SESSION['user']['role'])) {
+    $role = currentUserRole();
+    if (empty($role)) {
         return false;
     }
-    return in_array($_SESSION['user']['role'], ['superviseur', 'chsct']);
+    return in_array($role, ['superviseur', 'chsct']);
 }
 
 /**
@@ -124,7 +125,8 @@ function getReportVisibilityMode(?string $type = null): string {
  * @param string|null $type  Registry type ('rsst', 'rami', 'dgi') or null for global
  */
 function getReportVisibility(?string $type = null): string {
-    if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'agent') {
+    $role = currentUserRole();
+    if (empty($role) || $role !== 'agent') {
         return 'all';
     }
     return getReportVisibilityMode($type);

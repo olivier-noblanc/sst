@@ -12,8 +12,8 @@ validatePostRequest(url('home'));
 $reportUuid = trim($_POST['report_uuid'] ?? '');
 $report = fetchReportOrRedirect($reportUuid);
 
-$user = $_SESSION['user'];
-$userId = (int) $user['id'];
+$user = currentUser();
+$userId = currentUserId();
 
 requireReportOwnership($report, $userId, $reportUuid, 'modifier');
 requireReportEditable($report, $reportUuid, 'modifié');

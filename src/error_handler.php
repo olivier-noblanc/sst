@@ -76,6 +76,7 @@ function sstErrorHandler(int $errno, string $errstr, string $errfile, int $errli
 /**
  * Shutdown handler for fatal errors that bypass the error handler.
  * Catches E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR.
+ * In production (display_errors=Off), renders a clean HTML error page.
  */
 function sstShutdownHandler(): void {
     $error = error_get_last();
@@ -105,6 +106,61 @@ function sstShutdownHandler(): void {
         $error['line'],
         $error['type']
     );
+
+    // In production, render a clean error page for the user
+    if (!defined('DEV_MODE') || !DEV_MODE) {
+        sstRenderProductionErrorPage($levelName);
+    }
+}
+
+/**
+ * Render a clean HTML error page for production users.
+ * Called by sstShutdownHandler when display_errors is Off.
+ * This avoids the "white screen of death" and provides a user-friendly message.
+ */
+function sstRenderProductionErrorPage(string $levelName): void {
+    // Don't render if headers already sent (output buffering may have started)
+    if (headers_sent()) {
+        // Try to close any open buffers cleanly
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+    }
+
+    http_response_code(500);
+    header('Content-Type: text/html; charset=UTF-8');
+
+    $appName = defined('APP_NAME') ? htmlspecialchars(APP_NAME) : 'Application SST';
+
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$appName} — Erreur</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .error-card { background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 40px; max-width: 500px; text-align: center; }
+        .error-icon { font-size: 48px; margin-bottom: 16px; }
+        h1 { color: #c0392b; font-size: 20px; margin: 0 0 12px 0; }
+        p { color: #666; line-height: 1.6; margin: 0 0 20px 0; }
+        a { color: #2980b9; text-decoration: none; } a:hover { text-decoration: underline; }
+        .small { font-size: 13px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <div class="error-icon">&#9888;</div>
+        <h1>Une erreur est survenue</h1>
+        <p>Une erreur interne a emp&ecirc;ch&eacute; cette page de s'afficher correctement.<br>
+        L'administrateur technique a &eacute;t&eacute; notifi&eacute; automatiquement.</p>
+        <a href="javascript:history.back()">&#8592; Retour &agrave; la page pr&eacute;c&eacute;dente</a>
+        <p class="small">Si le probl&egrave;me persiste, contactez votre administrateur.</p>
+    </div>
+</body>
+</html>
+HTML;
 }
 
 /**

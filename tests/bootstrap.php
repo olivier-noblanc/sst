@@ -96,6 +96,7 @@ function getDB(): PDO {
 }
 
 // Load application source files
+require_once __DIR__ . '/../src/session.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/queries/user_queries.php';
 require_once __DIR__ . '/../src/queries/site_queries.php';

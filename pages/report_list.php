@@ -16,7 +16,7 @@ if (!in_array($type, ['rsst', 'rami', 'dgi'])) {
 $pageTitle = 'Liste des fiches du registre — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
 
 $pdo = getDB();
-$user = $_SESSION['user'];
+$user = currentUser();
 $userSiteId = (int) $user['site_id'];
 $userId = (int) $user['id'];
 $userRole = $user['role'];

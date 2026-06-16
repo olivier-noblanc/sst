@@ -3,7 +3,40 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.16.0] — 2026-06-16
+
+### Sécurité — `display_errors` par environnement + page d'erreur production
+
+- **`src/config.php`** — `display_errors` et `display_startup_errors` sont désormais conditionnés par `DEV_MODE` : activés en dev, désactivés en production. `error_reporting(E_ALL)` et `log_errors` restent activés dans les deux environnements. Les erreurs fatales en production déclenchent une page HTML propre au lieu d'un écran blanc ou de stack traces visibles.
+- **`src/error_handler.php`** — Le shutdown handler appelle `sstRenderProductionErrorPage()` en production, qui affiche une page d'erreur 500 HTML avec message convivial, lien de retour et notification automatique de l'administrateur. Résout le P0 de l'audit architectural (display_errors=On forcé en production).
+
+### Architecture — Décomposition du monolithe `public/index.php` (293 → 138 lignes)
+
+- **`src/router.php`** (nouveau) — Extraction de la logique de routage : liste blanche des pages (`getValidPages()`), validation (`validatePage()`), map des handlers POST (`getHandlerMap()`), dispatch (`dispatchPostHandler()`), titres de page (`getPageTitle()`), rendu avec layout (`renderPageWithLayout()`) et sans layout (`renderStandalonePage()`). Toutes les fonctions sont pures ou read-only, testables indépendamment.
+- **`src/auth_flow.php`** (nouveau) — Extraction du flux d'authentification : auto-authentification IIS (`handleAutoAuth()`), page de login dev (`handleLoginPage()`), redirection non-authentifié (`handleNotAuthenticated()`), déconnexion (`handleLogout()`). Chaque fonction encapsule un cas d'usage complet.
+- **`public/index.php`** — Réduit de 293 à 138 lignes. Ne contient plus que le boot sequence (gzip, requires, session start) et les appels de dispatch séquentiels. Toute la logique métier est dans les modules extraits.
+
+### Architecture — Centralisation des accès `$_SESSION` (0 accès directs restants)
+
+- **`src/session.php`** — Ajout de 11 fonctions wrapper centralisant tout accès à `$_SESSION` :
+  - **Authentification** : `isUserLoggedIn()`, `setUserSession()`, `getUserSession()`, `clearSession()`
+  - **URL de redirection** : `setIntendedUrl()`, `getIntendedUrl()`, `clearIntendedUrl()`
+  - **Incarnation** : `startImpersonation()`, `stopImpersonation()`, `isImpersonatingRole()`, `getImpersonatedRole()`, `getRealRole()`
+- **`src/user_context.php`** — Toutes les fonctions (`currentUser()`, `currentUserId()`, `currentUserRole()`, etc.) utilisent désormais les wrappers session au lieu d'accéder directement à `$_SESSION`. La seule exception documentée est `refreshCurrentUser()` qui doit écrire `$_SESSION['user']['role']` pour préserver l'état d'incarnation.
+- **23 fichiers mis à jour** — Tous les accès directs `$_SESSION` remplacés par les wrappers : `src/auth.php`, `src/audit.php`, `src/middleware/bootstrap.php`, `src/middleware/require_auth.php`, `src/middleware/require_role.php`, `src/helpers/access.php`, `handlers/impersonate_handler.php`, `handlers/choose_site_handler.php`, `handlers/login_handler.php`, `handlers/report_create_handler.php`, `handlers/report_edit_handler.php`, `handlers/report_abandon_handler.php`, `handlers/report_respond_handler.php`, `handlers/user_edit_handler.php`, `handlers/user_delete_handler.php`, `pages/access_denied.php`, `pages/choose_site.php`, `pages/help.php`, `pages/home.php`, `pages/login.php`, `pages/user_edit.php`, `templates/header.php`, `templates/sidebar.php`, `templates/impersonate_banner.php`, `templates/report_card.php`, `templates/report_form.php`.
+- **`tests/bootstrap.php`** — Ajout de `require_once session.php` pour que les tests puissent utiliser `setUserSession()`.
+- **`tests/unit/AuditConfigTest.php`** — `$_SESSION['user'] = ...` remplacé par `setUserSession(...)`.
+- **`php.ini`** — Ajout de l'extension `xmlwriter` nécessaire à PHPUnit.
+
 ## [3.15.0] — 2026-06-16
+
+### Tests E2E — Playwright : 3 nouveaux fichiers de tests de navigation (+44 tests)
+
+- **`e2e/impersonate.spec.js`** (16 tests) — Tests du feature d'incarnation de rôle : ouverture du menu déroulant, incarnation Agent/CHSCT, bannière d'incarnation visible sur toutes les pages, restrictions d'accès du rôle incarné (sidebar masquée, pages interdites, pas de bouton « Répondre »), bouton « Reprendre mon rôle » pour restaurer le rôle superviseur, absence du menu d'incarnation pour les agents.
+- **`e2e/navigation-flows.spec.js`** (20 tests) — Flux de navigation profonds : cycle de vie complet d'un signalement (accueil → création → vue → réponse → retour liste), état actif du sidebar (7 pages testées avec `aria-current="page"`), navigation navigateur back/forward (4 scénarios), parcours multi-pages (settings tabs, user list→view→edit, 3 registres, home cards), navigation via breadcrumb, persistance de session sur 12+ pages.
+- **`e2e/onboarding.spec.js`** (8 tests) — Flux d'embarquement nouveau utilisateur : redirection vers `choose_site`, affichage du formulaire de sélection de site, liste des sites disponibles, avertissement de choix définitif, validation HTML5 required, redirection vers l'accueil après choix, pas de redirection pour les utilisateurs existants, protection CSRF du formulaire.
+- **`php.ini`** — Ajout des extensions `dom`, `xml`, `tokenizer`, `ctype` nécessaires au serveur PHP de test Playwright.
+- **`README.md`** — Section Tests enrichie : commandes Playwright (`npx playwright test`, `--headed`, `--ui`), tableau de couverture PHPUnit (54) + Playwright (180), répertoire `e2e/` dans la structure.
 
 ### Refactoring — Élimination des 6 derniers patterns de duplication (~78 lignes nettes supprimées)
 

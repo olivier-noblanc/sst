@@ -9,7 +9,7 @@
 validatePostRequest(url('choose_site'));
 
 // Only allow if user has no site yet
-if (!empty($_SESSION['user']['site_id'])) {
+if (currentUserHasSite()) {
     session_write_close();
     redirect(url('home'));
 }
@@ -33,12 +33,7 @@ if (!$site) {
 }
 
 // Update the user's site in DB
-// NOTE: We do NOT use "AND site_id IS NULL" because:
-// - In some edge cases (race conditions, session issues), site_id might already be set in DB
-//   but not in the session. Using the strict condition would cause rowCount() = 0,
-//   which would make the handler think the update failed, creating an infinite loop.
-// - Instead, we always do the UPDATE, then verify by re-reading from DB.
-$userId = (int) $_SESSION['user']['id'];
+$userId = currentUserId();
 $stmt = $pdo->prepare('UPDATE users SET site_id = :site_id, updated_at = datetime("now") WHERE id = :id');
 $stmt->execute([':site_id' => $siteId, ':id' => $userId]);
 
@@ -48,7 +43,7 @@ $updatedUser = currentUser();
 
 if ($updatedUser && !empty($updatedUser['site_id'])) {
     // Clear intended URL
-    unset($_SESSION['intended_url']);
+    clearIntendedUrl();
     setFlash('success', 'Votre site a été défini : ' . $site['code'] . ' — ' . $site['nom'] . '. Bienvenue !');
     
     // IMPORTANT: write session to disk before redirect
@@ -57,8 +52,8 @@ if ($updatedUser && !empty($updatedUser['site_id'])) {
     redirect(url('home'));
 } else {
     // DB update failed — this shouldn't happen, but handle gracefully
-    error_log("SST App: choose_site_handler failed for user $userId, site_id=$siteId: " . $e->getMessage());
-    setFlash('error', 'Erreur lors de l\'enregistrement de votre site : ' . e($e->getMessage()));
+    error_log("SST App: choose_site_handler failed for user $userId, site_id=$siteId");
+    setFlash('error', 'Erreur lors de l\'enregistrement de votre site. Veuillez réessayer.');
     session_write_close();
     redirect(url('choose_site'));
 }

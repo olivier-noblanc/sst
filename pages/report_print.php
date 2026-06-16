@@ -16,7 +16,7 @@ $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 // Access control: centralized via canAccessReport()
-$user = $_SESSION['user'];
+$user = currentUser();
 
 if (!canAccessReport($report, $user)) {
     setFlash('error', 'Vous n\'avez pas accès à ce signalement.');

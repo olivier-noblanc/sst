@@ -21,7 +21,7 @@ $cardClass = match($type) {
 };
 
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
-$user = $_SESSION['user'] ?? [];
+$user = currentUser() ?? [];
 $userRole = $user['role'] ?? 'agent';
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);

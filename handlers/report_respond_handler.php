@@ -45,7 +45,7 @@ if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
 
 // Save response
 $pdo = getDB();
-$userId = (int) $_SESSION['user']['id'];
+$userId = currentUserId();
 $result = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
 
 if ($result['status'] === 'true') {

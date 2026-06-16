@@ -12,10 +12,10 @@
  * it means auto-auth failed.
  */
 
-if (!isset($_SESSION['user'])) {
+if (!isUserLoggedIn()) {
     if (DEV_MODE) {
         // Dev: redirect to mock login form
-        $_SESSION['intended_url'] = $_SERVER['REQUEST_URI'] ?? '';
+        setIntendedUrl($_SERVER['REQUEST_URI'] ?? '');
         redirect(url('login'));
     } else {
         // Prod: should never happen — AUTH_USER should always be set by IIS

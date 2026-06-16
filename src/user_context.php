@@ -26,7 +26,7 @@
  * @return array|null  The user array or null if not authenticated
  */
 function currentUser(): ?array {
-    return $_SESSION['user'] ?? null;
+    return getUserSession();
 }
 
 /**
@@ -35,7 +35,8 @@ function currentUser(): ?array {
  * @return int  User ID (0 if not logged in)
  */
 function currentUserId(): int {
-    return (int) ($_SESSION['user']['id'] ?? 0);
+    $user = getUserSession();
+    return $user ? (int) ($user['id'] ?? 0) : 0;
 }
 
 /**
@@ -44,7 +45,8 @@ function currentUserId(): int {
  * @return string  Username ('' if not logged in)
  */
 function currentUserUsername(): string {
-    return $_SESSION['user']['username'] ?? '';
+    $user = getUserSession();
+    return $user ? ($user['username'] ?? '') : '';
 }
 
 /**
@@ -69,7 +71,8 @@ function currentUserDisplayName(): string {
  * @return string  Role: 'agent', 'superviseur', 'chsct', or '' if not logged in
  */
 function currentUserRole(): string {
-    return $_SESSION['user']['role'] ?? '';
+    $user = getUserSession();
+    return $user ? ($user['role'] ?? '') : '';
 }
 
 /**
@@ -78,7 +81,11 @@ function currentUserRole(): string {
  * @return string  Real role or '' if not logged in
  */
 function currentUserRealRole(): string {
-    return $_SESSION['real_role'] ?? currentUserRole();
+    $realRole = getRealRole();
+    if ($realRole !== null) {
+        return $realRole;
+    }
+    return currentUserRole();
 }
 
 /**
@@ -125,7 +132,7 @@ function isChsct(): bool {
  * @return bool
  */
 function isImpersonating(): bool {
-    return isset($_SESSION['real_role']);
+    return isImpersonatingRole();
 }
 
 // ─── Site ─────────────────────────────────────────────────────────────────────
@@ -136,7 +143,8 @@ function isImpersonating(): bool {
  * @return int  Site ID (0 if not assigned)
  */
 function currentUserSiteId(): int {
-    return (int) ($_SESSION['user']['site_id'] ?? 0);
+    $user = getUserSession();
+    return $user ? (int) ($user['site_id'] ?? 0) : 0;
 }
 
 /**
@@ -145,7 +153,8 @@ function currentUserSiteId(): int {
  * @return string  Site code ('' if not assigned)
  */
 function currentUserSiteCode(): string {
-    return $_SESSION['user']['site_code'] ?? '';
+    $user = getUserSession();
+    return $user ? ($user['site_code'] ?? '') : '';
 }
 
 /**
@@ -154,7 +163,8 @@ function currentUserSiteCode(): string {
  * @return string  Site name ('' if not assigned)
  */
 function currentUserSiteName(): string {
-    return $_SESSION['user']['site_nom'] ?? '';
+    $user = getUserSession();
+    return $user ? ($user['site_nom'] ?? '') : '';
 }
 
 /**
@@ -163,7 +173,8 @@ function currentUserSiteName(): string {
  * @return bool
  */
 function currentUserHasSite(): bool {
-    return !empty($_SESSION['user']['site_id']);
+    $user = getUserSession();
+    return !empty($user['site_id']);
 }
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
@@ -211,9 +222,11 @@ function refreshCurrentUser(PDO $pdo): bool {
     $freshUser = getUserById($pdo, $id);
     if ($freshUser) {
         // Preserve impersonation state if active
-        $_SESSION['user'] = $freshUser;
-        if (isset($_SESSION['real_role'])) {
-            $_SESSION['user']['role'] = $_SESSION['impersonated_role'] ?? $freshUser['role'];
+        setUserSession($freshUser);
+        if (isImpersonatingRole()) {
+            $impersonatedRole = getImpersonatedRole() ?? $freshUser['role'];
+            // Direct session write needed here — this is inside the session layer
+            $_SESSION['user']['role'] = $impersonatedRole;
         }
         return true;
     }

@@ -18,7 +18,7 @@ if ($userId <= 0) {
 $pdo = getDB();
 
 // Prevent self-deletion
-if ((int) $_SESSION['user']['id'] === $userId) {
+if (currentUserId() === $userId) {
     setFlash('error', 'Vous ne pouvez pas désactiver votre propre compte.');
     redirect(url('users'));
 }

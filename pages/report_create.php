@@ -16,7 +16,7 @@ if (!in_array($type, ['rsst', 'rami', 'dgi'])) {
 $pageTitle = 'Inscrire un signalement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
 
 $pdo = getDB();
-$user = $_SESSION['user'];
+$user = currentUser();
 
 // For agents, restrict site dropdown to their own site only
 $canSelectSite = canSeeAllSites();

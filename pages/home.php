@@ -8,7 +8,7 @@
 $pageTitle = 'Accueil';
 
 $pdo = getDB();
-$user = $_SESSION['user'];
+$user = currentUser();
 $userSiteId = (int) $user['site_id'];
 $agentVisibility = getReportVisibility();
 $seeAllSites = canSeeAllSites();

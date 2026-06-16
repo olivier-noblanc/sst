@@ -53,13 +53,31 @@ php -S localhost:8080 -t public/ public/router.php
 ## Tests
 
 ```bash
-# Test de la logique d'autorisation (canAccessReport)
-php tools/tests/test_can_access_report.php
-# Code de sortie : 0 = succès, 1 = échec
+# Suite de tests unitaires PHPUnit
+vendor/bin/phpunit
+
+# Test spécifique PHPUnit
+vendor/bin/phpunit --filter HelpersTest
+vendor/bin/phpunit --filter SiteQueriesTest
+
+# Suite de tests E2E Playwright (180 tests)
+npx playwright test
+
+# Test E2E spécifique
+npx playwright test e2e/impersonate.spec.js
+npx playwright test --headed           # avec navigateur visible
+npx playwright test --ui               # interface interactive
 
 # Anonymisation (dry-run)
 php tools/anonymize_old_reports.php --dry-run
 ```
+
+### Couverture de tests
+
+| Suite | Tests | Fichiers | Portée |
+|-------|-------|----------|--------|
+| **PHPUnit** | 167 | 9 | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting |
+| **Playwright E2E** | 180 | 11 | Navigation, auth, formulaires, rôles, incarnation, onboarding, version |
 
 ## Visibilité des signalements — 3 modes (configurable par le superviseur)
 
@@ -78,20 +96,31 @@ C:\inetpub\sst\
 ├── public/          ← Racine web (point d'entrée IIS)
 │   ├── index.php    ← Routeur principal
 │   ├── web.config   ← Configuration IIS
-│   └── css/         ← Feuilles de style
+│   ├── css/         ← Feuilles de style
+│   └── screenshots/ ← PNG annotés (aide en ligne)
 ├── src/             ← Logique métier
 │   ├── config.php   ← Configuration (APP_ENV, modes visibilité)
 │   ├── database.php ← Connexion SQLite + auto-migration
 │   ├── auth.php     ← Authentification (AUTH_USER / mock login)
-│   ├── helpers.php  ← Fonctions utilitaires + getConfig()
+│   ├── helpers.php  ← Chargeur → src/helpers/*.php
+│   ├── helpers/     ← Modules utilitaires (access, formatting, http, config, crypto, assets)
 │   ├── queries/     ← Requêtes SQL préparées
-│   ├── middleware/   ← Contrôle d'accès
+│   ├── middleware/   ← Contrôle d'accès + bootstrap
+│   ├── mail.php     ← Envoi SMTP + buildDelayAlertEmail()
+│   ├── cron.php     ← Lazy cron (check_delays + anonymize)
+│   ├── audit.php    ← Journal d'audit
 │   └── lib/         ← Parsedown.php, fpdf/
 ├── pages/           ← Pages de l'application
 ├── handlers/        ← Traitements des formulaires POST
-├── templates/       ← Templates réutilisables (header, sidebar, footer...)
+├── templates/       ← Templates réutilisables (header, sidebar, footer, user_form_fields...)
+├── tests/           ← Tests unitaires PHPUnit (167 tests)
+├── e2e/             ← Tests E2E Playwright (180 tests, 11 fichiers)
+├── tools/           ← Scripts CLI (capture_screenshots.py, check_delays, anonymize...)
+├── docs/            ← Documentation et captures HTML source
 ├── data/            ← Base SQLite (auto-créée, git-ignorée)
 ├── schema.sql       ← Schéma de la base
+├── CHANGELOG.md     ← Historique des versions (source de vérité)
+├── phpunit.xml      ← Configuration PHPUnit
 ├── update_sst.ps1   ← Script de mise à jour automatisée
 ├── DEPLOY.md        ← Guide de déploiement IIS complet
 ├── SPEC.md          ← Spécification technique détaillée

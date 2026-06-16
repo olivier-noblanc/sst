@@ -99,7 +99,7 @@ try {
     $pdo->commit();
 
     // Update session if editing self
-    if ((int) $_SESSION['user']['id'] === $userId) {
+    if (currentUserId() === $userId) {
         refreshCurrentUser($pdo);
     }
 

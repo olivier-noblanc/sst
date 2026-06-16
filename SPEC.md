@@ -2,7 +2,7 @@
 
 > Plateforme des Registres en Santé et Sécurité au Travail
 > DREETS Bourgogne-Franche-Comté
-> Version 2.7.0 — Specification technique
+> Version 3.15.0 — Specification technique
 
 ---
 
@@ -78,7 +78,7 @@ D'autres sites peuvent être ajoutés via l'interface de paramétrage (onglet «
 | Constante | Valeur | Description |
 |-----------|--------|-------------|
 | `APP_NAME` | `Application SST — DREETS BFC` | Nom affiché dans l'en-tête |
-| `APP_VERSION` | `2.7.0` | Version de l'application |
+| `APP_VERSION` | *(supprimé)* | Version lue depuis `CHANGELOG.md` via `getAppVersion()` — plus de constante |
 | `REPORT_VISIBILITY_MODES` | `['confidential', 'agent_choice', 'public']` | Modes de visibilité des signalements |
 | `SITE_NAME` | `DREETS Bourgogne-Franche-Comté` | Nom complet du site |
 | `APP_ENV` | `prod` (défaut) ou `dev` | Environnement d'exécution |
@@ -112,18 +112,33 @@ sst-app/
 │   ├── auth.php                         # Authentification IIS Windows Auth / mock dev
 │   ├── session.php                      # Gestion de session, CSRF, flash messages
 │   ├── session_patch.php                # Correctif pour session_regenerate_id en dev
-│   ├── helpers.php                      # Fonctions utilitaires : e(), redirect(), formatDateFR(), etc.
-│   ├── mail.php                         # Envoi d'e-mails (SMTP ou mail() en fallback)
+│   ├── helpers.php                      # Chargeur : inclut src/helpers/*.php
+│   ├── helpers/
+│   │   ├── access.php                   # Contrôle d'accès : canAccessReport, canEditReport, canRespondToReport, fetchReportOrRedirect, requireReportEditable
+│   │   ├── assets.php                   # Assets : assetUrl()
+│   │   ├── config.php                   # Configuration : getConfig, updateConfig, clearConfigCache
+│   │   ├── crypto.php                   # Chiffrement : encrypt/decrypt (SST_SECRET_KEY)
+│   │   ├── formatting.php               # Formatage : e(), formatDateFR(), renderBreadcrumb(), normalizeVisibility()
+│   │   └── http.php                     # HTTP : redirect(), setCookieSafe(), url()
+│   ├── mail.php                         # Envoi d'e-mails (SMTP ou mail() en fallback) + buildDelayAlertEmail()
+│   ├── audit.php                        # Journal d'audit (logAuditEvent)
+│   ├── backup.php                       # Sauvegarde SQLite (backupDatabase)
+│   ├── cron.php                         # Lazy cron : check_delays + anonymize (déclenché au login)
+│   ├── error_handler.php                # Gestionnaire d'erreurs PHP personnalisé
+│   ├── user_context.php                 # Rafraîchissement du contexte utilisateur (refreshCurrentUser)
+│   ├── validation.php                   # Validation des données (validateReportData, etc.)
 │   ├── lib/
-│   │   └── fpdf/                         # FPDF 1.9 bundled (génération PDF)
-│   │       ├── fpdf.php                  # Classe FPDF principale
-│   │       └── font/                     # Polices TrueType (DejaVu Sans)
+│   │   ├── fpdf/                         # FPDF 1.9 bundled (génération PDF)
+│   │   │   ├── fpdf.php                  # Classe FPDF principale
+│   │   │   └── font/                     # Polices TrueType (DejaVu Sans)
+│   │   └── Parsedown.php                # Parseur Markdown (pour CHANGELOG et Préambule)
 │   ├── queries/
 │   │   ├── report_queries.php           # Requêtes SQL liées aux signalements
 │   │   ├── user_queries.php             # Requêtes SQL liées aux utilisateurs
 │   │   ├── site_queries.php             # Requêtes SQL liées aux sites
 │   │   └── stats_queries.php            # Requêtes SQL pour statistiques/export/synthèse + notifications
 │   └── middleware/
+│       ├── bootstrap.php                # Initialisation de la requête (session, auth, cron lazy)
 │       ├── require_auth.php             # Vérifie l'authentification
 │       └── require_role.php             # Vérifie le rôle (requireRole, hasRole, hasAnyRole)
 │
@@ -134,6 +149,8 @@ sst-app/
 │   ├── pagination.php                   # Composant de pagination réutilisable
 │   ├── report_form.php                  # Formulaire partagé création/édition de signalement
 │   ├── report_card.php                  # Affichage partagé d'un signalement détaillé
+│   ├── user_form_fields.php             # Champs de formulaire utilisateur partagés (6 champs)
+│   ├── impersonate_banner.php           # Bannière d'usurpation d'identité (impersonate)
 │   ├── alert.php                        # Affichage des messages flash (success/error/warning)
 │   └── confirm_dialog.php               # Dialogue de confirmation (abandon, suppression)
 │
@@ -159,6 +176,8 @@ sst-app/
 │   ├── user_edit.php                    # Édition d'un utilisateur
 │   ├── user_view.php                    # Profil utilisateur
 │   ├── site_edit.php                    # Édition d'un site
+│   ├── logs.php                         # Journaux d'audit
+│   ├── changelog.php                    # Historique des modifications (CHANGELOG.md)
 │   └── access_denied.php                # Page 403 — accès refusé
 │
 ├── handlers/
@@ -175,17 +194,40 @@ sst-app/
 │   ├── user_create_handler.php          # POST : création d'un utilisateur
 │   ├── user_delete_handler.php          # POST : désactivation d'un utilisateur
 │   ├── user_reactivate_handler.php      # POST : réactivation d'un utilisateur
+│   ├── impersonate_handler.php          # POST : usurpation d'identité (superviseur)
 │   └── site_edit_handler.php            # POST : modification d'un site
 │
 ├── data/
 │   └── sst.db                           # Base de données SQLite (créée automatiquement)
 │
+├── docs/
+│   └── screenshots/                     # Captures HTML source + PNG annotés (aide en ligne)
+│
+├── public/screenshots/                  # PNG annotés servis au navigateur
+│
+├── tests/
+│   ├── bootstrap.php                    # PHPUnit bootstrap (SQLite in-memory + getDB() mock)
+│   └── unit/                            # Tests unitaires (54 tests, 131 assertions)
+│       ├── HelpersTest.php
+│       ├── ReportQueriesTest.php
+│       ├── SiteQueriesTest.php
+│       └── UserQueriesTest.php
+│
+├── tools/                               # Scripts CLI manuels
+│   ├── capture_screenshots.py           # Capture HTML→PNG (Playwright)
+│   ├── annotate_screenshots.py          # Annotation PNG avec callouts (Pillow + Playwright)
+│   ├── anonymize_old_reports.php        # Anonymisation RGPD des signalements anciens
+│   ├── check_delays.php                 # Vérification des délais de réponse
+│   └── backup_sst_db.ps1                # Sauvegarde SQLite (PowerShell)
+│
 ├── schema.sql                           # Schéma SQL complet (exécuté à la première connexion)
+├── phpunit.xml                          # Configuration PHPUnit
 ├── promote.php                          # Script CLI pour promouvoir un utilisateur superviseur
-├── seed.php                             # Script CLI pour peupler la base de test
-├── test_fpdf.php                        # Script de test FPDF (vérification polices + génération)
-├── phpinfo.php                          # Page de diagnostic PHP
-└── SPEC.md                              # Ce fichier
+├── CHANGELOG.md                         # Historique des versions (source de vérité pour getAppVersion())
+├── SPEC.md                              # Ce fichier
+├── README.md                            # Guide rapide
+├── DEPLOY.md                            # Guide de déploiement IIS
+└── AGENTS.md                            # Instructions pour les agents IA
 ```
 
 ---
@@ -1237,6 +1279,8 @@ Utilise un UPSERT atomique sur `report_sequence` pour obtenir le numéro séquen
 - `notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId): void` — Notifie les destinataires configurés d'un nouveau signalement
 - `notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): void` — Notifie le déclarant qu'une réponse a été apportée
 - `notifyPourCompte(PDO $pdo, string $reportUuid): void` — Notifie l'agent pour lequel un signalement RAMI a été déposé
+- `notifyDelayAlert(PDO $pdo, array $siteData, int $alertDelayDays): void` — Envoie l'alerte de délai de réponse par site
+- `buildDelayAlertEmail(array $siteData, int $alertDelayDays): string` — Construit le HTML du mail d'alerte délai (table inline-styled)
 - `getNotificationRecipients(PDO $pdo, int $siteId): array` — Rassemble les e-mails par site + globaux (dédoublonnés)
 - `getBaseUrl(): string` — Construit l'URL de base pour les liens dans les e-mails
 
@@ -1257,7 +1301,7 @@ L'interface de paramétrage offre un bouton « Envoyer un e-mail de test » qui 
 ### `src/config.php`
 
 Pas de fonctions. Définit les constantes et tableaux :
-- `APP_NAME`, `APP_VERSION`, `SITE_NAME`, `APP_ENV`, `DEV_MODE`
+- `APP_NAME`, `SITE_NAME`, `APP_ENV`, `DEV_MODE` (note : `APP_VERSION` n'est plus une constante — version lue via `getAppVersion()`)
 - `DB_PATH`, `ITEMS_PER_PAGE`, `MAX_OBJECT_LENGTH`, `MAX_DESCRIPTION_LENGTH`, `MAX_LIEU_LENGTH`
 - `REPORT_VISIBILITY_MODES` : `['confidential', 'agent_choice', 'public']`
 - `REGISTRY_LABELS` : `[rsst => ..., rami => ..., dgi => ...]`
@@ -1294,11 +1338,30 @@ Pas de fonctions. Définit les constantes et tableaux :
 
 ### `src/helpers.php`
 
+Fichier chargeur — inclut tous les modules du répertoire `src/helpers/` :
+
+- `access.php` — Contrôle d'accès
+- `assets.php` — URL des assets
+- `config.php` — Configuration applicative
+- `crypto.php` — Chiffrement
+- `formatting.php` — Formatage et affichage
+- `http.php` — Fonctions HTTP
+
+### `src/helpers/access.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `canAccessReport` | `(array $report, int $userId, string $role, int $userSiteId): bool` | L'utilisateur peut-il voir ce signalement ? (visibilité + rôle) |
+| `canEditReport` | `(array $report, int $userId): bool` | L'utilisateur peut-il modifier ce signalement ? (déclarant, état nouv./en cours) |
+| `canRespondToReport` | `(array $report, string $role): bool` | L'utilisateur peut-il répondre ? (superviseur, état nouv./en cours) |
+| `fetchReportOrRedirect` | `(PDO $pdo, string $uuid): array` | Récupère un signalement ou redirige (404 si UUID invalide/inexistant) |
+| `requireReportEditable` | `(array $report, string $uuid, string $verbe): void` | Vérifie que le signalement est dans un état éditable, sinon redirige avec flash |
+
+### `src/helpers/formatting.php`
+
 | Fonction | Signature | Description |
 |----------|-----------|-------------|
 | `e` | `(?string $string): string` | Échappement HTML (`htmlspecialchars` avec ENT_QUOTES + UTF-8) |
-| `redirect` | `(string $url): void` | Redirection HTTP + exit |
-| `setCookieSafe` | `(string $name, string $value, int $expires, string $path, bool $httpOnly, string $sameSite): void` | Définit un cookie (compatible web + CLI/proxy) |
 | `formatDateFR` | `(?string $date): string` | Formate une date ISO en `d/m/Y` |
 | `formatDateTimeFR` | `(?string $datetime): string` | Formate un datetime ISO en `d/m/Y à H:i` |
 | `generateReference` | `(string $type, string $year2, int $seq): string` | Génère une référence de signalement |
@@ -1316,13 +1379,40 @@ Pas de fonctions. Définit les constantes et tableaux :
 | `agentVisibilityIsConfidential` | `(): bool` | **Déprécié** — alias de `reportVisibilityIsConfidential()` |
 | `agentVisibilityIsPublic` | `(): bool` | **Déprécié** — alias de `reportVisibilityIsPublic()` |
 | `truncate` | `(string $string, int $length): string` | Tronque avec ellipsis |
+| `normalizeVisibility` | `(mixed $value): string` | Normalise une valeur de visibilité (migre anciens formats) |
+| `renderBreadcrumb` | `(array $items): string` | Génère le HTML `<nav class="breadcrumb">` à partir d'un tableau d'items |
+| `getAppVersion` | `(): string` | Lit la version depuis `CHANGELOG.md` (cache statique par requête) |
+| `todayISO` | `(): string` | Date du jour en format ISO (Y-m-d) |
+| `nowTime` | `(): string` | Heure actuelle en format HH:MM |
+
+### `src/helpers/http.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `redirect` | `(string $url): void` | Redirection HTTP + exit |
+| `setCookieSafe` | `(string $name, string $value, int $expires, string $path, bool $httpOnly, string $sameSite): void` | Définit un cookie (compatible web + CLI/proxy) |
+| `url` | `(string $page, array $params): string` | Construit une URL interne |
+
+### `src/helpers/assets.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `assetUrl` | `(string $path): string` | URL d'un asset statique (avec cache-busting) |
+
+### `src/helpers/config.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
 | `getConfig` | `(string $cle, string $default): string` | Lit une valeur de `config_app` (avec cache statique) |
 | `updateConfig` | `(PDO $pdo, string $cle, string $valeur): void` | Met à jour une valeur dans `config_app` (UPSERT) |
 | `clearConfigCache` | `(): void` | Invalide le cache de `getConfig()` |
-| `assetUrl` | `(string $path): string` | URL d'un asset statique |
-| `url` | `(string $page, array $params): string` | Construit une URL interne |
-| `todayISO` | `(): string` | Date du jour en format ISO (Y-m-d) |
-| `nowTime` | `(): string` | Heure actuelle en format HH:MM |
+
+### `src/helpers/crypto.php`
+
+| Fonction | Signature | Description |
+|----------|-----------|-------------|
+| `encrypt` | `(string $plaintext): string` | Chiffre avec AES-256-CBC (clé = `SST_SECRET_KEY`) |
+| `decrypt` | `(string $ciphertext): ?string` | Déchiffre ; retourne `null` si erreur |
 
 ### `src/database.php`
 

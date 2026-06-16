@@ -31,8 +31,7 @@ if ($user) {
     }
 
     // Redirect to intended URL if set, otherwise home
-    $intendedUrl = $_SESSION['intended_url'] ?? url('home');
-    unset($_SESSION['intended_url']);
+    $intendedUrl = clearIntendedUrl() ?? url('home');
     $pdo = $pdo ?? getDB();
     auditLog($pdo, 'auth', 'login', 'Connexion : ' . $user['prenom'] . ' ' . $user['nom'], (int) $user['id'], 'user', ['username' => $user['username']]);
     setFlash('success', 'Bienvenue, ' . $user['prenom'] . ' ' . $user['nom'] . ' !');

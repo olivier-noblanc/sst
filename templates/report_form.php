@@ -49,13 +49,11 @@ $submitBtnClass = $isEdit
     : 'btn--primary'; // blue for create mode (main action)
 ?>
 <div class="card <?php echo $cardClass; ?>">
-    <nav class="breadcrumb" aria-label="Fil d'Ariane">
-        <a href="<?php echo url('home'); ?>" class="breadcrumb__item">Accueil</a>
-        <span class="breadcrumb__separator">/</span>
-        <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="breadcrumb__item"><?php echo e($registryLabel); ?></a>
-        <span class="breadcrumb__separator">/</span>
-        <span class="breadcrumb__current"><?php echo $isEdit ? 'Modifier' : 'Nouveau signalement'; ?></span>
-    </nav>
+    <?php echo renderBreadcrumb([
+        ['url' => url('home'), 'label' => 'Accueil'],
+        ['url' => url('report_list', ['type' => $type]), 'label' => $registryLabel],
+        ['label' => $isEdit ? 'Modifier' : 'Nouveau signalement'],
+    ]); ?>
     <h2 class="mb-4">
         <?php echo $isEdit ? 'Modifier le signalement' : 'Inscrire un signalement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>

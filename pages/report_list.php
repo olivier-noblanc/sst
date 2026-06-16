@@ -69,11 +69,10 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
     <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
-    <a href="<?php echo url('home'); ?>" class="breadcrumb__item">Accueil</a>
-    <span class="breadcrumb__separator">/</span>
-    <span class="breadcrumb__current"><?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?></span>
-</nav>
+<?php echo renderBreadcrumb([
+    ['url' => url('home'), 'label' => 'Accueil'],
+    ['label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)],
+]); ?>
 
 
 <div class="filter-bar">
@@ -144,9 +143,8 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                 <?php else: ?>
                     <?php foreach ($reports as $report): ?>
                     <?php
-                        $isDeclarant = ((int) $report['declarant_id'] === $userId);
-                        $canEdit = $isDeclarant && in_array($report['etat'], ['nouveau', 'en_cours']);
-                        $canRespond = in_array($userRole, ['superviseur']) && in_array($report['etat'], ['nouveau', 'en_cours']);
+                        $canEdit = canEditReport($report, $userId);
+                        $canRespond = canRespondToReport($report, $userRole);
                     ?>
                     <tr>
                         <td><strong><?php echo e($report['reference']); ?></strong></td>

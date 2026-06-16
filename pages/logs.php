@@ -169,11 +169,10 @@ $auditActionLabels = [
 
 <h1 class="page-title">Journal</h1>
 
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
-    <a href="<?php echo url('home'); ?>" class="breadcrumb__item">Accueil</a>
-    <span class="breadcrumb__separator">/</span>
-    <span class="breadcrumb__current">Journal</span>
-</nav>
+<?php echo renderBreadcrumb([
+    ['url' => url('home'), 'label' => 'Accueil'],
+    ['label' => 'Journal'],
+]); ?>
 
 
 <!-- Main tab bar: Erreurs / Audit -->

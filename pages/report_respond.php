@@ -7,26 +7,13 @@
  */
 requireRole(['superviseur']);
 
-$pdo = getDB();
 $uuid = $_GET['uuid'] ?? '';
-
-if (!isValidUuid($uuid)) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
-
-$report = getReportByUuid($pdo, $uuid);
-
-if (!$report) {
-    setFlash('error', 'Signalement introuvable.');
-    redirect(url('home'));
-}
+$report = fetchReportOrRedirect($uuid);
 
 // Check if report can be responded to
-if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
-    setFlash('error', 'Ce signalement ne peut plus recevoir de réponse (état : ' . e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
-    redirect(url('report_view', ['uuid' => $uuid]));
-}
+requireReportEditable($report, $uuid, 'répondu');
+
+$pdo = getDB();
 
 // Get response history
 $responses = getReportResponses($pdo, $uuid);
@@ -42,15 +29,12 @@ $formData = getFormData();
 
 <h1 class="page-title">Répondre au signalement — <span class="badge <?php echo getRegistryBadgeClass($registryType); ?>"><?php echo e($report['reference']); ?></span></h1>
 
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
-    <a href="<?php echo url('home'); ?>" class="breadcrumb__item">Accueil</a>
-    <span class="breadcrumb__separator">/</span>
-    <a href="<?php echo url('report_list', ['type' => $registryType]); ?>" class="breadcrumb__item"><?php echo e($registryLabel); ?></a>
-    <span class="breadcrumb__separator">/</span>
-    <a href="<?php echo url('report_view', ['uuid' => $uuid]); ?>" class="breadcrumb__item"><?php echo e($report['reference']); ?></a>
-    <span class="breadcrumb__separator">/</span>
-    <span class="breadcrumb__current">Répondre</span>
-</nav>
+<?php echo renderBreadcrumb([
+    ['url' => url('home'), 'label' => 'Accueil'],
+    ['url' => url('report_list', ['type' => $registryType]), 'label' => $registryLabel],
+    ['url' => url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
+    ['label' => 'Répondre'],
+]); ?>
 
 
 <!-- Report Summary (read-only) -->

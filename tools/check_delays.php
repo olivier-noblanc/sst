@@ -137,28 +137,7 @@ foreach ($bySite as $siteId => $siteData) {
     $appName = getConfig('app_nom_organisation', 'DREETS BFC');
     $subject = "Alerte : {$siteData['site_code']} — " . count($siteData['reports']) . " signalement(s) en attente depuis plus de {$alertDelayDays}j";
 
-    $body = "<html><body>";
-    $body .= "<h2>Alerte de délai de traitement</h2>";
-    $body .= "<p>Les signalements suivants sont restés à l'état <strong>Nouveau</strong> pendant plus de <strong>{$alertDelayDays} jour(s)</strong> sur le site <strong>" . htmlspecialchars($siteData['site_code'] . ' — ' . $siteData['site_nom']) . "</strong> :</p>";
-    $body .= "<table style='border-collapse:collapse; font-family:sans-serif; font-size:14px; margin:16px 0; width:100%;'>";
-    $body .= "<tr style='background:#f5f5f5;'><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Réf.</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Registre</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Objet</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Déclarant</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Créé le</th></tr>";
-
-    foreach ($siteData['reports'] as $report) {
-        $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper($report['type']);
-        $body .= "<tr>";
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($report['reference']) . "</td>";
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($registryLabel) . "</td>";
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($report['objet']) . "</td>";
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . "</td>";
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($report['created_at']) . "</td>";
-        $body .= "</tr>";
-    }
-
-    $body .= "</table>";
-    $body .= "<p>Merci de traiter ces signalements dans les meilleurs délais.</p>";
-    $body .= "<hr style='margin:16px 0; border:none; border-top:1px solid #ddd;'>";
-    $body .= "<p style='font-size:12px; color:#888;'>Cet e-mail a été envoyé automatiquement par l'application $appName. Ne pas répondre directement à ce message.</p>";
-    $body .= "</body></html>";
+    $body = buildDelayAlertEmail($siteData, $alertDelayDays);
 
     foreach ($recipients as $email) {
         try {

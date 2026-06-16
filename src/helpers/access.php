@@ -156,3 +156,36 @@ function agentVisibilityIsConfidential(): bool {
 function agentVisibilityIsPublic(): bool {
     return getReportVisibilityMode() === 'public';
 }
+
+// ============================================================================
+// Report Action Helpers
+// ============================================================================
+
+/**
+ * Check if a user can edit a report (must be the declarant AND report must be editable).
+ *
+ * Replaces the duplicated inline logic:
+ *   $canEdit = $isDeclarant && in_array($report['etat'], ['nouveau', 'en_cours']);
+ *
+ * @param array $report  Report data from DB
+ * @param int   $userId  Current user's ID
+ * @return bool
+ */
+function canEditReport(array $report, int $userId): bool {
+    $isDeclarant = ((int) $report['declarant_id'] === $userId);
+    return $isDeclarant && in_array($report['etat'], ['nouveau', 'en_cours']);
+}
+
+/**
+ * Check if a user can respond to a report (must be superviseur AND report must be editable).
+ *
+ * Replaces the duplicated inline logic:
+ *   $canRespond = in_array($userRole, ['superviseur']) && in_array($report['etat'], ['nouveau', 'en_cours']);
+ *
+ * @param array $report  Report data from DB
+ * @param string $role   Current user's role
+ * @return bool
+ */
+function canRespondToReport(array $report, string $role): bool {
+    return in_array($role, ['superviseur']) && in_array($report['etat'], ['nouveau', 'en_cours']);
+}

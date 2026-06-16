@@ -38,6 +38,25 @@ require_once __DIR__ . '/../src/audit.php';
 // Now that helpers.php is loaded, use the centralised function
 removeUnwantedHeaders();
 
+// === Override display_errors from DB config (admin toggle) ===
+// If app_display_errors is set to '1' in Settings, show errors even in prod.
+// This runs BEFORE the error handler is registered, so fatal errors are also visible.
+try {
+    if (function_exists('getConfig')) {
+        $displayErrorsOverride = getConfig('app_display_errors', '');
+        if ($displayErrorsOverride === '1') {
+            ini_set('display_errors', '1');
+            ini_set('display_startup_errors', '1');
+        } elseif ($displayErrorsOverride === '0' && !defined('DEV_MODE') || (defined('DEV_MODE') && !DEV_MODE)) {
+            // Explicitly disabled in prod — keep errors hidden
+            ini_set('display_errors', '0');
+            ini_set('display_startup_errors', '0');
+        }
+    }
+} catch (Exception $e) {
+    // DB not available yet (first install) — keep default from config.php
+}
+
 // Register custom error handler (email critical errors to admin)
 set_error_handler('sstErrorHandler');
 register_shutdown_function('sstShutdownHandler');

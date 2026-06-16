@@ -65,12 +65,17 @@ $submitBtnClass = $isEdit
             <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid'] ?? ''); ?>">
         <?php endif; ?>
 
+        <?php if (!empty($formErrors)): ?>
+        <?php require __DIR__ . '/form_error_summary.php'; ?>
+        <?php endif; ?>
+
         <div class="form-grid">
             <div class="form-group">
                 <label for="date_evenement">Date de l'événement <span class="required">*</span></label>
                 <input type="date" id="date_evenement" name="date_evenement"
                        value="<?php echo e($val('date_evenement', todayISO())); ?>"
                        required max="<?php echo todayISO(); ?>"
+                       autocomplete="off"
                        <?php echo isset($formErrors['date_evenement']) ? 'aria-describedby="err_date_evenement" aria-invalid="true"' : ''; ?>>
                 <?php if (isset($formErrors['date_evenement'])): ?>
                     <span class="form-error" id="err_date_evenement"><?php echo e($formErrors['date_evenement']); ?></span>
@@ -80,7 +85,8 @@ $submitBtnClass = $isEdit
             <div class="form-group">
                 <label for="heure_evenement">Heure de l'événement</label>
                 <input type="time" id="heure_evenement" name="heure_evenement"
-                       value="<?php echo e($val('heure_evenement', nowTime())); ?>">
+                       value="<?php echo e($val('heure_evenement', nowTime())); ?>"
+                       autocomplete="off">
             </div>
 
             <div class="form-group">
@@ -88,6 +94,7 @@ $submitBtnClass = $isEdit
                 <input type="text" id="lieu" name="lieu"
                        value="<?php echo e($val('lieu')); ?>"
                        maxlength="200"
+                       autocomplete="off"
                        placeholder="<?php echo $type === 'dgi' ? 'Ex: Bureau 204, mise en place de signalisation' : 'Ex: Bureau 204, UR25'; ?>"
                        aria-describedby="hint_lieu">
                 <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo $type === 'dgi' ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
@@ -98,6 +105,7 @@ $submitBtnClass = $isEdit
                 <input type="text" id="objet" name="objet"
                        value="<?php echo e($val('objet')); ?>"
                        maxlength="100" required
+                       autocomplete="off"
                        placeholder="Résumé du signalement"
                        <?php echo isset($formErrors['objet']) ? 'aria-describedby="err_objet" aria-invalid="true"' : 'aria-describedby="hint_objet"'; ?>>
                 <span class="form-hint" id="hint_objet">100 caractères max.</span>
@@ -112,7 +120,11 @@ $submitBtnClass = $isEdit
                           placeholder="Décrivez le signalement en détail..."
                           <?php echo isset($formErrors['description']) ? 'aria-describedby="err_description char_count_description" aria-invalid="true"' : 'aria-describedby="hint_description char_count_description"'; ?>><?php echo e($val('description')); ?></textarea>
                 <span class="form-hint" id="hint_description">20 000 caractères max.</span>
-                <span class="char-counter" id="char_count_description" aria-live="polite"><?php echo mb_strlen($val('description')); ?>/20 000</span>
+                <?php
+                $descLen = mb_strlen($val('description'));
+                $counterClass = $descLen > 19000 ? 'char-counter char-counter--warning' : 'char-counter';
+                ?>
+                <span class="<?php echo $counterClass; ?>" id="char_count_description" aria-live="polite"><?php echo number_format($descLen, 0, '', ' '); ?>/20 000</span>
                 <?php if (isset($formErrors['description'])): ?>
                     <span class="form-error" id="err_description"><?php echo e($formErrors['description']); ?></span>
                 <?php endif; ?>
@@ -205,12 +217,14 @@ $submitBtnClass = $isEdit
                         <label for="pour_compte_nom">Nom de l'agent</label>
                         <input type="text" id="pour_compte_nom" name="pour_compte_nom"
                                value="<?php echo e($val('pour_compte_nom')); ?>"
+                               autocomplete="family-name"
                                <?php echo isset($formErrors['pour_compte_nom']) ? 'aria-describedby="err_pour_compte_nom" aria-invalid="true"' : ''; ?>>
                     </div>
                     <div>
                         <label for="pour_compte_prenom">Prénom de l'agent</label>
                         <input type="text" id="pour_compte_prenom" name="pour_compte_prenom"
-                               value="<?php echo e($val('pour_compte_prenom')); ?>">
+                               value="<?php echo e($val('pour_compte_prenom')); ?>"
+                               autocomplete="given-name">
                     </div>
                 </div>
                 <?php if (isset($formErrors['pour_compte_nom'])): ?>
@@ -254,32 +268,3 @@ $submitBtnClass = $isEdit
         </div>
     </form>
 </div>
-
-<script>
-// Character counter for description textarea
-(function() {
-    var textarea = document.getElementById('description');
-    var counter = document.getElementById('char_count_description');
-    if (!textarea || !counter) return;
-    function updateCounter() {
-        var len = textarea.value.length;
-        counter.textContent = len.toLocaleString('fr-FR') + '/20\u00A0000';
-        if (len > 19000) {
-            counter.classList.add('char-counter--warning');
-        } else {
-            counter.classList.remove('char-counter--warning');
-        }
-    }
-    textarea.addEventListener('input', updateCounter);
-    updateCounter();
-})();
-
-// aria-expanded toggle for pour_compte checkbox
-(function() {
-    var cb = document.getElementById('pour_compte');
-    if (!cb) return;
-    cb.addEventListener('change', function() {
-        this.setAttribute('aria-expanded', this.checked ? 'true' : 'false');
-    });
-})();
-</script>

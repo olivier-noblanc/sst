@@ -108,7 +108,12 @@ function sstShutdownHandler(): void {
     );
 
     // In production, render a clean error page for the user
-    if (!defined('DEV_MODE') || !DEV_MODE) {
+    // BUT: if app_display_errors is '1' (admin toggle), show the real error instead
+    $adminDisplayErrors = false;
+    if (function_exists('getConfig')) {
+        try { $adminDisplayErrors = (getConfig('app_display_errors', '') === '1'); } catch (Exception $e) {}
+    }
+    if ((!defined('DEV_MODE') || !DEV_MODE) && !$adminDisplayErrors) {
         sstRenderProductionErrorPage($levelName);
     }
 }

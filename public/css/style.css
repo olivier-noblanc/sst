@@ -928,10 +928,6 @@ img { max-width: 100%; height: auto; display: block; }
     cursor: not-allowed;
 }
 
-.form-group input:invalid:not(:placeholder-shown) {
-    border-color: var(--dgi-color);
-}
-
 /* Form control — alternative class for consistent input styling */
 .form-control {
     width: 100%;
@@ -974,6 +970,64 @@ img { max-width: 100%; height: auto; display: block; }
     font-size: 12px;
     margin-top: 4px;
     font-weight: 500;
+}
+
+/* Form error summary — displayed at top of form when validation fails */
+.form-error-summary {
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
+    border-left: 4px solid var(--dgi-color);
+    border-radius: var(--border-radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+.form-error-summary:focus {
+    outline: 3px solid var(--focus-ring-color);
+    outline-offset: 2px;
+}
+.form-error-summary__title {
+    font-weight: 600;
+    color: var(--dgi-color);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+.form-error-summary__list {
+    margin: 0;
+    padding-left: 20px;
+}
+.form-error-summary__list li {
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+.form-error-summary__link {
+    color: var(--dgi-color);
+    text-decoration: underline;
+    font-weight: 500;
+}
+.form-error-summary__link:hover {
+    color: var(--color-primary-dark);
+}
+
+/* Required field visual indicator — border accent on :required fields */
+.form-group input:required,
+.form-group select:required,
+.form-group textarea:required {
+    border-left: 3px solid var(--color-primary);
+}
+
+/* Invalid field styling — stronger visual cue */
+.form-group input:invalid:not(:placeholder-shown):not(:focus),
+.form-group select:invalid:not(:focus),
+.form-group textarea:invalid:not(:placeholder-shown):not(:focus) {
+    border-color: var(--dgi-color);
+    border-left-color: var(--dgi-color);
+    background: var(--color-danger-bg);
+}
+
+/* Valid field subtle confirmation */
+.form-group input:valid:not(:placeholder-shown):not([readonly]):not(:focus),
+.form-group textarea:valid:not(:placeholder-shown):not(:focus) {
+    border-left-color: var(--state-traite);
 }
 
 .required {
@@ -1023,6 +1077,85 @@ img { max-width: 100%; height: auto; display: block; }
 .label--checkbox input[type="checkbox"] {
     width: auto;
     margin: 0;
+}
+
+/* ============================================================
+   Toggle Switch — CSS-only accessible toggle (no JS)
+   Uses checkbox + visual slider, similar to iOS settings.
+   ============================================================ */
+.toggle-switch-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.toggle-switch__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    background: var(--grey-300);
+    border-radius: 12px;
+    transition: background var(--transition-base);
+    flex-shrink: 0;
+}
+
+.toggle-switch::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform var(--transition-base);
+}
+
+/* Checked state — blue background, slider moves right */
+.toggle-switch__input:checked + .toggle-switch {
+    background: var(--color-primary);
+}
+
+.toggle-switch__input:checked + .toggle-switch::before {
+    transform: translateX(20px);
+}
+
+/* Focus state — visible ring on keyboard nav */
+.toggle-switch__input:focus-visible + .toggle-switch {
+    outline: 3px solid var(--focus-ring-color);
+    outline-offset: 2px;
+}
+
+/* Hover state */
+.toggle-switch-label:hover .toggle-switch {
+    background: var(--grey-400);
+}
+
+.toggle-switch-label:hover .toggle-switch__input:checked + .toggle-switch {
+    background: var(--color-primary-dark);
+}
+
+/* Disabled state */
+.toggle-switch__input:disabled + .toggle-switch {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toggle-switch__input:disabled ~ * {
+    opacity: 0.5;
 }
 
 /* Small label variant */
@@ -1813,17 +1946,6 @@ tr:hover td {
     font-weight: 600;
 }
 
-.tab-bar {
-    display: flex;
-    gap: 0;
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--grey-200);
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-}
-
 /* ============================================================
    26. Changelog
    ============================================================ */
@@ -2548,6 +2670,31 @@ tr:hover td {
 
     .filter-bar {
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-bar .form-group {
+        width: 100%;
+    }
+
+    .filter-bar .btn {
+        width: 100%;
+    }
+
+    /* Floating "new report" button stacks on mobile */
+    .btn-float-right {
+        float: none;
+        margin-top: 8px;
+        display: block;
+        width: 100%;
+    }
+
+    /* Page title stacks content on mobile */
+    .page-title {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
     }
 
     .form-grid {
@@ -2811,6 +2958,9 @@ tr:hover td {
     border-bottom: 2px solid var(--grey-200);
     padding-bottom: 0;
     margin-bottom: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
 .tab {

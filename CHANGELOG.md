@@ -3,7 +3,25 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
-## [3.17.0] — 2026-06-16
+## [3.18.0] — 2026-06-16
+
+### Admin — Toggle d'affichage des erreurs PHP en production
+
+- **1** 🔴 **`index.php` — Override `display_errors` depuis la config DB** — Après le chargement des helpers, la valeur `app_display_errors` est lue dans `config_app`. Si `'1'`, `ini_set('display_errors', '1')` et `ini_set('display_startup_errors', '1')` sont appliqués, même en production. Cela permet de voir les erreurs PHP brutes directement dans les pages pour le diagnostic, sans modifier le code source.
+- **2** 🔴 **`error_handler.php` — `sstShutdownHandler()` respecte le toggle** — Le shutdown handler ne remplace plus l'erreur fatale par la page d'erreur « propre » si `app_display_errors` est `'1'`. L'erreur PHP native s'affiche donc en entier (stack trace, fichier, ligne).
+- **3** 🟡 **`tab_app.php` — Section « Affichage des erreurs PHP »** — Nouveau bloc dans l'onglet Application des Paramètres, avec un toggle switch CSS-only (style iOS). Avertissement clair sur les risques de sécurité (informations sensibles exposées). Les erreurs restent toujours journalisées et envoyées par e-mail, que le toggle soit activé ou non.
+- **4** 🟡 **`settings_handler.php` — Sauvegarde de `app_display_errors`** — La valeur du toggle est persistée dans `config_app` via `updateConfig()`. La valeur par défaut est vide (erreur masquées en prod, affichées en dev comme avant).
+
+### UX — Zéro JavaScript, améliorations accessibilité et mobile
+
+- **5** 🔴 **`report_form.php` — Suppression du `<script>` inline** — Le compteur de caractères dynamique et le toggle `aria-expanded` sur la checkbox « pour le compte » étaient les seuls JavaScript de toute l'application. Le compteur est remplacé par un rendu PHP pur : longueur initiale calculée côté serveur avec `mb_strlen()`, formatage français via `number_format()`, et classe `char-counter--warning` si > 19 000. Le bloc `<script>` de 28 lignes est entièrement supprimé. L'application est maintenant 100 % sans JavaScript.
+- **6** 🔴 **`form_error_summary.php` — Résumé d'erreurs en haut de formulaire** — Nouveau template inclus dans `report_form.php` quand `$formErrors` n'est pas vide. Affiche le nombre d'erreurs et des liens cliquables vers chaque champ en erreur (via `#id_du_champ`). Utilise `role="alert"`, `tabindex="-1"` et `autofocus` pour que les lecteurs d'écran annoncent immédiatement les erreurs. Accessible sans JavaScript.
+- **7** 🟡 **CSS — Toggle switch accessible** — Nouveau composant `.toggle-switch` (CSS-only, pas de JS). Checkbox invisible + slider visuel avec transitions, états `:checked`, `:focus-visible`, `:hover` et `:disabled`. Identique au motif iOS/Android, mais entièrement en CSS.
+- **8** 🟡 **CSS — Champs requis `:required` — indicateur visuel** — Les champs `required` ont maintenant une bordure gauche bleue (`3px solid var(--color-primary)`). Les champs invalides (après saisie) passent en rouge avec fond rouge clair. Les champs valides ont une bordure verte subtile. Retrait de l'ancienne règle `.form-group input:invalid` moins spécifique.
+- **9** 🟡 **`report_form.php` — Attributs `autocomplete`** — Ajout de `autocomplete="off"` sur les champs date, heure, lieu, objet (le navigateur ne doit pas préremplir ces champs spécifiques). Ajout de `autocomplete="family-name"` et `autocomplete="given-name"` sur les champs nom/prénom RAMI « pour le compte de ».
+- **10** 🟡 **`pagination.php` — `aria-label` sur les numéros de page** — Chaque lien de page numérotée a maintenant `aria-label="Page N"` pour les lecteurs d'écran, en plus des liens « Précédent/Suivant » qui étaient déjà labellés.
+- **11** 🟢 **CSS — `.tab-bar` dupliqué fusionné** — Deux définitions de `.tab-bar` existaient (sections 25 et 31), la deuxième écrasant la première. La première (sans `gap`, sans `overflow-x`) est supprimée, la deuxième est enrichie avec `overflow-x: auto`, `-webkit-overflow-scrolling: touch` et `scrollbar-width: thin`.
+- **12** 🟢 **CSS mobile — Barre de filtre plein écran** — Sur mobile, `.filter-bar` passe en `flex-direction: column` avec `align-items: stretch`. Les champs et le bouton « Filtrer » prennent 100 % de largeur. Le bouton « + Nouveau signalement » (`.btn-float-right`) passe en bloc plein écran. Le titre de page empile verticalement sur mobile.
 
 ### UX — Corrections audit UI/UX (5 critiques, 7 moyens, 3 mineurs)
 

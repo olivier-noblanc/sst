@@ -60,7 +60,7 @@ if ($endPage < $totalPages) {
         <?php elseif ($page == $currentPage): ?>
             <span class="pagination__current" aria-current="page"><?php echo $page; ?></span>
         <?php else: ?>
-            <a href="<?php echo e($baseUrl); ?>&p=<?php echo $page; ?>" class="pagination__link"><?php echo $page; ?></a>
+            <a href="<?php echo e($baseUrl); ?>&p=<?php echo $page; ?>" class="pagination__link" aria-label="Page <?php echo $page; ?>"><?php echo $page; ?></a>
         <?php endif; ?>
     <?php endforeach; ?>
 

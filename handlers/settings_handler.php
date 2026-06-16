@@ -126,6 +126,10 @@ try {
         }
         updateConfig($pdo, 'app_admin_email', $appAdminEmail);
 
+        // Display PHP errors toggle (admin debug option)
+        $displayErrors = !empty($_POST['app_display_errors']) ? '1' : '0';
+        updateConfig($pdo, 'app_display_errors', $displayErrors);
+
         // Report visibility setting (radio: confidential / agent_choice / public)
         $reportVisibility = $_POST['app_report_visibility'] ?? 'agent_choice';
         if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'])) {

@@ -89,6 +89,26 @@
         </div>
 
         <div class="separator">
+            <h4 class="card__subtitle">&#x1F41B; Affichage des erreurs PHP</h4>
+            <p class="text-muted text-small mb-3">En production, les erreurs PHP sont masquées par défaut pour des raisons de sécurité. Activez cette option pour afficher toutes les erreurs à l'écran, utile pour le diagnostic.</p>
+            <div class="form-group">
+                <label class="toggle-switch-label">
+                    <input type="checkbox" name="app_display_errors" id="app_display_errors" value="1"
+                           class="toggle-switch__input"
+                           <?php echo getConfig('app_display_errors', '') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                    <span>Afficher les erreurs PHP à l'écran (même en production)</span>
+                </label>
+                <small class="text-muted block mt-1" id="hint_display_errors">
+                    <strong>&#x26A0;&#xFE0F; Attention :</strong> cette option affiche les erreurs PHP brutes (warnings, notices, fatal errors) directement dans les pages.
+                    Utile pour le débogage, mais désactivez-la en utilisation normale — les erreurs peuvent contenir des informations sensibles
+                    (chemins de fichiers, requêtes SQL, variables internes). Les erreurs restent toujours enregistrées dans le
+                    <a href="<?php echo url('logs'); ?>">journal</a> et envoyées par e-mail à l'administrateur technique, que cette option soit activée ou non.
+                </small>
+            </div>
+        </div>
+
+        <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
             <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du CSA/CHSCT voient toujours tous les signalements.</p>
 

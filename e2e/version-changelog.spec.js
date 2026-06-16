@@ -90,7 +90,7 @@ test.describe('Changelog Page', () => {
     
     // The first h2 should contain the latest version (3.13.0 or higher)
     const firstHeading = await page.locator('h2').first().textContent();
-    expect(firstHeading).toMatch(/3\.1[0-9]\.\d+/);
+    expect(firstHeading).toMatch(/3\.\d+\.\d+/);
     
     // Should have sub-sections (Added, Changed, Fixed, etc.)
     const h3Headings = page.locator('h3');

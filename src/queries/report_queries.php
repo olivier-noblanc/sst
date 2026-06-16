@@ -650,25 +650,4 @@ function getAdjacentReportUuids(PDO $pdo, array $report): array {
     return $result;
 }
 
-/**
- * Get recent reports by a specific user (declarant).
- * Used for the agent dashboard on the home page.
- * 
- * @param PDO $pdo     Database connection
- * @param int $userId  User ID (declarant)
- * @param int $limit   Maximum number of reports to return
- * @return array
- */
-function getRecentReportsByUser(PDO $pdo, int $userId, int $limit = 5): array {
-    $stmt = $pdo->prepare("
-        SELECT r.uuid, r.type, r.objet, r.etat, r.created_at, r.is_confidential, r.date_evenement
-        FROM reports r
-        WHERE r.declarant_id = :user_id
-        ORDER BY r.created_at DESC
-        LIMIT :limit
-    ");
-    $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+

@@ -3,6 +3,20 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.21.0] — 2026-06-17
+
+### Produit — Suppressions et README
+
+- **1** 🔴 **Suppression du dashboard agent** — La section « Mes signalements récents » sur la page d'accueil était une feature de type dashboard inappropriée pour une application de signalement SST. Suppression de la section dans `home.php`, de la fonction `getRecentReportsByUser()` dans `report_queries.php`, et des références dans SPEC.md et CHANGELOG.md (item 16 de la v3.19.0).
+- **2** 🔴 **Suppression du dark mode** — Le bloc `@media (prefers-color-scheme: dark)` ajouté dans `style.css` a été supprimé sur demande. L'application reste en thème clair uniquement.
+- **3** 🟢 **Screenshot miniature dans le README** — Ajout d'un aperçu visuel (400px) de la page d'accueil dans le README.md, avec un lien vers `public/screenshots/accueil-mini.png`.
+
+### Tests — Adaptation E2E
+
+- **4** 🟡 **`forms.spec.js` — Validation serveur via POST direct** — Les tests de validation de formulaire contournaient le HTML5 via `novalidate` (retiré). Remplacement par des requêtes POST directes avec `page.request.post()` et `maxRedirects: 0` pour tester la validation côté serveur sans dépendre du navigateur.
+- **5** 🟡 **`onboarding.spec.js` — Texte période de grâce** — Le test vérifiait `/définitif/` dans le danger-panel, remplacé par `/7 jours/` suite à l'ajout de la période de grâce de 7 jours.
+- **6** 🟡 **`version-changelog.spec.js` — Regex version** — Remplacement de `/3\.1[0-9]\.\d+/` par `/3\.\d+\.\d+/` pour supporter les versions 3.20+.
+
 ## [3.20.0] — 2026-06-17
 
 ### Juridique — Conformité de la réouverture (avis Compliance + Juridique)
@@ -65,10 +79,9 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **13** 🔴 **`export_handler.php` — Élimination du N+1 sur les réponses** — L'export appelait `getReportResponses()` dans une boucle pour chaque signalement (N+1 requêtes). Remplacement par un bulk-fetch unique avec `IN (?)` + GROUP BY `report_uuid` en PHP. Réduction de N+1 à 2 requêtes pour l'ensemble de l'export.
 - **14** 🟡 **`stats_queries.php` — Requêtes statistiques sargables** — 4 occurrences de `strftime('%Y', r.created_at) = :year` empêchaient l'utilisation de l'index `idx_reports_created_at`, forçant un full table scan. Remplacement par des range queries `r.created_at >= :year_start AND r.created_at < :year_next` qui exploitent l'index. Affecte `getSynthesisData()`, `getStatisticsIndicateurs()`, `getStatsBySite()` et `getRamiStructuredStats()`. Conservation de `strftime` dans `getAvailableYears()` (SELECT d'extraction, pas de filtre).
 
-### Produit — Réouverture de signalement, dashboard agent, période de grâce site
+### Produit — Réouverture de signalement, période de grâce site
 
 - **15** 🔴 **Nouveau : Réouverture de signalement** — Un signalement à l'état `traite` ou `abandonne` ne pouvait plus être rouvert. Ajout du statut `reouvert` dans `ETAT_LABELS`, du handler `report_reopen_handler.php` (validation POST/CSRF, contrôle de permission superviseur/CHSCT/déclarant, motif obligatoire min 10 car., mise à jour vers `en_cours`, audit log, notification email), de la page `report_reopen.php` (formulaire avec motif), du badge `.badge--reouvert` (violet), et du bouton "Réouvrir" dans `report_card.php`. Routage ajouté dans `router.php`.
-- **16** 🔴 **Nouveau : Dashboard agent sur la page d'accueil** — Les agents arrivaient sur une page d'accueil sans visibilité sur leurs propres signalements. Ajout d'une section "Mes signalements récents" (5 derniers) avec tableau (Date, Type, Objet, État) et lien "Voir tous mes signalements". Nouvelle fonction `getRecentReportsByUser()` dans `report_queries.php`. Section visible uniquement pour les agents (les superviseurs/CHSCT ont déjà les vues de synthèse).
 - **17** 🟡 **Période de grâce de 7 jours pour le changement de site** — Le choix de site était irréversible ("Ce choix est définitif"). Ajout d'une colonne `site_chosen_at` dans la table `users` (migration automatique avec backfill). Les agents peuvent modifier leur site dans les 7 jours suivant leur premier choix. Après 7 jours, le message invite à contacter le superviseur. La page `choose_site.php` affiche le nombre de jours restants. Audit trail du changement.
 
 ### UX — Synthèse responsive, accessibilité

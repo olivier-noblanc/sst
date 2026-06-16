@@ -79,13 +79,31 @@ test.describe('Report Form Validation', () => {
   });
 
   test('should show field-specific error messages', async ({ page }) => {
+    // Submit form directly via POST to test server-side validation
+    // (HTML5 validation now blocks empty submissions, which is correct behavior)
     await page.goto('/index.php?page=report_create&type=rsst');
+    const csrfToken = await page.locator('.card input[name="csrf_token"]').inputValue();
 
-    await page.locator('#objet').fill('');
-    await page.locator('#description').fill('');
-    await page.locator('.card button[type="submit"]').click();
+    const response = await page.request.post('/index.php?page=report_create&type=rsst', {
+      form: {
+        csrf_token: csrfToken,
+        type: 'rsst',
+        date_evenement: '',
+        heure_evenement: '',
+        lieu: '',
+        objet: '',
+        description: '',
+        site_id: '',
+      },
+      maxRedirects: 0,
+    });
 
-    await expect(page).toHaveURL(/page=report_create/, { timeout: 10000 });
+    // Handler redirects back to form page with errors
+    const location = response.headers()['location'] || '';
+    expect(location).toContain('page=report_create');
+
+    // Navigate to the form page to see errors
+    await page.goto(location || '/index.php?page=report_create&type=rsst');
 
     const errors = page.locator('.form-error');
     const errorCount = await errors.count();
@@ -185,13 +203,26 @@ test.describe('Form Accessibility', () => {
   });
 
   test('should have aria attributes on invalid fields after error', async ({ page }) => {
+    // Submit form directly via POST to test server-side validation
     await page.goto('/index.php?page=report_create&type=rsst');
+    const csrfToken = await page.locator('.card input[name="csrf_token"]').inputValue();
 
-    await page.locator('#objet').fill('');
-    await page.locator('#description').fill('');
-    await page.locator('.card button[type="submit"]').click();
+    const response = await page.request.post('/index.php?page=report_create&type=rsst', {
+      form: {
+        csrf_token: csrfToken,
+        type: 'rsst',
+        date_evenement: '',
+        heure_evenement: '',
+        lieu: '',
+        objet: '',
+        description: '',
+        site_id: '',
+      },
+      maxRedirects: 0,
+    });
 
-    await expect(page).toHaveURL(/page=report_create/, { timeout: 10000 });
+    const location = response.headers()['location'] || '';
+    await page.goto(location || '/index.php?page=report_create&type=rsst');
 
     const invalidFields = page.locator('[aria-invalid="true"]');
     const count = await invalidFields.count();

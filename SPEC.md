@@ -2,7 +2,7 @@
 
 > Plateforme des Registres en Santé et Sécurité au Travail
 > DREETS Bourgogne-Franche-Comté
-> Version 3.15.0 — Specification technique
+> Version 3.20.0 — Specification technique
 
 ---
 
@@ -51,7 +51,7 @@ Application web pour la gestion de trois registres de santé et sécurité au tr
 ### États d'un signalement
 
 ```
-Nouveau → En cours → Traité
+Nouveau → En cours → Traité → Réouvert → En cours → …
   └──→ Abandonné (soft delete, possible depuis n'importe quel état non traité)
 ```
 
@@ -60,6 +60,7 @@ Nouveau → En cours → Traité
 | Nouveau | `nouveau` | `badge--nouveau` |
 | En cours | `en_cours` | `badge--en-cours` |
 | Traité | `traite` | `badge--traite` |
+| Réouvert | `reouvert` | `badge--reouvert` |
 | Abandonné | `abandonne` | `badge--abandonne` |
 
 ### Sites (Unités Régionales — UR)
@@ -275,13 +276,14 @@ CREATE TABLE IF NOT EXISTS users (
     role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent' | 'superviseur' | 'chsct'
     site_id         INTEGER,                         -- FK vers sites (NULL jusqu'au choix du site)
     is_active       INTEGER NOT NULL DEFAULT 1,      -- Soft delete : 0 = désactivé
+    site_chosen_at  TEXT,                            -- Date de choix du site (période de grâce 7 jours)
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (site_id) REFERENCES sites(id)
 );
 ```
 
-> **Note** : `site_id` est nullable. Un nouvel utilisateur auto-provisionné n'a pas de site tant qu'il n'a pas choisi le sien sur la page `choose_site`.
+> **Note** : `site_id` est nullable. Un nouvel utilisateur auto-provisionné n'a pas de site tant qu'il n'a pas choisi le sien sur la page `choose_site`. La colonne `site_chosen_at` enregistre la date du choix, utilisée pour la période de grâce de 7 jours pendant laquelle le site peut encore être modifié par l'agent.
 
 ### Table `reports`
 
@@ -308,7 +310,7 @@ CREATE TABLE IF NOT EXISTS reports (
     -- Rattachement
     site_id         INTEGER NOT NULL,                -- FK vers sites (UR où l'événement s'est produit)
     -- Gestion d'état
-    etat            TEXT NOT NULL DEFAULT 'nouveau', -- 'nouveau' | 'en_cours' | 'traite' | 'abandonne'
+    etat            TEXT NOT NULL DEFAULT 'nouveau', -- 'nouveau' | 'en_cours' | 'traite' | 'abandonne' | 'reouvert'
     is_confidential INTEGER NOT NULL DEFAULT 1,      -- 1 = confidentiel, 0 = public (mode confidential)
     -- Répondant (superviseur qui a traité le signalement)
     repondant_id    INTEGER,                         -- FK vers users (nullable)
@@ -344,6 +346,26 @@ CREATE TABLE IF NOT EXISTS report_responses (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 ```
+
+### Table `report_state_history`
+
+Historique des changements d'état d'un signalement. Chaque transition est enregistrée avec l'utilisateur ayant effectué le changement et un commentaire optionnel.
+
+```sql
+CREATE TABLE IF NOT EXISTS report_state_history (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_uuid     TEXT NOT NULL,                    -- FK vers reports(uuid)
+    ancien_etat     TEXT NOT NULL,                    -- État précédent
+    nouvel_etat     TEXT NOT NULL,                    -- Nouvel état
+    user_id         INTEGER NOT NULL,                 -- FK vers users (utilisateur ayant effectué le changement)
+    commentaire     TEXT,                             -- Commentaire optionnel (ex: motif de réouverture)
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+> **Note** : Cette table complète `report_responses` en enregistrant toutes les transitions d'état, y compris la réouverture (`traite` → `reouvert`). Elle permet un traçage complet du cycle de vie du signalement.
 
 ### Table `notification_settings`
 
@@ -477,6 +499,8 @@ Toutes les requêtes passent par `public/index.php`. Le pattern d'URL est :
 | `report_abandon` | `handlers/report_abandon_handler.php` | POST+`&uuid={uuid}` | Oui | Superviseur uniquement |
 | `report_respond` | `pages/report_respond.php` | GET+`&uuid={uuid}` | Oui | Superviseur uniquement |
 | `report_respond` | `handlers/report_respond_handler.php` | POST+`&uuid={uuid}` | Oui | Superviseur uniquement |
+| `report_reopen` | `pages/report_reopen.php` | GET+`&uuid={uuid}` | Oui | Superviseur uniquement |
+| `report_reopen` | `handlers/report_reopen_handler.php` | POST+`&uuid={uuid}` | Oui | Superviseur uniquement |
 | `synthesis` | `pages/synthesis.php` | GET | Oui | superviseur, chsct |
 | `export` | `pages/export.php` | GET | Oui | superviseur, chsct |
 | `export` | `handlers/export_handler.php` | POST | Oui | superviseur, chsct |
@@ -898,7 +922,52 @@ VALUES (:uuid, :user_id, :reponse, :nouvel_etat);
 
 ---
 
-### 5.12 Synthèse (`pages/synthesis.php`)
+### 5.12 Réouverture d'un signalement (`pages/report_reopen.php`)
+
+**URL** : `index.php?page=report_reopen&uuid={report_uuid}`
+**Accès** : Superviseur uniquement, état `traite` ou `abandonne`
+**Méthode** : GET (confirmation), POST (traitement)
+
+#### Affichage
+- Titre : « Réouvrir le signalement — {reference} »
+- Résumé du signalement (lecture seule) : référence, registre, date, déclarant, site, objet, état actuel
+- Formulaire :
+
+| Champ | Type | Requis | Notes |
+|-------|------|--------|-------|
+| `motif` | `<textarea rows="4">` | Oui | Motif de la réouverture, max 2 000 caractères |
+
+Champs cachés : `csrf_token`, `report_uuid`
+
+#### Traitement POST (`handlers/report_reopen_handler.php`)
+
+**Validation** :
+1. Jeton CSRF
+2. Rôle superviseur
+3. État actuel parmi `traite`, `abandonne`
+4. `motif` non vide, max 2 000 caractères
+
+**Traitement** :
+
+```sql
+-- Mettre à jour le signalement
+UPDATE reports
+SET etat = 'reouvert',
+    updated_at = datetime('now')
+WHERE uuid = :uuid AND etat IN ('traite', 'abandonne');
+
+-- Insérer dans l'historique des changements d'état
+INSERT INTO report_state_history (report_uuid, ancien_etat, nouvel_etat, user_id, commentaire)
+VALUES (:uuid, :ancien_etat, 'reouvert', :user_id, :motif);
+```
+
+- Envoi d'une notification e-mail au déclarant via `notifyReportReopened()`
+- Flash : « Signalement {reference} réouvert »
+- Redirection vers `report_view&uuid={uuid}`
+
+---
+
+### 5.13 Synthèse (`pages/synthesis.php`)
 
 **URL** : `index.php?page=synthesis`
 **Accès** : superviseur, chsct
@@ -916,7 +985,7 @@ Chaque cellule contient le nombre de signalements pour la combinaison site/regis
 
 ---
 
-### 5.13 Export (`pages/export.php`)
+### 5.14 Export (`pages/export.php`)
 
 **URL** : `index.php?page=export`
 **Accès** : superviseur, chsct
@@ -942,7 +1011,7 @@ Bouton : « Exporter en CSV »
 
 ---
 
-### 5.14 Statistiques (`pages/statistics.php`)
+### 5.15 Statistiques (`pages/statistics.php`)
 
 **URL** : `index.php?page=statistics`
 **Accès** : superviseur, chsct
@@ -956,7 +1025,7 @@ Bouton : « Exporter en CSV »
 
 ---
 
-### 5.15 Paramètres (`pages/settings.php`)
+### 5.16 Paramètres (`pages/settings.php`)
 
 **URL** : `index.php?page=settings[&tab={tab}]`
 **Accès** : superviseur uniquement
@@ -1012,7 +1081,7 @@ Un avertissement réglementaire s'affiche si la visibilité est restreinte : les
 
 ---
 
-### 5.16 Gestion des utilisateurs (`pages/users.php`)
+### 5.17 Gestion des utilisateurs (`pages/users.php`)
 
 **URL** : `index.php?page=users[&tab={tab}]`
 **Accès** : superviseur uniquement
@@ -1157,6 +1226,7 @@ Compatibilité ascendante :
 | Modifier un signalement | ✅ (déclarant, état nouv./en cours) | ✅ (déclarant, état nouv./en cours) | ❌ |
 | Répondre à un signalement | ❌ | ✅ (état nouv./en cours) | ❌ |
 | Abandonner un signalement | ❌ | ✅ (état nouv./en cours) | ❌ |
+| Réouvrir un signalement | ❌ | ✅ (état traite/abandonne) | ❌ |
 | Imprimer/Télécharger PDF un signalement | ✅ | ✅ | ✅ |
 | Synthèse | ❌ | ✅ | ✅ |
 | Export CSV | ❌ | ✅ | ✅ |
@@ -1209,6 +1279,25 @@ Les utilisateurs sont désactivés (`is_active = 0`) et non supprimés physiquem
 - Les signalements existants d'un site désactivé restent accessibles
 - Un site ne peut être supprimé définitivement que s'il n'a ni utilisateurs ni signalements rattachés
 
+### Réouverture d'un signalement
+
+Un superviseur peut réouvrir un signalement en état `traite` ou `abandonne`. La réouverture passe le signalement à l'état `reouvert`, ce qui permet de lui apporter un nouveau traitement.
+
+Règles :
+- Seul un **superviseur** peut réouvrir un signalement
+- La réouverture n'est possible que depuis les états `traite` ou `abandonne`
+- Un **motif** est obligatoire (max 2 000 caractères), enregistré dans `report_state_history`
+- Le déclarant reçoit une notification e-mail via `notifyReportReopened()`
+- Depuis l'état `reouvert`, le superviseur peut à nouveau répondre au signalement (transition vers `en_cours` ou `traite`)
+
+### Période de grâce (7 jours)
+
+Après le choix du site par un agent lors de sa première connexion, une période de grâce de **7 jours** est accordée pendant laquelle l'agent peut modifier son site lui-même. Au-delà de ce délai, seul un superviseur peut changer le site d'affectation.
+
+- La date du choix est enregistrée dans la colonne `site_chosen_at` de la table `users`
+- La vérification s'effectue en comparant `site_chosen_at` à la date actuelle : si la différence est inférieure ou égale à 7 jours, l'agent peut modifier son site depuis son profil
+- Au-delà de 7 jours, le champ de site devient en lecture seule pour l'agent
+
 ---
 
 ## 9. Architecture CSS
@@ -1234,6 +1323,7 @@ Les couleurs des registres sont définies via des variables CSS :
 | En cours | `badge--en-cours` |
 | Traité | `badge--traite` |
 | Abandonné | `badge--abandonne` |
+| Réouvert | `badge--reouvert` |
 
 ### Cartes de registre
 
@@ -1281,6 +1371,9 @@ Utilise un UPSERT atomique sur `report_sequence` pour obtenir le numéro séquen
 - `notifyPourCompte(PDO $pdo, string $reportUuid): void` — Notifie l'agent pour lequel un signalement RAMI a été déposé
 - `notifyDelayAlert(PDO $pdo, array $siteData, int $alertDelayDays): void` — Envoie l'alerte de délai de réponse par site
 - `buildDelayAlertEmail(array $siteData, int $alertDelayDays): string` — Construit le HTML du mail d'alerte délai (table inline-styled)
+- `notifyReportReopened(PDO $pdo, string $reportUuid): void` — Notifie le déclarant qu'un signalement a été réouvert
+- `notifyReportAbandoned(PDO $pdo, string $reportUuid): void` — Notifie le déclarant qu'un signalement a été abandonné
+- `buildEmailBody(string $content, string $title): string` — Construit le HTML du corps d'e-mail avec en-tête et pied de page standardisés
 - `getNotificationRecipients(PDO $pdo, int $siteId): array` — Rassemble les e-mails par site + globaux (dédoublonnés)
 - `getBaseUrl(): string` — Construit l'URL de base pour les liens dans les e-mails
 
@@ -1307,7 +1400,10 @@ Pas de fonctions. Définit les constantes et tableaux :
 - `REGISTRY_LABELS` : `[rsst => ..., rami => ..., dgi => ...]`
 - `REGISTRY_SHORT_LABELS` : `[rsst => 'RSST', rami => 'RAMI', dgi => 'DGI']`
 - `ROLE_LABELS` : `[agent => 'Agent', superviseur => 'Superviseur', chsct => 'Membre CSA/CHSCT']`
-- `ETAT_LABELS` : `[nouveau => 'Nouveau', en_cours => 'En cours', traite => 'Traité', abandonne => 'Abandonné']`
+- `ROLE_AGENT` : `'agent'` — Constante de rôle agent
+- `ROLE_SUPERVISEUR` : `'superviseur'` — Constante de rôle superviseur
+- `ROLE_CHSCT` : `'chsct'` — Constante de rôle CSA/CHSCT
+- `ETAT_LABELS` : `[nouveau => 'Nouveau', en_cours => 'En cours', traite => 'Traité', reouvert => 'Réouvert', abandonne => 'Abandonné']`
 
 ### `src/auth.php`
 
@@ -1326,8 +1422,8 @@ Pas de fonctions. Définit les constantes et tableaux :
 | Fonction | Signature | Description |
 |----------|-----------|-------------|
 | `startSession` | `(): void` | Démarre la session avec paramètres sécurisés |
-| `generateCsrfToken` | `(): string` | Génère et stocke un jeton CSRF en session |
-| `validateCsrfToken` | `(string $token): bool` | Valide un jeton CSRF (hash_equals) |
+| `generateCsrfToken` | `(): string` | Génère et stocke un jeton CSRF en session (rotation à chaque requête) |
+| `validateCsrfToken` | `(string $token): bool` | Valide un jeton CSRF (hash_equals, rotation après validation) |
 | `setFlash` | `(string $type, string $message): void` | Stocke un message flash |
 | `getFlash` | `(): ?array` | Récupère et efface le message flash |
 | `setFormData` | `(array $data): void` | Stocke les données de formulaire en session |
@@ -1375,9 +1471,9 @@ Fichier chargeur — inclut tous les modules du répertoire `src/helpers/` :
 | `reportVisibilityIsConfidential` | `(): bool` | Mode confidentiel ? |
 | `reportVisibilityIsAgentChoice` | `(): bool` | Mode choix de l'agent ? |
 | `reportVisibilityIsPublic` | `(): bool` | Mode public ? |
-| `getAgentVisibility` | `(): string` | **Déprécié** — alias de `getReportVisibility()` |
-| `agentVisibilityIsConfidential` | `(): bool` | **Déprécié** — alias de `reportVisibilityIsConfidential()` |
-| `agentVisibilityIsPublic` | `(): bool` | **Déprécié** — alias de `reportVisibilityIsPublic()` |
+| `getAgentVisibility` | `(): string` | **Supprimé** — utiliser `getReportVisibility()` |
+| `agentVisibilityIsConfidential` | `(): bool` | **Supprimé** — utiliser `reportVisibilityIsConfidential()` |
+| `agentVisibilityIsPublic` | `(): bool` | **Supprimé** — utiliser `reportVisibilityIsPublic()` |
 | `truncate` | `(string $string, int $length): string` | Tronque avec ellipsis |
 | `normalizeVisibility` | `(mixed $value): string` | Normalise une valeur de visibilité (migre anciens formats) |
 | `renderBreadcrumb` | `(array $items): string` | Génère le HTML `<nav class="breadcrumb">` à partir d'un tableau d'items |
@@ -1429,7 +1525,7 @@ Fichier chargeur — inclut tous les modules du répertoire `src/helpers/` :
 |----------|-----------|-------------|
 | `createReport` | `(PDO $pdo, array $data): string` | Crée un signalement, retourne l'UUID |
 | `getReportByUuid` | `(PDO $pdo, string $uuid): ?array` | Signalement par UUID avec site et répondant |
-| `getReportById` | `(PDO $pdo, int $id): ?array` | **Déprécié** — utiliser `getReportByUuid()` |
+| `getReportById` | `(PDO $pdo, int $id): ?array` | **Supprimé** — utiliser `getReportByUuid()` |
 | `getReportsByRegistry` | `(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page, int $perPage): array` | Liste filtrée et paginée par registre |
 | `getReportsBySite` | `(PDO $pdo, int $siteId): array` | Signalements par site |
 | `updateReport` | `(PDO $pdo, string $uuid, array $data, int $userId): bool` | Modification par le déclarant |
@@ -1525,6 +1621,8 @@ La table `config_app` stocke les paramètres modifiables via l'interface. L'acc�
 | `smtp_pass` | smtp | password | (vide) | Mot de passe SMTP |
 | `smtp_from` | smtp | email | (vide) | Adresse d'expédition |
 | `smtp_encryption` | smtp | text | none | Chiffrement : `none`, `tls`, `starttls` |
+| `app_display_errors` | app | text | 1 | Affichage des erreurs PHP en production (`1` = on, `0` = off). En dev, les erreurs sont toujours affichées. |
+| `app_retention_years` | app | number | 0 | Durée de conservation des signalements en années (0 = illimitée, N > 0 = anonymisation après N années) |
 
 ### Cache de configuration
 

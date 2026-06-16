@@ -496,6 +496,13 @@ php nuclear-reset.php
 
 Le script affiche le nombre de signalements qui seront supprimés et demande une confirmation (taper `OUI`).
 
+> **⚠️ Sécurité** : depuis la v3.19.0, le script nécessite la variable d'environnement `SST_CONFIRM_RESET=yes` pour s'exécuter. Sans cette variable, le script refuse de s'exécuter et affiche un message d'erreur. Définissez-la temporairement avant l'exécution :
+> ```cmd
+> set SST_CONFIRM_RESET=yes
+> php nuclear-reset.php
+> set SST_CONFIRM_RESET=
+> ```
+
 **Ce qui est supprimé :**
 - `reports` — tous les signalements
 - `report_responses` — toutes les réponses des superviseurs

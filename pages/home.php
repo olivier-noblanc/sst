@@ -37,40 +37,6 @@ $labelUnite = getConfig('app_label_unite', 'UR');
 
 <h1 class="page-title">Accueil</h1>
 
-<?php if ($userRole === ROLE_AGENT): ?>
-<?php
-$recentReports = getRecentReportsByUser($pdo, $userId, 5);
-?>
-<?php if (!empty($recentReports)): ?>
-<div class="card mb-4">
-    <h3 class="card__subtitle">Mes signalements récents</h3>
-    <div class="table-wrapper">
-        <table aria-label="Mes signalements récents">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Objet</th>
-                    <th>État</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($recentReports as $rpt): ?>
-                <tr>
-                    <td><?php echo e(formatDateFR($rpt['date_evenement'] ?? $rpt['created_at'])); ?></td>
-                    <td><span class="badge <?php echo getRegistryBadgeClass($rpt['type']); ?>"><?php echo e(REGISTRY_SHORT_LABELS[$rpt['type']] ?? strtoupper($rpt['type'])); ?></span></td>
-                    <td><a href="<?php echo url('report_view', ['uuid' => $rpt['uuid']]); ?>"><?php echo e(truncate($rpt['objet'], 60)); ?></a></td>
-                    <td><span class="badge <?php echo getEtatBadgeClass($rpt['etat']); ?>"><?php echo e(ETAT_LABELS[$rpt['etat']] ?? $rpt['etat']); ?></span></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-    <a href="<?php echo url('report_list', ['type' => TYPE_RSST]); ?>" class="btn btn--outline btn--sm mt-2">Voir tous mes signalements</a>
-</div>
-<?php endif; ?>
-<?php endif; ?>
-
 <!-- Welcome banner — contextual guidance based on user state -->
 <?php if ($totalReports === 0 && $userRole === ROLE_AGENT): ?>
 <div class="welcome-banner welcome-banner--new" role="status">

@@ -58,7 +58,7 @@ test.describe('New User Onboarding', () => {
 
     // Should have danger panel warning
     await expect(page.locator('.danger-panel')).toBeVisible();
-    await expect(page.locator('.danger-panel')).toContainText(/définitif/);
+    await expect(page.locator('.danger-panel')).toContainText(/7 jours/);
   });
 
   test('should require site selection before submission', async ({ page }) => {

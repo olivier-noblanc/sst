@@ -2,6 +2,10 @@
 
 Plateforme des Registres en Santé et Sécurité au Travail
 
+<p align="center">
+  <img src="public/screenshots/accueil-mini.png" alt="Page d'accueil — 3 registres RSST, RAMI, DGI" width="400">
+</p>
+
 ## Stack Technique
 
 - **Langage** : PHP 8.3 (vanilla, aucun framework)

@@ -77,7 +77,6 @@ $pageTitle = 'Synthèse des signalements';
 
 <h1 class="page-title">Synthèse des signalements</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Filter Bar -->
 <form method="GET" action="<?php echo url('synthesis'); ?>" class="filter-bar">

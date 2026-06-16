@@ -6,21 +6,7 @@
  * Access: superviseur only
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('users'));
-}
-
-// Validate CSRF token
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
-    redirect(url('users'));
-}
-
-// Check role
-if (!hasRole('superviseur')) {
-    setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
-    redirect(url('home'));
-}
+validatePostRequest(url('users'), ['superviseur']);
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 
@@ -47,7 +33,6 @@ if ($user['is_active']) {
 $success = reactivateUser($pdo, $userId);
 
 if ($success) {
-    require_once __DIR__ . '/../src/audit.php';
     auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' réactivé avec succès.');
 } else {

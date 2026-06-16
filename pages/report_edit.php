@@ -47,5 +47,4 @@ $sites = [];  // Not used in edit mode (site dropdown is hidden)
 $formErrors = getFormErrors();
 $formData = getFormData();
 
-require __DIR__ . '/../templates/alert.php';
 require __DIR__ . '/../templates/report_form.php';

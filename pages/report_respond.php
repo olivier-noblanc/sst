@@ -52,7 +52,6 @@ $formData = getFormData();
     <span class="breadcrumb__current">Répondre</span>
 </nav>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Report Summary (read-only) -->
 <div class="card card--<?php echo e($registryType); ?>">

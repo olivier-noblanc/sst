@@ -283,7 +283,7 @@ $screenshotBase = 'asset.php?f=screenshots';
             <p class="help-description help-description--title">Registre de signalement d'un Danger Grave et Imminent</p>
             <p class="help-description">Signalement d'une situation de danger grave et imminent nécessitant une action immédiate. Ce registre bénéficie d'une procédure accélérée avec notification immédiate aux superviseurs. Le DGI est reservé aux situations où la vie ou l'intégrité physique des agents est menacée de manière directe et imminente.</p>
             <p class="help-note help-note--inline">Procédure : <strong>traitement prioritaire</strong>, notification immédiate.</p>
-            <p class="help-note help-note--inline" style="background: #fff8e1; padding: 0.5rem; border-left: 3px solid #f0ad4e; border-radius: 3px; margin-top: 0.5rem;">
+            <p class="help-note help-note--inline help-note--amber">
                 <strong>Clarification :</strong> Le formulaire vaut notification au sens <strong>L4131-1</strong> (droit de retrait individuel). La consignation formelle au sens <strong>D4132-1</strong> reste du ressort du représentant CSA/CHSCT — deux actes distincts.
             </p>
         </div>
@@ -397,7 +397,7 @@ $screenshotBase = 'asset.php?f=screenshots';
                 <li>Elle décrit les faits de manière objective avec date, heure et lieu</li>
                 <li>Le signalement est enregistré — Sophie apparaît comme déclarant, Pierre comme « pour le compte de »</li>
             </ol>
-            <p class="help-note" style="background: #e8f5e9; padding: 0.5rem; border-left: 3px solid #4caf50; border-radius: 3px; margin-top: 0.5rem;">
+            <p class="help-note help-note--green">
                 <strong>Que se passe-t-il après ?</strong> Votre signalement est envoyé aux superviseurs de votre site par notification e-mail. Un superviseur le prendra en charge, passera le statut à « En cours », puis à « Traité » avec une réponse. Vous pouvez suivre l'avancement dans la liste des signalements. En cas d'absence de réponse prolongée, le superviseur en sera alerté automatiquement.
             </p>
             <?php echo helpScreenshot($screenshotBase . '/cu3-creation-rami.html', "Formulaire RAMI avec le champ « Pour le compte de » et les listes déroulantes nature_auteur et type_acte"); ?>
@@ -524,7 +524,7 @@ $screenshotBase = 'asset.php?f=screenshots';
                 <li>Le PDF contient : la référence, le type de registre, l'objet, la description, les dates, le déclarant, la réponse du superviseur et l'historique des réponses</li>
                 <li>Le document est prêt pour impression ou archivage numérique</li>
             </ol>
-            <p class="help-note" style="background: #e3f2fd; padding: 0.5rem; border-left: 3px solid #1976d2; border-radius: 3px; margin-top: 0.5rem;">
+            <p class="help-note help-note--blue">
                 <strong>Format :</strong> Le PDF est généré côté serveur via FPDF. Il ne nécessite aucun plugin ni JavaScript. Le format est optimisé pour l'impression A4.
             </p>
             <?php echo helpScreenshot($screenshotBase . '/cu8-export.html', "Page d'export des données avec sélection des filtres et format CSV"); ?>
@@ -566,7 +566,7 @@ $screenshotBase = 'asset.php?f=screenshots';
 <!-- ============================================================ -->
 <!-- Liens utiles                                                  -->
 <!-- ============================================================ -->
-<div class="card--spaced-top" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+<div class="card--spaced-top help-cards-row">
     <a href="<?php echo url('preamble'); ?>" class="btn btn--outline">Lire le Préambule</a>
     <a href="<?php echo url('changelog'); ?>" class="btn btn--outline">Journal des modifications</a>
 </div>

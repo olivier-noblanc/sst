@@ -32,7 +32,6 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
 
 <h1 class="page-title">Profil utilisateur</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="card">
     <div class="user-profile-header">

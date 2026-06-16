@@ -6,7 +6,6 @@
  * Access: superviseur only (admin tool)
  */
 requireRole(['superviseur']);
-require_once __DIR__ . '/../src/audit.php';
 
 $activeTab = $_GET['tab'] ?? 'errors';
 
@@ -176,10 +175,9 @@ $auditActionLabels = [
     <span class="breadcrumb__current">Journal</span>
 </nav>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Main tab bar: Erreurs / Audit -->
-<div class="tab-bar" style="margin-bottom: 0; border-bottom: none;">
+<div class="tab-bar tab-bar--flush">
     <a href="<?php echo url('logs', ['tab' => 'errors']); ?>" class="tab<?php echo $activeTab === 'errors' ? ' tab--active' : ''; ?>">Erreurs PHP</a>
     <a href="<?php echo url('logs', ['tab' => 'audit']); ?>" class="tab<?php echo $activeTab === 'audit' ? ' tab--active' : ''; ?>">Journal d'audit</a>
 </div>
@@ -188,7 +186,7 @@ $auditActionLabels = [
 <!-- ============================================================ -->
 <!-- Tab: Erreurs PHP                                              -->
 <!-- ============================================================ -->
-<div class="card" style="border-top-left-radius: 0;">
+<div class="card card--flush-top">
     <div class="card__title-row">
         <h3 class="card__subtitle">
             <?php echo e(basename($logFile)); ?>
@@ -233,7 +231,7 @@ $auditActionLabels = [
 <!-- ============================================================ -->
 <!-- Tab: Journal d'audit                                          -->
 <!-- ============================================================ -->
-<div class="card" style="border-top-left-radius: 0;">
+<div class="card card--flush-top">
     <div class="card__title-row">
         <h3 class="card__subtitle">
             Journal d'audit
@@ -242,12 +240,12 @@ $auditActionLabels = [
     </div>
 
     <!-- Filters -->
-    <form method="GET" action="<?php echo url('logs'); ?>" class="filter-bar" style="margin-bottom: 16px;">
+    <form method="GET" action="<?php echo url('logs'); ?>" class="filter-bar filter-bar--spaced">
         <input type="hidden" name="page" value="logs">
         <input type="hidden" name="tab" value="audit">
         <div class="filter-bar__group">
             <label for="audit-category" class="filter-bar__label">Catégorie</label>
-            <select id="audit-category" name="category" class="form-control" style="width: auto;">
+            <select id="audit-category" name="category" class="form-control form-control--auto">
                 <option value="">Toutes</option>
                 <?php foreach ($auditCategoryLabels as $key => $label): ?>
                     <option value="<?php echo e($key); ?>"<?php echo ($_GET['category'] ?? '') === $key ? ' selected' : ''; ?>><?php echo e($label); ?></option>
@@ -256,15 +254,15 @@ $auditActionLabels = [
         </div>
         <div class="filter-bar__group">
             <label for="audit-q" class="filter-bar__label">Recherche</label>
-            <input type="text" id="audit-q" name="q" class="form-control" placeholder="Utilisateur, détail…" value="<?php echo e($_GET['q'] ?? ''); ?>" style="width: 200px;">
+            <input type="text" id="audit-q" name="q" class="form-control form-control--search" placeholder="Utilisateur, détail…" value="<?php echo e($_GET['q'] ?? ''); ?>">
         </div>
         <div class="filter-bar__group">
             <label for="audit-from" class="filter-bar__label">Du</label>
-            <input type="date" id="audit-from" name="date_from" class="form-control" value="<?php echo e($_GET['date_from'] ?? ''); ?>" style="width: auto;">
+            <input type="date" id="audit-from" name="date_from" class="form-control form-control--auto" value="<?php echo e($_GET['date_from'] ?? ''); ?>">
         </div>
         <div class="filter-bar__group">
             <label for="audit-to" class="filter-bar__label">Au</label>
-            <input type="date" id="audit-to" name="date_to" class="form-control" value="<?php echo e($_GET['date_to'] ?? ''); ?>" style="width: auto;">
+            <input type="date" id="audit-to" name="date_to" class="form-control form-control--auto" value="<?php echo e($_GET['date_to'] ?? ''); ?>">
         </div>
         <div class="filter-bar__group">
             <button type="submit" class="btn btn--sm btn--primary">Filtrer</button>
@@ -281,12 +279,12 @@ $auditActionLabels = [
             <table class="table table--compact" aria-label="Journal d'audit">
                 <thead>
                     <tr>
-                        <th style="width: 140px;">Date</th>
-                        <th style="width: 110px;">Catégorie</th>
-                        <th style="width: 100px;">Utilisateur</th>
-                        <th style="width: 120px;">Action</th>
+                        <th class="th--date">Date</th>
+                        <th class="th--category">Catégorie</th>
+                        <th class="th--user">Utilisateur</th>
+                        <th class="th--action">Action</th>
                         <th>Détail</th>
-                        <th style="width: 100px;">Adresse IP</th>
+                        <th class="th--ip">Adresse IP</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -297,19 +295,8 @@ $auditActionLabels = [
                                 <?php
                                 $catKey = $entry['category'];
                                 $catLabel = $auditCategoryLabels[$catKey] ?? $catKey;
-                                $catColors = [
-                                    'auth'   => '#2E5C8A',
-                                    'report' => '#27AE60',
-                                    'user'   => '#8E44AD',
-                                    'site'   => '#E67E22',
-                                    'config' => '#0056A3',
-                                    'export' => '#6C6C6C',
-                                    'backup' => '#95A5A6',
-                                    'gdpr'   => '#B22222',
-                                ];
-                                $catColor = $catColors[$catKey] ?? '#6C6C6C';
                                 ?>
-                                <span class="badge" style="background: <?php echo $catColor; ?>; color: white; font-size: 11px;"><?php echo e($catLabel); ?></span>
+                                <span class="badge badge--cat-<?php echo e($catKey); ?>"><?php echo e($catLabel); ?></span>
                             </td>
                             <td class="text-small"><?php echo e($entry['username']); ?></td>
                             <td>
@@ -335,7 +322,7 @@ $auditActionLabels = [
                 'date_to'  => $_GET['date_to'] ?? '',
             ], fn($v) => $v !== '');
         ?>
-        <div class="pagination" style="display: flex; align-items: center; gap: 8px; margin-top: 16px;">
+        <div class="pagination pagination--flex">
             <?php if ($auditPage > 1): ?>
                 <a href="<?php echo url('logs', array_merge($paginationParams, ['p' => $auditPage - 1])); ?>" class="btn btn--sm btn--outline">&larr; Précédent</a>
             <?php endif; ?>

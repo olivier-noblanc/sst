@@ -10,7 +10,6 @@ $pageTitle = 'Préambule';
 
 <h1 class="page-title">Préambule — Cadre juridique</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="card content-section">
     <h2>Contexte réglementaire</h2>
@@ -71,7 +70,7 @@ $pageTitle = 'Préambule';
         <li>Situation pouvant être constatée par un membre du CSA/CHSCT</li>
         <li>Droit de retrait en cas de danger grave et imminent</li>
     </ul>
-    <p class="help-note" style="margin-top: 0.75rem; padding: 0.75rem; background: #fff8e1; border-left: 4px solid #f0ad4e; border-radius: 4px;">
+    <p class="help-note help-note--warning">
         <strong>Clarification :</strong> Le formulaire de signalement DGI de cette application vaut <strong>notification au sens de l'article L4131-1 du Code du travail</strong> (droit de retrait individuel de l'agent). La <strong>consignation formelle</strong> sur le registre spécial prévue à l'article <strong>D4132-1</strong> relève du représentant CSA/CHSCT exerçant son droit d'alerte (L4131-2) — il s'agit de deux actes juridiques distincts. Cette application couvre le premier ; le second reste du ressort du CSA/CHSCT.
     </p>
 </div>

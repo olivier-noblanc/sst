@@ -7,6 +7,23 @@
  */
 
 /**
+ * Base SELECT for report queries with site JOIN.
+ * Centralises the "SELECT r.*, s.code as site_code, s.nom as site_nom
+ * FROM reports r LEFT JOIN sites s ON r.site_id = s.id" pattern
+ * that was duplicated in getReportByUuid(), getReportsByRegistry(),
+ * getReportsBySite(), and stats_queries.php.
+ *
+ * Analogous to userSelectWithSite() in user_queries.php.
+ *
+ * @return string  SQL fragment (SELECT ... FROM ... LEFT JOIN ...)
+ */
+function reportSelectWithSite(): string {
+    return "SELECT r.*, s.code as site_code, s.nom as site_nom
+            FROM reports r
+            LEFT JOIN sites s ON r.site_id = s.id";
+}
+
+/**
  * Generate a UUID v4.
  * 
  * @return string
@@ -127,6 +144,8 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array {
     if (!isValidUuid($uuid)) {
         return null;
     }
+    // reportSelectWithSite() provides r.* + site_code + site_nom;
+    // we add the repondant JOIN on top for full detail
     $stmt = $pdo->prepare("
         SELECT r.*, s.code as site_code, s.nom as site_nom,
                rep.nom as repondant_nom, rep.prenom as repondant_prenom
@@ -241,14 +260,7 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
 
     // Fetch page
     $offset = ($page - 1) * $perPage;
-    $sql = "
-        SELECT r.*, s.code as site_code, s.nom as site_nom
-        FROM reports r
-        LEFT JOIN sites s ON r.site_id = s.id
-        WHERE $where
-        ORDER BY r.created_at DESC
-        LIMIT :limit OFFSET :offset
-    ";
+    $sql = reportSelectWithSite() . " WHERE $where ORDER BY r.created_at DESC LIMIT :limit OFFSET :offset";
 
     $params[':limit'] = $perPage;
     $params[':offset'] = $offset;
@@ -268,13 +280,7 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
  * @return array
  */
 function getReportsBySite(PDO $pdo, int $siteId): array {
-    $stmt = $pdo->prepare("
-        SELECT r.*, s.code as site_code, s.nom as site_nom
-        FROM reports r
-        LEFT JOIN sites s ON r.site_id = s.id
-        WHERE r.site_id = :site_id
-        ORDER BY r.created_at DESC
-    ");
+    $stmt = $pdo->prepare(reportSelectWithSite() . " WHERE r.site_id = :site_id ORDER BY r.created_at DESC");
     $stmt->execute([':site_id' => $siteId]);
     return $stmt->fetchAll();
 }

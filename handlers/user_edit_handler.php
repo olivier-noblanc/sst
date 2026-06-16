@@ -6,21 +6,7 @@
  * Access: superviseur only
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('users'));
-}
-
-// Validate CSRF token
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
-    redirect(url('users'));
-}
-
-// Check role
-if (!hasRole('superviseur')) {
-    setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
-    redirect(url('home'));
-}
+validatePostRequest(url('users'), ['superviseur']);
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 if ($userId <= 0) {
@@ -37,36 +23,16 @@ $pdo = getDB();
 // Handle GDPR actions (export_data, anonymize)
 $action = $_POST['action'] ?? '';
 if ($action === 'export_data') {
-    require_once __DIR__ . '/../src/queries/user_queries.php';
-    require_once __DIR__ . '/../src/audit.php';
     $userData = exportUserData($pdo, $userId);
     auditLog($pdo, 'gdpr', 'data_export', 'Export RGPD des données de l\'utilisateur ID ' . $userId, $userId, 'user');
 
     // Generate JSON export as download
     $filename = 'rgpd_export_user_' . $userId . '_' . date('Y-m-d') . '.json';
     $json = json_encode($userData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-    // Disable gzip output buffer for file download
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
-
-    header('Content-Type: application/json; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    header('Content-Length: ' . strlen($json));
-    header_remove('X-Powered-By');
-    header_remove('Server');
-    header_remove('Expires');
-    header_remove('Pragma');
-    header('Cache-Control: no-cache');
-    header('X-Content-Type-Options: nosniff');
-    echo $json;
-    exit;
+    sendFileDownload($json, $filename, 'application/json; charset=utf-8');
 }
 
 if ($action === 'anonymize') {
-    require_once __DIR__ . '/../src/queries/user_queries.php';
-    require_once __DIR__ . '/../src/audit.php';
     $success = anonymizeUser($pdo, $userId);
     if ($success) {
         auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
@@ -86,34 +52,14 @@ if (!$user) {
 }
 
 // Validate required fields
-$errors = [];
+$errors = validateUserFields($pdo, $_POST, $userId);
 
 $nom = trim($_POST['nom'] ?? '');
-if (empty($nom)) {
-    $errors['nom'] = 'Le nom est requis.';
-}
-
 $prenom = trim($_POST['prenom'] ?? '');
-if (empty($prenom)) {
-    $errors['prenom'] = 'Le prénom est requis.';
-}
-
 $username = trim($_POST['username'] ?? '');
-if (empty($username)) {
-    $errors['username'] = 'L\'identifiant est requis.';
-} elseif ($username !== $user['username']) {
-    // Check if username is unique
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = :username AND id != :id");
-    $stmt->execute([':username' => $username, ':id' => $userId]);
-    if ($stmt->fetch()) {
-        $errors['username'] = 'Cet identifiant est déjà utilisé.';
-    }
-}
-
 $role = trim($_POST['role'] ?? '');
-if (!in_array($role, ['agent', 'superviseur', 'chsct'])) {
-    $errors['role'] = 'Rôle invalide.';
-}
+$siteId = (int) ($_POST['site_id'] ?? 0);
+$email = trim($_POST['email'] ?? '');
 
 // Guard: prevent demoting the last active superviseur
 if ($user['role'] === 'superviseur' && $role !== 'superviseur') {
@@ -123,16 +69,6 @@ if ($user['role'] === 'superviseur' && $role !== 'superviseur') {
     if ($activeSups <= 1) {
         $errors['role'] = 'Impossible de rétrograder le dernier superviseur actif. Nommez un autre superviseur d\'abord.';
     }
-}
-
-$siteId = (int) ($_POST['site_id'] ?? 0);
-if ($siteId <= 0) {
-    $errors['site_id'] = 'Le site est requis.';
-}
-
-$email = trim($_POST['email'] ?? '');
-if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $errors['email'] = 'Adresse email invalide.';
 }
 
 // Note: No password field — auth is via IIS Windows Authentication
@@ -173,7 +109,6 @@ try {
         }
     }
 
-    require_once __DIR__ . '/../src/audit.php';
     auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $prenom . ' ' . $nom, (int) $userId, 'user', ['role' => $role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
 
     // Send email notification for role change (non-blocking — errors are logged, not shown to user)

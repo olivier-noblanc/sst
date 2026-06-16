@@ -7,16 +7,7 @@
  * Sets etat to 'abandonne' — does NOT delete from DB.
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('home'));
-}
-
-// Validate CSRF token
-$csrfToken = $_POST['csrf_token'] ?? '';
-if (!validateCsrfToken($csrfToken)) {
-    setFlash('error', 'Token de sécurité invalide. Veuillez réessayer.');
-    redirect(url('home'));
-}
+validatePostRequest(url('home'));
 
 // Get report UUID from form
 $reportUuid = trim($_POST['report_uuid'] ?? '');
@@ -53,7 +44,6 @@ if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
 $abandoned = abandonReport($pdo, $reportUuid, $userId);
 
 if ($abandoned) {
-    require_once __DIR__ . '/../src/audit.php';
     auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . $report['reference'], (int) $report['id'] ?? null, 'report', ['reference' => $report['reference']]);
     setFlash('success', 'Signalement ' . e($report['reference']) . ' abandonné.');
     redirect(url('report_list', ['type' => $type]));

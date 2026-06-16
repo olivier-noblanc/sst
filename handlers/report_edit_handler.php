@@ -6,16 +6,7 @@
  * Only the declarant can edit, and only if etat is nouveau or en_cours.
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('home'));
-}
-
-// Validate CSRF token
-$csrfToken = $_POST['csrf_token'] ?? '';
-if (!validateCsrfToken($csrfToken)) {
-    setFlash('error', 'Token de sécurité invalide. Veuillez réessayer.');
-    redirect(url('home'));
-}
+validatePostRequest(url('home'));
 
 // Get report UUID
 $reportUuid = trim($_POST['report_uuid'] ?? '');
@@ -60,101 +51,28 @@ $isConfidential = isset($_POST['is_confidential']) && $_POST['is_confidential'] 
 // RAMI structured fields
 $natureAuteur = trim($_POST['nature_auteur'] ?? '');
 $typeActe = trim($_POST['type_acte'] ?? '');
-// Validate nature_auteur (optional, must be one of allowed values if provided)
-$allowedNatureAuteur = ['usager', 'collegue', 'hierarchie', 'tiers'];
-if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur)) {
-    $natureAuteur = '';
-}
-// Validate type_acte (optional, must be one of allowed values if provided)
-$allowedTypeActe = ['verbal', 'physique', 'moral', 'sexiste', 'autre'];
-if (!empty($typeActe) && !in_array($typeActe, $allowedTypeActe)) {
-    $typeActe = '';
-}
-// Enforce visibility mode rules:
-// - 'public' mode → force is_confidential to 0 (all reports are public)
-// - 'confidential' mode → force is_confidential to 1 (all reports are confidential)
-// - 'agent_choice' mode → use the agent's choice
-if (reportVisibilityIsPublic()) {
-    $isConfidential = 0;
-} elseif (reportVisibilityIsConfidential()) {
-    $isConfidential = 1;
-}
+$ramiFields = validateRamiFields($natureAuteur, $typeActe);
+$natureAuteur = $ramiFields['nature_auteur'];
+$typeActe = $ramiFields['type_acte'];
+
+// Enforce visibility mode rules
+$isConfidential = enforceReportVisibility($isConfidential);
 
 $type = $report['type'];
 
 // Validate
-$errors = [];
-
-if (empty($dateEvenement)) {
-    $errors['date_evenement'] = 'La date de l\'événement est obligatoire.';
-} elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateEvenement)) {
-    $errors['date_evenement'] = 'Format de date invalide.';
-} elseif ($dateEvenement > date('Y-m-d')) {
-    $errors['date_evenement'] = 'La date ne peut pas être dans le futur.';
-}
-
-if (empty($objet)) {
-    $errors['objet'] = 'L\'objet est obligatoire.';
-} elseif (strlen($objet) > MAX_OBJECT_LENGTH) {
-    $errors['objet'] = 'L\'objet ne doit pas dépasser ' . MAX_OBJECT_LENGTH . ' caractères.';
-}
-
-if (empty($description)) {
-    $errors['description'] = 'La description est obligatoire.';
-} elseif (strlen($description) > MAX_DESCRIPTION_LENGTH) {
-    $errors['description'] = 'La description ne doit pas dépasser ' . MAX_DESCRIPTION_LENGTH . ' caractères.';
-}
-
-// Validate lieu length
-if (!empty($lieu) && strlen($lieu) > MAX_LIEU_LENGTH) {
-    $errors['lieu'] = 'Le lieu ne doit pas dépasser ' . MAX_LIEU_LENGTH . ' caractères.';
-}
-
-// Validate heure format (HH:MM)
-if (!empty($heureEvenement) && !preg_match('/^\d{2}:\d{2}$/', $heureEvenement)) {
-    $errors['heure_evenement'] = 'Format d\'heure invalide (HH:MM attendu).';
-}
+$errors = validateReportFields($dateEvenement, $objet, $description, $lieu, $heureEvenement);
 
 // Validate attachment (optional)
-$attachmentBlob = null;
-$attachmentName = null;
-$attachmentMime = null;
 $removeAttachment = isset($_POST['remove_attachment']) && $_POST['remove_attachment'] === '1';
-
-if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
-    $file = $_FILES['attachment'];
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        $errors['attachment'] = 'Erreur lors du téléchargement du fichier.';
-    } elseif ($file['size'] > MAX_ATTACHMENT_SIZE) {
-        $errors['attachment'] = 'Le fichier ne doit pas dépasser 10 Mo.';
-    } else {
-        try {
-            $mime = getMimeType($file['tmp_name']);
-            if (!in_array($mime, ALLOWED_ATTACHMENT_MIMES)) {
-                $errors['attachment'] = 'Type de fichier non autorisé. Formats acceptés : JPG, PNG, GIF, PDF.';
-            } else {
-                $attachmentBlob = file_get_contents($file['tmp_name']);
-                $attachmentName = basename($file['name']);
-                $attachmentMime = $mime;
-            }
-        } catch (\RuntimeException $ex) {
-            $errors['attachment'] = $ex->getMessage();
-        }
-    }
-}
+$attachment = validateReportAttachment($errors);
+$attachmentBlob = $attachment['blob'];
+$attachmentName = $attachment['name'];
+$attachmentMime = $attachment['mime'];
 
 // RAMI-specific validation
-if ($type === 'rami' && $pourCompte) {
-    if (empty($pourCompteNom)) {
-        $errors['pour_compte_nom'] = 'Le nom de l\'agent est obligatoire si vous signalez pour le compte d\'un autre agent.';
-    } elseif (strlen($pourCompteNom) > 100) {
-        $errors['pour_compte_nom'] = 'Le nom ne doit pas dépasser 100 caractères.';
-    }
-    if (empty($pourComptePrenom)) {
-        $errors['pour_compte_prenom'] = 'Le prénom de l\'agent est obligatoire si vous signalez pour le compte d\'un autre agent.';
-    } elseif (strlen($pourComptePrenom) > 100) {
-        $errors['pour_compte_prenom'] = 'Le prénom ne doit pas dépasser 100 caractères.';
-    }
+if ($type === 'rami') {
+    $errors = array_merge($errors, validatePourCompte($pourCompte, $pourCompteNom, $pourComptePrenom));
 }
 
 // If errors, redirect back with form data
@@ -203,7 +121,6 @@ if ($type === 'rami') {
 $updated = updateReport($pdo, $reportUuid, $updateData, $userId);
 
 if ($updated) {
-    require_once __DIR__ . '/../src/audit.php';
     auditLog($pdo, 'report', 'edit', 'Signalement modifié : ' . $report['reference'], (int) $report['id'] ?? null, 'report', ['reference' => $report['reference']]);
     setFlash('success', 'Signalement ' . e($report['reference']) . ' modifié avec succès.');
 } else {

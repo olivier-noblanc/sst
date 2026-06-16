@@ -6,21 +6,7 @@
  * Access: superviseur only
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('settings'));
-}
-
-// Validate CSRF token
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
-    redirect(url('settings'));
-}
-
-// Check role
-if (!hasRole('superviseur')) {
-    setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
-    redirect(url('home'));
-}
+validatePostRequest(url('settings'), ['superviseur']);
 
 $pdo = getDB();
 $tab = $_POST['tab'] ?? 'sites';
@@ -234,7 +220,6 @@ try {
         'app'           => 'Paramètres de l\'application enregistrés avec succès.',
         'manage_sites'  => 'Sites mis à jour avec succès.',
     ];
-    require_once __DIR__ . '/../src/audit.php';
     auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . ($tab ?? 'inconnu'), null, 'config', ['tab' => $tab ?? 'inconnu']);
     setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');
 } catch (Exception $e) {

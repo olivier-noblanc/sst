@@ -12,16 +12,6 @@
  * Gzip compression is handled via ob_gzhandler (started in index.php).
  */
 
-// === Remove X-Powered-By (PHP version disclosure) ===
-header_remove('X-Powered-By');
-
-// === Remove Server header version info ===
-header_remove('Server');
-
-// === Remove Expires and Pragma headers (deprecated, replaced by Cache-Control) ===
-header_remove('Expires');
-header_remove('Pragma');
-
 // === Cache-Control for dynamic pages ===
 // no-cache alone: browser must revalidate with server before using cached copy
 // Do NOT combine no-cache with max-age — it's contradictory per RFC 7234

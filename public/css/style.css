@@ -2724,3 +2724,105 @@ tr:hover td {
 
 .log-entry--fatal .log-entry__text { color: #f38ba8; }
 .log-entry--warning .log-entry__text { color: #fab387; }
+
+/* ============================================================================
+   Logs page — utility classes (replacing inline styles)
+   ============================================================================ */
+
+.tab-bar--flush { margin-bottom: 0; border-bottom: none; }
+.card--flush-top { border-top-left-radius: 0; }
+.filter-bar--spaced { margin-bottom: 16px; }
+.form-control--auto { width: auto; }
+.form-control--search { width: 200px; }
+
+/* Audit table column widths */
+.th--date { width: 140px; }
+.th--category { width: 110px; }
+.th--user { width: 100px; }
+.th--action { width: 120px; }
+.th--ip { width: 100px; }
+
+/* Audit category badges (dynamic colors) */
+.badge--cat-auth   { background: #2E5C8A; color: white; font-size: 11px; }
+.badge--cat-report { background: #27AE60; color: white; font-size: 11px; }
+.badge--cat-user   { background: #8E44AD; color: white; font-size: 11px; }
+.badge--cat-site   { background: #E67E22; color: white; font-size: 11px; }
+.badge--cat-config { background: #0056A3; color: white; font-size: 11px; }
+.badge--cat-export { background: #6C6C6C; color: white; font-size: 11px; }
+.badge--cat-backup { background: #95A5A6; color: white; font-size: 11px; }
+.badge--cat-gdpr   { background: #B22222; color: white; font-size: 11px; }
+.badge--cat-default { background: #6C6C6C; color: white; font-size: 11px; }
+
+/* Pagination (logs page) */
+.pagination--flex {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* ============================================================
+   Inline style replacements — centralized CSS classes
+   ============================================================ */
+
+/* Warning note (amber left border) — replaces inline style in preamble.php */
+.help-note--warning {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: #fff8e1;
+    border-left: 4px solid #f0ad4e;
+    border-radius: 4px;
+}
+
+/* Inline help notes with colored borders — replaces inline styles in help.php */
+.help-note--amber {
+    background: #fff8e1;
+    padding: 0.5rem;
+    border-left: 3px solid #f0ad4e;
+    border-radius: 3px;
+    margin-top: 0.5rem;
+}
+
+.help-note--green {
+    background: #e8f5e9;
+    padding: 0.5rem;
+    border-left: 3px solid #4caf50;
+    border-radius: 3px;
+    margin-top: 0.5rem;
+}
+
+.help-note--blue {
+    background: #e3f2fd;
+    padding: 0.5rem;
+    border-left: 3px solid #1976d2;
+    border-radius: 3px;
+    margin-top: 0.5rem;
+}
+
+/* Flex row for help page cards — replaces inline style in help.php */
+.help-cards-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Changelog details styling — replaces inline style in changelog.php */
+.changelog-details {
+    margin-top: 0.5rem;
+    font-size: 0.85em;
+    color: var(--grey-600);
+}
+
+/* Card with extra top margin — replaces inline style in statistics.php */
+.card--mt {
+    margin-top: 1.5rem;
+}
+
+/* Info panel color variants — replaces inline styles in settings.php */
+.info-panel--warning {
+    border-left-color: #e67e22;
+}
+
+.info-panel--info {
+    border-left-color: #2E5C8A;
+}

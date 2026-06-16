@@ -9,21 +9,7 @@
  * quotes, and newlines inside fields). Exports multi-response history.
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('export'));
-}
-
-// Validate CSRF token
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
-    redirect(url('export'));
-}
-
-// Check role
-if (!hasAnyRole(['superviseur', 'chsct'])) {
-    setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
-    redirect(url('home'));
-}
+validatePostRequest(url('export'), ['superviseur', 'chsct']);
 
 $pdo = getDB();
 
@@ -60,7 +46,6 @@ if (!empty($_POST['etats']) && is_array($_POST['etats'])) {
 
 // Get data
 $reports = getExportData($pdo, $filters);
-require_once __DIR__ . '/../src/audit.php';
 auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . count($reports) . ' signalements', null, null, ['filters' => $filters, 'count' => count($reports)]);
 
 // Build CSV in memory using fputcsv (proper enclosure, no injection risk)
@@ -185,21 +170,5 @@ rewind($tmpFile);
 $csv = stream_get_contents($tmpFile);
 fclose($tmpFile);
 
-// Disable gzip output buffer for file download
-while (ob_get_level() > 0) {
-    ob_end_clean();
-}
-
 // Send as download
-header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('Content-Length: ' . strlen($csv));
-header_remove('X-Powered-By');
-header_remove('Server');
-header_remove('Expires');
-header_remove('Pragma');
-header('Cache-Control: no-cache');
-header('X-Content-Type-Options: nosniff');
-
-echo $csv;
-exit;
+sendFileDownload($csv, $filename, 'text/csv; charset=utf-8');

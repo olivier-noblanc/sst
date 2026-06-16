@@ -41,7 +41,6 @@ $pageTitle = 'Abandonner le signalement — ' . $report['reference'];
 $type = $report['type'];
 $csrfToken = generateCsrfToken();
 
-require __DIR__ . '/../templates/alert.php';
 ?>
 
 <h1 class="page-title">Abandonner le signalement</h1>

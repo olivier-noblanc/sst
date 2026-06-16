@@ -10,10 +10,9 @@
  */
 
 // === Remove unwanted headers (PHP version disclosure, deprecated headers) ===
-header_remove('X-Powered-By');
-header_remove('Server');
-header_remove('Expires');
-header_remove('Pragma');
+// Loaded at the very top before any other output.
+// The removeUnwantedHeaders() function will also be called later after helpers.php is loaded,
+// but we need these removed ASAP — before the gzip buffer starts.
 
 // === Enable Gzip compression (PHP-level, server-independent) ===
 // Skip gzip on PHP built-in dev server — ob_gzhandler crashes it
@@ -35,6 +34,10 @@ require_once __DIR__ . '/../src/session.php';
 require_once __DIR__ . '/../src/session_patch.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
+require_once __DIR__ . '/../src/audit.php';
+
+// Now that helpers.php is loaded, use the centralised function
+removeUnwantedHeaders();
 
 // === Register custom error handler (email critical errors to admin) ===
 set_error_handler('sstErrorHandler');
@@ -51,6 +54,15 @@ require_once __DIR__ . '/../src/queries/report_queries.php';
 require_once __DIR__ . '/../src/queries/user_queries.php';
 require_once __DIR__ . '/../src/queries/site_queries.php';
 require_once __DIR__ . '/../src/queries/stats_queries.php';
+
+// Load user context helpers (currentUser(), isSuperviseur(), etc.)
+require_once __DIR__ . '/../src/user_context.php';
+
+// Load shared validation functions (depends on helpers.php + query files)
+require_once __DIR__ . '/../src/validation.php';
+
+// Load bootstrap middleware (superviseur promotion, site check)
+require_once __DIR__ . '/../src/middleware/bootstrap.php';
 
 startSession();
 
@@ -114,44 +126,7 @@ if ($page === 'login') {
 }
 
 // === SUPERVISEUR PROMOTION CHECK (every request) ===
-// If app_superviseur_usernames is set in config, check if the current
-// agent should be auto-promoted. This ensures the promotion takes effect
-// immediately without requiring logout/login.
-// Skip this check during impersonation — we don't want to accidentally promote
-// a superviseur who is temporarily impersonating an agent.
-if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'agent' && !isset($_SESSION['impersonated_role'])) {
-    // Priority: DB setting (Settings UI) > environment variable
-    $superviseurUsernames = getConfig('app_superviseur_usernames', '');
-    if (empty($superviseurUsernames)) {
-        $superviseurUsernames = getenv('APP_SUPERVISEUR_USERNAMES') ?: '';
-    }
-    if (!empty($superviseurUsernames)) {
-        $users = array_map('trim', explode(',', strtolower($superviseurUsernames)));
-        $currentUsername = strtolower($_SESSION['user']['username']);
-        if (in_array($currentUsername, $users)) {
-            $pdo = getDB();
-            $stmt = $pdo->prepare("UPDATE users SET role = 'superviseur', updated_at = datetime('now') WHERE id = :id AND role = 'agent'");
-            $stmt->execute([':id' => (int) $_SESSION['user']['id']]);
-            if ($stmt->rowCount() > 0) {
-                // Promotion applied — update session
-                $_SESSION['user']['role'] = 'superviseur';
-                // Refresh full user data from DB (includes site_code, site_nom, etc.)
-                $freshStmt = $pdo->prepare(
-                    'SELECT u.*, s.code as site_code, s.nom as site_nom
-                     FROM users u
-                     LEFT JOIN sites s ON u.site_id = s.id
-                     WHERE u.id = :id'
-                );
-                $freshStmt->execute([':id' => (int) $_SESSION['user']['id']]);
-                $freshUser = $freshStmt->fetch();
-                if ($freshUser) {
-                    $_SESSION['user'] = $freshUser;
-                }
-                error_log("SST App: Auto-promoted user '$currentUsername' to superviseur (config list rule, session refresh)");
-            }
-        }
-    }
-}
+checkSuperviseurPromotion();
 
 // === NOT AUTHENTICATED: redirect ===
 if (!isset($_SESSION['user'])) {
@@ -189,29 +164,7 @@ if ($page === 'choose_site') {
 }
 
 // === CHECK: user must have a site assigned ===
-// If authenticated but no site_id, check DB first (session might be stale)
-// then redirect to choose_site if still no site
-if (isset($_SESSION['user']) && empty($_SESSION['user']['site_id'])) {
-    // Re-check from DB — the handler might have updated the DB
-    // but the session didn't persist (edge case on some IIS configs)
-    $pdo = getDB();
-    $freshUser = $pdo->prepare(
-        'SELECT u.*, s.code as site_code, s.nom as site_nom 
-         FROM users u 
-         LEFT JOIN sites s ON u.site_id = s.id 
-         WHERE u.id = :id'
-    );
-    $freshUser->execute([':id' => (int) $_SESSION['user']['id']]);
-    $dbUser = $freshUser->fetch();
-    
-    if ($dbUser && !empty($dbUser['site_id'])) {
-        // DB has the site but session didn't — fix the session
-        $_SESSION['user'] = $dbUser;
-    } else {
-        // Really no site — redirect to choose_site
-        redirect(url('choose_site'));
-    }
-}
+checkUserSiteAssignment();
 
 // === HANDLE POST REQUESTS ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -324,6 +277,7 @@ $pageTitle = match($page) {
 
 require __DIR__ . '/../templates/header.php';
 require __DIR__ . '/../templates/sidebar.php';
+require __DIR__ . '/../templates/alert.php';
 ?>
 <span id="top" tabindex="-1"></span>
 <main id="main-content" class="main" role="main">

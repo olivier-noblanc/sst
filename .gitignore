@@ -66,3 +66,5 @@ sst_init.php
 node_modules/
 test-results/
 playwright-report/
+.phpunit.result.cache
+.phpunit.result.cache

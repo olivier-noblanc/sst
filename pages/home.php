@@ -37,7 +37,6 @@ $labelUnite = getConfig('app_label_unite', 'UR');
 
 <h1 class="page-title">Accueil</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Welcome banner — contextual guidance based on user state -->
 <?php if ($totalReports === 0 && $userRole === 'agent'): ?>

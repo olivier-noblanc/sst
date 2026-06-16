@@ -55,5 +55,4 @@ $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType
 </nav>
 
 <?php
-require __DIR__ . '/../templates/alert.php';
 require __DIR__ . '/../templates/report_card.php';

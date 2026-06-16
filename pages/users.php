@@ -45,7 +45,6 @@ $pageTitle = 'Gestion des utilisateurs';
 
 <h1 class="page-title">Gestion des utilisateurs</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Tabs -->
 <div class="tab-bar">

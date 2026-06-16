@@ -42,7 +42,6 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
 
 <h1 class="page-title">Éditer l'utilisateur</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="card">
     <form method="POST" action="<?php echo url('user_edit', ['id' => $userId]); ?>">

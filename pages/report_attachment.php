@@ -49,17 +49,6 @@ logConfidentialReportAccess($pdo, $report, $user);
 $mime = $row['attachment_mime'] ?? 'application/octet-stream';
 $name = $row['attachment_name'] ?? 'piece_jointe';
 
-// Disable gzip output buffer for binary file output
-while (ob_get_level() > 0) {
-    ob_end_clean();
-}
-
-// Remove disclosing headers
-header_remove('X-Powered-By');
-header_remove('Server');
-header_remove('Expires');
-header_remove('Pragma');
-
 // Check if inline mode is requested (for image preview in browser)
 $inline = !empty($_GET['inline']);
 
@@ -68,10 +57,4 @@ $inline = !empty($_GET['inline']);
 $isImage = in_array($mime, ['image/jpeg', 'image/png', 'image/gif']);
 $disposition = ($inline && $isImage) ? 'inline' : 'attachment';
 
-header('Content-Type: ' . $mime);
-header('Content-Disposition: ' . $disposition . '; filename="' . str_replace('"', '\\"', $name) . '"');
-header('Content-Length: ' . strlen($row['attachment_blob']));
-header('Cache-Control: no-cache');
-header('X-Content-Type-Options: nosniff');
-echo $row['attachment_blob'];
-exit;
+sendFileDownload($row['attachment_blob'], $name, $mime, $disposition);

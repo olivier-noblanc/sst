@@ -6,20 +6,12 @@
  * Only used in DEV_MODE.
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('login'));
-}
+validatePostRequest(url('login'));
 
 $username = trim($_POST['username'] ?? '');
 
 if (empty($username)) {
     setFlash('error', 'Veuillez saisir un nom d\'utilisateur.');
-    redirect(url('login'));
-}
-
-// Validate CSRF token (prevent login CSRF)
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Token de sécurité invalide. Veuillez réessayer.');
     redirect(url('login'));
 }
 
@@ -41,7 +33,6 @@ if ($user) {
     // Redirect to intended URL if set, otherwise home
     $intendedUrl = $_SESSION['intended_url'] ?? url('home');
     unset($_SESSION['intended_url']);
-    require_once __DIR__ . '/../src/audit.php';
     $pdo = $pdo ?? getDB();
     auditLog($pdo, 'auth', 'login', 'Connexion : ' . $user['prenom'] . ' ' . $user['nom'], (int) $user['id'], 'user', ['username' => $user['username']]);
     setFlash('success', 'Bienvenue, ' . $user['prenom'] . ' ' . $user['nom'] . ' !');

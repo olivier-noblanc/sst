@@ -8,19 +8,7 @@
  * Access: superviseur only.
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('settings', ['tab' => 'smtp']));
-}
-
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Jeton CSRF invalide. Actualisez la page.');
-    redirect(url('settings', ['tab' => 'smtp']));
-}
-
-if (!hasRole('superviseur')) {
-    setFlash('error', 'Accès refusé.');
-    redirect(url('settings', ['tab' => 'smtp']));
-}
+validatePostRequest(url('settings', ['tab' => 'smtp']), ['superviseur']);
 
 // ── Parameters ────────────────────────────────────────────────────────────────
 

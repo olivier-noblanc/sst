@@ -69,7 +69,7 @@ if ($changelogExists) {
     <div class="alert alert--warning">
         <p>Le fichier CHANGELOG.md est introuvable. Veuillez vérifier que le fichier est présent à la racine de l'application.</p>
         <?php if (DEV_MODE): ?>
-        <details style="margin-top:0.5rem;font-size:0.85em;color:var(--grey-600);">
+        <details class="changelog-details">
             <summary>Chemins testés (mode dev)</summary>
             <ul>
                 <?php foreach ($candidatePaths as $p): ?>

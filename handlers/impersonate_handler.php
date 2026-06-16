@@ -4,7 +4,7 @@
  *
  * POST handler: switch the current user's role to agent or chsct (impersonation),
  * or restore their real role.
- * Access: superviseur only
+ * Access: superviseur only (checked inline — custom logic)
  *
  * Security:
  *   - Only superviseurs can impersonate
@@ -14,15 +14,7 @@
  *   - Impersonation only changes the session, not the database
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('home'));
-}
-
-// Validate CSRF token
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
-    redirect(url('home'));
-}
+validatePostRequest(url('home'));
 
 // Must be authenticated
 if (!isset($_SESSION['user'])) {
@@ -63,7 +55,6 @@ if ($action === 'start') {
     $_SESSION['impersonated_role'] = $targetRole;
 
     // Audit log
-    require_once __DIR__ . '/../src/audit.php';
     $pdo = getDB();
     auditLog($pdo, 'auth', 'impersonate_start', 'Incarnation du rôle ' . (ROLE_LABELS[$targetRole] ?? $targetRole), null, 'user', [
         'real_role'  => $_SESSION['real_role'],
@@ -90,7 +81,6 @@ if ($action === 'stop') {
     unset($_SESSION['impersonated_role']);
 
     // Audit log
-    require_once __DIR__ . '/../src/audit.php';
     $pdo = getDB();
     auditLog($pdo, 'auth', 'impersonate_stop', 'Fin d\'incarnation du rôle ' . (ROLE_LABELS[$impersonatedRole] ?? $impersonatedRole) . ' — retour au rôle ' . (ROLE_LABELS[$realRole] ?? $realRole), null, 'user', [
         'real_role'  => $realRole,

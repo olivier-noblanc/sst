@@ -22,7 +22,6 @@ $pageTitle = 'Export des données';
 
 <h1 class="page-title">Export des données</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="card">
     <p class="text-muted mb-4">

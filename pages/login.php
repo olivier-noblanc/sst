@@ -9,13 +9,7 @@
  * This form exists ONLY for local development testing.
  */
 
-// === Remove X-Powered-By (PHP version disclosure) ===
-header_remove('X-Powered-By');
-
-// === Remove unwanted headers (Server version, deprecated Expires/Pragma) ===
-header_remove('Server');
-header_remove('Expires');
-header_remove('Pragma');
+// Headers already cleaned by removeUnwantedHeaders() in index.php bootstrap
 
 // === Cache-Control: no-cache for this dynamic page ===
 header('Cache-Control: no-cache');

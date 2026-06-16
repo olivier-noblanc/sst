@@ -6,21 +6,7 @@
  * Access: superviseur only
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('home'));
-}
-
-// Validate CSRF token
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
-    redirect(url('home'));
-}
-
-// Check role
-if (!hasRole('superviseur')) {
-    setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
-    redirect(url('home'));
-}
+validatePostRequest(url('home'), ['superviseur']);
 
 $reportUuid = trim($_POST['report_uuid'] ?? '');
 if ($reportUuid === '' || !isValidUuid($reportUuid)) {
@@ -73,7 +59,6 @@ $result = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
 
 if ($result['status'] === 'true') {
     // Audit log
-    require_once __DIR__ . '/../src/audit.php';
     auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . $report['reference'] . ' — état : ' . $nouvelEtat, (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
 
     // Notify declarant about the response (non-blocking — errors are logged, not shown to user)

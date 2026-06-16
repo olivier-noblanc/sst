@@ -92,7 +92,6 @@ $pageTitle = 'Statistiques';
 
 <h1 class="page-title">Statistiques</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <!-- Year filter -->
 <form method="GET" action="<?php echo url('statistics'); ?>" class="filter-bar">
@@ -173,7 +172,7 @@ $pageTitle = 'Statistiques';
 
 <!-- RAMI: Répartition par nature de l'auteur et type d'acte -->
 <?php if (!empty($ramiStats['by_nature_auteur']) || !empty($ramiStats['by_type_acte'])): ?>
-<div class="card" style="margin-top: 1.5rem;">
+<div class="card card--mt">
     <h3 class="card__title">RAMI — Répartition par nature de l'auteur et type d'acte</h3>
     <p class="text-muted text-small">Statistiques sur les signalements RAMI ayant renseigné les champs « Nature de l'auteur » et « Type d'acte ».</p>
     <div class="help-profiles-grid">

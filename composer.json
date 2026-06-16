@@ -3,6 +3,20 @@
     "description": "Application SST DREETS Bourgogne-Franche-Comté",
     "type": "project",
     "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^11"
+    },
+    "autoload": {
+        "files": [
+            "src/config.php",
+            "src/helpers.php",
+            "src/queries/user_queries.php",
+            "src/queries/report_queries.php",
+            "src/queries/site_queries.php",
+            "src/queries/stats_queries.php",
+            "src/user_context.php"
+        ]
+    },
     "config": {
         "vendor-dir": "vendor"
     }

@@ -36,7 +36,6 @@ $pageTitle = 'Éditer le site — ' . e($site['code'] . ' ' . $site['nom']);
 
 <h1 class="page-title">Éditer le site</h1>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="card">
     <form method="POST" action="<?php echo url('site_edit', ['id' => $siteId]); ?>">

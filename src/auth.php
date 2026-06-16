@@ -108,11 +108,9 @@ function findOrCreateUser(string $username): ?array {
     $pdo = getDB();
 
     // Look up existing user (including deactivated — they may need reactivation)
+    require_once __DIR__ . '/queries/user_queries.php';
     $stmt = $pdo->prepare(
-        'SELECT u.*, s.code as site_code, s.nom as site_nom 
-         FROM users u 
-         LEFT JOIN sites s ON u.site_id = s.id 
-         WHERE u.username = :username'
+        userSelectWithSite() . ' WHERE u.username = :username'
     );
     $stmt->execute([':username' => $username]);
     $user = $stmt->fetch();
@@ -168,10 +166,7 @@ function autoProvisionUser(PDO $pdo, string $username): ?array {
 
     $userId = (int) $pdo->lastInsertId();
     $stmt = $pdo->prepare(
-        'SELECT u.*, s.code as site_code, s.nom as site_nom 
-         FROM users u 
-         LEFT JOIN sites s ON u.site_id = s.id 
-         WHERE u.id = :id'
+        userSelectWithSite() . ' WHERE u.id = :id'
     );
     $stmt->execute([':id' => $userId]);
     $user = $stmt->fetch();

@@ -75,7 +75,6 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
     <span class="breadcrumb__current"><?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?></span>
 </nav>
 
-<?php require __DIR__ . '/../templates/alert.php'; ?>
 
 <div class="filter-bar">
     <form method="GET" action="index.php" class="flex flex-wrap gap-4 items-center w-full">

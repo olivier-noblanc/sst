@@ -1,0 +1,159 @@
+<?php
+/**
+ * Settings Tab: Paramètres de l'application
+ *
+ * Variables attendues: $csrfToken
+ */
+?>
+<form method="POST" action="<?php echo url('settings'); ?>">
+    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+    <input type="hidden" name="tab" value="app">
+
+    <div class="card">
+        <h3 class="card__title">&#x2699;&#xFE0F; Paramètres de l'application</h3>
+        <p class="text-muted text-small mb-5">Configurez les paramètres généraux de l'application.</p>
+
+        <div class="form-group">
+            <label>Version de l'application</label>
+            <div class="form-control-readonly"><?php echo e(getAppVersion()); ?></div>
+            <small class="text-muted block mt-1" id="hint_app_version">
+                La version est lue automatiquement depuis le fichier CHANGELOG.md. 
+                Pour la modifier, mettez à jour la première entrée du changelog.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="app_nom_organisation">Nom de l'organisation</label>
+            <input type="text" id="app_nom_organisation" name="app_nom_organisation" class="form-control"
+                   value="<?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?>"
+                   placeholder="DREETS BFC">
+        </div>
+
+        <div class="form-group">
+            <label for="app_nom_complet">Nom complet</label>
+            <input type="text" id="app_nom_complet" name="app_nom_complet" class="form-control"
+                   value="<?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>"
+                   placeholder="DREETS Bourgogne-Franche-Comté">
+        </div>
+
+        <div class="form-group">
+            <label for="app_label_unite">Libellé des unités</label>
+            <input type="text" id="app_label_unite" name="app_label_unite" class="form-control"
+                   value="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"
+                   placeholder="UR">
+            <small class="text-muted block mt-1">
+                Exemple : UR, UD, Direction... Ce libellé est utilisé partout dans l'application.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="app_superviseur_usernames">Logins Windows des superviseurs (liste explicite)</label>
+            <input type="text" id="app_superviseur_usernames" name="app_superviseur_usernames" class="form-control"
+                   value="<?php echo e(getConfig('app_superviseur_usernames', '')); ?>"
+                   placeholder="jean.martin, sophie.dupont">
+            <small class="text-muted block mt-1">
+                Séparés par des virgules. Ces utilisateurs seront automatiquement promus <strong>Superviseur</strong>
+                immédiatement (dès la prochaine page consultée). Utile pour désigner les premiers
+                superviseurs sans avoir à passer par la base de données.
+            </small>
+        </div>
+
+        <div class="separator">
+            <h4 class="card__subtitle">&#x1F512; Délégué à la Protection des Données (DPO)</h4>
+            <p class="text-muted text-small mb-3">Les coordonnées du DPO sont affichées dans la mention RGPD du <a href="<?php echo url('preamble'); ?>">Préambule</a>, conformément à l'article 13 du RGPD.</p>
+            <div class="form-group">
+                <label for="app_dpo_contact">Contact DPO</label>
+                <input type="text" id="app_dpo_contact" name="app_dpo_contact" class="form-control"
+                       value="<?php echo e(getConfig('app_dpo_contact', '')); ?>"
+                       placeholder="dpo@dreets-bfc.gouv.fr — M. Jean Martin, Délégué à la Protection des Données">
+                <small class="text-muted block mt-1">
+                    Adresse e-mail et/ou nom du DPO. Ce texte apparaît dans la mention d'information RGPD
+                    du Préambule, à la ligne « Contact DPO ». Laissez vide pour afficher le message par défaut.
+                </small>
+            </div>
+        </div>
+
+        <div class="separator">
+            <h4 class="card__subtitle">&#x1F4E7; Administrateur technique</h4>
+            <p class="text-muted text-small mb-3">Les erreurs critiques (Fatal, Parse, etc.) seront automatiquement envoyées par e-mail à cette adresse pour un diagnostic rapide. Laissez vide pour désactiver.</p>
+            <div class="form-group">
+                <label for="app_admin_email">E-mail administrateur technique</label>
+                <input type="email" id="app_admin_email" name="app_admin_email" class="form-control"
+                       value="<?php echo e(getConfig('app_admin_email', '')); ?>"
+                       placeholder="admin.tech@dreets-bfc.gouv.fr">
+                <small class="text-muted block mt-1">
+                    Une même erreur ne déclenche qu'un seul e-mail toutes les 5 minutes pour éviter le spam.
+                    Consultez le <a href="<?php echo url('logs'); ?>">Journal d'erreurs</a> pour voir toutes les entrées.
+                </small>
+            </div>
+        </div>
+
+        <div class="separator">
+            <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du CSA/CHSCT voient toujours tous les signalements.</p>
+
+            <?php
+            $registries = [
+                'rsst' => ['label' => 'RSST — Registre de Santé et Sécurité au Travail', 'default' => 'public', 'legal' => 'Décret n° 82-453 art. 3-2 : registre consultable par tout agent. La transparence est recommandée.'],
+                'rami' => ['label' => 'RAMI — Registre des Agressions, Menaces et Incivilités', 'default' => '', 'legal' => 'Données sensibles (art. 9 RGPD) : le mode confidentiel ou choix de l\'agent est recommandé.'],
+                'dgi'  => ['label' => 'DGI — Danger Grave et Imminent', 'default' => '', 'legal' => 'Articles L4131-1 et D4132-1 du Code du travail : le formalisme du registre spécial peut justifier un mode restrictif.'],
+            ];
+            foreach ($registries as $type => $info):
+                $configKey = 'app_report_visibility_' . $type;
+                $currentValue = getConfig($configKey, '');
+                // Fallback to global if per-registry key is empty
+                if ($currentValue === '') {
+                    $currentValue = getConfig('app_report_visibility', 'agent_choice');
+                }
+                $currentValue = normalizeVisibilityValue($currentValue);
+            ?>
+            <fieldset class="form-group visibility-radios" id="visibility-radios-<?php echo e($type); ?>">
+                <legend class="visibility-legend"><?php echo e($info['label']); ?></legend>
+                <div class="visibility-radios">
+                    <label class="visibility-radio-label">
+                        <input type="radio" name="<?php echo e($configKey); ?>" value="confidential"
+                               <?php echo $currentValue === 'confidential' ? 'checked' : ''; ?>>
+                        <div>
+                            <strong>Confidentiel</strong> <span class="text-muted text-small">(le plus restrictif)</span>
+                            <div class="text-muted text-small mt-2px">L'agent ne voit que ses propres signalements.</div>
+                        </div>
+                    </label>
+                    <label class="visibility-radio-label">
+                        <input type="radio" name="<?php echo e($configKey); ?>" value="agent_choice"
+                               <?php echo $currentValue === 'agent_choice' ? 'checked' : ''; ?>>
+                        <div>
+                            <strong>Choix de l'agent</strong> <span class="text-muted text-small">(confidentiel par défaut)</span>
+                            <div class="text-muted text-small mt-2px">L'agent choisit la visibilité de chaque signalement. Par défaut confidentiel.</div>
+                        </div>
+                    </label>
+                    <label class="visibility-radio-label">
+                        <input type="radio" name="<?php echo e($configKey); ?>" value="public"
+                               <?php echo $currentValue === 'public' ? 'checked' : ''; ?>>
+                        <div>
+                            <strong>Visibilité publique</strong>
+                            <div class="text-muted text-small mt-2px">Tous les signalements du site sont visibles par tous les agents du site.</div>
+                        </div>
+                    </label>
+                </div>
+                <?php if ($type === 'rsst' && $currentValue !== 'public'): ?>
+                <div class="info-panel agent-visibility-warning info-panel--warning">
+                    &#x26A0;&#xFE0F; <strong>Avertissement réglementaire :</strong> Le décret n° 82-453 art. 3-2 prévoit que le RSST est tenu à la disposition de l'ensemble des agents. Un mode restrictif peut ne pas être conforme à cette obligation de transparence.
+                </div>
+                <?php endif; ?>
+                <div class="info-panel info-panel--info">
+                    &#x2139;&#xFE0F; <?php echo e($info['legal']); ?>
+                </div>
+            </fieldset>
+            <?php endforeach; ?>
+
+            <div class="info-panel agent-visibility-warning">
+                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du CSA/CHSCT voient tous les signalements, y compris les confidentiels.
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn--success">Enregistrer les modifications</button>
+        <a href="<?php echo url('settings', ['tab' => 'app']); ?>" class="btn btn--outline">Annuler</a>
+    </div>
+</form>

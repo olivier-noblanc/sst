@@ -6,16 +6,7 @@
  * The choice is irreversible for the agent.
  */
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect(url('choose_site'));
-}
-
-// Validate CSRF token
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
-    setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
-    session_write_close();
-    redirect(url('choose_site'));
-}
+validatePostRequest(url('choose_site'));
 
 // Only allow if user has no site yet
 if (!empty($_SESSION['user']['site_id'])) {
@@ -53,10 +44,7 @@ $stmt->execute([':site_id' => $siteId, ':id' => $userId]);
 
 // Re-read the user from DB to get the authoritative state
 $stmt = $pdo->prepare(
-    'SELECT u.*, s.code as site_code, s.nom as site_nom 
-     FROM users u 
-     LEFT JOIN sites s ON u.site_id = s.id 
-     WHERE u.id = :id'
+    userSelectWithSite() . ' WHERE u.id = :id'
 );
 $stmt->execute([':id' => $userId]);
 $updatedUser = $stmt->fetch();

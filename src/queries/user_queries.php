@@ -6,6 +6,20 @@
  */
 
 /**
+ * Base SELECT for user queries with site JOIN.
+ * Centralises the "SELECT u.*, s.code as site_code, s.nom as site_nom
+ * FROM users u LEFT JOIN sites s ON u.site_id = s.id" pattern
+ * that was duplicated across auth.php, index.php, and this file.
+ *
+ * @return string  SQL fragment (SELECT ... FROM ... LEFT JOIN ...)
+ */
+function userSelectWithSite(): string {
+    return "SELECT u.*, s.code as site_code, s.nom as site_nom
+            FROM users u
+            LEFT JOIN sites s ON u.site_id = s.id";
+}
+
+/**
  * Get a user by their username.
  * 
  * @param PDO    $pdo       Database connection
@@ -13,12 +27,9 @@
  * @return array|null
  */
 function getUserByUsername(PDO $pdo, string $username): ?array {
-    $stmt = $pdo->prepare("
-        SELECT u.*, s.code as site_code, s.nom as site_nom
-        FROM users u
-        LEFT JOIN sites s ON u.site_id = s.id
-        WHERE u.username = :username AND u.is_active = 1
-    ");
+    $stmt = $pdo->prepare(
+        userSelectWithSite() . " WHERE u.username = :username AND u.is_active = 1"
+    );
     $stmt->execute([':username' => $username]);
     $result = $stmt->fetch();
     return $result ?: null;
@@ -32,12 +43,9 @@ function getUserByUsername(PDO $pdo, string $username): ?array {
  * @return array|null
  */
 function getUserById(PDO $pdo, int $id): ?array {
-    $stmt = $pdo->prepare("
-        SELECT u.*, s.code as site_code, s.nom as site_nom
-        FROM users u
-        LEFT JOIN sites s ON u.site_id = s.id
-        WHERE u.id = :id
-    ");
+    $stmt = $pdo->prepare(
+        userSelectWithSite() . " WHERE u.id = :id"
+    );
     $stmt->execute([':id' => $id]);
     $result = $stmt->fetch();
     return $result ?: null;
@@ -52,12 +60,7 @@ function getUserById(PDO $pdo, int $id): ?array {
  * @return array
  */
 function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array {
-    $sql = "
-        SELECT u.*, s.code as site_code, s.nom as site_nom
-        FROM users u
-        LEFT JOIN sites s ON u.site_id = s.id
-        WHERE 1=1
-    ";
+    $sql = userSelectWithSite() . " WHERE 1=1";
     $params = [];
 
     if ($active) {

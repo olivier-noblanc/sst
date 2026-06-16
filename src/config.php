@@ -11,7 +11,7 @@ define('APP_NAME', 'Application SST — DREETS BFC');
 // This constant is only used if the changelog file is unreadable.
 // To change the displayed version, add a new entry at the top of CHANGELOG.md.
 // IMPORTANT: Keep this in sync with the latest CHANGELOG.md entry as a safety net.
-define('APP_VERSION', '3.13.0');
+define('APP_VERSION', '3.14.0');
 define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
 // Environment configuration:

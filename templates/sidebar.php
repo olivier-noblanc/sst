@@ -81,6 +81,10 @@ $menuItems = [
     </ul>
 
     <div class="sidebar__footer">
+        <a href="<?php echo url('guide'); ?>" class="sidebar__item<?php echo $currentPage === 'guide' ? ' sidebar__item--active' : ''; ?>">
+            <span class="sidebar__icon" aria-hidden="true">&#128196;</span>
+            Guide rapide
+        </a>
         <a href="<?php echo url('help'); ?>" class="sidebar__item<?php echo $currentPage === 'help' ? ' sidebar__item--active' : ''; ?>">
             <span class="sidebar__icon" aria-hidden="true">&#128218;</span>
             Documentation

@@ -51,6 +51,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <span class="badge badge--en-cours">En cours</span> <span class="welcome-banner__legend-text">Prise en charge par un superviseur</span>
             <span class="badge badge--traite">Traité</span> <span class="welcome-banner__legend-text">Signalement clôturé</span>
         </div>
+        <a href="<?php echo url('guide'); ?>" class="welcome-banner__link">Guide rapide — Comment signaler en 3 étapes</a>
         <a href="<?php echo url('help'); ?>" class="welcome-banner__link">Consulter la documentation</a>
     </div>
 </div>

@@ -135,6 +135,7 @@ try {
     }
 
     setFlash('success', 'Signalement enregistré avec la référence ' . e($newReport['reference']));
+    $_SESSION['report_created'] = true;
     redirect(url('report_view', ['uuid' => $newUuid]));
 } catch (Exception $e) {
     error_log('[SST-DB] report_create failed: ' . $e->getMessage());

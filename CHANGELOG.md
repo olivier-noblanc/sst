@@ -16,13 +16,15 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **4** 🟡 **Cibles tactiles agrandies (44px min)** — Boutons (`.btn`), champs de formulaire (`input`, `select`, `textarea`) passent de 32-36px à 44px de hauteur minimale, conformément aux recommandations WCAG 2.5.8. Taille de police augmentée de 14→15px pour les boutons, inputs et la navigation sidebar.
 - **5** 🟡 **Texte d'aide et erreurs plus lisibles** — `.form-hint` passe de 12px gris clair à 13px gris plus foncé (`--grey-600`). `.form-error` passe de 12px à 14px avec `font-weight: 500` pour une meilleure visibilité.
 - **6** 🟢 **Vocabulaire simplifié** — « Inscrire un signalement » remplacé par « Signaler un événement » (plus direct, plus naturel). « Valider son signalement » remplacé par « Envoyer le signalement ». Mise à jour dans home.php, report_form.php, report_create.php, router.php, SPEC.md, help.php, report_list.php et les tests E2E.
+- **7** 🟡 **Bannière de confirmation verte après envoi** — Après la création d'un signalement, une grande bannière verte s'affiche sur la page de consultation avec la référence, un message rassurant (« Un superviseur va le prendre en charge »), et deux boutons : « Retour à l'accueil » et « Voir mes signalements ». Remplace le petit flash discret.
+- **8** 🟢 **Guide rapide imprimable (page A4)** — Nouvelle page `index.php?page=guide` avec les 3 étapes illustrées par des captures d'écran : 1) Choisir le registre, 2) Remplir le formulaire, 3) Envoyer. Bouton « Imprimer ce guide » avec CSS `@media print`. Lien ajouté dans la sidebar et la bannière de bienvenue.
 
 ### Tests — Adaptation E2E
 
-- **7** 🟡 **`forms.spec.js` — Validation serveur via POST direct** — Les tests de validation de formulaire contournaient le HTML5 via `novalidate` (retiré). Remplacement par des requêtes POST directes avec `page.request.post()` et `maxRedirects: 0` pour tester la validation côté serveur sans dépendre du navigateur.
-- **8** 🟡 **`onboarding.spec.js` — Texte période de grâce** — Le test vérifiait `/définitif/` dans le danger-panel, remplacé par `/7 jours/` suite à l'ajout de la période de grâce de 7 jours.
-- **9** 🟡 **`version-changelog.spec.js` — Regex version** — Remplacement de `/3\.1[0-9]\.\d+/` par `/3\.\d+\.\d+/` pour supporter les versions 3.20+.
-- **10** 🟢 **`reports.spec.js` + `navigation-flows.spec.js` — Vocabulaire « Signaler »** — Mise à jour des sélecteurs `:has-text("Inscrire")` en `:has-text("Signaler")` suite au changement de vocabulaire.
+- **9** 🟡 **`forms.spec.js` — Validation serveur via POST direct** — Les tests de validation de formulaire contournaient le HTML5 via `novalidate` (retiré). Remplacement par des requêtes POST directes avec `page.request.post()` et `maxRedirects: 0` pour tester la validation côté serveur sans dépendre du navigateur.
+- **10** 🟡 **`onboarding.spec.js` — Texte période de grâce** — Le test vérifiait `/définitif/` dans le danger-panel, remplacé par `/7 jours/` suite à l'ajout de la période de grâce de 7 jours.
+- **11** 🟡 **`version-changelog.spec.js` — Regex version** — Remplacement de `/3\.1[0-9]\.\d+/` par `/3\.\d+\.\d+/` pour supporter les versions 3.20+.
+- **12** 🟢 **`reports.spec.js` + `navigation-flows.spec.js` — Vocabulaire « Signaler »** — Mise à jour des sélecteurs `:has-text("Inscrire")` en `:has-text("Signaler")` suite au changement de vocabulaire.
 
 ## [3.20.0] — 2026-06-17
 

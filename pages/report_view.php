@@ -42,6 +42,31 @@ $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType
 ]); ?>
 
 <?php
+// Big confirmation banner after report creation
+$justCreated = !empty($_SESSION['report_created']);
+unset($_SESSION['report_created']);
+if ($justCreated):
+?>
+<div class="confirmation-banner" role="status" aria-live="polite">
+    <div class="confirmation-banner__icon" aria-hidden="true">&#x2705;</div>
+    <div class="confirmation-banner__content">
+        <h2 class="confirmation-banner__title">Signalement bien enregistré !</h2>
+        <p class="confirmation-banner__text">
+            Votre signalement <strong><?php echo e($report['reference']); ?></strong> a été enregistré dans le registre <?php echo e($reportShortLabel); ?>.
+            Un superviseur va le prendre en charge.
+        </p>
+        <p class="confirmation-banner__text">
+            Vous pouvez consulter son état à tout moment depuis la liste des signalements.
+        </p>
+        <div class="confirmation-banner__actions">
+            <a href="<?php echo url('home'); ?>" class="btn btn--primary">Retour à l'accueil</a>
+            <a href="<?php echo url('report_list', ['type' => $reportType]); ?>" class="btn btn--outline">Voir mes signalements</a>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php
 // Previous/Next navigation for the same registry list
 $adjacent = getAdjacentReportUuids($pdo, $report);
 ?>

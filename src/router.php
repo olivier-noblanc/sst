@@ -20,7 +20,7 @@
  */
 function getValidPages(): array {
     return [
-        'home', 'preamble', 'help', 'changelog', 'access_denied', 'choose_site',
+        'home', 'preamble', 'help', 'guide', 'changelog', 'access_denied', 'choose_site',
         'report_create', 'report_list', 'report_view', 'report_edit',
         'report_print', 'report_attachment', 'report_abandon', 'report_respond', 'report_reopen',
         'synthesis', 'export', 'statistics',
@@ -101,6 +101,7 @@ function getPageTitle(string $page): string {
         'home'            => 'Accueil',
         'preamble'        => 'Préambule',
         'help'            => 'Documentation',
+        'guide'           => 'Guide rapide — Comment signaler',
         'changelog'       => 'Historique des modifications',
         'choose_site'     => 'Choisir mon site',
         'report_create'   => 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$_GET['type'] ?? ''] ?? ''),

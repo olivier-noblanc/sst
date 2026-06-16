@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     email           TEXT,                            -- Email address
     role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent'|'superviseur'|'chsct'
     site_id         INTEGER,                         -- FK to sites (NULL until agent chooses on first login)
+    site_chosen_at  TEXT,                            -- When the agent first chose their site (for 7-day grace period)
     is_active       INTEGER NOT NULL DEFAULT 1,      -- Soft delete: 0 = deactivated
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
@@ -235,3 +236,23 @@ CREATE TABLE IF NOT EXISTS report_access_log (
 CREATE INDEX IF NOT EXISTS idx_report_access_log_report_uuid ON report_access_log(report_uuid);
 CREATE INDEX IF NOT EXISTS idx_report_access_log_user_id ON report_access_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_report_access_log_accessed_at ON report_access_log(accessed_at);
+
+-- ============================================================
+-- Table: report_state_history
+-- Audit trail for report state transitions (especially reopening).
+-- Required for legal compliance (Code du travail D4132-1, L4711-3).
+-- ============================================================
+CREATE TABLE IF NOT EXISTS report_state_history (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_uuid     TEXT NOT NULL,                    -- FK to reports(uuid)
+    etat_precedent  TEXT NOT NULL,                    -- Previous state
+    etat_suivant    TEXT NOT NULL,                    -- New state
+    user_id         INTEGER NOT NULL,                 -- FK to users (who triggered the transition)
+    motif           TEXT,                             -- Reason for transition (required for reopening)
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_state_history_report ON report_state_history(report_uuid);
+CREATE INDEX IF NOT EXISTS idx_state_history_created ON report_state_history(created_at);

@@ -28,7 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: '/home/z/my-project/tmp/php-root/usr/bin/php8.4 -c /home/z/my-project/tmp/php.ini -S 127.0.0.1:8850 /home/z/my-project/sst/public/router.php',
+    command: '/home/z/my-project/tools/php/bin/php -d session.auto_start=0 -d display_errors=1 -S 127.0.0.1:8850 /home/z/my-project/sst/public/router.php',
     port: 8850,
     reuseExistingServer: true,
     timeout: 10000,

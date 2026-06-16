@@ -20,6 +20,17 @@ class ReportQueriesTest extends TestCase
     {
         self::$pdo = getDB();
 
+        // Clean tables to avoid UNIQUE constraint conflicts with shared in-memory DB
+        self::$pdo->exec('PRAGMA foreign_keys = OFF');
+        self::$pdo->exec('DELETE FROM report_access_log');
+        self::$pdo->exec('DELETE FROM report_state_history');
+        self::$pdo->exec('DELETE FROM report_responses');
+        self::$pdo->exec('DELETE FROM reports');
+        self::$pdo->exec('DELETE FROM users');
+        self::$pdo->exec('DELETE FROM sites');
+        self::$pdo->exec('DELETE FROM config_app');
+        self::$pdo->exec('PRAGMA foreign_keys = ON');
+
         // Seed: one site
         self::$pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UR21', 'UR Côte-d''Or', 1)");
         self::$siteId = (int) self::$pdo->lastInsertId();
@@ -34,8 +45,13 @@ class ReportQueriesTest extends TestCase
     public function testReportSelectWithSiteReturnsSql(): void
     {
         $sql = reportSelectWithSite();
-        $this->assertStringContainsString('SELECT r.*, s.code as site_code, s.nom as site_nom', $sql);
+        // After v3.19.0: explicit column selection instead of r.* (BLOB excluded from list queries)
+        $this->assertStringContainsString('r.uuid', $sql);
+        $this->assertStringContainsString('s.code as site_code', $sql);
+        $this->assertStringContainsString('s.nom as site_nom', $sql);
         $this->assertStringContainsString('LEFT JOIN sites s', $sql);
+        // Ensure BLOB is NOT included in list queries
+        $this->assertStringNotContainsString('r.attachment_blob', $sql);
     }
 
     // ─── createReport() ────────────────────────────────────────────────────

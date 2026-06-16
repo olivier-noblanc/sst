@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.16.1] — 2026-06-16
+
+### Correction — Onglets Notifications vides dans Paramètres (incohérence de nommage)
+
+- **1** 🔴 **`pages/settings/tab_notifications_sites.php` → `tab_sites.php`** — L'onglet « Notifications par site » (`tab=sites`) apparaissait vide car `settings.php` construit le chemin du sous-template comme `tab_{$activeTab}.php`, donc il cherchait `tab_sites.php` mais le fichier s'appelait `tab_notifications_sites.php`. Le `file_exists()` échouait silencieusement et aucun contenu n'était rendu. Renommage pour respecter la convention des autres onglets (`tab_smtp.php`, `tab_app.php`, `tab_manage_sites.php`).
+- **2** 🔴 **`pages/settings/tab_notifications_global.php` → `tab_global.php`** — Même cause pour l'onglet « Notifications globales » (`tab=global`) : le fichier cherché était `tab_global.php` mais le fichier existant s'appelait `tab_notifications_global.php`.
+- **3** 🔴 **`e2e/settings.spec.js` — 6 tests E2E ajoutés pour le contenu des onglets notifications** — Les tests existants ne vérifiaient que la navigation (changement d'URL, classe active sur l'onglet) sans jamais contrôler que le contenu du formulaire était rendu. Les nouveaux tests vérifient la présence du formulaire (`#settingsForm`), des textareas (`site_emails[*]`, `#global_emails`), du bouton de soumission et du texte d'aide. Cette lacune explique pourquoi le bug n'a pas été détecté : les tests validaient le voyage, pas la destination.
+- **4** 🟡 **`tests/unit/NotificationQueriesTest.php` — 10 tests PHPUnit pour les requêtes de notification** — Couverture de `getNotificationSettings()`, `saveNotificationSetting()`, `deleteNotificationSetting()`, `getSiteNotificationEmails()`, `getGlobalNotificationEmails()`, `deleteNotificationSettingsByType()`, et une simulation intégrée du flux de données exact de `settings.php` (organisation des résultats en `$siteEmails` / `$globalEmails`).
+
 ## [3.16.0] — 2026-06-16
 
 ### Sécurité — `display_errors` par environnement + page d'erreur production

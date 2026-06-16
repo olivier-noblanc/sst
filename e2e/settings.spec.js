@@ -83,6 +83,72 @@ test.describe('Settings Page — Tab Navigation', () => {
 
 });
 
+test.describe('Settings — Per-Site Notifications Tab', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await loginAs(page);
+  });
+
+  test('should render notification form with textareas for each site', async ({ page }) => {
+    await page.goto('/index.php?page=settings&tab=sites');
+
+    // The tab content must include at least one form with textarea
+    const form = page.locator('#settingsForm');
+    await expect(form).toBeVisible();
+
+    // Each site card should have a textarea for emails
+    const textareas = page.locator('textarea[name^="site_emails["]');
+    await expect(textareas.first()).toBeVisible();
+  });
+
+  test('should have submit button on sites notification tab', async ({ page }) => {
+    await page.goto('/index.php?page=settings&tab=sites');
+
+    await expect(page.locator('button:has-text("Enregistrer les modifications")')).toBeVisible();
+  });
+
+  test('should display site cards with badges on sites notification tab', async ({ page }) => {
+    await page.goto('/index.php?page=settings&tab=sites');
+
+    const cards = page.locator('.card');
+    await expect(cards.first()).toBeVisible();
+    // Each card should have a site code badge
+    const badges = page.locator('.card .badge');
+    await expect(badges.first()).toBeVisible();
+  });
+
+});
+
+test.describe('Settings — Global Notifications Tab', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await loginAs(page);
+  });
+
+  test('should render global notification form with textarea', async ({ page }) => {
+    await page.goto('/index.php?page=settings&tab=global');
+
+    // The tab content must include the form with global emails textarea
+    const form = page.locator('#settingsForm');
+    await expect(form).toBeVisible();
+
+    await expect(page.locator('#global_emails')).toBeVisible();
+  });
+
+  test('should have submit button on global notification tab', async ({ page }) => {
+    await page.goto('/index.php?page=settings&tab=global');
+
+    await expect(page.locator('button:has-text("Enregistrer les modifications")')).toBeVisible();
+  });
+
+  test('should display help text for global emails', async ({ page }) => {
+    await page.goto('/index.php?page=settings&tab=global');
+
+    await expect(page.locator('#hint_global_emails')).toBeVisible();
+  });
+
+});
+
 test.describe('Settings — Site Management Tab', () => {
 
   test.beforeEach(async ({ page }) => {

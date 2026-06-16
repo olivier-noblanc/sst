@@ -8,7 +8,7 @@
 $type = $_GET['type'] ?? '';
 
 // Validate type
-if (!in_array($type, ['rsst', 'rami', 'dgi'])) {
+if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {
     setFlash('error', 'Type de registre invalide.');
     redirect(url('home'));
 }

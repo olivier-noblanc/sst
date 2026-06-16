@@ -168,29 +168,44 @@ function getRealRole(): ?string {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Generate a CSRF token and store it in the session.
- * Returns the token value for inclusion in forms.
- * 
+ * Generate a unique per-form CSRF token and store it in the session.
+ * Each call produces a new token; multiple tokens can be valid simultaneously
+ * (one per open form/tab). Tokens are one-time use — see validateCsrfToken().
+ *
+ * Garbage collection keeps only the last 20 tokens to prevent session bloat.
+ *
  * @return string
  */
 function generateCsrfToken(): string {
-    if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    startSession();
+    $token = bin2hex(random_bytes(32));
+    if (!isset($_SESSION['csrf_tokens'])) {
+        $_SESSION['csrf_tokens'] = [];
     }
-    return $_SESSION['csrf_token'];
+    $_SESSION['csrf_tokens'][$token] = time();
+    // Garbage collection: keep only last 20 tokens
+    if (count($_SESSION['csrf_tokens']) > 20) {
+        $_SESSION['csrf_tokens'] = array_slice($_SESSION['csrf_tokens'], -20, null, true);
+    }
+    return $token;
 }
 
 /**
- * Validate a CSRF token against the session-stored token.
- * 
+ * Validate a CSRF token and consume it (one-time use).
+ * The token is removed from the session after successful validation
+ * so it cannot be replayed.
+ *
  * @param string $token  The token to validate (from form submission)
  * @return bool
  */
 function validateCsrfToken(string $token): bool {
-    if (empty($_SESSION['csrf_token'])) {
+    startSession();
+    if (empty($token) || !isset($_SESSION['csrf_tokens'][$token])) {
         return false;
     }
-    return hash_equals($_SESSION['csrf_token'], $token);
+    // Consume the token (one-time use)
+    unset($_SESSION['csrf_tokens'][$token]);
+    return true;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

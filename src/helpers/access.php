@@ -16,7 +16,7 @@
  */
 function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool {
     // Superviseur/CSA/CHSCT can always see everything
-    if (in_array($user['role'], ['superviseur', 'chsct'], true)) {
+    if (in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
         return true;
     }
 
@@ -54,7 +54,7 @@ function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
     if ((int) $report['is_confidential'] !== 1) {
         return;
     }
-    if (!in_array($user['role'], ['superviseur', 'chsct'], true)) {
+    if (!in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
         return;
     }
     if ((int) $report['declarant_id'] === (int) $user['id']) {
@@ -84,7 +84,7 @@ function canSeeAllSites(): bool {
     if (empty($role)) {
         return false;
     }
-    return in_array($role, ['superviseur', 'chsct']);
+    return in_array($role, [ROLE_SUPERVISEUR, ROLE_CHSCT]);
 }
 
 /**
@@ -126,15 +126,10 @@ function getReportVisibilityMode(?string $type = null): string {
  */
 function getReportVisibility(?string $type = null): string {
     $role = currentUserRole();
-    if (empty($role) || $role !== 'agent') {
+    if (empty($role) || $role !== ROLE_AGENT) {
         return 'all';
     }
     return getReportVisibilityMode($type);
-}
-
-/** @deprecated Use getReportVisibility() instead */
-function getAgentVisibility(): string {
-    return getReportVisibility();
 }
 
 function reportVisibilityIsConfidential(?string $type = null): bool {
@@ -147,16 +142,6 @@ function reportVisibilityIsAgentChoice(?string $type = null): bool {
 
 function reportVisibilityIsPublic(?string $type = null): bool {
     return getReportVisibilityMode($type) === 'public';
-}
-
-/** @deprecated */
-function agentVisibilityIsConfidential(): bool {
-    return in_array(getReportVisibilityMode(), ['confidential', 'agent_choice']);
-}
-
-/** @deprecated */
-function agentVisibilityIsPublic(): bool {
-    return getReportVisibilityMode() === 'public';
 }
 
 // ============================================================================
@@ -175,7 +160,7 @@ function agentVisibilityIsPublic(): bool {
  */
 function canEditReport(array $report, int $userId): bool {
     $isDeclarant = ((int) $report['declarant_id'] === $userId);
-    return $isDeclarant && in_array($report['etat'], ['nouveau', 'en_cours']);
+    return $isDeclarant && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS]);
 }
 
 /**
@@ -189,5 +174,5 @@ function canEditReport(array $report, int $userId): bool {
  * @return bool
  */
 function canRespondToReport(array $report, string $role): bool {
-    return in_array($role, ['superviseur']) && in_array($report['etat'], ['nouveau', 'en_cours']);
+    return in_array($role, [ROLE_SUPERVISEUR]) && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS]);
 }

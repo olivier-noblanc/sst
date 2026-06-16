@@ -201,6 +201,18 @@ function mockLogin(string $username): ?array {
 }
 
 /**
+ * Parse a comma-separated superviseur username list into a normalized array.
+ *
+ * Used in multiple places: auth provisioning, promotion checks, and middleware.
+ *
+ * @param string $list  Comma-separated username list (e.g. "jean.martin, sophie.dupont")
+ * @return array        Lowercased, trimmed array of usernames
+ */
+function parseSuperviseurUsernames(string $list): array {
+    return array_map('trim', explode(',', strtolower($list)));
+}
+
+/**
  * Determine the role for a newly provisioned user.
  * 
  * Mechanism: if username is in 'app_superviseur_usernames' (comma-separated),
@@ -218,13 +230,12 @@ function determineProvisionRole(PDO $pdo, string $username): string {
     // Check superviseur username list
     $superviseurUsernames = getConfig('app_superviseur_usernames', '');
     if (!empty($superviseurUsernames)) {
-        // Comma-separated list: "jean.martin, sophie.dupont"
-        $users = array_map('trim', explode(',', strtolower($superviseurUsernames)));
+        $users = parseSuperviseurUsernames($superviseurUsernames);
         if (in_array(strtolower($username), $users)) {
-            return 'superviseur';
+            return ROLE_SUPERVISEUR;
         }
     }
-    return 'agent';
+    return ROLE_AGENT;
 }
 
 /**
@@ -240,18 +251,18 @@ function determineProvisionRole(PDO $pdo, string $username): string {
  */
 function checkAndPromoteUser(PDO $pdo, array $user, string $username): array {
     // Only promote agents — not CSA/CHSCT or already-superviseur users
-    if ($user['role'] !== 'agent') {
+    if ($user['role'] !== ROLE_AGENT) {
         return $user;
     }
 
     // Check superviseur username list
     $superviseurUsernames = getConfig('app_superviseur_usernames', '');
     if (!empty($superviseurUsernames)) {
-        $users = array_map('trim', explode(',', strtolower($superviseurUsernames)));
+        $users = parseSuperviseurUsernames($superviseurUsernames);
         if (in_array(strtolower($username), $users)) {
-            $stmt = $pdo->prepare("UPDATE users SET role = 'superviseur', updated_at = datetime('now') WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE users SET role = '" . ROLE_SUPERVISEUR . "', updated_at = datetime('now') WHERE id = :id");
             $stmt->execute([':id' => $user['id']]);
-            $user['role'] = 'superviseur';
+            $user['role'] = ROLE_SUPERVISEUR;
 
             // Log the promotion
             error_log("SST App: Auto-promoted user '$username' to superviseur (config list rule)");

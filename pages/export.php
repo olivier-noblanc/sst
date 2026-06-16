@@ -5,7 +5,7 @@
  * CSV data export with filters.
  * Access: superviseur, chsct
  */
-requireRole(['superviseur', 'chsct']);
+requireRole([ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 $pdo = getDB();
 

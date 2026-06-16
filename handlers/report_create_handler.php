@@ -10,7 +10,7 @@ validatePostRequest(url('home'));
 
 // Get and validate type
 $type = $_POST['type'] ?? '';
-if (!in_array($type, ['rsst', 'rami', 'dgi'])) {
+if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {
     setFlash('error', 'Type de registre invalide.');
     redirect(url('home'));
 }
@@ -64,7 +64,7 @@ if (!canSeeAllSites() && $siteId !== (int) $user['site_id']) {
 }
 
 // RAMI-specific validation
-if ($type === 'rami') {
+if ($type === TYPE_RAMI) {
     $errors = array_merge($errors, validatePourCompte($pourCompte, $pourCompteNom, $pourComptePrenom));
 }
 
@@ -94,7 +94,7 @@ $reportData = [
 ];
 
 // RAMI-specific fields
-if ($type === 'rami' && $pourCompte) {
+if ($type === TYPE_RAMI && $pourCompte) {
     $reportData['pour_compte_de'] = null; // No FK to user, just names
     $reportData['pour_compte_nom'] = $pourCompteNom;
     $reportData['pour_compte_prenom'] = $pourComptePrenom;
@@ -105,7 +105,7 @@ if ($type === 'rami' && $pourCompte) {
 }
 
 // RAMI structured fields (only for RAMI type)
-if ($type === 'rami') {
+if ($type === TYPE_RAMI) {
     $reportData['nature_auteur'] = $natureAuteur ?: null;
     $reportData['type_acte'] = $typeActe ?: null;
 } else {
@@ -127,7 +127,7 @@ try {
     try {
         require_once __DIR__ . '/../src/mail.php';
         notifyNewReport($pdo, $newUuid, $type, $siteId);
-        if ($type === 'rami' && !empty($pourCompteNom)) {
+        if ($type === TYPE_RAMI && !empty($pourCompteNom)) {
             notifyPourCompte($pdo, $newUuid);
         }
     } catch (Exception $mailEx) {

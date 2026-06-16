@@ -98,7 +98,7 @@ function lazyCronCheckDelays(PDO $pdo): void {
             FROM reports r
             LEFT JOIN sites s ON r.site_id = s.id
             LEFT JOIN users d ON r.declarant_id = d.id
-            WHERE r.etat = 'nouveau'
+            WHERE r.etat = '" . ETAT_NOUVEAU . "'
               AND r.created_at < :cutoff_date
             ORDER BY r.created_at ASC";
 
@@ -211,7 +211,7 @@ function lazyCronAnonymize(PDO $pdo): void {
     // Find eligible reports
     $sql = "SELECT uuid, reference, type, declarant_nom, declarant_prenom, date_evenement, etat
             FROM reports
-            WHERE etat IN ('traite', 'abandonne')
+            WHERE etat IN ('" . ETAT_TRAITE . "', '" . ETAT_ABANDONNE . "')
               AND date_evenement < :cutoff_date
               AND declarant_nom != 'Anonymisé'";
 
@@ -238,7 +238,7 @@ function lazyCronAnonymize(PDO $pdo): void {
                 pour_compte_prenom = NULL,
                 updated_at = datetime('now')
             WHERE uuid = :uuid
-              AND etat IN ('traite', 'abandonne')
+              AND etat IN ('" . ETAT_TRAITE . "', '" . ETAT_ABANDONNE . "')
               AND declarant_nom != 'Anonymisé'
         ");
 

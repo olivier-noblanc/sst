@@ -8,17 +8,27 @@
 
 /**
  * Base SELECT for report queries with site JOIN.
- * Centralises the "SELECT r.*, s.code as site_code, s.nom as site_nom
- * FROM reports r LEFT JOIN sites s ON r.site_id = s.id" pattern
- * that was duplicated in getReportByUuid(), getReportsByRegistry(),
+ * Centralises the explicit column selection (excluding attachment_blob)
+ * with site JOIN that was duplicated in getReportByUuid(), getReportsByRegistry(),
  * getReportsBySite(), and stats_queries.php.
  *
  * Analogous to userSelectWithSite() in user_queries.php.
+ * Note: attachment_blob is intentionally excluded for list/performance reasons.
+ * Detail views (getReportByUuid) fetch it separately.
  *
  * @return string  SQL fragment (SELECT ... FROM ... LEFT JOIN ...)
  */
 function reportSelectWithSite(): string {
-    return "SELECT r.*, s.code as site_code, s.nom as site_nom
+    return "SELECT r.uuid, r.reference, r.type, r.objet, r.description,
+                r.date_evenement, r.heure_evenement, r.lieu,
+                r.declarant_id, r.declarant_nom, r.declarant_prenom,
+                r.pour_compte_de, r.pour_compte_nom, r.pour_compte_prenom,
+                r.nature_auteur, r.type_acte,
+                r.site_id, r.is_confidential, r.etat,
+                r.repondant_id, r.date_reponse, r.reponse,
+                r.attachment_name, r.attachment_mime,
+                r.created_at, r.updated_at,
+                s.code as site_code, s.nom as site_nom
             FROM reports r
             LEFT JOIN sites s ON r.site_id = s.id";
 }
@@ -85,7 +95,7 @@ function createReport(PDO $pdo, array $data): string {
                 :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
                 :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
                 :nature_auteur, :type_acte,
-                :site_id, :is_confidential, 'nouveau',
+                :site_id, :is_confidential, '" . ETAT_NOUVEAU . "',
                 :attachment_blob, :attachment_name, :attachment_mime
             )
         ");
@@ -337,7 +347,7 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
     $params[':user_id'] = $userId;
 
     $sql = 'UPDATE reports SET ' . implode(', ', $setClauses)
-        . " WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')";
+        . " WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -369,8 +379,8 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
 function abandonReport(PDO $pdo, string $uuid, int $userId): bool {
     $stmt = $pdo->prepare("
         UPDATE reports
-        SET etat = 'abandonne', updated_at = datetime('now')
-        WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('nouveau', 'en_cours')
+        SET etat = '" . ETAT_ABANDONNE . "', updated_at = datetime('now')
+        WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')
     ");
     $stmt->execute([':uuid' => $uuid, ':user_id' => $userId]);
     return $stmt->rowCount() > 0;
@@ -405,7 +415,7 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
                 repondant_id = :user_id,
                 date_reponse = datetime('now'),
                 updated_at = datetime('now')
-            WHERE uuid = :uuid AND etat IN ('nouveau', 'en_cours')
+            WHERE uuid = :uuid AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')
         ");
         $stmt->execute([
             ':nouvel_etat' => $nouvelEtat,
@@ -455,7 +465,7 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
  * @return array
  */
 function countReportsByState(PDO $pdo, string $type, int $siteId = 0, bool $seeAllSites = true): array {
-    $sql = "SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != 'abandonne'";
+    $sql = "SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "'";
     $params = [':type' => $type];
 
     if (!$seeAllSites && $siteId > 0) {
@@ -469,9 +479,9 @@ function countReportsByState(PDO $pdo, string $type, int $siteId = 0, bool $seeA
     $stmt->execute($params);
 
     $counts = [
-        'nouveau'  => 0,
-        'en_cours' => 0,
-        'traite'   => 0,
+        ETAT_NOUVEAU  => 0,
+        ETAT_EN_COURS => 0,
+        ETAT_TRAITE   => 0,
         'total'    => 0,
     ];
 
@@ -511,7 +521,7 @@ function getReportResponses(PDO $pdo, string $reportUuid): array {
  * @return int
  */
 function countActiveReports(PDO $pdo, string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int {
-    $sql = "SELECT COUNT(*) FROM reports WHERE type = :type AND etat != 'abandonne'";
+    $sql = "SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "'";
     $params = [':type' => $type];
 
     if ($siteId > 0) {
@@ -539,7 +549,7 @@ function countActiveReports(PDO $pdo, string $type, int $siteId = 0, int $userId
  * @return int
  */
 function countActiveReportsForUser(PDO $pdo, string $type, int $userId): int {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM reports WHERE type = :type AND etat != 'abandonne' AND declarant_id = :user_id");
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "' AND declarant_id = :user_id");
     $stmt->execute([':type' => $type, ':user_id' => $userId]);
     return (int) $stmt->fetchColumn();
 }
@@ -612,4 +622,27 @@ function getAdjacentReportUuids(PDO $pdo, array $report): array {
     }
 
     return $result;
+}
+
+/**
+ * Get recent reports by a specific user (declarant).
+ * Used for the agent dashboard on the home page.
+ * 
+ * @param PDO $pdo     Database connection
+ * @param int $userId  User ID (declarant)
+ * @param int $limit   Maximum number of reports to return
+ * @return array
+ */
+function getRecentReportsByUser(PDO $pdo, int $userId, int $limit = 5): array {
+    $stmt = $pdo->prepare("
+        SELECT r.uuid, r.type, r.objet, r.etat, r.created_at, r.is_confidential, r.date_evenement
+        FROM reports r
+        WHERE r.declarant_id = :user_id
+        ORDER BY r.created_at DESC
+        LIMIT :limit
+    ");
+    $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

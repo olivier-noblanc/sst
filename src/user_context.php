@@ -105,7 +105,7 @@ function isRole(string $role): bool {
  * @return bool
  */
 function isAgent(): bool {
-    return currentUserRole() === 'agent';
+    return currentUserRole() === ROLE_AGENT;
 }
 
 /**
@@ -114,7 +114,7 @@ function isAgent(): bool {
  * @return bool
  */
 function isSuperviseur(): bool {
-    return currentUserRole() === 'superviseur';
+    return currentUserRole() === ROLE_SUPERVISEUR;
 }
 
 /**
@@ -123,7 +123,7 @@ function isSuperviseur(): bool {
  * @return bool
  */
 function isChsct(): bool {
-    return currentUserRole() === 'chsct';
+    return currentUserRole() === ROLE_CHSCT;
 }
 
 /**
@@ -186,7 +186,7 @@ function currentUserHasSite(): bool {
  * @return bool
  */
 function currentUserCanSeeAllSites(): bool {
-    return in_array(currentUserRole(), ['superviseur', 'chsct']);
+    return in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT]);
 }
 
 /**

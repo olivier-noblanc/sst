@@ -6,7 +6,7 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('users'), ['superviseur']);
+validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 

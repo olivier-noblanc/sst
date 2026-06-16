@@ -40,6 +40,13 @@ if (php_sapi_name() !== 'cli') {
     exit(1);
 }
 
+// Require explicit confirmation via environment variable
+if (!isset($_SERVER['SST_CONFIRM_RESET']) || $_SERVER['SST_CONFIRM_RESET'] !== 'yes') {
+    echo "Erreur : définissez SST_CONFIRM_RESET=yes pour confirmer.\n";
+    echo "Usage: SST_CONFIRM_RESET=yes php nuclear-reset.php\n";
+    exit(1);
+}
+
 try {
     $pdo = new PDO('sqlite:' . $dbPath);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

@@ -30,7 +30,9 @@ require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/error_handler.php';
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/session.php';
-require_once __DIR__ . '/../src/session_patch.php';
+if (defined('DEV_MODE') && DEV_MODE) {
+    require_once __DIR__ . '/../src/session_patch.php';
+}
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/audit.php';

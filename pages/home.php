@@ -16,30 +16,63 @@ $seeAllSites = canSeeAllSites();
 // Get counts for each registry type based on report visibility
 $userId = (int) $user['id'];
 if ($agentVisibility === 'confidential') {
-    $rsstCount = countActiveReportsForUser($pdo, 'rsst', $userId);
-    $ramiCount = countActiveReportsForUser($pdo, 'rami', $userId);
-    $dgiCount  = countActiveReportsForUser($pdo, 'dgi', $userId);
+    $rsstCount = countActiveReportsForUser($pdo, TYPE_RSST, $userId);
+    $ramiCount = countActiveReportsForUser($pdo, TYPE_RAMI, $userId);
+    $dgiCount  = countActiveReportsForUser($pdo, TYPE_DGI, $userId);
 } elseif ($agentVisibility === 'agent_choice') {
-    $rsstCount = countActiveReports($pdo, 'rsst', $userSiteId, $userId, true);
-    $ramiCount = countActiveReports($pdo, 'rami', $userSiteId, $userId, true);
-    $dgiCount  = countActiveReports($pdo, 'dgi', $userSiteId, $userId, true);
+    $rsstCount = countActiveReports($pdo, TYPE_RSST, $userSiteId, $userId, true);
+    $ramiCount = countActiveReports($pdo, TYPE_RAMI, $userSiteId, $userId, true);
+    $dgiCount  = countActiveReports($pdo, TYPE_DGI, $userSiteId, $userId, true);
 } else {
     $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
-    $rsstCount = countActiveReports($pdo, 'rsst', $siteIdFilter);
-    $ramiCount = countActiveReports($pdo, 'rami', $siteIdFilter);
-    $dgiCount  = countActiveReports($pdo, 'dgi', $siteIdFilter);
+    $rsstCount = countActiveReports($pdo, TYPE_RSST, $siteIdFilter);
+    $ramiCount = countActiveReports($pdo, TYPE_RAMI, $siteIdFilter);
+    $dgiCount  = countActiveReports($pdo, TYPE_DGI, $siteIdFilter);
 }
 
 $totalReports = $rsstCount + $ramiCount + $dgiCount;
-$userRole = $user['role'] ?? 'agent';
+$userRole = $user['role'] ?? ROLE_AGENT;
 $labelUnite = getConfig('app_label_unite', 'UR');
 ?>
 
 <h1 class="page-title">Accueil</h1>
 
+<?php if ($userRole === ROLE_AGENT): ?>
+<?php
+$recentReports = getRecentReportsByUser($pdo, $userId, 5);
+?>
+<?php if (!empty($recentReports)): ?>
+<div class="card mb-4">
+    <h3 class="card__subtitle">Mes signalements récents</h3>
+    <div class="table-wrapper">
+        <table aria-label="Mes signalements récents">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Objet</th>
+                    <th>État</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($recentReports as $rpt): ?>
+                <tr>
+                    <td><?php echo e(formatDateFR($rpt['date_evenement'] ?? $rpt['created_at'])); ?></td>
+                    <td><span class="badge <?php echo getRegistryBadgeClass($rpt['type']); ?>"><?php echo e(REGISTRY_SHORT_LABELS[$rpt['type']] ?? strtoupper($rpt['type'])); ?></span></td>
+                    <td><a href="<?php echo url('report_view', ['uuid' => $rpt['uuid']]); ?>"><?php echo e(truncate($rpt['objet'], 60)); ?></a></td>
+                    <td><span class="badge <?php echo getEtatBadgeClass($rpt['etat']); ?>"><?php echo e(ETAT_LABELS[$rpt['etat']] ?? $rpt['etat']); ?></span></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <a href="<?php echo url('report_list', ['type' => TYPE_RSST]); ?>" class="btn btn--outline btn--sm mt-2">Voir tous mes signalements</a>
+</div>
+<?php endif; ?>
+<?php endif; ?>
 
 <!-- Welcome banner — contextual guidance based on user state -->
-<?php if ($totalReports === 0 && $userRole === 'agent'): ?>
+<?php if ($totalReports === 0 && $userRole === ROLE_AGENT): ?>
 <div class="welcome-banner welcome-banner--new" role="status">
     <div class="welcome-banner__content">
         <h2 class="welcome-banner__title">Bienvenue dans l'Application SST</h2>
@@ -55,7 +88,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
         <a href="<?php echo url('help'); ?>" class="welcome-banner__link">Consulter la documentation</a>
     </div>
 </div>
-<?php elseif ($totalReports === 0 && in_array($userRole, ['superviseur', 'chsct'])): ?>
+<?php elseif ($totalReports === 0 && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])): ?>
 <div class="welcome-banner" role="status">
     <div class="welcome-banner__content">
         <h2 class="welcome-banner__title">Bienvenue dans l'Application SST</h2>
@@ -102,8 +135,8 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="registry-card__desc">Risques liés aux locaux, équipements, ergonomie, conditions environnementales</p>
         </div>
         <div>
-            <a href="<?php echo url('report_create', ['type' => 'rsst']); ?>" class="registry-card__btn">Inscrire un signalement</a>
-            <a href="<?php echo url('report_list', ['type' => 'rsst']); ?>" class="registry-card__link">Voir les signalements</a>
+            <a href="<?php echo url('report_create', ['type' => TYPE_RSST]); ?>" class="registry-card__btn">Inscrire un signalement</a>
+            <a href="<?php echo url('report_list', ['type' => TYPE_RSST]); ?>" class="registry-card__link">Voir les signalements</a>
             <div class="registry-card__stat"><?php echo $rsstCount; ?> signalement<?php echo $rsstCount !== 1 ? 's' : ''; ?> enregistré<?php echo $rsstCount !== 1 ? 's' : ''; ?></div>
         </div>
     </div>
@@ -117,8 +150,8 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="registry-card__desc">Agressions physiques ou verbales, menaces, incivilités, harcèlement</p>
         </div>
         <div>
-            <a href="<?php echo url('report_create', ['type' => 'rami']); ?>" class="registry-card__btn">Inscrire un signalement</a>
-            <a href="<?php echo url('report_list', ['type' => 'rami']); ?>" class="registry-card__link">Voir les signalements</a>
+            <a href="<?php echo url('report_create', ['type' => TYPE_RAMI]); ?>" class="registry-card__btn">Inscrire un signalement</a>
+            <a href="<?php echo url('report_list', ['type' => TYPE_RAMI]); ?>" class="registry-card__link">Voir les signalements</a>
             <div class="registry-card__stat"><?php echo $ramiCount; ?> signalement<?php echo $ramiCount !== 1 ? 's' : ''; ?> enregistré<?php echo $ramiCount !== 1 ? 's' : ''; ?></div>
         </div>
     </div>
@@ -132,8 +165,8 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="registry-card__desc">Danger nécessitant une action immédiate, droit de retrait</p>
         </div>
         <div>
-            <a href="<?php echo url('report_create', ['type' => 'dgi']); ?>" class="registry-card__btn">Inscrire un signalement</a>
-            <a href="<?php echo url('report_list', ['type' => 'dgi']); ?>" class="registry-card__link">Voir les signalements</a>
+            <a href="<?php echo url('report_create', ['type' => TYPE_DGI]); ?>" class="registry-card__btn">Inscrire un signalement</a>
+            <a href="<?php echo url('report_list', ['type' => TYPE_DGI]); ?>" class="registry-card__link">Voir les signalements</a>
             <div class="registry-card__stat"><?php echo $dgiCount; ?> signalement<?php echo $dgiCount !== 1 ? 's' : ''; ?> enregistré<?php echo $dgiCount !== 1 ? 's' : ''; ?></div>
         </div>
     </div>
@@ -146,10 +179,38 @@ $labelUnite = getConfig('app_label_unite', 'UR');
         <a href="<?php echo url('synthesis'); ?>" class="btn btn--outline">&#x1F4CA; Synthèse</a>
         <a href="<?php echo url('statistics'); ?>" class="btn btn--outline">&#x1F4C8; Statistiques</a>
         <a href="<?php echo url('export'); ?>" class="btn btn--outline">&#x1F4E5; Export</a>
-        <?php if (hasRole('superviseur')): ?>
+        <?php if (hasRole(ROLE_SUPERVISEUR)): ?>
         <a href="<?php echo url('users'); ?>" class="btn btn--outline">&#x1F465; Utilisateurs</a>
         <a href="<?php echo url('settings'); ?>" class="btn btn--outline">&#x2699;&#xFE0F; Paramètres</a>
         <?php endif; ?>
     </div>
 </div>
+<?php endif; ?>
+
+<?php if ($userRole === 'agent'): ?>
+<?php
+// Show site change option within 7-day grace period
+$siteChosenAt = $user['site_chosen_at'] ?? null;
+$isWithinGracePeriod = false;
+$daysRemaining = 0;
+if ($siteChosenAt && $userSiteId > 0) {
+    $chosenTime = strtotime($siteChosenAt);
+    $daysSinceChoice = (time() - $chosenTime) / 86400;
+    $isWithinGracePeriod = $daysSinceChoice <= 7;
+    $daysRemaining = max(0, ceil(7 - $daysSinceChoice));
+}
+?>
+<?php if ($isWithinGracePeriod): ?>
+<div class="card mt-4">
+    <p class="text-small">
+        &#x1F4CD; Vous pouvez <a href="<?php echo url('choose_site'); ?>">modifier votre site</a> pendant encore <strong><?php echo $daysRemaining; ?> jour<?php echo $daysRemaining !== 1 ? 's' : ''; ?></strong>.
+    </p>
+</div>
+<?php elseif ($userSiteId > 0 && !$isWithinGracePeriod): ?>
+<div class="card mt-4">
+    <p class="text-small text-muted">
+        &#x1F512; Pour changer de site, contactez votre superviseur.
+    </p>
+</div>
+<?php endif; ?>
 <?php endif; ?>

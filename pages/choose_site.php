@@ -3,8 +3,8 @@
  * Choose Site Page — Application SST DREETS BFC
  * 
  * Shown to agents on their first login when site_id is NULL.
- * The choice is irreversible for the agent — only a superviseur
- * can change it later via user management.
+ * Agents can change their site within 7 days of first selection.
+ * After 7 days, only a supervisor can change it via user management.
  *
  * NOTE: This page is rendered BEFORE the layout (no header.php).
  * Cache-Control and security headers must be sent here.
@@ -23,28 +23,58 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 
 $pageTitle = 'Choisir mon site';
 
-// Safety: if user already has a site, redirect away
-if (currentUserHasSite()) {
-    redirect(url('home'));
+$pdo = getDB();
+$user = currentUser();
+$hasExistingSite = !empty($user['site_id']);
+$isWithinGracePeriod = false;
+$daysRemaining = 0;
+
+// Safety: if user already has a site, check grace period
+if ($hasExistingSite) {
+    $siteChosenAt = $user['site_chosen_at'] ?? null;
+    if ($siteChosenAt) {
+        $chosenTime = strtotime($siteChosenAt);
+        $daysSinceChoice = (time() - $chosenTime) / 86400;
+        $isWithinGracePeriod = $daysSinceChoice <= 7;
+        $daysRemaining = max(0, ceil(7 - $daysSinceChoice));
+    }
+
+    if (!$isWithinGracePeriod) {
+        // Outside grace period — redirect home with message
+        setFlash('info', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
+        redirect(url('home'));
+    }
+} else {
+    // No site yet — redirect to choose_site if trying to access home
+    // This is the normal first-login flow
 }
 
-$pdo = getDB();
 $sites = getActiveSites($pdo);
 
 $labelUnite = getConfig('app_label_unite', 'UR');
 ?>
 
-<h1 class="page-title"><span aria-hidden="true">&#x1F4CD;</span> Choisissez votre <?php echo e($labelUnite); ?></h1>
+<h1 class="page-title"><span aria-hidden="true">&#x1F4CD;</span> <?php echo $hasExistingSite ? 'Modifier mon site' : 'Choisissez votre ' . e($labelUnite); ?></h1>
 
 <div class="card container--narrow">
+    <?php if ($hasExistingSite): ?>
+    <p class="choose-site-welcome">
+        <strong><?php echo e(currentUserDisplayName()); ?></strong>, vous pouvez modifier votre <?php echo e($labelUnite); ?>.
+    </p>
+    <p class="text-muted text-small mb-4">
+        Votre site actuel : <strong><?php echo e($user['site_code'] ?? ''); ?> — <?php echo e($user['site_nom'] ?? ''); ?></strong>.
+        Vous avez <strong><?php echo $daysRemaining; ?> jour<?php echo $daysRemaining !== 1 ? 's' : ''; ?></strong> pour modifier votre choix.
+        Après ce délai, seul un superviseur pourra le changer.
+    </p>
+    <?php else: ?>
     <p class="choose-site-welcome">
         Bienvenue, <strong><?php echo e(currentUserDisplayName()); ?></strong>.
     </p>
     <p class="text-muted text-small mb-4">
         Avant de continuer, vous devez sélectionner votre site (<?php echo e($labelUnite); ?>). 
-        Ce choix est <strong>définitif</strong> — vous ne pourrez pas le modifier vous-même par la suite. 
-        Seul un superviseur pourra le changer si nécessaire.
+        Vous pourrez modifier votre choix pendant <strong>7 jours</strong>. Après ce délai, seul un superviseur pourra le changer.
     </p>
+    <?php endif; ?>
 
     <?php $flash = getFlash(); ?>
     <?php if ($flash): ?>
@@ -61,17 +91,24 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <select id="site_id" name="site_id" required>
                 <option value="">— Sélectionnez votre <?php echo e($labelUnite); ?> —</option>
                 <?php foreach ($sites as $site): ?>
-                <option value="<?php echo e($site['id']); ?>">
+                <option value="<?php echo e($site['id']); ?>" <?php echo $hasExistingSite && (int) $user['site_id'] === (int) $site['id'] ? '' : ''; ?>>
                     <?php echo e($site['code'] . ' — ' . $site['nom']); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
         </div>
 
-        <div class="danger-panel">
-            &#x26A0;&#xFE0F; <strong>Attention :</strong> ce choix est définitif. Vous ne pourrez plus le modifier par vous-même. En cas d'erreur, contactez un superviseur.
+        <?php if ($hasExistingSite): ?>
+        <div class="warning-panel">
+            &#x26A0;&#xFE0F; <strong>Attention :</strong> modifier votre site affectera la visibilité de vos signalements. Ce changement sera enregistré dans le journal d'audit.
         </div>
-
+        <button type="submit" class="btn btn--primary btn--full">Modifier mon site</button>
+        <a href="<?php echo url('home'); ?>" class="btn btn--secondary btn--full mt-2">Annuler</a>
+        <?php else: ?>
+        <div class="danger-panel">
+            &#x26A0;&#xFE0F; <strong>Attention :</strong> ce choix peut être modifié pendant 7 jours uniquement. Passé ce délai, contactez un superviseur.
+        </div>
         <button type="submit" class="btn btn--primary btn--full">Confirmer mon choix</button>
+        <?php endif; ?>
     </form>
 </div>

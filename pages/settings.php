@@ -8,7 +8,7 @@
  *
  * Tab content is delegated to sub-templates under settings/.
  */
-requireRole(['superviseur']);
+requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 
@@ -34,8 +34,12 @@ foreach ($currentSettings as $setting) {
     }
 }
 
-// Active tab
+// Active tab — whitelist validation to prevent LFI/path traversal
 $activeTab = $_GET['tab'] ?? 'sites';
+$allowedTabs = ['sites', 'global', 'smtp', 'manage_sites', 'app'];
+if (!in_array($activeTab, $allowedTabs)) {
+    $activeTab = 'sites'; // default tab
+}
 
 $pageTitle = 'Paramètres';
 ?>

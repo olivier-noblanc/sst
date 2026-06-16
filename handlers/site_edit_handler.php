@@ -6,7 +6,7 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('settings', ['tab' => 'manage_sites']), ['superviseur']);
+validatePostRequest(url('settings', ['tab' => 'manage_sites']), [ROLE_SUPERVISEUR]);
 
 $siteId = (int) ($_POST['site_id'] ?? 0);
 
@@ -59,7 +59,7 @@ if ($success) {
     setFlash('success', 'Site ' . e($code . ' — ' . $nom) . ' mis à jour avec succès.');
 } else {
     error_log('[SST-DB] site_edit failed for site_id=' . $siteId);
-    setFlash('error', 'Erreur lors de la mise à jour du site. (site_id=' . $siteId . ')');
+    setFlash('error', 'Erreur lors de la mise à jour du site. Veuillez contacter un administrateur.');
 }
 
 redirect(url('settings', ['tab' => 'manage_sites']));

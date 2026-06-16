@@ -5,7 +5,7 @@
  * Superviseur responds to a report.
  * Access: superviseur only.
  */
-requireRole(['superviseur']);
+requireRole([ROLE_SUPERVISEUR]);
 
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);

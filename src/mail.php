@@ -327,9 +327,9 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     $body .= "<tr><td style=\"padding:6px 16px; color:#888;\">Nouveau rôle</td><td style=\"padding:6px 16px;\"><strong>" . htmlspecialchars($newLabel) . "</strong></td></tr>";
     $body .= "</table>";
 
-    if ($newRole === 'superviseur') {
+    if ($newRole === ROLE_SUPERVISEUR) {
         $body .= "<p>En tant que <strong>Superviseur</strong>, vous pouvez désormais : répondre aux signalements, gérer les utilisateurs, consulter la synthèse et les statistiques, exporter les données, et configurer les paramètres de l'application.</p>";
-    } elseif ($newRole === 'chsct') {
+    } elseif ($newRole === ROLE_CHSCT) {
         $body .= "<p>En tant que <strong>Membre CSA/CHSCT</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>";
     } else {
         $body .= "<p>En tant qu'<strong>Agent</strong>, vous pouvez créer des signalements et suivre leurs réponses.</p>";

@@ -13,7 +13,7 @@
  * ~120 lines of duplicated socket code.
  */
 
-validatePostRequest(url('settings', ['tab' => 'smtp']), ['superviseur']);
+validatePostRequest(url('settings', ['tab' => 'smtp']), [ROLE_SUPERVISEUR]);
 
 // ── Parameters ────────────────────────────────────────────────────────────────
 

@@ -6,7 +6,7 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('settings'), ['superviseur']);
+validatePostRequest(url('settings'), [ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 $tab = $_POST['tab'] ?? 'sites';
@@ -138,7 +138,7 @@ try {
         updateConfig($pdo, 'app_report_visibility', $reportVisibility);
 
         // Per-registry visibility settings
-        $registryTypes = ['rsst', 'rami', 'dgi'];
+        $registryTypes = [TYPE_RSST, TYPE_RAMI, TYPE_DGI];
         foreach ($registryTypes as $type) {
             $key = 'app_report_visibility_' . $type;
             $value = $_POST[$key] ?? '';

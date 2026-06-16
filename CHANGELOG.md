@@ -3,6 +3,42 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.19.0] — 2026-06-17
+
+### Sécurité — Corrections critiques (LFI, path traversal, guards CLI)
+
+- **1** 🔴 **`settings.php` — Protection LFI par whitelist des onglets** — Le paramètre `$_GET['tab']` était utilisé directement pour construire le chemin d'inclusion du sous-template (`tab_{$activeTab}.php`) sans validation, permettant une inclusion de fichier arbitraire via path traversal (`tab=../../config`). Ajout d'une whitelist `['sites', 'global', 'smtp', 'manage_sites', 'app']` qui réinitialise `$activeTab` à `'sites'` si la valeur n'est pas dans la liste.
+- **2** 🔴 **`backup.php` — Protection path traversal sur VACUUM INTO** — Les requêtes `VACUUM INTO` utilisaient l'interpolation de chaîne pour le chemin de fichier de sauvegarde sans vérification de répertoire. Ajout d'un contrôle `str_starts_with(realpath(dirname($backupFile)), realpath($backupDir))` avant chaque exécution de `VACUUM INTO`. Les tentatives de traversal sont journalisées via `error_log()` et la sauvegarde est annulée.
+- **3** 🔴 **`nuclear-reset.php` / `promote.php` — Guard d'environnement obligatoire** — Ces scripts destructeurs ne vérifiaient que `php_sapi_name() !== 'cli'`. Ajout d'une variable d'environnement obligatoire : `SST_CONFIRM_RESET=yes` pour `nuclear-reset.php` et `SST_CONFIRM_PROMOTE=yes` pour `promote.php`. Sans cette variable, le script affiche un message d'usage et se termine en erreur.
+- **4** 🟡 **`session.php` — Rotation des tokens CSRF** — Le token CSRF était unique par session et jamais renouvelé, permettant le replay sur toute la durée de la session. Refonte en pool de tokens : `generateCsrfToken()` crée un token unique par appel, stocké dans `$_SESSION['csrf_tokens']` (max 20 tokens, garbage collection automatique). `validateCsrfToken()` valide ET consomme le token (one-time use). Compatible avec tous les formulaires existants sans modification des appelants.
+- **5** 🟡 **Handlers — Masquage des IDs internes dans les messages d'erreur** — Les messages flash d'erreur dans `report_edit_handler.php`, `user_delete_handler.php` et `site_edit_handler.php` exposaient des identifiants internes (UUID, user_id, etat, site_id) aux utilisateurs finaux. Remplacement par des messages génériques ("Impossible de modifier ce signalement. Veuillez contacter un administrateur.") avec journalisation des détails via `error_log()`.
+
+### Code Quality — Constantes, suppression de dette technique
+
+- **6** 🔴 **`config.php` — Constantes pour rôles, états et types de registre** — Ajout de 10 constantes éliminant les magic strings : `ROLE_AGENT`, `ROLE_SUPERVISEUR`, `ROLE_CHSCT`, `ETAT_NOUVEAU`, `ETAT_EN_COURS`, `ETAT_TRAITE`, `ETAT_ABANDONNE`, `ETAT_REOUVERT`, `TYPE_RSST`, `TYPE_RAMI`, `TYPE_DGI`. Remplacement de ~55 occurrences de chaînes littérales dans 30+ fichiers (src/, handlers/, pages/, templates/).
+- **7** 🟡 **`auth.php` — Extraction de `parseSuperviseurUsernames()`** — Le parsing `array_map('trim', explode(',', strtolower(...)))` était dupliqué dans `auth.php` (2×) et `bootstrap.php` (1×). Extraction en fonction dédiée `parseSuperviseurUsernames(string $list): array` dans `auth.php`, utilisée dans les 3 emplacements.
+- **8** 🟡 **`access.php` — Suppression des fonctions dépréciées** — Les 3 fonctions marquées `@deprecated` (`getAgentVisibility()`, `agentVisibilityIsConfidential()`, `agentVisibilityIsPublic()`) sont retirées. Aucun appelant restant dans le codebase.
+- **9** 🟡 **`auth_flow.php` — Remplacement de `die()` par page d'erreur habillée** — Les 2 appels `die()` dans le flux d'authentification (erreurs de configuration) affichaient du texte brut sans style. Remplacement par une page HTML 500 complète avec style inline, message `htmlspecialchars()` et lien de contact administrateur.
+- **10** 🟢 **`index.php` — Session patch conditionnel** — Le fichier `session_patch.php` (marqué "DEPLOYMENT: delete in production") était chargé inconditionnellement. L'inclusion est désormais protégée par `if (defined('DEV_MODE') && DEV_MODE)`, évitant un comportement de développement en production.
+- **11** 🟢 **`validation.php` — Correction de la vérification d'unicité du username en édition** — En mode édition (`$excludeId > 0`), la logique d'unicité était cassée : `$stmt` était nullifié par la branche create, rendant `$stmt->fetch()` muet en mode edit. Refonte : chaque mode (edit/create) utilise sa propre requête préparée avec exécution et vérification indépendantes.
+
+### Performance — Requêtes optimisées, BLOBs exclus des listes
+
+- **12** 🔴 **`report_queries.php` — Exclusion du BLOB des requêtes de liste** — `reportSelectWithSite()` utilisait `r.*`, chargeant le contenu binaire des pièces jointes (jusqu'à 10 Mo chacune) dans chaque ligne de résultat de liste. Remplacement par une sélection explicite de toutes les colonnes sauf `attachment_blob`. La vue détaillée (`getReportByUuid()`) conserve `r.*` pour le téléchargement des pièces jointes. Même correction dans `stats_queries.php` pour `getExportData()`.
+- **13** 🔴 **`export_handler.php` — Élimination du N+1 sur les réponses** — L'export appelait `getReportResponses()` dans une boucle pour chaque signalement (N+1 requêtes). Remplacement par un bulk-fetch unique avec `IN (?)` + GROUP BY `report_uuid` en PHP. Réduction de N+1 à 2 requêtes pour l'ensemble de l'export.
+- **14** 🟡 **`stats_queries.php` — Requêtes statistiques sargables** — 4 occurrences de `strftime('%Y', r.created_at) = :year` empêchaient l'utilisation de l'index `idx_reports_created_at`, forçant un full table scan. Remplacement par des range queries `r.created_at >= :year_start AND r.created_at < :year_next` qui exploitent l'index. Affecte `getSynthesisData()`, `getStatisticsIndicateurs()`, `getStatsBySite()` et `getRamiStructuredStats()`. Conservation de `strftime` dans `getAvailableYears()` (SELECT d'extraction, pas de filtre).
+
+### Produit — Réouverture de signalement, dashboard agent, période de grâce site
+
+- **15** 🔴 **Nouveau : Réouverture de signalement** — Un signalement à l'état `traite` ou `abandonne` ne pouvait plus être rouvert. Ajout du statut `reouvert` dans `ETAT_LABELS`, du handler `report_reopen_handler.php` (validation POST/CSRF, contrôle de permission superviseur/CHSCT/déclarant, motif obligatoire min 10 car., mise à jour vers `en_cours`, audit log, notification email), de la page `report_reopen.php` (formulaire avec motif), du badge `.badge--reouvert` (violet), et du bouton "Réouvrir" dans `report_card.php`. Routage ajouté dans `router.php`.
+- **16** 🔴 **Nouveau : Dashboard agent sur la page d'accueil** — Les agents arrivaient sur une page d'accueil sans visibilité sur leurs propres signalements. Ajout d'une section "Mes signalements récents" (5 derniers) avec tableau (Date, Type, Objet, État) et lien "Voir tous mes signalements". Nouvelle fonction `getRecentReportsByUser()` dans `report_queries.php`. Section visible uniquement pour les agents (les superviseurs/CHSCT ont déjà les vues de synthèse).
+- **17** 🟡 **Période de grâce de 7 jours pour le changement de site** — Le choix de site était irréversible ("Ce choix est définitif"). Ajout d'une colonne `site_chosen_at` dans la table `users` (migration automatique avec backfill). Les agents peuvent modifier leur site dans les 7 jours suivant leur premier choix. Après 7 jours, le message invite à contacter le superviseur. La page `choose_site.php` affiche le nombre de jours restants. Audit trail du changement.
+
+### UX — Synthèse responsive, accessibilité
+
+- **18** 🟡 **`synthesis.php` — Table de synthèse responsive mobile** — La table de synthèse (14+ colonnes) était illisible sur mobile. Ajout de `class="synthesis-table"` et d'attributs `data-label` sur chaque `<td>`. Media query `@media (max-width: 768px)` qui empile les lignes en cartes avec labels via `attr(data-label)`, masque le header, et affiche les données en flex justify-between.
+- **19** 🟢 **`style.css` — Badge réouvert** — Ajout de `.badge--reouvert { background: #8B5CF6; }` pour le nouveau statut `reouvert`.
+
 ## [3.18.0] — 2026-06-16
 
 ### Admin — Toggle d'affichage des erreurs PHP en production

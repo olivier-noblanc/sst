@@ -6,7 +6,7 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('users'), ['superviseur']);
+validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 

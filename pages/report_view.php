@@ -21,7 +21,7 @@ $pdo = getDB();
 logConfidentialReportAccess($pdo, $report, $user);
 
 // If report is abandoned and user is not declarant nor supervisor/chsct
-if ($report['etat'] === 'abandonne' && (int) $report['declarant_id'] !== (int) $user['id'] && !in_array($user['role'], ['superviseur', 'chsct'])) {
+if ($report['etat'] === ETAT_ABANDONNE && (int) $report['declarant_id'] !== (int) $user['id'] && !in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
     setFlash('warning', 'Ce signalement a été abandonné.');
 }
 
@@ -31,7 +31,7 @@ $pageTitle = 'Signalement — ' . $report['reference'];
 $responses = getReportResponses($pdo, $uuid);
 
 // Breadcrumb data
-$reportType = $report['type'] ?? 'rsst';
+$reportType = $report['type'] ?? TYPE_RSST;
 $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
 ?>
 

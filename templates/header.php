@@ -64,7 +64,7 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
             // Impersonation dropdown: only for superviseurs who are NOT already impersonating
             $isImpersonating = isImpersonatingRole();
             $realRole = getRealRole() ?? currentUserRole();
-            if ($realRole === 'superviseur' && !$isImpersonating):
+            if ($realRole === ROLE_SUPERVISEUR && !$isImpersonating):
             ?>
             <div class="impersonate-dropdown">
                 <input type="checkbox" id="impersonate-toggle" class="impersonate-toggle" aria-hidden="true">
@@ -73,13 +73,13 @@ header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-in
                     <form method="POST" action="<?php echo url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
-                        <input type="hidden" name="target_role" value="agent">
+                        <input type="hidden" name="target_role" value="<?php echo ROLE_AGENT; ?>">
                         <button type="submit" class="impersonate-menu__item" role="menuitem">Agent</button>
                     </form>
                     <form method="POST" action="<?php echo url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
-                        <input type="hidden" name="target_role" value="chsct">
+                        <input type="hidden" name="target_role" value="<?php echo ROLE_CHSCT; ?>">
                         <button type="submit" class="impersonate-menu__item" role="menuitem">Membre CSA/CHSCT</button>
                     </form>
                     <label for="impersonate-toggle" class="impersonate-menu__item impersonate-menu__close" role="menuitem" tabindex="0">&#10005; Fermer</label>

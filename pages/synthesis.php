@@ -5,7 +5,7 @@
  * Summary table across all registries, showing counts by site, registry type, and state.
  * Access: superviseur, chsct
  */
-requireRole(['superviseur', 'chsct']);
+requireRole([ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 $pdo = getDB();
 
@@ -105,7 +105,7 @@ $pageTitle = 'Synthèse des signalements';
 <!-- Synthesis Table -->
 <div class="card">
     <div class="table-wrapper">
-        <table aria-label="Synthèse des signalements par site">
+        <table class="synthesis-table" aria-label="Synthèse des signalements par site">
             <thead>
                 <tr>
                     <th rowspan="2"><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
@@ -123,26 +123,26 @@ $pageTitle = 'Synthèse des signalements';
             <tbody>
                 <?php foreach ($siteData as $sId => $sd): ?>
                 <tr>
-                    <td><strong><?php echo e($sd['code']); ?></strong></td>
-                    <?php foreach (['rsst', 'rami', 'dgi'] as $type): ?>
-                        <?php foreach (['nouveau', 'en_cours', 'traite', 'total'] as $state): ?>
-                            <td class="<?php echo $sd[$type][$state] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>">
+                    <td data-label="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"><strong><?php echo e($sd['code']); ?></strong></td>
+                    <?php foreach (['rsst' => 'RSST', 'rami' => 'RAMI', 'dgi' => 'DGI'] as $type => $typeLabel): ?>
+                        <?php foreach (['nouveau' => 'Nouv.', 'en_cours' => 'En cours', 'traite' => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
+                            <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="<?php echo $sd[$type][$state] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>">
                                 <?php echo $sd[$type][$state]; ?>
                             </td>
                         <?php endforeach; ?>
                     <?php endforeach; ?>
-                    <td class="synthesis-cell-value"><strong><?php echo $sd['rsst']['total'] + $sd['rami']['total'] + $sd['dgi']['total']; ?></strong></td>
+                    <td data-label="Total" class="synthesis-cell-value"><strong><?php echo $sd['rsst']['total'] + $sd['rami']['total'] + $sd['dgi']['total']; ?></strong></td>
                 </tr>
                 <?php endforeach; ?>
                 <!-- Totals row -->
                 <tr class="row--totals">
-                    <td><strong>Total</strong></td>
-                    <?php foreach (['rsst', 'rami', 'dgi'] as $type): ?>
-                        <?php foreach (['nouveau', 'en_cours', 'traite', 'total'] as $state): ?>
-                            <td class="synthesis-cell-value"><?php echo $totals[$type][$state]; ?></td>
+                    <td data-label="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"><strong>Total</strong></td>
+                    <?php foreach (['rsst' => 'RSST', 'rami' => 'RAMI', 'dgi' => 'DGI'] as $type => $typeLabel): ?>
+                        <?php foreach (['nouveau' => 'Nouv.', 'en_cours' => 'En cours', 'traite' => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
+                            <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="synthesis-cell-value"><?php echo $totals[$type][$state]; ?></td>
                         <?php endforeach; ?>
                     <?php endforeach; ?>
-                    <td class="synthesis-cell-value"><strong><?php echo $grandTotal; ?></strong></td>
+                    <td data-label="Total" class="synthesis-cell-value"><strong><?php echo $grandTotal; ?></strong></td>
                 </tr>
             </tbody>
         </table>

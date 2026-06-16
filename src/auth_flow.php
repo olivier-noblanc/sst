@@ -68,8 +68,17 @@ function handleLoginPage(string $page): void {
             redirect(url('home'));
         } else {
             // AUTH_USER not set = IIS Windows Auth not configured
-            die('Erreur de configuration : l\'authentification Windows IIS n\'est pas active. '
-              . 'Vérifiez que Windows Authentication est activée et Anonymous Authentication désactivée dans IIS Manager.');
+            http_response_code(500);
+            $message = 'L\'authentification Windows IIS n\'est pas active. Vérifiez que Windows Authentication est activée et Anonymous Authentication désactivée dans IIS Manager.';
+            echo '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Erreur de configuration</title>';
+            echo '<style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5;}';
+            echo '.error-box{background:white;padding:2rem;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);max-width:500px;text-align:center;}';
+            echo 'h1{color:#dc3545;}</style></head><body><div class="error-box">';
+            echo '<h1>Erreur de configuration</h1>';
+            echo '<p>' . htmlspecialchars($message) . '</p>';
+            echo '<p>Contactez l\'administrateur.</p>';
+            echo '</div></body></html>';
+            exit;
         }
     }
 
@@ -106,8 +115,17 @@ function handleNotAuthenticated(): void {
         setIntendedUrl($_SERVER['REQUEST_URI'] ?? '');
         redirect(url('login'));
     } else {
-        die('Erreur de configuration : AUTH_USER non disponible. '
-          . 'Vérifiez que Windows Authentication est activée dans IIS Manager.');
+        http_response_code(500);
+        $message = 'AUTH_USER non disponible. Vérifiez que Windows Authentication est activée dans IIS Manager.';
+        echo '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Erreur de configuration</title>';
+        echo '<style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5;}';
+        echo '.error-box{background:white;padding:2rem;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);max-width:500px;text-align:center;}';
+        echo 'h1{color:#dc3545;}</style></head><body><div class="error-box">';
+        echo '<h1>Erreur de configuration</h1>';
+        echo '<p>' . htmlspecialchars($message) . '</p>';
+        echo '<p>Contactez l\'administrateur.</p>';
+        echo '</div></body></html>';
+        exit;
     }
 }
 

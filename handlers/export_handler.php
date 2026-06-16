@@ -9,7 +9,7 @@
  * quotes, and newlines inside fields). Exports multi-response history.
  */
 
-validatePostRequest(url('export'), ['superviseur', 'chsct']);
+validatePostRequest(url('export'), [ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 $pdo = getDB();
 
@@ -87,10 +87,28 @@ $headers = [
 ];
 fputcsv($tmpFile, $headers, ';');
 
+// Bulk-fetch all responses for the reports being exported (avoids N+1 queries)
+$allResponses = [];
+if (!empty($reports)) {
+    $allUuids = array_column($reports, 'uuid');
+    $uuidPlaceholders = implode(',', array_fill(0, count($allUuids), '?'));
+    $stmt = $pdo->prepare("
+        SELECT rr.*, rr.report_uuid, u.nom, u.prenom
+        FROM report_responses rr
+        LEFT JOIN users u ON rr.user_id = u.id
+        WHERE rr.report_uuid IN ($uuidPlaceholders)
+        ORDER BY rr.created_at ASC
+    ");
+    $stmt->execute($allUuids);
+    while ($resp = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $allResponses[$resp['report_uuid']][] = $resp;
+    }
+}
+
 // Data rows
 foreach ($reports as $row) {
-    // Get response history for this report
-    $responses = getReportResponses($pdo, $row['uuid']);
+    // Get response history for this report (from bulk-fetched data)
+    $responses = $allResponses[$row['uuid']] ?? [];
     $responseCount = count($responses);
 
     // Build "Pour le compte de" field

@@ -53,7 +53,7 @@ $attachmentName = $attachment['name'];
 $attachmentMime = $attachment['mime'];
 
 // RAMI-specific validation
-if ($type === 'rami') {
+if ($type === TYPE_RAMI) {
     $errors = array_merge($errors, validatePourCompte($pourCompte, $pourCompteNom, $pourComptePrenom));
 }
 
@@ -87,7 +87,7 @@ if ($removeAttachment) {
 // If no new file and no removal request: keep existing attachment (don't include in update)
 
 // RAMI-specific fields
-if ($type === 'rami') {
+if ($type === TYPE_RAMI) {
     $updateData['pour_compte_nom'] = $pourCompte ? $pourCompteNom : null;
     $updateData['pour_compte_prenom'] = $pourCompte ? $pourComptePrenom : null;
     $updateData['nature_auteur'] = $natureAuteur ?: null;
@@ -106,7 +106,8 @@ if ($updated) {
     auditLog($pdo, 'report', 'edit', 'Signalement modifié : ' . $report['reference'], (int) $report['id'] ?? null, 'report', ['reference' => $report['reference']]);
     setFlash('success', 'Signalement ' . e($report['reference']) . ' modifié avec succès.');
 } else {
-    setFlash('error', 'Impossible de modifier le signalement. Il a peut-être été traité ou abandonné entre-temps. (uuid=' . e($reportUuid) . ', user_id=' . $userId . ', etat=' . e($report['etat']) . ')');
+    error_log("SST: report_edit failed - uuid=$reportUuid, user_id=$userId, etat=" . $report['etat']);
+    setFlash('error', 'Impossible de modifier ce signalement. Veuillez contacter un administrateur.');
 }
 
 redirect(url('report_view', ['uuid' => $reportUuid]));

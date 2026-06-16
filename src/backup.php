@@ -119,6 +119,13 @@ function performBackup(PDO $pdo): bool {
     $timestamp = date('Y-md_His');
     $backupFile = BACKUP_DIR . '/sst_' . $timestamp . '.db';
 
+    // Path traversal check: ensure backup file stays within BACKUP_DIR
+    $backupDir = defined('BACKUP_DIR') ? BACKUP_DIR : __DIR__ . '/../data/backups';
+    if (!str_starts_with(realpath(dirname($backupFile)) ?: dirname($backupFile), realpath($backupDir) ?: $backupDir)) {
+        error_log("SST: backup path traversal blocked - $backupFile");
+        return false;
+    }
+
     // Avoid filename collision (two backups in the same second)
     if (file_exists($backupFile)) {
         $backupFile = BACKUP_DIR . '/sst_' . $timestamp . '_' . random_int(100, 999) . '.db';
@@ -167,6 +174,13 @@ function backupBeforeMigration(PDO $pdo): bool {
 
     $timestamp = date('Y-md_His');
     $backupFile = BACKUP_DIR . '/sst_pre_migration_' . $timestamp . '.db';
+
+    // Path traversal check: ensure backup file stays within BACKUP_DIR
+    $backupDir = defined('BACKUP_DIR') ? BACKUP_DIR : __DIR__ . '/../data/backups';
+    if (!str_starts_with(realpath(dirname($backupFile)) ?: dirname($backupFile), realpath($backupDir) ?: $backupDir)) {
+        error_log("SST: backup path traversal blocked - $backupFile");
+        return false;
+    }
 
     if (file_exists($backupFile)) {
         $backupFile = BACKUP_DIR . '/sst_pre_migration_' . $timestamp . '_' . random_int(100, 999) . '.db';

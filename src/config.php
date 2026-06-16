@@ -74,6 +74,23 @@ define('ALLOWED_ATTACHMENT_MIMES', ['image/jpeg', 'image/png', 'image/gif', 'app
 //   2. Env var APP_SUPERVISEUR_USERNAMES (backup) — si la DB n'a pas de liste
 // La DB est prioritaire. Après la promotion initiale, vider la liste pour la sécurité.
 
+// Roles
+define('ROLE_AGENT', 'agent');
+define('ROLE_SUPERVISEUR', 'superviseur');
+define('ROLE_CHSCT', 'chsct');
+
+// Report states (etats)
+define('ETAT_NOUVEAU', 'nouveau');
+define('ETAT_EN_COURS', 'en_cours');
+define('ETAT_TRAITE', 'traite');
+define('ETAT_ABANDONNE', 'abandonne');
+define('ETAT_REOUVERT', 'reouvert');
+
+// Registry types
+define('TYPE_RSST', 'rsst');
+define('TYPE_RAMI', 'rami');
+define('TYPE_DGI', 'dgi');
+
 // Registry type labels
 define('REGISTRY_LABELS', [
     'rsst' => 'Registre de Santé et de Sécurité au Travail',
@@ -110,6 +127,7 @@ define('ETAT_LABELS', [
     'en_cours'   => 'En cours',
     'traite'     => 'Traité',
     'abandonne'  => 'Abandonné',
+    'reouvert'   => 'Réouvert',
 ]);
 
 // RAMI structured field labels (shared by statistics, export, and validation)

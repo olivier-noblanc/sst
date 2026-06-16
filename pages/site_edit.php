@@ -5,7 +5,7 @@
  * Edit an existing site's code, name, and department.
  * Access: superviseur only
  */
-requireRole(['superviseur']);
+requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 $siteId = (int) ($_GET['id'] ?? 0);

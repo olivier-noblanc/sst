@@ -6,7 +6,7 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('users'), ['superviseur']);
+validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 if ($userId <= 0) {
@@ -62,7 +62,7 @@ $siteId = (int) ($_POST['site_id'] ?? 0);
 $email = trim($_POST['email'] ?? '');
 
 // Guard: prevent demoting the last active superviseur
-if ($user['role'] === 'superviseur' && $role !== 'superviseur') {
+if ($user['role'] === ROLE_SUPERVISEUR && $role !== ROLE_SUPERVISEUR) {
     if (isLastActiveSuperviseur($pdo)) {
         $errors['role'] = 'Impossible de rétrograder le dernier superviseur actif. Nommez un autre superviseur d\'abord.';
     }

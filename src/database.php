@@ -473,6 +473,28 @@ function migrateSchema(PDO $pdo): void {
             error_log("Index migration warning: " . $e->getMessage());
         }
     }
+
+    // === Add site_chosen_at column to users table ===
+    // Tracks when the agent first chose their site, enabling a 7-day grace period
+    // for self-service site changes before requiring supervisor intervention.
+    try {
+        $cols = $pdo->query("PRAGMA table_info(users)")->fetchAll();
+        $hasSiteChosenAt = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'site_chosen_at') {
+                $hasSiteChosenAt = true;
+                break;
+            }
+        }
+        if (!$hasSiteChosenAt) {
+            $pdo->exec('ALTER TABLE users ADD COLUMN site_chosen_at TEXT');
+            // Backfill: set site_chosen_at for existing users who already have a site
+            // Use their created_at as an approximation (conservative: no grace period for legacy users)
+            $pdo->exec("UPDATE users SET site_chosen_at = updated_at WHERE site_id IS NOT NULL AND site_chosen_at IS NULL");
+        }
+    } catch (Exception $e) {
+        error_log("Migration warning for users.site_chosen_at: " . $e->getMessage());
+    }
 }
 
 /**

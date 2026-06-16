@@ -1488,6 +1488,7 @@ tr:hover td {
 .badge--en-cours   { background: var(--state-en-cours); }
 .badge--traite     { background: var(--state-traite); }
 .badge--abandonne  { background: var(--state-abandonne); }
+.badge--reouvert   { background: #8B5CF6; }
 .badge--agent      { background: var(--role-agent); }
 .badge--superviseur{ background: var(--role-superviseur); }
 .badge--chsct      { background: var(--role-chsct); }
@@ -2894,6 +2895,16 @@ tr:hover td {
 .synthesis-th-rsst { text-align: center; background: var(--rsst-color); color: white; }
 .synthesis-th-rami { text-align: center; background: var(--rami-color); color: white; }
 .synthesis-th-dgi { text-align: center; background: var(--dgi-color); color: white; }
+
+/* Responsive: Synthesis table stacks on mobile */
+@media (max-width: 768px) {
+    .synthesis-table thead { display: none; }
+    .synthesis-table tr { display: block; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 4px; padding: 0.5rem; }
+    .synthesis-table td { display: flex; justify-content: space-between; padding: 0.25rem 0.5rem; text-align: right; }
+    .synthesis-table td::before { content: attr(data-label); font-weight: 600; text-align: left; padding-right: 1rem; }
+    .synthesis-table td:first-child { border-bottom: 1px solid var(--border); margin-bottom: 0.25rem; padding-bottom: 0.5rem; }
+    .synthesis-table .row--totals { background: var(--hover-highlight); }
+}
 
 /* Contextual: Settings — SMTP test field */
 .smtp-test-field { margin-bottom: 0; flex: 1; max-width: 350px; }

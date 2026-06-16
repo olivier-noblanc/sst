@@ -231,7 +231,7 @@ function requireReportOwnership(array $report, int $userId, string $uuid, string
  * @param string $verb    Verb for the error message ('modifié', 'abandonné', etc.)
  */
 function requireReportEditable(array $report, string $uuid, string $verb = 'modifié'): void {
-    if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
+    if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS])) {
         setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
         redirect(url('report_view', ['uuid' => $uuid]));
     }
@@ -271,24 +271,22 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array {
     } else {
         // Check if username is unique
         if ($excludeId > 0) {
-            // Edit mode: exclude current user from uniqueness check
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = :username AND id != :id");
-            $stmt->execute([':username' => $username, ':id' => $excludeId]);
-        } else {
-            // Create mode: check against all users
-            $existing = getUserByUsername($pdo, $username);
-            $stmt = null; // avoid unused variable
-            if ($existing) {
-                $errors['username'] = 'Cet identifiant est déjà utilisé.';
+            // Edit mode: check if another user already has this username
+            $stmt = $pdo->prepare('SELECT id FROM users WHERE username = :username AND id != :exclude_id AND is_active = 1');
+            $stmt->execute([':username' => $username, ':exclude_id' => $excludeId]);
+            if ($stmt->fetch()) {
+                $errors['username'] = 'Cet identifiant est déjà utilisé';
             }
-        }
-        if (isset($stmt) && $stmt && $stmt->fetch()) {
-            $errors['username'] = 'Cet identifiant est déjà utilisé.';
+        } else {
+            // Create mode: check if any active user has this username
+            if (getUserByUsername($pdo, $username)) {
+                $errors['username'] = 'Cet identifiant est déjà utilisé';
+            }
         }
     }
 
     $role = trim($input['role'] ?? '');
-    if (!in_array($role, ['agent', 'superviseur', 'chsct'])) {
+    if (!in_array($role, [ROLE_AGENT, ROLE_SUPERVISEUR, ROLE_CHSCT])) {
         $errors['role'] = 'Rôle invalide.';
     }
 
@@ -324,7 +322,7 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array {
  * @return bool     True if there is only one active superviseur
  */
 function isLastActiveSuperviseur(PDO $pdo): bool {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = 'superviseur' AND is_active = 1");
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = '" . ROLE_SUPERVISEUR . "' AND is_active = 1");
     $stmt->execute();
     return (int) $stmt->fetchColumn() <= 1;
 }

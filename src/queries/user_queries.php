@@ -130,7 +130,7 @@ function createUser(PDO $pdo, array $data): int {
         ':nom'      => $data['nom'],
         ':prenom'   => $data['prenom'],
         ':email'    => $data['email'] ?? null,
-        ':role'     => $data['role'] ?? 'agent',
+        ':role'     => $data['role'] ?? ROLE_AGENT,
         ':site_id'  => $data['site_id'],
     ]);
     return (int) $pdo->lastInsertId();

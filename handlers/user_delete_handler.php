@@ -6,7 +6,7 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('users'), ['superviseur']);
+validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 
@@ -31,7 +31,7 @@ if (!$user) {
 }
 
 // Soft delete — guard: prevent deactivating the last active superviseur
-if ($user['role'] === 'superviseur' && isLastActiveSuperviseur($pdo)) {
+if ($user['role'] === ROLE_SUPERVISEUR && isLastActiveSuperviseur($pdo)) {
     setFlash('error', 'Impossible de désactiver le dernier superviseur actif. Nommez un autre superviseur d\'abord.');
     redirect(url('users'));
 }
@@ -43,7 +43,7 @@ if ($success) {
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' désactivé avec succès.');
 } else {
     error_log('[SST-DB] user_delete failed for user_id=' . $userId);
-    setFlash('error', 'Erreur lors de la désactivation de l\'utilisateur. (user_id=' . $userId . ')');
+    setFlash('error', 'Erreur lors de la désactivation de l\'utilisateur. Veuillez contacter un administrateur.');
 }
 
 redirect(url('users'));

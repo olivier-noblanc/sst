@@ -6,13 +6,13 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('home'), ['superviseur']);
+validatePostRequest(url('home'), [ROLE_SUPERVISEUR]);
 
 $reportUuid = trim($_POST['report_uuid'] ?? '');
 
 // Validate nouvel_etat
 $nouvelEtat = trim($_POST['nouvel_etat'] ?? '');
-if (!in_array($nouvelEtat, ['en_cours', 'traite'])) {
+if (!in_array($nouvelEtat, [ETAT_EN_COURS, ETAT_TRAITE])) {
     setFlash('error', 'L\'état sélectionné n\'est pas valide.');
     setFormData($_POST);
     redirect(url('report_respond', ['uuid' => $reportUuid]));
@@ -38,7 +38,7 @@ if (strlen($reponse) > 5000) {
 $report = fetchReportOrRedirect($reportUuid);
 
 // Verify report state
-if (!in_array($report['etat'], ['nouveau', 'en_cours'])) {
+if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS])) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
     redirect(url('report_view', ['uuid' => $reportUuid]));
 }

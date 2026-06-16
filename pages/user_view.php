@@ -5,7 +5,7 @@
  * View user profile (read-only).
  * Access: superviseur only
  */
-requireRole(['superviseur']);
+requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 $userId = (int) ($_GET['id'] ?? 0);

@@ -5,7 +5,7 @@
  * User management: list users and register new user.
  * Access: superviseur only
  */
-requireRole(['superviseur']);
+requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 
@@ -151,7 +151,7 @@ $pageTitle = 'Gestion des utilisateurs';
         $editPrenom = $formData['prenom'] ?? '';
         $editEmail = $formData['email'] ?? '';
         $editUsername = $formData['username'] ?? '';
-        $editRole = $formData['role'] ?? 'agent';
+        $editRole = $formData['role'] ?? ROLE_AGENT;
         $editSiteId = $formData['site_id'] ?? 1;
         $usernameHint = 'Identifiant de connexion Windows (ex: jean.martin)';
         require __DIR__ . '/../templates/user_form_fields.php';

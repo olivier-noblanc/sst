@@ -25,6 +25,13 @@ if (php_sapi_name() !== 'cli') {
     exit(1);
 }
 
+// Require explicit confirmation via environment variable
+if (!isset($_SERVER['SST_CONFIRM_PROMOTE']) || $_SERVER['SST_CONFIRM_PROMOTE'] !== 'yes') {
+    echo "Erreur : définissez SST_CONFIRM_PROMOTE=yes pour confirmer.\n";
+    echo "Usage: SST_CONFIRM_PROMOTE=yes php promote.php <username> [role]\n";
+    exit(1);
+}
+
 echo "=== DREETS BFC SST — Promotion d'utilisateur ===\n\n";
 
 // Load config

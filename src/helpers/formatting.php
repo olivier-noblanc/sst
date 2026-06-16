@@ -113,6 +113,7 @@ function getEtatBadgeClass(string $etat): string {
         'en_cours'   => 'badge--en-cours',
         'traite'     => 'badge--traite',
         'abandonne'  => 'badge--abandonne',
+        'reouvert'   => 'badge--reouvert',
         default      => '',
     };
 }

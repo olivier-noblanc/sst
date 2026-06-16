@@ -12,7 +12,7 @@ if (!isset($report) || !$report) {
     return;
 }
 
-$type = $report['type'] ?? 'rsst';
+$type = $report['type'] ?? TYPE_RSST;
 $cardClass = match($type) {
     'rsst' => 'card--rsst',
     'rami' => 'card--rami',
@@ -22,13 +22,14 @@ $cardClass = match($type) {
 
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
 $user = currentUser() ?? [];
-$userRole = $user['role'] ?? 'agent';
+$userRole = $user['role'] ?? ROLE_AGENT;
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $isDeclarant = ((int) $report['declarant_id'] === $userId);
 $canEdit = canEditReport($report, $userId);
-$canAbandon = $isDeclarant && !in_array($report['etat'], ['abandonne', 'traite']);
+$canAbandon = $isDeclarant && !in_array($report['etat'], [ETAT_ABANDONNE, ETAT_TRAITE]);
 $canRespondToReport = canRespondToReport($report, $userRole);
+$canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE]) && ($isDeclarant || in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT]));
 
 // Ensure $csrfToken is available (set by index.php but may not be in scope)
 if (!isset($csrfToken)) {
@@ -37,7 +38,7 @@ if (!isset($csrfToken)) {
 ?>
 
 <div class="card <?php echo $cardClass; ?>">
-    <?php if ($type === 'dgi'): ?>
+    <?php if ($type === TYPE_DGI): ?>
     <div class="danger-panel">
         &#9888;&#65039; <strong>Procédure prioritaire :</strong> Ce signalement relève du registre DGI (Danger Grave et Imminent). Conformément aux articles L4131-1 et L4132-5 du Code du travail, l'agent a le droit de se retirer de la situation de danger. Le registre DGI doit être tenu à disposition de l'inspecteur du travail et du CHSCT/CSA.
     </div>
@@ -69,7 +70,7 @@ if (!isset($csrfToken)) {
                     <td><?php echo e($report['heure_evenement'] ?? '—'); ?></td>
                 </tr>
                 <tr>
-                    <th><?php echo $type === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
+                    <th><?php echo $type === TYPE_DGI ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
                     <td><?php echo e($report['lieu'] ?? '—'); ?></td>
                 </tr>
                 <tr>
@@ -88,7 +89,7 @@ if (!isset($csrfToken)) {
                     <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
                     <td><?php echo e($report['site_nom'] ?? '—'); ?> (<?php echo e($report['site_code'] ?? '—'); ?>)</td>
                 </tr>
-                <?php if ($type === 'rami' && !empty($report['pour_compte_nom'])): ?>
+                <?php if ($type === TYPE_RAMI && !empty($report['pour_compte_nom'])): ?>
                 <tr>
                     <th>Déclaré pour le compte de</th>
                     <td><?php echo e(($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']); ?></td>
@@ -175,6 +176,10 @@ if (!isset($csrfToken)) {
 
     <?php if ($canAbandon): ?>
         <a href="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="btn btn--danger">Abandonner le signalement</a>
+    <?php endif; ?>
+
+    <?php if ($canReopen): ?>
+        <a href="<?php echo url('report_reopen', ['uuid' => $report['uuid']]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
     <?php endif; ?>
 
     <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Voir en PDF</a>

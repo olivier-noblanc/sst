@@ -24,10 +24,10 @@ function getSynthesisData(PDO $pdo, string $year, int $siteId = 0): array {
             COUNT(*) as total
         FROM sites s
         LEFT JOIN reports r ON r.site_id = s.id
-            AND strftime('%Y', r.created_at) = :year
+            AND r.created_at >= :year_start AND r.created_at < :year_next
     ";
 
-    $params = [':year' => $year];
+    $params = [':year_start' => $year . '-01-01 00:00:00', ':year_next' => ((int)$year + 1) . '-01-01 00:00:00'];
 
     if ($siteId > 0) {
         $sql .= " AND r.site_id = :site_id";
@@ -50,7 +50,16 @@ function getSynthesisData(PDO $pdo, string $year, int $siteId = 0): array {
  */
 function getExportData(PDO $pdo, array $filters = []): array {
     $sql = "
-        SELECT r.*, s.code as site_code, s.nom as site_nom,
+        SELECT r.uuid, r.reference, r.type, r.objet, r.description,
+               r.date_evenement, r.heure_evenement, r.lieu,
+               r.declarant_id, r.declarant_nom, r.declarant_prenom,
+               r.pour_compte_de, r.pour_compte_nom, r.pour_compte_prenom,
+               r.nature_auteur, r.type_acte,
+               r.site_id, r.is_confidential, r.etat,
+               r.repondant_id, r.date_reponse, r.reponse,
+               r.attachment_name, r.attachment_mime,
+               r.created_at, r.updated_at,
+               s.code as site_code, s.nom as site_nom,
                rep.nom as repondant_nom, rep.prenom as repondant_prenom
         FROM reports r
         LEFT JOIN sites s ON r.site_id = s.id
@@ -127,8 +136,9 @@ function getStatisticsIndicateurs(PDO $pdo, string $year = '', int $siteId = 0):
     ";
 
     if (!empty($year)) {
-        $sql .= " AND strftime('%Y', created_at) = :year";
-        $params[':year'] = $year;
+        $sql .= " AND created_at >= :year_start AND created_at < :year_next";
+        $params[':year_start'] = $year . '-01-01 00:00:00';
+        $params[':year_next'] = ((int)$year + 1) . '-01-01 00:00:00';
     }
 
     if ($siteId > 0) {
@@ -179,8 +189,9 @@ function getStatsBySite(PDO $pdo, string $year = '', int $siteId = 0): array {
     $where = [];
 
     if (!empty($year)) {
-        $where[] = "strftime('%Y', r.created_at) = :year";
-        $params[':year'] = $year;
+        $where[] = "r.created_at >= :year_start AND r.created_at < :year_next";
+        $params[':year_start'] = $year . '-01-01 00:00:00';
+        $params[':year_next'] = ((int)$year + 1) . '-01-01 00:00:00';
     }
 
     if ($siteId > 0) {
@@ -243,8 +254,9 @@ function getRamiStructuredStats(PDO $pdo, string $year = ''): array {
     $params = [];
     $yearFilter = '';
     if (!empty($year)) {
-        $yearFilter = " AND strftime('%Y', created_at) = :year";
-        $params[':year'] = $year;
+        $yearFilter = " AND created_at >= :year_start AND created_at < :year_next";
+        $params[':year_start'] = $year . '-01-01 00:00:00';
+        $params[':year_next'] = ((int)$year + 1) . '-01-01 00:00:00';
     }
 
     // By nature_auteur

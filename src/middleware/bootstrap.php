@@ -40,7 +40,7 @@ function checkSuperviseurPromotion(): void {
         return;
     }
 
-    $users = array_map('trim', explode(',', strtolower($superviseurUsernames)));
+    $users = parseSuperviseurUsernames($superviseurUsernames);
     $currentUsername = strtolower(currentUserUsername());
 
     if (!in_array($currentUsername, $users)) {
@@ -49,7 +49,7 @@ function checkSuperviseurPromotion(): void {
 
     // Promote in database
     $pdo = getDB();
-    $stmt = $pdo->prepare("UPDATE users SET role = 'superviseur', updated_at = datetime('now') WHERE id = :id AND role = 'agent'");
+    $stmt = $pdo->prepare("UPDATE users SET role = '" . ROLE_SUPERVISEUR . "', updated_at = datetime('now') WHERE id = :id AND role = '" . ROLE_AGENT . "'");
     $stmt->execute([':id' => currentUserId()]);
 
     if ($stmt->rowCount() > 0) {

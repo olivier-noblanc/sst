@@ -29,13 +29,13 @@ if ($action === 'start') {
 
     // Only superviseurs can impersonate (check real_role if already impersonating)
     $effectiveRole = getRealRole() ?? currentUserRole();
-    if ($effectiveRole !== 'superviseur') {
+    if ($effectiveRole !== ROLE_SUPERVISEUR) {
         setFlash('error', 'Seuls les superviseurs peuvent incarner un autre rôle.');
         redirect(url('home'));
     }
 
     // Only allow impersonating agent or chsct
-    if (!in_array($targetRole, ['agent', 'chsct'], true)) {
+    if (!in_array($targetRole, [ROLE_AGENT, ROLE_CHSCT], true)) {
         setFlash('error', 'Rôle cible invalide. Seuls Agent et CSA/CHSCT peuvent être incarnés.');
         redirect(url('home'));
     }

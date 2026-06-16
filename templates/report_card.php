@@ -174,17 +174,7 @@ if (!isset($csrfToken)) {
     <?php endif; ?>
 
     <?php if ($canAbandon): ?>
-        <?php if (isset($_GET['confirm_abandon'])): ?>
-        <span class="text-muted abandon-warning-text">&#9888; Abandonner ce signalement ?</span>
-        <form method="POST" action="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="form--inline">
-            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-            <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid']); ?>">
-            <button type="submit" class="btn btn--danger">Oui, abandonner</button>
-        </form>
-        <a href="<?php echo url('report_view', ['uuid' => $report['uuid']]); ?>" class="btn btn--secondary">Annuler</a>
-        <?php else: ?>
-        <a href="<?php echo url('report_view', ['uuid' => $report['uuid'], 'confirm_abandon' => 1]); ?>" class="btn btn--danger">Abandonner le signalement</a>
-        <?php endif; ?>
+        <a href="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="btn btn--danger">Abandonner le signalement</a>
     <?php endif; ?>
 
     <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Voir en PDF</a>

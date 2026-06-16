@@ -3,6 +3,24 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.17.0] — 2026-06-16
+
+### UX — Corrections audit UI/UX (5 critiques, 7 moyens, 3 mineurs)
+
+- **1** 🔴 **Tables mobiles — layout carte responsive** — La table des signalements (9 colonnes) déborde horizontalement sur mobile sans moyen de lire les données. Ajout de la classe `.table-wrapper--responsive` qui transforme chaque ligne en carte avec `data-label` sur chaque `<td>` pour afficher le libellé de la colonne. Appliqué à `report_list.php`. Les tables de détail signalement (`report-detail__table`) passent aussi en layout empilé sur mobile.
+- **2** 🔴 **Dropdown incarnation fermable au clavier** — Le menu déroulant d'incarnation ne pouvait pas être fermé au clavier (ni Escape, ni Tab out). Ajout d'un bouton « Fermer » (label pour le checkbox, CSS-only) à la fin du menu, et règle CSS `:focus-within` qui ferme le dropdown quand le focus le quitte. L'attribut `aria-expanded` est ajouté au bouton.
+- **3** 🔴 **Abandon confirmation — suppression du GET `confirm_abandon`** — Le lien « Abandonner » dans `report_card.php` utilisait un paramètre GET (`?confirm_abandon=1`) pour afficher la confirmation inline, ce qui est vulnérable au CSRF par prefetch/preload. Remplacé par un lien direct vers la page dédiée `report_abandon.php` qui a toujours utilisé un formulaire POST avec CSRF token.
+- **4** 🔴 **Navigation prev/next dans la vue signalement** — Aucun moyen de naviguer entre signalements sans revenir à la liste. Ajout de `getAdjacentReportUuids()` dans `report_queries.php` et d'une barre de navigation `<nav class="report-nav">` avec liens « Précédent / Suivant » dans `report_view.php`.
+- **5** 🔴 **Empty state amélioré** — L'état vide « Aucun signalement trouvé » n'avait pas de hiérarchie visuelle. Ajout d'une icône, d'un titre en gras et de classes `.empty-state__icon` / `.empty-state__title` pour un affichage plus clair.
+- **6** 🟡 **Tab bar scrollable horizontalement** — Les onglets Paramètres (5 items) débordaient sur mobile. La `.tab-bar` passe en `flex-wrap: nowrap` avec `overflow-x: auto` et `scrollbar-width: thin`. Les onglets ont `white-space: nowrap` et sont plus compacts sur mobile.
+- **7** 🟡 **Header mobile — username tronqué** — Le nom d'utilisateur et le badge de rôle débordaient sur petit écran. Ajout de `max-width: 120px` avec `text-overflow: ellipsis` sur `.header__username` en mobile.
+- **8** 🟡 **Skip link transition douce** — Le lien d'évitement apparaissait brusquement au focus. Ajout d'une `transition: top 0.15s ease` pour une apparition fluide.
+- **9** 🟡 **Back-to-top opacité par défaut** — Le bouton retour en haut était trop proéminent. Opacité réduite à 0.7 par défaut, 1 au hover.
+- **10** 🟡 **Report detail table responsive** — La table de détail signalement (th+td) est illisible sur mobile. Ajout d'un breakpoint 768px qui empile les th/td verticalement avec th en label réduit.
+- **11** 🟢 **Dropdown — overlay invisible pour fermeture click-outside** — Ajout d'un `::after` pseudo-élément fixed quand le dropdown est ouvert, pour capter les clics en dehors et fermer le menu (comportement cohérent avec le sidebar).
+- **12** 🟢 **CSS — double `.back-to-top:hover` supprimé** — Deux règles `:hover` identiques sur `.back-to-top` étaient présentes, fusionnées en une seule.
+- **13** 🟢 **Tab bar mobile — onglets compacts** — Sur mobile (≤768px), les onglets settings utilisent `font-size: 13px` et `padding: 8px 14px` pour maximiser l'espace visible.
+
 ## [3.16.1] — 2026-06-16
 
 ### Correction — Onglets Notifications vides dans Paramètres (incohérence de nommage)

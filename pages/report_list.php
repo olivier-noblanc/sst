@@ -115,7 +115,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 </div>
 
 <div class="card">
-    <div class="table-wrapper">
+    <div class="table-wrapper table-wrapper--responsive">
         <table aria-label="Liste des signalements <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?>">
             <thead>
                 <tr>
@@ -134,7 +134,8 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                 <?php if (empty($reports)): ?>
                 <tr>
                     <td colspan="9" class="empty-state">
-                        Aucun signalement trouvé.
+                        <div class="empty-state__icon">&#128203;</div>
+                        <div class="empty-state__title">Aucun signalement trouvé</div>
                         <div class="empty-state__cta">
                             <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--primary btn--sm">+ Inscrire un signalement</a>
                         </div>
@@ -147,25 +148,25 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         $canRespond = canRespondToReport($report, $userRole);
                     ?>
                     <tr>
-                        <td><strong><?php echo e($report['reference']); ?></strong></td>
-                        <td><?php echo e(formatDateFR($report['date_evenement'])); ?></td>
-                        <td><?php echo e(truncate($report['objet'], 50)); ?></td>
-                        <td><?php echo e($report['declarant_nom']); ?></td>
-                        <td><?php echo e($report['declarant_prenom']); ?></td>
-                        <td><?php echo e($report['site_code'] ?? '—'); ?></td>
-                        <td>
+                        <td data-label="Référence"><strong><?php echo e($report['reference']); ?></strong></td>
+                        <td data-label="Date"><?php echo e(formatDateFR($report['date_evenement'])); ?></td>
+                        <td data-label="Objet"><?php echo e(truncate($report['objet'], 50)); ?></td>
+                        <td data-label="Nom"><?php echo e($report['declarant_nom']); ?></td>
+                        <td data-label="Prénom"><?php echo e($report['declarant_prenom']); ?></td>
+                        <td data-label="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"><?php echo e($report['site_code'] ?? '—'); ?></td>
+                        <td data-label="État">
                             <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>">
                                 <?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?>
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Visibilité">
                             <?php if (!empty($report['is_confidential'])): ?>
                             <span class="badge badge--confidential">&#128274; Confidentiel</span>
                             <?php else: ?>
                             <span class="badge badge--public">Public</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td data-label="Actions">
                             <div class="btn-group">
                                 <a href="<?php echo url('report_view', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--outline">Voir</a>
                                 <?php if ($canEdit): ?>

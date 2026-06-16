@@ -42,4 +42,27 @@ $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType
 ]); ?>
 
 <?php
+// Previous/Next navigation for the same registry list
+$adjacent = getAdjacentReportUuids($pdo, $report);
+?>
+
+<?php
 require __DIR__ . '/../templates/report_card.php';
+?>
+
+<?php if (!empty($adjacent['prev']) || !empty($adjacent['next'])): ?>
+<nav class="report-nav" aria-label="Navigation entre signalements">
+    <?php if (!empty($adjacent['prev'])): ?>
+    <a href="<?php echo url('report_view', ['uuid' => $adjacent['prev']]); ?>" class="report-nav__link">
+        &#8592; Précédent
+    </a>
+    <?php else: ?>
+    <span></span>
+    <?php endif; ?>
+    <?php if (!empty($adjacent['next'])): ?>
+    <a href="<?php echo url('report_view', ['uuid' => $adjacent['next']]); ?>" class="report-nav__link report-nav__link--next">
+        Suivant &#8594;
+    </a>
+    <?php endif; ?>
+</nav>
+<?php endif; ?>

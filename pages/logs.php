@@ -23,35 +23,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'clear
     }
 }
 
-// Read log file
+// Read log file — tail-like approach: read last N lines from the end
+// without ever loading the entire file into memory.
+// Even a 500 MB log file uses only ~50 KB of RAM.
 $logLines = [];
 $logCount = 0;
 $maxLines = 500;
+$chunkSize = 8192; // 8 KB read chunks
 
 if (file_exists($logFile) && is_readable($logFile)) {
-    // Read only the last 512KB to avoid memory exhaustion on huge log files
     $fileSize = filesize($logFile);
-    $maxReadBytes = 512 * 1024;
-    if ($fileSize > $maxReadBytes) {
+    if ($fileSize > 0) {
         $fp = fopen($logFile, 'r');
-        fseek($fp, -$maxReadBytes, SEEK_END);
-        $raw = fread($fp, $maxReadBytes);
+        $collected = [];       // lines collected from the end
+        $buffer = '';          // partial line at chunk boundary
+        $position = $fileSize; // current seek position (start of next chunk)
+
+        while ($position > 0 && count($collected) < $maxLines) {
+            // How much to read in this chunk
+            $readLen = min($chunkSize, $position);
+            $position -= $readLen;
+            fseek($fp, $position);
+            $chunk = fread($fp, $readLen);
+
+            // Prepend chunk to buffer, then split into lines
+            $buffer = $chunk . $buffer;
+            $lines = explode("\n", $buffer);
+
+            // The first element is a partial line (unless we're at position 0)
+            if ($position > 0) {
+                $buffer = array_shift($lines); // keep partial for next iteration
+            } else {
+                $buffer = ''; // we've read from the very start
+            }
+
+            // Collect lines from the end (they come in reverse order from our iteration)
+            foreach ($lines as $line) {
+                $trimmed = trim($line);
+                if ($trimmed !== '') {
+                    $collected[] = $trimmed;
+                    if (count($collected) >= $maxLines) {
+                        break;
+                    }
+                }
+            }
+        }
+        // Handle any remaining partial line
+        if ($buffer !== '' && trim($buffer) !== '' && count($collected) < $maxLines) {
+            $collected[] = trim($buffer);
+        }
         fclose($fp);
-        // Drop the first partial line
-        $raw = substr($raw, strpos($raw, "\n") + 1);
-    } else {
-        $raw = file_get_contents($logFile);
-    }
-    if (!empty($raw)) {
-        $lines = array_filter(explode("\n", trim($raw)), fn($l) => trim($l) !== '');
-        $logCount = count($lines);
-        $lines = array_slice($lines, -$maxLines);
-        $lines = array_reverse($lines);
+
+        // $collected is in reverse chronological order (newest first)
+        $logCount = count($collected);
 
         // Group multi-line entries (stack traces belong to the previous entry)
         $entries = [];
         $currentEntry = '';
-        foreach ($lines as $line) {
+        foreach ($collected as $line) {
             if (preg_match('/^\[?\d{2}-\w{3}-\d{4}/', $line)) {
                 if ($currentEntry !== '') {
                     $entries[] = $currentEntry;

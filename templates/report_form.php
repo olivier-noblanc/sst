@@ -58,6 +58,10 @@ $submitBtnClass = $isEdit
         <?php echo $isEdit ? 'Modifier le signalement' : 'Signaler un événement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>
 
+    <div class="alert alert--info form-encouragement" role="note">
+        💡 <strong>Remplissez les champs marqués d'une étoile <span class="required">*</span>, les autres sont optionnels.</strong>
+    </div>
+
     <form method="POST" action="<?php echo e($action); ?>" enctype="multipart/form-data">
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">

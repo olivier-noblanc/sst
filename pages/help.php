@@ -93,13 +93,13 @@ $screenshotBase = 'asset.php?f=screenshots';
                 <li>🚫 Abandonner un signalement</li>
                 <li>👁️ Voir les signalements de <strong>tous les sites</strong></li>
                 <li>📊 Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
-                <li>📥 <strong>Exporter</strong> les données (tableau CSV)</li>
+                <li>📥 <strong>Exporter</strong> les données (fichier tableur pour Excel)</li>
                 <li>👥 Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver)</li>
                 <li>⚙️ Configurer les <strong>paramètres</strong> (envoi d'e-mails, notifications, visibilité)</li>
-                <li>🖨️ Imprimer une fiche de signalement (PDF)</li>
+                <li>🖨️ Imprimer une fiche de signalement (document imprimable)</li>
             </ul>
             <p class="help-note">
-                🔑 Attribué par un autre superviseur via la gestion des utilisateurs, ou via <strong>Paramètres &rarr; Logins Windows des superviseurs</strong> (pour une première installation).
+                🔑 Attribué par un autre superviseur via la gestion des utilisateurs, ou via <strong>Paramètres &rarr; Identifiants Windows des superviseurs</strong> (pour une première installation).
             </p>
         </div>
 
@@ -113,7 +113,7 @@ $screenshotBase = 'asset.php?f=screenshots';
                 <li>✅ <strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
                 <li>👁️ Voir les signalements de <strong>tous les sites</strong></li>
                 <li>📊 Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
-                <li>📥 <strong>Exporter</strong> les données (tableau CSV)</li>
+                <li>📥 <strong>Exporter</strong> les données (fichier tableur pour Excel)</li>
             </ul>
             <p class="help-note">
                 👁️ Rôle de consultation uniquement — pas de réponse aux signalements ni de gestion des utilisateurs.
@@ -488,7 +488,7 @@ $screenshotBase = 'asset.php?f=screenshots';
             <ol>
                 <li>📊 Il ouvre la <strong>Synthèse</strong> pour voir les signalements par registre, site et état</li>
                 <li>📈 Il consulte les <strong>Statistiques</strong> (évolution mensuelle, répartition, types d'actes)</li>
-                <li>📥 Il <strong>exporte</strong> les données en tableau (CSV) pour les analyser dans Excel</li>
+                <li>📥 Il <strong>exporte</strong> les données en fichier tableur pour les analyser dans Excel</li>
                 <li>👀 Il peut consulter n'importe quel signalement sur <strong>tous les sites</strong>, même les confidentiels (consultation enregistrée)</li>
             </ol>
             <p class="help-warning-callout">
@@ -515,8 +515,8 @@ $screenshotBase = 'asset.php?f=screenshots';
             <p class="help-feature-list card--spaced-top"><strong>⚙️ Configuration initiale :</strong></p>
             <ol>
                 <li>📦 <strong>Paramètres &rarr; Application</strong> : nom de l'organisation et libellé des unités</li>
-                <li>🔑 <strong>Paramètres &rarr; Application</strong> : liste des logins superviseurs (promus automatiquement à la première connexion)</li>
-                <li>📧 <strong>Paramètres &rarr; Envoi d'e-mails (SMTP)</strong> : serveur d'envoi pour les notifications</li>
+                <li>🔑 <strong>Paramètres &rarr; Application</strong> : liste des identifiants superviseurs (promus automatiquement à la première connexion)</li>
+                <li>📧 <strong>Paramètres &rarr; Envoi d'e-mails</strong> : configuration du courriel pour les notifications</li>
                 <li>🔔 <strong>Paramètres &rarr; Notifications</strong> : adresses e-mail à prévenir par site</li>
                 <li>👁️ <strong>Paramètres &rarr; Application</strong> : visibilité des signalements par registre</li>
             </ol>
@@ -541,9 +541,9 @@ $screenshotBase = 'asset.php?f=screenshots';
                 <li>🖨️ Le document est prêt pour impression ou archivage</li>
             </ol>
             <p class="help-note help-note--blue">
-                📄 Le PDF est généré par le serveur. Pas besoin de logiciel supplémentaire. Format optimisé pour impression A4.
+                📄 Le document est généré automatiquement. Pas besoin de logiciel supplémentaire. Format optimisé pour impression A4.
             </p>
-            <?php echo helpScreenshot($screenshotBase . '/cu8-export.html', "Page d'export des données avec sélection des filtres et format CSV"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu8-export.html', "Page d'export des données avec sélection des filtres et fichier tableur"); ?>
         </div>
     </div>
 </div>
@@ -556,15 +556,15 @@ $screenshotBase = 'asset.php?f=screenshots';
     <p class="help-description">La connexion fonctionne différemment selon l'environnement :</p>
     <div class="help-profiles-grid">
         <div class="help-auth-card--prod">
-            <h4>🖥️ Production (serveur Windows)</h4>
+            <h4>🖥️ Ordinateur du travail</h4>
             <p class="help-description">
-                🔑 Connexion automatique avec votre <strong>compte Windows</strong>. Pas de formulaire de login. Votre compte est créé à la première connexion.
+                🔑 Connexion automatique avec votre <strong>compte Windows</strong>. Pas de mot de passe à taper. Votre compte est créé à la première connexion.
                 <br><br>
-                ⬆️ Si votre login figure dans la liste des superviseurs, vous êtes automatiquement promu Superviseur.
+                ⬆️ Si votre identifiant figure dans la liste des superviseurs, vous êtes automatiquement promu Superviseur.
             </p>
         </div>
         <div class="help-auth-card--dev">
-            <h4>🧪 Développement (test)</h4>
+            <h4>🧪 Mode test</h4>
             <p class="help-description">
                 Un <strong>formulaire de connexion</strong> permet de tester les profils :
                 <ul class="help-feature-list">

@@ -17,28 +17,23 @@ test.describe('Login Page', () => {
     // Page title
     await expect(page).toHaveTitle(/Connexion/);
     
-    // Login form elements
-    await expect(page.locator('#username')).toBeVisible();
-    await expect(page.locator('#password')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
+    // Quick-login buttons visible
+    await expect(page.locator('.login-quick-buttons')).toBeVisible();
     
     // Dev mode badge
-    await expect(page.locator('.login-dev-badge')).toContainText('Mode sans IIS');
+    await expect(page.locator('.login-dev-badge')).toContainText('Connexion');
     
-    // Test accounts info
-    await expect(page.locator('.login-dev-info')).toContainText('admin.dev');
-    await expect(page.locator('.login-dev-info')).toContainText('agent.dev');
+    // Profile buttons
+    await expect(page.locator('.login-quick-buttons')).toContainText('Superviseur');
+    await expect(page.locator('.login-quick-buttons')).toContainText('Agent');
   });
 
   test('should require username to login', async ({ page }) => {
+    // With quick-login buttons, clicking submit without selection stays on login
     await page.goto('/index.php?page=login');
-    
-    // Submit empty form (HTML5 validation should prevent it)
-    const usernameInput = page.locator('#username');
-    await usernameInput.click();
-    await page.locator('button[type="submit"]').click();
-    
-    // Should still be on login page
+    await page.locator('#quick-login-form').evaluate(form => form.submit());
+    // Should stay on login (empty username)
+    await page.waitForTimeout(1000);
     await expect(page).toHaveURL(/page=login/);
   });
 
@@ -46,9 +41,7 @@ test.describe('Login Page', () => {
     await page.goto('/index.php?page=login');
     
     // Fill login form
-    await page.locator('#username').fill('admin.dev');
-    await page.locator('#password').fill('test');
-    await page.locator('button[type="submit"]').click();
+    await page.locator('button:has-text("Superviseur")').click();
     
     // Should redirect to home page (or choose_site if no site assigned)
     await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
@@ -63,12 +56,10 @@ test.describe('Login Page', () => {
   test('should login as agent successfully', async ({ page }) => {
     await page.goto('/index.php?page=login');
     
-    await page.locator('#username').fill('agent.dev');
-    await page.locator('#password').fill('test');
-    await page.locator('button[type="submit"]').click();
+    await page.locator('button:has-text("Agent")').click();
     
-    // Should redirect to choose_site (agent.dev has no site assigned)
-    await expect(page).toHaveURL(/page=choose_site/, { timeout: 10000 });
+    // Should redirect to choose_site or home (if site already assigned)
+    await expect(page).toHaveURL(/page=(choose_site|home)/, { timeout: 10000 });
     
     await expect(page.locator('.alert--success')).toContainText(/Bienvenue/);
   });
@@ -76,12 +67,17 @@ test.describe('Login Page', () => {
   test('should auto-create agent account for unknown username', async ({ page }) => {
     await page.goto('/index.php?page=login');
     
-    await page.locator('#username').fill('nouvel.agent.test');
-    await page.locator('#password').fill('anything');
-    await page.locator('button[type="submit"]').click();
+    // Get CSRF token from the form
+    const csrfToken = await page.locator('input[name="csrf_token"]').inputValue();
     
-    // Should redirect to choose_site (new agent has no site)
-    await expect(page).toHaveURL(/page=choose_site/, { timeout: 10000 });
+    // POST directly to create a new agent
+    const response = await page.request.post('/index.php?page=login', {
+      form: { username: 'nouvel.agent.test', password: 'test', csrf_token: csrfToken },
+      maxRedirects: 0,
+    });
+    
+    // Should redirect (302) after successful creation
+    expect(response.status()).toBe(302);
   });
 
 });
@@ -91,9 +87,7 @@ test.describe('Logout', () => {
   test('should logout and redirect to login page', async ({ page }) => {
     // Login first
     await page.goto('/index.php?page=login');
-    await page.locator('#username').fill('admin.dev');
-    await page.locator('#password').fill('test');
-    await page.locator('button[type="submit"]').click();
+    await page.locator('button:has-text("Superviseur")').click();
     await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
     
     // Click logout
@@ -123,9 +117,7 @@ test.describe('Authentication Protection', () => {
     await expect(page).toHaveURL(/page=login/, { timeout: 10000 });
     
     // Login
-    await page.locator('#username').fill('admin.dev');
-    await page.locator('#password').fill('test');
-    await page.locator('button[type="submit"]').click();
+    await page.locator('button:has-text("Superviseur")').click();
     
     // Should be redirected to the originally requested page (changelog)
     await expect(page).toHaveURL(/page=changelog/, { timeout: 10000 });

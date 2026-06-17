@@ -81,15 +81,24 @@ if (isUserLoggedIn()) {
             <p style="text-align:center;font-size:18px;margin:20px 0 8px 0;color:#555;">Choisissez votre profil :</p>
             <p style="text-align:center;font-size:14px;color:#888;margin:0 0 16px 0;">Cliquez sur le bouton qui correspond à votre rôle</p>
             <div class="login-quick-buttons">
-                <button type="button" class="btn btn--primary" onclick="document.getElementById('username').value='admin.dev';document.getElementById('quick-login-form').submit();">
-                    Superviseur
-                </button>
-                <button type="button" class="btn btn--primary" style="background:#4a90d9;" onclick="document.getElementById('username').value='agent.dev';document.getElementById('quick-login-form').submit();">
-                    Agent
-                </button>
-                <button type="button" class="btn btn--primary" style="background:#6b7280;" onclick="document.getElementById('username').value='chsct.dev';document.getElementById('quick-login-form').submit();">
-                    Membre CSA/CHSCT
-                </button>
+                <div class="login-btn-wrapper">
+                    <button type="button" class="btn btn--primary" onclick="document.getElementById('username').value='admin.dev';document.getElementById('quick-login-form').submit();">
+                        Superviseur
+                    </button>
+                    <span class="login-btn-desc">Gestion et suivi des signalements</span>
+                </div>
+                <div class="login-btn-wrapper">
+                    <button type="button" class="btn btn--primary" style="background:#4a90d9;" onclick="document.getElementById('username').value='agent.dev';document.getElementById('quick-login-form').submit();">
+                        Agent
+                    </button>
+                    <span class="login-btn-desc">Signaler un événement</span>
+                </div>
+                <div class="login-btn-wrapper">
+                    <button type="button" class="btn btn--primary" style="background:#6b7280;" onclick="document.getElementById('username').value='chsct.dev';document.getElementById('quick-login-form').submit();">
+                        Membre CSA/CHSCT
+                    </button>
+                    <span class="login-btn-desc">Consultation et synthèse</span>
+                </div>
             </div>
             <p class="text-small text-muted" style="text-align:center;margin-top:12px;">
                 En utilisation normale, la connexion est automatique.
@@ -101,14 +110,25 @@ if (isUserLoggedIn()) {
 .login-quick-buttons {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     margin-top: 12px;
+}
+.login-btn-wrapper {
+    text-align: center;
 }
 .login-quick-buttons .btn {
     justify-content: center;
     font-size: 18px;
     min-height: 56px;
     padding: 14px 28px;
+    width: 100%;
+}
+.login-btn-desc {
+    display: block;
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 4px;
+    font-style: italic;
 }
 </style>
 </body>

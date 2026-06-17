@@ -16,7 +16,7 @@
     /* Registry colors */
     --rsst-color: #2E5C8A;             /* Blue */
     --rami-color: #6C6C6C;             /* Grey */
-    --dgi-color: #B22222;              /* Red */
+    --dgi-color: #b91c1c;              /* Red (softened) */
 
     /* State colors */
     --state-nouveau: #2E5C8A;          /* Blue */
@@ -691,7 +691,11 @@ img { max-width: 100%; height: auto; display: block; }
 
 .registry-card--rsst { background: var(--rsst-color); }
 .registry-card--rami { background: var(--rami-color); }
-.registry-card--dgi  { background: var(--dgi-color); }
+.registry-card--dgi  { background: #fef2f2; border: 3px solid var(--dgi-color); color: var(--dgi-color); }
+.registry-card--dgi .registry-card__btn { border-color: var(--dgi-color); color: var(--dgi-color); }
+.registry-card--dgi .registry-card__btn:hover { background: var(--dgi-color); color: white; }
+.registry-card--dgi .registry-card__link { color: var(--dgi-color); }
+.registry-card--dgi .registry-card__desc { color: #991b1b; }
 
 .registry-card__icon { font-size: 36px; margin-bottom: 8px; }
 .registry-card__title { font-size: 15px; font-weight: 500; margin-bottom: 4px; opacity: 0.9; }

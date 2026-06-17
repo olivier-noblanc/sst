@@ -1,0 +1,18 @@
+parameters:
+    level: 6
+    paths:
+        - src/
+        - pages/
+        - templates/
+        - handlers/
+        - public/index.php
+        - public/asset.php
+    excludePaths:
+        - vendor/
+        - node_modules/
+        - tests/
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    scanDirectories:
+        - src/
+        - handlers/

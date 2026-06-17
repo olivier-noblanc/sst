@@ -51,6 +51,7 @@ if (!isset($csrfToken)) {
                 <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>"><?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?></span>
                 <?php if (!empty($report['is_confidential'])): ?>
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
+                <small class="help-text">(Seuls les superviseurs peuvent voir ce signalement)</small>
                 <?php endif; ?>
             </div>
         </div>
@@ -82,7 +83,7 @@ if (!isset($csrfToken)) {
                     <td><?php echo nl2br(e($report['description'])); ?></td>
                 </tr>
                 <tr>
-                    <th>Déclarant</th>
+                    <th>Signalé par</th>
                     <td><?php echo e($report['declarant_prenom'] . ' ' . $report['declarant_nom']); ?></td>
                 </tr>
                 <tr>
@@ -91,7 +92,7 @@ if (!isset($csrfToken)) {
                 </tr>
                 <?php if ($type === TYPE_RAMI && !empty($report['pour_compte_nom'])): ?>
                 <tr>
-                    <th>Déclaré pour le compte de</th>
+                    <th>Signalé au nom de</th>
                     <td><?php echo e(($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']); ?></td>
                 </tr>
                 <?php endif; ?>
@@ -138,7 +139,7 @@ if (!isset($csrfToken)) {
                 <tr>
                     <th>Date</th>
                     <th>Répondant</th>
-                    <th>Nouvel état</th>
+                    <th>Nouveau statut</th>
                     <th>Réponse</th>
                 </tr>
             </thead>
@@ -176,12 +177,13 @@ if (!isset($csrfToken)) {
 
     <?php if ($canAbandon): ?>
         <a href="<?php echo url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="btn btn--danger">Abandonner le signalement</a>
+        <small class="help-text help-text--danger">(Le signalement sera marqué comme abandonné mais restera consultable)</small>
     <?php endif; ?>
 
     <?php if ($canReopen): ?>
         <a href="<?php echo url('report_reopen', ['uuid' => $report['uuid']]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
     <?php endif; ?>
 
-    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Voir en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
+    <a href="<?php echo url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Imprimer ou enregistrer en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
     <a href="<?php echo url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>

@@ -26,5 +26,8 @@
   "homepage": "https://github.com/olivier-noblanc/sst#readme",
   "devDependencies": {
     "@playwright/test": "^1.61.0"
+  },
+  "dependencies": {
+    "pagedjs": "^0.4.3"
   }
 }

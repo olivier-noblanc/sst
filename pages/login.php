@@ -18,7 +18,7 @@ header('Cache-Control: no-cache');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 
 $pageTitle = 'Connexion';
 
@@ -60,7 +60,7 @@ if (isUserLoggedIn()) {
                     <?php if (!empty($_SERVER['AUTH_USER'])): ?>
                     🔒 Authentification Windows IIS
                     <?php else: ?>
-                    ⚙ Mode sans IIS — authentification par identifiant
+                    Connexion
                     <?php endif; ?>
                 </p>
             </div>
@@ -72,48 +72,44 @@ if (isUserLoggedIn()) {
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="<?php echo url('login'); ?>" class="login-form">
+            <form method="POST" action="<?php echo url('login'); ?>" class="login-form" id="quick-login-form">
                 <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
-                <div class="form-group" id="login-form">
-                    <label for="username">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username" required
-                           placeholder="Ex: admin.dev ou agent.dev"
-                           autocomplete="username"
-                           autofocus
-                           value="<?php echo e($_POST['username'] ?? ''); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Mot de passe</label>
-                    <input type="password" id="password" name="password"
-                           autocomplete="current-password"
-                           placeholder="(non vérifié en mode dev)"
-                           aria-describedby="hint_password">
-                    <span class="form-hint" id="hint_password">Le mot de passe n'est pas vérifié en mode développement.</span>
-                </div>
-
-                <button type="submit" class="btn btn--primary btn--full">Se connecter</button>
+                <input type="hidden" id="username" name="username" value="">
+                <input type="hidden" id="password" name="password" value="test">
             </form>
 
-            <div class="login-dev-info">
-                <p><strong>Comptes de test :</strong></p>
-                <ul>
-                    <li><code>admin.dev</code> — Superviseur (UR21 Côte-d'Or)</li>
-                    <li><code>agent.dev</code> — Agent (choix du site au login)</li>
-                    <li><code>chsct.dev</code> — Membre CSA/CHSCT (UR25 Doubs)</li>
-                </ul>
-                <p class="text-small text-muted mt-2">
-                    Tout autre nom d'utilisateur créera un compte agent automatiquement.
-                </p>
-                <p class="text-small text-muted mt-2">
-                    💡 Pour devenir superviseur, ajoutez votre identifiant dans <em>Paramètres → Application → Logins Windows des superviseurs</em>.
-                </p>
-                <p class="login-disclaimer">
-                    ⚠ Sur un serveur IIS en production, cette page n'existe pas. L'authentification est automatique via Windows Authentication.
-                </p>
+            <p style="text-align:center;font-size:18px;margin:20px 0 8px 0;color:#555;">Choisissez votre profil :</p>
+            <p style="text-align:center;font-size:14px;color:#888;margin:0 0 16px 0;">Cliquez sur le bouton qui correspond à votre rôle</p>
+            <div class="login-quick-buttons">
+                <button type="button" class="btn btn--primary" onclick="document.getElementById('username').value='admin.dev';document.getElementById('quick-login-form').submit();">
+                    Superviseur
+                </button>
+                <button type="button" class="btn btn--primary" style="background:#4a90d9;" onclick="document.getElementById('username').value='agent.dev';document.getElementById('quick-login-form').submit();">
+                    Agent
+                </button>
+                <button type="button" class="btn btn--primary" style="background:#6b7280;" onclick="document.getElementById('username').value='chsct.dev';document.getElementById('quick-login-form').submit();">
+                    Membre CSA/CHSCT
+                </button>
             </div>
+            <p class="text-small text-muted" style="text-align:center;margin-top:12px;">
+                En utilisation normale, la connexion est automatique.
+            </p>
         </div>
     </div>
     </main>
+<style>
+.login-quick-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+.login-quick-buttons .btn {
+    justify-content: center;
+    font-size: 18px;
+    min-height: 56px;
+    padding: 14px 28px;
+}
+</style>
 </body>
 </html>

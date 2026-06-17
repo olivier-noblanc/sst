@@ -1004,6 +1004,12 @@ img { max-width: 100%; height: auto; display: block; }
     color: var(--grey-600);
     margin-top: 4px;
 }
+.form-hint--lg {
+    font-size: 15px;
+    color: var(--grey-700);
+    margin-top: 6px;
+    line-height: 1.5;
+}
 
 .form-error {
     display: block;
@@ -1271,6 +1277,37 @@ img { max-width: 100%; height: auto; display: block; }
     }
 }
 
+/* File upload wrapper — custom French button hiding native "Choose File" */
+.file-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.file-upload-wrapper__input {
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    position: absolute;
+    pointer-events: none;
+}
+.file-upload-wrapper__label {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+.file-upload-wrapper__label:hover,
+.file-upload-wrapper__label:focus-within {
+    opacity: 0.85;
+}
+.file-upload-wrapper__filename {
+    font-size: 14px;
+    color: var(--grey-600);
+    font-style: italic;
+}
+
 /* Attachment preview */
 .attachment-preview {
     margin-top: 6px;
@@ -1507,6 +1544,25 @@ tr:hover td {
 
 /* Badge size variants */
 .badge--sm { font-size: 11px; padding: 2px 8px; }
+
+/* Help text — small explanatory notes under buttons or badges */
+.help-text {
+    display: block;
+    font-size: 12px;
+    color: var(--grey-500, #6b7280);
+    margin-top: 4px;
+    line-height: 1.4;
+}
+.help-text--danger {
+    color: var(--dgi-color, #b91c1c);
+    opacity: 0.85;
+}
+.btn-group .help-text {
+    margin-left: 4px;
+    display: inline;
+    font-size: 11px;
+    vertical-align: middle;
+}
 
 /* Status indicator (active/inactive dot) */
 .status-dot {
@@ -2069,14 +2125,21 @@ tr:hover td {
 .help-profile-card {
     border: 1px solid var(--grey-200);
     border-radius: var(--border-radius-lg);
-    padding: 16px;
+    padding: 24px;
     border-left: 4px solid var(--rsst-color);
+    background: var(--grey-50, #fafafa);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+}
+
+.help-profile-card:hover {
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
 }
 
 .help-profiles-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
+    gap: 24px;
 }
 
 /* ============================================================
@@ -2367,46 +2430,81 @@ tr:hover td {
    31. Content Pages (Preamble, Help)
    ============================================================ */
 .content-section {
-    line-height: 1.7;
-}
-
-.content-section p {
-    margin-bottom: 16px;
-}
-
-.content-section h2 {
-    margin-bottom: 16px;
-    color: var(--color-primary);
-}
-
-.content-section h3 {
-    margin-bottom: 12px;
-}
-
-.content-section ul {
-    margin-top: 8px;
-    margin-left: 20px;
     line-height: 1.8;
 }
 
+.content-section p {
+    margin-bottom: 18px;
+}
+
+.content-section h2 {
+    margin-bottom: 24px;
+    margin-top: 12px;
+    color: var(--color-primary);
+    font-size: 1.6rem;
+    font-weight: 700;
+    border-bottom: 2px solid var(--grey-100);
+    padding-bottom: 10px;
+}
+
+.content-section h3 {
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+}
+
+.content-section ul {
+    margin-top: 10px;
+    margin-left: 22px;
+    line-height: 2;
+}
+
 .content-section li {
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 }
 
 /* Card with bottom spacing */
 .card--spaced {
-    margin-bottom: 16px;
+    margin-bottom: 36px;
 }
 
 /* Card with top spacing */
 .card--spaced-top {
-    margin-top: 16px;
+    margin-top: 36px;
 }
 
 
 /* ============================================================
    32. Help Page Styles
    ============================================================ */
+
+/* Contact banner — human help for non-technical users */
+.help-contact-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 2px solid var(--color-primary, #0056A3);
+    border-radius: 12px;
+    padding: 20px 28px;
+    margin-bottom: 32px;
+}
+.help-contact-banner__icon {
+    font-size: 2.2rem;
+    flex-shrink: 0;
+}
+.help-contact-banner__text {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--grey-700, #374151);
+}
+.help-contact-banner__text strong {
+    color: var(--color-primary, #0056A3);
+}
+.help-contact-banner__text small {
+    font-size: 14px;
+    color: var(--grey-500, #6b7280);
+}
+
 .help-profile-card--superviseur {
     border-left-color: var(--role-superviseur);
 }
@@ -2416,28 +2514,29 @@ tr:hover td {
 }
 
 .help-note {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--grey-500);
-    margin-top: 10px;
+    margin-top: 14px;
     border-top: 1px solid var(--grey-100);
-    padding-top: 8px;
+    padding-top: 10px;
 }
 
 .help-feature-list {
-    font-size: 13px;
+    font-size: 14px;
     margin: 0;
-    padding-left: 18px;
+    padding-left: 20px;
 }
 
 .help-description {
-    font-size: 13px;
+    font-size: 15px;
     color: var(--grey-600);
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    line-height: 1.7;
 }
 
 .help-description--title {
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .help-note--inline {
@@ -2475,14 +2574,15 @@ tr:hover td {
 .help-workflow {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     flex-wrap: wrap;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
+    padding: 12px 0;
 }
 
 .help-workflow .badge {
-    font-size: 13px;
-    padding: 6px 14px;
+    font-size: 15px;
+    padding: 8px 18px;
 }
 
 .help-case-label {
@@ -2490,11 +2590,15 @@ tr:hover td {
 }
 
 .help-case-body {
-    line-height: 1.8;
+    line-height: 1.9;
 }
 
 .help-case-body ol {
-    padding-left: 20px;
+    padding-left: 24px;
+}
+
+.help-case-body li {
+    margin-bottom: 8px;
 }
 
 .help-warning-callout {
@@ -2508,27 +2612,29 @@ tr:hover td {
 }
 
 .help-auth-card--prod {
-    padding: 12px;
+    padding: 20px;
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
-    border-radius: 8px;
+    border-radius: 10px;
 }
 
 .help-auth-card--prod h4 {
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     color: #166534;
+    font-size: 1.1rem;
 }
 
 .help-auth-card--dev {
-    padding: 12px;
+    padding: 20px;
     background: #fffbeb;
     border: 1px solid #fde68a;
-    border-radius: 8px;
+    border-radius: 10px;
 }
 
 .help-auth-card--dev h4 {
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     color: #92400e;
+    font-size: 1.1rem;
 }
 
 .help-separator-row {
@@ -2548,42 +2654,73 @@ tr:hover td {
 /* Help page — Table of Contents */
 .help-toc {
     background: var(--grey-50, #fafafa);
-    border: 1px solid var(--grey-200, #e0e0e0);
-    border-radius: 8px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
+    border: 2px solid var(--color-primary, #0056A3);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
 }
 .help-toc__title {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 12px 0;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
     color: var(--color-primary, #0056A3);
 }
 .help-toc__list {
     margin: 0;
-    padding-left: 20px;
+    padding-left: 0;
+    list-style: none;
     column-count: 2;
     column-gap: 32px;
 }
 .help-toc__list li {
-    margin-bottom: 5.6px;
+    margin-bottom: 12px;
     break-inside: avoid;
 }
 .help-toc__list a {
     color: var(--color-primary, #0056A3);
     text-decoration: none;
-    font-size: 14.4px;
-    line-height: 1.5;
+    font-size: 16px;
+    line-height: 1.6;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
 }
 .help-toc__list a:hover {
     text-decoration: underline;
 }
 .help-toc__list ol {
-    margin-top: 4px;
-    padding-left: 16px;
+    margin-top: 8px;
+    padding-left: 0;
+    list-style: none;
 }
 .help-toc__list ol li {
-    margin-bottom: 3.2px;
+    margin-bottom: 8px;
+}
+.help-toc__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--color-primary, #0056A3);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.help-toc__num-sub {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--grey-200, #e0e0e0);
+    color: var(--color-primary, #0056A3);
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
 }
 @media (max-width: 768px) {
     .help-toc__list {
@@ -2593,16 +2730,16 @@ tr:hover td {
 
 /* Help page — Screenshot blocks (annotated PNG images, printable) */
 .help-screenshot-block {
-    margin: 1.5rem 0;
+    margin: 2rem -16px;
     border: 1px solid var(--grey-200, #e0e0e0);
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
     background: #fff;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 .help-screenshot-label {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--color-primary, #0056A3);
     margin: 0;

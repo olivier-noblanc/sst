@@ -16,29 +16,40 @@ $screenshotBase = 'asset.php?f=screenshots';
 <h1 class="page-title">Documentation</h1>
 
 <!-- ============================================================ -->
+<!-- Bandeau d'aide humaine                                        -->
+<!-- ============================================================ -->
+<div class="help-contact-banner" role="complementary" aria-label="Contact administrateur">
+    <span class="help-contact-banner__icon" aria-hidden="true">📞</span>
+    <div class="help-contact-banner__text">
+        <strong>Besoin d'aide ?</strong> Contactez votre administrateur au <strong>poste interne</strong>.<br>
+        <small>Un humain vous répondra directement pour vous guider.</small>
+    </div>
+</div>
+
+<!-- ============================================================ -->
 <!-- Sommaire                                                      -->
 <!-- ============================================================ -->
 <nav class="help-toc" aria-label="Sommaire de la documentation">
-    <h2 class="help-toc__title">Sommaire</h2>
+    <h2 class="help-toc__title">📑 Sommaire</h2>
     <ol class="help-toc__list">
-        <li><a href="#profils">Profils utilisateurs</a></li>
-        <li><a href="#droits">Tableau des droits</a></li>
-        <li><a href="#confidentialite">Confidentialité des signalements</a></li>
-        <li><a href="#registres">Les 3 registres</a></li>
-        <li><a href="#cycle-vie">Cycle de vie d'un signalement</a></li>
-        <li><a href="#cas-usage">Cas d'usage</a>
+        <li><a href="#profils"><span class="help-toc__num">1</span> Profils utilisateurs</a></li>
+        <li><a href="#droits"><span class="help-toc__num">2</span> Tableau des droits</a></li>
+        <li><a href="#confidentialite"><span class="help-toc__num">3</span> Confidentialité des signalements</a></li>
+        <li><a href="#registres"><span class="help-toc__num">4</span> Les 3 registres</a></li>
+        <li><a href="#cycle-vie"><span class="help-toc__num">5</span> Cycle de vie d'un signalement</a></li>
+        <li><a href="#cas-usage"><span class="help-toc__num">6</span> Cas d'usage</a>
             <ol>
-                <li><a href="#cu1">CU1 — Signaler un événement RSST</a></li>
-                <li><a href="#cu2">CU2 — Signalement RAMI pour un collègue</a></li>
-                <li><a href="#cu3">CU3 — Danger Grave et Imminent (DGI)</a></li>
-                <li><a href="#cu4">CU4 — Traiter un signalement</a></li>
-                <li><a href="#cu5">CU5 — Abandonner un signalement</a></li>
-                <li><a href="#cu6">CU6 — Consulter la synthèse (CSA/CHSCT)</a></li>
-                <li><a href="#cu7">CU7 — Gérer les utilisateurs et la configuration</a></li>
-                <li><a href="#cu8">CU8 — Imprimer une fiche de signalement</a></li>
+                <li><a href="#cu1"><span class="help-toc__num-sub">6a</span> Signaler un événement RSST</a></li>
+                <li><a href="#cu2"><span class="help-toc__num-sub">6b</span> Signalement RAMI pour un collègue</a></li>
+                <li><a href="#cu3"><span class="help-toc__num-sub">6c</span> Danger Grave et Imminent (DGI)</a></li>
+                <li><a href="#cu4"><span class="help-toc__num-sub">6d</span> Traiter un signalement</a></li>
+                <li><a href="#cu5"><span class="help-toc__num-sub">6e</span> Abandonner un signalement</a></li>
+                <li><a href="#cu6"><span class="help-toc__num-sub">6f</span> Consulter la synthèse (CSA/CHSCT)</a></li>
+                <li><a href="#cu7"><span class="help-toc__num-sub">6g</span> Gérer les utilisateurs et la configuration</a></li>
+                <li><a href="#cu8"><span class="help-toc__num-sub">6h</span> Imprimer une fiche de signalement</a></li>
             </ol>
         </li>
-        <li><a href="#auth">Authentification</a></li>
+        <li><a href="#auth"><span class="help-toc__num">7</span> Connexion</a></li>
     </ol>
 </nav>
 
@@ -47,7 +58,7 @@ $screenshotBase = 'asset.php?f=screenshots';
 <!-- ============================================================ -->
 <div id="profils" class="card card--spaced content-section">
     <h2>Profils utilisateurs</h2>
-    <p class="help-description">L'application dispose de 3 profils avec des droits croissants. En production, le profil est attribué par un Superviseur via la gestion des utilisateurs, ou automatiquement via la liste des superviseurs configurée dans les Paramètres (utile pour une première installation). Votre profil détermine les fonctionnalités accessibles dans le menu latéral et les actions possibles sur les signalements.</p>
+    <p class="help-description">L'application propose <strong>3 profils</strong>. Votre profil définit ce que vous pouvez faire :</p>
 
     <div class="help-profiles-grid">
 
@@ -56,17 +67,17 @@ $screenshotBase = 'asset.php?f=screenshots';
             <h3>
                 <span class="badge badge--agent badge--sm">Agent</span>
             </h3>
-            <p class="help-description">Profil par défaut de tout nouvel utilisateur. L'agent peut signaler des événements et suivre les signalements de son site. À la première connexion, l'agent choisit son site (définitif, seul un superviseur peut le changer). La vue de l'agent est centrée sur son <?php echo $labelUnite; ?> : seuls les signalements de son site sont visibles, et la visibilité dépend du paramétrage choisi par le superviseur.</p>
+            <p class="help-description">Profil par défaut. Signalez des événements et suivez vos signalements. À la première connexion, vous choisissez votre site (définitif).</p>
             <ul class="help-feature-list">
-                <li>Accéder à l'accueil avec les 3 cartes de registres</li>
-                <li>Créer un signalement (RSST, RAMI, DGI)</li>
-                <li>Consulter la liste des signalements de son site</li>
-                <li>Voir le détail d'un signalement</li>
-                <li>Modifier un signalement tant qu'il n'est pas traité</li>
-                <li>Consulter le Préambule</li>
+                <li>🏠 Accéder à l'accueil avec les 3 cartes de registres</li>
+                <li>✏️ Créer un signalement (RSST, RAMI, DGI)</li>
+                <li>📋 Consulter la liste des signalements de son site</li>
+                <li>🔍 Voir le détail d'un signalement</li>
+                <li>✏️ Modifier un signalement tant qu'il n'est pas traité</li>
+                <li>📖 Consulter le Préambule</li>
             </ul>
             <p class="help-note">
-                La visibilité des signalements dépend du paramétrage choisi par le superviseur : confidentiel (ses signalements uniquement), choix de l'agent (public ou confidentiel au dépôt), ou public (tous les signalements du site).
+                👁️ Visibilité des signalements selon le choix du superviseur : confidentiel (vos signalements uniquement), choix de l'agent, ou public (tous les signalements du site).
             </p>
         </div>
 
@@ -75,20 +86,20 @@ $screenshotBase = 'asset.php?f=screenshots';
             <h3>
                 <span class="badge badge--superviseur badge--sm">Superviseur</span>
             </h3>
-            <p class="help-description">Profil d'administration. Le superviseur gère les réponses aux signalements, les utilisateurs et la configuration de l'application. Il peut également attribuer le rôle superviseur à d'autres utilisateurs. Le superviseur dispose d'une vue transversale sur tous les sites, ce qui lui permet de suivre l'ensemble des signalements et d'intervenir rapidement, y compris sur les signalements confidentiels.</p>
+            <p class="help-description">Vous gérez les réponses, les utilisateurs et la configuration. Vous voyez tous les signalements de tous les sites.</p>
             <ul class="help-feature-list">
-                <li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
-                <li>Répondre à un signalement (passer en « En cours » ou « Traité »)</li>
-                <li>Abandonner un signalement</li>
-                <li>Voir les signalements de <strong>tous les sites</strong></li>
-                <li>Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
-                <li><strong>Exporter</strong> les données (CSV)</li>
-                <li>Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver, attribuer les rôles)</li>
-                <li>Configurer les <strong>paramètres</strong> (SMTP, notifications, visibilité, application)</li>
-                <li>Imprimer une fiche de signalement (PDF)</li>
+                <li>✅ <strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
+                <li>💬 Répondre à un signalement (passer en « En cours » ou « Traité »)</li>
+                <li>🚫 Abandonner un signalement</li>
+                <li>👁️ Voir les signalements de <strong>tous les sites</strong></li>
+                <li>📊 Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
+                <li>📥 <strong>Exporter</strong> les données (tableau CSV)</li>
+                <li>👥 Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver)</li>
+                <li>⚙️ Configurer les <strong>paramètres</strong> (envoi d'e-mails, notifications, visibilité)</li>
+                <li>🖨️ Imprimer une fiche de signalement (PDF)</li>
             </ul>
             <p class="help-note">
-                Peut être attribué par un autre superviseur via la gestion des utilisateurs, ou auto-attribué via <strong>Paramètres &rarr; Logins Windows des superviseurs</strong> (utile pour une première installation).
+                🔑 Attribué par un autre superviseur via la gestion des utilisateurs, ou via <strong>Paramètres &rarr; Logins Windows des superviseurs</strong> (pour une première installation).
             </p>
         </div>
 
@@ -97,15 +108,15 @@ $screenshotBase = 'asset.php?f=screenshots';
             <h3>
                 <span class="badge badge--chsct badge--sm">Membre CSA/CHSCT</span>
             </h3>
-            <p class="help-description">Membre de la Commission Santé, Sécurité et Conditions de Travail. Accès en consultation élargie sur tous les sites pour le suivi des registres SST. Ce profil est conçu pour permettre aux représentants du personnel d'exercer leur mission de suivi sans pouvoir modifier les données ou la configuration de l'application.</p>
+            <p class="help-description">Membre de la Commission Santé, Sécurité et Conditions de Travail. Consultez les signalements de tous les sites pour votre mission de suivi, sans modifier les données.</p>
             <ul class="help-feature-list">
-                <li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
-                <li>Voir les signalements de <strong>tous les sites</strong></li>
-                <li>Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
-                <li><strong>Exporter</strong> les données (CSV)</li>
+                <li>✅ <strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
+                <li>👁️ Voir les signalements de <strong>tous les sites</strong></li>
+                <li>📊 Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
+                <li>📥 <strong>Exporter</strong> les données (tableau CSV)</li>
             </ul>
             <p class="help-note">
-                Ne peut pas répondre aux signalements ni gérer les utilisateurs. Rôle de consultation uniquement.
+                👁️ Rôle de consultation uniquement — pas de réponse aux signalements ni de gestion des utilisateurs.
             </p>
         </div>
     </div>
@@ -118,7 +129,7 @@ $screenshotBase = 'asset.php?f=screenshots';
 <!-- ============================================================ -->
 <div id="droits" class="card card--spaced content-section">
     <h2>Tableau des droits</h2>
-    <p class="help-description">Ce tableau récapitule les fonctionnalités accessibles selon chaque profil. Les droits sont cumulatifs : le Superviseur hérite de toutes les capacités de l'Agent, et le membre CSA/CHSCT dispose des mêmes droits de consultation que le Superviseur sans les capacités d'action.</p>
+    <p class="help-description">Ce qui est accessible selon votre profil. Le Superviseur peut faire tout ce que l'Agent fait. Le CSA/CHSCT peut consulter sans agir.</p>
     <div class="table-wrapper">
         <table class="table table--compact help-rights-table" aria-label="Permissions par profil">
             <thead>
@@ -212,41 +223,41 @@ $screenshotBase = 'asset.php?f=screenshots';
 <!-- ============================================================ -->
 <div id="confidentialite" class="card card--spaced content-section">
     <h2>Confidentialité des signalements</h2>
-    <p class="help-description">La visibilité des signalements dépend du paramétrage choisi par le superviseur dans les Paramètres de l'application. Ce paramétrage peut être défini globalement ou par registre (RSST, RAMI, DGI), ce qui permet d'adapter la confidentialité aux exigences légales de chaque registre. Par exemple, le registre RSST est par défaut public conformément au décret 82-453 art. 3-2, tandis que le registre RAMI peut légitimement rester confidentiel.</p>
+    <p class="help-description">La visibilité des signalements dépend du réglage choisi par le superviseur, par registre (RSST, RAMI, DGI).</p>
     <div class="table-wrapper">
         <table class="table table--compact" aria-label="Modes de visibilité des signalements">
             <thead>
                 <tr>
                     <th>Mode</th>
-                    <th>Visibilité de l'agent</th>
-                    <th>Détail</th>
+                    <th>Ce que voit l'agent</th>
+                    <th>Explication</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>Confidentiel</strong></td>
+                    <td><strong>🔒 Confidentiel</strong></td>
                     <td>Ses signalements uniquement</td>
-                    <td>L'agent ne voit que ses propres signalements. Les autres agents ne voient rien de ses signalements, pas même le titre. C'est le mode le plus restrictif, adapté aux situations sensibles (RAMI par exemple).</td>
+                    <td>Vous ne voyez que vos propres signalements. Les autres agents n'y ont pas accès. Mode le plus restrictif, adapté aux situations sensibles (RAMI par ex.).</td>
                 </tr>
                 <tr>
-                    <td><strong>Choix de l'agent</strong></td>
-                    <td>Dépend du choix au dépôt</td>
-                    <td>L'agent choisit la visibilité de chaque signalement lors de la création. Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son <?php echo $labelUnite; ?> ainsi que ses propres signalements (même confidentiels). Ce mode offre la meilleure flexibilité.</td>
+                    <td><strong>👁️ Choix de l'agent</strong></td>
+                    <td>Dépend de votre choix</td>
+                    <td>Vous choisissez la visibilité à chaque création (public ou confidentiel). Vous voyez les signalements publics de votre <?php echo $labelUnite; ?> et les vôtres.</td>
                 </tr>
                 <tr>
-                    <td><strong>Visibilité publique</strong></td>
+                    <td><strong>👁️‍🗨️ Public</strong></td>
                     <td>Tous les signalements du site</td>
-                    <td>Tous les signalements du site sont visibles par tous les agents du site. Conforme au décret 82-453 pour le registre RSST (consultable par tout agent).</td>
+                    <td>Tous les agents du site voient tous les signalements. Conforme au décret 82-453 pour le registre RSST.</td>
                 </tr>
                 <tr class="help-separator-row">
                     <td><span class="badge badge--superviseur">Superviseur</span></td>
                     <td>Tous les sites</td>
-                    <td>Le superviseur a accès à l'ensemble des signalements, tous sites confondus, y compris les confidentiels. L'accès aux signalements confidentiels est tracé dans le journal d'audit.</td>
+                    <td>Accès à tous les signalements de tous les sites, y compris les confidentiels. Les consultations sont enregistrées dans le journal de suivi.</td>
                 </tr>
                 <tr>
                     <td><span class="badge badge--chsct">CSA/CHSCT</span></td>
                     <td>Tous les sites</td>
-                    <td>Le membre CSA/CHSCT peut consulter tous les signalements, y compris les confidentiels, pour l'exercice de ses missions. L'accès aux signalements confidentiels est également tracé.</td>
+                    <td>Consultation de tous les signalements pour ses missions. Les consultations confidentielles sont enregistrées.</td>
                 </tr>
             </tbody>
         </table>
@@ -258,34 +269,39 @@ $screenshotBase = 'asset.php?f=screenshots';
 <!-- ============================================================ -->
 <div id="registres" class="card card--spaced content-section">
     <h2>Les 3 registres</h2>
-    <p class="help-description">L'application gère 3 registres distincts, chacun couvrant un domaine spécifique de la santé et sécurité au travail. Chaque registre possède ses propres champs, son code couleur et ses règles de visibilité par défaut. Depuis l'accueil, les 3 registres sont présentés sous forme de cartes permettant un accès direct à la création d'un signalement.</p>
+    <p class="help-description">L'application gère <strong>3 registres</strong> distincts pour la santé et sécurité au travail.</p>
 
     <div class="help-profiles-grid">
 
         <div class="help-profile-card help-profile-card--rsst">
             <h3>RSST</h3>
             <p class="help-description help-description--title">Registre de Santé et de Sécurité au Travail</p>
-            <p class="help-description">Signalement de tout événement lié à la santé ou la sécurité au travail : conditions de travail dangereuses, équipements défectueux, risques professionnels, problèmes d'ergonomie, exposition à des substances nocives, etc. Ce registre est le plus courant et couvre l'ensemble des situations quotidiennes pouvant affecter la santé des agents.</p>
-            <p class="help-note help-note--inline">Champ spécifique : <strong>Lieu</strong> de l'événement.</p>
-            <p class="help-note help-note--inline">Visibilité par défaut : <strong>public</strong> (conforme décret 82-453 art. 3-2).</p>
+            <p class="help-description">Signalez tout événement lié à la santé ou la sécurité au travail.</p>
+            <ul class="help-feature-list">
+                <li>🏢 Exemple : rampe desserrée, équipement défectueux, problème d'ergonomie</li>
+                <li>📍 Champ spécifique : <strong>Lieu</strong> de l'événement</li>
+                <li>👁️ Visibilité par défaut : <strong>public</strong> (décret 82-453)</li>
+            </ul>
         </div>
 
         <div class="help-profile-card help-profile-card--rami">
             <h3>RAMI</h3>
             <p class="help-description help-description--title">Registre des Actes d'Agressions, de Menaces et d'Incivilités</p>
-            <p class="help-description">Signalement d'agressions physiques ou verbales, de menaces, ou d'incivilités subies par un agent dans le cadre de ses fonctions. Ce registre permet également de signaler un événement survenu à un collègue (champ « Pour le compte de »), ce qui est important lorsque la victime est dans l'incapacité de faire le signalement elle-même.</p>
-            <p class="help-note help-note--inline">Champ spécifique : <strong>« Pour le compte de »</strong> (signalement pour un tiers).</p>
-            <p class="help-note help-note--inline">Champ spécifique : <strong>Nature de l'auteur</strong> (usager / collègue / hiérarchie / tiers) et <strong>type d'acte</strong> (verbal / physique / moral / sexiste / autre) — optionnels mais recommandés pour les statistiques.</p>
+            <p class="help-description">Signalez les agressions, menaces ou incivilités. Vous pouvez aussi signaler pour un collègue.</p>
+            <ul class="help-feature-list">
+                <li>🤝 Champ « <strong>Pour le compte de</strong> » : signaler pour un tiers</li>
+                <li>🏷️ Nature de l'auteur (usager, collègue…) et type d'acte (verbal, physique…) — optionnels</li>
+            </ul>
         </div>
 
         <div class="help-profile-card help-profile-card--dgi">
             <h3>DGI</h3>
             <p class="help-description help-description--title">Registre de signalement d'un Danger Grave et Imminent</p>
-            <p class="help-description">Signalement d'une situation de danger grave et imminent nécessitant une action immédiate. Ce registre bénéficie d'une procédure accélérée avec notification immédiate aux superviseurs. Le DGI est reservé aux situations où la vie ou l'intégrité physique des agents est menacée de manière directe et imminente.</p>
-            <p class="help-note help-note--inline">Procédure : <strong>traitement prioritaire</strong>, notification immédiate.</p>
-            <p class="help-note help-note--inline help-note--amber">
-                <strong>Clarification :</strong> Le formulaire vaut notification au sens <strong>L4131-1</strong> (droit de retrait individuel). La consignation formelle au sens <strong>D4132-1</strong> reste du ressort du représentant CSA/CHSCT — deux actes distincts.
-            </p>
+            <p class="help-description">Signalez un danger grave nécessitant une action immédiate. Les superviseurs sont alertés tout de suite.</p>
+            <ul class="help-feature-list">
+                <li>⚡ Traitement <strong>prioritaire</strong> et notification immédiate</li>
+                <li>⚖️ Le formulaire vaut notification au sens <strong>L4131-1</strong> (droit de retrait). La consignation <strong>D4132-1</strong> reste du ressort du CSA/CHSCT.</li>
+            </ul>
         </div>
     </div>
 
@@ -299,7 +315,7 @@ $screenshotBase = 'asset.php?f=screenshots';
 <!-- ============================================================ -->
 <div id="cycle-vie" class="card card--spaced content-section">
     <h2>Cycle de vie d'un signalement</h2>
-    <p class="help-description">Chaque signalement suit un workflow en 4 états. Le passage d'un état à l'autre est tracé dans l'historique du signalement et dans le journal d'audit. L'agent qui a créé le signalement peut suivre l'évolution directement depuis la liste ou la vue détaillée de son signalement.</p>
+    <p class="help-description">Chaque signalement suit un parcours en <strong>4 étapes</strong>. Chaque changement est enregistré.</p>
     <div class="help-workflow">
         <span class="badge badge--nouveau">Nouveau</span>
         <span class="text-muted">&rarr;</span>
@@ -321,22 +337,22 @@ $screenshotBase = 'asset.php?f=screenshots';
             <tbody>
                 <tr>
                     <td><span class="badge badge--nouveau">Nouveau</span></td>
-                    <td>Signalement créé par un agent, en attente de traitement par un superviseur. Une notification e-mail est envoyée aux adresses configurées pour le site concerné.</td>
+                    <td>Vous venez de créer le signalement. Un e-mail prévient les superviseurs du site.</td>
                     <td>État initial à la création</td>
                 </tr>
                 <tr>
                     <td><span class="badge badge--en-cours">En cours</span></td>
-                    <td>Un superviseur a pris en charge le signalement et a commencé à le traiter. Il a fourni une première réponse indiquant les actions engagées.</td>
+                    <td>Un superviseur a commencé à traiter le signalement et a écrit une première réponse.</td>
                     <td>Superviseur (via « Répondre »)</td>
                 </tr>
                 <tr>
                     <td><span class="badge badge--traite">Traité</span></td>
-                    <td>Le signalement a été traité et une réponse finale a été apportée par le superviseur. L'agent déclarant peut consulter la réponse.</td>
+                    <td>Le signalement est résolu. Le superviseur a apporté une réponse finale. Vous pouvez la consulter.</td>
                     <td>Superviseur (via « Répondre »)</td>
                 </tr>
                 <tr>
                     <td><span class="badge badge--abandonne">Abandonné</span></td>
-                    <td>Le signalement a été abandonné avec un motif (doublon, hors périmètre, erreur de saisie, etc.). Le signalement reste visible mais n'est plus actif.</td>
+                    <td>Le signalement a été abandonné avec un motif (doublon, erreur, hors sujet…). Il reste visible mais n'est plus actif.</td>
                     <td>Superviseur (via « Abandonner »)</td>
                 </tr>
             </tbody>
@@ -354,29 +370,29 @@ $screenshotBase = 'asset.php?f=screenshots';
 <!-- ============================================================ -->
 <div id="cas-usage" class="card card--spaced content-section">
     <h2>Cas d'usage</h2>
-    <p class="help-description">Scénarios concrets d'utilisation de l'application selon le profil et la situation. Chaque cas illustre le parcours complet de l'utilisateur avec des captures d'écran réelles de l'application.</p>
+    <p class="help-description">Exemples concrets selon votre profil et votre situation.</p>
 
     <!-- CU1 : Agent signale RSST -->
     <div id="cu1" class="help-profile-card card--spaced">
         <h3>CU1 — Un agent signale un événement dans le registre RSST</h3>
         <p class="text-small text-muted help-case-label">Profil : Agent &bull; Registre : RSST</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Jean, agent à l'<?php echo $labelUnite; ?> Côte-d'Or, constate que la rampe d'escalier du 2e étage est desserrée et présente un risque de chute. Il doit signaler cet événement dans le registre RSST pour que le service technique intervienne.<br><br>
-            <strong>Parcours :</strong>
+            <strong>🎯 Situation :</strong> Jean constate que la rampe d'escalier du 2e étage est desserrée. Il signale ce danger dans le registre RSST.<br><br>
+            <strong>📝 Étapes :</strong>
             <ol>
-                <li>Jean se connecte à l'application (automatiquement via Windows Auth en production)</li>
-                <li>Sur l'accueil, il clique sur <strong>« Signaler un événement »</strong> sur la carte RSST (carte bleue)</li>
-                <li>Il remplit le formulaire :
+                <li>🔑 Jean se connecte (automatiquement avec son compte Windows)</li>
+                <li>🖱️ Il clique sur <strong>« Signaler un événement »</strong> sur la carte RSST (carte bleue)</li>
+                <li>✏️ Il remplit le formulaire :
                     <ul class="help-feature-list">
-                        <li><strong>Objet</strong> : « Rampe d'escalier desserrée - risque de chute »</li>
-                        <li><strong>Date de l'événement</strong> : date du jour</li>
+                        <li><strong>Objet</strong> : « Rampe d'escalier desserrée »</li>
+                        <li><strong>Date</strong> : date du jour</li>
                         <li><strong>Lieu</strong> : « Bâtiment principal, 2e étage, escalier B »</li>
-                        <li><strong>Description</strong> : détail de la situation observée</li>
+                        <li><strong>Description</strong> : détail de la situation</li>
                     </ul>
                 </li>
-                <li>Il valide &rarr; le signalement est créé avec le statut <span class="badge badge--nouveau">Nouveau</span> et la référence <code>rsst-25-001</code></li>
-                <li>Un e-mail de notification est envoyé aux adresses configurées pour ce site</li>
-                <li>Jean peut suivre son signalement dans la liste RSST de son site</li>
+                <li>✅ Il valide &rarr; signalement créé <span class="badge badge--nouveau">Nouveau</span> (référence <code>rsst-25-001</code>)</li>
+                <li>📧 Un e-mail prévient les superviseurs du site</li>
+                <li>👀 Jean suit son signalement dans la liste RSST</li>
             </ol>
             <?php echo helpScreenshot($screenshotBase . '/cu1-accueil.html', "Page d'accueil de l'agent avec les 3 cartes de registre"); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu2-creation-rsst.html', "Formulaire de création d'un signalement RSST"); ?>
@@ -388,17 +404,17 @@ $screenshotBase = 'asset.php?f=screenshots';
         <h3>CU2 — Signalement RAMI pour le compte d'un collègue</h3>
         <p class="text-small text-muted help-case-label">Profil : Agent &bull; Registre : RAMI</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Sophie, agent au Siège, est témoin d'une agression verbale envers son collègue Pierre par un usager. Pierre est trop choqué pour faire le signalement lui-même. Sophie va signaler l'événement pour le compte de Pierre.<br><br>
-            <strong>Parcours :</strong>
+            <strong>🎯 Situation :</strong> Sophie est témoin d'une agression verbale envers son collègue Pierre. Pierre est trop choqué pour signaler. Sophie le fait pour lui.<br><br>
+            <strong>📝 Étapes :</strong>
             <ol>
-                <li>Sophie clique sur <strong>« Signaler un événement »</strong> sur la carte RAMI (carte grise)</li>
-                <li>Elle remplit le formulaire et sélectionne un agent dans le champ <strong>« Pour le compte de »</strong> (champ spécifique RAMI, avec recherche par nom)</li>
-                <li>Elle renseigne les champs optionnels mais recommandés : <strong>Nature de l'auteur</strong> (ex : Usager) et <strong>Type d'acte</strong> (ex : Verbal)</li>
-                <li>Elle décrit les faits de manière objective avec date, heure et lieu</li>
-                <li>Le signalement est enregistré — Sophie apparaît comme déclarant, Pierre comme « pour le compte de »</li>
+                <li>🖱️ Sophie clique sur <strong>« Signaler un événement »</strong> sur la carte RAMI (carte grise)</li>
+                <li>🤝 Elle sélectionne Pierre dans le champ <strong>« Pour le compte de »</strong></li>
+                <li>🏷️ Elle indique la nature de l'auteur (ex : Usager) et le type d'acte (ex : Verbal)</li>
+                <li>✏️ Elle décrit les faits avec date, heure et lieu</li>
+                <li>✅ Le signalement est enregistré — Sophie est déclarante, Pierre est « pour le compte de »</li>
             </ol>
             <p class="help-note help-note--green">
-                <strong>Que se passe-t-il après ?</strong> Votre signalement est envoyé aux superviseurs de votre site par notification e-mail. Un superviseur le prendra en charge, passera le statut à « En cours », puis à « Traité » avec une réponse. Vous pouvez suivre l'avancement dans la liste des signalements. En cas d'absence de réponse prolongée, le superviseur en sera alerté automatiquement.
+                <strong>💬 Après ?</strong> Votre signalement est envoyé aux superviseurs par e-mail. Un superviseur le prend en charge, puis le passe à « En cours » puis « Traité » avec une réponse. Vous suivez l'avancement dans la liste.
             </p>
             <?php echo helpScreenshot($screenshotBase . '/cu3-creation-rami.html', "Formulaire RAMI avec le champ « Pour le compte de » et les listes déroulantes nature_auteur et type_acte"); ?>
         </div>
@@ -409,14 +425,14 @@ $screenshotBase = 'asset.php?f=screenshots';
         <h3>CU3 — Signalement d'un Danger Grave et Imminent (DGI)</h3>
         <p class="text-small text-muted help-case-label">Profil : Agent &bull; Registre : DGI</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Marc, agent à l'<?php echo $labelUnite; ?> Doubs, découvre une fuite de gaz dans les locaux. La situation nécessite une intervention immédiate et constitue un danger grave et imminent pour les occupants du bâtiment.<br><br>
-            <strong>Parcours :</strong>
+            <strong>🎯 Situation :</strong> Marc découvre une fuite de gaz. Danger immédiat pour tous les occupants du bâtiment.<br><br>
+            <strong>📝 Étapes :</strong>
             <ol>
-                <li>Marc clique sur <strong>« Signaler un événement »</strong> sur la carte DGI (carte rouge, signalant l'urgence)</li>
-                <li>Un bandeau d'avertissement rappelle la procédure DGI et la distinction L4131-1 / D4132-1</li>
-                <li>Il signale le danger en précisant la nature, le lieu exact et l'heure</li>
-                <li>Le signalement est créé avec la référence <code>dgi-26-001</code> et une <strong>notification immédiate</strong> est envoyée aux superviseurs</li>
-                <li>Le traitement est <strong>prioritaire</strong> — le superviseur doit répondre dans les plus brefs délais</li>
+                <li>🖱️ Marc clique sur <strong>« Signaler un événement »</strong> sur la carte DGI (carte rouge)</li>
+                <li>⚠️ Un bandeau rappelle la procédure d'urgence DGI</li>
+                <li>✏️ Il décrit le danger : nature, lieu exact et heure</li>
+                <li>⚡ Le signalement est créé (<code>dgi-26-001</code>) et les superviseurs sont <strong>prévenus immédiatement</strong></li>
+                <li>🔴 Le traitement est <strong>prioritaire</strong> — réponse dans les plus brefs délais</li>
             </ol>
             <?php echo helpScreenshot($screenshotBase . '/cu4-creation-dgi.html', "Formulaire DGI avec le bandeau d'avertissement sur la procédure prioritaire"); ?>
         </div>
@@ -427,15 +443,15 @@ $screenshotBase = 'asset.php?f=screenshots';
         <h3>CU4 — Un superviseur traite un signalement</h3>
         <p class="text-small text-muted help-case-label">Profil : Superviseur &bull; Tous registres</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Claire, superviseure, reçoit la notification du signalement RSST de Jean (rampe desserrée). Elle doit traiter le signalement en apportant une réponse adaptée et en faisant évoluer le statut.<br><br>
-            <strong>Parcours :</strong>
+            <strong>🎯 Situation :</strong> Claire, superviseure, reçoit le signalement de Jean (rampe desserrée). Elle doit répondre et faire avancer le signalement.<br><br>
+            <strong>📝 Étapes :</strong>
             <ol>
-                <li>Claire consulte la <strong>liste RSST</strong> ou le lien dans l'e-mail de notification</li>
-                <li>Elle clique sur le signalement <code>rsst-25-001</code> pour voir le détail complet (objet, description, lieu, déclarant)</li>
-                <li>Elle clique sur <strong>« Répondre »</strong></li>
-                <li>Elle passe le statut à <span class="badge badge--en-cours">En cours</span> en indiquant : « Mission demandée au service technique pour réparation »</li>
-                <li>Quelques jours plus tard, la rampe est réparée. Elle revient sur le signalement et le passe à <span class="badge badge--traite">Traité</span> avec la réponse : « Rampe réparée le 12/06/2025. Contrôle visuel effectué. »</li>
-                <li>Le déclarant (Jean) peut voir la réponse dans le détail de son signalement</li>
+                <li>📧 Claire ouvre le signalement depuis la <strong>liste RSST</strong> ou le lien dans l'e-mail</li>
+                <li>👀 Elle lit le détail (objet, description, lieu, déclarant)</li>
+                <li>🖱️ Elle clique sur <strong>« Répondre »</strong></li>
+                <li>💬 Elle passe le statut à <span class="badge badge--en-cours">En cours</span> : « Mission demandée au service technique »</li>
+                <li>✅ Quelques jours plus tard, elle passe à <span class="badge badge--traite">Traité</span> : « Rampe réparée le 12/06. Contrôle effectué. »</li>
+                <li>👀 Jean voit la réponse dans son signalement</li>
             </ol>
             <?php echo helpScreenshot($screenshotBase . '/consultation-voir-rsst.html', "Vue détaillée d'un signalement RSST en cours de traitement"); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu4-repondre-signalement.html', "Formulaire de réponse du superviseur avec changement de statut En cours ou Traité"); ?>
@@ -448,14 +464,14 @@ $screenshotBase = 'asset.php?f=screenshots';
         <h3>CU5 — Un superviseur abandonne un signalement</h3>
         <p class="text-small text-muted help-case-label">Profil : Superviseur</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Un signalement s'avère être un doublon, une erreur de saisie, ou ne pas relever du registre concerné. Le superviseur décide de l'abandonner plutôt que de le traiter, afin de maintenir la fiabilité des données dans les registres.<br><br>
-            <strong>Parcours :</strong>
+            <strong>🎯 Situation :</strong> Un signalement est un doublon, une erreur ou hors sujet. Le superviseur l'abandonne plutôt que de le traiter.<br><br>
+            <strong>📝 Étapes :</strong>
             <ol>
-                <li>Le superviseur consulte le signalement</li>
-                <li>Il clique sur <strong>« Abandonner »</strong></li>
-                <li>Il saisit un motif d'abandon (ex : « Doublon du signalement rsst-25-003 » ou « Hors périmètre — relève du service logistique »)</li>
-                <li>Le statut passe à <span class="badge badge--abandonne">Abandonné</span></li>
-                <li>Le signalement reste visible dans la liste mais marqué comme abandonné avec le motif</li>
+                <li>👀 Le superviseur consulte le signalement</li>
+                <li>🖱️ Il clique sur <strong>« Abandonner »</strong></li>
+                <li>✏️ Il saisit un motif (ex : « Doublon du signalement rsst-25-003 »)</li>
+                <li>🚫 Le statut passe à <span class="badge badge--abandonne">Abandonné</span></li>
+                <li>👀 Le signalement reste visible, marqué comme abandonné avec le motif</li>
             </ol>
             <?php echo helpScreenshot($screenshotBase . '/cu5-liste-signalements-sup.html', "Liste des signalements vue par le superviseur avec les actions Répondre et Abandonner"); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu1-accueil-superviseur.html', "Page d'accueil du superviseur avec accès à tous les registres et sites"); ?>
@@ -467,16 +483,16 @@ $screenshotBase = 'asset.php?f=screenshots';
         <h3>CU6 — Un membre CSA/CHSCT consulte les signalements</h3>
         <p class="text-small text-muted help-case-label">Profil : Membre CSA/CHSCT</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Philippe, membre CSA/CHSCT, souhaite avoir une vue d'ensemble de l'activité des 3 registres sur l'ensemble des sites pour préparer la réunion trimestrielle de la commission. Il a besoin de données consolidées et de tendances.<br><br>
-            <strong>Parcours :</strong>
+            <strong>🎯 Situation :</strong> Philippe, membre CSA/CHSCT, veut voir l'activité des 3 registres sur tous les sites pour préparer la réunion trimestrielle.<br><br>
+            <strong>📝 Étapes :</strong>
             <ol>
-                <li>Il accède à la <strong>Synthèse</strong> pour voir le nombre de signalements par registre, par site et par état — cette vue croisée permet d'identifier les sites les plus touchés et les registres les plus actifs</li>
-                <li>Il consulte les <strong>Statistiques</strong> pour voir les tendances (évolution mensuelle, répartition par site, types d'actes pour le RAMI)</li>
-                <li>Il utilise l'<strong>Export</strong> pour télécharger les données au format CSV et les analyser dans Excel pour son rapport</li>
-                <li>Il peut consulter le détail de n'importe quel signalement sur <strong>tous les sites</strong>, y compris les confidentiels (l'accès est tracé)</li>
+                <li>📊 Il ouvre la <strong>Synthèse</strong> pour voir les signalements par registre, site et état</li>
+                <li>📈 Il consulte les <strong>Statistiques</strong> (évolution mensuelle, répartition, types d'actes)</li>
+                <li>📥 Il <strong>exporte</strong> les données en tableau (CSV) pour les analyser dans Excel</li>
+                <li>👀 Il peut consulter n'importe quel signalement sur <strong>tous les sites</strong>, même les confidentiels (consultation enregistrée)</li>
             </ol>
             <p class="help-warning-callout">
-                Le membre CSA/CHSCT <strong>ne peut pas répondre</strong> aux signalements ni modifier les utilisateurs — il a un rôle de consultation uniquement. S'il souhaite qu'un signalement soit traité, il doit en faire la demande à un superviseur.
+                👁️ Le membre CSA/CHSCT <strong>ne peut pas répondre</strong> aux signalements ni gérer les utilisateurs. Pour faire traiter un signalement, demandez à un superviseur.
             </p>
             <?php echo helpScreenshot($screenshotBase . '/cu7-synthese.html', "Page de synthèse montrant le nombre de signalements par registre, par site et par état"); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu6-statistiques.html', "Page des statistiques avec graphiques d'évolution et répartition"); ?>
@@ -488,24 +504,24 @@ $screenshotBase = 'asset.php?f=screenshots';
         <h3>CU7 — Un superviseur gère les utilisateurs et la configuration</h3>
         <p class="text-small text-muted help-case-label">Profil : Superviseur uniquement</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Un nouvel agent arrive à l'<?php echo $labelUnite; ?> Jura. Il doit pouvoir utiliser l'application. Par ailleurs, l'application vient d'être installée et le superviseur doit effectuer la configuration initiale (SMTP, notifications, visibilité).<br><br>
-            <strong>Gestion des utilisateurs :</strong>
+            <strong>🎯 Situation :</strong> Un nouvel agent arrive. Il doit pouvoir utiliser l'application. Le superviseur configure aussi l'envoi d'e-mails et les notifications.<br><br>
+            <strong>👥 Gestion des utilisateurs :</strong>
             <ol>
-                <li><strong>En production</strong> : l'agent se connecte &rarr; son compte est <strong>automatiquement créé</strong> avec le rôle Agent et sans site attribué</li>
-                <li>L'agent est alors redirigé vers la page <strong>« Choisir mon site »</strong> — il sélectionne son <?php echo $labelUnite; ?> parmi les sites actifs. Ce choix est <strong>définitif</strong> pour l'agent (seul un superviseur peut le modifier ensuite)</li>
-                <li>Le superviseur peut ensuite modifier le site ou le rôle dans <strong>Utilisateurs</strong> si nécessaire</li>
-                <li>Il peut aussi <strong>désactiver</strong> un compte d'agent qui a quitté la structure (le compte reste en base pour l'historique mais n'est plus accessible)</li>
+                <li>🔑 L'agent se connecte &rarr; son compte est <strong>créé automatiquement</strong> avec le rôle Agent</li>
+                <li>🏢 Il choisit son <?php echo $labelUnite; ?> dans la page <strong>« Choisir mon site »</strong> (choix définitif, seul un superviseur peut le changer)</li>
+                <li>✏️ Le superviseur peut modifier le site ou le rôle dans <strong>Utilisateurs</strong></li>
+                <li>🚫 Il peut <strong>désactiver</strong> un compte d'agent parti (le compte reste pour l'historique)</li>
             </ol>
-            <p class="help-feature-list card--spaced-top"><strong>Configuration initiale :</strong></p>
+            <p class="help-feature-list card--spaced-top"><strong>⚙️ Configuration initiale :</strong></p>
             <ol>
-                <li>Dans <strong>Paramètres &rarr; Application</strong>, configurer le nom de l'organisation et le libellé des unités (UR, UD...)</li>
-                <li>Dans <strong>Paramètres &rarr; Application</strong>, compléter la <strong>liste des logins superviseurs</strong> — ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS (utile pour une première installation)</li>
-                <li>Dans <strong>Paramètres &rarr; SMTP</strong>, configurer le serveur d'envoi d'e-mails pour les notifications</li>
-                <li>Dans <strong>Paramètres &rarr; Notifications</strong>, ajouter les adresses e-mail à notifier par site et/ou globalement</li>
-                <li>Dans <strong>Paramètres &rarr; Application</strong>, ajuster la visibilité des signalements par registre (confidentiel, choix de l'agent, public)</li>
+                <li>📦 <strong>Paramètres &rarr; Application</strong> : nom de l'organisation et libellé des unités</li>
+                <li>🔑 <strong>Paramètres &rarr; Application</strong> : liste des logins superviseurs (promus automatiquement à la première connexion)</li>
+                <li>📧 <strong>Paramètres &rarr; Envoi d'e-mails (SMTP)</strong> : serveur d'envoi pour les notifications</li>
+                <li>🔔 <strong>Paramètres &rarr; Notifications</strong> : adresses e-mail à prévenir par site</li>
+                <li>👁️ <strong>Paramètres &rarr; Application</strong> : visibilité des signalements par registre</li>
             </ol>
             <?php echo helpScreenshot($screenshotBase . '/cu10-utilisateurs.html', "Page de gestion des utilisateurs avec liste, rôles et sites d'affectation"); ?>
-            <?php echo helpScreenshot($screenshotBase . '/cu9-parametres.html', "Page des paramètres avec les onglets Application, SMTP et Notifications"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu9-parametres.html', "Page des paramètres : Application, envoi d'e-mails et Notifications"); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu15-choix-site.html', "Page de choix du site lors de la première connexion d'un agent"); ?>
         </div>
     </div>
@@ -515,17 +531,17 @@ $screenshotBase = 'asset.php?f=screenshots';
         <h3>CU8 — Imprimer une fiche de signalement</h3>
         <p class="text-small text-muted help-case-label">Profil : Superviseur uniquement</p>
         <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Le superviseur doit archiver une fiche papier du signalement ou la transmettre à un service partenaire (médecine du travail, inspection du travail, etc.). L'application génère un PDF professionnel reprenant l'ensemble des informations du signalement.<br><br>
-            <strong>Parcours :</strong>
+            <strong>🎯 Situation :</strong> Le superviseur doit archiver une fiche papier du signalement ou l'envoyer à un partenaire (médecine du travail, inspection du travail…).<br><br>
+            <strong>📝 Étapes :</strong>
             <ol>
-                <li>Le superviseur ouvre le signalement depuis la liste</li>
-                <li>Il clique sur <strong>« Télécharger en PDF »</strong></li>
-                <li>Un fichier PDF est généré automatiquement par le serveur et téléchargé par le navigateur</li>
-                <li>Le PDF contient : la référence, le type de registre, l'objet, la description, les dates, le déclarant, la réponse du superviseur et l'historique des réponses</li>
-                <li>Le document est prêt pour impression ou archivage numérique</li>
+                <li>👀 Le superviseur ouvre le signalement depuis la liste</li>
+                <li>🖱️ Il clique sur <strong>« Télécharger en PDF »</strong></li>
+                <li>📄 Un fichier PDF est généré automatiquement et téléchargé</li>
+                <li>📋 Le PDF contient : référence, registre, objet, description, dates, déclarant, réponse et historique</li>
+                <li>🖨️ Le document est prêt pour impression ou archivage</li>
             </ol>
             <p class="help-note help-note--blue">
-                <strong>Format :</strong> Le PDF est généré côté serveur via FPDF. Il ne nécessite aucun plugin ni JavaScript. Le format est optimisé pour l'impression A4.
+                📄 Le PDF est généré par le serveur. Pas besoin de logiciel supplémentaire. Format optimisé pour impression A4.
             </p>
             <?php echo helpScreenshot($screenshotBase . '/cu8-export.html', "Page d'export des données avec sélection des filtres et format CSV"); ?>
         </div>
@@ -533,31 +549,29 @@ $screenshotBase = 'asset.php?f=screenshots';
 </div>
 
 <!-- ============================================================ -->
-<!-- 7. Authentification                                           -->
+<!-- 7. Connexion                                                 -->
 <!-- ============================================================ -->
 <div id="auth" class="card card--spaced content-section">
-    <h2>Authentification</h2>
-    <p class="help-description">L'authentification fonctionne différemment selon l'environnement. En production, l'authentification est transparente grâce à Windows Authentication. En développement, un formulaire permet de tester les différents profils.</p>
+    <h2>Connexion</h2>
+    <p class="help-description">La connexion fonctionne différemment selon l'environnement :</p>
     <div class="help-profiles-grid">
         <div class="help-auth-card--prod">
-            <h4>Production (IIS)</h4>
+            <h4>🖥️ Production (serveur Windows)</h4>
             <p class="help-description">
-                L'authentification est gérée par <strong>IIS Windows Authentication</strong>. 
-                L'utilisateur est automatiquement authentifié via son compte Windows Active Directory.
-                Aucun formulaire de login n'est affiché. Son compte est créé automatiquement à la première connexion avec le rôle Agent par défaut.
+                🔑 Connexion automatique avec votre <strong>compte Windows</strong>. Pas de formulaire de login. Votre compte est créé à la première connexion.
                 <br><br>
-                <strong>Promotion automatique :</strong> si le login Windows figure dans la liste configurée dans
-                <strong>Paramètres &rarr; Application &rarr; Logins Windows des superviseurs</strong>,
-                l'utilisateur est automatiquement promu Superviseur. Cette promotion prend effet immédiatement, sans nécessiter de déconnexion/reconnexion.
+                ⬆️ Si votre login figure dans la liste des superviseurs, vous êtes automatiquement promu Superviseur.
             </p>
         </div>
         <div class="help-auth-card--dev">
-            <h4>Développement</h4>
+            <h4>🧪 Développement (test)</h4>
             <p class="help-description">
-                En mode développement, un <strong>formulaire de connexion mock</strong> permet de tester les différents profils sans infrastructure Windows.
-                Les comptes de test sont : <code>admin.dev</code> (superviseur), <code>agent.dev</code> (agent), <code>chsct.dev</code> (CSA/CHSCT).
-                <br><br>
-                <strong>Mode développement automatique :</strong> si le serveur ne détecte pas <code>AUTH_USER</code> (variable IIS), l'application bascule automatiquement en mode développement. Ceci est normal sur les serveurs Apache, Caddy, Docker ou tout environnement non-IIS.
+                Un <strong>formulaire de connexion</strong> permet de tester les profils :
+                <ul class="help-feature-list">
+                    <li><code>admin.dev</code> → superviseur</li>
+                    <li><code>agent.dev</code> → agent</li>
+                    <li><code>chsct.dev</code> → CSA/CHSCT</li>
+                </ul>
             </p>
         </div>
     </div>

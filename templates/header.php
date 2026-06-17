@@ -24,9 +24,10 @@ header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 
 // Content-Security-Policy: allow same-origin + data: URIs (inline assets)
 // style-src 'unsafe-inline' needed for inline <style> tag (CSS inlined via inlineCss())
+// script-src 'unsafe-inline' needed for file-upload filename update in report_form.php
 // img-src data: needed for inline data: URIs (favicons, logos via inlineDataUri())
 // frame-ancestors 'none' : no iframing allowed (screenshots are now <img>, not <iframe>)
-header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 ?>
 <!DOCTYPE html>
 <html lang="fr">

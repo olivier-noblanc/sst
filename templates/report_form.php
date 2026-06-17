@@ -95,7 +95,7 @@ $submitBtnClass = $isEdit
                        value="<?php echo e($val('lieu')); ?>"
                        maxlength="200"
                        autocomplete="off"
-                       placeholder="<?php echo $type === 'dgi' ? 'Ex: Bureau 204, mise en place de signalisation' : 'Ex: Bureau 204, UR25'; ?>"
+                       placeholder="Ex : Bâtiment B, 2e étage, couloir principal"
                        aria-describedby="hint_lieu">
                 <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo $type === 'dgi' ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
             </div>
@@ -106,7 +106,7 @@ $submitBtnClass = $isEdit
                        value="<?php echo e($val('objet')); ?>"
                        maxlength="100" required
                        autocomplete="off"
-                       placeholder="Résumé du signalement"
+                       placeholder="Ex : Escalier cassé au 2e étage"
                        <?php echo isset($formErrors['objet']) ? 'aria-describedby="err_objet" aria-invalid="true"' : 'aria-describedby="hint_objet"'; ?>>
                 <span class="form-hint" id="hint_objet">100 caractères max.</span>
                 <?php if (isset($formErrors['objet'])): ?>
@@ -117,7 +117,7 @@ $submitBtnClass = $isEdit
             <div class="form-group form-grid__full">
                 <label for="description">Description <span class="required">*</span></label>
                 <textarea id="description" name="description" rows="8" maxlength="20000" required
-                          placeholder="Décrivez le signalement en détail..."
+                          placeholder="Ex : La rampe est desserrée au 2e étage du bâtiment B. Quelqu'un pourrait tomber."
                           <?php echo isset($formErrors['description']) ? 'aria-describedby="err_description char_count_description" aria-invalid="true"' : 'aria-describedby="hint_description char_count_description"'; ?>><?php echo e($val('description')); ?></textarea>
                 <span class="form-hint" id="hint_description">20 000 caractères max.</span>
                 <?php
@@ -132,10 +132,18 @@ $submitBtnClass = $isEdit
 
             <div class="form-group form-grid__full">
                 <label for="attachment">Pièce jointe</label>
-                <input type="file" id="attachment" name="attachment"
-                       accept=".jpg,.jpeg,.png,.gif,.pdf"
-                       <?php echo isset($formErrors['attachment']) ? 'aria-describedby="err_attachment" aria-invalid="true"' : 'aria-describedby="hint_attachment"'; ?>>
-                <span class="form-hint" id="hint_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max. Optionnel.</span>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="attachment" name="attachment"
+                           accept=".jpg,.jpeg,.png,.gif,.pdf"
+                           title="Joindre un document"
+                           class="file-upload-wrapper__input"
+                           <?php echo isset($formErrors['attachment']) ? 'aria-describedby="err_attachment" aria-invalid="true"' : 'aria-describedby="hint_attachment"'; ?>>
+                    <label for="attachment" class="file-upload-wrapper__label btn btn--secondary">
+                        📎 Joindre un document (optionnel)
+                    </label>
+                    <span class="file-upload-wrapper__filename" id="file_chosen_name">Aucun fichier sélectionné</span>
+                </div>
+                <span class="form-hint" id="hint_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max.</span>
                 <?php if ($isEdit && !empty($report['attachment_name'])): ?>
                     <div class="attachment-preview">
                         <span class="badge badge--confidential">&#128206; <?php echo e($report['attachment_name']); ?></span>
@@ -151,9 +159,9 @@ $submitBtnClass = $isEdit
 
             <?php if (!$isEdit): ?>
             <div class="form-group">
-                <label for="site_id"><?php echo e(getConfig('app_label_unite', 'UR')); ?> <span class="required">*</span></label>
+                <label for="site_id">Votre unité de rattachement <span class="required">*</span></label>
                 <select id="site_id" name="site_id" required
-                        <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : ''; ?>>
+                        <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : 'aria-describedby="hint_site_id"'; ?>>
                     <?php foreach ($sites as $site): ?>
                         <option value="<?php echo e($site['id']); ?>"
                             <?php echo ((int)$val('site_id', (string)$user['site_id']) === (int)$site['id']) ? 'selected' : ''; ?>>
@@ -161,6 +169,7 @@ $submitBtnClass = $isEdit
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <span class="form-hint" id="hint_site_id">Sélectionnez votre <?php echo e(getConfig('app_label_unite', 'UR')); ?> (unité de rattachement).</span>
                 <?php if (isset($formErrors['site_id'])): ?>
                     <span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span>
                 <?php endif; ?>
@@ -172,10 +181,10 @@ $submitBtnClass = $isEdit
                 <label class="label--checkbox">
                     <input type="checkbox" name="is_confidential" id="is_confidential" value="1"
                            class="confidential-toggle__input"
-                           <?php echo $val('is_confidential', '1') === '1' ? 'checked' : ''; ?>>
+                           <?php echo $val('is_confidential', '0') === '1' ? 'checked' : ''; ?>>
                     Signalement confidentiel
                 </label>
-                <span class="form-hint">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CSA/CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CSA/CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
                 <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                 <div class="confidential-warning">
                     &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
@@ -264,7 +273,27 @@ $submitBtnClass = $isEdit
                 <?php echo $isEdit ? 'Enregistrer' : 'Envoyer le signalement'; ?>
             </button>
             <a href="<?php echo $isEdit && $report ? url('report_view', ['uuid' => $report['uuid']]) : url('home'); ?>"
-               class="btn btn--secondary">Annuler</a>
+               class="btn btn--secondary" title="Supprimer le formulaire et revenir à la page précédente">Annuler</a>
         </div>
     </form>
+
+    <!-- File upload: update displayed filename when a file is chosen (graceful degradation if JS blocked) -->
+    <script>
+    (function() {
+        var input = document.getElementById('attachment');
+        var nameEl = document.getElementById('file_chosen_name');
+        if (input && nameEl) {
+            input.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    nameEl.textContent = this.files[0].name;
+                    nameEl.style.fontStyle = 'normal';
+                    nameEl.style.color = '';
+                } else {
+                    nameEl.textContent = 'Aucun fichier sélectionné';
+                    nameEl.style.fontStyle = 'italic';
+                }
+            });
+        }
+    })();
+    </script>
 </div>

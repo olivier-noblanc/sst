@@ -62,17 +62,18 @@ $pageTitle = 'Guide rapide';
     }
     .guide-step__number {
         flex-shrink: 0;
-        width: 52px;
-        height: 52px;
+        width: 72px;
+        height: 72px;
         border-radius: 50%;
         background: #0056A3;
         color: white;
-        font-size: 26px;
+        font-size: 36px;
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         line-height: 1;
+        box-shadow: 0 2px 6px rgba(0,86,163,0.3);
     }
     .guide-step__content {
         flex: 1;
@@ -102,6 +103,44 @@ $pageTitle = 'Guide rapide';
         padding: 10px 14px;
         margin-top: 10px;
         font-size: 14px;
+    }
+    .guide-step__example {
+        background: #e8f5e9;
+        border: 2px solid #43a047;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-top: 10px;
+        font-size: 15px;
+    }
+    .guide-step__example strong {
+        color: #2e7d32;
+    }
+    .guide-step__example code {
+        background: #ffffff;
+        border: 1px solid #a5d6a7;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-family: inherit;
+        font-weight: 600;
+        color: #1b5e20;
+    }
+    .guide-step__caption {
+        text-align: center;
+        font-size: 13px;
+        color: #666;
+        margin-top: 6px;
+        font-style: italic;
+    }
+    .guide-step__confirm {
+        background: #e8f5e9;
+        border-left: 4px solid #43a047;
+        border-radius: 4px;
+        padding: 12px 16px;
+        margin-top: 10px;
+        font-size: 15px;
+    }
+    .guide-step__confirm strong {
+        color: #2e7d32;
     }
     .guide-step__highlight strong {
         color: #856404;
@@ -197,8 +236,12 @@ $pageTitle = 'Guide rapide';
         <div class="guide-step__content">
             <h2 class="guide-step__title">Choisissez le bon registre</h2>
             <p class="guide-step__text">
-                Sur la page d'accueil, cliquez sur <strong>« Signaler un evenement »</strong>
-                sous le registre qui correspond a votre situation :
+                Sur la page d'accueil, <strong>cliquez sur le bouton « Signaler un evenement »</strong>
+                sous le registre correspondant :
+                <strong>RSST (Sante et Securite au Travail)</strong>,
+                <strong>RAMI (Agressions, Menaces, Incivilites)</strong> ou
+                <strong>DGI (Danger Grave et Imminent)</strong>.
+                Choisissez le registre qui correspond a votre situation :
             </p>
             <div class="guide-registres">
                 <div class="guide-registre guide-registre--rsst">
@@ -218,6 +261,7 @@ $pageTitle = 'Guide rapide';
                 </div>
             </div>
             <img src="screenshots/guide-etape1.png" alt="Page d'accueil avec les 3 registres" class="guide-step__img" width="340">
+            <p class="guide-step__caption">Capture d'ecran : la page d'accueil avec les 3 registres et les boutons « Signaler un evenement »</p>
         </div>
     </div>
 
@@ -238,9 +282,16 @@ $pageTitle = 'Guide rapide';
                 Vous pouvez aussi ajouter une <strong>piece jointe</strong> (photo ou PDF) si vous avez un document a joindre.
             </p>
             <img src="screenshots/guide-etape2.png" alt="Formulaire de creation de signalement" class="guide-step__img" width="340">
+            <p class="guide-step__caption">Capture d'ecran : le formulaire a remplir avec les champs Objet, Description, etc.</p>
+            <div class="guide-step__example">
+                <strong>Exemple d'objet :</strong> <code>Escalier casse au 2e etage</code><br>
+                <strong>Exemple de description :</strong> <code>La rampe est desserree au 2e etage du batiment B. Quelqu'un pourrait tomber en descendant.</code>
+            </div>
             <div class="guide-step__highlight">
                 <strong>Conseil :</strong> ecrivez comme vous parlez, dans vos propres mots.
                 Il n'y a pas de bonne ou mauvaise facon de decrire un evenement.
+                Exemple : si vous dites « l'escalier est casse », ecrivez simplement
+                « L'escalier du 2e etage est casse, quelqu'un pourrait tomber. »
             </div>
         </div>
     </div>
@@ -251,22 +302,23 @@ $pageTitle = 'Guide rapide';
         <div class="guide-step__content">
             <h2 class="guide-step__title">Envoyez et c'est fait !</h2>
             <p class="guide-step__text">
-                Cliquez sur <strong>« Envoyer le signalement »</strong>.
-                Un bandeau vert confirme que votre signalement a bien ete enregistre.
-                Il porte un numero de reference (ex: RSST-2026-0001).
+                Cliquez sur le bouton <strong>« Envoyer le signalement »</strong> en bas du formulaire.
             </p>
-            <p class="guide-step__text">
-                Votre <strong>superviseur</strong> est automatiquement prevenu et va prendre en charge votre signalement.
+            <div class="guide-step__confirm">
+                <strong>Apres l'envoi, un bandeau vert confirme que votre signalement a bien ete enregistre.</strong><br>
+                Votre superviseur est automatiquement prevenu et va prendre en charge votre signalement.<br>
+                Votre signalement porte un numero de reference (ex: RSST-2026-0001).
                 Vous pouvez suivre son etat a tout moment depuis la liste des signalements.
-            </p>
+            </div>
             <img src="screenshots/guide-etape3.png" alt="Confirmation d'enregistrement du signalement" class="guide-step__img" width="340">
+            <p class="guide-step__caption">Capture d'ecran : le bandeau vert de confirmation apres l'envoi du signalement</p>
             <div class="guide-step__highlight">
                 <strong>Et apres ?</strong> Votre signalement passe par 3 etats :
-                <span style="color:#2E5C8A;font-weight:600;">Nouveau</span>
+                <span style="color:#2E5C8A;font-weight:600;">Nouveau</span> : votre signalement vient d'etre envoye.
                 &rarr;
-                <span style="color:#E67E22;font-weight:600;">En cours</span>
+                <span style="color:#E67E22;font-weight:600;">En cours</span> : votre superviseur examine le probleme.
                 &rarr;
-                <span style="color:#27AE60;font-weight:600;">Traite</span>
+                <span style="color:#27AE60;font-weight:600;">Traite</span> : le probleme est resolu.
             </div>
         </div>
     </div>

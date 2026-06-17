@@ -3,6 +3,27 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.23.0] — 2026-06-17
+
+### Accessibilité — Revue utilisateur senior (Monsieur Robert, 70 ans)
+
+Itérations successives basées sur les retours d'un utilisateur non-technique de 70 ans, notés par vision IA (VLM). Score moyen agent passé de 3.8/10 à 8/10.
+
+- **1** 🔴 **Connexion 1-clic** — Remplacement du formulaire login/mot de passe par 3 gros boutons (Superviseur, Agent, Membre CSA/CHSCT). Plus de jargon `.dev`, plus de mot de passe vide angoissant. Chaque bouton affiche une description de son rôle. En production (IIS), cette page n'existe pas — l'authentification est automatique.
+- **2** 🔴 **Accueil agent : boutons explicites par registre** — Les 3 boutons « Signaler un événement » identiques sont remplacés par des libellés concrets : « Signaler un problème de sécurité » (RSST), « Signaler une agression » (RAMI), « Signaler un danger urgent » (DGI). Message de bienvenue personnalisé avec le prénom de l'agent.
+- **3** 🔴 **Formulaire : exemples concrets** — Placeholders vides remplacés par des exemples réels : « Escalier cassé au 2e étage » pour l'objet, « La rampe est desserrée… » pour la description, « Bâtiment B, 2e étage » pour le lieu. Bouton « Choose File » → « Joindre un document (optionnel) ». Case confidentiel décochée par défaut. Label « UR » → « Votre unité de rattachement ». Message d'encouragement en haut du formulaire.
+- **4** 🔴 **Guide rapide enrichi** — Acronymes expliqués : RSST (Santé et Sécurité au Travail), RAMI (Agressions, Menaces, Incivilités), DGI (Danger Grave et Imminent). États du signalement expliqués : Nouveau = « votre signalement vient d'être envoyé », En cours = « votre superviseur examine le problème », Traité = « le problème est résolu ». Exemple concret pour le conseil « écrivez comme vous parlez ». Numéros d'étapes agrandis (72px).
+- **5** 🔴 **Aide simplifiée pour les agents** — Si rôle = agent, affichage d'une aide courte : 3 cartes (Signaler, Suivre, Confidentialité), 3 étapes illustrées avec screenshots réels, FAQ 5 questions, lien vers le guide imprimable. Si rôle = superviseur/CHSCT, aide complète inchangée. Titre « Aide » pour agent vs « Documentation » pour superviseur.
+- **6** 🟡 **Hotline configurable** — Paramètre `app_hotline_number` dans Paramètres → Application. Si renseigné, la page d'aide affiche « Appelez la hotline au 01 23 45 67 89 » en gros. Si vide, affiche « Contactez votre administrateur au poste interne ». Toggle on/off sans redémarrage.
+- **7** 🟡 **Jargon technique supprimé** — « Mode sans IIS » → supprimé, « mode dev » → supprimé, « authentification » → « connexion », « Déclarant » → « Signalé par », « Déclaré pour le compte de » → « Signalé au nom de », « Voir en PDF » → « Imprimer ou enregistrer en PDF », « workflow » → « parcours », « CRUD » → « actions », « CSV » → « fichier tableur ». Screenshot cassés corrigés (noms de fichiers alignés avec `public/screenshots/`).
+- **8** 🟡 **Couleurs adoucies** — Carte DGI : rouge vif plein → rouge doux (`#b91c1c`) sur fond pâle (`#fef2f2`) avec bordure. Moins agressif pour les yeux seniors.
+- **9** 🟡 **Aide superviseur allégée** — Bandeau contact en haut, gros numéros cerclés dans le sommaire, textes d'introduction raccourcis (max 2 phrases), emojis dans les listes, termes techniques restants remplacés.
+
+### Tests — Mise à jour E2E
+
+- **10** 🟡 **`auth.spec.js`** — Tests adaptés aux boutons de connexion rapide. Login par clic bouton au lieu de remplissage formulaire. Auto-create agent via POST direct.
+- **11** 🟡 **`settings.spec.js`** — Onglet audit par défaut (déjà en v3.22.0, consolidé ici).
+
 ## [3.22.0] — 2026-06-17
 
 ### Produit — Corrections UI et déploiement

@@ -108,7 +108,7 @@ $submitBtnClass = $isEdit
                 <label for="objet">Objet <span class="required">*</span></label>
                 <input type="text" id="objet" name="objet"
                        value="<?php echo e($val('objet')); ?>"
-                       maxlength="100" required
+                       minlength="3" maxlength="100" required
                        autocomplete="off"
                        placeholder="Ex : Escalier cassé au 2e étage"
                        <?php echo isset($formErrors['objet']) ? 'aria-describedby="err_objet" aria-invalid="true"' : 'aria-describedby="hint_objet"'; ?>>
@@ -120,7 +120,7 @@ $submitBtnClass = $isEdit
 
             <div class="form-group form-grid__full">
                 <label for="description">Description <span class="required">*</span></label>
-                <textarea id="description" name="description" rows="8" maxlength="20000" required
+                <textarea id="description" name="description" rows="8" minlength="10" maxlength="20000" required
                           placeholder="Ex : La rampe est desserrée au 2e étage du bâtiment B. Quelqu'un pourrait tomber."
                           <?php echo isset($formErrors['description']) ? 'aria-describedby="err_description char_count_description" aria-invalid="true"' : 'aria-describedby="hint_description char_count_description"'; ?>><?php echo e($val('description')); ?></textarea>
                 <span class="form-hint" id="hint_description">20 000 caractères max.</span>
@@ -208,12 +208,12 @@ $submitBtnClass = $isEdit
 
             <div class="form-group">
                 <label for="declarant_nom">Déclarant — Nom</label>
-                <input type="text" id="declarant_nom" value="<?php echo e($user['nom'] ?? ''); ?>" readonly>
+                <input type="text" id="declarant_nom" value="<?php echo e($user['nom'] ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
             </div>
 
             <div class="form-group">
                 <label for="declarant_prenom">Déclarant — Prénom</label>
-                <input type="text" id="declarant_prenom" value="<?php echo e($user['prenom'] ?? ''); ?>" readonly>
+                <input type="text" id="declarant_prenom" value="<?php echo e($user['prenom'] ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
             </div>
 
             <?php if ($type === 'rami'): ?>
@@ -232,6 +232,7 @@ $submitBtnClass = $isEdit
                         <label for="pour_compte_nom">Nom de l'agent</label>
                         <input type="text" id="pour_compte_nom" name="pour_compte_nom"
                                value="<?php echo e($val('pour_compte_nom')); ?>"
+                               minlength="2" maxlength="100"
                                autocomplete="family-name"
                                <?php echo isset($formErrors['pour_compte_nom']) ? 'aria-describedby="err_pour_compte_nom" aria-invalid="true"' : ''; ?>>
                     </div>
@@ -239,6 +240,7 @@ $submitBtnClass = $isEdit
                         <label for="pour_compte_prenom">Prénom de l'agent</label>
                         <input type="text" id="pour_compte_prenom" name="pour_compte_prenom"
                                value="<?php echo e($val('pour_compte_prenom')); ?>"
+                               minlength="2" maxlength="100"
                                autocomplete="given-name">
                     </div>
                 </div>

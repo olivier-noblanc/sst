@@ -56,14 +56,6 @@ function helpScreenshot(string $src, string $alt): string {
         <small>Un conseiller vous répondra directement pour vous guider.</small>
     </div>
 </div>
-<?php else: ?>
-<div class="help-contact-banner" role="complementary" aria-label="Contact administrateur">
-    <span class="help-contact-banner__icon" aria-hidden="true">📞</span>
-    <div class="help-contact-banner__text">
-        <strong>Besoin d'aide ?</strong> Contactez votre administrateur au <strong>poste interne</strong>.<br>
-        <small>Un humain vous répondra directement pour vous guider.</small>
-    </div>
-</div>
 <?php endif; ?>
 
 <!-- Que pouvez-vous faire ? -->
@@ -199,14 +191,6 @@ function helpScreenshot(string $src, string $alt): string {
     <div class="help-contact-banner__text">
         <strong>Besoin d'aide ?</strong> Appelez la hotline au <strong style="font-size:1.3em;"><?php echo e($hotlineNumber); ?></strong><br>
         <small>Un conseiller vous répondra directement pour vous guider.</small>
-    </div>
-</div>
-<?php else: ?>
-<div class="help-contact-banner" role="complementary" aria-label="Contact administrateur">
-    <span class="help-contact-banner__icon" aria-hidden="true">📞</span>
-    <div class="help-contact-banner__text">
-        <strong>Besoin d'aide ?</strong> Contactez votre administrateur au <strong>poste interne</strong>.<br>
-        <small>Un humain vous répondra directement pour vous guider.</small>
     </div>
 </div>
 <?php endif; ?>

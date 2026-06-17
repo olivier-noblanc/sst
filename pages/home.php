@@ -35,7 +35,7 @@ $userRole = $user['role'] ?? ROLE_AGENT;
 $labelUnite = getConfig('app_label_unite', 'UR');
 ?>
 
-<h1 class="page-title">Accueil</h1>
+<h1 class="page-title page-title--compact">Accueil</h1>
 
 <!-- Welcome banner — contextual guidance based on user state -->
 <?php if ($totalReports === 0 && $userRole === ROLE_AGENT): ?>
@@ -152,32 +152,4 @@ $labelUnite = getConfig('app_label_unite', 'UR');
         <?php endif; ?>
     </div>
 </div>
-<?php endif; ?>
-
-<?php if ($userRole === 'agent'): ?>
-<?php
-// Show site change option within 7-day grace period
-$siteChosenAt = $user['site_chosen_at'] ?? null;
-$isWithinGracePeriod = false;
-$daysRemaining = 0;
-if ($siteChosenAt && $userSiteId > 0) {
-    $chosenTime = strtotime($siteChosenAt);
-    $daysSinceChoice = (time() - $chosenTime) / 86400;
-    $isWithinGracePeriod = $daysSinceChoice <= 7;
-    $daysRemaining = max(0, ceil(7 - $daysSinceChoice));
-}
-?>
-<?php if ($isWithinGracePeriod): ?>
-<div class="card mt-4">
-    <p class="text-small">
-        &#x1F4CD; Vous pouvez <a href="<?php echo url('choose_site'); ?>">modifier votre site</a> pendant encore <strong><?php echo $daysRemaining; ?> jour<?php echo $daysRemaining !== 1 ? 's' : ''; ?></strong>.
-    </p>
-</div>
-<?php elseif ($userSiteId > 0 && !$isWithinGracePeriod): ?>
-<div class="card mt-4">
-    <p class="text-small text-muted">
-        &#x1F512; Pour changer de site, contactez votre superviseur.
-    </p>
-</div>
-<?php endif; ?>
 <?php endif; ?>

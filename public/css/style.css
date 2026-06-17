@@ -625,6 +625,13 @@ img { max-width: 100%; height: auto; display: block; }
     border-bottom: 2px solid var(--grey-200);
 }
 
+.page-title--compact {
+    font-size: 18px;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom-width: 1px;
+}
+
 /* ============================================================
    11. Cards
    ============================================================ */
@@ -922,10 +929,19 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .btn-group--inline {
-    display: inline-flex;
-    gap: 8px;
+    display: flex;
+    gap: 12px;
     align-items: center;
     flex-wrap: nowrap;
+}
+
+.btn-group--inline select {
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-group--inline .label--checkbox {
+    flex-shrink: 0;
 }
 
 /* ============================================================
@@ -1238,13 +1254,15 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Confidential toggle — proper vertical alignment */
 .confidential-toggle {
-    padding: 16px 0;
-    margin-bottom: 20px;
+    padding: 12px 0;
+    margin-bottom: 16px;
+    border-top: 1px solid var(--grey-200);
+    border-bottom: 1px solid var(--grey-200);
 }
 
 .confidential-toggle__details {
     margin-left: 26px;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 /* Confidential warning (CSS-only toggle, no JS) */
@@ -2446,8 +2464,14 @@ tr:hover td {
     align-items: center;
 }
 
+.date-range input[type="date"] {
+    flex: 1;
+    min-width: 0;
+}
+
 .date-range span {
     color: var(--grey-500);
+    flex-shrink: 0;
 }
 
 /* Max-width container */

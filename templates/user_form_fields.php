@@ -25,13 +25,13 @@ if (!isset($usernameHint)) {
 <div class="form-grid">
     <div class="form-group">
         <label for="nom">Nom <span class="required">*</span></label>
-        <input type="text" name="nom" id="nom" required maxlength="100" value="<?php echo e($editNom); ?>"
+        <input type="text" name="nom" id="nom" required minlength="2" maxlength="100" value="<?php echo e($editNom); ?>"
                <?php echo isset($formErrors['nom']) ? 'aria-describedby="err_nom" aria-invalid="true"' : ''; ?>>
         <?php if (isset($formErrors['nom'])): ?><span class="form-error" id="err_nom"><?php echo e($formErrors['nom']); ?></span><?php endif; ?>
     </div>
     <div class="form-group">
         <label for="prenom">Prénom <span class="required">*</span></label>
-        <input type="text" name="prenom" id="prenom" required maxlength="100" value="<?php echo e($editPrenom); ?>"
+        <input type="text" name="prenom" id="prenom" required minlength="2" maxlength="100" value="<?php echo e($editPrenom); ?>"
                <?php echo isset($formErrors['prenom']) ? 'aria-describedby="err_prenom" aria-invalid="true"' : ''; ?>>
         <?php if (isset($formErrors['prenom'])): ?><span class="form-error" id="err_prenom"><?php echo e($formErrors['prenom']); ?></span><?php endif; ?>
     </div>
@@ -43,7 +43,9 @@ if (!isset($usernameHint)) {
     </div>
     <div class="form-group">
         <label for="username">Identifiant <span class="required">*</span></label>
-        <input type="text" name="username" id="username" required maxlength="100" value="<?php echo e($editUsername); ?>"
+        <input type="text" name="username" id="username" required minlength="2" maxlength="100" value="<?php echo e($editUsername); ?>"
+               pattern="[a-zA-Z0-9.\-]+" title="Lettres, chiffres, points et tirets uniquement"
+               autocomplete="username"
                aria-describedby="hint_username"
                <?php echo isset($formErrors['username']) ? 'aria-describedby="err_username" aria-invalid="true"' : ''; ?>>
         <div class="form-hint" id="hint_username"><?php echo e($usernameHint); ?></div>

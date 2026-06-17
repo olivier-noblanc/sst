@@ -41,10 +41,10 @@ $labelUnite = getConfig('app_label_unite', 'UR');
 <?php if ($totalReports === 0 && $userRole === ROLE_AGENT): ?>
 <div class="welcome-banner welcome-banner--new" role="status">
     <div class="welcome-banner__content">
-        <h2 class="welcome-banner__title">Bienvenue dans l'Application SST</h2>
+        <h2 class="welcome-banner__title">Bienvenue, <?php echo e($user['prenom']); ?></h2>
         <p class="welcome-banner__text">
-            Vous pouvez ici <strong>signaler un événement</strong> lié à la santé, la sécurité ou l'intégrité au travail.
-            Choisissez le registre correspondant à votre situation ci-dessous, puis cliquez sur <strong>« Signaler un événement »</strong>.
+            Un problème de sécurité ? Une agression ? Un danger ?<br>
+            <strong>Cliquez sur le bouton correspondant ci-dessous.</strong>
         </p>
         <div class="welcome-banner__legend">
             <span class="badge badge--nouveau">Nouveau</span> <span class="welcome-banner__legend-text">Signalement créé, en attente de traitement</span>
@@ -102,7 +102,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="registry-card__desc">Risques liés aux locaux, équipements, ergonomie, conditions environnementales</p>
         </div>
         <div>
-            <a href="<?php echo url('report_create', ['type' => TYPE_RSST]); ?>" class="registry-card__btn">Signaler un événement</a>
+            <a href="<?php echo url('report_create', ['type' => TYPE_RSST]); ?>" class="registry-card__btn">Signaler un problème de sécurité</a>
             <a href="<?php echo url('report_list', ['type' => TYPE_RSST]); ?>" class="registry-card__link">Voir les signalements</a>
             <div class="registry-card__stat"><?php echo $rsstCount; ?> signalement<?php echo $rsstCount !== 1 ? 's' : ''; ?> enregistré<?php echo $rsstCount !== 1 ? 's' : ''; ?></div>
         </div>
@@ -117,7 +117,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="registry-card__desc">Agressions physiques ou verbales, menaces, incivilités, harcèlement</p>
         </div>
         <div>
-            <a href="<?php echo url('report_create', ['type' => TYPE_RAMI]); ?>" class="registry-card__btn">Signaler un événement</a>
+            <a href="<?php echo url('report_create', ['type' => TYPE_RAMI]); ?>" class="registry-card__btn">Signaler une agression</a>
             <a href="<?php echo url('report_list', ['type' => TYPE_RAMI]); ?>" class="registry-card__link">Voir les signalements</a>
             <div class="registry-card__stat"><?php echo $ramiCount; ?> signalement<?php echo $ramiCount !== 1 ? 's' : ''; ?> enregistré<?php echo $ramiCount !== 1 ? 's' : ''; ?></div>
         </div>
@@ -132,7 +132,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="registry-card__desc">Danger nécessitant une action immédiate, droit de retrait</p>
         </div>
         <div>
-            <a href="<?php echo url('report_create', ['type' => TYPE_DGI]); ?>" class="registry-card__btn">Signaler un événement</a>
+            <a href="<?php echo url('report_create', ['type' => TYPE_DGI]); ?>" class="registry-card__btn">Signaler un danger urgent</a>
             <a href="<?php echo url('report_list', ['type' => TYPE_DGI]); ?>" class="registry-card__link">Voir les signalements</a>
             <div class="registry-card__stat"><?php echo $dgiCount; ?> signalement<?php echo $dgiCount !== 1 ? 's' : ''; ?> enregistré<?php echo $dgiCount !== 1 ? 's' : ''; ?></div>
         </div>

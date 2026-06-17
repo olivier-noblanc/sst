@@ -78,17 +78,17 @@ if (isUserLoggedIn()) {
                 <input type="hidden" id="password" name="password" value="test">
             </form>
 
-            <p style="text-align:center;font-size:18px;margin:20px 0 8px 0;color:#555;">Choisissez votre profil :</p>
-            <p style="text-align:center;font-size:14px;color:#888;margin:0 0 16px 0;">Cliquez sur le bouton qui correspond à votre rôle</p>
+            <p style="text-align:center;font-size:18px;margin:20px 0 8px 0;color:#555;">Choisissez votre profil</p>
+            <p style="text-align:center;font-size:15px;color:#1e40af;margin:0 0 16px 0;font-weight:600;">Cliquez sur votre profil. En cas de doute, choisissez Agent.</p>
             <div class="login-quick-buttons">
                 <div class="login-btn-wrapper">
-                    <button type="button" class="btn btn--primary" onclick="document.getElementById('username').value='admin.dev';document.getElementById('quick-login-form').submit();">
+                    <button type="button" class="btn btn--primary" style="background:#1e3a5f;" onclick="document.getElementById('username').value='admin.dev';document.getElementById('quick-login-form').submit();">
                         Superviseur
                     </button>
                     <span class="login-btn-desc">Gestion et suivi des signalements</span>
                 </div>
                 <div class="login-btn-wrapper">
-                    <button type="button" class="btn btn--primary" style="background:#4a90d9;" onclick="document.getElementById('username').value='agent.dev';document.getElementById('quick-login-form').submit();">
+                    <button type="button" class="btn btn--primary" style="background:#3b82f6;" onclick="document.getElementById('username').value='agent.dev';document.getElementById('quick-login-form').submit();">
                         Agent
                     </button>
                     <span class="login-btn-desc">Signaler un événement</span>

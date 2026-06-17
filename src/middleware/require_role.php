@@ -10,9 +10,9 @@
  * Check if the current user has one of the required roles.
  * If not, renders the access denied page and stops execution.
  * 
- * @param array $roles  Array of allowed role strings
+ * @param array<int, string> $roles  Array of allowed role strings
  */
-function requireRole(array<int, string> $roles): void {
+function requireRole(array $roles): void {
     $role = currentUserRole();
     if (empty($role)) {
         require __DIR__ . '/../../pages/access_denied.php';
@@ -39,10 +39,10 @@ function hasRole(string $role): bool {
 /**
  * Check if the current user has any of the given roles (without exiting).
  * 
- * @param array $roles  Array of role strings
+ * @param array<int, string> $roles  Array of role strings
  * @return bool
  */
-function hasAnyRole(array<int, string> $roles): bool {
+function hasAnyRole(array $roles): bool {
     $currentRole = currentUserRole();
     return !empty($currentRole) && in_array($currentRole, $roles, true);
 }

@@ -21,10 +21,10 @@
  * attachment data or adds errors to the $errors array.
  * Shared between report_create_handler and report_edit_handler.
  *
- * @param array $errors  Reference to the errors array (modified in place)
- * @return array ['blob' => string|null, 'name' => string|null, 'mime' => string|null]
+ * @param array<string, string> $errors  Reference to the errors array (modified in place)
+ * @return array{blob: string|null, name: string|null, mime: string|null}
  */
-function validateReportAttachment(array<string, string> &$errors): array{blob: string|null, name: string|null, mime: string|null} {
+function validateReportAttachment(array &$errors): array {
     $attachmentBlob = null;
     $attachmentName = null;
     $attachmentMime = null;
@@ -62,9 +62,9 @@ function validateReportAttachment(array<string, string> &$errors): array{blob: s
  *
  * @param string $natureAuteur  Raw input for nature_auteur
  * @param string $typeActe      Raw input for type_acte
- * @return array ['nature_auteur' => string, 'type_acte' => string]
+ * @return array{nature_auteur: string, type_acte: string}
  */
-function validateRamiFields(string $natureAuteur, string $typeActe): array{nature_auteur: string, type_acte: string} {
+function validateRamiFields(string $natureAuteur, string $typeActe): array {
     $allowedNatureAuteur = array_keys(RAMI_NATURE_AUTEUR_LABELS);
     if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur)) {
         $natureAuteur = '';
@@ -112,9 +112,9 @@ function enforceReportVisibility(int $isConfidential): int {
  * @param string $description    Report description
  * @param string $lieu           Location (optional)
  * @param string $heureEvenement Event time (HH:MM, optional)
- * @return array Validation errors (field => message)
+ * @return array<string, string> Validation errors (field => message)
  */
-function validateReportFields(string $dateEvenement, string $objet, string $description, string $lieu, string $heureEvenement): array<string, string> {
+function validateReportFields(string $dateEvenement, string $objet, string $description, string $lieu, string $heureEvenement): array {
     $errors = [];
 
     if (empty($dateEvenement)) {
@@ -154,9 +154,9 @@ function validateReportFields(string $dateEvenement, string $objet, string $desc
  * @param bool   $pourCompte       Whether the "pour compte" checkbox is checked
  * @param string $pourCompteNom    The other agent's last name
  * @param string $pourComptePrenom The other agent's first name
- * @return array Validation errors (field => message)
+ * @return array<string, string> Validation errors (field => message)
  */
-function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pourComptePrenom): array<string, string> {
+function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pourComptePrenom): array {
     $errors = [];
 
     if ($pourCompte) {
@@ -187,9 +187,9 @@ function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pou
  *
  * @param string $uuid         The report UUID (from $_GET or $_POST)
  * @param string $fallbackUrl  URL to redirect to on failure
- * @return array  The report data (never returns null — redirects instead)
+ * @return array<string, mixed>  The report data (never returns null — redirects instead)
  */
-function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array<string, mixed> {
+function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array {
     if ($fallbackUrl === '') {
         $fallbackUrl = url('home');
     }
@@ -210,12 +210,12 @@ function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array<st
  * Verify that the current user owns the report (is the declarant).
  * Redirects to report_view with an error if not the owner.
  *
- * @param array  $report  Report data from DB
+ * @param array<string, mixed> $report  Report data from DB
  * @param int    $userId  Current user's ID
  * @param string $uuid    Report UUID (for redirect URL)
  * @param string $verb    Verb for the error message ('modifier', 'abandonner', etc.)
  */
-function requireReportOwnership(array<string, mixed> $report, int $userId, string $uuid, string $verb = 'modifier'): void {
+function requireReportOwnership(array $report, int $userId, string $uuid, string $verb = 'modifier'): void {
     if ((int) $report['declarant_id'] !== $userId) {
         setFlash('error', 'Vous ne pouvez ' . $verb . ' que vos propres signalements.');
         redirect(url('report_view', ['uuid' => $uuid]));
@@ -226,11 +226,11 @@ function requireReportOwnership(array<string, mixed> $report, int $userId, strin
  * Verify that the report is in an editable state (nouveau or en_cours).
  * Redirects to report_view with an error if not.
  *
- * @param array  $report  Report data from DB
+ * @param array<string, mixed> $report  Report data from DB
  * @param string $uuid    Report UUID (for redirect URL)
  * @param string $verb    Verb for the error message ('modifié', 'abandonné', etc.)
  */
-function requireReportEditable(array<string, mixed> $report, string $uuid, string $verb = 'modifié'): void {
+function requireReportEditable(array $report, string $uuid, string $verb = 'modifié'): void {
     if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS])) {
         setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
         redirect(url('report_view', ['uuid' => $uuid]));
@@ -248,11 +248,11 @@ function requireReportEditable(array<string, mixed> $report, string $uuid, strin
  * Before this function, the same ~40 lines of validation were duplicated.
  *
  * @param PDO    $pdo       Database connection
- * @param array  $input     POST data (nom, prenom, username, role, site_id, email)
+ * @param array<string, mixed> $input     POST data (nom, prenom, username, role, site_id, email)
  * @param int    $excludeId User ID to exclude from uniqueness check (for edit)
- * @return array Validation errors (field => message)
+ * @return array<string, string> Validation errors (field => message)
  */
-function validateUserFields(PDO $pdo, array<string, mixed> $input, int $excludeId = 0): array<string, string> {
+function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array {
     $errors = [];
 
     $nom = trim($input['nom'] ?? '');

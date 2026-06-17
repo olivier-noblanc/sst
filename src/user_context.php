@@ -23,9 +23,9 @@
 /**
  * Get the current user's full data array from session.
  *
- * @return array|null  The user array or null if not authenticated
+ * @return array<string, mixed>|null  The user array or null if not authenticated
  */
-function currentUser(): ?array<string, mixed> {
+function currentUser(): ?array {
     return getUserSession();
 }
 
@@ -193,11 +193,11 @@ function currentUserCanSeeAllSites(): bool {
  * Check if the current user can access a specific report.
  * Delegates to the existing canAccessReport() in helpers.php.
  *
- * @param array       $report           Report data from DB
+ * @param array<string, mixed> $report           Report data from DB
  * @param string|null $forcedVisibility  Override visibility mode (for tests)
  * @return bool
  */
-function currentUserCanAccessReport(array<string, mixed> $report, ?string $forcedVisibility = null): bool {
+function currentUserCanAccessReport(array $report, ?string $forcedVisibility = null): bool {
     $user = currentUser();
     if (!$user) {
         return false;

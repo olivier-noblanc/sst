@@ -24,9 +24,9 @@ function userSelectWithSite(): string {
  * 
  * @param PDO    $pdo       Database connection
  * @param string $username  The username to look up
- * @return array|null
+ * @return array<string, mixed>|null
  */
-function getUserByUsername(PDO $pdo, string $username): ?array<string, mixed> {
+function getUserByUsername(PDO $pdo, string $username): ?array {
     $stmt = $pdo->prepare(
         userSelectWithSite() . " WHERE u.username = :username AND u.is_active = 1"
     );
@@ -40,9 +40,9 @@ function getUserByUsername(PDO $pdo, string $username): ?array<string, mixed> {
  * 
  * @param PDO $pdo  Database connection
  * @param int $id   User ID
- * @return array|null
+ * @return array<string, mixed>|null
  */
-function getUserById(PDO $pdo, int $id): ?array<string, mixed> {
+function getUserById(PDO $pdo, int $id): ?array {
     $stmt = $pdo->prepare(
         userSelectWithSite() . " WHERE u.id = :id"
     );
@@ -57,9 +57,9 @@ function getUserById(PDO $pdo, int $id): ?array<string, mixed> {
  * @param PDO    $pdo     Database connection
  * @param int    $siteId  Optional site filter (0 = all)
  * @param bool   $active  Whether to include only active users
- * @return array
+ * @return array<int, array<string, mixed>>
  */
-function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array<int, array<string, mixed>> {
+function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array {
     $sql = userSelectWithSite() . " WHERE 1=1";
     $params = [];
 
@@ -117,10 +117,10 @@ function updateUserSite(PDO $pdo, int $id, int $siteId): bool {
  * Create a new user.
  * 
  * @param PDO    $pdo   Database connection
- * @param array  $data  User data
+ * @param array<string, mixed> $data  User data
  * @return int          New user ID
  */
-function createUser(PDO $pdo, array<string, mixed> $data): int {
+function createUser(PDO $pdo, array $data): int {
     $stmt = $pdo->prepare("
         INSERT INTO users (username, nom, prenom, email, role, site_id)
         VALUES (:username, :nom, :prenom, :email, :role, :site_id)
@@ -141,10 +141,10 @@ function createUser(PDO $pdo, array<string, mixed> $data): int {
  * 
  * @param PDO   $pdo   Database connection
  * @param int   $id    User ID
- * @param array $data  User data (nom, prenom, email, username, role, site_id)
+ * @param array<string, mixed> $data  User data (nom, prenom, email, username, role, site_id)
  * @return bool
  */
-function updateUser(PDO $pdo, int $id, array<string, mixed> $data): bool {
+function updateUser(PDO $pdo, int $id, array $data): bool {
     $stmt = $pdo->prepare("
         UPDATE users
         SET nom = :nom, prenom = :prenom, email = :email,
@@ -214,9 +214,9 @@ function reactivateUser(PDO $pdo, int $id): bool {
  *
  * @param PDO $pdo  Database connection
  * @param int $id   User ID
- * @return array
+ * @return array<string, mixed>
  */
-function exportUserData(PDO $pdo, int $id): array<string, mixed> {
+function exportUserData(PDO $pdo, int $id): array {
     $user = getUserById($pdo, $id);
     if (!$user) {
         return [];

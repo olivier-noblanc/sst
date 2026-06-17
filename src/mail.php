@@ -277,9 +277,9 @@ function notifyPourCompte(PDO $pdo, string $reportUuid): void {
  *
  * @param PDO $pdo     Database connection
  * @param int $siteId  Site ID
- * @return array       Array of email strings
+ * @return array<int, string>       Array of email strings
  */
-function getNotificationRecipients(PDO $pdo, int $siteId): array<int, string> {
+function getNotificationRecipients(PDO $pdo, int $siteId): array {
     $emails = [];
 
     // Per-site
@@ -387,11 +387,11 @@ function getBaseUrl(): string {
  * Before this function, the same ~20 lines of inline-styled HTML table
  * were duplicated between the two files.
  *
- * @param array  $siteData      ['site_code' => string, 'site_nom' => string, 'reports' => array]
+ * @param array{site_code: string, site_nom: string, reports: array<int, mixed>} $siteData
  * @param int    $alertDelayDays Configured delay in days
  * @return string  Complete HTML email body
  */
-function buildDelayAlertEmail(array{site_code: string, site_nom: string, reports: array<int, mixed>} $siteData, int $alertDelayDays): string {
+function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string {
     $appName = getConfig('app_nom_organisation', 'DREETS BFC');
 
     $body = "<html><body>";

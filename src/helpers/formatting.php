@@ -191,10 +191,10 @@ function nowTime(): string {
  * Each item is either a link ['url' => ..., 'label' => ...] or
  * a plain text current item ['label' => ...] (rendered as <span>).
  *
- * @param array $items  Ordered list of breadcrumb items
+ * @param array<int, array{url?: string, label: string}> $items  Ordered list of breadcrumb items
  * @return string  HTML for the breadcrumb nav
  */
-function renderBreadcrumb(array<int, array{url?: string, label: string}> $items): string {
+function renderBreadcrumb(array $items): string {
     $html = '<nav class="breadcrumb" aria-label="Fil d\'Ariane">';
     $last = count($items) - 1;
     foreach ($items as $i => $item) {

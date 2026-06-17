@@ -48,18 +48,18 @@ function isUserLoggedIn(): bool {
 /**
  * Store the full user data array in session.
  *
- * @param array $user  User data from DB
+ * @param array<string, mixed> $user  User data from DB
  */
-function setUserSession(array<string, mixed> $user): void {
+function setUserSession(array $user): void {
     $_SESSION['user'] = $user;
 }
 
 /**
  * Get the current user's full data array from session.
  *
- * @return array|null  The user array or null if not authenticated
+ * @return array<string, mixed>|null  The user array or null if not authenticated
  */
-function getUserSession(): ?array<string, mixed> {
+function getUserSession(): ?array {
     return $_SESSION['user'] ?? null;
 }
 
@@ -225,9 +225,9 @@ function setFlash(string $type, string $message): void {
 /**
  * Retrieve and clear the flash message from the session.
  * 
- * @return array|null  ['type' => string, 'message' => string] or null
+ * @return array{type: string, message: string}|null  ['type' => string, 'message' => string] or null
  */
-function getFlash(): ?array{type: string, message: string} {
+function getFlash(): ?array {
     if (isset($_SESSION['flash'])) {
         $flash = $_SESSION['flash'];
         unset($_SESSION['flash']);
@@ -243,18 +243,18 @@ function getFlash(): ?array{type: string, message: string} {
 /**
  * Store form data in session for repopulation after validation error.
  * 
- * @param array $data  Associative array of form field values
+ * @param array<string, mixed> $data  Associative array of form field values
  */
-function setFormData(array<string, mixed> $data): void {
+function setFormData(array $data): void {
     $_SESSION['form_data'] = $data;
 }
 
 /**
  * Retrieve and clear stored form data.
  * 
- * @return array
+ * @return array<string, mixed>
  */
-function getFormData(): array<string, mixed> {
+function getFormData(): array {
     if (isset($_SESSION['form_data'])) {
         $data = $_SESSION['form_data'];
         unset($_SESSION['form_data']);
@@ -266,18 +266,18 @@ function getFormData(): array<string, mixed> {
 /**
  * Store form errors in session.
  * 
- * @param array $errors  Associative array of field => error message
+ * @param array<string, string> $errors  Associative array of field => error message
  */
-function setFormErrors(array<string, string> $errors): void {
+function setFormErrors(array $errors): void {
     $_SESSION['form_errors'] = $errors;
 }
 
 /**
  * Retrieve and clear stored form errors.
  * 
- * @return array
+ * @return array<string, string>
  */
-function getFormErrors(): array<string, string> {
+function getFormErrors(): array {
     if (isset($_SESSION['form_errors'])) {
         $errors = $_SESSION['form_errors'];
         unset($_SESSION['form_errors']);
@@ -289,10 +289,10 @@ function getFormErrors(): array<string, string> {
 /**
  * Get a specific form error for a field.
  * 
- * @param array  $errors  The errors array
+ * @param array<string, string> $errors  The errors array
  * @param string $field   The field name
  * @return string|null
  */
-function getFieldError(array<string, string> $errors, string $field): ?string {
+function getFieldError(array $errors, string $field): ?string {
     return $errors[$field] ?? null;
 }

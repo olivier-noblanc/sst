@@ -27,9 +27,9 @@ define('BACKUP_MARKER_FILE', BACKUP_DIR . '/.last_backup');
  * Forces a WAL checkpoint first so all data is in the main file,
  * then reads filemtime + filesize.
  *
- * @return array ['mtime' => int, 'size' => int]
+ * @return array{mtime: int, size: int}
  */
-function getDbFingerprint(PDO $pdo): array{mtime: int, size: int} {
+function getDbFingerprint(PDO $pdo): array {
     // Checkpoint WAL → flush pending writes into the main .db file
     try {
         $pdo->exec("PRAGMA wal_checkpoint(TRUNCATE)");
@@ -48,9 +48,9 @@ function getDbFingerprint(PDO $pdo): array{mtime: int, size: int} {
 /**
  * Read the fingerprint of the last backup from the marker file.
  *
- * @return array|null ['mtime' => int, 'size' => int] or null if no marker
+ * @return array{mtime: int, size: int}|null  Fingerprint or null if no marker
  */
-function getLastBackupFingerprint(): ?array{mtime: int, size: int} {
+function getLastBackupFingerprint(): ?array {
     if (!file_exists(BACKUP_MARKER_FILE)) {
         return null;
     }
@@ -68,9 +68,9 @@ function getLastBackupFingerprint(): ?array{mtime: int, size: int} {
 /**
  * Write the current fingerprint to the marker file.
  *
- * @param array $fingerprint ['mtime' => int, 'size' => int]
+ * @param array{mtime: int, size: int} $fingerprint
  */
-function setLastBackupFingerprint(array{mtime: int, size: int} $fingerprint): void {
+function setLastBackupFingerprint(array $fingerprint): void {
     if (!is_dir(BACKUP_DIR)) {
         mkdir(BACKUP_DIR, 0755, true);
     }
@@ -257,9 +257,9 @@ function writeBackupProtection(): void {
 /**
  * List available backups for admin UI.
  *
- * @return array [{file, name, size, date}, ...]
+ * @return array<int, array{file: string, path: string, size: int|false, date: int|false}>
  */
-function listBackups(): array<int, array{file: string, path: string, size: int|false, date: int|false}> {
+function listBackups(): array {
     if (!is_dir(BACKUP_DIR)) {
         return [];
     }

@@ -13,10 +13,10 @@
  * Via Caddy gateway (dev): index.php?XTransformPort=...&page=...
  *
  * @param string $page   Page name (e.g. 'home', 'report_view')
- * @param array  $params Additional query parameters (e.g. ['id' => 5, 'type' => 'rsst'])
+ * @param array<string, mixed> $params Additional query parameters (e.g. ['id' => 5, 'type' => 'rsst'])
  * @return string
  */
-function url(string $page, array<string, mixed> $params = []): string {
+function url(string $page, array $params = []): string {
     $queryParams = [];
     if (isset($_GET['XTransformPort'])) {
         $queryParams['XTransformPort'] = $_GET['XTransformPort'];
@@ -115,10 +115,10 @@ function sendFileDownload(string $content, string $filename, string $contentType
  *   validatePostRequest(url('home'), ['superviseur', 'chsct']); // + multi-role
  *
  * @param string      $fallbackUrl  URL to redirect to on POST/CSRF failure
- * @param array|null  $roles        If non-empty, requires one of these roles
+ * @param array<int, string>|null $roles        If non-empty, requires one of these roles
  * @param string|null $csrfToken    Override CSRF token source (default: $_POST['csrf_token'])
  */
-function validatePostRequest(string $fallbackUrl, ?array<int, string> $roles = null, ?string $csrfToken = null): void {
+function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string $csrfToken = null): void {
     // 1. Must be POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         redirect($fallbackUrl);

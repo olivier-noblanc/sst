@@ -31,9 +31,9 @@
  * This function is called on EVERY request in index.php to auto-authenticate
  * the user if they're not yet in the session.
  * 
- * @return array|null  User data array or null if not authenticated
+ * @return array<string, mixed>|null  User data array or null if not authenticated
  */
-function getAuthenticatedUser(): ?array<string, mixed> {
+function getAuthenticatedUser(): ?array {
     // If user is already in session, return it (avoids DB hit on every request)
     if (isUserLoggedIn()) {
         return getUserSession();
@@ -102,9 +102,9 @@ function extractUsername(string $authUser): string {
  * No LDAP — just uses the username from IIS.
  * 
  * @param string $username  The clean username (without domain prefix)
- * @return array|null       User data or null on failure
+ * @return array<string, mixed>|null       User data or null on failure
  */
-function findOrCreateUser(string $username): ?array<string, mixed> {
+function findOrCreateUser(string $username): ?array {
     $pdo = getDB();
 
     // Look up existing user (including deactivated — they may need reactivation)
@@ -136,9 +136,9 @@ function findOrCreateUser(string $username): ?array<string, mixed> {
  * 
  * @param PDO    $pdo       Database connection
  * @param string $username  The username (clean, without domain)
- * @return array|null
+ * @return array<string, mixed>|null
  */
-function autoProvisionUser(PDO $pdo, string $username): ?array<string, mixed> {
+function autoProvisionUser(PDO $pdo, string $username): ?array {
     // Determine role: check if username is in superviseur list
     $role = determineProvisionRole($pdo, $username);
 
@@ -179,9 +179,9 @@ function autoProvisionUser(PDO $pdo, string $username): ?array<string, mixed> {
  * Called by the login form handler when a user submits the mock login form.
  * 
  * @param string $username  The username from the login form
- * @return array|null       User data or null on failure
+ * @return array<string, mixed>|null       User data or null on failure
  */
-function mockLogin(string $username): ?array<string, mixed> {
+function mockLogin(string $username): ?array {
     if (!DEV_MODE) {
         return null;  // Never in production
     }
@@ -206,9 +206,9 @@ function mockLogin(string $username): ?array<string, mixed> {
  * Used in multiple places: auth provisioning, promotion checks, and middleware.
  *
  * @param string $list  Comma-separated username list (e.g. "jean.martin, sophie.dupont")
- * @return array        Lowercased, trimmed array of usernames
+ * @return array<int, string>        Lowercased, trimmed array of usernames
  */
-function parseSuperviseurUsernames(string $list): array<int, string> {
+function parseSuperviseurUsernames(string $list): array {
     return array_map('trim', explode(',', strtolower($list)));
 }
 
@@ -245,11 +245,11 @@ function determineProvisionRole(PDO $pdo, string $username): string {
  * if their username is now in the list, their role is upgraded.
  * 
  * @param PDO    $pdo       Database connection
- * @param array  $user      The existing user data from DB
+ * @param array<string, mixed> $user      The existing user data from DB
  * @param string $username  The username (for list check)
- * @return array            Updated user data (role may be upgraded)
+ * @return array<string, mixed>            Updated user data (role may be upgraded)
  */
-function checkAndPromoteUser(PDO $pdo, array<string, mixed> $user, string $username): array<string, mixed> {
+function checkAndPromoteUser(PDO $pdo, array $user, string $username): array {
     // Only promote agents — not CSA/CHSCT or already-superviseur users
     if ($user['role'] !== ROLE_AGENT) {
         return $user;

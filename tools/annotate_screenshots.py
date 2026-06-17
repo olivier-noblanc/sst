@@ -40,9 +40,11 @@ BADGE_RADIUS = 14
 ARROW_GAP = 6        # gap between target edge and arrow start
 DESC_FONT_SIZE = 13
 BADGE_FONT_SIZE = 16
-RIGHT_MARGIN = 20     # right margin for badge placement
+BADGE_OFFSET_X = 60   # horizontal offset from target edge to badge center
+BADGE_OFFSET_Y = -10  # vertical offset from target to badge center
 TOP_MARGIN = 20       # top margin
-VERT_SPACING = 50     # minimum vertical spacing between badges
+VERT_SPACING = 42     # minimum vertical spacing between badges
+HORIZ_SPACING = 30    # minimum horizontal spacing between badges
 MAX_DESC_WIDTH = 22    # max chars per line for description
 
 
@@ -131,58 +133,72 @@ def draw_description(draw, x, y, text, font, img_width):
 def compute_badge_positions(positions, img_width, img_height):
     """
     Compute non-overlapping badge positions for all annotations.
-    
-    Strategy: Place badges in the right margin, spread vertically.
-    If there are many badges, distribute them evenly along the right side.
+
+    Strategy: Place each badge NEAR its target element, not in a far column.
+    - Target point is on the nearest edge of the element (right, left, top or bottom)
+    - Badge is placed at BADGE_OFFSET_X pixels from the target edge
+    - Collision detection pushes overlapping badges apart vertically
+    - This produces short, readable arrows instead of lines spanning the full image.
     """
     n = len(positions)
     if n == 0:
         return []
 
-    # Target: place each target at the RIGHT EDGE of the element
-    targets = []
-    for (x, y, desc, w, h) in positions:
-        # Place target at the right edge of the element, vertically centered
-        tx = min(x + w // 2 + 4, img_width - 10)  # just outside the right edge
-        ty = y
-        targets.append((tx, ty, desc))
-
-    # Badge column: right side of the image
-    badge_x = img_width - 40 - RIGHT_MARGIN
-
-    # Spread badges vertically: evenly distribute in available height
-    available_top = TOP_MARGIN + BADGE_RADIUS
-    available_bottom = img_height - TOP_MARGIN - BADGE_RADIUS
-    available_height = available_bottom - available_top
-
-    if n == 1:
-        badge_ys = [max(targets[0][1], available_top)]
-    else:
-        # Evenly space badges, but try to keep them near their targets
-        spacing = max(VERT_SPACING, available_height / n)
-        # Start from a position that centers the group
-        ideal_start = sum(ty for (_, ty, _) in targets) / n - spacing * (n - 1) / 2
-        start_y = max(available_top, min(ideal_start, available_bottom - spacing * (n - 1)))
-
-        badge_ys = []
-        for i in range(n):
-            # Ideal position: near the target's y
-            ideal_y = targets[i][1]
-            # Constrained position: within the spread, with minimum spacing
-            min_y = available_top + i * min(VERT_SPACING, spacing)
-            max_y = available_bottom - (n - 1 - i) * min(VERT_SPACING, spacing)
-            # Blend ideal with constrained
-            by = max(min_y, min(ideal_y, max_y))
-            badge_ys.append(by)
-
-    # Ensure minimum spacing between consecutive badges
-    for i in range(1, len(badge_ys)):
-        if badge_ys[i] - badge_ys[i-1] < VERT_SPACING:
-            badge_ys[i] = badge_ys[i-1] + VERT_SPACING
+    MARGIN = BADGE_RADIUS + 8  # keep badges inside image bounds
+    placed = []  # list of (bx, by) already placed
 
     result = []
-    for i, (tx, ty, desc) in enumerate(targets):
-        result.append((badge_x, int(badge_ys[i]), tx, ty, desc))
+
+    for (cx, cy, desc, w, h) in positions:
+        # Decide which edge of the element to target and which side to place the badge.
+        # Prefer placing badge on the RIGHT of the element; if too close to image right
+        # edge, place on the LEFT instead.
+        elem_right = cx + w // 2
+        elem_left = cx - w // 2
+        elem_top = cy - h // 2
+        elem_bottom = cy + h // 2
+
+        if elem_right + BADGE_OFFSET_X + MARGIN < img_width:
+            # Enough room on the right → badge on the right
+            tx = min(elem_right + 4, img_width - 10)
+            bx = elem_right + BADGE_OFFSET_X
+        elif elem_left - BADGE_OFFSET_X - MARGIN > 0:
+            # Not enough room on the right → badge on the left
+            tx = max(elem_left - 4, 10)
+            bx = elem_left - BADGE_OFFSET_X
+        else:
+            # Element spans nearly full width → badge above
+            tx = cx
+            bx = cx
+            ty_target = max(elem_top - 4, 10)
+
+        # Target Y = vertical center of element
+        ty = cy
+        by = cy + BADGE_OFFSET_Y
+
+        # Clamp badge within image bounds
+        bx = max(MARGIN, min(bx, img_width - MARGIN))
+        by = max(MARGIN, min(by, img_height - MARGIN))
+
+        # Collision detection: push apart from already-placed badges
+        for _ in range(20):  # max iterations to resolve overlaps
+            moved = False
+            for (px, py) in placed:
+                dx = abs(bx - px)
+                dy = abs(by - py)
+                if dx < HORIZ_SPACING and dy < VERT_SPACING:
+                    # Overlap detected — push vertically
+                    if by >= py:
+                        by = py + VERT_SPACING
+                    else:
+                        by = py - VERT_SPACING
+                    by = max(MARGIN, min(by, img_height - MARGIN))
+                    moved = True
+            if not moved:
+                break
+
+        placed.append((bx, by))
+        result.append((int(bx), int(by), int(tx), int(ty), desc))
 
     return result
 

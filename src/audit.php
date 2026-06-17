@@ -61,7 +61,7 @@ function auditLog(PDO $pdo, string $category, string $action, string $details, ?
  * @param array<string, mixed> $filters   Filter options (category, user_id, date_from, date_to, q)
  * @param int    $page      Page number (1-based)
  * @param int    $perPage   Items per page
- * @return array{entries: array, total: int}
+ * @return array{entries: array<int, array<string, mixed>>, total: int}
  */
 function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage = 50): array {
     $where = "1=1";

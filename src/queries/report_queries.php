@@ -179,7 +179,7 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array {
  * @param bool   $seeAllSites  Whether user can see all sites
  * @param int    $page         Page number (1-based)
  * @param int    $perPage      Items per page
- * @return array<int, array<string, mixed>>               ['reports' => array, 'total' => int]
+ * @return array{reports: array<int, array<string, mixed>>, total: int}
  */
 function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page = 1, int $perPage = 20): array {
     $where = "r.type = :type";

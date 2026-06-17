@@ -11,7 +11,7 @@
  * @param PDO $pdo  Database connection
  * @return array
  */
-function getAllSites(PDO $pdo): array {
+function getAllSites(PDO $pdo): array<int, array<string, mixed>> {
     $stmt = $pdo->query("SELECT * FROM sites ORDER BY code ASC");
     return $stmt->fetchAll();
 }
@@ -22,7 +22,7 @@ function getAllSites(PDO $pdo): array {
  * @param PDO $pdo  Database connection
  * @return array
  */
-function getActiveSites(PDO $pdo): array {
+function getActiveSites(PDO $pdo): array<int, array<string, mixed>> {
     $stmt = $pdo->query("SELECT * FROM sites WHERE is_active = 1 ORDER BY code ASC");
     return $stmt->fetchAll();
 }
@@ -34,7 +34,7 @@ function getActiveSites(PDO $pdo): array {
  * @param int $id   Site ID
  * @return array|null
  */
-function getSiteById(PDO $pdo, int $id): ?array {
+function getSiteById(PDO $pdo, int $id): ?array<string, mixed> {
     $stmt = $pdo->prepare("SELECT * FROM sites WHERE id = :id");
     $stmt->execute([':id' => $id]);
     $result = $stmt->fetch();
@@ -48,7 +48,7 @@ function getSiteById(PDO $pdo, int $id): ?array {
  * @param string $code  Site code
  * @return array|null
  */
-function getSiteByCode(PDO $pdo, string $code): ?array {
+function getSiteByCode(PDO $pdo, string $code): ?array<string, mixed> {
     $stmt = $pdo->prepare("SELECT * FROM sites WHERE code = :code");
     $stmt->execute([':code' => $code]);
     $result = $stmt->fetch();
@@ -62,7 +62,7 @@ function getSiteByCode(PDO $pdo, string $code): ?array {
  * @param string $nom  Site name
  * @return array|null
  */
-function getSiteByName(PDO $pdo, string $nom): ?array {
+function getSiteByName(PDO $pdo, string $nom): ?array<string, mixed> {
     $stmt = $pdo->prepare("SELECT * FROM sites WHERE nom = :nom");
     $stmt->execute([':nom' => $nom]);
     $result = $stmt->fetch();

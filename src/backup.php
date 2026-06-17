@@ -29,7 +29,7 @@ define('BACKUP_MARKER_FILE', BACKUP_DIR . '/.last_backup');
  *
  * @return array ['mtime' => int, 'size' => int]
  */
-function getDbFingerprint(PDO $pdo): array {
+function getDbFingerprint(PDO $pdo): array{mtime: int, size: int} {
     // Checkpoint WAL → flush pending writes into the main .db file
     try {
         $pdo->exec("PRAGMA wal_checkpoint(TRUNCATE)");
@@ -50,7 +50,7 @@ function getDbFingerprint(PDO $pdo): array {
  *
  * @return array|null ['mtime' => int, 'size' => int] or null if no marker
  */
-function getLastBackupFingerprint(): ?array {
+function getLastBackupFingerprint(): ?array{mtime: int, size: int} {
     if (!file_exists(BACKUP_MARKER_FILE)) {
         return null;
     }
@@ -70,7 +70,7 @@ function getLastBackupFingerprint(): ?array {
  *
  * @param array $fingerprint ['mtime' => int, 'size' => int]
  */
-function setLastBackupFingerprint(array $fingerprint): void {
+function setLastBackupFingerprint(array{mtime: int, size: int} $fingerprint): void {
     if (!is_dir(BACKUP_DIR)) {
         mkdir(BACKUP_DIR, 0755, true);
     }
@@ -259,7 +259,7 @@ function writeBackupProtection(): void {
  *
  * @return array [{file, name, size, date}, ...]
  */
-function listBackups(): array {
+function listBackups(): array<int, array{file: string, path: string, size: int|false, date: int|false}> {
     if (!is_dir(BACKUP_DIR)) {
         return [];
     }

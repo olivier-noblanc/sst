@@ -121,7 +121,7 @@ try {
     $newReport = getReportByUuid($pdo, $newUuid);
 
     // Audit log
-    auditLog($pdo, 'report', 'create', 'Signalement créé : ' . $newReport['reference'], (int) $newReport['id'] ?? null, 'report', ['reference' => $newReport['reference'], 'type' => $type, 'site_id' => $siteId]);
+    auditLog($pdo, 'report', 'create', 'Signalement créé : ' . $newReport['reference'], (int) $newReport['id'], 'report', ['reference' => $newReport['reference'], 'type' => $type, 'site_id' => $siteId]);
 
     // Send notifications (non-blocking — errors are logged, not shown to user)
     try {

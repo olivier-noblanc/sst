@@ -50,7 +50,7 @@ function isUserLoggedIn(): bool {
  *
  * @param array $user  User data from DB
  */
-function setUserSession(array $user): void {
+function setUserSession(array<string, mixed> $user): void {
     $_SESSION['user'] = $user;
 }
 
@@ -59,7 +59,7 @@ function setUserSession(array $user): void {
  *
  * @return array|null  The user array or null if not authenticated
  */
-function getUserSession(): ?array {
+function getUserSession(): ?array<string, mixed> {
     return $_SESSION['user'] ?? null;
 }
 
@@ -227,7 +227,7 @@ function setFlash(string $type, string $message): void {
  * 
  * @return array|null  ['type' => string, 'message' => string] or null
  */
-function getFlash(): ?array {
+function getFlash(): ?array{type: string, message: string} {
     if (isset($_SESSION['flash'])) {
         $flash = $_SESSION['flash'];
         unset($_SESSION['flash']);
@@ -245,7 +245,7 @@ function getFlash(): ?array {
  * 
  * @param array $data  Associative array of form field values
  */
-function setFormData(array $data): void {
+function setFormData(array<string, mixed> $data): void {
     $_SESSION['form_data'] = $data;
 }
 
@@ -254,7 +254,7 @@ function setFormData(array $data): void {
  * 
  * @return array
  */
-function getFormData(): array {
+function getFormData(): array<string, mixed> {
     if (isset($_SESSION['form_data'])) {
         $data = $_SESSION['form_data'];
         unset($_SESSION['form_data']);
@@ -268,7 +268,7 @@ function getFormData(): array {
  * 
  * @param array $errors  Associative array of field => error message
  */
-function setFormErrors(array $errors): void {
+function setFormErrors(array<string, string> $errors): void {
     $_SESSION['form_errors'] = $errors;
 }
 
@@ -277,7 +277,7 @@ function setFormErrors(array $errors): void {
  * 
  * @return array
  */
-function getFormErrors(): array {
+function getFormErrors(): array<string, string> {
     if (isset($_SESSION['form_errors'])) {
         $errors = $_SESSION['form_errors'];
         unset($_SESSION['form_errors']);
@@ -293,6 +293,6 @@ function getFormErrors(): array {
  * @param string $field   The field name
  * @return string|null
  */
-function getFieldError(array $errors, string $field): ?string {
+function getFieldError(array<string, string> $errors, string $field): ?string {
     return $errors[$field] ?? null;
 }

@@ -20,7 +20,7 @@ validatePostRequest(url('settings', ['tab' => 'smtp']), [ROLE_SUPERVISEUR]);
 $to = trim($_POST['smtp_test_to'] ?? '');
 $host = trim(getConfig('smtp_host', ''));
 $from = trim(getConfig('smtp_from', ''));
-$port = (int) getConfig('smtp_port', 25);
+$port = (int) getConfig('smtp_port', '25');
 $encryption = trim(getConfig('smtp_encryption', 'none'));
 $appName = getConfig('app_nom_organisation', 'DREETS BFC');
 

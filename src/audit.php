@@ -27,7 +27,7 @@
  * @param string|null $targetType Type of entity (report, user, site, etc.)
  * @param array  $context   Additional context data (will be JSON-encoded)
  */
-function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = []): void {
+function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array<string, mixed> $context = []): void {
     try {
         $userId = currentUserId();
         $username = currentUserUsername() ?: 'system';
@@ -63,7 +63,7 @@ function auditLog(PDO $pdo, string $category, string $action, string $details, ?
  * @param int    $perPage   Items per page
  * @return array            ['entries' => array, 'total' => int]
  */
-function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage = 50): array {
+function getAuditLog(PDO $pdo, array<string, mixed> $filters = [], int $page = 1, int $perPage = 50): array{entries: array, total: int} {
     $where = "1=1";
     $params = [];
 
@@ -124,7 +124,7 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
  * @param int    $targetId    Entity ID
  * @return array
  */
-function getAuditLogForTarget(PDO $pdo, string $targetType, int $targetId): array {
+function getAuditLogForTarget(PDO $pdo, string $targetType, int $targetId): array<int, array<string, mixed>> {
     $stmt = $pdo->prepare("
         SELECT * FROM audit_log
         WHERE target_type = :target_type AND target_id = :target_id

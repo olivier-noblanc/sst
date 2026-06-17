@@ -13,7 +13,7 @@
  * @param int    $siteId  Optional site filter (0 = all)
  * @return array
  */
-function getSynthesisData(PDO $pdo, string $year, int $siteId = 0): array {
+function getSynthesisData(PDO $pdo, string $year, int $siteId = 0): array<int, array<string, mixed>> {
     $sql = "
         SELECT s.id as site_id, s.code, s.nom,
             r.type,
@@ -48,7 +48,7 @@ function getSynthesisData(PDO $pdo, string $year, int $siteId = 0): array {
  * @param array $filters  Filter options
  * @return array
  */
-function getExportData(PDO $pdo, array $filters = []): array {
+function getExportData(PDO $pdo, array<string, mixed> $filters = []): array<int, array<string, mixed>> {
     $sql = "
         SELECT r.uuid, r.reference, r.type, r.objet, r.description,
                r.date_evenement, r.heure_evenement, r.lieu,
@@ -118,7 +118,7 @@ function getExportData(PDO $pdo, array $filters = []): array {
  * @param int    $siteId  Optional site filter
  * @return array
  */
-function getStatisticsIndicateurs(PDO $pdo, string $year = '', int $siteId = 0): array {
+function getStatisticsIndicateurs(PDO $pdo, string $year = '', int $siteId = 0): array<string, int> {
     $params = [];
 
     $sql = "
@@ -170,7 +170,7 @@ function getStatisticsIndicateurs(PDO $pdo, string $year = '', int $siteId = 0):
  * @param int    $siteId  Optional site filter
  * @return array
  */
-function getStatsBySite(PDO $pdo, string $year = '', int $siteId = 0): array {
+function getStatsBySite(PDO $pdo, string $year = '', int $siteId = 0): array<int, array<string, mixed>> {
     $sql = "
         SELECT s.code, s.nom,
             COUNT(r.uuid) as total,
@@ -233,7 +233,7 @@ function countReportsByRegistryAndSite(PDO $pdo, string $type, int $siteId): int
  * @param PDO $pdo  Database connection
  * @return array
  */
-function getAvailableYears(PDO $pdo): array {
+function getAvailableYears(PDO $pdo): array<int, string> {
     $stmt = $pdo->query("
         SELECT DISTINCT strftime('%Y', created_at) as year
         FROM reports
@@ -250,7 +250,7 @@ function getAvailableYears(PDO $pdo): array {
  * @param string $year    Year filter
  * @return array  ['by_nature_auteur' => [...], 'by_type_acte' => [...]]
  */
-function getRamiStructuredStats(PDO $pdo, string $year = ''): array {
+function getRamiStructuredStats(PDO $pdo, string $year = ''): array{by_nature_auteur: array, by_type_acte: array} {
     $params = [];
     $yearFilter = '';
     if (!empty($year)) {
@@ -288,7 +288,7 @@ function getRamiStructuredStats(PDO $pdo, string $year = ''): array {
  * @param PDO $pdo  Database connection
  * @return array
  */
-function getNotificationSettings(PDO $pdo): array {
+function getNotificationSettings(PDO $pdo): array<int, array<string, mixed>> {
     $stmt = $pdo->query("
         SELECT ns.*, s.code as site_code, s.nom as site_nom
         FROM notification_settings ns
@@ -355,7 +355,7 @@ function deleteNotificationSettingsByType(PDO $pdo, string $type): int {
  * @param int $siteId  Site ID
  * @return array       Array of email strings
  */
-function getSiteNotificationEmails(PDO $pdo, int $siteId): array {
+function getSiteNotificationEmails(PDO $pdo, int $siteId): array<int, string> {
     $stmt = $pdo->prepare("SELECT email FROM notification_settings WHERE site_id = :site_id AND type = 'site'");
     $stmt->execute([':site_id' => $siteId]);
     return array_column($stmt->fetchAll(), 'email');
@@ -367,7 +367,7 @@ function getSiteNotificationEmails(PDO $pdo, int $siteId): array {
  * @param PDO $pdo  Database connection
  * @return array    Array of email strings
  */
-function getGlobalNotificationEmails(PDO $pdo): array {
+function getGlobalNotificationEmails(PDO $pdo): array<int, string> {
     $stmt = $pdo->query("SELECT email FROM notification_settings WHERE type = 'global'");
     return array_column($stmt->fetchAll(), 'email');
 }

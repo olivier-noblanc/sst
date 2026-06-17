@@ -91,12 +91,11 @@ function sstShutdownHandler(): void {
     }
 
     $levelName = match($error['type']) {
-        E_ERROR            => 'Fatal error',
-        E_PARSE            => 'Parse error',
-        E_CORE_ERROR       => 'Core error',
-        E_COMPILE_ERROR    => 'Compile error',
+        E_ERROR             => 'Fatal error',
+        E_PARSE             => 'Parse error',
+        E_CORE_ERROR        => 'Core error',
+        E_COMPILE_ERROR     => 'Compile error',
         E_RECOVERABLE_ERROR => 'Recoverable error',
-        default            => 'Fatal error',
     };
 
     sstNotifyAdminError(

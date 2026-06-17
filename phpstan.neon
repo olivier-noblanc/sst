@@ -9,7 +9,7 @@ parameters:
         - public/asset.php
     excludePaths:
         - vendor/
-        - node_modules/ (?)
+        - src/lib/
         - tests/
     bootstrapFiles:
         - phpstan-bootstrap.php

@@ -250,7 +250,7 @@ try {
         'app'           => 'Paramètres de l\'application enregistrés avec succès.',
         'manage_sites'  => 'Sites mis à jour avec succès.',
     ];
-    auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . ($tab ?? 'inconnu'), null, 'config', ['tab' => $tab ?? 'inconnu']);
+    auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . $tab, null, 'config', ['tab' => $tab]);
     setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');
 } catch (Exception $e) {
     $pdo->rollBack();

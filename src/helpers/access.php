@@ -14,7 +14,7 @@
  * @param array $user    $_SESSION['user'] (id, site_id, role)
  * @return bool
  */
-function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool {
+function canAccessReport(array<string, mixed> $report, array<string, mixed> $user, ?string $forcedVisibility = null): bool {
     // Superviseur/CSA/CHSCT can always see everything
     if (in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
         return true;
@@ -50,7 +50,7 @@ function canAccessReport(array $report, array $user, ?string $forcedVisibility =
  * @param array $report  Row from `reports`
  * @param array $user    $_SESSION['user']
  */
-function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void {
+function logConfidentialReportAccess(PDO $pdo, array<string, mixed> $report, array<string, mixed> $user): void {
     if ((int) $report['is_confidential'] !== 1) {
         return;
     }
@@ -158,7 +158,7 @@ function reportVisibilityIsPublic(?string $type = null): bool {
  * @param int   $userId  Current user's ID
  * @return bool
  */
-function canEditReport(array $report, int $userId): bool {
+function canEditReport(array<string, mixed> $report, int $userId): bool {
     $isDeclarant = ((int) $report['declarant_id'] === $userId);
     return $isDeclarant && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS]);
 }
@@ -173,6 +173,6 @@ function canEditReport(array $report, int $userId): bool {
  * @param string $role   Current user's role
  * @return bool
  */
-function canRespondToReport(array $report, string $role): bool {
+function canRespondToReport(array<string, mixed> $report, string $role): bool {
     return in_array($role, [ROLE_SUPERVISEUR]) && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT]);
 }

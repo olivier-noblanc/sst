@@ -279,7 +279,7 @@ function notifyPourCompte(PDO $pdo, string $reportUuid): void {
  * @param int $siteId  Site ID
  * @return array       Array of email strings
  */
-function getNotificationRecipients(PDO $pdo, int $siteId): array {
+function getNotificationRecipients(PDO $pdo, int $siteId): array<int, string> {
     $emails = [];
 
     // Per-site
@@ -391,7 +391,7 @@ function getBaseUrl(): string {
  * @param int    $alertDelayDays Configured delay in days
  * @return string  Complete HTML email body
  */
-function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string {
+function buildDelayAlertEmail(array{site_code: string, site_nom: string, reports: array<int, mixed>} $siteData, int $alertDelayDays): string {
     $appName = getConfig('app_nom_organisation', 'DREETS BFC');
 
     $body = "<html><body>";

@@ -25,7 +25,7 @@
  *
  * @return array|null  The user array or null if not authenticated
  */
-function currentUser(): ?array {
+function currentUser(): ?array<string, mixed> {
     return getUserSession();
 }
 
@@ -197,7 +197,7 @@ function currentUserCanSeeAllSites(): bool {
  * @param string|null $forcedVisibility  Override visibility mode (for tests)
  * @return bool
  */
-function currentUserCanAccessReport(array $report, ?string $forcedVisibility = null): bool {
+function currentUserCanAccessReport(array<string, mixed> $report, ?string $forcedVisibility = null): bool {
     $user = currentUser();
     if (!$user) {
         return false;

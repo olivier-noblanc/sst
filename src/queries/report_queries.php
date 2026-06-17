@@ -67,7 +67,7 @@ function isValidUuid(string $uuid): bool {
  * @param array  $data    Report data
  * @return string         The new report UUID
  */
-function createReport(PDO $pdo, array $data): string {
+function createReport(PDO $pdo, array<string, mixed> $data): string {
     // Transaction: sequence increment + report INSERT must be atomic.
     // Without this, two concurrent requests could get the same sequence number
     // or a sequence could be consumed without a report being created.
@@ -150,7 +150,7 @@ function createReport(PDO $pdo, array $data): string {
  * @param string $uuid  Report UUID
  * @return array|null
  */
-function getReportByUuid(PDO $pdo, string $uuid): ?array {
+function getReportByUuid(PDO $pdo, string $uuid): ?array<string, mixed> {
     if (!isValidUuid($uuid)) {
         return null;
     }
@@ -181,7 +181,7 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array {
  * @param int    $perPage      Items per page
  * @return array               ['reports' => array, 'total' => int]
  */
-function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page = 1, int $perPage = 20): array {
+function getReportsByRegistry(PDO $pdo, string $type, array<string, mixed> $filters, int $userSiteId, bool $seeAllSites, int $page = 1, int $perPage = 20): array {
     $where = "r.type = :type";
     $params = [':type' => $type];
 
@@ -289,7 +289,7 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
  * @param int $siteId  Site ID
  * @return array
  */
-function getReportsBySite(PDO $pdo, int $siteId): array {
+function getReportsBySite(PDO $pdo, int $siteId): array<int, array<string, mixed>> {
     $stmt = $pdo->prepare(reportSelectWithSite() . " WHERE r.site_id = :site_id ORDER BY r.created_at DESC");
     $stmt->execute([':site_id' => $siteId]);
     return $stmt->fetchAll();
@@ -304,7 +304,7 @@ function getReportsBySite(PDO $pdo, int $siteId): array {
  * @param int    $userId  The declarant's user ID (for ownership check)
  * @return bool
  */
-function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool {
+function updateReport(PDO $pdo, string $uuid, array<string, mixed> $data, int $userId): bool {
     // Build dynamic SET clause and params
     $setClauses = [
         'objet = :objet',
@@ -395,9 +395,9 @@ function abandonReport(PDO $pdo, string $uuid, int $userId): bool {
  * @param int    $userId       The responding user's ID
  * @param string $reponse      Response text
  * @param string $nouvelEtat   New state ('en_cours' or 'traite')
- * @return string 'true' on success, 'concurrent' if already modified, 'error' on DB failure
+ * @return array{status: string, message?: string} Status result
  */
-function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): array {
+function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): array{status: string, message?: string} {
     // Transaction: UPDATE reports + INSERT report_responses must be atomic.
     // Without this, a crash between the two queries would leave reports.reponse
     // updated but no history entry in report_responses = data inconsistency.
@@ -490,7 +490,7 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
  * @param bool   $seeAllSites Whether to filter by site
  * @return array
  */
-function countReportsByState(PDO $pdo, string $type, int $siteId = 0, bool $seeAllSites = true): array {
+function countReportsByState(PDO $pdo, string $type, int $siteId = 0, bool $seeAllSites = true): array<string, int> {
     $sql = "SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "'";
     $params = [':type' => $type];
 
@@ -526,7 +526,7 @@ function countReportsByState(PDO $pdo, string $type, int $siteId = 0, bool $seeA
  * @param string $reportUuid  Report UUID
  * @return array
  */
-function getReportResponses(PDO $pdo, string $reportUuid): array {
+function getReportResponses(PDO $pdo, string $reportUuid): array<int, array<string, mixed>> {
     $stmt = $pdo->prepare("
         SELECT rr.*, u.nom, u.prenom
         FROM report_responses rr
@@ -588,7 +588,7 @@ function countActiveReportsForUser(PDO $pdo, string $type, int $userId): int {
  * @param array $report  Current report data (must have 'uuid', 'type', 'created_at')
  * @return array  ['prev' => uuid|null, 'next' => uuid|null]
  */
-function getAdjacentReportUuids(PDO $pdo, array $report): array {
+function getAdjacentReportUuids(PDO $pdo, array<string, mixed> $report): array{prev: string|null, next: string|null} {
     $type = $report['type'] ?? 'rsst';
     $createdAt = $report['created_at'] ?? '';
     $uuid = $report['uuid'] ?? '';

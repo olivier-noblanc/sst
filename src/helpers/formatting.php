@@ -65,7 +65,7 @@ function formatDateTimeFR(?string $datetime): string {
  * @return string
  */
 function generateReference(string $type, string $year2, int $seq): string {
-    return $type . '-' . $year2 . '-' . str_pad($seq, 3, '0', STR_PAD_LEFT);
+    return $type . '-' . $year2 . '-' . str_pad((string) $seq, 3, '0', STR_PAD_LEFT);
 }
 
 /**
@@ -194,7 +194,7 @@ function nowTime(): string {
  * @param array $items  Ordered list of breadcrumb items
  * @return string  HTML for the breadcrumb nav
  */
-function renderBreadcrumb(array $items): string {
+function renderBreadcrumb(array<int, array{url?: string, label: string}> $items): string {
     $html = '<nav class="breadcrumb" aria-label="Fil d\'Ariane">';
     $last = count($items) - 1;
     foreach ($items as $i => $item) {

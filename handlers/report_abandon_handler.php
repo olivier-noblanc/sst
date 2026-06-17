@@ -26,7 +26,7 @@ $pdo = getDB();
 $abandoned = abandonReport($pdo, $reportUuid, $userId);
 
 if ($abandoned) {
-    auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . $report['reference'], (int) $report['id'] ?? null, 'report', ['reference' => $report['reference']]);
+    auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . $report['reference'], (int) $report['id'], 'report', ['reference' => $report['reference']]);
 
     // Notify supervisors of the site about the abandoned report
     try {

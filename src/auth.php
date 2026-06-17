@@ -33,7 +33,7 @@
  * 
  * @return array|null  User data array or null if not authenticated
  */
-function getAuthenticatedUser(): ?array {
+function getAuthenticatedUser(): ?array<string, mixed> {
     // If user is already in session, return it (avoids DB hit on every request)
     if (isUserLoggedIn()) {
         return getUserSession();
@@ -104,7 +104,7 @@ function extractUsername(string $authUser): string {
  * @param string $username  The clean username (without domain prefix)
  * @return array|null       User data or null on failure
  */
-function findOrCreateUser(string $username): ?array {
+function findOrCreateUser(string $username): ?array<string, mixed> {
     $pdo = getDB();
 
     // Look up existing user (including deactivated — they may need reactivation)
@@ -138,13 +138,13 @@ function findOrCreateUser(string $username): ?array {
  * @param string $username  The username (clean, without domain)
  * @return array|null
  */
-function autoProvisionUser(PDO $pdo, string $username): ?array {
+function autoProvisionUser(PDO $pdo, string $username): ?array<string, mixed> {
     // Determine role: check if username is in superviseur list
     $role = determineProvisionRole($pdo, $username);
 
     // Generate a display name from the username (e.g. "olivier.noblanc" → Olivier Noblanc)
     $parts = explode('.', $username);
-    $prenom = ucfirst($parts[0] ?? $username);
+    $prenom = ucfirst($parts[0]);
     $nom = ucfirst($parts[1] ?? 'Utilisateur');
     // If there are more than 2 parts, join them for the last name
     if (count($parts) > 2) {
@@ -181,7 +181,7 @@ function autoProvisionUser(PDO $pdo, string $username): ?array {
  * @param string $username  The username from the login form
  * @return array|null       User data or null on failure
  */
-function mockLogin(string $username): ?array {
+function mockLogin(string $username): ?array<string, mixed> {
     if (!DEV_MODE) {
         return null;  // Never in production
     }
@@ -208,7 +208,7 @@ function mockLogin(string $username): ?array {
  * @param string $list  Comma-separated username list (e.g. "jean.martin, sophie.dupont")
  * @return array        Lowercased, trimmed array of usernames
  */
-function parseSuperviseurUsernames(string $list): array {
+function parseSuperviseurUsernames(string $list): array<int, string> {
     return array_map('trim', explode(',', strtolower($list)));
 }
 
@@ -249,7 +249,7 @@ function determineProvisionRole(PDO $pdo, string $username): string {
  * @param string $username  The username (for list check)
  * @return array            Updated user data (role may be upgraded)
  */
-function checkAndPromoteUser(PDO $pdo, array $user, string $username): array {
+function checkAndPromoteUser(PDO $pdo, array<string, mixed> $user, string $username): array<string, mixed> {
     // Only promote agents — not CSA/CHSCT or already-superviseur users
     if ($user['role'] !== ROLE_AGENT) {
         return $user;

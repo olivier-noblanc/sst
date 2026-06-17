@@ -26,7 +26,7 @@ function userSelectWithSite(): string {
  * @param string $username  The username to look up
  * @return array|null
  */
-function getUserByUsername(PDO $pdo, string $username): ?array {
+function getUserByUsername(PDO $pdo, string $username): ?array<string, mixed> {
     $stmt = $pdo->prepare(
         userSelectWithSite() . " WHERE u.username = :username AND u.is_active = 1"
     );
@@ -42,7 +42,7 @@ function getUserByUsername(PDO $pdo, string $username): ?array {
  * @param int $id   User ID
  * @return array|null
  */
-function getUserById(PDO $pdo, int $id): ?array {
+function getUserById(PDO $pdo, int $id): ?array<string, mixed> {
     $stmt = $pdo->prepare(
         userSelectWithSite() . " WHERE u.id = :id"
     );
@@ -59,7 +59,7 @@ function getUserById(PDO $pdo, int $id): ?array {
  * @param bool   $active  Whether to include only active users
  * @return array
  */
-function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array {
+function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array<int, array<string, mixed>> {
     $sql = userSelectWithSite() . " WHERE 1=1";
     $params = [];
 
@@ -120,7 +120,7 @@ function updateUserSite(PDO $pdo, int $id, int $siteId): bool {
  * @param array  $data  User data
  * @return int          New user ID
  */
-function createUser(PDO $pdo, array $data): int {
+function createUser(PDO $pdo, array<string, mixed> $data): int {
     $stmt = $pdo->prepare("
         INSERT INTO users (username, nom, prenom, email, role, site_id)
         VALUES (:username, :nom, :prenom, :email, :role, :site_id)
@@ -144,7 +144,7 @@ function createUser(PDO $pdo, array $data): int {
  * @param array $data  User data (nom, prenom, email, username, role, site_id)
  * @return bool
  */
-function updateUser(PDO $pdo, int $id, array $data): bool {
+function updateUser(PDO $pdo, int $id, array<string, mixed> $data): bool {
     $stmt = $pdo->prepare("
         UPDATE users
         SET nom = :nom, prenom = :prenom, email = :email,
@@ -216,7 +216,7 @@ function reactivateUser(PDO $pdo, int $id): bool {
  * @param int $id   User ID
  * @return array
  */
-function exportUserData(PDO $pdo, int $id): array {
+function exportUserData(PDO $pdo, int $id): array<string, mixed> {
     $user = getUserById($pdo, $id);
     if (!$user) {
         return [];

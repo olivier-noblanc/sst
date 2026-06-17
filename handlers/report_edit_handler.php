@@ -103,7 +103,7 @@ if ($type === TYPE_RAMI) {
 $updated = updateReport($pdo, $reportUuid, $updateData, $userId);
 
 if ($updated) {
-    auditLog($pdo, 'report', 'edit', 'Signalement modifié : ' . $report['reference'], (int) $report['id'] ?? null, 'report', ['reference' => $report['reference']]);
+    auditLog($pdo, 'report', 'edit', 'Signalement modifié : ' . $report['reference'], (int) $report['id'], 'report', ['reference' => $report['reference']]);
     setFlash('success', 'Signalement ' . e($report['reference']) . ' modifié avec succès.');
 } else {
     error_log("SST: report_edit failed - uuid=$reportUuid, user_id=$userId, etat=" . $report['etat']);

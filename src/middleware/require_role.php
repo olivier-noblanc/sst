@@ -12,7 +12,7 @@
  * 
  * @param array $roles  Array of allowed role strings
  */
-function requireRole(array $roles): void {
+function requireRole(array<int, string> $roles): void {
     $role = currentUserRole();
     if (empty($role)) {
         require __DIR__ . '/../../pages/access_denied.php';
@@ -42,7 +42,7 @@ function hasRole(string $role): bool {
  * @param array $roles  Array of role strings
  * @return bool
  */
-function hasAnyRole(array $roles): bool {
+function hasAnyRole(array<int, string> $roles): bool {
     $currentRole = currentUserRole();
     return !empty($currentRole) && in_array($currentRole, $roles, true);
 }

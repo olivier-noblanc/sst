@@ -12,6 +12,14 @@ $userRole = currentUserRole() ?: 'agent';
 $labelUnite = e(getConfig('app_label_unite', 'UR'));
 $screenshotBase = 'asset.php?f=screenshots';
 $isAgent = ($userRole === 'agent');
+$hotlineNumber = getConfig('app_hotline_number', '');
+$hotlineEnabled = (!empty($hotlineNumber));
+
+// Screenshot helper — must be defined BEFORE any HTML output
+function helpImg(string $name, string $alt, string $base): string {
+    $src = $base . '/' . $name;
+    return '<img src="' . $src . '" alt="' . e($alt) . '" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;">';
+}
 ?>
 
 <?php if ($isAgent): ?>
@@ -20,6 +28,15 @@ $isAgent = ($userRole === 'agent');
 <!-- ============================================================ -->
 <h1 class="page-title">Aide</h1>
 
+<?php if ($hotlineEnabled): ?>
+<div class="help-contact-banner" role="complementary" aria-label="Hotline">
+    <span class="help-contact-banner__icon" aria-hidden="true">📞</span>
+    <div class="help-contact-banner__text">
+        <strong>Besoin d'aide ?</strong> Appelez la hotline au <strong style="font-size:1.3em;"><?php echo e($hotlineNumber); ?></strong><br>
+        <small>Un conseiller vous répondra directement pour vous guider.</small>
+    </div>
+</div>
+<?php else: ?>
 <div class="help-contact-banner" role="complementary" aria-label="Contact administrateur">
     <span class="help-contact-banner__icon" aria-hidden="true">📞</span>
     <div class="help-contact-banner__text">
@@ -27,6 +44,7 @@ $isAgent = ($userRole === 'agent');
         <small>Un humain vous répondra directement pour vous guider.</small>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Que pouvez-vous faire ? -->
 <div class="card card--spaced content-section">
@@ -82,19 +100,19 @@ $isAgent = ($userRole === 'agent');
     <div class="help-profiles-grid" style="grid-template-columns: 1fr;">
         <div class="help-profile-card" style="text-align:center;border-left:5px solid var(--color-primary);">
             <h3 style="text-align:left;">Étape 1 — Choisissez le bon registre</h3>
-            <img src="<?php echo $screenshotBase ?>/accueil.png&v=3" alt="Page d'accueil avec les 3 registres" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;">
+            <?php echo helpImg('cu1-accueil.png', "Page d'accueil avec les 3 registres", $screenshotBase); ?>
             <p style="text-align:left;color:#555;">Sur la page d'accueil, cliquez sur <strong>« Signaler un événement »</strong> sous le registre qui correspond à votre situation.</p>
         </div>
 
         <div class="help-profile-card" style="text-align:center;border-left:5px solid #16a34a;">
             <h3 style="text-align:left;">Étape 2 — Remplissez le formulaire</h3>
-            <img src="<?php echo $screenshotBase ?>/report-create-rsst.png&v=3" alt="Formulaire de signalement RSST" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;">
+            <?php echo helpImg('cu2-creation-rsst.png', 'Formulaire de signalement RSST', $screenshotBase); ?>
             <p style="text-align:left;color:#555;">Remplissez les champs obligatoires (date, objet, description). Vous pouvez joindre une photo si besoin.</p>
         </div>
 
         <div class="help-profile-card" style="text-align:center;border-left:5px solid #8b5cf6;">
             <h3 style="text-align:left;">Étape 3 — Envoyez</h3>
-            <img src="<?php echo $screenshotBase ?>/report-confirmation.png&v=3" alt="Confirmation après envoi" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;">
+            <?php echo helpImg('consultation-voir-rsst.png', 'Confirmation après envoi', $screenshotBase); ?>
             <p style="text-align:left;color:#555;">Un bandeau vert confirme l'enregistrement. Votre superviseur est prévenu automatiquement.</p>
         </div>
     </div>
@@ -155,6 +173,15 @@ $isAgent = ($userRole === 'agent');
 <!-- ============================================================ -->
 <!-- Bandeau d'aide humaine                                        -->
 <!-- ============================================================ -->
+<?php if ($hotlineEnabled): ?>
+<div class="help-contact-banner" role="complementary" aria-label="Hotline">
+    <span class="help-contact-banner__icon" aria-hidden="true">📞</span>
+    <div class="help-contact-banner__text">
+        <strong>Besoin d'aide ?</strong> Appelez la hotline au <strong style="font-size:1.3em;"><?php echo e($hotlineNumber); ?></strong><br>
+        <small>Un conseiller vous répondra directement pour vous guider.</small>
+    </div>
+</div>
+<?php else: ?>
 <div class="help-contact-banner" role="complementary" aria-label="Contact administrateur">
     <span class="help-contact-banner__icon" aria-hidden="true">📞</span>
     <div class="help-contact-banner__text">
@@ -162,6 +189,7 @@ $isAgent = ($userRole === 'agent');
         <small>Un humain vous répondra directement pour vous guider.</small>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- ============================================================ -->
 <!-- Sommaire                                                      -->

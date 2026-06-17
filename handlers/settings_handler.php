@@ -135,6 +135,10 @@ try {
         updateConfig($pdo, 'app_label_unite', $appLabelUnite);
         updateConfig($pdo, 'app_superviseur_usernames', $appSuperviseurUsernames);
 
+        // Hotline number (displayed in help page)
+        $appHotlineNumber = trim($_POST['app_hotline_number'] ?? '');
+        updateConfig($pdo, 'app_hotline_number', $appHotlineNumber);
+
         // DPO contact (displayed in RGPD preamble)
         $appDpoContact = trim($_POST['app_dpo_contact'] ?? '');
         updateConfig($pdo, 'app_dpo_contact', $appDpoContact);

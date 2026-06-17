@@ -59,6 +59,21 @@
         </div>
 
         <div class="separator">
+            <h4 class="card__subtitle">&#x1F4DE; Hotline d'aide</h4>
+            <p class="text-muted text-small mb-3">Affiche un numéro de téléphone d'aide en haut de la page d'aide, visible par tous les utilisateurs. Laissez vide pour afficher le message par défaut (« Contactez votre administrateur au poste interne »).</p>
+            <div class="form-group">
+                <label for="app_hotline_number">Numéro de hotline</label>
+                <input type="text" id="app_hotline_number" name="app_hotline_number" class="form-control"
+                       value="<?php echo e(getConfig('app_hotline_number', '')); ?>"
+                       placeholder="01 23 45 67 89 ou poste 1234">
+                <small class="text-muted block mt-1">
+                    Ce numéro sera affiché en gros dans la page Aide. Laissez vide pour désactiver la hotline
+                    et afficher le message générique « Contactez votre administrateur au poste interne ».
+                </small>
+            </div>
+        </div>
+
+        <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Délégué à la Protection des Données (DPO)</h4>
             <p class="text-muted text-small mb-3">Les coordonnées du DPO sont affichées dans la mention RGPD du <a href="<?php echo url('preamble'); ?>">Préambule</a>, conformément à l'article 13 du RGPD.</p>
             <div class="form-group">

@@ -6,7 +6,6 @@
 #   2. Git pull (via proxy Kerberos)
 #   3. Copie des captures d'écran (docs/screenshots/ → public/screenshots/)
 #   4. Création des dossiers + permissions IIS
-#   5. Redémarrage IIS
 #
 # Note : Plus besoin de Composer — FPDF est inclus directement.
 #
@@ -227,18 +226,6 @@ $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
 $acl.SetAccessRule($rule)
 Set-Acl $aclDir $acl
 Write-Host "  OK : Permissions IIS_IUSRS sur $aclDir" -ForegroundColor Green
-
-# --- 5. Redémarrage IIS ---
-Write-Host ""
-Write-Host "[5/5] Redemarrage IIS..." -ForegroundColor Yellow
-
-try {
-    iisreset /restart 2>&1 | Out-Null
-    Write-Host "  OK : IIS redemarre" -ForegroundColor Green
-}
-catch {
-    Write-Host "  AVERTISSEMENT : iisreset a echoue. Redemarrez IIS manuellement." -ForegroundColor DarkYellow
-}
 
 # --- Version déployée ---
 Write-Host ""

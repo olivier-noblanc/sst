@@ -3,6 +3,20 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.22.0] — 2026-06-17
+
+### Produit — Corrections UI et déploiement
+
+- **1** 🟡 **Journal : onglet audit en premier** — L'onglet « Journal d'audit » est désormais affiché par défaut dans la page Journal (au lieu de « Erreurs PHP »). L'audit est plus utile au quotidien que les erreurs PHP techniques. Modification de `$activeTab` par défaut et réorganisation des onglets dans `logs.php`.
+- **2** 🟡 **RSST : boutons d'action alignés** — Les boutons Voir / Modifier / Répondre sur la liste des signalements RSST n'étaient pas alignés (Répondre passait à la ligne). Passage de `.btn-group` et `.btn-group--inline` en `flex-wrap: nowrap` avec `align-items: center` pour un alignement horizontal constant.
+- **3** 🟡 **Export : labels sans coupure** — Les labels de checkbox comme « Tous les registres » étaient coupés après « Tous les ». Passage de `.label--checkbox` en `inline-flex` avec `white-space: nowrap` pour empêcher le retour à la ligne.
+- **4** 🔴 **`update_sst.ps1` — Suppression du redémarrage IIS** — L'étape `iisreset /restart` était inutile : IIS recycle automatiquement l'application pool après la mise à jour des fichiers. Suppression de l'étape 5 et mise à jour du en-tête du script (4 étapes au lieu de 5).
+- **5** 🔴 **`logs.php` — Prévention de l'épuisement mémoire** — La lecture du fichier de log PHP avec `file_get_contents()` provoquait un `Fatal error: Allowed memory size exhausted` quand le fichier dépassait 128 Mo. Remplacement par une lecture partielle des 512 derniers Ko via `fseek(SEEK_END)` + `fread()`.
+
+### Tests — Mise à jour E2E
+
+- **6** 🟡 **`settings.spec.js` — Onglet audit par défaut** — Les tests du journal vérifient désormais que l'onglet audit est actif par défaut et que le switch se fait vers l'onglet erreurs (inverse de l'ancien comportement).
+
 ## [3.21.0] — 2026-06-17
 
 ### Produit — Suppressions et README

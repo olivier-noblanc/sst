@@ -239,17 +239,17 @@ test.describe('Logs Page', () => {
     await expect(page.locator('a:has-text("Journal d\'audit")')).toBeVisible();
   });
 
-  test('should default to errors tab', async ({ page }) => {
+  test('should default to audit tab', async ({ page }) => {
     await page.goto('/index.php?page=logs');
 
-    await expect(page.locator('a.tab--active:has-text("Erreurs PHP")')).toBeVisible();
+    await expect(page.locator('a.tab--active:has-text("Journal d\'audit")')).toBeVisible();
   });
 
-  test('should switch to audit log tab', async ({ page }) => {
+  test('should switch to errors tab', async ({ page }) => {
     await page.goto('/index.php?page=logs');
 
-    await page.locator('a:has-text("Journal d\'audit")').click();
-    await expect(page).toHaveURL(/tab=audit/);
+    await page.locator('a:has-text("Erreurs PHP")').click();
+    await expect(page).toHaveURL(/tab=errors/);
   });
 
   test('should display audit log with filters', async ({ page }) => {

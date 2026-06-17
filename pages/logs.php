@@ -7,7 +7,7 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
-$activeTab = $_GET['tab'] ?? 'errors';
+$activeTab = $_GET['tab'] ?? 'audit';
 
 // ============================================================
 // Tab 1: PHP Error Log
@@ -29,7 +29,19 @@ $logCount = 0;
 $maxLines = 500;
 
 if (file_exists($logFile) && is_readable($logFile)) {
-    $raw = file_get_contents($logFile);
+    // Read only the last 512KB to avoid memory exhaustion on huge log files
+    $fileSize = filesize($logFile);
+    $maxReadBytes = 512 * 1024;
+    if ($fileSize > $maxReadBytes) {
+        $fp = fopen($logFile, 'r');
+        fseek($fp, -$maxReadBytes, SEEK_END);
+        $raw = fread($fp, $maxReadBytes);
+        fclose($fp);
+        // Drop the first partial line
+        $raw = substr($raw, strpos($raw, "\n") + 1);
+    } else {
+        $raw = file_get_contents($logFile);
+    }
     if (!empty($raw)) {
         $lines = array_filter(explode("\n", trim($raw)), fn($l) => trim($l) !== '');
         $logCount = count($lines);
@@ -178,10 +190,10 @@ $auditActionLabels = [
 ]); ?>
 
 
-<!-- Main tab bar: Erreurs / Audit -->
+<!-- Main tab bar: Audit / Erreurs -->
 <div class="tab-bar tab-bar--flush">
-    <a href="<?php echo url('logs', ['tab' => 'errors']); ?>" class="tab<?php echo $activeTab === 'errors' ? ' tab--active' : ''; ?>">Erreurs PHP</a>
     <a href="<?php echo url('logs', ['tab' => 'audit']); ?>" class="tab<?php echo $activeTab === 'audit' ? ' tab--active' : ''; ?>">Journal d'audit</a>
+    <a href="<?php echo url('logs', ['tab' => 'errors']); ?>" class="tab<?php echo $activeTab === 'errors' ? ' tab--active' : ''; ?>">Erreurs PHP</a>
 </div>
 
 <?php if ($activeTab === 'errors'): ?>

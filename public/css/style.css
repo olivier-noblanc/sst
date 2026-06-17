@@ -912,13 +912,16 @@ img { max-width: 100%; height: auto; display: block; }
 /* Button group (inline forms) */
 .btn-group {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
 }
 
 .btn-group--inline {
     display: inline-flex;
     gap: 8px;
+    align-items: center;
+    flex-wrap: nowrap;
 }
 
 /* ============================================================
@@ -1104,11 +1107,12 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Checkbox label — flex layout for checkboxes with text */
 .label--checkbox {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     font-size: 14px;
     font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
 }
 

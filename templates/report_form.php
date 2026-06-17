@@ -188,10 +188,12 @@ $submitBtnClass = $isEdit
                            <?php echo $val('is_confidential', '0') === '1' ? 'checked' : ''; ?>>
                     Signalement confidentiel
                 </label>
-                <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CSA/CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
-                <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
-                <div class="confidential-warning">
-                    &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
+                <div class="confidential-toggle__details">
+                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CSA/CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                    <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
+                    <div class="confidential-warning">
+                        &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
+                    </div>
                 </div>
             </div>
             <?php elseif (reportVisibilityIsConfidential()): ?>

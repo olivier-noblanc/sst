@@ -4,6 +4,12 @@ Add annotations (numbered callouts with arrows) to screenshot PNGs.
 Uses Playwright to detect REAL element positions from HTML, then draws
 annotations at the correct pixel coordinates on the captured PNGs.
 
+v2 — Fixed annotation overlap and positioning issues:
+  - Targets are drawn at element EDGES (not centers) to avoid obscuring content
+  - Badges are placed in a dedicated margin area (right side)
+  - Collision detection prevents badge overlap
+  - Descriptions wrap if needed and stay within image bounds
+
 Workflow:
   1. capture_screenshots.py  →  public/screenshots/*.png + docs/screenshots/*.png
   2. annotate_screenshots.py →  reads HTML positions via Playwright,
@@ -15,6 +21,7 @@ from playwright.sync_api import sync_playwright
 import os
 import math
 import shutil
+import textwrap
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
@@ -26,6 +33,17 @@ DOCS_DIR = BASE_DIR / "docs" / "screenshots"
 RED = (204, 51, 0)
 WHITE = (255, 255, 255)
 DARK = (51, 51, 51)
+LIGHT_BG = (255, 255, 240)  # light yellow-white for description background
+
+# Annotation layout constants
+BADGE_RADIUS = 14
+ARROW_GAP = 6        # gap between target edge and arrow start
+DESC_FONT_SIZE = 13
+BADGE_FONT_SIZE = 16
+RIGHT_MARGIN = 20     # right margin for badge placement
+TOP_MARGIN = 20       # top margin
+VERT_SPACING = 50     # minimum vertical spacing between badges
+MAX_DESC_WIDTH = 22    # max chars per line for description
 
 
 def get_font(size=16):
@@ -42,7 +60,8 @@ def get_font(size=16):
 
 
 def draw_badge(draw, cx, cy, number, font):
-    r = 16
+    """Draw a numbered circle badge."""
+    r = BADGE_RADIUS
     draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=RED, outline=(153, 38, 0), width=2)
     text = str(number)
     bbox = font.getbbox(text)
@@ -50,14 +69,19 @@ def draw_badge(draw, cx, cy, number, font):
     draw.text((cx - tw // 2, cy - th // 2 - 1), text, fill=WHITE, font=font)
 
 
-def draw_target(draw, x, y):
-    r = 14
-    draw.ellipse([x - r - 4, y - r - 4, x + r + 4, y + r + 4], outline=RED, width=3)
-    draw.ellipse([x - r, y - r, x + r, y + r], outline=RED, width=2)
+def draw_target(draw, cx, cy, w=0, h=0):
+    """Draw a target indicator at the EDGE of an element, not on top of it.
+    Places a small open circle at the nearest edge corner."""
+    # Use a small open circle with crosshair — visible but not obscuring
+    r = 6
+    draw.ellipse([cx - r - 2, cy - r - 2, cx + r + 2, cy + r + 2], outline=RED, width=2)
 
 
 def draw_arrow(draw, x1, y1, x2, y2):
+    """Draw an arrow from badge to target."""
+    # Dashed-style line (solid for simplicity)
     draw.line([(x1, y1), (x2, y2)], fill=RED, width=2)
+    # Arrowhead at target end
     angle = math.atan2(y2 - y1, x2 - x1)
     arrow_len = 10
     for da in [2.5, -2.5]:
@@ -66,34 +90,101 @@ def draw_arrow(draw, x1, y1, x2, y2):
         draw.line([(x2, y2), (int(ax), int(ay))], fill=RED, width=2)
 
 
-def draw_callout(draw, x, y, number, font_badge, font_desc, description, img_width, img_height):
-    draw_target(draw, x, y)
+def draw_description(draw, x, y, text, font, img_width):
+    """Draw a description text with background, wrapping if needed."""
+    lines = textwrap.wrap(text, width=MAX_DESC_WIDTH) if len(text) > MAX_DESC_WIDTH else [text]
 
-    badge_x = min(x + 70, img_width - 200)
-    badge_y = max(y - 50, 30)
-
-    if abs(badge_x - x) < 40 and abs(badge_y - y) < 40:
-        badge_x = min(x + 100, img_width - 200)
-        badge_y = max(y - 80, 30)
-
-    if badge_y > img_height - 30:
-        badge_y = max(y - 80, 30)
-
-    draw_arrow(draw, badge_x, badge_y, x, y)
-    draw_badge(draw, badge_x, badge_y, number, font_badge)
-
-    desc_x = badge_x + 22
-    desc_y = badge_y - 10
-
-    bbox = font_desc.getbbox(description)
-    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
     padding = 4
+    line_height = font.getbbox("Ay")[3] + 6  # approximate line height
+
+    # Calculate total text block size
+    max_tw = 0
+    for line in lines:
+        bbox = font.getbbox(line)
+        tw = bbox[2] - bbox[0]
+        max_tw = max(max_tw, tw)
+
+    total_h = line_height * len(lines)
+
+    # Ensure text stays within image bounds
+    text_x = x
+    text_y = y
+    if text_x + max_tw + padding * 2 > img_width:
+        text_x = max(img_width - max_tw - padding * 2 - 10, 10)
+    if text_y < 10:
+        text_y = 10
+
+    # Draw background rectangle
     draw.rectangle(
-        [desc_x - padding, desc_y - padding,
-         desc_x + tw + padding, desc_y + th + padding],
-        fill=WHITE
+        [text_x - padding, text_y - padding,
+         text_x + max_tw + padding, text_y + total_h + padding],
+        fill=LIGHT_BG, outline=(200, 200, 180), width=1
     )
-    draw.text((desc_x, desc_y), description, fill=DARK, font=font_desc)
+
+    # Draw each line
+    for i, line in enumerate(lines):
+        draw.text((text_x, text_y + i * line_height), line, fill=DARK, font=font)
+
+    return text_x, text_y, max_tw + padding * 2, total_h + padding * 2
+
+
+def compute_badge_positions(positions, img_width, img_height):
+    """
+    Compute non-overlapping badge positions for all annotations.
+    
+    Strategy: Place badges in the right margin, spread vertically.
+    If there are many badges, distribute them evenly along the right side.
+    """
+    n = len(positions)
+    if n == 0:
+        return []
+
+    # Target: place each target at the RIGHT EDGE of the element
+    targets = []
+    for (x, y, desc, w, h) in positions:
+        # Place target at the right edge of the element, vertically centered
+        tx = min(x + w // 2 + 4, img_width - 10)  # just outside the right edge
+        ty = y
+        targets.append((tx, ty, desc))
+
+    # Badge column: right side of the image
+    badge_x = img_width - 40 - RIGHT_MARGIN
+
+    # Spread badges vertically: evenly distribute in available height
+    available_top = TOP_MARGIN + BADGE_RADIUS
+    available_bottom = img_height - TOP_MARGIN - BADGE_RADIUS
+    available_height = available_bottom - available_top
+
+    if n == 1:
+        badge_ys = [max(targets[0][1], available_top)]
+    else:
+        # Evenly space badges, but try to keep them near their targets
+        spacing = max(VERT_SPACING, available_height / n)
+        # Start from a position that centers the group
+        ideal_start = sum(ty for (_, ty, _) in targets) / n - spacing * (n - 1) / 2
+        start_y = max(available_top, min(ideal_start, available_bottom - spacing * (n - 1)))
+
+        badge_ys = []
+        for i in range(n):
+            # Ideal position: near the target's y
+            ideal_y = targets[i][1]
+            # Constrained position: within the spread, with minimum spacing
+            min_y = available_top + i * min(VERT_SPACING, spacing)
+            max_y = available_bottom - (n - 1 - i) * min(VERT_SPACING, spacing)
+            # Blend ideal with constrained
+            by = max(min_y, min(ideal_y, max_y))
+            badge_ys.append(by)
+
+    # Ensure minimum spacing between consecutive badges
+    for i in range(1, len(badge_ys)):
+        if badge_ys[i] - badge_ys[i-1] < VERT_SPACING:
+            badge_ys[i] = badge_ys[i-1] + VERT_SPACING
+
+    result = []
+    for i, (tx, ty, desc) in enumerate(targets):
+        result.append((badge_x, int(badge_ys[i]), tx, ty, desc))
+
+    return result
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -124,7 +215,7 @@ ELEMENT_ANNOTATIONS = {
         ("#date_evenement", "Date événement"),
         ("#description", "Description"),
         ("#site_id", "Site / Unité"),
-        (".form-actions .btn--primary", "Bouton Valider"),
+        (".form-actions .btn--primary", "Bouton Envoyer"),
     ],
     "cu3-creation-rami.html": [
         (".card--rami h2, h2.mb-4", "Type RAMI"),
@@ -144,7 +235,7 @@ ELEMENT_ANNOTATIONS = {
         (".report-detail__table", "Détails signalement"),
         ("#nouvel_etat", "Changement statut"),
         ("#reponse", "Commentaire"),
-        (".form-actions .btn--primary", "Valider"),
+        (".form-actions .btn--primary", "Envoyer"),
     ],
     "cu4-modifier-signalement.html": [
         (".card--rsst h2", "Modification"),
@@ -154,7 +245,7 @@ ELEMENT_ANNOTATIONS = {
     ],
     "cu5-liste-signalements-sup.html": [
         (".btn-float-right", "Nouveau signalement"),
-        ("#site", "Filtre Site (UR)"),
+        ("#site", "Filtre Site"),
         ("input#q", "Recherche"),
         (".badge--nouveau, .badge--en-cours", "Badges d'état"),
         (".badge--confidential, .badge--public", "Visibilité"),
@@ -162,7 +253,7 @@ ELEMENT_ANNOTATIONS = {
     ],
     "consultation-liste-signalements.html": [
         (".btn-float-right", "Nouveau signalement"),
-        (".filter-bar", "Filtres état / recherche"),
+        (".filter-bar", "Filtres et recherche"),
         ("input#q", "Recherche"),
         (".badge--nouveau, .badge--en-cours", "Badges d'état"),
         (".badge--confidential, .badge--public", "Visibilité"),
@@ -242,8 +333,8 @@ ELEMENT_ANNOTATIONS = {
 
 def get_element_positions(page, html_file):
     """
-    Use Playwright to find the center positions of annotated elements.
-    Returns list of (x, y, description).
+    Use Playwright to find the bounding box of annotated elements.
+    Returns list of (center_x, center_y, description, width, height).
     """
     selectors = ELEMENT_ANNOTATIONS.get(html_file, [])
     if not selectors:
@@ -275,7 +366,7 @@ def get_element_positions(page, html_file):
             }""", selector)
 
             if pos and pos.get('found'):
-                results.append((pos['x'], pos['y'], description))
+                results.append((pos['x'], pos['y'], description, pos['w'], pos['h']))
             else:
                 print(f"    ⚠ NOT FOUND: {selector}")
         except Exception as e:
@@ -287,8 +378,8 @@ def get_element_positions(page, html_file):
 def main():
     SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    font_badge = get_font(18)
-    font_desc = get_font(15)
+    font_badge = get_font(BADGE_FONT_SIZE)
+    font_desc = get_font(DESC_FONT_SIZE)
 
     annotated = 0
 
@@ -329,10 +420,23 @@ def main():
             draw = ImageDraw.Draw(img)
             w, h = img.size
 
-            for i, (x, y, desc) in enumerate(positions, 1):
-                x = max(20, min(x, w - 20))
-                y = max(20, min(y, h - 20))
-                draw_callout(draw, x, y, i, font_badge, font_desc, desc, w, h)
+            # Compute non-overlapping badge positions
+            badge_layouts = compute_badge_positions(positions, w, h)
+
+            for i, (bx, by, tx, ty, desc) in enumerate(badge_layouts, 1):
+                # Draw target at element edge
+                draw_target(draw, tx, ty)
+
+                # Draw arrow from badge to target
+                draw_arrow(draw, bx, by, tx, ty)
+
+                # Draw badge number
+                draw_badge(draw, bx, by, i, font_badge)
+
+                # Draw description BELOW the badge
+                desc_x = bx - BADGE_RADIUS - 20  # aligned left of badge
+                desc_y = by + BADGE_RADIUS + 6    # below the badge
+                draw_description(draw, desc_x, desc_y, desc, font_desc, w)
 
             img.save(png_path, "PNG", optimize=True)
 
@@ -345,7 +449,7 @@ def main():
 
         browser.close()
 
-    print(f"\n{annotated} screenshots annotés avec positions réelles")
+    print(f"\n{annotated} screenshots annotés avec positions non-chevauchantes")
 
 
 if __name__ == "__main__":

@@ -20,6 +20,26 @@ function helpImg(string $name, string $alt, string $base): string {
     $src = $base . '/' . $name;
     return '<img src="' . $src . '" alt="' . e($alt) . '" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;">';
 }
+
+/**
+ * Generate a visible screenshot block (no collapsible details).
+ * Renders an annotated PNG image — always visible, never folded, printable.
+ * Converts .html source path to .png automatically.
+ */
+function helpScreenshot(string $src, string $alt): string {
+    $id = 'ss-' . substr(md5($src), 0, 8);
+    // Convert .html extension to .png for image path
+    // Serve via asset.php (IIS Windows Auth blocks direct static file access)
+    $imgSrc = preg_replace('/\.html$/', '.png', $src);
+    return <<<HTML
+    <div class="help-screenshot-block" id="{$id}">
+        <p class="help-screenshot-label">{$alt}</p>
+        <div class="help-screenshot-wrapper">
+            <img src="{$imgSrc}" alt="{$alt}" class="help-screenshot-img" loading="lazy" />
+        </div>
+    </div>
+    HTML;
+}
 ?>
 
 <?php if ($isAgent): ?>
@@ -750,26 +770,5 @@ function helpImg(string $name, string $alt, string $base): string {
     <a href="<?php echo url('changelog'); ?>" class="btn btn--outline">Journal des modifications</a>
 </div>
 
-<?php
-/**
- * Generate a visible screenshot block (no collapsible details).
- * Renders an annotated PNG image — always visible, never folded, printable.
- * Converts .html source path to .png automatically.
- */
-function helpScreenshot(string $src, string $alt): string {
-    $id = 'ss-' . substr(md5($src), 0, 8);
-    // Convert .html extension to .png for image path
-    // Serve via asset.php (IIS Windows Auth blocks direct static file access)
-    $imgSrc = preg_replace('/\.html$/', '.png', $src);
-    return <<<HTML
-    <div class="help-screenshot-block" id="{$id}">
-        <p class="help-screenshot-label">{$alt}</p>
-        <div class="help-screenshot-wrapper">
-            <img src="{$imgSrc}" alt="{$alt}" class="help-screenshot-img" loading="lazy" />
-        </div>
-    </div>
-    HTML;
-}
-?>
 
 <?php endif; ?>

@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'clear
 // Even a 500 MB log file uses only ~50 KB of RAM.
 $logLines = [];
 $logCount = 0;
-$maxLines = 500;
+$maxLines = 5000;
 $chunkSize = 8192; // 8 KB read chunks
 
 if (file_exists($logFile) && is_readable($logFile)) {

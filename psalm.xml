@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="6"
+    resolveFromConfigFile="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <directory name="src" />
+        <directory name="handlers" />
+        <directory name="pages" />
+        <directory name="templates" />
+        <directory name="public" />
+        <ignorePatterns>
+            <directory name="src/lib" />
+            <directory name="node_modules" />
+            <directory name="vendor" />
+        </ignorePatterns>
+    </projectFiles>
+    <issueHandlers>
+        <!-- Psalm is stricter about mixed types — suppress for gradual adoption -->
+        <MixedAssignment errorLevel="suppress" />
+        <MixedArgument errorLevel="suppress" />
+        <MixedArrayAccess errorLevel="suppress" />
+        <MixedArrayOffset errorLevel="suppress" />
+        <MixedOperand errorLevel="suppress" />
+        <MixedReturnStatement errorLevel="suppress" />
+        <MixedInferredReturnType errorLevel="suppress" />
+        <!-- Suppress MissingReturnType for procedural handlers -->
+        <MissingReturnType errorLevel="suppress" />
+    </issueHandlers>
+</psalm>

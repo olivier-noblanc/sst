@@ -4,7 +4,11 @@
     "type": "project",
     "require": {},
     "require-dev": {
-        "phpunit/phpunit": "^11"
+        "phpunit/phpunit": "^11",
+        "phpstan/phpstan": "^2",
+        "friendsofphp/php-cs-fixer": "^3",
+        "vimeo/psalm": "^5",
+        "phpmd/phpmd": "^2"
     },
     "autoload": {
         "files": [

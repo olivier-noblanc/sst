@@ -1,7 +1,7 @@
 <?php
 /**
  * User Edit Page — Application SST DREETS BFC
- * 
+ *
  * Edit user profile/role.
  * Access: superviseur only
  */
@@ -43,14 +43,14 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
         <?php
         // Prepare variables for the shared template
         $editNom = $formData['nom'] ?? $user['nom'];
-        $editPrenom = $formData['prenom'] ?? $user['prenom'];
-        $editEmail = $formData['email'] ?? $user['email'];
-        $editUsername = $formData['username'] ?? $user['username'];
-        $editRole = $formData['role'] ?? $user['role'];
-        $editSiteId = $formData['site_id'] ?? $user['site_id'];
-        $usernameHint = 'Identifiant de connexion Windows';
-        require __DIR__ . '/../templates/user_form_fields.php';
-        ?>
+$editPrenom = $formData['prenom'] ?? $user['prenom'];
+$editEmail = $formData['email'] ?? $user['email'];
+$editUsername = $formData['username'] ?? $user['username'];
+$editRole = $formData['role'] ?? $user['role'];
+$editSiteId = $formData['site_id'] ?? $user['site_id'];
+$usernameHint = 'Identifiant de connexion Windows';
+require __DIR__ . '/../templates/user_form_fields.php';
+?>
 
         <?php if (!empty($editEmail) && $editRole !== $user['role']): ?>
         <?php if ($user['role'] === ROLE_SUPERVISEUR && $editRole === ROLE_AGENT): ?>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Asset Helpers — Application SST DREETS BFC
  *
@@ -19,7 +20,8 @@
  * @param string $path  Asset path relative to public/ (e.g. 'css/style.css')
  * @return string
  */
-function assetUrl(string $path): string {
+function assetUrl(string $path): string
+{
     $version = getAppVersion();
     return 'asset.php?f=' . urlencode($path) . '&v=' . urlencode($version);
 }
@@ -39,7 +41,8 @@ function assetUrl(string $path): string {
  * @param string $path  CSS path relative to public/ (e.g. 'css/style.css')
  * @return string  HTML <style> tag with CSS content
  */
-function inlineCss(string $path): string {
+function inlineCss(string $path): string
+{
     $filePath = __DIR__ . '/../../public/' . $path;
     if (!file_exists($filePath)) {
         return '<style>/* CSS not found: ' . htmlspecialchars($path, ENT_QUOTES, 'UTF-8') . ' */</style>';
@@ -60,7 +63,8 @@ function inlineCss(string $path): string {
  * @param string $path  File path relative to public/ (e.g. 'favicon.ico')
  * @return string  data URI (e.g. 'data:image/png;base64,...')
  */
-function inlineDataUri(string $path): string {
+function inlineDataUri(string $path): string
+{
     $filePath = __DIR__ . '/../../public/' . $path;
     if (!file_exists($filePath)) {
         return '';

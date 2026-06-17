@@ -58,9 +58,15 @@ $baseUrlParams = [
     'page' => 'report_list',
     'type' => $type,
 ];
-if (!empty($filters['etat'])) $baseUrlParams['etat'] = $filters['etat'];
-if (!empty($filters['site_id'])) $baseUrlParams['site'] = $filters['site_id'];
-if (!empty($filters['q'])) $baseUrlParams['q'] = $filters['q'];
+if (!empty($filters['etat'])) {
+    $baseUrlParams['etat'] = $filters['etat'];
+}
+if (!empty($filters['site_id'])) {
+    $baseUrlParams['site'] = $filters['site_id'];
+}
+if (!empty($filters['q'])) {
+    $baseUrlParams['q'] = $filters['q'];
+}
 $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 ?>
 
@@ -150,7 +156,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                     <?php
                         $canEdit = canEditReport($report, $userId);
                         $canRespond = canRespondToReport($report, $userRole);
-                    ?>
+                        ?>
                     <tr>
                         <td data-label="Référence"><strong><?php echo e($report['reference']); ?></strong></td>
                         <td data-label="Date"><?php echo e(formatDateFR($report['date_evenement'])); ?></td>

@@ -1,7 +1,7 @@
 <?php
 /**
  * Synthesis Page — Application SST DREETS BFC
- * 
+ *
  * Summary table across all registries, showing counts by site, registry type, and state.
  * Access: superviseur, chsct
  */

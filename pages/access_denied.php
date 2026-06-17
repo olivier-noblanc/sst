@@ -1,7 +1,7 @@
 <?php
 /**
  * Access Denied Page — Application SST DREETS BFC
- * 
+ *
  * Shown when a user tries to access a page or resource
  * they don't have permission for.
  * Can be rendered standalone (by requireRole) or within the normal layout.

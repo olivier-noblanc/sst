@@ -32,7 +32,9 @@ $csrfToken = generateCsrfToken();
     ['label' => 'Abandonner'],
 ]); ?>
 
-<div class="card <?php echo match($type) { 'rsst' => 'card--rsst', 'rami' => 'card--rami', 'dgi' => 'card--dgi', default => 'card--rsst' }; ?>">
+<div class="card <?php echo match($type) {
+    'rsst' => 'card--rsst', 'rami' => 'card--rami', 'dgi' => 'card--dgi', default => 'card--rsst'
+}; ?>">
     <h2 class="card__subtitle">Signalement <?php echo e($report['reference']); ?></h2>
     <table class="report-detail__table" aria-label="Détails du signalement">
         <tbody>

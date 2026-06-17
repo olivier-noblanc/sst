@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Session Management — Application SST DREETS BFC
- * 
+ *
  * Handles session startup, CSRF token generation/validation,
  * flash message storage/retrieval, and session state access.
  *
@@ -16,7 +17,8 @@
 /**
  * Start the PHP session with secure settings.
  */
-function startSession(): void {
+function startSession(): void
+{
     if (session_status() === PHP_SESSION_NONE) {
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
@@ -41,7 +43,8 @@ function startSession(): void {
  *
  * @return bool
  */
-function isUserLoggedIn(): bool {
+function isUserLoggedIn(): bool
+{
     return isset($_SESSION['user']);
 }
 
@@ -50,7 +53,8 @@ function isUserLoggedIn(): bool {
  *
  * @param array<string, mixed> $user  User data from DB
  */
-function setUserSession(array $user): void {
+function setUserSession(array $user): void
+{
     $_SESSION['user'] = $user;
 }
 
@@ -59,14 +63,16 @@ function setUserSession(array $user): void {
  *
  * @return array<string, mixed>|null  The user array or null if not authenticated
  */
-function getUserSession(): ?array {
+function getUserSession(): ?array
+{
     return $_SESSION['user'] ?? null;
 }
 
 /**
  * Clear the entire session (used for logout).
  */
-function clearSession(): void {
+function clearSession(): void
+{
     $_SESSION = [];
 }
 
@@ -79,7 +85,8 @@ function clearSession(): void {
  *
  * @param string $url  The URL to redirect to after login
  */
-function setIntendedUrl(string $url): void {
+function setIntendedUrl(string $url): void
+{
     $_SESSION['intended_url'] = $url;
 }
 
@@ -88,7 +95,8 @@ function setIntendedUrl(string $url): void {
  *
  * @return string|null  The URL or null
  */
-function getIntendedUrl(): ?string {
+function getIntendedUrl(): ?string
+{
     return $_SESSION['intended_url'] ?? null;
 }
 
@@ -97,7 +105,8 @@ function getIntendedUrl(): ?string {
  *
  * @return string|null  The URL or null
  */
-function clearIntendedUrl(): ?string {
+function clearIntendedUrl(): ?string
+{
     $url = $_SESSION['intended_url'] ?? null;
     unset($_SESSION['intended_url']);
     return $url;
@@ -114,7 +123,8 @@ function clearIntendedUrl(): ?string {
  * @param string $realRole    The user's real role (before impersonation)
  * @param string $targetRole  The role to impersonate
  */
-function startImpersonation(string $realRole, string $targetRole): void {
+function startImpersonation(string $realRole, string $targetRole): void
+{
     $_SESSION['real_role'] = $realRole;
     $_SESSION['impersonated_role'] = $targetRole;
     $_SESSION['user']['role'] = $targetRole;
@@ -125,7 +135,8 @@ function startImpersonation(string $realRole, string $targetRole): void {
  *
  * @return string|null  The restored real role, or null if not impersonating
  */
-function stopImpersonation(): ?string {
+function stopImpersonation(): ?string
+{
     if (!isset($_SESSION['real_role'])) {
         return null;
     }
@@ -141,7 +152,8 @@ function stopImpersonation(): ?string {
  *
  * @return bool
  */
-function isImpersonatingRole(): bool {
+function isImpersonatingRole(): bool
+{
     return isset($_SESSION['real_role']);
 }
 
@@ -150,7 +162,8 @@ function isImpersonatingRole(): bool {
  *
  * @return string|null
  */
-function getImpersonatedRole(): ?string {
+function getImpersonatedRole(): ?string
+{
     return $_SESSION['impersonated_role'] ?? null;
 }
 
@@ -159,7 +172,8 @@ function getImpersonatedRole(): ?string {
  *
  * @return string|null  The real role, or null if not impersonating
  */
-function getRealRole(): ?string {
+function getRealRole(): ?string
+{
     return $_SESSION['real_role'] ?? null;
 }
 
@@ -176,7 +190,8 @@ function getRealRole(): ?string {
  *
  * @return string
  */
-function generateCsrfToken(): string {
+function generateCsrfToken(): string
+{
     startSession();
     $token = bin2hex(random_bytes(32));
     if (!isset($_SESSION['csrf_tokens'])) {
@@ -198,7 +213,8 @@ function generateCsrfToken(): string {
  * @param string $token  The token to validate (from form submission)
  * @return bool
  */
-function validateCsrfToken(string $token): bool {
+function validateCsrfToken(string $token): bool
+{
     startSession();
     if (empty($token) || !isset($_SESSION['csrf_tokens'][$token])) {
         return false;
@@ -214,20 +230,22 @@ function validateCsrfToken(string $token): bool {
 
 /**
  * Store a flash message in the session.
- * 
+ *
  * @param string $type     Message type: 'success', 'error', 'warning', 'info'
  * @param string $message  The message text
  */
-function setFlash(string $type, string $message): void {
+function setFlash(string $type, string $message): void
+{
     $_SESSION['flash'] = ['type' => $type, 'message' => $message];
 }
 
 /**
  * Retrieve and clear the flash message from the session.
- * 
+ *
  * @return array{type: string, message: string}|null  ['type' => string, 'message' => string] or null
  */
-function getFlash(): ?array {
+function getFlash(): ?array
+{
     if (isset($_SESSION['flash'])) {
         $flash = $_SESSION['flash'];
         unset($_SESSION['flash']);
@@ -242,19 +260,21 @@ function getFlash(): ?array {
 
 /**
  * Store form data in session for repopulation after validation error.
- * 
+ *
  * @param array<string, mixed> $data  Associative array of form field values
  */
-function setFormData(array $data): void {
+function setFormData(array $data): void
+{
     $_SESSION['form_data'] = $data;
 }
 
 /**
  * Retrieve and clear stored form data.
- * 
+ *
  * @return array<string, mixed>
  */
-function getFormData(): array {
+function getFormData(): array
+{
     if (isset($_SESSION['form_data'])) {
         $data = $_SESSION['form_data'];
         unset($_SESSION['form_data']);
@@ -265,19 +285,21 @@ function getFormData(): array {
 
 /**
  * Store form errors in session.
- * 
+ *
  * @param array<string, string> $errors  Associative array of field => error message
  */
-function setFormErrors(array $errors): void {
+function setFormErrors(array $errors): void
+{
     $_SESSION['form_errors'] = $errors;
 }
 
 /**
  * Retrieve and clear stored form errors.
- * 
+ *
  * @return array<string, string>
  */
-function getFormErrors(): array {
+function getFormErrors(): array
+{
     if (isset($_SESSION['form_errors'])) {
         $errors = $_SESSION['form_errors'];
         unset($_SESSION['form_errors']);
@@ -288,11 +310,12 @@ function getFormErrors(): array {
 
 /**
  * Get a specific form error for a field.
- * 
+ *
  * @param array<string, string> $errors  The errors array
  * @param string $field   The field name
  * @return string|null
  */
-function getFieldError(array $errors, string $field): ?string {
+function getFieldError(array $errors, string $field): ?string
+{
     return $errors[$field] ?? null;
 }

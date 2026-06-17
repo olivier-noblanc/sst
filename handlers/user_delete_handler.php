@@ -1,7 +1,8 @@
 <?php
+
 /**
  * User Delete Handler — Application SST DREETS BFC
- * 
+ *
  * POST handler: soft-delete (deactivate) a user.
  * Access: superviseur only
  */

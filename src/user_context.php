@@ -1,4 +1,5 @@
 <?php
+
 /**
  * User Context — Application SST DREETS BFC
  *
@@ -25,7 +26,8 @@
  *
  * @return array<string, mixed>|null  The user array or null if not authenticated
  */
-function currentUser(): ?array {
+function currentUser(): ?array
+{
     return getUserSession();
 }
 
@@ -34,7 +36,8 @@ function currentUser(): ?array {
  *
  * @return int  User ID (0 if not logged in)
  */
-function currentUserId(): int {
+function currentUserId(): int
+{
     $user = getUserSession();
     return $user ? (int) ($user['id'] ?? 0) : 0;
 }
@@ -44,7 +47,8 @@ function currentUserId(): int {
  *
  * @return string  Username ('' if not logged in)
  */
-function currentUserUsername(): string {
+function currentUserUsername(): string
+{
     $user = getUserSession();
     return $user ? ($user['username'] ?? '') : '';
 }
@@ -54,7 +58,8 @@ function currentUserUsername(): string {
  *
  * @return string  Display name ('' if not logged in)
  */
-function currentUserDisplayName(): string {
+function currentUserDisplayName(): string
+{
     $user = currentUser();
     if (!$user) {
         return '';
@@ -70,7 +75,8 @@ function currentUserDisplayName(): string {
  *
  * @return string  Role: 'agent', 'superviseur', 'chsct', or '' if not logged in
  */
-function currentUserRole(): string {
+function currentUserRole(): string
+{
     $user = getUserSession();
     return $user ? ($user['role'] ?? '') : '';
 }
@@ -80,7 +86,8 @@ function currentUserRole(): string {
  *
  * @return string  Real role or '' if not logged in
  */
-function currentUserRealRole(): string {
+function currentUserRealRole(): string
+{
     $realRole = getRealRole();
     if ($realRole !== null) {
         return $realRole;
@@ -95,7 +102,8 @@ function currentUserRealRole(): string {
  * @param string $role  The role to check
  * @return bool
  */
-function isRole(string $role): bool {
+function isRole(string $role): bool
+{
     return currentUserRole() === $role;
 }
 
@@ -104,7 +112,8 @@ function isRole(string $role): bool {
  *
  * @return bool
  */
-function isAgent(): bool {
+function isAgent(): bool
+{
     return currentUserRole() === ROLE_AGENT;
 }
 
@@ -113,7 +122,8 @@ function isAgent(): bool {
  *
  * @return bool
  */
-function isSuperviseur(): bool {
+function isSuperviseur(): bool
+{
     return currentUserRole() === ROLE_SUPERVISEUR;
 }
 
@@ -122,7 +132,8 @@ function isSuperviseur(): bool {
  *
  * @return bool
  */
-function isChsct(): bool {
+function isChsct(): bool
+{
     return currentUserRole() === ROLE_CHSCT;
 }
 
@@ -131,7 +142,8 @@ function isChsct(): bool {
  *
  * @return bool
  */
-function isImpersonating(): bool {
+function isImpersonating(): bool
+{
     return isImpersonatingRole();
 }
 
@@ -142,7 +154,8 @@ function isImpersonating(): bool {
  *
  * @return int  Site ID (0 if not assigned)
  */
-function currentUserSiteId(): int {
+function currentUserSiteId(): int
+{
     $user = getUserSession();
     return $user ? (int) ($user['site_id'] ?? 0) : 0;
 }
@@ -152,7 +165,8 @@ function currentUserSiteId(): int {
  *
  * @return string  Site code ('' if not assigned)
  */
-function currentUserSiteCode(): string {
+function currentUserSiteCode(): string
+{
     $user = getUserSession();
     return $user ? ($user['site_code'] ?? '') : '';
 }
@@ -162,7 +176,8 @@ function currentUserSiteCode(): string {
  *
  * @return string  Site name ('' if not assigned)
  */
-function currentUserSiteName(): string {
+function currentUserSiteName(): string
+{
     $user = getUserSession();
     return $user ? ($user['site_nom'] ?? '') : '';
 }
@@ -172,7 +187,8 @@ function currentUserSiteName(): string {
  *
  * @return bool
  */
-function currentUserHasSite(): bool {
+function currentUserHasSite(): bool
+{
     $user = getUserSession();
     return !empty($user['site_id']);
 }
@@ -185,7 +201,8 @@ function currentUserHasSite(): bool {
  *
  * @return bool
  */
-function currentUserCanSeeAllSites(): bool {
+function currentUserCanSeeAllSites(): bool
+{
     return in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT]);
 }
 
@@ -197,7 +214,8 @@ function currentUserCanSeeAllSites(): bool {
  * @param string|null $forcedVisibility  Override visibility mode (for tests)
  * @return bool
  */
-function currentUserCanAccessReport(array $report, ?string $forcedVisibility = null): bool {
+function currentUserCanAccessReport(array $report, ?string $forcedVisibility = null): bool
+{
     $user = currentUser();
     if (!$user) {
         return false;
@@ -212,7 +230,8 @@ function currentUserCanAccessReport(array $report, ?string $forcedVisibility = n
  * @param PDO $pdo  Database connection
  * @return bool     True if refresh succeeded
  */
-function refreshCurrentUser(PDO $pdo): bool {
+function refreshCurrentUser(PDO $pdo): bool
+{
     $id = currentUserId();
     if ($id <= 0) {
         return false;

@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Report Attachment Download — Application SST DREETS BFC
- * 
+ *
  * Serves the attachment BLOB from the database as a file download.
  * URL: index.php?page=report_attachment&uuid={report_uuid}
  */

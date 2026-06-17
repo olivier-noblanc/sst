@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Lazy Cron — Application SST DREETS BFC
  *
@@ -28,7 +29,8 @@
  *
  * @param PDO $pdo  Database connection
  */
-function runLazyCron(PDO $pdo): void {
+function runLazyCron(PDO $pdo): void
+{
     // Check delays: run every 24 hours minimum
     runLazyCronTask($pdo, 'check_delays', 24 * 3600, 'lazyCronCheckDelays');
 
@@ -44,7 +46,8 @@ function runLazyCron(PDO $pdo): void {
  * @param int      $minInterval Minimum seconds between runs
  * @param callable $callback    The task function to execute
  */
-function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable $callback): void {
+function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable $callback): void
+{
     try {
         $lastRun = getConfig("last_lazy_cron_{$taskName}", '');
         $now = time();
@@ -81,7 +84,8 @@ function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable 
  *
  * @param PDO $pdo  Database connection
  */
-function lazyCronCheckDelays(PDO $pdo): void {
+function lazyCronCheckDelays(PDO $pdo): void
+{
     $alertDelayDays = (int) getConfig('app_alert_delay_days', '0');
 
     // If alert delay is disabled, skip entirely
@@ -197,7 +201,8 @@ function lazyCronCheckDelays(PDO $pdo): void {
  *
  * @param PDO $pdo  Database connection
  */
-function lazyCronAnonymize(PDO $pdo): void {
+function lazyCronAnonymize(PDO $pdo): void
+{
     $retentionYears = (int) getConfig('app_retention_years', '0');
 
     // If retention is disabled (0 = unlimited), skip entirely
@@ -279,6 +284,6 @@ function lazyCronAnonymize(PDO $pdo): void {
         $pdo->commit();
     } catch (Exception $e) {
         $pdo->rollBack();
-        error_log("[SST-CRON] anonymize: transaction rolled back — " . $e->getMessage());
+        error_log('[SST-CRON] anonymize: transaction rolled back — ' . $e->getMessage());
     }
 }

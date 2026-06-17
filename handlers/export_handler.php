@@ -1,10 +1,11 @@
 <?php
+
 /**
  * Export Handler — Application SST DREETS BFC
- * 
+ *
  * POST handler: generate CSV and send as download.
  * Access: superviseur, chsct
- * 
+ *
  * Uses fputcsv() for proper field enclosure (handles semicolons,
  * quotes, and newlines inside fields). Exports multi-response history.
  */
@@ -134,7 +135,7 @@ foreach ($reports as $row) {
     $historyText = implode(' | ', $historyParts);
 
     // CSV formula injection prevention: prefix cells starting with =+@-
-    $csvEscape = function($value): string {
+    $csvEscape = function ($value): string {
         $value = (string) $value;
         if (preg_match('/^[=+\-@]/', $value)) {
             return "'" . $value;

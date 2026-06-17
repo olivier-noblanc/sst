@@ -1,4 +1,5 @@
 <?php
+
 /**
  * HTTP & Response Helpers — Application SST DREETS BFC
  *
@@ -16,7 +17,8 @@
  * @param array<string, mixed> $params Additional query parameters (e.g. ['id' => 5, 'type' => 'rsst'])
  * @return string
  */
-function url(string $page, array $params = []): string {
+function url(string $page, array $params = []): string
+{
     $queryParams = [];
     if (isset($_GET['XTransformPort'])) {
         $queryParams['XTransformPort'] = $_GET['XTransformPort'];
@@ -31,10 +33,11 @@ function url(string $page, array $params = []): string {
 /**
  * HTTP redirect and exit.
  * Also sets a global variable for CLI/proxy mode where header() is a no-op.
- * 
+ *
  * @param string $url  The URL to redirect to
  */
-function redirect(string $url): void {
+function redirect(string $url): void
+{
     // Store redirect info for CLI/proxy mode
     $GLOBALS['_PHP_REDIRECT'] = $url;
     header('Location: ' . $url);
@@ -44,13 +47,22 @@ function redirect(string $url): void {
 /**
  * Set a cookie (works in both web and CLI/proxy mode).
  */
-function setCookieSafe(string $name, string $value = '', int $expires = 0, string $path = '/', bool $httpOnly = true, string $sameSite = 'Lax'): void {
+function setCookieSafe(string $name, string $value = '', int $expires = 0, string $path = '/', bool $httpOnly = true, string $sameSite = 'Lax'): void
+{
     $cookieStr = $name . '=' . urlencode($value);
-    if ($expires > 0) $cookieStr .= '; expires=' . gmdate('D, d M Y H:i:s T', $expires);
-    if ($path) $cookieStr .= '; path=' . $path;
-    if ($sameSite) $cookieStr .= '; SameSite=' . $sameSite;
-    if ($httpOnly) $cookieStr .= '; HttpOnly';
-    
+    if ($expires > 0) {
+        $cookieStr .= '; expires=' . gmdate('D, d M Y H:i:s T', $expires);
+    }
+    if ($path) {
+        $cookieStr .= '; path=' . $path;
+    }
+    if ($sameSite) {
+        $cookieStr .= '; SameSite=' . $sameSite;
+    }
+    if ($httpOnly) {
+        $cookieStr .= '; HttpOnly';
+    }
+
     $GLOBALS['_PHP_COOKIES'][] = $cookieStr;
     header('Set-Cookie: ' . $cookieStr);
 }
@@ -63,7 +75,8 @@ function setCookieSafe(string $name, string $value = '', int $expires = 0, strin
  * Before this function existed, the same 4 header_remove() calls were duplicated
  * in 10 different files (index.php, header.php, asset.php, router.php, etc.).
  */
-function removeUnwantedHeaders(): void {
+function removeUnwantedHeaders(): void
+{
     header_remove('X-Powered-By');
     header_remove('Server');
     header_remove('Expires');
@@ -82,7 +95,8 @@ function removeUnwantedHeaders(): void {
  * @param string $contentType MIME type (e.g. 'text/csv; charset=utf-8')
  * @param string $disposition 'attachment' (default) or 'inline' (for browser preview)
  */
-function sendFileDownload(string $content, string $filename, string $contentType, string $disposition = 'attachment'): void {
+function sendFileDownload(string $content, string $filename, string $contentType, string $disposition = 'attachment'): void
+{
     // Disable gzip output buffer for binary/raw file output
     while (ob_get_level() > 0) {
         ob_end_clean();
@@ -118,7 +132,8 @@ function sendFileDownload(string $content, string $filename, string $contentType
  * @param array<int, string>|null $roles        If non-empty, requires one of these roles
  * @param string|null $csrfToken    Override CSRF token source (default: $_POST['csrf_token'])
  */
-function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string $csrfToken = null): void {
+function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string $csrfToken = null): void
+{
     // 1. Must be POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         redirect($fallbackUrl);
@@ -150,7 +165,8 @@ function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string 
  * @param string $message Flash message text
  * @param string $url     Redirect URL
  */
-function flashAndRedirect(string $type, string $message, string $url): void {
+function flashAndRedirect(string $type, string $message, string $url): void
+{
     setFlash($type, $message);
     redirect($url);
 }

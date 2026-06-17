@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Login Handler — Application SST DREETS BFC
- * 
+ *
  * Processes the mock login form submission.
  * Only used in DEV_MODE.
  */
@@ -16,8 +17,12 @@ if (empty($username)) {
 }
 
 // Session-based rate limiting: max 5 attempts per 15 minutes
-if (!isset($_SESSION['login_attempts'])) $_SESSION['login_attempts'] = 0;
-if (!isset($_SESSION['login_attempts_start'])) $_SESSION['login_attempts_start'] = time();
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+}
+if (!isset($_SESSION['login_attempts_start'])) {
+    $_SESSION['login_attempts_start'] = time();
+}
 
 if ($_SESSION['login_attempts'] >= 5 && (time() - $_SESSION['login_attempts_start']) < 900) {
     $remaining = 900 - (time() - $_SESSION['login_attempts_start']);

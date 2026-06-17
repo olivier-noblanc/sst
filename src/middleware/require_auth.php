@@ -1,12 +1,13 @@
 <?php
+
 /**
  * Middleware: Require Authentication — Application SST DREETS BFC
- * 
+ *
  * Checks that the user is authenticated.
- * 
+ *
  * In PROD: if AUTH_USER is missing = IIS misconfiguration → fatal error
  * In DEV:  redirect to mock login form
- * 
+ *
  * This middleware runs AFTER index.php has already attempted auto-auth
  * via getAuthenticatedUser(). So if we reach here without a user,
  * it means auto-auth failed.

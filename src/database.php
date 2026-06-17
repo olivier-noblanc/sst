@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Database — Application SST DREETS BFC
- * 
+ *
  * Provides a PDO singleton connection to the SQLite database.
  * Initializes the schema on first run.
  */
@@ -9,10 +10,11 @@
 /**
  * Get the PDO database connection (singleton).
  * On first call, creates the database and schema if they don't exist.
- * 
+ *
  * @return PDO
  */
-function getDB(): PDO {
+function getDB(): PDO
+{
     static $pdo = null;
 
     if ($pdo !== null) {
@@ -78,10 +80,11 @@ function getDB(): PDO {
 
 /**
  * Seed the database with default sites and dev users.
- * 
+ *
  * @param PDO $pdo
  */
-function seedDefaultData(PDO $pdo): void {
+function seedDefaultData(PDO $pdo): void
+{
     // Sites — DREETS BFC Unités Régionales
     // Only UR21 and UR25 by default — more can be added via Settings
     $sites = [
@@ -123,10 +126,11 @@ function seedDefaultData(PDO $pdo): void {
  * Auto-migrate: create missing tables in existing databases.
  * This handles databases created before a table was added to the schema.
  * Uses CREATE TABLE IF NOT EXISTS so it's safe to run on every request.
- * 
+ *
  * @param PDO $pdo
  */
-function migrateSchema(PDO $pdo): void {
+function migrateSchema(PDO $pdo): void
+{
     // List of tables that might be missing from older databases.
     // CREATE TABLE IF NOT EXISTS is safe — no-op if table already exists.
     $migrations = [
@@ -202,7 +206,7 @@ function migrateSchema(PDO $pdo): void {
 
     // Add is_confidential column to reports table
     try {
-        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
         $hasConfidential = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'is_confidential') {
@@ -222,12 +226,12 @@ function migrateSchema(PDO $pdo): void {
             $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
         }
     } catch (Exception $e) {
-        error_log("Migration warning for reports.is_confidential: " . $e->getMessage());
+        error_log('Migration warning for reports.is_confidential: ' . $e->getMessage());
     }
 
     // Make users.site_id nullable for existing databases
     try {
-        $cols = $pdo->query("PRAGMA table_info(users)")->fetchAll();
+        $cols = $pdo->query('PRAGMA table_info(users)')->fetchAll();
         foreach ($cols as $col) {
             if ($col['name'] === 'site_id' && $col['notnull'] === 1) {
                 // SQLite doesn't support ALTER COLUMN — we recreate the table
@@ -251,12 +255,12 @@ function migrateSchema(PDO $pdo): void {
             }
         }
     } catch (Exception $e) {
-        error_log("Migration warning for users.site_id nullable: " . $e->getMessage());
+        error_log('Migration warning for users.site_id nullable: ' . $e->getMessage());
     }
 
     // Add uuid column to reports table (for non-guessable URLs)
     try {
-        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
         $hasUuid = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'uuid') {
@@ -277,12 +281,12 @@ function migrateSchema(PDO $pdo): void {
             $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
         }
     } catch (Exception $e) {
-        error_log("Migration warning for reports.uuid: " . $e->getMessage());
+        error_log('Migration warning for reports.uuid: ' . $e->getMessage());
     }
 
     // Migrate report_responses: report_id (integer) → report_uuid (text)
     try {
-        $cols = $pdo->query("PRAGMA table_info(report_responses)")->fetchAll();
+        $cols = $pdo->query('PRAGMA table_info(report_responses)')->fetchAll();
         $hasReportUuid = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'report_uuid') {
@@ -308,7 +312,7 @@ function migrateSchema(PDO $pdo): void {
             $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
         }
     } catch (Exception $e) {
-        error_log("Migration warning for report_responses.report_uuid: " . $e->getMessage());
+        error_log('Migration warning for report_responses.report_uuid: ' . $e->getMessage());
     }
 
     // === Fix UUIDs with invalid variant bits ===
@@ -317,12 +321,16 @@ function migrateSchema(PDO $pdo): void {
     // This migration fixes those UUIDs in both reports and report_responses.
     try {
         // Check if reports table has both 'id' and 'uuid' columns (old schema)
-        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
         $hasId = false;
         $hasUuid = false;
         foreach ($cols as $col) {
-            if ($col['name'] === 'id') $hasId = true;
-            if ($col['name'] === 'uuid') $hasUuid = true;
+            if ($col['name'] === 'id') {
+                $hasId = true;
+            }
+            if ($col['name'] === 'uuid') {
+                $hasUuid = true;
+            }
         }
 
         // Backfill NULL UUIDs even if column already exists (migration might have been partial)
@@ -341,7 +349,7 @@ function migrateSchema(PDO $pdo): void {
         // Pattern: the 20th character (index 19) of UUID should be 8/9/a/b
         // If it's c/d/e/f, we fix it by applying & 0x3F | 0x80 to the variant byte
         if ($hasUuid) {
-            $stmt = $pdo->query("SELECT uuid FROM reports WHERE uuid IS NOT NULL");
+            $stmt = $pdo->query('SELECT uuid FROM reports WHERE uuid IS NOT NULL');
             $fixes = [];
             while ($row = $stmt->fetch()) {
                 $oldUuid = $row['uuid'];
@@ -369,12 +377,12 @@ function migrateSchema(PDO $pdo): void {
             }
         }
     } catch (Exception $e) {
-        error_log("Migration warning for UUID variant fix: " . $e->getMessage());
+        error_log('Migration warning for UUID variant fix: ' . $e->getMessage());
     }
 
     // Add attachment columns to reports table
     try {
-        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
         $hasAttachment = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'attachment_blob') {
@@ -388,26 +396,30 @@ function migrateSchema(PDO $pdo): void {
             $pdo->exec('ALTER TABLE reports ADD COLUMN attachment_mime TEXT');
         }
     } catch (Exception $e) {
-        error_log("Migration warning for attachment columns: " . $e->getMessage());
+        error_log('Migration warning for attachment columns: ' . $e->getMessage());
     }
 
     // Add RAMI structured fields: nature_auteur and type_acte
     try {
-        $cols = $pdo->query("PRAGMA table_info(reports)")->fetchAll();
+        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
         $hasNatureAuteur = false;
         $hasTypeActe = false;
         foreach ($cols as $col) {
-            if ($col['name'] === 'nature_auteur') $hasNatureAuteur = true;
-            if ($col['name'] === 'type_acte') $hasTypeActe = true;
+            if ($col['name'] === 'nature_auteur') {
+                $hasNatureAuteur = true;
+            }
+            if ($col['name'] === 'type_acte') {
+                $hasTypeActe = true;
+            }
         }
         if (!$hasNatureAuteur) {
-            $pdo->exec("ALTER TABLE reports ADD COLUMN nature_auteur TEXT");
+            $pdo->exec('ALTER TABLE reports ADD COLUMN nature_auteur TEXT');
         }
         if (!$hasTypeActe) {
-            $pdo->exec("ALTER TABLE reports ADD COLUMN type_acte TEXT");
+            $pdo->exec('ALTER TABLE reports ADD COLUMN type_acte TEXT');
         }
     } catch (Exception $e) {
-        error_log("Migration warning for RAMI structured fields: " . $e->getMessage());
+        error_log('Migration warning for RAMI structured fields: ' . $e->getMessage());
     }
 
     // === FTS5 full-text search index ===
@@ -416,13 +428,13 @@ function migrateSchema(PDO $pdo): void {
         $ftsExists = ($ftsCheck !== false && $ftsCheck->fetch() !== false);
         if (!$ftsExists) {
             // Create FTS5 virtual table indexing objet and description
-            $pdo->exec("CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid)");
+            $pdo->exec('CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid)');
             // Populate from existing reports
-            $pdo->exec("INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL");
+            $pdo->exec('INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL');
         }
     } catch (Exception $e) {
         // FTS5 may not be available on very old SQLite builds — non-critical
-        error_log("Migration warning for FTS5: " . $e->getMessage());
+        error_log('Migration warning for FTS5: ' . $e->getMessage());
     }
 
     // === Schema version tracking ===
@@ -440,7 +452,7 @@ function migrateSchema(PDO $pdo): void {
             $pdo->exec("INSERT INTO schema_version (version, description) VALUES (1, 'Baseline — existing database before version tracking')");
         }
     } catch (Exception $e) {
-        error_log("Migration warning for schema_version: " . $e->getMessage());
+        error_log('Migration warning for schema_version: ' . $e->getMessage());
     }
 
     // Also ensure indexes exist
@@ -470,7 +482,7 @@ function migrateSchema(PDO $pdo): void {
         try {
             $pdo->exec($sql);
         } catch (Exception $e) {
-            error_log("Index migration warning: " . $e->getMessage());
+            error_log('Index migration warning: ' . $e->getMessage());
         }
     }
 
@@ -478,7 +490,7 @@ function migrateSchema(PDO $pdo): void {
     // Tracks when the agent first chose their site, enabling a 7-day grace period
     // for self-service site changes before requiring supervisor intervention.
     try {
-        $cols = $pdo->query("PRAGMA table_info(users)")->fetchAll();
+        $cols = $pdo->query('PRAGMA table_info(users)')->fetchAll();
         $hasSiteChosenAt = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'site_chosen_at') {
@@ -490,10 +502,10 @@ function migrateSchema(PDO $pdo): void {
             $pdo->exec('ALTER TABLE users ADD COLUMN site_chosen_at TEXT');
             // Backfill: set site_chosen_at for existing users who already have a site
             // Use their created_at as an approximation (conservative: no grace period for legacy users)
-            $pdo->exec("UPDATE users SET site_chosen_at = updated_at WHERE site_id IS NOT NULL AND site_chosen_at IS NULL");
+            $pdo->exec('UPDATE users SET site_chosen_at = updated_at WHERE site_id IS NOT NULL AND site_chosen_at IS NULL');
         }
     } catch (Exception $e) {
-        error_log("Migration warning for users.site_chosen_at: " . $e->getMessage());
+        error_log('Migration warning for users.site_chosen_at: ' . $e->getMessage());
     }
 
     // === Add report_state_history table ===
@@ -513,7 +525,7 @@ function migrateSchema(PDO $pdo): void {
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_state_history_report ON report_state_history(report_uuid)');
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_state_history_created ON report_state_history(created_at)');
     } catch (Exception $e) {
-        error_log("Migration warning for report_state_history: " . $e->getMessage());
+        error_log('Migration warning for report_state_history: ' . $e->getMessage());
     }
 }
 
@@ -521,10 +533,11 @@ function migrateSchema(PDO $pdo): void {
  * Auto-migrate: add missing config_app keys for existing databases.
  * This ensures that databases created before a key was added
  * will automatically receive it on next request.
- * 
+ *
  * @param PDO $pdo
  */
-function migrateConfigKeys(PDO $pdo): void {
+function migrateConfigKeys(PDO $pdo): void
+{
     // NOTE: app_version is no longer stored in the database.
     // The version is now read directly from CHANGELOG.md by getAppVersion().
 
@@ -622,7 +635,8 @@ function migrateConfigKeys(PDO $pdo): void {
  *
  * @param PDO $pdo
  */
-function migrateEncryptSmtpPass(PDO $pdo): void {
+function migrateEncryptSmtpPass(PDO $pdo): void
+{
     try {
         $stmt = $pdo->prepare("SELECT valeur FROM config_app WHERE cle = 'smtp_pass'");
         $stmt->execute();

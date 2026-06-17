@@ -1,7 +1,7 @@
 <?php
 /**
  * Report Respond Page — Application SST DREETS BFC
- * 
+ *
  * Superviseur responds to a report.
  * Access: superviseur only.
  */

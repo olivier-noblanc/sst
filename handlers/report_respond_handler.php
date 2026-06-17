@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Report Respond Handler — Application SST DREETS BFC
- * 
+ *
  * POST handler: save supervisor response + update report state.
  * Access: superviseur only
  */

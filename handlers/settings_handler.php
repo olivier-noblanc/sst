@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Settings Handler — Application SST DREETS BFC
- * 
+ *
  * POST handler: save notification email settings, SMTP config, and app settings.
  * Access: superviseur only
  */
@@ -88,7 +89,7 @@ try {
             if (!empty($testTo) && filter_var($testTo, $smtpPass !== '' ? FILTER_VALIDATE_EMAIL : FILTER_VALIDATE_EMAIL)) {
                 $appName = getConfig('app_nom_organisation', 'DREETS BFC');
                 $testSubject = 'Test de connexion SMTP';
-                $testBody = "<html><body><h2>Test SMTP</h2><p>Ce message confirme que la connexion SMTP est fonctionnelle.</p></body></html>";
+                $testBody = '<html><body><h2>Test SMTP</h2><p>Ce message confirme que la connexion SMTP est fonctionnelle.</p></body></html>';
                 $sent = sendMail($testTo, $testSubject, $testBody);
                 if ($sent) {
                     setFlash('success', 'Configuration SMTP enregistrée. Un e-mail de test a été envoyé à ' . e($testTo) . '.');

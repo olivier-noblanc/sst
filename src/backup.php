@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Backup — Application SST DREETS BFC
  *
@@ -29,10 +30,11 @@ define('BACKUP_MARKER_FILE', BACKUP_DIR . '/.last_backup');
  *
  * @return array{mtime: int, size: int}
  */
-function getDbFingerprint(PDO $pdo): array {
+function getDbFingerprint(PDO $pdo): array
+{
     // Checkpoint WAL → flush pending writes into the main .db file
     try {
-        $pdo->exec("PRAGMA wal_checkpoint(TRUNCATE)");
+        $pdo->exec('PRAGMA wal_checkpoint(TRUNCATE)');
     } catch (Exception $e) {
         // Non-critical: checkpoint may fail if no WAL, just proceed
         error_log('[SST-BACKUP] WAL checkpoint warning: ' . $e->getMessage());
@@ -50,7 +52,8 @@ function getDbFingerprint(PDO $pdo): array {
  *
  * @return array{mtime: int, size: int}|null  Fingerprint or null if no marker
  */
-function getLastBackupFingerprint(): ?array {
+function getLastBackupFingerprint(): ?array
+{
     if (!file_exists(BACKUP_MARKER_FILE)) {
         return null;
     }
@@ -70,7 +73,8 @@ function getLastBackupFingerprint(): ?array {
  *
  * @param array{mtime: int, size: int} $fingerprint
  */
-function setLastBackupFingerprint(array $fingerprint): void {
+function setLastBackupFingerprint(array $fingerprint): void
+{
     if (!is_dir(BACKUP_DIR)) {
         mkdir(BACKUP_DIR, 0755, true);
     }
@@ -83,7 +87,8 @@ function setLastBackupFingerprint(array $fingerprint): void {
  * @param PDO $pdo
  * @return bool
  */
-function shouldBackup(PDO $pdo): bool {
+function shouldBackup(PDO $pdo): bool
+{
     $current = getDbFingerprint($pdo);
     $last = getLastBackupFingerprint();
 
@@ -103,7 +108,8 @@ function shouldBackup(PDO $pdo): bool {
  * @param PDO $pdo
  * @return bool True if backup was created, false if skipped or failed
  */
-function performBackup(PDO $pdo): bool {
+function performBackup(PDO $pdo): bool
+{
     // Double-check: skip if nothing changed
     if (!shouldBackup($pdo)) {
         return false;
@@ -165,7 +171,8 @@ function performBackup(PDO $pdo): bool {
  * @param PDO $pdo
  * @return bool
  */
-function backupBeforeMigration(PDO $pdo): bool {
+function backupBeforeMigration(PDO $pdo): bool
+{
     if (!is_dir(BACKUP_DIR)) {
         mkdir(BACKUP_DIR, 0755, true);
     }
@@ -211,7 +218,8 @@ function backupBeforeMigration(PDO $pdo): bool {
  * Rotate backup files: keep only the N most recent, delete the rest.
  * Counts both regular backups (sst_*.db) and pre-migration backups.
  */
-function rotateBackups(): void {
+function rotateBackups(): void
+{
     $files = glob(BACKUP_DIR . '/sst_*.db');
     if ($files === false || count($files) <= BACKUP_MAX_FILES) {
         return;
@@ -233,7 +241,8 @@ function rotateBackups(): void {
  * Write .htaccess and web.config to protect the backups directory
  * from direct HTTP access.
  */
-function writeBackupProtection(): void {
+function writeBackupProtection(): void
+{
     // Apache — deny all
     if (!file_exists(BACKUP_DIR . '/.htaccess')) {
         file_put_contents(BACKUP_DIR . '/.htaccess', "Deny from all\n");
@@ -241,7 +250,9 @@ function writeBackupProtection(): void {
 
     // IIS — deny all
     if (!file_exists(BACKUP_DIR . '/web.config')) {
-        file_put_contents(BACKUP_DIR . '/web.config', '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        file_put_contents(
+            BACKUP_DIR . '/web.config',
+            '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
             . '<configuration>' . "\n"
             . '  <system.webServer>' . "\n"
             . '    <handlers clear="true" />' . "\n"
@@ -259,7 +270,8 @@ function writeBackupProtection(): void {
  *
  * @return array<int, array{file: string, path: string, size: int|false, date: int|false}>
  */
-function listBackups(): array {
+function listBackups(): array
+{
     if (!is_dir(BACKUP_DIR)) {
         return [];
     }

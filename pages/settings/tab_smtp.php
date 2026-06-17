@@ -55,8 +55,8 @@
                 <select id="smtp_encryption" name="smtp_encryption" class="form-control">
                     <?php
                         $currentEncryption = getConfig('smtp_encryption', 'none');
-                        $options = ['none' => 'Aucun', 'tls' => 'TLS', 'starttls' => 'STARTTLS'];
-                    ?>
+$options = ['none' => 'Aucun', 'tls' => 'TLS', 'starttls' => 'STARTTLS'];
+?>
                     <?php foreach ($options as $val => $label): ?>
                     <option value="<?php echo e($val); ?>" <?php echo $currentEncryption === $val ? 'selected' : ''; ?>>
                         <?php echo e($label); ?>

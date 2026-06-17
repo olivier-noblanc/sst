@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Configuration Helpers — Application SST DREETS BFC
  *
@@ -9,7 +10,8 @@
 /**
  * Get a configuration value from the config_app table.
  */
-function getConfig(string $cle, string $default = ''): string {
+function getConfig(string $cle, string $default = ''): string
+{
     static $cache = [];
     if (isset($GLOBALS['_config_cache_cleared']) && $GLOBALS['_config_cache_cleared']) {
         $cache = [];
@@ -34,7 +36,8 @@ function getConfig(string $cle, string $default = ''): string {
 /**
  * Update (or insert) a configuration value in the config_app table.
  */
-function updateConfig(PDO $pdo, string $cle, string $valeur): void {
+function updateConfig(PDO $pdo, string $cle, string $valeur): void
+{
     $stmt = $pdo->prepare('INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) 
         VALUES (:cle, :valeur, "", "", "", 1)
         ON CONFLICT(cle) DO UPDATE SET valeur = :valeur2, updated_at = datetime("now")');
@@ -45,7 +48,8 @@ function updateConfig(PDO $pdo, string $cle, string $valeur): void {
 /**
  * Clear the static cache used by getConfig().
  */
-function clearConfigCache(): void {
+function clearConfigCache(): void
+{
     $GLOBALS['_config_cache_cleared'] = true;
 }
 
@@ -62,7 +66,8 @@ function clearConfigCache(): void {
  *   4. $_SERVER['DOCUMENT_ROOT'] fallback       (IIS: resolves from web root)
  *   5. $_SERVER['SCRIPT_FILENAME'] fallback     (entry point directory)
  */
-function getAppVersion(): string {
+function getAppVersion(): string
+{
     static $cached = null;
     if ($cached !== null) {
         return $cached;

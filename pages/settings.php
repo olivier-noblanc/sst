@@ -1,7 +1,7 @@
 <?php
 /**
  * Settings Page — Application SST DREETS BFC
- * 
+ *
  * Notification email configuration per site and globally.
  * Plus SMTP and Application configuration tabs.
  * Access: superviseur only

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Report Abandon Handler — Application SST DREETS BFC
  *
@@ -36,14 +37,14 @@ if ($abandoned) {
         if (!empty($recipients)) {
             $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
             $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
-            $body = "<html><body>";
-            $body .= "<h2>Signalement abandonné</h2>";
-            $body .= "<p><strong>Référence :</strong> " . e($report['reference']) . "</p>";
+            $body = '<html><body>';
+            $body .= '<h2>Signalement abandonné</h2>';
+            $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
             $body .= "<p><strong>Registre :</strong> $registryLabel</p>";
-            $body .= "<p><strong>Objet :</strong> " . e($report['objet']) . "</p>";
-            $body .= "<p><strong>Déclarant :</strong> " . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . "</p>";
-            $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => $reportUuid]) . "\">Consulter le signalement</a></p>";
-            $body .= "</body></html>";
+            $body .= '<p><strong>Objet :</strong> ' . e($report['objet']) . '</p>';
+            $body .= '<p><strong>Déclarant :</strong> ' . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . '</p>';
+            $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+            $body .= '</body></html>';
             foreach ($recipients as $email) {
                 sendMail($email, $subject, $body);
             }

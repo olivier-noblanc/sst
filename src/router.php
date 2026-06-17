@@ -18,7 +18,8 @@
  *
  * @return string[]
  */
-function getValidPages(): array {
+function getValidPages(): array
+{
     return [
         'home', 'preamble', 'help', 'guide', 'changelog', 'access_denied', 'choose_site',
         'report_create', 'report_list', 'report_view', 'report_edit',
@@ -38,7 +39,8 @@ function getValidPages(): array {
  * @param string $page  The raw page parameter from $_GET
  * @return string       Validated page name
  */
-function validatePage(string $page): string {
+function validatePage(string $page): string
+{
     return in_array($page, getValidPages(), true) ? $page : 'home';
 }
 
@@ -51,7 +53,8 @@ function validatePage(string $page): string {
  *
  * @return array<string, string>  page => file path
  */
-function getHandlerMap(): array {
+function getHandlerMap(): array
+{
     return [
         'report_create'   => __DIR__ . '/../handlers/report_create_handler.php',
         'report_edit'     => __DIR__ . '/../handlers/report_edit_handler.php',
@@ -76,7 +79,8 @@ function getHandlerMap(): array {
  * @param string $page  The page name
  * @return bool         True if a handler was found and executed
  */
-function dispatchPostHandler(string $page): bool {
+function dispatchPostHandler(string $page): bool
+{
     $handlerMap = getHandlerMap();
     if (isset($handlerMap[$page])) {
         require $handlerMap[$page];
@@ -96,7 +100,8 @@ function dispatchPostHandler(string $page): bool {
  * @param string $page  The validated page name
  * @return string       Human-readable page title
  */
-function getPageTitle(string $page): string {
+function getPageTitle(string $page): string
+{
     return match($page) {
         'home'            => 'Accueil',
         'preamble'        => 'Préambule',
@@ -136,7 +141,8 @@ function getPageTitle(string $page): string {
  * @param string $page        The validated page name
  * @param string $csrfToken   The CSRF token for forms
  */
-function renderPageWithLayout(string $page, string $csrfToken): void {
+function renderPageWithLayout(string $page, string $csrfToken): void
+{
     $currentPageName = $page;
     $pageTitle = getPageTitle($page);
 
@@ -162,7 +168,8 @@ function renderPageWithLayout(string $page, string $csrfToken): void {
  *
  * @param string $pageFile  Full path to the page PHP file
  */
-function renderStandalonePage(string $pageFile): void {
+function renderStandalonePage(string $pageFile): void
+{
     if (file_exists($pageFile)) {
         require $pageFile;
     }

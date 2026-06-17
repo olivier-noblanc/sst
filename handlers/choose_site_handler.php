@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Choose Site Handler — Application SST DREETS BFC
- * 
+ *
  * Processes the site selection form from first login.
  * Agents can change their site within 7 days of first selection.
  * After 7 days, only a supervisor can change it.
@@ -66,14 +67,14 @@ $updatedUser = currentUser();
 if ($updatedUser && !empty($updatedUser['site_id'])) {
     // Clear intended URL
     clearIntendedUrl();
-    
+
     if ($hasExistingSite) {
         setFlash('success', 'Votre site a été modifié : ' . $site['code'] . ' — ' . $site['nom'] . '.');
         auditLog($pdo, 'user', 'site_change', 'Agent a changé son site : ' . $site['code'] . ' — ' . $site['nom'], $userId, 'user', ['site_id' => $siteId]);
     } else {
         setFlash('success', 'Votre site a été défini : ' . $site['code'] . ' — ' . $site['nom'] . '. Bienvenue !');
     }
-    
+
     // IMPORTANT: write session to disk before redirect
     // Without this, some PHP configurations may lose session data on redirect
     session_write_close();

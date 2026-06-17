@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Validation Functions — Application SST DREETS BFC
  *
@@ -24,7 +25,8 @@
  * @param array<string, string> $errors  Reference to the errors array (modified in place)
  * @return array{blob: string|null, name: string|null, mime: string|null}
  */
-function validateReportAttachment(array &$errors): array {
+function validateReportAttachment(array &$errors): array
+{
     $attachmentBlob = null;
     $attachmentName = null;
     $attachmentMime = null;
@@ -64,7 +66,8 @@ function validateReportAttachment(array &$errors): array {
  * @param string $typeActe      Raw input for type_acte
  * @return array{nature_auteur: string, type_acte: string}
  */
-function validateRamiFields(string $natureAuteur, string $typeActe): array {
+function validateRamiFields(string $natureAuteur, string $typeActe): array
+{
     $allowedNatureAuteur = array_keys(RAMI_NATURE_AUTEUR_LABELS);
     if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur)) {
         $natureAuteur = '';
@@ -90,7 +93,8 @@ function validateRamiFields(string $natureAuteur, string $typeActe): array {
  * @param int $isConfidential  The agent's choice (0 or 1)
  * @return int  The enforced confidentiality value
  */
-function enforceReportVisibility(int $isConfidential): int {
+function enforceReportVisibility(int $isConfidential): int
+{
     if (reportVisibilityIsPublic()) {
         return 0;
     }
@@ -114,7 +118,8 @@ function enforceReportVisibility(int $isConfidential): int {
  * @param string $heureEvenement Event time (HH:MM, optional)
  * @return array<string, string> Validation errors (field => message)
  */
-function validateReportFields(string $dateEvenement, string $objet, string $description, string $lieu, string $heureEvenement): array {
+function validateReportFields(string $dateEvenement, string $objet, string $description, string $lieu, string $heureEvenement): array
+{
     $errors = [];
 
     if (empty($dateEvenement)) {
@@ -156,7 +161,8 @@ function validateReportFields(string $dateEvenement, string $objet, string $desc
  * @param string $pourComptePrenom The other agent's first name
  * @return array<string, string> Validation errors (field => message)
  */
-function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pourComptePrenom): array {
+function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pourComptePrenom): array
+{
     $errors = [];
 
     if ($pourCompte) {
@@ -189,7 +195,8 @@ function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pou
  * @param string $fallbackUrl  URL to redirect to on failure
  * @return array<string, mixed>  The report data (never returns null — redirects instead)
  */
-function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array {
+function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array
+{
     if ($fallbackUrl === '') {
         $fallbackUrl = url('home');
     }
@@ -215,7 +222,8 @@ function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array {
  * @param string $uuid    Report UUID (for redirect URL)
  * @param string $verb    Verb for the error message ('modifier', 'abandonner', etc.)
  */
-function requireReportOwnership(array $report, int $userId, string $uuid, string $verb = 'modifier'): void {
+function requireReportOwnership(array $report, int $userId, string $uuid, string $verb = 'modifier'): void
+{
     if ((int) $report['declarant_id'] !== $userId) {
         setFlash('error', 'Vous ne pouvez ' . $verb . ' que vos propres signalements.');
         redirect(url('report_view', ['uuid' => $uuid]));
@@ -230,7 +238,8 @@ function requireReportOwnership(array $report, int $userId, string $uuid, string
  * @param string $uuid    Report UUID (for redirect URL)
  * @param string $verb    Verb for the error message ('modifié', 'abandonné', etc.)
  */
-function requireReportEditable(array $report, string $uuid, string $verb = 'modifié'): void {
+function requireReportEditable(array $report, string $uuid, string $verb = 'modifié'): void
+{
     if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS])) {
         setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
         redirect(url('report_view', ['uuid' => $uuid]));
@@ -252,7 +261,8 @@ function requireReportEditable(array $report, string $uuid, string $verb = 'modi
  * @param int    $excludeId User ID to exclude from uniqueness check (for edit)
  * @return array<string, string> Validation errors (field => message)
  */
-function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array {
+function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array
+{
     $errors = [];
 
     $nom = trim($input['nom'] ?? '');
@@ -321,7 +331,8 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array {
  * @param PDO $pdo  Database connection
  * @return bool     True if there is only one active superviseur
  */
-function isLastActiveSuperviseur(PDO $pdo): bool {
+function isLastActiveSuperviseur(PDO $pdo): bool
+{
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = '" . ROLE_SUPERVISEUR . "' AND is_active = 1");
     $stmt->execute();
     return (int) $stmt->fetchColumn() <= 1;

@@ -1,7 +1,7 @@
 <?php
 /**
  * Help / Documentation Page — Application SST DREETS BFC
- * 
+ *
  * Refonte complète de la documentation intégrée.
  * Captures d'écran PNG annotées (flèches + labels numérotés).
  * Imprimables, sans iframe — compatibles CSP frame-ancestors 'none'.
@@ -16,7 +16,8 @@ $hotlineNumber = getConfig('app_hotline_number', '');
 $hotlineEnabled = (!empty($hotlineNumber));
 
 // Screenshot helper — must be defined BEFORE any HTML output
-function helpImg(string $name, string $alt, string $base): string {
+function helpImg(string $name, string $alt, string $base): string
+{
     $src = $base . '/' . $name;
     return '<img src="' . $src . '" alt="' . e($alt) . '" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;">';
 }
@@ -26,7 +27,8 @@ function helpImg(string $name, string $alt, string $base): string {
  * Renders an annotated PNG image — always visible, never folded, printable.
  * Converts .html source path to .png automatically.
  */
-function helpScreenshot(string $src, string $alt): string {
+function helpScreenshot(string $src, string $alt): string
+{
     $id = 'ss-' . substr(md5($src), 0, 8);
     // Convert .html extension to .png for image path
     // Serve via asset.php (IIS Windows Auth blocks direct static file access)
@@ -585,7 +587,7 @@ function helpScreenshot(string $src, string $alt): string {
             <p class="help-note help-note--green">
                 <strong>💬 Après ?</strong> Votre signalement est envoyé aux superviseurs par e-mail. Un superviseur le prend en charge, puis le passe à « En cours » puis « Traité » avec une réponse. Vous suivez l'avancement dans la liste.
             </p>
-            <?php echo helpScreenshot($screenshotBase . '/cu3-creation-rami.html', "Formulaire RAMI avec le champ « Pour le compte de » et les listes déroulantes nature_auteur et type_acte"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu3-creation-rami.html', 'Formulaire RAMI avec le champ « Pour le compte de » et les listes déroulantes nature_auteur et type_acte'); ?>
         </div>
     </div>
 
@@ -623,7 +625,7 @@ function helpScreenshot(string $src, string $alt): string {
                 <li>👀 Jean voit la réponse dans son signalement</li>
             </ol>
             <?php echo helpScreenshot($screenshotBase . '/consultation-voir-rsst.html', "Vue détaillée d'un signalement RSST en cours de traitement"); ?>
-            <?php echo helpScreenshot($screenshotBase . '/cu4-repondre-signalement.html', "Formulaire de réponse du superviseur avec changement de statut En cours ou Traité"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu4-repondre-signalement.html', 'Formulaire de réponse du superviseur avec changement de statut En cours ou Traité'); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu4-modifier-signalement.html', "Formulaire de modification d'un signalement"); ?>
         </div>
     </div>
@@ -642,7 +644,7 @@ function helpScreenshot(string $src, string $alt): string {
                 <li>🚫 Le statut passe à <span class="badge badge--abandonne">Abandonné</span></li>
                 <li>👀 Le signalement reste visible, marqué comme abandonné avec le motif</li>
             </ol>
-            <?php echo helpScreenshot($screenshotBase . '/cu5-liste-signalements-sup.html', "Liste des signalements vue par le superviseur avec les actions Répondre et Abandonner"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu5-liste-signalements-sup.html', 'Liste des signalements vue par le superviseur avec les actions Répondre et Abandonner'); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu1-accueil-superviseur.html', "Page d'accueil du superviseur avec accès à tous les registres et sites"); ?>
         </div>
     </div>
@@ -663,7 +665,7 @@ function helpScreenshot(string $src, string $alt): string {
             <p class="help-warning-callout">
                 👁️ Le membre CSA/CHSCT <strong>ne peut pas répondre</strong> aux signalements ni gérer les utilisateurs. Pour faire traiter un signalement, demandez à un superviseur.
             </p>
-            <?php echo helpScreenshot($screenshotBase . '/cu7-synthese.html', "Page de synthèse montrant le nombre de signalements par registre, par site et par état"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu7-synthese.html', 'Page de synthèse montrant le nombre de signalements par registre, par site et par état'); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu6-statistiques.html', "Page des statistiques avec graphiques d'évolution et répartition"); ?>
         </div>
     </div>

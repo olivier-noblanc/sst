@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Middleware — Application SST DREETS BFC
  *
@@ -20,7 +21,8 @@
  * Skip during impersonation — we don't want to accidentally promote
  * a superviseur who is temporarily impersonating an agent.
  */
-function checkSuperviseurPromotion(): void {
+function checkSuperviseurPromotion(): void
+{
     if (!isUserLoggedIn()) {
         return;
     }
@@ -68,7 +70,8 @@ function checkSuperviseurPromotion(): void {
  *
  * This MUST be called after authentication and choose_site handling.
  */
-function checkUserSiteAssignment(): void {
+function checkUserSiteAssignment(): void
+{
     if (!isUserLoggedIn()) {
         return;
     }

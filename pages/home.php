@@ -1,7 +1,7 @@
 <?php
 /**
  * Home Page — Application SST DREETS BFC
- * 
+ *
  * Dashboard with 3 registry cards showing counts and links.
  * Includes a contextual welcome banner for first-time guidance.
  */

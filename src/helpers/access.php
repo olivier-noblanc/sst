@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Access Control Helpers — Application SST DREETS BFC
  *
@@ -14,7 +15,8 @@
  * @param array<string, mixed> $user    $_SESSION['user'] (id, site_id, role)
  * @return bool
  */
-function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool {
+function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool
+{
     // Superviseur/CSA/CHSCT can always see everything
     if (in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
         return true;
@@ -50,7 +52,8 @@ function canAccessReport(array $report, array $user, ?string $forcedVisibility =
  * @param array<string, mixed> $report  Row from `reports`
  * @param array<string, mixed> $user    $_SESSION['user']
  */
-function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void {
+function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
+{
     if ((int) $report['is_confidential'] !== 1) {
         return;
     }
@@ -61,10 +64,10 @@ function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
         return;
     }
     try {
-        $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare('
             INSERT INTO report_access_log (report_uuid, user_id, role)
             VALUES (:report_uuid, :user_id, :role)
-        ");
+        ');
         $stmt->execute([
             ':report_uuid' => $report['uuid'],
             ':user_id'     => (int) $user['id'],
@@ -79,7 +82,8 @@ function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
 /**
  * Check if the current user can see all sites.
  */
-function canSeeAllSites(): bool {
+function canSeeAllSites(): bool
+{
     $role = currentUserRole();
     if (empty($role)) {
         return false;
@@ -90,9 +94,14 @@ function canSeeAllSites(): bool {
 /**
  * Normalize a raw config value into a valid visibility mode.
  */
-function normalizeVisibilityValue(string $value): string {
-    if ($value === '0' || $value === 'site') return 'public';
-    if ($value === '1' || $value === 'own') return 'confidential';
+function normalizeVisibilityValue(string $value): string
+{
+    if ($value === '0' || $value === 'site') {
+        return 'public';
+    }
+    if ($value === '1' || $value === 'own') {
+        return 'confidential';
+    }
     if (in_array($value, ['confidential', 'agent_choice', 'public'])) {
         return $value;
     }
@@ -106,7 +115,8 @@ function normalizeVisibilityValue(string $value): string {
  *
  * @param string|null $type  Registry type ('rsst', 'rami', 'dgi') or null for global
  */
-function getReportVisibilityMode(?string $type = null): string {
+function getReportVisibilityMode(?string $type = null): string
+{
     if ($type !== null) {
         $key = 'app_report_visibility_' . $type;
         $value = getConfig($key, '');
@@ -124,7 +134,8 @@ function getReportVisibilityMode(?string $type = null): string {
  *
  * @param string|null $type  Registry type ('rsst', 'rami', 'dgi') or null for global
  */
-function getReportVisibility(?string $type = null): string {
+function getReportVisibility(?string $type = null): string
+{
     $role = currentUserRole();
     if (empty($role) || $role !== ROLE_AGENT) {
         return 'all';
@@ -132,15 +143,18 @@ function getReportVisibility(?string $type = null): string {
     return getReportVisibilityMode($type);
 }
 
-function reportVisibilityIsConfidential(?string $type = null): bool {
+function reportVisibilityIsConfidential(?string $type = null): bool
+{
     return getReportVisibilityMode($type) === 'confidential';
 }
 
-function reportVisibilityIsAgentChoice(?string $type = null): bool {
+function reportVisibilityIsAgentChoice(?string $type = null): bool
+{
     return getReportVisibilityMode($type) === 'agent_choice';
 }
 
-function reportVisibilityIsPublic(?string $type = null): bool {
+function reportVisibilityIsPublic(?string $type = null): bool
+{
     return getReportVisibilityMode($type) === 'public';
 }
 
@@ -158,7 +172,8 @@ function reportVisibilityIsPublic(?string $type = null): bool {
  * @param int   $userId  Current user's ID
  * @return bool
  */
-function canEditReport(array $report, int $userId): bool {
+function canEditReport(array $report, int $userId): bool
+{
     $isDeclarant = ((int) $report['declarant_id'] === $userId);
     return $isDeclarant && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS]);
 }
@@ -173,6 +188,7 @@ function canEditReport(array $report, int $userId): bool {
  * @param string $role   Current user's role
  * @return bool
  */
-function canRespondToReport(array $report, string $role): bool {
+function canRespondToReport(array $report, string $role): bool
+{
     return in_array($role, [ROLE_SUPERVISEUR]) && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT]);
 }

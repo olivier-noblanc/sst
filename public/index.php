@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Router / Entry Point — Application SST DREETS BFC
- * 
+ *
  * All requests go through this file. It parses the 'page' query
  * parameter and dispatches to the appropriate page or handler.
  *

@@ -1,7 +1,7 @@
 <?php
 /**
  * Choose Site Page — Application SST DREETS BFC
- * 
+ *
  * Shown to agents on their first login when site_id is NULL.
  * Agents can change their site within 7 days of first selection.
  * After 7 days, only a supervisor can change it via user management.

@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Configuration — Application SST DREETS BFC
- * 
+ *
  * Central configuration file for all application constants.
  */
 
@@ -134,13 +135,13 @@ define('ETAT_LABELS', [
 define('RAMI_NATURE_AUTEUR_LABELS', [
     'usager'    => 'Usager',
     'collegue'  => 'Collègue',
-    'hierarchie'=> 'Hiérarchie',
+    'hierarchie' => 'Hiérarchie',
     'tiers'     => 'Tiers',
 ]);
 
 define('RAMI_TYPE_ACTE_LABELS', [
     'verbal'  => 'Verbal',
-    'physique'=> 'Physique',
+    'physique' => 'Physique',
     'moral'   => 'Moral',
     'sexiste' => 'Sexiste',
     'autre'   => 'Autre',

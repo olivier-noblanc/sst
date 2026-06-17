@@ -1,9 +1,9 @@
 <?php
 /**
  * Login Page — Application SST DREETS BFC
- * 
+ *
  * MOCK LOGIN FORM — DEV MODE ONLY
- * 
+ *
  * In production, IIS handles Windows Authentication before PHP runs.
  * This page is unreachable in prod (index.php redirects away).
  * This form exists ONLY for local development testing.

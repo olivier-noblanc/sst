@@ -1,7 +1,7 @@
 <?php
 /**
  * Users Page — Application SST DREETS BFC
- * 
+ *
  * User management: list users and register new user.
  * Access: superviseur only
  */
@@ -148,14 +148,14 @@ $pageTitle = 'Gestion des utilisateurs';
         <?php
         // Prepare variables for the shared template
         $editNom = $formData['nom'] ?? '';
-        $editPrenom = $formData['prenom'] ?? '';
-        $editEmail = $formData['email'] ?? '';
-        $editUsername = $formData['username'] ?? '';
-        $editRole = $formData['role'] ?? ROLE_AGENT;
-        $editSiteId = $formData['site_id'] ?? 1;
-        $usernameHint = 'Identifiant de connexion Windows (ex: jean.martin)';
-        require __DIR__ . '/../templates/user_form_fields.php';
-        ?>
+    $editPrenom = $formData['prenom'] ?? '';
+    $editEmail = $formData['email'] ?? '';
+    $editUsername = $formData['username'] ?? '';
+    $editRole = $formData['role'] ?? ROLE_AGENT;
+    $editSiteId = $formData['site_id'] ?? 1;
+    $usernameHint = 'Identifiant de connexion Windows (ex: jean.martin)';
+    require __DIR__ . '/../templates/user_form_fields.php';
+    ?>
 
         <div class="form-actions">
             <button type="submit" class="btn btn--success">Créer l'utilisateur</button>

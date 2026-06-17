@@ -1,7 +1,8 @@
 <?php
+
 /**
  * User Queries — Application SST DREETS BFC
- * 
+ *
  * All SQL queries related to user management.
  */
 
@@ -13,22 +14,24 @@
  *
  * @return string  SQL fragment (SELECT ... FROM ... LEFT JOIN ...)
  */
-function userSelectWithSite(): string {
-    return "SELECT u.*, s.code as site_code, s.nom as site_nom
+function userSelectWithSite(): string
+{
+    return 'SELECT u.*, s.code as site_code, s.nom as site_nom
             FROM users u
-            LEFT JOIN sites s ON u.site_id = s.id";
+            LEFT JOIN sites s ON u.site_id = s.id';
 }
 
 /**
  * Get a user by their username.
- * 
+ *
  * @param PDO    $pdo       Database connection
  * @param string $username  The username to look up
  * @return array<string, mixed>|null
  */
-function getUserByUsername(PDO $pdo, string $username): ?array {
+function getUserByUsername(PDO $pdo, string $username): ?array
+{
     $stmt = $pdo->prepare(
-        userSelectWithSite() . " WHERE u.username = :username AND u.is_active = 1"
+        userSelectWithSite() . ' WHERE u.username = :username AND u.is_active = 1'
     );
     $stmt->execute([':username' => $username]);
     $result = $stmt->fetch();
@@ -37,14 +40,15 @@ function getUserByUsername(PDO $pdo, string $username): ?array {
 
 /**
  * Get a user by their ID.
- * 
+ *
  * @param PDO $pdo  Database connection
  * @param int $id   User ID
  * @return array<string, mixed>|null
  */
-function getUserById(PDO $pdo, int $id): ?array {
+function getUserById(PDO $pdo, int $id): ?array
+{
     $stmt = $pdo->prepare(
-        userSelectWithSite() . " WHERE u.id = :id"
+        userSelectWithSite() . ' WHERE u.id = :id'
     );
     $stmt->execute([':id' => $id]);
     $result = $stmt->fetch();
@@ -53,26 +57,27 @@ function getUserById(PDO $pdo, int $id): ?array {
 
 /**
  * Get all active users, optionally filtered by site.
- * 
+ *
  * @param PDO    $pdo     Database connection
  * @param int    $siteId  Optional site filter (0 = all)
  * @param bool   $active  Whether to include only active users
  * @return array<int, array<string, mixed>>
  */
-function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array {
-    $sql = userSelectWithSite() . " WHERE 1=1";
+function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array
+{
+    $sql = userSelectWithSite() . ' WHERE 1=1';
     $params = [];
 
     if ($active) {
-        $sql .= " AND u.is_active = 1";
+        $sql .= ' AND u.is_active = 1';
     }
 
     if ($siteId > 0) {
-        $sql .= " AND u.site_id = :site_id";
+        $sql .= ' AND u.site_id = :site_id';
         $params[':site_id'] = $siteId;
     }
 
-    $sql .= " ORDER BY u.nom, u.prenom";
+    $sql .= ' ORDER BY u.nom, u.prenom';
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -81,13 +86,14 @@ function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array {
 
 /**
  * Update a user's role.
- * 
+ *
  * @param PDO    $pdo   Database connection
  * @param int    $id    User ID
  * @param string $role  New role
  * @return bool
  */
-function updateUserRole(PDO $pdo, int $id, string $role): bool {
+function updateUserRole(PDO $pdo, int $id, string $role): bool
+{
     $stmt = $pdo->prepare("
         UPDATE users SET role = :role, updated_at = datetime('now')
         WHERE id = :id
@@ -98,13 +104,14 @@ function updateUserRole(PDO $pdo, int $id, string $role): bool {
 
 /**
  * Update a user's site assignment.
- * 
+ *
  * @param PDO $pdo     Database connection
  * @param int $id      User ID
  * @param int $siteId  New site ID
  * @return bool
  */
-function updateUserSite(PDO $pdo, int $id, int $siteId): bool {
+function updateUserSite(PDO $pdo, int $id, int $siteId): bool
+{
     $stmt = $pdo->prepare("
         UPDATE users SET site_id = :site_id, updated_at = datetime('now')
         WHERE id = :id
@@ -115,16 +122,17 @@ function updateUserSite(PDO $pdo, int $id, int $siteId): bool {
 
 /**
  * Create a new user.
- * 
+ *
  * @param PDO    $pdo   Database connection
  * @param array<string, mixed> $data  User data
  * @return int          New user ID
  */
-function createUser(PDO $pdo, array $data): int {
-    $stmt = $pdo->prepare("
+function createUser(PDO $pdo, array $data): int
+{
+    $stmt = $pdo->prepare('
         INSERT INTO users (username, nom, prenom, email, role, site_id)
         VALUES (:username, :nom, :prenom, :email, :role, :site_id)
-    ");
+    ');
     $stmt->execute([
         ':username' => $data['username'],
         ':nom'      => $data['nom'],
@@ -138,13 +146,14 @@ function createUser(PDO $pdo, array $data): int {
 
 /**
  * Update a user's full profile (all fields).
- * 
+ *
  * @param PDO   $pdo   Database connection
  * @param int   $id    User ID
  * @param array<string, mixed> $data  User data (nom, prenom, email, username, role, site_id)
  * @return bool
  */
-function updateUser(PDO $pdo, int $id, array $data): bool {
+function updateUser(PDO $pdo, int $id, array $data): bool
+{
     $stmt = $pdo->prepare("
         UPDATE users
         SET nom = :nom, prenom = :prenom, email = :email,
@@ -166,24 +175,26 @@ function updateUser(PDO $pdo, int $id, array $data): bool {
 
 /**
  * Count active users.
- * 
+ *
  * @param PDO $pdo  Database connection
  * @return int
  */
-function countActiveUsers(PDO $pdo): int {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE is_active = 1");
+function countActiveUsers(PDO $pdo): int
+{
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE is_active = 1');
     $stmt->execute();
     return (int) $stmt->fetchColumn();
 }
 
 /**
  * Soft-delete a user (deactivate).
- * 
+ *
  * @param PDO $pdo  Database connection
  * @param int $id   User ID
  * @return bool
  */
-function deactivateUser(PDO $pdo, int $id): bool {
+function deactivateUser(PDO $pdo, int $id): bool
+{
     $stmt = $pdo->prepare("
         UPDATE users SET is_active = 0, updated_at = datetime('now')
         WHERE id = :id
@@ -194,12 +205,13 @@ function deactivateUser(PDO $pdo, int $id): bool {
 
 /**
  * Reactivate a user.
- * 
+ *
  * @param PDO $pdo  Database connection
  * @param int $id   User ID
  * @return bool
  */
-function reactivateUser(PDO $pdo, int $id): bool {
+function reactivateUser(PDO $pdo, int $id): bool
+{
     $stmt = $pdo->prepare("
         UPDATE users SET is_active = 1, updated_at = datetime('now')
         WHERE id = :id
@@ -216,30 +228,31 @@ function reactivateUser(PDO $pdo, int $id): bool {
  * @param int $id   User ID
  * @return array<string, mixed>
  */
-function exportUserData(PDO $pdo, int $id): array {
+function exportUserData(PDO $pdo, int $id): array
+{
     $user = getUserById($pdo, $id);
     if (!$user) {
         return [];
     }
 
     // User's reports (as declarant)
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         SELECT r.uuid, r.reference, r.type, r.objet, r.description, r.date_evenement,
                r.heure_evenement, r.lieu, r.is_confidential, r.etat, r.created_at
         FROM reports r
         WHERE r.declarant_id = :id
         ORDER BY r.created_at DESC
-    ");
+    ');
     $stmt->execute([':id' => $id]);
     $reports = $stmt->fetchAll();
 
     // User's responses (as superviseur)
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         SELECT rr.report_uuid, rr.reponse, rr.nouvel_etat, rr.created_at
         FROM report_responses rr
         WHERE rr.user_id = :id
         ORDER BY rr.created_at DESC
-    ");
+    ');
     $stmt->execute([':id' => $id]);
     $responses = $stmt->fetchAll();
 
@@ -272,7 +285,8 @@ function exportUserData(PDO $pdo, int $id): array {
  * @param int $id   User ID
  * @return bool
  */
-function anonymizeUser(PDO $pdo, int $id): bool {
+function anonymizeUser(PDO $pdo, int $id): bool
+{
     $user = getUserById($pdo, $id);
     if (!$user) {
         return false;
@@ -304,17 +318,17 @@ function anonymizeUser(PDO $pdo, int $id): bool {
         $stmt->execute([':id' => $id]);
 
         // Anonymize respondent name in reports
-        $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare('
             UPDATE reports
             SET repondant_id = NULL
             WHERE repondant_id = :id AND repondant_id IS NOT NULL
-        ");
+        ');
         $stmt->execute([':id' => $id]);
 
         // Update FTS for anonymized reports
         try {
-            $pdo->exec("DELETE FROM reports_fts");
-            $pdo->exec("INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL");
+            $pdo->exec('DELETE FROM reports_fts');
+            $pdo->exec('INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL');
         } catch (Exception $ftsE) {
             // Non-critical
         }

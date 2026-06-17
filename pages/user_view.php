@@ -1,7 +1,7 @@
 <?php
 /**
  * User View Page — Application SST DREETS BFC
- * 
+ *
  * View user profile (read-only).
  * Access: superviseur only
  */
@@ -23,7 +23,7 @@ if (!$user) {
 }
 
 // Get user's report count
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM reports WHERE declarant_id = :uid");
+$stmt = $pdo->prepare('SELECT COUNT(*) FROM reports WHERE declarant_id = :uid');
 $stmt->execute([':uid' => $userId]);
 $reportCount = (int) $stmt->fetchColumn();
 

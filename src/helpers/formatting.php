@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Formatting Helpers — Application SST DREETS BFC
  *
@@ -9,11 +10,12 @@
 
 /**
  * Escape HTML special characters. Use for ALL output.
- * 
+ *
  * @param string|null $string  The string to escape
  * @return string
  */
-function e(?string $string): string {
+function e(?string $string): string
+{
     if ($string === null) {
         return '';
     }
@@ -22,11 +24,12 @@ function e(?string $string): string {
 
 /**
  * Format an ISO date to French format (d/m/Y).
- * 
+ *
  * @param string|null $date  ISO date string (YYYY-MM-DD)
  * @return string
  */
-function formatDateFR(?string $date): string {
+function formatDateFR(?string $date): string
+{
     if (empty($date)) {
         return '—';
     }
@@ -40,11 +43,12 @@ function formatDateFR(?string $date): string {
 
 /**
  * Format an ISO datetime to French format (d/m/Y à H:i).
- * 
+ *
  * @param string|null $datetime  ISO datetime string
  * @return string
  */
-function formatDateTimeFR(?string $datetime): string {
+function formatDateTimeFR(?string $datetime): string
+{
     if (empty($datetime)) {
         return '—';
     }
@@ -58,36 +62,38 @@ function formatDateTimeFR(?string $datetime): string {
 /**
  * Generate a report reference string.
  * Format: {type}-{YY}-{NNN}
- * 
+ *
  * @param string $type    Registry type: 'rsst', 'rami', 'dgi'
  * @param string $year2   2-digit year, e.g. '25'
  * @param int    $seq     Sequence number
  * @return string
  */
-function generateReference(string $type, string $year2, int $seq): string {
+function generateReference(string $type, string $year2, int $seq): string
+{
     return $type . '-' . $year2 . '-' . str_pad((string) $seq, 3, '0', STR_PAD_LEFT);
 }
 
 /**
  * Get the next sequence number for a report reference.
  * Uses atomic UPSERT on the report_sequence table.
- * 
+ *
  * @param PDO    $pdo   Database connection
  * @param string $type  Registry type
  * @param int    $year  Full year, e.g. 2025
  * @return int
  */
-function getNextSequence(PDO $pdo, string $type, int $year): int {
-    $stmt = $pdo->prepare("
+function getNextSequence(PDO $pdo, string $type, int $year): int
+{
+    $stmt = $pdo->prepare('
         INSERT INTO report_sequence (type, year, last_sequence)
         VALUES (:type, :year, 1)
         ON CONFLICT(type, year) DO UPDATE SET last_sequence = last_sequence + 1
-    ");
+    ');
     $stmt->execute([':type' => $type, ':year' => $year]);
 
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         SELECT last_sequence FROM report_sequence WHERE type = :type AND year = :year
-    ");
+    ');
     $stmt->execute([':type' => $type, ':year' => $year]);
     return (int) $stmt->fetchColumn();
 }
@@ -95,7 +101,8 @@ function getNextSequence(PDO $pdo, string $type, int $year): int {
 /**
  * Get the registry color CSS variable name.
  */
-function getRegistryColor(string $type): string {
+function getRegistryColor(string $type): string
+{
     return match ($type) {
         'rsst' => 'var(--rsst-color)',
         'rami' => 'var(--rami-color)',
@@ -107,7 +114,8 @@ function getRegistryColor(string $type): string {
 /**
  * Get the badge CSS class for a report state.
  */
-function getEtatBadgeClass(string $etat): string {
+function getEtatBadgeClass(string $etat): string
+{
     return match ($etat) {
         'nouveau'    => 'badge--nouveau',
         'en_cours'   => 'badge--en-cours',
@@ -121,7 +129,8 @@ function getEtatBadgeClass(string $etat): string {
 /**
  * Get the badge CSS class for a registry type.
  */
-function getRegistryBadgeClass(string $type): string {
+function getRegistryBadgeClass(string $type): string
+{
     return match ($type) {
         'rsst' => 'badge--rsst',
         'rami' => 'badge--rami',
@@ -133,7 +142,8 @@ function getRegistryBadgeClass(string $type): string {
 /**
  * Get the badge CSS class for a user role.
  */
-function getRoleBadgeClass(string $role): string {
+function getRoleBadgeClass(string $role): string
+{
     return match ($role) {
         'agent'       => 'badge--agent',
         'superviseur' => 'badge--superviseur',
@@ -145,7 +155,8 @@ function getRoleBadgeClass(string $role): string {
 /**
  * Detect the MIME type of a file using the fileinfo extension.
  */
-function getMimeType(string $filePath): string {
+function getMimeType(string $filePath): string
+{
     if (!class_exists('finfo')) {
         throw new \RuntimeException(
             'L\'extension PHP "fileinfo" est requise pour le téléchargement de pièces jointes. ' .
@@ -163,7 +174,8 @@ function getMimeType(string $filePath): string {
 /**
  * Truncate a string to a given length with ellipsis.
  */
-function truncate(string $string, int $length = 50): string {
+function truncate(string $string, int $length = 50): string
+{
     if (mb_strlen($string, 'UTF-8') > $length) {
         return mb_substr($string, 0, $length, 'UTF-8') . '…';
     }
@@ -173,14 +185,16 @@ function truncate(string $string, int $length = 50): string {
 /**
  * Get today's date in ISO format (Y-m-d).
  */
-function todayISO(): string {
+function todayISO(): string
+{
     return date('Y-m-d');
 }
 
 /**
  * Get current time in HH:MM format.
  */
-function nowTime(): string {
+function nowTime(): string
+{
     return date('H:i');
 }
 
@@ -194,7 +208,8 @@ function nowTime(): string {
  * @param array<int, array{url?: string, label: string}> $items  Ordered list of breadcrumb items
  * @return string  HTML for the breadcrumb nav
  */
-function renderBreadcrumb(array $items): string {
+function renderBreadcrumb(array $items): string
+{
     $html = '<nav class="breadcrumb" aria-label="Fil d\'Ariane">';
     $last = count($items) - 1;
     foreach ($items as $i => $item) {

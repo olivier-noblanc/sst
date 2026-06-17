@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Crypto Helpers — Application SST DREETS BFC
  *
@@ -16,7 +17,8 @@
  * @param string $plaintext  The value to encrypt
  * @return string            Encrypted value with "enc:" prefix, or plain value on failure
  */
-function encryptConfigValue(string $plaintext): string {
+function encryptConfigValue(string $plaintext): string
+{
     if ($plaintext === '') {
         return '';
     }
@@ -42,7 +44,8 @@ function encryptConfigValue(string $plaintext): string {
  * @param string $value  The value to decrypt (may be "enc:..." or plain text)
  * @return string        Decrypted value, or original value if not encrypted / on failure
  */
-function decryptConfigValue(string $value): string {
+function decryptConfigValue(string $value): string
+{
     if ($value === '' || !str_starts_with($value, 'enc:')) {
         return $value;
     }

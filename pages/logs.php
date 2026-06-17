@@ -139,7 +139,7 @@ foreach ($logLines as $line) {
 $errorFilter = $_GET['filter'] ?? 'all';
 $filteredLines = $errorFilter === 'all'
     ? $categorized
-    : array_filter($categorized, fn($e) => $e['category'] === $errorFilter);
+    : array_filter($categorized, fn ($e) => $e['category'] === $errorFilter);
 
 $logFileSize = file_exists($logFile) ? filesize($logFile) : 0;
 
@@ -341,8 +341,8 @@ $auditActionLabels = [
                             <td>
                                 <?php
                                 $catKey = $entry['category'];
-                                $catLabel = $auditCategoryLabels[$catKey] ?? $catKey;
-                                ?>
+                        $catLabel = $auditCategoryLabels[$catKey] ?? $catKey;
+                        ?>
                                 <span class="badge badge--cat-<?php echo e($catKey); ?>"><?php echo e($catLabel); ?></span>
                             </td>
                             <td class="text-small"><?php echo e($entry['username']); ?></td>
@@ -366,10 +366,10 @@ $auditActionLabels = [
                 'category' => $_GET['category'] ?? '',
                 'user'     => $_GET['user'] ?? '',
                 'q'        => $_GET['q'] ?? '',
-                'date_from'=> $_GET['date_from'] ?? '',
+                'date_from' => $_GET['date_from'] ?? '',
                 'date_to'  => $_GET['date_to'] ?? '',
-            ], fn($v) => $v !== '');
-        ?>
+            ], fn ($v) => $v !== '');
+            ?>
         <div class="pagination pagination--flex">
             <?php if ($auditPage > 1): ?>
                 <a href="<?php echo url('logs', array_merge($paginationParams, ['p' => $auditPage - 1])); ?>" class="btn btn--sm btn--outline">&larr; Précédent</a>

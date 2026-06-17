@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Error Handler — Application SST DREETS BFC
  *
@@ -32,7 +33,8 @@ define('ERROR_THROTTLE_SECONDS', 300); // 5 minutes
  * @param int    $errline Line number
  * @return bool  True to prevent PHP's default handler
  */
-function sstErrorHandler(int $errno, string $errstr, string $errfile, int $errline): bool {
+function sstErrorHandler(int $errno, string $errstr, string $errfile, int $errline): bool
+{
     // Respect @ error suppression operator
     if (!(error_reporting() & $errno)) {
         return false;
@@ -78,7 +80,8 @@ function sstErrorHandler(int $errno, string $errstr, string $errfile, int $errli
  * Catches E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR.
  * In production (display_errors=Off), renders a clean HTML error page.
  */
-function sstShutdownHandler(): void {
+function sstShutdownHandler(): void
+{
     $error = error_get_last();
     if ($error === null) {
         return;
@@ -110,7 +113,10 @@ function sstShutdownHandler(): void {
     // BUT: if app_display_errors is '1' (admin toggle), show the real error instead
     $adminDisplayErrors = false;
     if (function_exists('getConfig')) {
-        try { $adminDisplayErrors = (getConfig('app_display_errors', '') === '1'); } catch (Exception $e) {}
+        try {
+            $adminDisplayErrors = (getConfig('app_display_errors', '') === '1');
+        } catch (Exception $e) {
+        }
     }
     if ((!defined('DEV_MODE') || !DEV_MODE) && !$adminDisplayErrors) {
         sstRenderProductionErrorPage($levelName);
@@ -122,7 +128,8 @@ function sstShutdownHandler(): void {
  * Called by sstShutdownHandler when display_errors is Off.
  * This avoids the "white screen of death" and provides a user-friendly message.
  */
-function sstRenderProductionErrorPage(string $levelName): void {
+function sstRenderProductionErrorPage(string $levelName): void
+{
     // Don't render if headers already sent (output buffering may have started)
     if (headers_sent()) {
         // Try to close any open buffers cleanly
@@ -176,7 +183,8 @@ HTML;
  * @param int    $line       Line number
  * @param int    $errno      Error number
  */
-function sstNotifyAdminError(string $levelName, string $message, string $file, int $line, int $errno): void {
+function sstNotifyAdminError(string $levelName, string $message, string $file, int $line, int $errno): void
+{
     // Get admin email from config (if available)
     $adminEmail = sstGetAdminEmail();
     if (empty($adminEmail)) {
@@ -202,23 +210,23 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
 
     $subject = "[$appName] Alerte : $levelName détecté";
 
-    $body = "<html><body>";
+    $body = '<html><body>';
     $body .= "<h2 style=\"color:#c0392b;\">⚠ Alerte erreur — $levelName</h2>";
-    $body .= "<table style=\"border-collapse:collapse; font-family:sans-serif; font-size:14px;\">";
-    $body .= "<tr><td style=\"padding:4px 12px; font-weight:bold; color:#555;\">Application</td><td style=\"padding:4px 12px;\">" . htmlspecialchars($appName) . " (v$appVersion)</td></tr>";
+    $body .= '<table style="border-collapse:collapse; font-family:sans-serif; font-size:14px;">';
+    $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">Application</td><td style="padding:4px 12px;">' . htmlspecialchars($appName) . " (v$appVersion)</td></tr>";
     $body .= "<tr><td style=\"padding:4px 12px; font-weight:bold; color:#555;\">Type d'erreur</td><td style=\"padding:4px 12px; color:#c0392b;\"><strong>$levelName</strong> (code $errno)</td></tr>";
-    $body .= "<tr><td style=\"padding:4px 12px; font-weight:bold; color:#555;\">Message</td><td style=\"padding:4px 12px;\">" . htmlspecialchars($message) . "</td></tr>";
-    $body .= "<tr><td style=\"padding:4px 12px; font-weight:bold; color:#555;\">Fichier</td><td style=\"padding:4px 12px; font-family:monospace; font-size:13px;\">" . htmlspecialchars($file) . " (ligne $line)</td></tr>";
-    $body .= "<tr><td style=\"padding:4px 12px; font-weight:bold; color:#555;\">URL</td><td style=\"padding:4px 12px; font-family:monospace; font-size:13px;\">" . htmlspecialchars($httpMethod . ' ' . $requestUri) . "</td></tr>";
-    $body .= "<tr><td style=\"padding:4px 12px; font-weight:bold; color:#555;\">Adresse IP</td><td style=\"padding:4px 12px;\">" . htmlspecialchars($remoteAddr) . "</td></tr>";
+    $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">Message</td><td style="padding:4px 12px;">' . htmlspecialchars($message) . '</td></tr>';
+    $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">Fichier</td><td style="padding:4px 12px; font-family:monospace; font-size:13px;">' . htmlspecialchars($file) . " (ligne $line)</td></tr>";
+    $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">URL</td><td style="padding:4px 12px; font-family:monospace; font-size:13px;">' . htmlspecialchars($httpMethod . ' ' . $requestUri) . '</td></tr>';
+    $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">Adresse IP</td><td style="padding:4px 12px;">' . htmlspecialchars($remoteAddr) . '</td></tr>';
     $body .= "<tr><td style=\"padding:4px 12px; font-weight:bold; color:#555;\">Date/Heure</td><td style=\"padding:4px 12px;\">$timestamp</td></tr>";
-    $body .= "</table>";
+    $body .= '</table>';
 
-    $body .= "<hr style=\"margin:16px 0; border:none; border-top:1px solid #ddd;\">";
+    $body .= '<hr style="margin:16px 0; border:none; border-top:1px solid #ddd;">';
     $body .= "<p style=\"font-size:12px; color:#888;\">Cet e-mail a été envoyé automatiquement par l'application SST car une erreur critique a été détectée. ";
-    $body .= "Pour limiter le spam, une même erreur ne déclenche qu'un seul e-mail toutes les " . (ERROR_THROTTLE_SECONDS / 60) . " minutes. ";
-    $body .= "Consultez le <a href=\"" . htmlspecialchars($requestUri) . "\">journal d'erreurs</a> dans l'interface pour voir toutes les entrées.</p>";
-    $body .= "</body></html>";
+    $body .= "Pour limiter le spam, une même erreur ne déclenche qu'un seul e-mail toutes les " . (ERROR_THROTTLE_SECONDS / 60) . ' minutes. ';
+    $body .= 'Consultez le <a href="' . htmlspecialchars($requestUri) . "\">journal d'erreurs</a> dans l'interface pour voir toutes les entrées.</p>";
+    $body .= '</body></html>';
 
     // Send email (defer to mail module if available, otherwise use error_log)
     if (function_exists('sendMail')) {
@@ -237,7 +245,8 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
  *
  * @return string Admin email or empty string
  */
-function sstGetAdminEmail(): string {
+function sstGetAdminEmail(): string
+{
     static $cachedEmail = null;
     if ($cachedEmail !== null) {
         return $cachedEmail;
@@ -260,7 +269,8 @@ function sstGetAdminEmail(): string {
  * @param string $errorKey Unique key for this error (md5 hash)
  * @return bool True if throttled (should not send email)
  */
-function sstIsThrottled(string $errorKey): bool {
+function sstIsThrottled(string $errorKey): bool
+{
     if (!file_exists(ERROR_THROTTLE_FILE)) {
         return false;
     }
@@ -279,7 +289,8 @@ function sstIsThrottled(string $errorKey): bool {
  *
  * @param string $errorKey Unique key for this error
  */
-function sstMarkThrottled(string $errorKey): void {
+function sstMarkThrottled(string $errorKey): void
+{
     $data = [];
     if (file_exists(ERROR_THROTTLE_FILE)) {
         $raw = @file_get_contents(ERROR_THROTTLE_FILE);

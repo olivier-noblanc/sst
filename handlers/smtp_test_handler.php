@@ -1,4 +1,5 @@
 <?php
+
 /**
  * SMTP Test Handler — Application SST DREETS BFC
  *
@@ -50,16 +51,16 @@ if (empty($from) || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
 require_once __DIR__ . '/../src/mail.php';
 
 $date = date('r');
-$subject = "Test de configuration SMTP";
+$subject = 'Test de configuration SMTP';
 
-$body = "<html><body>"
-      . "<h2>Test de configuration SMTP</h2>"
+$body = '<html><body>'
+      . '<h2>Test de configuration SMTP</h2>'
       . "<p>Ce message confirme que la configuration SMTP de <strong>$appName</strong> est opérationnelle.</p>"
       . "<p><strong>Serveur :</strong> $host:$port ($encryption)<br>"
       . "<strong>Expéditeur :</strong> $from<br>"
       . "<strong>Destinataire :</strong> $to<br>"
       . "<strong>Date :</strong> $date</p>"
-      . "</body></html>";
+      . '</body></html>';
 
 $result = sendMail($to, $subject, $body);
 

@@ -46,7 +46,7 @@ $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType
 $justCreated = !empty($_SESSION['report_created']);
 unset($_SESSION['report_created']);
 if ($justCreated):
-?>
+    ?>
 <div class="confirmation-banner" role="status" aria-live="polite">
     <div class="confirmation-banner__icon" aria-hidden="true">&#x2705;</div>
     <div class="confirmation-banner__content">
@@ -67,8 +67,8 @@ if ($justCreated):
 <?php endif; ?>
 
 <?php
-// Previous/Next navigation for the same registry list
-$adjacent = getAdjacentReportUuids($pdo, $report);
+    // Previous/Next navigation for the same registry list
+    $adjacent = getAdjacentReportUuids($pdo, $report);
 ?>
 
 <?php

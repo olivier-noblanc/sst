@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Helper Functions — Application SST DREETS BFC
- * 
+ *
  * This file is a LOADER that includes all helper sub-modules.
  * Functions were previously in a single 720-line monolith; they are now
  * split into focused files under src/helpers/ for maintainability.

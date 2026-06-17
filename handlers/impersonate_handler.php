@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Impersonate Handler — Application SST DREETS BFC
  *

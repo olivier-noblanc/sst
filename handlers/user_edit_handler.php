@@ -1,7 +1,8 @@
 <?php
+
 /**
  * User Edit Handler — Application SST DREETS BFC
- * 
+ *
  * POST handler: update user role/info.
  * Access: superviseur only
  */

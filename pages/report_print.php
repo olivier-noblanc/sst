@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Report Print Page — Application SST DREETS BFC
  *
@@ -43,7 +44,8 @@ require_once __DIR__ . '/../src/lib/fpdf/fpdf.php';
  * cp1252 covers all Western European characters including French accents,
  * oe ligature, Euro sign, etc.
  */
-function utf8ToCp1252(?string $s): string {
+function utf8ToCp1252(?string $s): string
+{
     if ($s === null || $s === '') {
         return '';
     }
@@ -61,8 +63,14 @@ class SSTPDF extends FPDF
     public string $footerOrgName = '';
 
     /** Public getters for protected FPDF margin properties. */
-    public function getLeftMargin(): float  { return $this->lMargin; }
-    public function getRightMargin(): float { return $this->rMargin; }
+    public function getLeftMargin(): float
+    {
+        return $this->lMargin;
+    }
+    public function getRightMargin(): float
+    {
+        return $this->rMargin;
+    }
 
     public function Header(): void
     {
@@ -279,8 +287,11 @@ drawField($pdf, 'Déclarant', $report['declarant_prenom'] . ' ' . $report['decla
 drawField($pdf, $labelUnite, ($report['site_nom'] ?? '—') . ' (' . ($report['site_code'] ?? '—') . ')');
 
 if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
-    drawField($pdf, 'Déclaré pour le compte de',
-        ($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']);
+    drawField(
+        $pdf,
+        'Déclaré pour le compte de',
+        ($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']
+    );
 }
 
 drawField($pdf, 'Date de création', formatDateTimeFR($report['created_at']));

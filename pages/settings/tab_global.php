@@ -14,7 +14,10 @@
         <p class="text-muted text-small mb-4">Ces adresses recevront des notifications pour tous les sites et tous les registres.</p>
         <div class="form-group">
             <label for="global_emails">Adresses e-mail</label>
-            <?php $globalEmailList = []; foreach ($globalEmails as $ge) { $globalEmailList[] = $ge['email']; } ?>
+            <?php $globalEmailList = [];
+foreach ($globalEmails as $ge) {
+    $globalEmailList[] = $ge['email'];
+} ?>
             <textarea id="global_emails" name="global_emails" rows="4" class="form-control"
                       aria-describedby="hint_global_emails"
                       placeholder="Une adresse par ligne&#10;ex: direction@dreets.gouv.fr&#10;chsct@dreets.gouv.fr"><?php echo e(implode("\n", $globalEmailList)); ?></textarea>

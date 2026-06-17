@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Audit Log — Application SST DREETS BFC
  *
@@ -27,16 +28,17 @@
  * @param string|null $targetType Type of entity (report, user, site, etc.)
  * @param array<string, mixed> $context   Additional context data (will be JSON-encoded)
  */
-function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = []): void {
+function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = []): void
+{
     try {
         $userId = currentUserId();
         $username = currentUserUsername() ?: 'system';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
 
-        $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare('
             INSERT INTO audit_log (user_id, username, category, action, target_id, target_type, details, context, ip_address)
             VALUES (:user_id, :username, :category, :action, :target_id, :target_type, :details, :context, :ip)
-        ");
+        ');
         $stmt->execute([
             ':user_id'     => $userId,
             ':username'    => $username,
@@ -63,38 +65,39 @@ function auditLog(PDO $pdo, string $category, string $action, string $details, ?
  * @param int    $perPage   Items per page
  * @return array{entries: array<int, array<string, mixed>>, total: int}
  */
-function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage = 50): array {
-    $where = "1=1";
+function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage = 50): array
+{
+    $where = '1=1';
     $params = [];
 
     if (!empty($filters['category'])) {
-        $where .= " AND category = :category";
+        $where .= ' AND category = :category';
         $params[':category'] = $filters['category'];
     }
 
     if (!empty($filters['user_id'])) {
-        $where .= " AND user_id = :user_id";
+        $where .= ' AND user_id = :user_id';
         $params[':user_id'] = (int) $filters['user_id'];
     }
 
     if (!empty($filters['date_from'])) {
-        $where .= " AND created_at >= :date_from";
+        $where .= ' AND created_at >= :date_from';
         $params[':date_from'] = $filters['date_from'];
     }
 
     if (!empty($filters['date_to'])) {
-        $where .= " AND created_at <= :date_to";
+        $where .= ' AND created_at <= :date_to';
         $params[':date_to'] = $filters['date_to'];
     }
 
     if (!empty($filters['q'])) {
-        $where .= " AND (details LIKE :q OR username LIKE :q2)";
+        $where .= ' AND (details LIKE :q OR username LIKE :q2)';
         $params[':q'] = '%' . $filters['q'] . '%';
         $params[':q2'] = '%' . $filters['q'] . '%';
     }
 
     if (!empty($filters['username'])) {
-        $where .= " AND username = :filter_username";
+        $where .= ' AND username = :filter_username';
         $params[':filter_username'] = $filters['username'];
     }
 
@@ -124,12 +127,13 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
  * @param int    $targetId    Entity ID
  * @return array<int, array<string, mixed>>
  */
-function getAuditLogForTarget(PDO $pdo, string $targetType, int $targetId): array {
-    $stmt = $pdo->prepare("
+function getAuditLogForTarget(PDO $pdo, string $targetType, int $targetId): array
+{
+    $stmt = $pdo->prepare('
         SELECT * FROM audit_log
         WHERE target_type = :target_type AND target_id = :target_id
         ORDER BY created_at DESC
-    ");
+    ');
     $stmt->execute([':target_type' => $targetType, ':target_id' => $targetId]);
     return $stmt->fetchAll();
 }

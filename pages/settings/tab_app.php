@@ -133,15 +133,15 @@
                 'rami' => ['label' => 'RAMI — Registre des Agressions, Menaces et Incivilités', 'default' => '', 'legal' => 'Données sensibles (art. 9 RGPD) : le mode confidentiel ou choix de l\'agent est recommandé.'],
                 'dgi'  => ['label' => 'DGI — Danger Grave et Imminent', 'default' => '', 'legal' => 'Articles L4131-1 et D4132-1 du Code du travail : le formalisme du registre spécial peut justifier un mode restrictif.'],
             ];
-            foreach ($registries as $type => $info):
-                $configKey = 'app_report_visibility_' . $type;
-                $currentValue = getConfig($configKey, '');
-                // Fallback to global if per-registry key is empty
-                if ($currentValue === '') {
-                    $currentValue = getConfig('app_report_visibility', 'agent_choice');
-                }
-                $currentValue = normalizeVisibilityValue($currentValue);
-            ?>
+foreach ($registries as $type => $info):
+    $configKey = 'app_report_visibility_' . $type;
+    $currentValue = getConfig($configKey, '');
+    // Fallback to global if per-registry key is empty
+    if ($currentValue === '') {
+        $currentValue = getConfig('app_report_visibility', 'agent_choice');
+    }
+    $currentValue = normalizeVisibilityValue($currentValue);
+    ?>
             <fieldset class="form-group visibility-radios" id="visibility-radios-<?php echo e($type); ?>">
                 <legend class="visibility-legend"><?php echo e($info['label']); ?></legend>
                 <div class="visibility-radios">

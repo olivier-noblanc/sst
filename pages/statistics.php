@@ -1,7 +1,7 @@
 <?php
 /**
  * Statistics Page — Application SST DREETS BFC
- * 
+ *
  * Tableau de bord avec cartes indicateurs et répartition par site.
  * Access: superviseur, chsct
  */
@@ -41,7 +41,7 @@ foreach ($sites as $site) {
         'rsst' => 0,
         'dgi'  => 0,
         'rami' => 0,
-        'total'=> 0,
+        'total' => 0,
     ];
 }
 

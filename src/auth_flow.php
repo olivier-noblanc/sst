@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Authentication Flow — Application SST DREETS BFC
  *
@@ -23,7 +24,8 @@
  * in session, this function authenticates them automatically and triggers
  * lazy cron maintenance tasks.
  */
-function handleAutoAuth(): void {
+function handleAutoAuth(): void
+{
     if (isUserLoggedIn()) {
         return;
     }
@@ -57,7 +59,8 @@ function handleAutoAuth(): void {
  *
  * @param string $page  The current page name (must be 'login')
  */
-function handleLoginPage(string $page): void {
+function handleLoginPage(string $page): void
+{
     if ($page !== 'login') {
         return;
     }
@@ -106,7 +109,8 @@ function handleLoginPage(string $page): void {
  * In dev: saves the intended URL and redirects to the mock login form.
  * In prod: dies with a configuration error (IIS should have provided AUTH_USER).
  */
-function handleNotAuthenticated(): void {
+function handleNotAuthenticated(): void
+{
     if (isUserLoggedIn()) {
         return;
     }
@@ -139,14 +143,20 @@ function handleNotAuthenticated(): void {
  * In dev: redirects to the mock login form.
  * In prod: redirects to home (IIS will re-authenticate automatically).
  */
-function handleLogout(): void {
+function handleLogout(): void
+{
     // Clear PHP session completely
     clearSession();
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params['path'], $params['domain'],
-            $params['secure'], $params['httponly']
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params['path'],
+            $params['domain'],
+            $params['secure'],
+            $params['httponly']
         );
     }
     session_destroy();

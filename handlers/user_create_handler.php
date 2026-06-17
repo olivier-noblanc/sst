@@ -1,7 +1,8 @@
 <?php
+
 /**
  * User Create Handler — Application SST DREETS BFC
- * 
+ *
  * POST handler: create a new user.
  * Access: superviseur only
  */

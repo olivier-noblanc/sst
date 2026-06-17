@@ -1,7 +1,8 @@
 <?php
+
 /**
  * PHP Built-in Server Router — Development Only
- * 
+ *
  * This router file prevents the built-in server from crashing
  * by handling static files and routing PHP requests properly.
  *

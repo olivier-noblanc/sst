@@ -12,12 +12,12 @@
     <?php foreach ($sites as $site): ?>
         <?php
             $sId = (int) $site['id'];
-            $existingEmails = [];
-            if (isset($siteEmails[$sId])) {
-                foreach ($siteEmails[$sId] as $se) {
-                    $existingEmails[] = $se['email'];
-                }
+        $existingEmails = [];
+        if (isset($siteEmails[$sId])) {
+            foreach ($siteEmails[$sId] as $se) {
+                $existingEmails[] = $se['email'];
             }
+        }
         ?>
         <div class="card mb-4">
             <h3 class="card__subtitle">

@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Report Reopen Handler — Application SST DREETS BFC
- * 
+ *
  * POST handler: reopen a report that was traite or abandonne.
  * Access: superviseur or CHSCT only (not declarant — French labor law)
  */
@@ -44,10 +45,10 @@ try {
     $pdo->beginTransaction();
 
     // Insert state history BEFORE changing state
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         INSERT INTO report_state_history (report_uuid, etat_precedent, etat_suivant, user_id, motif)
         VALUES (:report_uuid, :etat_precedent, :etat_suivant, :user_id, :motif)
-    ");
+    ');
     $stmt->execute([
         ':report_uuid'    => $reportUuid,
         ':etat_precedent' => $report['etat'],
@@ -74,10 +75,10 @@ try {
     }
 
     // Insert into response history
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
         VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
-    ");
+    ');
     $stmt->execute([
         ':report_uuid' => $reportUuid,
         ':user_id'     => $userId,
@@ -97,12 +98,12 @@ try {
         if ($declarant && !empty($declarant['email']) && (int) $report['declarant_id'] !== $userId) {
             $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper($report['type']);
             $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
-            $body = "<html><body>";
-            $body .= "<h2>Votre signalement a été réouvert</h2>";
-            $body .= "<p><strong>Référence :</strong> " . e($report['reference']) . "</p>";
-            $body .= "<p><strong>Motif :</strong> " . e($motifReouverture) . "</p>";
-            $body .= "<p><a href=\"" . getBaseUrl() . "/" . url('report_view', ['uuid' => $reportUuid]) . "\">Consulter le signalement</a></p>";
-            $body .= "</body></html>";
+            $body = '<html><body>';
+            $body .= '<h2>Votre signalement a été réouvert</h2>';
+            $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
+            $body .= '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>';
+            $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+            $body .= '</body></html>';
             sendMail($declarant['email'], $subject, $body);
         }
     } catch (Exception $mailEx) {

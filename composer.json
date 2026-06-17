@@ -2,7 +2,9 @@
     "name": "dreets-bfc/sst-app",
     "description": "Application SST DREETS Bourgogne-Franche-Comté",
     "type": "project",
-    "require": {},
+    "require": {
+        "php": ">=8.2"
+    },
     "require-dev": {
         "phpunit/phpunit": "^11",
         "phpstan/phpstan": "^2",

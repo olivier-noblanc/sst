@@ -54,6 +54,24 @@ class AccessHelperTest extends TestCase
         $this->assertTrue(canEditReport($report, 5));
     }
 
+    public function testDeclarantCannotEditReouvertReport(): void
+    {
+        $report = ['declarant_id' => '5', 'etat' => 'reouvert'];
+        $this->assertFalse(canEditReport($report, 5));
+    }
+
+    public function testNonDeclarantCannotEditInProgressReport(): void
+    {
+        $report = ['declarant_id' => '5', 'etat' => 'en_cours'];
+        $this->assertFalse(canEditReport($report, 99));
+    }
+
+    public function testDeclarantCannotEditTreatedReportEvenIfDeclarant(): void
+    {
+        $report = ['declarant_id' => '5', 'etat' => 'traite'];
+        $this->assertFalse(canEditReport($report, 5));
+    }
+
     // ─── canRespondToReport ─────────────────────────────────────────────────
 
     public function testSuperviseurCanRespondToNewReport(): void
@@ -89,6 +107,24 @@ class AccessHelperTest extends TestCase
     public function testChsctCannotRespondToNewReport(): void
     {
         $report = ['etat' => 'nouveau'];
+        $this->assertFalse(canRespondToReport($report, 'chsct'));
+    }
+
+    public function testSuperviseurCanRespondToReouvertReport(): void
+    {
+        $report = ['etat' => 'reouvert'];
+        $this->assertTrue(canRespondToReport($report, 'superviseur'));
+    }
+
+    public function testAgentCannotRespondToReouvertReport(): void
+    {
+        $report = ['etat' => 'reouvert'];
+        $this->assertFalse(canRespondToReport($report, 'agent'));
+    }
+
+    public function testChsctCannotRespondToReouvertReport(): void
+    {
+        $report = ['etat' => 'reouvert'];
         $this->assertFalse(canRespondToReport($report, 'chsct'));
     }
 
@@ -146,6 +182,48 @@ class AccessHelperTest extends TestCase
         // Agent cannot see confidential report from other declarant
         $report2 = ['site_id' => '1', 'declarant_id' => '99', 'is_confidential' => '1', 'type' => 'rsst'];
         $this->assertFalse(canAccessReport($report2, $user, 'agent_choice'));
+    }
+
+    public function testAgentCanAccessOwnConfidentialReportInAgentChoiceMode(): void
+    {
+        $report = ['site_id' => '1', 'declarant_id' => '5', 'is_confidential' => '1', 'type' => 'rsst'];
+        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $this->assertTrue(canAccessReport($report, $user, 'agent_choice'));
+    }
+
+    public function testSuperviseurCanAccessConfidentialAcrossSites(): void
+    {
+        $report = ['site_id' => '10', 'declarant_id' => '99', 'is_confidential' => '1', 'type' => 'rsst'];
+        $user = ['id' => 5, 'site_id' => 1, 'role' => 'superviseur'];
+        $this->assertTrue(canAccessReport($report, $user, 'confidential'));
+    }
+
+    public function testChsctCanAccessPublicAcrossSites(): void
+    {
+        $report = ['site_id' => '10', 'declarant_id' => '99', 'is_confidential' => '0', 'type' => 'rsst'];
+        $user = ['id' => 5, 'site_id' => 1, 'role' => 'chsct'];
+        $this->assertTrue(canAccessReport($report, $user, 'public'));
+    }
+
+    public function testAgentCannotAccessDifferentSiteEvenInPublicMode(): void
+    {
+        $report = ['site_id' => '2', 'declarant_id' => '99', 'is_confidential' => '0', 'type' => 'rsst'];
+        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $this->assertFalse(canAccessReport($report, $user, 'public'));
+    }
+
+    public function testAgentCanAccessOwnConfidentialInConfidentialMode(): void
+    {
+        $report = ['site_id' => '1', 'declarant_id' => '5', 'is_confidential' => '1', 'type' => 'rsst'];
+        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $this->assertTrue(canAccessReport($report, $user, 'confidential'));
+    }
+
+    public function testAgentCannotAccessOtherConfidentialInConfidentialModeSameSite(): void
+    {
+        $report = ['site_id' => '1', 'declarant_id' => '99', 'is_confidential' => '1', 'type' => 'rsst'];
+        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $this->assertFalse(canAccessReport($report, $user, 'confidential'));
     }
 
     // ─── normalizeVisibilityValue ────────────────────────────────────────────

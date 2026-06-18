@@ -222,6 +222,25 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     foreach ($recipients as $email) {
         sendMail($email, $subject, $body);
     }
+
+    // DGI: notify CSA/CHSCT members (article L4131-2 Code du travail)
+    if ($type === TYPE_DGI && getConfig('app_dgi_notify_csa', '1') === '1') {
+        $csaUsers = getUsersByRole($pdo, ROLE_CHSCT);
+        foreach ($csaUsers as $csaUser) {
+            if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients)) {
+                $csaSubject = "Signalement DGI — Notification CSA/CHSCT — {$report['reference']}";
+                $csaBody = '<html><body>';
+                $csaBody .= '<h2>Notification DGI — Article L4131-2 du Code du travail</h2>';
+                $csaBody .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>';
+                $csaBody .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
+                $csaBody .= '<p><strong>Objet :</strong> ' . e($report['objet']) . '</p>';
+                $csaBody .= '<p><strong>Déclarant :</strong> ' . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . '</p>';
+                $csaBody .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+                $csaBody .= '</body></html>';
+                sendMail($csaUser['email'], $csaSubject, $csaBody);
+            }
+        }
+    }
 }
 
 /**

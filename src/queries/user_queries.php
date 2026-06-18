@@ -56,6 +56,21 @@ function getUserById(PDO $pdo, int $id): ?array
 }
 
 /**
+ * Get all active users with a given role.
+ *
+ * @param PDO    $pdo   Database connection
+ * @param string $role  Role constant (ROLE_AGENT, ROLE_SUPERVISEUR, ROLE_CHSCT)
+ * @return array<int, array<string, mixed>>
+ */
+function getUsersByRole(PDO $pdo, string $role): array
+{
+    $sql = userSelectWithSite() . ' WHERE u.role = :role AND u.is_active = 1';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':role' => $role]);
+    return $stmt->fetchAll();
+}
+
+/**
  * Get all active users, optionally filtered by site.
  *
  * @param PDO    $pdo     Database connection

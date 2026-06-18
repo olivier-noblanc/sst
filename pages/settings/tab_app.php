@@ -144,6 +144,21 @@
                     <span>Activer le registre DGI (Danger Grave et Imminent)</span>
                 </label>
             </div>
+            <div class="form-group" id="dgi-notif-csa-group">
+                <label class="toggle-switch-label">
+                    <input type="checkbox" name="app_dgi_notify_csa" id="app_dgi_notify_csa" value="1"
+                           class="toggle-switch__input"
+                           <?php echo getConfig('app_dgi_notify_csa', '1') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                    <span>Notifier le <?php echo e(getConfig('app_role_label_chsct', 'Membre FS/CSA')); ?> lors d'un signalement DGI</span>
+                </label>
+                <small class="text-muted block mt-1">
+                    Conformément à l'article L4131-2 du Code du travail, le <?php echo e(getConfig('app_role_label_chsct', 'Membre FS/CSA')); ?>
+                    doit être informé de tout signalement relatif à un danger grave et imminent.
+                    Si activé, les membres <?php echo e(getConfig('app_role_label_chsct', 'Membre FS/CSA')); ?> recevront un e-mail de notification
+                    pour chaque nouveau signalement DGI.
+                </small>
+            </div>
         </div>
 
         <div class="separator">

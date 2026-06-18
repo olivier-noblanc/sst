@@ -163,6 +163,10 @@ try {
         updateConfig($pdo, 'app_registry_rami_enabled', $ramiEnabled);
         updateConfig($pdo, 'app_registry_dgi_enabled', $dgiEnabled);
 
+        // DGI: notify CSA/CHSCT (article L4131-2 Code du travail)
+        $dgiNotifyCsa = !empty($_POST['app_dgi_notify_csa']) ? '1' : '0';
+        updateConfig($pdo, 'app_dgi_notify_csa', $dgiNotifyCsa);
+
         // Customizable role labels
         $roleLabelAgent = trim($_POST['app_role_label_agent'] ?? 'Agent');
         $roleLabelSuperviseur = trim($_POST['app_role_label_superviseur'] ?? 'Superviseur');

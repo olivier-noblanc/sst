@@ -11,6 +11,7 @@
 requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
+$noSiteMode = isNoSiteMode($pdo);
 
 // Get sites
 $sites = getAllSites($pdo);
@@ -35,10 +36,15 @@ foreach ($currentSettings as $setting) {
 }
 
 // Active tab — whitelist validation to prevent LFI/path traversal
-$activeTab = $_GET['tab'] ?? 'sites';
+$defaultTab = $noSiteMode ? 'global' : 'sites';
+$activeTab = $_GET['tab'] ?? $defaultTab;
 $allowedTabs = ['sites', 'global', 'smtp', 'manage_sites', 'app'];
 if (!in_array($activeTab, $allowedTabs)) {
-    $activeTab = 'sites'; // default tab
+    $activeTab = $defaultTab;
+}
+// Redirect 'sites' tab to 'global' in noSiteMode
+if ($noSiteMode && $activeTab === 'sites') {
+    $activeTab = 'global';
 }
 
 $pageTitle = 'Paramètres';
@@ -49,10 +55,12 @@ $pageTitle = 'Paramètres';
 
 <!-- Tabs -->
 <div class="tab-bar">
+    <?php if (!$noSiteMode): ?>
     <a href="<?php echo url('settings', ['tab' => 'sites']); ?>"
        class="settings-tab <?php echo $activeTab === 'sites' ? 'settings-tab--active' : ''; ?>">
         &#x1F4CD; Notifications par site
     </a>
+    <?php endif; ?>
     <a href="<?php echo url('settings', ['tab' => 'global']); ?>"
        class="settings-tab <?php echo $activeTab === 'global' ? 'settings-tab--active' : ''; ?>">
         &#x1F310; Notifications globales
@@ -63,7 +71,7 @@ $pageTitle = 'Paramètres';
     </a>
     <a href="<?php echo url('settings', ['tab' => 'manage_sites']); ?>"
        class="settings-tab <?php echo $activeTab === 'manage_sites' ? 'settings-tab--active' : ''; ?>">
-        &#x1F3E2; Gestion des sites
+        &#x1F3E2; Gestion des <?php echo e(getConfig('app_label_unite', 'UR')); ?>s
     </a>
     <a href="<?php echo url('settings', ['tab' => 'app']); ?>"
        class="settings-tab <?php echo $activeTab === 'app' ? 'settings-tab--active' : ''; ?>">

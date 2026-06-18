@@ -12,6 +12,8 @@ $pageTitle = 'Guide rapide';
 $ramiEnabled = isRegistryEnabled(TYPE_RAMI);
 $dgiEnabled = isRegistryEnabled(TYPE_DGI);
 $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
+$noSiteMode = isNoSiteMode(getDB());
+$labelUnite = getConfig('app_label_unite', 'UR');
 ?>
 <style>
     /* Guide page — self-contained print-ready styles */
@@ -239,12 +241,18 @@ $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
         <div class="guide-step__content">
             <h2 class="guide-step__title">Choisissez le bon registre</h2>
             <p class="guide-step__text">
+                <?php if ($registryCount === 1): ?>
+                Sur la page d'accueil, <strong>cliquez sur le bouton « Deposer un signalement »</strong>
+                sous le registre <strong>RSST (Sante et Securite au Travail)</strong>.
+                C'est le registre par defaut pour signaler tout probleme de sante ou securite au travail.
+                <?php else: ?>
                 Sur la page d'accueil, <strong>cliquez sur le bouton « Signaler un evenement »</strong>
                 sous le registre correspondant :
                 <strong>RSST (Sante et Securite au Travail)</strong><?php if ($ramiEnabled): ?>,
                 <strong>RAMI (Agressions, Menaces, Incivilites)</strong><?php endif; ?><?php if ($dgiEnabled): ?> ou
                 <strong>DGI (Danger Grave et Imminent)</strong><?php else: ?><?php if ($ramiEnabled): ?> ou<?php endif; ?><?php endif; ?>.
-                Choisissez le registre qui correspond a votre situation :
+                Choisissez le registre qui correspond a votre situation.
+                <?php endif; ?>
             </p>
             <div class="guide-registres">
                 <div class="guide-registre guide-registre--rsst">
@@ -282,6 +290,9 @@ $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
             </p>
             <ul style="margin: 0 0 10px 20px; font-size: 15px;">
                 <li><strong>Date de l'evenement</strong> — la date ou cela s'est passe</li>
+                <?php if (!$noSiteMode): ?>
+                <li><strong><?php echo e($labelUnite); ?> de rattachement</strong> — votre unite de travail</li>
+                <?php endif; ?>
                 <li><strong>Objet</strong> — un resume court en quelques mots</li>
                 <li><strong>Description</strong> — expliquez ce qui s'est passe en detail</li>
             </ul>

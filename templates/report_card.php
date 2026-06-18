@@ -102,11 +102,23 @@ if (!isset($csrfToken)) {
                 <?php endif; ?>
                 <?php
                 $linkedAgents = getLinkedAgents($pdo ?? getDB(), $report['uuid']);
-                if (!empty($linkedAgents)):
+                $pendingInvites = getPendingInvites($pdo ?? getDB(), $report['uuid']);
+                if (!empty($linkedAgents) || !empty($pendingInvites)):
                 ?>
                 <tr>
                     <th>Agents rattachés</th>
-                    <td><?php echo e(implode(', ', array_map(function($a) { return $a['prenom'] . ' ' . $a['nom']; }, $linkedAgents))); ?></td>
+                    <td>
+                        <?php if (!empty($linkedAgents)): ?>
+                            <?php echo e(implode(', ', array_map(function($a) { return $a['prenom'] . ' ' . $a['nom']; }, $linkedAgents))); ?>
+                        <?php endif; ?>
+                        <?php if (!empty($pendingInvites)): ?>
+                            <?php
+                            $pendingEmails = array_map(function($i) { return $i['email'] . ' (en attente)'; }, $pendingInvites);
+                            $existingText = !empty($linkedAgents) ? ', ' : '';
+                            echo $existingText . '<span class="text-muted">' . e(implode(', ', $pendingEmails)) . '</span>';
+                            ?>
+                        <?php endif; ?>
+                    </td>
                 </tr>
                 <?php endif; ?>
                 <?php if (isset($report['consent_syndicat'])): ?>

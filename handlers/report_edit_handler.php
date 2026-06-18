@@ -105,9 +105,21 @@ if ($type === TYPE_RAMI) {
 // Update the report
 $updated = updateReport($pdo, $reportUuid, $updateData, $userId);
 
-// Update linked agents
-$linkedAgentIds = $_POST['linked_agents'] ?? [];
-replaceLinkedAgents($pdo, $reportUuid, (array) $linkedAgentIds);
+// Update linked agents — send new invite emails for newly added addresses
+$linkedEmailsRaw = trim($_POST['linked_emails'] ?? '');
+if (!empty($linkedEmailsRaw)) {
+    $linkedEmailsList = array_map('trim', explode(',', $linkedEmailsRaw));
+    $linkedEmailsList = array_filter($linkedEmailsList, function($e) { return filter_var($e, FILTER_VALIDATE_EMAIL); });
+    // Get existing linked agents' emails
+    $existingLinked = getLinkedAgents($pdo, $reportUuid);
+    $existingEmails = array_column($existingLinked, 'email');
+    // Only send invites for NEW emails not already linked
+    $newEmails = array_diff($linkedEmailsList, $existingEmails);
+    if (!empty($newEmails)) {
+        require_once __DIR__ . '/../src/mail.php';
+        sendAgentInviteEmails($pdo, $reportUuid, $newEmails);
+    }
+}
 
 if ($updated) {
     auditLog($pdo, 'report', 'edit', 'Signalement modifié : ' . $report['reference'], (int) $report['id'], 'report', ['reference' => $report['reference']]);

@@ -391,32 +391,36 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
 }
 
 /**
- * Notify linked agents that they have been attached to a report.
- * @param array<int> $agentIds
+ * Send confirmation emails to agents invited to be linked to a report.
+ * Each agent receives a unique token link they must click to confirm.
+ * @param array<string> $emails  List of email addresses
  */
-function notifyLinkedAgents(PDO $pdo, string $reportUuid, array $agentIds): void
+function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): void
 {
     $report = getReportByUuid($pdo, $reportUuid);
     if (!$report) {
         return;
     }
-    foreach ($agentIds as $uid) {
-        $uid = (int) $uid;
-        if ($uid <= 0) continue;
-        $stmt = $pdo->prepare('SELECT email, nom, prenom FROM users WHERE id = ? AND is_active = 1');
-        $stmt->execute([$uid]);
-        $agent = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($agent && !empty($agent['email'])) {
-            $subject = "Vous avez été rattaché(e) au signalement " . $report['reference'];
-            $body = buildEmailBody(
-                'Rattachement à un signalement',
-                '<p>Bonjour ' . e($agent['prenom']) . ',</p>'
-                . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report['reference']) . '</strong> par le déclarant.</p>'
-                . '<p><strong>Objet :</strong> ' . e($report['objet']) . '</p>'
-                . '<p><a href="' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
-            );
-            sendMail($agent['email'], $subject, $body);
-        }
+    foreach ($emails as $email) {
+        $email = trim($email);
+        if (empty($email)) continue;
+        // Create invite token
+        $token = createAgentInvite($pdo, $reportUuid, $email);
+        // Build confirmation link
+        $confirmUrl = url('agent_confirm', ['token' => $token]);
+        $subject = "Vous avez été rattaché(e) au signalement " . $report['reference'];
+        $body = buildEmailBody(
+            'Confirmation de rattachement',
+            '<p>Bonjour,</p>'
+            . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report['reference']) . '</strong> par le déclarant.</p>'
+            . '<p><strong>Objet :</strong> ' . e($report['objet']) . '</p>'
+            . '<p>Pour confirmer votre rattachement, cliquez sur le bouton ci-dessous :</p>'
+            . '<p style="text-align:center; margin:16px 0;">'
+            . '<a href="' . $confirmUrl . '" style="display:inline-block; padding:12px 24px; background:#2563eb; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;">Confirmer mon rattachement</a>'
+            . '</p>'
+            . '<p style="font-size:13px; color:#888;">Si vous ne souhaitez pas être rattaché(e), ignorez cet e-mail. Aucune action ne sera effectuée.</p>'
+        );
+        sendMail($email, $subject, $body);
     }
 }
 

@@ -256,3 +256,18 @@ CREATE TABLE IF NOT EXISTS report_state_history (
 
 CREATE INDEX IF NOT EXISTS idx_state_history_report ON report_state_history(report_uuid);
 CREATE INDEX IF NOT EXISTS idx_state_history_created ON report_state_history(created_at);
+
+-- Agent link invitations (pending confirmation)
+CREATE TABLE IF NOT EXISTS report_agent_invites (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_uuid TEXT NOT NULL,
+    email       TEXT NOT NULL,
+    token       TEXT NOT NULL,
+    confirmed   INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    confirmed_at TEXT DEFAULT NULL,
+    FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+    UNIQUE(token)
+);
+CREATE INDEX IF NOT EXISTS idx_agent_invites_uuid ON report_agent_invites(report_uuid);
+CREATE INDEX IF NOT EXISTS idx_agent_invites_token ON report_agent_invites(token);

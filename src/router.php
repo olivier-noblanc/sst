@@ -24,6 +24,7 @@ function getValidPages(): array
         'home', 'preamble', 'help', 'guide', 'changelog', 'access_denied', 'choose_site',
         'report_create', 'report_list', 'report_view', 'report_edit',
         'report_print', 'report_attachment', 'report_abandon', 'report_respond', 'report_reopen',
+        'agent_confirm',
         'synthesis', 'export', 'statistics',
         'settings', 'site_edit',
         'users', 'user_edit', 'user_view',
@@ -70,6 +71,7 @@ function getHandlerMap(): array
         'user_delete'     => __DIR__ . '/../handlers/user_delete_handler.php',
         'user_reactivate' => __DIR__ . '/../handlers/user_reactivate_handler.php',
         'impersonate'     => __DIR__ . '/../handlers/impersonate_handler.php',
+        'agent_confirm'   => __DIR__ . '/../handlers/agent_confirm_handler.php',
     ];
 }
 

@@ -79,6 +79,31 @@ if ($type === TYPE_RAMI) {
     $errors = array_merge($errors, validatePourCompte($pourCompte, $pourCompteNom, $pourComptePrenom));
 }
 
+// Validate linked agent emails (domain must match declarant's domain)
+$linkedEmailsRaw = trim($_POST['linked_emails'] ?? '');
+if (!empty($linkedEmailsRaw)) {
+    $declarantEmail = $user['email'] ?? '';
+    $emailDomain = '';
+    if ($declarantEmail && strpos($declarantEmail, '@') !== false) {
+        $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
+    }
+    $linkedEmailsList = array_map('trim', explode(',', $linkedEmailsRaw));
+    foreach ($linkedEmailsList as $idx => $em) {
+        if (empty($em)) continue;
+        if (!filter_var($em, FILTER_VALIDATE_EMAIL)) {
+            $errors['linked_emails'] = 'Adresse e-mail invalide : ' . e($em);
+            break;
+        }
+        if ($emailDomain) {
+            $emDomain = substr($em, strrpos($em, '@') + 1);
+            if (strtolower($emDomain) !== strtolower($emailDomain)) {
+                $errors['linked_emails'] = 'Seul le domaine @' . e($emailDomain) . ' est autorisé. Adresse refusée : ' . e($em);
+                break;
+            }
+        }
+    }
+}
+
 // If errors, redirect back with form data
 if (!empty($errors)) {
     setFormErrors($errors);
@@ -142,11 +167,14 @@ try {
         if ($type === TYPE_RAMI && !empty($pourCompteNom)) {
             notifyPourCompte($pdo, $newUuid);
         }
-        // Notify linked agents
-        $linkedAgentIds = $_POST['linked_agents'] ?? [];
-        if (!empty($linkedAgentIds)) {
-            linkAgentsToReport($pdo, $newUuid, $linkedAgentIds);
-            notifyLinkedAgents($pdo, $newUuid, $linkedAgentIds);
+        // Send invite emails to linked agents
+        $linkedEmailsRaw = trim($_POST['linked_emails'] ?? '');
+        if (!empty($linkedEmailsRaw)) {
+            $linkedEmails = array_map('trim', explode(',', $linkedEmailsRaw));
+            $linkedEmails = array_filter($linkedEmails, function($e) { return filter_var($e, FILTER_VALIDATE_EMAIL); });
+            if (!empty($linkedEmails)) {
+                sendAgentInviteEmails($pdo, $newUuid, $linkedEmails);
+            }
         }
     } catch (Exception $mailEx) {
         error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());

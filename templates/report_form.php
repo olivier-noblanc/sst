@@ -295,32 +295,37 @@ $submitBtnClass = $isEdit
         </div>
 
         <?php
-        // Linked agents — multi-select (available for all registries)
-        $pdo = getDB();
-        $availableAgents = $pdo->query("
-            SELECT id, nom, prenom
-            FROM users
-            WHERE role = 'agent' AND is_active = 1
-            ORDER BY nom, prenom
-        ")->fetchAll(PDO::FETCH_ASSOC);
-        $linkedAgentIds = $isEdit && $report ? array_column(getLinkedAgents($pdo, $report['uuid']), 'id') : [];
-        if (!empty($availableAgents)):
+        // Linked agents — free email field with domain validation
+        $declarantEmail = $user['email'] ?? '';
+        $emailDomain = '';
+        if ($declarantEmail && strpos($declarantEmail, '@') !== false) {
+            $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
+        }
+        $linkedEmails = '';
+        if ($isEdit && $report) {
+            $existing = getLinkedAgents($pdo ?? getDB(), $report['uuid']);
+            $linkedEmails = implode(', ', array_map(function($a) { return $a['email']; }, $existing));
+        }
+        if (isset($formData['linked_emails'])) {
+            $linkedEmails = $formData['linked_emails'];
+        }
         ?>
         <div class="form-group form-grid__full">
-            <label for="linked_agents">Agents rattachés au signalement</label>
-            <select id="linked_agents" name="linked_agents[]" multiple
-                    class="form-control" size="5"
-                    aria-describedby="hint_linked_agents">
-                <?php foreach ($availableAgents as $ag): ?>
-                    <option value="<?php echo e($ag['id']); ?>"
-                        <?php echo in_array((int)$ag['id'], $linkedAgentIds) || (isset($formData['linked_agents']) && in_array((string)$ag['id'], (array)$formData['linked_agents'])) ? 'selected' : ''; ?>>
-                        <?php echo e($ag['nom'] . ' ' . $ag['prenom']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <span class="form-hint" id="hint_linked_agents">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs agents. Ils recevront une notification par e-mail.</span>
+            <label for="linked_emails">Rattacher des collègues au signalement</label>
+            <input type="text" id="linked_emails" name="linked_emails"
+                   class="form-control"
+                   value="<?php echo e($linkedEmails); ?>"
+                   placeholder="prenom.nom@<?php echo e($emailDomain); ?>"
+                   autocomplete="off"
+                   aria-describedby="hint_linked_emails">
+            <span class="form-hint" id="hint_linked_emails">
+                Adresses e-mail séparées par des virgules. Domaine autorisé : <strong>@<?php echo e($emailDomain); ?></strong>.
+                Chaque collègue recevra un e-mail de confirmation — il devra cliquer pour confirmer son rattachement.
+            </span>
+            <?php if (isset($formErrors['linked_emails'])): ?>
+                <span class="form-error"><?php echo e($formErrors['linked_emails']); ?></span>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
 
         <div class="form-actions">
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">

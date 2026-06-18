@@ -228,7 +228,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         $csaUsers = getUsersByRole($pdo, ROLE_CHSCT);
         foreach ($csaUsers as $csaUser) {
             if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients)) {
-                $csaSubject = "Signalement DGI — Notification CSA/CHSCT — {$report['reference']}";
+                $csaSubject = "Signalement DGI — Notification " . getRoleLabelShort('chsct') . " — {$report['reference']}";
                 $csaBody = '<html><body>';
                 $csaBody .= '<h2>Notification DGI — Article L4131-2 du Code du travail</h2>';
                 $csaBody .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>';
@@ -377,7 +377,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     if ($newRole === ROLE_SUPERVISEUR) {
         $body .= "<p>En tant que <strong>Superviseur</strong>, vous pouvez désormais : répondre aux signalements, gérer les utilisateurs, consulter la synthèse et les statistiques, exporter les données, et configurer les paramètres de l'application.</p>";
     } elseif ($newRole === ROLE_CHSCT) {
-        $body .= '<p>En tant que <strong>Membre CSA/CHSCT</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>';
+        $body .= '<p>En tant que <strong>' . e(getRoleLabel('chsct')) . '</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>';
     } else {
         $body .= "<p>En tant qu'<strong>Agent</strong>, vous pouvez créer des signalements et suivre leurs réponses.</p>";
     }
@@ -388,6 +388,36 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     $body .= '</body></html>';
 
     sendMail($user['email'], $subject, $body);
+}
+
+/**
+ * Notify linked agents that they have been attached to a report.
+ * @param array<int> $agentIds
+ */
+function notifyLinkedAgents(PDO $pdo, string $reportUuid, array $agentIds): void
+{
+    $report = getReportByUuid($pdo, $reportUuid);
+    if (!$report) {
+        return;
+    }
+    foreach ($agentIds as $uid) {
+        $uid = (int) $uid;
+        if ($uid <= 0) continue;
+        $stmt = $pdo->prepare('SELECT email, nom, prenom FROM users WHERE id = ? AND is_active = 1');
+        $stmt->execute([$uid]);
+        $agent = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($agent && !empty($agent['email'])) {
+            $subject = "Vous avez été rattaché(e) au signalement " . $report['reference'];
+            $body = buildEmailBody(
+                'Rattachement à un signalement',
+                '<p>Bonjour ' . e($agent['prenom']) . ',</p>'
+                . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report['reference']) . '</strong> par le déclarant.</p>'
+                . '<p><strong>Objet :</strong> ' . e($report['objet']) . '</p>'
+                . '<p><a href="' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
+            );
+            sendMail($agent['email'], $subject, $body);
+        }
+    }
 }
 
 /**

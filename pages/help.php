@@ -220,7 +220,7 @@ function helpScreenshot(string $src, string $alt): string
                 <?php if ($dgiEnabled): ?><li><a href="#cu3"><span class="help-toc__num-sub">6c</span> Danger Grave et Imminent (DGI)</a></li><?php endif; ?>
                 <li><a href="#cu4"><span class="help-toc__num-sub">6d</span> Traiter un signalement</a></li>
                 <li><a href="#cu5"><span class="help-toc__num-sub">6e</span> Abandonner un signalement</a></li>
-                <li><a href="#cu6"><span class="help-toc__num-sub">6f</span> Consulter la synthèse (CSA/CHSCT)</a></li>
+                <li><a href="#cu6"><span class="help-toc__num-sub">6f</span> Consulter la synthèse (<?php echo e(getRoleLabelShort('chsct')); ?>)</a></li>
                 <li><a href="#cu7"><span class="help-toc__num-sub">6g</span> Gérer les utilisateurs et la configuration</a></li>
                 <li><a href="#cu8"><span class="help-toc__num-sub">6h</span> Imprimer une fiche de signalement</a></li>
             </ol>
@@ -282,7 +282,7 @@ function helpScreenshot(string $src, string $alt): string
         <!-- CHSCT -->
         <div class="help-profile-card help-profile-card--chsct">
             <h3>
-                <span class="badge badge--chsct badge--sm">Membre CSA/CHSCT</span>
+                <span class="badge badge--chsct badge--sm"><?php echo e(getRoleLabel('chsct')); ?></span>
             </h3>
             <p class="help-description">Membre de la Commission Santé, Sécurité et Conditions de Travail. Consultez les signalements de tous les sites pour votre mission de suivi, sans modifier les données.</p>
             <ul class="help-feature-list">
@@ -305,7 +305,7 @@ function helpScreenshot(string $src, string $alt): string
 <!-- ============================================================ -->
 <div id="droits" class="card card--spaced content-section">
     <h2>Tableau des droits</h2>
-    <p class="help-description">Ce qui est accessible selon votre profil. Le Superviseur peut faire tout ce que l'Agent fait. Le CSA/CHSCT peut consulter sans agir.</p>
+    <p class="help-description">Ce qui est accessible selon votre profil. Le Superviseur peut faire tout ce que l'Agent fait. Le <?php echo e(getRoleLabelShort('chsct')); ?> peut consulter sans agir.</p>
     <div class="table-wrapper">
         <table class="table table--compact help-rights-table" aria-label="Permissions par profil">
             <thead>
@@ -313,7 +313,7 @@ function helpScreenshot(string $src, string $alt): string
                     <th class="text-left">Fonctionnalité</th>
                     <th class="text-center">Agent</th>
                     <th class="text-center">Superviseur</th>
-                    <th class="text-center">CSA/CHSCT</th>
+                    <th class="text-center"><?php echo e(getRoleLabelShort('chsct')); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -431,7 +431,7 @@ function helpScreenshot(string $src, string $alt): string
                     <td>Accès à tous les signalements de tous les sites, y compris les confidentiels. Les consultations sont enregistrées dans le journal de suivi.</td>
                 </tr>
                 <tr>
-                    <td><span class="badge badge--chsct">CSA/CHSCT</span></td>
+                    <td><span class="badge badge--chsct"><?php echo e(getRoleLabelShort('chsct')); ?></span></td>
                     <td>Tous les sites</td>
                     <td>Consultation de tous les signalements pour ses missions. Les consultations confidentielles sont enregistrées.</td>
                 </tr>
@@ -479,7 +479,7 @@ function helpScreenshot(string $src, string $alt): string
             <p class="help-description">Signalez un danger grave nécessitant une action immédiate. Les superviseurs sont alertés tout de suite.</p>
             <ul class="help-feature-list">
                 <li>⚡ Traitement <strong>prioritaire</strong> et notification immédiate</li>
-                <li>⚖️ Le formulaire vaut notification au sens <strong>L4131-1</strong> (droit de retrait). La consignation <strong>D4132-1</strong> reste du ressort du CSA/CHSCT.</li>
+                <li>⚖️ Le formulaire vaut notification au sens <strong>L4131-1</strong> (droit de retrait). La consignation <strong>D4132-1</strong> reste du ressort du <?php echo e(getRoleLabelShort('chsct')); ?>.</li>
             </ul>
         </div>
         <?php endif; ?>
@@ -664,10 +664,10 @@ function helpScreenshot(string $src, string $alt): string
 
     <!-- CU6 : CHSCT consulte -->
     <div id="cu6" class="help-profile-card card--spaced">
-        <h3>CU6 — Un membre CSA/CHSCT consulte les signalements</h3>
-        <p class="text-small text-muted help-case-label">Profil : Membre CSA/CHSCT</p>
+        <h3>CU6 — Un <?php echo e(getRoleLabelShort('chsct')); ?> consulte les signalements</h3>
+        <p class="text-small text-muted help-case-label">Profil : <?php echo e(getRoleLabel('chsct')); ?></p>
         <div class="help-feature-list help-case-body">
-            <strong>🎯 Situation :</strong> Philippe, membre CSA/CHSCT, veut voir l'activité des <?php echo $registryCount; ?> registres sur tous les sites pour préparer la réunion trimestrielle.<br><br>
+            <strong>🎯 Situation :</strong> Philippe, <?php echo e(getRoleLabelShort('chsct')); ?>, veut voir l'activité des <?php echo $registryCount; ?> registres sur tous les sites pour préparer la réunion trimestrielle.<br><br>
             <strong>📝 Étapes :</strong>
             <ol>
                 <li>📊 Il ouvre la <strong>Synthèse</strong> pour voir les signalements par registre, site et état</li>
@@ -676,7 +676,7 @@ function helpScreenshot(string $src, string $alt): string
                 <li>👀 Il peut consulter n'importe quel signalement sur <strong>tous les sites</strong>, même les confidentiels (consultation enregistrée)</li>
             </ol>
             <p class="help-warning-callout">
-                👁️ Le membre CSA/CHSCT <strong>ne peut pas répondre</strong> aux signalements ni gérer les utilisateurs. Pour faire traiter un signalement, demandez à un superviseur.
+                👁️ Le <?php echo e(getRoleLabelShort('chsct')); ?> <strong>ne peut pas répondre</strong> aux signalements ni gérer les utilisateurs. Pour faire traiter un signalement, demandez à un superviseur.
             </p>
             <?php echo helpScreenshot($screenshotBase . '/cu7-synthese.html', 'Page de synthèse montrant le nombre de signalements par registre, par site et par état'); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu6-statistiques.html', "Page des statistiques avec graphiques d'évolution et répartition"); ?>
@@ -754,7 +754,7 @@ function helpScreenshot(string $src, string $alt): string
                 <ul class="help-feature-list">
                     <li><code>admin.dev</code> → superviseur</li>
                     <li><code>agent.dev</code> → agent</li>
-                    <li><code>chsct.dev</code> → CSA/CHSCT</li>
+                    <li><code>chsct.dev</code> → <?php echo e(getRoleLabelShort('chsct')); ?></li>
                 </ul>
             </p>
         </div>

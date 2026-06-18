@@ -17,9 +17,12 @@
  */
 function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool
 {
-    // Superviseur/CSA/CHSCT can always see everything
-    if (in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
+    // Superviseur can always see everything; CHSCT only if consent_syndicat = 1
+    if ($user['role'] === ROLE_SUPERVISEUR) {
         return true;
+    }
+    if ($user['role'] === ROLE_CHSCT) {
+        return ($report['consent_syndicat'] ?? 0) == 1;
     }
 
     // Agent can never see reports from other sites

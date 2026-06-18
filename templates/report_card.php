@@ -69,7 +69,7 @@ if (!isset($csrfToken)) {
                     <td><?php echo e(formatDateFR($report['date_evenement'])); ?></td>
                 </tr>
                 <tr>
-                    <th>Heure de l'événement</th>
+                    <th>Heure du dépôt</th>
                     <td><?php echo e($report['heure_evenement'] ?? '—'); ?></td>
                 </tr>
                 <tr>
@@ -98,6 +98,21 @@ if (!isset($csrfToken)) {
                 <tr>
                     <th>Signalé au nom de</th>
                     <td><?php echo e(($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']); ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php
+                $linkedAgents = getLinkedAgents($pdo ?? getDB(), $report['uuid']);
+                if (!empty($linkedAgents)):
+                ?>
+                <tr>
+                    <th>Agents rattachés</th>
+                    <td><?php echo e(implode(', ', array_map(function($a) { return $a['prenom'] . ' ' . $a['nom']; }, $linkedAgents))); ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if (isset($report['consent_syndicat'])): ?>
+                <tr>
+                    <th>Transmission aux <?php echo e(getRoleLabel('chsct')); ?>s</th>
+                    <td><?php echo $report['consent_syndicat'] ? '✅ Acceptée' : '❌ Refusée'; ?></td>
                 </tr>
                 <?php endif; ?>
                 <tr>

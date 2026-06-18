@@ -3,6 +3,16 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.25.0] — 2026-06-19
+
+### Produit — Corrections et nouvelles fonctionnalités
+
+- **1** 🔴 **Consentement syndicats : case à cocher dans le formulaire** — Nouvelle case « J'accepte que mon signalement soit transmis aux organisations syndicales représentatives » dans le formulaire de signalement. Si l'agent accepte, les membres du FS/CSA peuvent consulter le signalement et sont notifiés. Si l'agent refuse, seul le superviseur peut consulter le signalement (les membres du FS/CSA n'y ont pas accès). Logique implémentée dans `canAccessReport()`. Le consentement est affiché sur la fiche de signalement, le PDF et l'export CSV. Colonne `consent_syndicat` (migration v2.7.0) enfin utilisée dans le code PHP.
+- **2** 🔴 **Rattachement de plusieurs agents à un signalement** — Nouveau champ multi-sélecteur « Agents rattachés au signalement » dans le formulaire. Les agents sélectionnés sont enregistrés dans la table `report_agents` (migration v2.7.0) et reçoivent une notification par e-mail. Affichage sur la fiche de signalement. Mise à jour possible lors de l'édition. Nouvelles fonctions : `getLinkedAgents()`, `linkAgentsToReport()`, `replaceLinkedAgents()`, `notifyLinkedAgents()`.
+- **3** 🔴 **Heure du dépôt (auto, readonly)** — Le champ « Heure de l'événement » est renommé « Heure du dépôt », automatiquement rempli avec l'heure actuelle et en lecture seule (`readonly`). Le handler force `nowTime()` côté serveur, ignorant toute valeur soumise. Label mis à jour dans la fiche, le PDF et l'export CSV.
+- **4** 🟡 **Rôles personnalisables : tous les « CSA/CHSCT » remplacés par `getRoleLabel()`** — 20+ occurrences codées en dur de « CSA/CHSCT » ou « Membre CSA/CHSCT » remplacées par `getRoleLabel('chsct')` ou `getRoleLabelShort('chsct')` dans : login, mail, aide, préambule, formulaires, paramètres, réouverture DGI. Nouvelle fonction `getRoleLabelShort()` qui retourne le nom court (ex: « FS/CSA » au lieu de « Membre FS/CSA »).
+- **5** 🟡 **Page de garde pour les agents** — L'accueil agent affiche désormais en premier « Bonjour, {prénom} » et « Que souhaitez-vous faire ? » suivis des cartes d'action élargies (classe `home-action--large`), avant tout autre contenu. L'accueil superviseur/FS/CSA conserve le layout existant. Nouveaux styles CSS avec responsive mobile.
+
 ## [3.24.0] — 2026-06-18
 
 ### Produit — Toggles de registres RAMI/DGI, mode sans site et refonte du guide

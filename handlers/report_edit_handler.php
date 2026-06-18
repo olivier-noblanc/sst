@@ -31,6 +31,7 @@ $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
 $pourCompteNom = trim($_POST['pour_compte_nom'] ?? '');
 $pourComptePrenom = trim($_POST['pour_compte_prenom'] ?? '');
 $isConfidential = isset($_POST['is_confidential']) && $_POST['is_confidential'] === '1' ? 1 : 0;
+$consentSyndicat = isset($_POST['consent_syndicat']) && $_POST['consent_syndicat'] === '1' ? 1 : 0;
 // RAMI structured fields
 $natureAuteur = trim($_POST['nature_auteur'] ?? '');
 $typeActe = trim($_POST['type_acte'] ?? '');
@@ -73,6 +74,7 @@ $updateData = [
     'heure_evenement'   => $heureEvenement ?: null,
     'lieu'              => $lieu ?: null,
     'is_confidential'   => $isConfidential,
+    'consent_syndicat'  => $consentSyndicat,
 ];
 
 // Handle attachment update
@@ -102,6 +104,10 @@ if ($type === TYPE_RAMI) {
 
 // Update the report
 $updated = updateReport($pdo, $reportUuid, $updateData, $userId);
+
+// Update linked agents
+$linkedAgentIds = $_POST['linked_agents'] ?? [];
+replaceLinkedAgents($pdo, $reportUuid, (array) $linkedAgentIds);
 
 if ($updated) {
     auditLog($pdo, 'report', 'edit', 'Signalement modifié : ' . $report['reference'], (int) $report['id'], 'report', ['reference' => $report['reference']]);

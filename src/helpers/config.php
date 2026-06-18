@@ -115,6 +115,23 @@ function getRoleLabels(): array
 }
 
 /**
+ * Get the short/customary name for a role (without "Membre" prefix).
+ * E.g. getRoleLabel('chsct') = "Membre FS/CSA" → getRoleLabelShort('chsct') = "FS/CSA".
+ */
+function getRoleLabelShort(string $role): string
+{
+    $label = getRoleLabel($role);
+    // Strip common prefix: "Membre FS/CSA" → "FS/CSA", "Agent" → "Agent"
+    $prefixes = ['Membre ', 'membre '];
+    foreach ($prefixes as $prefix) {
+        if (stripos($label, $prefix) === 0) {
+            return substr($label, strlen($prefix));
+        }
+    }
+    return $label;
+}
+
+/**
  * Check if there are any active sites in the system.
  * Returns true if at least one site is active (excluding the default RSST row).
  */

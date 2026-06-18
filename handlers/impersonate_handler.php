@@ -37,7 +37,7 @@ if ($action === 'start') {
 
     // Only allow impersonating agent or chsct
     if (!in_array($targetRole, [ROLE_AGENT, ROLE_CHSCT], true)) {
-        setFlash('error', 'Rôle cible invalide. Seuls Agent et CSA/CHSCT peuvent être incarnés.');
+        setFlash('error', 'Rôle cible invalide. Seuls Agent et ' . getRoleLabelShort('chsct') . ' peuvent être incarnés.');
         redirect(url('home'));
     }
 

@@ -88,10 +88,12 @@ $submitBtnClass = $isEdit
             </div>
 
             <div class="form-group">
-                <label for="heure_evenement">Heure de l'événement</label>
-                <input type="time" id="heure_evenement" name="heure_evenement"
+                <label for="heure_depot">Heure du dépôt</label>
+                <input type="time" id="heure_depot" name="heure_evenement"
                        value="<?php echo e($val('heure_evenement', nowTime())); ?>"
+                       readonly
                        autocomplete="off">
+                <span class="form-hint">Rempli automatiquement au moment du dépôt.</span>
             </div>
 
             <div class="form-group">
@@ -192,7 +194,7 @@ $submitBtnClass = $isEdit
                     Signalement confidentiel
                 </label>
                 <div class="confidential-toggle__details">
-                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du CSA/CHSCT. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
                     <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                     <div class="confidential-warning">
                         &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
@@ -203,11 +205,24 @@ $submitBtnClass = $isEdit
             <input type="hidden" name="is_confidential" value="1">
             <div class="form-group form-grid__full">
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
-                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du CSA/CHSCT.</span>
+                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>.</span>
             </div>
             <?php elseif (reportVisibilityIsPublic()): ?>
             <input type="hidden" name="is_confidential" value="0">
             <?php endif; ?>
+
+            <!-- Consent: transmission to union representatives -->
+            <div class="form-group form-grid__full">
+                <label class="label--checkbox">
+                    <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
+                           <?php echo ($val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat']))) ? 'checked' : ''; ?>>
+                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives
+                </label>
+                <span class="form-hint">
+                    Si vous acceptez, les <?php echo e(getRoleLabel('chsct')); ?>s pourront consulter ce signalement et seront notifiés.
+                    Si vous refusez, seul le superviseur pourra consulter ce signalement.
+                </span>
+            </div>
 
             <div class="form-group">
                 <label for="declarant_nom">Déclarant — Nom</label>
@@ -261,7 +276,7 @@ $submitBtnClass = $isEdit
                     <option value="hierarchie" <?php echo $val('nature_auteur') === 'hierarchie' ? 'selected' : ''; ?>>Hiérarchie</option>
                     <option value="tiers" <?php echo $val('nature_auteur') === 'tiers' ? 'selected' : ''; ?>>Tiers</option>
                 </select>
-                <span class="form-hint">Optionnel — utile pour les statistiques du CSA/CHSCT.</span>
+                <span class="form-hint">Optionnel — utile pour les statistiques du <?php echo e(getRoleLabelShort('chsct')); ?>.</span>
             </div>
 
             <div class="form-group">
@@ -274,10 +289,38 @@ $submitBtnClass = $isEdit
                     <option value="sexiste" <?php echo $val('type_acte') === 'sexiste' ? 'selected' : ''; ?>>Sexiste</option>
                     <option value="autre" <?php echo $val('type_acte') === 'autre' ? 'selected' : ''; ?>>Autre</option>
                 </select>
-                <span class="form-hint">Optionnel — utile pour les statistiques du CSA/CHSCT.</span>
+                <span class="form-hint">Optionnel — utile pour les statistiques du <?php echo e(getRoleLabelShort('chsct')); ?>.</span>
             </div>
             <?php endif; ?>
         </div>
+
+        <?php
+        // Linked agents — multi-select (available for all registries)
+        $pdo = getDB();
+        $availableAgents = $pdo->query("
+            SELECT id, nom, prenom
+            FROM users
+            WHERE role = 'agent' AND is_active = 1
+            ORDER BY nom, prenom
+        ")->fetchAll(PDO::FETCH_ASSOC);
+        $linkedAgentIds = $isEdit && $report ? array_column(getLinkedAgents($pdo, $report['uuid']), 'id') : [];
+        if (!empty($availableAgents)):
+        ?>
+        <div class="form-group form-grid__full">
+            <label for="linked_agents">Agents rattachés au signalement</label>
+            <select id="linked_agents" name="linked_agents[]" multiple
+                    class="form-control" size="5"
+                    aria-describedby="hint_linked_agents">
+                <?php foreach ($availableAgents as $ag): ?>
+                    <option value="<?php echo e($ag['id']); ?>"
+                        <?php echo in_array((int)$ag['id'], $linkedAgentIds) || (isset($formData['linked_agents']) && in_array((string)$ag['id'], (array)$formData['linked_agents'])) ? 'selected' : ''; ?>>
+                        <?php echo e($ag['nom'] . ' ' . $ag['prenom']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <span class="form-hint" id="hint_linked_agents">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs agents. Ils recevront une notification par e-mail.</span>
+        </div>
+        <?php endif; ?>
 
         <div class="form-actions">
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">

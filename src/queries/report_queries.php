@@ -26,7 +26,7 @@ function reportSelectWithSite(): string
                 r.declarant_id, r.declarant_nom, r.declarant_prenom,
                 r.pour_compte_de, r.pour_compte_nom, r.pour_compte_prenom,
                 r.nature_auteur, r.type_acte,
-                r.site_id, r.is_confidential, r.etat,
+                r.site_id, r.is_confidential, r.consent_syndicat, r.etat,
                 r.repondant_id, r.date_reponse, r.reponse,
                 r.attachment_name, r.attachment_mime,
                 r.created_at, r.updated_at,
@@ -93,14 +93,14 @@ function createReport(PDO $pdo, array $data): string
                 lieu, declarant_id, declarant_nom, declarant_prenom,
                 pour_compte_de, pour_compte_nom, pour_compte_prenom,
                 nature_auteur, type_acte,
-                site_id, is_confidential, etat,
+                site_id, is_confidential, consent_syndicat, etat,
                 attachment_blob, attachment_name, attachment_mime
             ) VALUES (
                 :uuid, :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
                 :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
                 :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
                 :nature_auteur, :type_acte,
-                :site_id, :is_confidential, '" . ETAT_NOUVEAU . "',
+                :site_id, :is_confidential, :consent_syndicat, '" . ETAT_NOUVEAU . "',
                 :attachment_blob, :attachment_name, :attachment_mime
             )
         ");
@@ -124,6 +124,7 @@ function createReport(PDO $pdo, array $data): string
             ':type_acte'         => $data['type_acte'] ?? null,
             ':site_id'           => $data['site_id'],
             ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
+            ':consent_syndicat'  => isset($data['consent_syndicat']) ? (int) $data['consent_syndicat'] : 0,
             ':attachment_blob'   => $data['attachment_blob'] ?? null,
             ':attachment_name'   => $data['attachment_name'] ?? null,
             ':attachment_mime'   => $data['attachment_mime'] ?? null,
@@ -326,6 +327,7 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool
         'nature_auteur = :nature_auteur',
         'type_acte = :type_acte',
         'is_confidential = :is_confidential',
+        'consent_syndicat = :consent_syndicat',
     ];
 
     $params = [
@@ -339,6 +341,7 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool
         ':nature_auteur'     => $data['nature_auteur'] ?? null,
         ':type_acte'         => $data['type_acte'] ?? null,
         ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
+        ':consent_syndicat'  => isset($data['consent_syndicat']) ? (int) $data['consent_syndicat'] : 0,
     ];
 
     // Attachment columns: only update if explicitly present in $data
@@ -664,4 +667,57 @@ function getAdjacentReportUuids(PDO $pdo, array $report): array
     }
 
     return $result;
+}
+
+// ============================================================
+// Linked agents (report_agents)
+// ============================================================
+
+/**
+ * Get all agents linked to a report.
+ * @return array<int, array{id: int, nom: string, prenom: string, email: string}>
+ */
+function getLinkedAgents(PDO $pdo, string $reportUuid): array
+{
+    $stmt = $pdo->prepare("
+        SELECT u.id, u.nom, u.prenom, u.email
+        FROM report_agents ra
+        JOIN users u ON u.id = ra.user_id
+        WHERE ra.report_uuid = ?
+        ORDER BY u.nom, u.prenom
+    ");
+    $stmt->execute([$reportUuid]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Link agents to a report (adds to report_agents table).
+ * Skips duplicates (UNIQUE constraint on report_uuid + user_id).
+ * @param array<int> $userIds
+ */
+function linkAgentsToReport(PDO $pdo, string $reportUuid, array $userIds): void
+{
+    if (empty($userIds)) {
+        return;
+    }
+    $stmt = $pdo->prepare("
+        INSERT OR IGNORE INTO report_agents (report_uuid, user_id)
+        VALUES (:uuid, :user_id)
+    ");
+    foreach ($userIds as $uid) {
+        $uid = (int) $uid;
+        if ($uid > 0) {
+            $stmt->execute([':uuid' => $reportUuid, ':user_id' => $uid]);
+        }
+    }
+}
+
+/**
+ * Replace all linked agents for a report (delete + re-insert).
+ * @param array<int> $userIds
+ */
+function replaceLinkedAgents(PDO $pdo, string $reportUuid, array $userIds): void
+{
+    $pdo->prepare("DELETE FROM report_agents WHERE report_uuid = ?")->execute([$reportUuid]);
+    linkAgentsToReport($pdo, $reportUuid, $userIds);
 }

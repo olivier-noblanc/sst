@@ -67,7 +67,7 @@ $headers = [
     'Référence',
     'Registre',
     'Date événement',
-    'Heure événement',
+    'Heure dépôt',
     'Lieu',
     'Objet',
     'Description',
@@ -81,6 +81,7 @@ if (!$noSiteMode) {
 $headers = array_merge($headers, [
     'État',
     'Confidentiel',
+    'Transmission FS/CSA',
     'Date création',
     'Déclaré pour le compte de',
     'Nature de l\'auteur (RAMI)',
@@ -166,6 +167,7 @@ foreach ($reports as $row) {
     $csvRow = array_merge($csvRow, [
         $csvEscape(ETAT_LABELS[$row['etat'] ?? ''] ?? $row['etat'] ?? ''),
         !empty($row['is_confidential']) ? 'Oui' : 'Non',
+        !empty($row['consent_syndicat']) ? 'Acceptée' : 'Refusée',
         $csvEscape($row['created_at'] ?? ''),
         $csvEscape($pourCompte),
         $csvEscape($natureAuteurLabel),

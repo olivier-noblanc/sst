@@ -67,11 +67,11 @@ $pageTitle = 'Préambule';
     <ul>
         <li>Danger nécessitant une action immédiate</li>
         <li>Risque d'accident grave ou de maladie professionnelle grave</li>
-        <li>Situation pouvant être constatée par un membre du CSA/CHSCT</li>
+        <li>Situation pouvant être constatée par un <?php echo e(getRoleLabelShort('chsct')); ?></li>
         <li>Droit de retrait en cas de danger grave et imminent</li>
     </ul>
     <p class="help-note help-note--warning">
-        <strong>Clarification :</strong> Le formulaire de signalement DGI de cette application vaut <strong>notification au sens de l'article L4131-1 du Code du travail</strong> (droit de retrait individuel de l'agent). La <strong>consignation formelle</strong> sur le registre spécial prévue à l'article <strong>D4132-1</strong> relève du représentant CSA/CHSCT exerçant son droit d'alerte (L4131-2) — il s'agit de deux actes juridiques distincts. Cette application couvre le premier ; le second reste du ressort du CSA/CHSCT.
+        <strong>Clarification :</strong> Le formulaire de signalement DGI de cette application vaut <strong>notification au sens de l'article L4131-1 du Code du travail</strong> (droit de retrait individuel de l'agent). La <strong>consignation formelle</strong> sur le registre spécial prévue à l'article <strong>D4132-1</strong> relève du représentant <?php echo e(getRoleLabelShort('chsct')); ?> exerçant son droit d'alerte (L4131-2) — il s'agit de deux actes juridiques distincts. Cette application couvre le premier ; le second reste du ressort du <?php echo e(getRoleLabelShort('chsct')); ?>.
     </p>
 </div>
 
@@ -79,7 +79,7 @@ $pageTitle = 'Préambule';
     <h3>Modalités de signalement</h3>
     <ul>
         <li>Tout agent peut inscrire un signalement dans le registre correspondant à la situation rencontrée.</li>
-        <li>Le signalement est confidentiel par défaut. Selon le paramétrage choisi par le superviseur, l'agent peut choisir de rendre son signalement public, ou celui-ci peut être visible par tous les agents du site. Les superviseurs et les membres du CSA/CHSCT ont accès à tous les signalements.</li>
+        <li>Le signalement est confidentiel par défaut. Selon le paramétrage choisi par le superviseur, l'agent peut choisir de rendre son signalement public, ou celui-ci peut être visible par tous les agents du site. Les superviseurs et les <?php echo e(getRoleLabel('chsct')); ?>s ont accès à tous les signalements.</li>
         <li>Les superviseurs s'engagent à traiter chaque signalement dans les meilleurs délais.</li>
         <li>Les signalements DGI font l'objet d'une procédure d'urgence.</li>
         <li>Aucune sanction ne peut être prise à l'encontre d'un agent pour avoir signalé une situation de danger.</li>
@@ -109,7 +109,7 @@ $pageTitle = 'Préambule';
 echo $dpoContact ? e($dpoContact) : '<em>à compléter dans Paramètres &rarr; Application &rarr; Contact DPO</em>';
 ?>.</li>
         <li><strong>Durée de conservation :</strong> les signalements sont conservés pendant la durée nécessaire au suivi et au traitement, puis archivés conformément à la réglementation. La durée de conservation est paramétrable par le superviseur après validation du DPO.</li>
-        <li><strong>Personnes habilitées :</strong> seuls les superviseurs et les membres du CSA/CHSCT ont accès aux données en fonction de leur rôle et de leur site d'affectation.</li>
+        <li><strong>Personnes habilitées :</strong> seuls les superviseurs et les <?php echo e(getRoleLabel('chsct')); ?>s ont accès aux données en fonction de leur rôle et de leur site d'affectation.</li>
         <li><strong>Vos droits :</strong> vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition concernant vos données personnelles. Pour les exercer, contactez le DPO à l'adresse indiquée ci-dessus.</li>
         <li><strong>Droit de réclamation :</strong> vous avez le droit d'introduire une réclamation auprès de la Commission Nationale de l'Informatique et des Libertés (CNIL) — <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>.</li>
     </ul>

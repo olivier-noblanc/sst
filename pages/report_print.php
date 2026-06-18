@@ -268,9 +268,10 @@ $fields = [
     'Référence'             => $report['reference'],
     'Registre'              => $registryLabel,
     'Date de l\'événement'  => formatDateFR($report['date_evenement']),
-    'Heure de l\'événement' => $report['heure_evenement'] ?? '—',
+    'Heure du dépôt'        => $report['heure_evenement'] ?? '—',
     'Lieu'                  => $report['lieu'] ?? '—',
     'Objet'                 => $report['objet'],
+    'Transmission aux ' . getRoleLabel('chsct') . 's' => ($report['consent_syndicat'] ?? 0) ? 'Acceptée' : 'Refusée',
 ];
 
 foreach ($fields as $label => $value) {

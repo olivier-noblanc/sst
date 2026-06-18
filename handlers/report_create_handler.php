@@ -27,7 +27,7 @@ $pdo = getDB();
 
 // Gather input
 $dateEvenement = trim($_POST['date_evenement'] ?? '');
-$heureEvenement = trim($_POST['heure_evenement'] ?? '');
+$heureEvenement = nowTime(); // Auto-filled at deposit time, field is readonly
 $lieu = trim($_POST['lieu'] ?? '');
 $objet = trim($_POST['objet'] ?? '');
 $description = trim($_POST['description'] ?? '');
@@ -36,6 +36,7 @@ $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
 $pourCompteNom = trim($_POST['pour_compte_nom'] ?? '');
 $pourComptePrenom = trim($_POST['pour_compte_prenom'] ?? '');
 $isConfidential = isset($_POST['is_confidential']) && $_POST['is_confidential'] === '1' ? 1 : 0;
+$consentSyndicat = isset($_POST['consent_syndicat']) && $_POST['consent_syndicat'] === '1' ? 1 : 0;
 // RAMI structured fields
 $natureAuteur = trim($_POST['nature_auteur'] ?? '');
 $typeActe = trim($_POST['type_acte'] ?? '');
@@ -98,6 +99,7 @@ $reportData = [
     'declarant_prenom'  => $user['prenom'],
     'site_id'           => $siteId,
     'is_confidential'   => $isConfidential,
+    'consent_syndicat'  => $consentSyndicat,
     'attachment_blob'  => $attachmentBlob,
     'attachment_name'  => $attachmentName,
     'attachment_mime'  => $attachmentMime,
@@ -139,6 +141,12 @@ try {
         notifyNewReport($pdo, $newUuid, $type, $siteId);
         if ($type === TYPE_RAMI && !empty($pourCompteNom)) {
             notifyPourCompte($pdo, $newUuid);
+        }
+        // Notify linked agents
+        $linkedAgentIds = $_POST['linked_agents'] ?? [];
+        if (!empty($linkedAgentIds)) {
+            linkAgentsToReport($pdo, $newUuid, $linkedAgentIds);
+            notifyLinkedAgents($pdo, $newUuid, $linkedAgentIds);
         }
     } catch (Exception $mailEx) {
         error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());

@@ -79,7 +79,7 @@ $flash = getFlash();
     <div class="alert alert--danger" role="alert">
         <strong>Attention — Registre DGI</strong><br>
         La réouverture d'un signalement DGI signifie que le danger grave et imminent n'a pas été résolu. 
-        Conformément à l'article L4131-2 du Code du travail, le CSE/CSA/CHSCT sera informé de cette réouverture.
+        Conformément à l'article L4131-2 du Code du travail, le CSE/<?php echo e(getRoleLabelShort('chsct')); ?> sera informé de cette réouverture.
     </div>
     <?php endif; ?>
 

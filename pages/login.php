@@ -95,7 +95,7 @@ if (isUserLoggedIn()) {
                 </div>
                 <div class="login-btn-wrapper">
                     <button type="button" class="btn btn--primary" style="background:#6b7280;" onclick="document.getElementById('username').value='chsct.dev';document.getElementById('quick-login-form').submit();">
-                        Membre CSA/CHSCT
+                        <?php echo e(getRoleLabel('chsct')); ?>
                     </button>
                     <span class="login-btn-desc">Consultation et synthèse</span>
                 </div>

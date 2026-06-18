@@ -111,6 +111,10 @@ define('ROLE_LABELS_DEFAULT', [
     'superviseur' => 'Superviseur',
     'chsct'       => 'Membre FS/CSA',
 ]);
+// ROLE_LABELS is the runtime constant used throughout the application.
+// It mirrors ROLE_LABELS_DEFAULT; custom labels from DB are resolved
+// at display time via getRoleLabel() / getRoleLabels().
+define('ROLE_LABELS', ROLE_LABELS_DEFAULT);
 
 // Report visibility modes (admin-configurable in Settings → Application)
 // 'confidential'  : Agent sees ONLY their own reports — most restrictive

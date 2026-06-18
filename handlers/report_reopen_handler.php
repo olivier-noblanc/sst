@@ -106,6 +106,21 @@ try {
             $body .= '</body></html>';
             sendMail($declarant['email'], $subject, $body);
         }
+        // Also notify linked agents
+        $linkedAgents = getLinkedAgents($pdo, $reportUuid);
+        foreach ($linkedAgents as $linkedAgent) {
+            if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
+                $linkedSubject = "Signalement réouvert $registryLabel — {$report['reference']}";
+                $linkedBody = buildEmailBody(
+                    'Signalement réouvert',
+                    '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>'
+                    . '<p>Le signalement <strong>' . e($report['reference']) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>'
+                    . '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>'
+                    . '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
+                );
+                sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
+            }
+        }
     } catch (Exception $mailEx) {
         error_log('[SST-MAIL] Reopen notification error: ' . $mailEx->getMessage());
     }

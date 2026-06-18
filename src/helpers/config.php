@@ -54,6 +54,85 @@ function clearConfigCache(): void
 }
 
 /**
+ * Check if a registry type is enabled (RAMI or DGI).
+ * RSST is always enabled.
+ */
+function isRegistryEnabled(string $type): bool
+{
+    if ($type === TYPE_RSST) {
+        return true; // RSST is always active
+    }
+    if ($type === TYPE_RAMI) {
+        return getConfig('app_registry_rami_enabled', REGISTRY_RAMI_ENABLED_DEFAULT ? '1' : '0') === '1';
+    }
+    if ($type === TYPE_DGI) {
+        return getConfig('app_registry_dgi_enabled', REGISTRY_DGI_ENABLED_DEFAULT ? '1' : '0') === '1';
+    }
+    return false;
+}
+
+/**
+ * Get the list of enabled registry types.
+ * @return string[]
+ */
+function getEnabledRegistries(): array
+{
+    $types = [TYPE_RSST]; // RSST always enabled
+    if (isRegistryEnabled(TYPE_RAMI)) {
+        $types[] = TYPE_RAMI;
+    }
+    if (isRegistryEnabled(TYPE_DGI)) {
+        $types[] = TYPE_DGI;
+    }
+    return $types;
+}
+
+/**
+ * Get the customizable label for a role.
+ * Uses DB config if set, otherwise falls back to ROLE_LABELS_DEFAULT.
+ */
+function getRoleLabel(string $role): string
+{
+    $dbKey = 'app_role_label_' . $role;
+    $dbValue = getConfig($dbKey, '');
+    if ($dbValue !== '') {
+        return $dbValue;
+    }
+    return ROLE_LABELS_DEFAULT[$role] ?? ucfirst($role);
+}
+
+/**
+ * Get all role labels (customized or default).
+ * @return array<string, string>
+ */
+function getRoleLabels(): array
+{
+    return [
+        'agent'       => getRoleLabel('agent'),
+        'superviseur' => getRoleLabel('superviseur'),
+        'chsct'       => getRoleLabel('chsct'),
+    ];
+}
+
+/**
+ * Check if there are any active sites in the system.
+ */
+function hasActiveSites(PDO $pdo): bool
+{
+    $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
+    return ($stmt->fetchColumn() ?: 0) > 1; // >1 because RSST is always there
+}
+
+/**
+ * Get the count of active sites.
+ */
+function countActiveSites(PDO $pdo): int
+{
+    $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
+    return (int) ($stmt->fetchColumn() ?: 0);
+}
+
+/**
  * Get the application version from the first entry in CHANGELOG.md.
  * Parses the first "## [x.y.z]" heading to extract the version number.
  * Falls back to '0.0.0' if the changelog is unreadable (visible problem, not hidden).

@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.24.0] — 2026-06-18
+
+### Produit — Toggles de registres RAMI/DGI et affichage conditionnel
+
+- **1** 🔴 **Toggles RAMI/DGI dans les Paramètres** — Deux interrupteurs dans Paramètres → Application → « Registres actifs » permettent d'activer ou désactiver individuellement les registres RAMI et DGI. RSST est toujours actif. Les registres désactivés disparaissent du menu latéral, de l'accueil, de l'aide, des statistiques, de la synthèse, de l'export et des formulaires. Leur accès direct par URL est bloqué avec un message d'erreur.
+- **2** 🔴 **Accès bloqué aux registres désactivés** — Les pages `report_list`, `report_create` et le handler `report_create_handler` vérifient `isRegistryEnabled($type)` avant d'afficher ou traiter un registre. Redirection vers l'accueil avec flash « Ce registre est désactivé ».
+- **3** 🟡 **Aide conditionnelle** — La page d'aide adapte son contenu dynamiquement : nombre de registres, listes, captures d'écran, cas d'usage CU2 (RAMI) et CU3 (DGI) masqués si le registre correspondant est désactivé. Le sommaire se renumérote automatiquement.
+- **4** 🟡 **Statistiques conditionnelles** — Les cartes indicateurs RAMI/DGI et les colonnes du tableau par site sont masquées lorsque le registre est désactivé. La section « RAMI — Répartition par nature de l'auteur » n'apparaît que si RAMI est actif et qu'il y a des données.
+- **5** 🟡 **Synthèse conditionnelle** — Le tableau de synthèse n'affiche que les colonnes des registres actifs. L'en-tête et le total s'adaptent dynamiquement.
+- **6** 🟡 **Export conditionnel** — Le sélecteur de registre dans la page d'export ne propose que les registres activés. Les données des registres désactivés restent accessibles via l'export « Tous les registres » si le superviseur en a besoin.
+- **7** 🟢 **Bouton RSST renommé** — Le bouton de la carte RSST affiche désormais « Déposer un signalement » au lieu de « Signaler un événement », conformément à la demande utilisateur.
+
 ## [3.23.0] — 2026-06-17
 
 ### Accessibilité — Revue utilisateur senior (Monsieur Robert, 70 ans)

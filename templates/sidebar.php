@@ -33,18 +33,30 @@ if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_G
 }
 
 // Define menu items with role visibility
+// RAMI and DGI items will be conditionally added below based on toggles
 $menuItems = [
     ['label' => 'Accueil',        'icon' => '&#127968;', 'page' => 'home',                'params' => [],                                  'roles' => ['agent','superviseur','chsct']],
     ['label' => 'RSST',           'icon' => '&#128203;', 'page' => 'report_list',         'params' => ['type' => 'rsst'],                  'roles' => ['agent','superviseur','chsct']],
-    ['label' => 'RAMI',           'icon' => '&#9888;',   'page' => 'report_list',         'params' => ['type' => 'rami'],                  'roles' => ['agent','superviseur','chsct']],
-    ['label' => 'DGI',            'icon' => '&#128308;', 'page' => 'report_list',         'params' => ['type' => 'dgi'],                   'roles' => ['agent','superviseur','chsct']],
+];
+
+// Conditionally add RAMI if enabled
+if (isRegistryEnabled(TYPE_RAMI)) {
+    $menuItems[] = ['label' => 'RAMI', 'icon' => '&#9888;', 'page' => 'report_list', 'params' => ['type' => 'rami'], 'roles' => ['agent','superviseur','chsct']];
+}
+
+// Conditionally add DGI if enabled
+if (isRegistryEnabled(TYPE_DGI)) {
+    $menuItems[] = ['label' => 'DGI', 'icon' => '&#128308;', 'page' => 'report_list', 'params' => ['type' => 'dgi'], 'roles' => ['agent','superviseur','chsct']];
+}
+
+$menuItems = array_merge($menuItems, [
     ['label' => 'Synthèse',       'icon' => '&#128202;', 'page' => 'synthesis',           'params' => [],                                  'roles' => ['superviseur','chsct']],
     ['label' => 'Export',         'icon' => '&#128229;', 'page' => 'export',              'params' => [],                                  'roles' => ['superviseur','chsct']],
     ['label' => 'Statistiques',   'icon' => '&#128200;', 'page' => 'statistics',          'params' => [],                                  'roles' => ['superviseur','chsct']],
     ['label' => 'Utilisateurs',   'icon' => '&#128101;', 'page' => 'users',               'params' => [],                                  'roles' => ['superviseur']],
     ['label' => 'Paramètres',     'icon' => '&#9881;',   'page' => 'settings',            'params' => [],                                  'roles' => ['superviseur']],
     ['label' => 'Journal',        'icon' => '&#128220;', 'page' => 'logs',                'params' => [],                                  'roles' => ['superviseur']],
-];
+]);
 ?>
 <!-- Hidden checkbox for CSS-only sidebar toggle (mobile) — tabindex="-1" prevents focus since hidden attr is not always sufficient -->
 <input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox" tabindex="-1" hidden>

@@ -72,6 +72,9 @@ foreach ($tableData as $td) {
 }
 
 $pageTitle = 'Statistiques';
+
+$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = isRegistryEnabled(TYPE_DGI);
 ?>
 
 <h1 class="page-title">Statistiques</h1>
@@ -107,14 +110,18 @@ $pageTitle = 'Statistiques';
         <div class="indicateur-card__value"><?php echo $indicateurs['total_rsst']; ?></div>
         <div class="indicateur-card__label">Signalements RSST</div>
     </div>
+    <?php if ($dgiEnabled): ?>
     <div class="indicateur-card indicateur-card--dgi">
         <div class="indicateur-card__value"><?php echo $indicateurs['total_dgi']; ?></div>
         <div class="indicateur-card__label">Signalements DGI</div>
     </div>
+    <?php endif; ?>
+    <?php if ($ramiEnabled): ?>
     <div class="indicateur-card indicateur-card--rami">
         <div class="indicateur-card__value"><?php echo $indicateurs['total_rami']; ?></div>
         <div class="indicateur-card__label">Signalements RAMI</div>
     </div>
+    <?php endif; ?>
 </div>
 
 <!-- Table: Reports by site and registry -->
@@ -126,8 +133,8 @@ $pageTitle = 'Statistiques';
                 <tr>
                     <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
                     <th class="text-center">RSST</th>
-                    <th class="text-center">DGI</th>
-                    <th class="text-center">RAMI</th>
+                    <?php if ($dgiEnabled): ?><th class="text-center">DGI</th><?php endif; ?>
+                    <?php if ($ramiEnabled): ?><th class="text-center">RAMI</th><?php endif; ?>
                     <th class="text-center">Total</th>
                 </tr>
             </thead>
@@ -136,8 +143,8 @@ $pageTitle = 'Statistiques';
                 <tr>
                     <td><strong><?php echo e($td['code']); ?></strong> — <?php echo e($td['nom']); ?></td>
                     <td class="text-center <?php echo $td['rsst'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rsst']; ?></td>
-                    <td class="text-center <?php echo $td['dgi'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['dgi']; ?></td>
-                    <td class="text-center <?php echo $td['rami'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rami']; ?></td>
+                    <?php if ($dgiEnabled): ?><td class="text-center <?php echo $td['dgi'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['dgi']; ?></td><?php endif; ?>
+                    <?php if ($ramiEnabled): ?><td class="text-center <?php echo $td['rami'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rami']; ?></td><?php endif; ?>
                     <td class="text-center synthesis-cell-value"><strong><?php echo $td['total']; ?></strong></td>
                 </tr>
                 <?php endforeach; ?>
@@ -145,8 +152,8 @@ $pageTitle = 'Statistiques';
                 <tr class="row--totals">
                     <td><strong>Total</strong></td>
                     <td class="text-center synthesis-cell-value"><?php echo $totalRsst; ?></td>
-                    <td class="text-center synthesis-cell-value"><?php echo $totalDgi; ?></td>
-                    <td class="text-center synthesis-cell-value"><?php echo $totalRami; ?></td>
+                    <?php if ($dgiEnabled): ?><td class="text-center synthesis-cell-value"><?php echo $totalDgi; ?></td><?php endif; ?>
+                    <?php if ($ramiEnabled): ?><td class="text-center synthesis-cell-value"><?php echo $totalRami; ?></td><?php endif; ?>
                     <td class="text-center synthesis-cell-value"><strong><?php echo $totalAll; ?></strong></td>
                 </tr>
             </tbody>
@@ -155,7 +162,7 @@ $pageTitle = 'Statistiques';
 </div>
 
 <!-- RAMI: Répartition par nature de l'auteur et type d'acte -->
-<?php if (!empty($ramiStats['by_nature_auteur']) || !empty($ramiStats['by_type_acte'])): ?>
+<?php if ($ramiEnabled && (!empty($ramiStats['by_nature_auteur']) || !empty($ramiStats['by_type_acte']))): ?>
 <div class="card card--mt">
     <h3 class="card__title">RAMI — Répartition par nature de l'auteur et type d'acte</h3>
     <p class="text-muted text-small">Statistiques sur les signalements RAMI ayant renseigné les champs « Nature de l'auteur » et « Type d'acte ».</p>

@@ -157,6 +157,23 @@ try {
         $displayErrors = !empty($_POST['app_display_errors']) ? '1' : '0';
         updateConfig($pdo, 'app_display_errors', $displayErrors);
 
+        // Registry toggles (RAMI / DGI)
+        $ramiEnabled = !empty($_POST['app_registry_rami_enabled']) ? '1' : '0';
+        $dgiEnabled = !empty($_POST['app_registry_dgi_enabled']) ? '1' : '0';
+        updateConfig($pdo, 'app_registry_rami_enabled', $ramiEnabled);
+        updateConfig($pdo, 'app_registry_dgi_enabled', $dgiEnabled);
+
+        // Customizable role labels
+        $roleLabelAgent = trim($_POST['app_role_label_agent'] ?? 'Agent');
+        $roleLabelSuperviseur = trim($_POST['app_role_label_superviseur'] ?? 'Superviseur');
+        $roleLabelChsct = trim($_POST['app_role_label_chsct'] ?? 'Membre FS/CSA');
+        if (empty($roleLabelAgent)) $roleLabelAgent = 'Agent';
+        if (empty($roleLabelSuperviseur)) $roleLabelSuperviseur = 'Superviseur';
+        if (empty($roleLabelChsct)) $roleLabelChsct = 'Membre FS/CSA';
+        updateConfig($pdo, 'app_role_label_agent', $roleLabelAgent);
+        updateConfig($pdo, 'app_role_label_superviseur', $roleLabelSuperviseur);
+        updateConfig($pdo, 'app_role_label_chsct', $roleLabelChsct);
+
         // Report visibility setting (radio: confidential / agent_choice / public)
         $reportVisibility = $_POST['app_report_visibility'] ?? 'agent_choice';
         if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'])) {

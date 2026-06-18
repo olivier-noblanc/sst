@@ -14,6 +14,9 @@ $screenshotBase = 'asset.php?f=screenshots';
 $isAgent = ($userRole === 'agent');
 $hotlineNumber = getConfig('app_hotline_number', '');
 $hotlineEnabled = (!empty($hotlineNumber));
+$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = isRegistryEnabled(TYPE_DGI);
+$registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
 
 // Screenshot helper — must be defined BEFORE any HTML output
 function helpImg(string $name, string $alt, string $base): string
@@ -63,17 +66,17 @@ function helpScreenshot(string $src, string $alt): string
 <!-- Que pouvez-vous faire ? -->
 <div class="card card--spaced content-section">
     <h2>Que pouvez-vous faire ?</h2>
-    <p class="help-description">En tant qu'agent, vous avez 3 actions principales :</p>
+    <p class="help-description">En tant qu'agent, vous avez <?php echo $ramiEnabled || $dgiEnabled ? '3' : '1'; ?> actions principales :</p>
 
     <div class="help-profiles-grid">
         <div class="help-profile-card" style="border-left: 5px solid var(--color-primary);">
             <h3>✏️ Signaler un événement</h3>
-            <p>Vous avez vu un problème de sécurité, une agression ou un danger grave ? Cliquez sur le bouton <strong>« Signaler un événement »</strong> sous le registre correspondant sur la page d'accueil.</p>
-            <p class="help-description">3 registres possibles :</p>
+            <p>Vous avez vu un problème de sécurité<?php if ($ramiEnabled): ?>, une agression<?php endif; ?><?php if ($dgiEnabled): ?> ou un danger grave<?php endif; ?> ? Cliquez sur le bouton <strong>« Déposer un signalement »</strong> sous le registre correspondant sur la page d'accueil.</p>
+            <p class="help-description"><?php echo $registryCount; ?> registre<?php echo $registryCount > 1 ? 's' : ''; ?> possible<?php echo $registryCount > 1 ? 's' : ''; ?> :</p>
             <ul class="help-feature-list">
                 <li>🔵 <strong>RSST</strong> — Santé et Sécurité au Travail (ex : escalier cassé, équipement défectueux)</li>
-                <li>🟡 <strong>RAMI</strong> — Agressions, Menaces, Incivilités (ex : insultes, harcèlement)</li>
-                <li>🔴 <strong>DGI</strong> — Danger Grave et Imminent (ex : risque d'accident immédiat)</li>
+                <?php if ($ramiEnabled): ?><li>🟡 <strong>RAMI</strong> — Agressions, Menaces, Incivilités (ex : insultes, harcèlement)</li><?php endif; ?>
+                <?php if ($dgiEnabled): ?><li>🔴 <strong>DGI</strong> — Danger Grave et Imminent (ex : risque d'accident immédiat)</li><?php endif; ?>
             </ul>
         </div>
 
@@ -85,7 +88,7 @@ function helpScreenshot(string $src, string $alt): string
                 <li>🔄 <strong>En cours</strong> — Votre superviseur examine le problème</li>
                 <li>✅ <strong>Traité</strong> — Le problème est résolu</li>
             </ul>
-            <p>Allez dans <strong>RSST</strong>, <strong>RAMI</strong> ou <strong>DGI</strong> dans le menu de gauche pour voir la liste de vos signalements.</p>
+            <p>Allez dans <strong>RSST</strong><?php if ($ramiEnabled): ?>, <strong>RAMI</strong><?php endif; ?><?php if ($dgiEnabled): ?> ou <strong>DGI</strong><?php endif; ?> dans le menu de gauche pour voir la liste de vos signalements.</p>
         </div>
 
         <div class="help-profile-card" style="border-left: 5px solid #8b5cf6;">
@@ -103,7 +106,7 @@ function helpScreenshot(string $src, string $alt): string
 
     <div style="background:#eff6ff;border:2px solid var(--color-primary);border-radius:10px;padding:20px 24px;margin:16px 0;">
         <ol style="margin:0;padding-left:24px;line-height:2.2;">
-            <li><strong>Choisissez le bon registre</strong> sur la page d'accueil (RSST, RAMI ou DGI)</li>
+            <li><strong>Choisissez le bon registre</strong> sur la page d'accueil (RSST<?php if ($ramiEnabled): ?>, RAMI<?php endif; ?><?php if ($dgiEnabled): ?> ou DGI<?php endif; ?>)</li>
             <li><strong>Remplissez le formulaire</strong> — Les champs avec une étoile * sont obligatoires, les autres sont optionnels</li>
             <li><strong>Envoyez</strong> — Un bandeau vert confirme que c'est bien enregistré. Votre superviseur est prévenu automatiquement.</li>
         </ol>
@@ -114,7 +117,7 @@ function helpScreenshot(string $src, string $alt): string
     <div class="help-profiles-grid" style="grid-template-columns: 1fr;">
         <div class="help-profile-card" style="text-align:center;border-left:5px solid var(--color-primary);">
             <h3 style="text-align:left;">Étape 1 — Choisissez le bon registre</h3>
-            <?php echo helpImg('cu1-accueil.png', "Page d'accueil avec les 3 registres", $screenshotBase); ?>
+            <?php echo helpImg('cu1-accueil.png', "Page d'accueil avec les registres", $screenshotBase); ?>
             <p style="text-align:left;color:#555;">Sur la page d'accueil, cliquez sur <strong>« Signaler un événement »</strong> sous le registre qui correspond à votre situation.</p>
         </div>
 
@@ -161,10 +164,12 @@ function helpScreenshot(string $src, string $alt): string
         <p style="margin:0;color:#555;">Contactez votre superviseur. Il pourra vous aider ou transférer le signalement dans le bon registre.</p>
     </div>
 
+    <?php if ($ramiEnabled): ?>
     <div>
         <p style="font-size:17px;font-weight:600;margin:0 0 6px 0;">Puis-je signaler pour un collègue ?</p>
-        <p style="margin:0;color:#555;">Oui, dans les registres RSST et RAMI, cochez la case « Signalement pour le compte de quelqu'un d'autre » et indiquez le nom de la personne concernée.</p>
+        <p style="margin:0;color:#555;">Oui, dans le registre RAMI uniquement, cochez la case « Signalement pour le compte de quelqu'un d'autre » et indiquez le nom de la personne concernée. Cette possibilité est prévue par l'article L135-6 du CGFP qui autorise les signalements de témoins.</p>
     </div>
+    <?php endif; ?>
 </div>
 
 <!-- Guide rapide -->
@@ -206,13 +211,13 @@ function helpScreenshot(string $src, string $alt): string
         <li><a href="#profils"><span class="help-toc__num">1</span> Profils utilisateurs</a></li>
         <li><a href="#droits"><span class="help-toc__num">2</span> Tableau des droits</a></li>
         <li><a href="#confidentialite"><span class="help-toc__num">3</span> Confidentialité des signalements</a></li>
-        <li><a href="#registres"><span class="help-toc__num">4</span> Les 3 registres</a></li>
+        <li><a href="#registres"><span class="help-toc__num">4</span> Les <?php echo $registryCount; ?> registres</a></li>
         <li><a href="#cycle-vie"><span class="help-toc__num">5</span> Cycle de vie d'un signalement</a></li>
         <li><a href="#cas-usage"><span class="help-toc__num">6</span> Cas d'usage</a>
             <ol>
                 <li><a href="#cu1"><span class="help-toc__num-sub">6a</span> Signaler un événement RSST</a></li>
-                <li><a href="#cu2"><span class="help-toc__num-sub">6b</span> Signalement RAMI pour un collègue</a></li>
-                <li><a href="#cu3"><span class="help-toc__num-sub">6c</span> Danger Grave et Imminent (DGI)</a></li>
+                <?php if ($ramiEnabled): ?><li><a href="#cu2"><span class="help-toc__num-sub">6b</span> Signalement RAMI pour un collègue</a></li><?php endif; ?>
+                <?php if ($dgiEnabled): ?><li><a href="#cu3"><span class="help-toc__num-sub">6c</span> Danger Grave et Imminent (DGI)</a></li><?php endif; ?>
                 <li><a href="#cu4"><span class="help-toc__num-sub">6d</span> Traiter un signalement</a></li>
                 <li><a href="#cu5"><span class="help-toc__num-sub">6e</span> Abandonner un signalement</a></li>
                 <li><a href="#cu6"><span class="help-toc__num-sub">6f</span> Consulter la synthèse (CSA/CHSCT)</a></li>
@@ -240,8 +245,8 @@ function helpScreenshot(string $src, string $alt): string
             </h3>
             <p class="help-description">Profil par défaut. Signalez des événements et suivez vos signalements. À la première connexion, vous choisissez votre site (définitif).</p>
             <ul class="help-feature-list">
-                <li>🏠 Accéder à l'accueil avec les 3 cartes de registres</li>
-                <li>✏️ Créer un signalement (RSST, RAMI, DGI)</li>
+                <li>🏠 Accéder à l'accueil avec les <?php echo $registryCount; ?> cartes de registres</li>
+                <li>✏️ Créer un signalement (RSST<?php if ($ramiEnabled): ?>, RAMI<?php endif; ?><?php if ($dgiEnabled): ?>, DGI<?php endif; ?>)</li>
                 <li>📋 Consulter la liste des signalements de son site</li>
                 <li>🔍 Voir le détail d'un signalement</li>
                 <li>✏️ Modifier un signalement tant qu'il n'est pas traité</li>
@@ -292,7 +297,7 @@ function helpScreenshot(string $src, string $alt): string
         </div>
     </div>
 
-    <?php echo helpScreenshot($screenshotBase . '/cu1-accueil.html', "Page d'accueil de l'agent avec les 3 cartes de registre"); ?>
+    <?php echo helpScreenshot($screenshotBase . '/cu1-accueil.html', "Page d'accueil de l'agent avec les cartes de registre"); ?>
 </div>
 
 <!-- ============================================================ -->
@@ -394,7 +399,7 @@ function helpScreenshot(string $src, string $alt): string
 <!-- ============================================================ -->
 <div id="confidentialite" class="card card--spaced content-section">
     <h2>Confidentialité des signalements</h2>
-    <p class="help-description">La visibilité des signalements dépend du réglage choisi par le superviseur, par registre (RSST, RAMI, DGI).</p>
+    <p class="help-description">La visibilité des signalements dépend du réglage choisi par le superviseur, par registre (RSST<?php if ($ramiEnabled): ?>, RAMI<?php endif; ?><?php if ($dgiEnabled): ?>, DGI<?php endif; ?>).</p>
     <div class="table-wrapper">
         <table class="table table--compact" aria-label="Modes de visibilité des signalements">
             <thead>
@@ -436,11 +441,11 @@ function helpScreenshot(string $src, string $alt): string
 </div>
 
 <!-- ============================================================ -->
-<!-- 4. Les 3 registres                                            -->
+<!-- 4. Les registres                                              -->
 <!-- ============================================================ -->
 <div id="registres" class="card card--spaced content-section">
-    <h2>Les 3 registres</h2>
-    <p class="help-description">L'application gère <strong>3 registres</strong> distincts pour la santé et sécurité au travail.</p>
+    <h2>Les <?php echo $registryCount; ?> registres</h2>
+    <p class="help-description">L'application gère <strong><?php echo $registryCount; ?> registre<?php echo $registryCount > 1 ? 's' : ''; ?></strong> distinct<?php echo $registryCount > 1 ? 's' : ''; ?> pour la santé et sécurité au travail.</p>
 
     <div class="help-profiles-grid">
 
@@ -455,6 +460,7 @@ function helpScreenshot(string $src, string $alt): string
             </ul>
         </div>
 
+        <?php if ($ramiEnabled): ?>
         <div class="help-profile-card help-profile-card--rami">
             <h3>RAMI</h3>
             <p class="help-description help-description--title">Registre des Actes d'Agressions, de Menaces et d'Incivilités</p>
@@ -464,7 +470,9 @@ function helpScreenshot(string $src, string $alt): string
                 <li>🏷️ Nature de l'auteur (usager, collègue…) et type d'acte (verbal, physique…) — optionnels</li>
             </ul>
         </div>
+        <?php endif; ?>
 
+        <?php if ($dgiEnabled): ?>
         <div class="help-profile-card help-profile-card--dgi">
             <h3>DGI</h3>
             <p class="help-description help-description--title">Registre de signalement d'un Danger Grave et Imminent</p>
@@ -474,11 +482,12 @@ function helpScreenshot(string $src, string $alt): string
                 <li>⚖️ Le formulaire vaut notification au sens <strong>L4131-1</strong> (droit de retrait). La consignation <strong>D4132-1</strong> reste du ressort du CSA/CHSCT.</li>
             </ul>
         </div>
+        <?php endif; ?>
     </div>
 
     <?php echo helpScreenshot($screenshotBase . '/cu2-creation-rsst.html', "Formulaire de création d'un signalement RSST"); ?>
-    <?php echo helpScreenshot($screenshotBase . '/cu3-creation-rami.html', "Formulaire de création d'un signalement RAMI avec le champ « Pour le compte de »"); ?>
-    <?php echo helpScreenshot($screenshotBase . '/cu4-creation-dgi.html', "Formulaire de création d'un signalement DGI avec le bandeau d'avertissement"); ?>
+    <?php if ($ramiEnabled): echo helpScreenshot($screenshotBase . '/cu3-creation-rami.html', "Formulaire de création d'un signalement RAMI avec le champ « Pour le compte de »"); endif; ?>
+    <?php if ($dgiEnabled): echo helpScreenshot($screenshotBase . '/cu4-creation-dgi.html', "Formulaire de création d'un signalement DGI avec le bandeau d'avertissement"); endif; ?>
 </div>
 
 <!-- ============================================================ -->
@@ -532,8 +541,8 @@ function helpScreenshot(string $src, string $alt): string
 
     <?php echo helpScreenshot($screenshotBase . '/consultation-liste-signalements.html', "Liste des signalements avec filtres et badges d'état"); ?>
     <?php echo helpScreenshot($screenshotBase . '/consultation-voir-rsst.html', "Vue détaillée d'un signalement RSST avec son historique"); ?>
-    <?php echo helpScreenshot($screenshotBase . '/consultation-voir-rami.html', "Vue détaillée d'un signalement RAMI"); ?>
-    <?php echo helpScreenshot($screenshotBase . '/consultation-voir-dgi.html', "Vue détaillée d'un signalement DGI"); ?>
+    <?php if ($ramiEnabled): echo helpScreenshot($screenshotBase . '/consultation-voir-rami.html', "Vue détaillée d'un signalement RAMI"); endif; ?>
+    <?php if ($dgiEnabled): echo helpScreenshot($screenshotBase . '/consultation-voir-dgi.html', "Vue détaillée d'un signalement DGI"); endif; ?>
 </div>
 
 <!-- ============================================================ -->
@@ -565,12 +574,13 @@ function helpScreenshot(string $src, string $alt): string
                 <li>📧 Un e-mail prévient les superviseurs du site</li>
                 <li>👀 Jean suit son signalement dans la liste RSST</li>
             </ol>
-            <?php echo helpScreenshot($screenshotBase . '/cu1-accueil.html', "Page d'accueil de l'agent avec les 3 cartes de registre"); ?>
+            <?php echo helpScreenshot($screenshotBase . '/cu1-accueil.html', "Page d'accueil de l'agent avec les cartes de registre"); ?>
             <?php echo helpScreenshot($screenshotBase . '/cu2-creation-rsst.html', "Formulaire de création d'un signalement RSST"); ?>
         </div>
     </div>
 
     <!-- CU2 : RAMI pour un tiers -->
+    <?php if ($ramiEnabled): ?>
     <div id="cu2" class="help-profile-card card--spaced">
         <h3>CU2 — Signalement RAMI pour le compte d'un collègue</h3>
         <p class="text-small text-muted help-case-label">Profil : Agent &bull; Registre : RAMI</p>
@@ -578,7 +588,7 @@ function helpScreenshot(string $src, string $alt): string
             <strong>🎯 Situation :</strong> Sophie est témoin d'une agression verbale envers son collègue Pierre. Pierre est trop choqué pour signaler. Sophie le fait pour lui.<br><br>
             <strong>📝 Étapes :</strong>
             <ol>
-                <li>🖱️ Sophie clique sur <strong>« Signaler un événement »</strong> sur la carte RAMI (carte grise)</li>
+                <li>🖱️ Sophie clique sur <strong>« Déposer un signalement »</strong> sur la carte RAMI (carte grise)</li>
                 <li>🤝 Elle sélectionne Pierre dans le champ <strong>« Pour le compte de »</strong></li>
                 <li>🏷️ Elle indique la nature de l'auteur (ex : Usager) et le type d'acte (ex : Verbal)</li>
                 <li>✏️ Elle décrit les faits avec date, heure et lieu</li>
@@ -590,8 +600,10 @@ function helpScreenshot(string $src, string $alt): string
             <?php echo helpScreenshot($screenshotBase . '/cu3-creation-rami.html', 'Formulaire RAMI avec le champ « Pour le compte de » et les listes déroulantes nature_auteur et type_acte'); ?>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- CU3 : DGI urgence -->
+    <?php if ($dgiEnabled): ?>
     <div id="cu3" class="help-profile-card card--spaced">
         <h3>CU3 — Signalement d'un Danger Grave et Imminent (DGI)</h3>
         <p class="text-small text-muted help-case-label">Profil : Agent &bull; Registre : DGI</p>
@@ -599,7 +611,7 @@ function helpScreenshot(string $src, string $alt): string
             <strong>🎯 Situation :</strong> Marc découvre une fuite de gaz. Danger immédiat pour tous les occupants du bâtiment.<br><br>
             <strong>📝 Étapes :</strong>
             <ol>
-                <li>🖱️ Marc clique sur <strong>« Signaler un événement »</strong> sur la carte DGI (carte rouge)</li>
+                <li>🖱️ Marc clique sur <strong>« Déposer un signalement »</strong> sur la carte DGI (carte rouge)</li>
                 <li>⚠️ Un bandeau rappelle la procédure d'urgence DGI</li>
                 <li>✏️ Il décrit le danger : nature, lieu exact et heure</li>
                 <li>⚡ Le signalement est créé (<code>dgi-26-001</code>) et les superviseurs sont <strong>prévenus immédiatement</strong></li>
@@ -608,6 +620,7 @@ function helpScreenshot(string $src, string $alt): string
             <?php echo helpScreenshot($screenshotBase . '/cu4-creation-dgi.html', "Formulaire DGI avec le bandeau d'avertissement sur la procédure prioritaire"); ?>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- CU4 : Superviseur traite -->
     <div id="cu4" class="help-profile-card card--spaced">
@@ -654,7 +667,7 @@ function helpScreenshot(string $src, string $alt): string
         <h3>CU6 — Un membre CSA/CHSCT consulte les signalements</h3>
         <p class="text-small text-muted help-case-label">Profil : Membre CSA/CHSCT</p>
         <div class="help-feature-list help-case-body">
-            <strong>🎯 Situation :</strong> Philippe, membre CSA/CHSCT, veut voir l'activité des 3 registres sur tous les sites pour préparer la réunion trimestrielle.<br><br>
+            <strong>🎯 Situation :</strong> Philippe, membre CSA/CHSCT, veut voir l'activité des <?php echo $registryCount; ?> registres sur tous les sites pour préparer la réunion trimestrielle.<br><br>
             <strong>📝 Étapes :</strong>
             <ol>
                 <li>📊 Il ouvre la <strong>Synthèse</strong> pour voir les signalements par registre, site et état</li>

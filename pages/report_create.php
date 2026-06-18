@@ -14,6 +14,12 @@ if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {
     redirect(url('home'));
 }
 
+// Block access to disabled registries
+if (!isRegistryEnabled($type)) {
+    setFlash('error', 'Ce registre est désactivé.');
+    redirect(url('home'));
+}
+
 $pageTitle = 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
 
 $pdo = getDB();

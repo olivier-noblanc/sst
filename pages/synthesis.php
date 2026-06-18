@@ -73,6 +73,15 @@ foreach (['rsst', 'rami', 'dgi'] as $type) {
 }
 
 $pageTitle = 'Synthèse des signalements';
+
+$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = isRegistryEnabled(TYPE_DGI);
+
+// Build list of active registry types for the table columns
+$activeTypes = ['rsst' => 'RSST'];
+if ($ramiEnabled) $activeTypes['rami'] = 'RAMI';
+if ($dgiEnabled) $activeTypes['dgi'] = 'DGI';
+$colSpan = count($activeTypes) * 4;
 ?>
 
 <h1 class="page-title">Synthèse des signalements</h1>
@@ -110,34 +119,38 @@ $pageTitle = 'Synthèse des signalements';
                 <tr>
                     <th rowspan="2"><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
                     <th colspan="4" class="synthesis-th-rsst">RSST</th>
-                    <th colspan="4" class="synthesis-th-rami">RAMI</th>
-                    <th colspan="4" class="synthesis-th-dgi">DGI</th>
+                    <?php if ($ramiEnabled): ?><th colspan="4" class="synthesis-th-rami">RAMI</th><?php endif; ?>
+                    <?php if ($dgiEnabled): ?><th colspan="4" class="synthesis-th-dgi">DGI</th><?php endif; ?>
                     <th rowspan="2">Total</th>
                 </tr>
                 <tr>
                     <th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th>
-                    <th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th>
-                    <th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th>
+                    <?php if ($ramiEnabled): ?><th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th><?php endif; ?>
+                    <?php if ($dgiEnabled): ?><th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th><?php endif; ?>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($siteData as $sId => $sd): ?>
                 <tr>
                     <td data-label="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"><strong><?php echo e($sd['code']); ?></strong></td>
-                    <?php foreach (['rsst' => 'RSST', 'rami' => 'RAMI', 'dgi' => 'DGI'] as $type => $typeLabel): ?>
+                    <?php foreach ($activeTypes as $type => $typeLabel): ?>
                         <?php foreach (['nouveau' => 'Nouv.', 'en_cours' => 'En cours', 'traite' => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
                             <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="<?php echo $sd[$type][$state] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>">
                                 <?php echo $sd[$type][$state]; ?>
                             </td>
                         <?php endforeach; ?>
                     <?php endforeach; ?>
-                    <td data-label="Total" class="synthesis-cell-value"><strong><?php echo $sd['rsst']['total'] + $sd['rami']['total'] + $sd['dgi']['total']; ?></strong></td>
+                    <td data-label="Total" class="synthesis-cell-value"><strong><?php
+                        $rowTotal = 0;
+                        foreach ($activeTypes as $type => $_) { $rowTotal += $sd[$type]['total']; }
+                        echo $rowTotal;
+                    ?></strong></td>
                 </tr>
                 <?php endforeach; ?>
                 <!-- Totals row -->
                 <tr class="row--totals">
                     <td data-label="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"><strong>Total</strong></td>
-                    <?php foreach (['rsst' => 'RSST', 'rami' => 'RAMI', 'dgi' => 'DGI'] as $type => $typeLabel): ?>
+                    <?php foreach ($activeTypes as $type => $typeLabel): ?>
                         <?php foreach (['nouveau' => 'Nouv.', 'en_cours' => 'En cours', 'traite' => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
                             <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="synthesis-cell-value"><?php echo $totals[$type][$state]; ?></td>
                         <?php endforeach; ?>

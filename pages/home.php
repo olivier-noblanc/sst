@@ -12,27 +12,36 @@ $user = currentUser();
 $userSiteId = (int) $user['site_id'];
 $agentVisibility = getReportVisibility();
 $seeAllSites = canSeeAllSites();
+$activeSiteCount = countActiveSites($pdo);
+$multiSite = $activeSiteCount > 1;
 
 // Get counts for each registry type based on report visibility
 $userId = (int) $user['id'];
+$rsstCount = 0;
+$ramiCount = 0;
+$dgiCount  = 0;
+
 if ($agentVisibility === 'confidential') {
     $rsstCount = countActiveReportsForUser($pdo, TYPE_RSST, $userId);
-    $ramiCount = countActiveReportsForUser($pdo, TYPE_RAMI, $userId);
-    $dgiCount  = countActiveReportsForUser($pdo, TYPE_DGI, $userId);
+    if (isRegistryEnabled(TYPE_RAMI)) $ramiCount = countActiveReportsForUser($pdo, TYPE_RAMI, $userId);
+    if (isRegistryEnabled(TYPE_DGI))  $dgiCount  = countActiveReportsForUser($pdo, TYPE_DGI, $userId);
 } elseif ($agentVisibility === 'agent_choice') {
     $rsstCount = countActiveReports($pdo, TYPE_RSST, $userSiteId, $userId, true);
-    $ramiCount = countActiveReports($pdo, TYPE_RAMI, $userSiteId, $userId, true);
-    $dgiCount  = countActiveReports($pdo, TYPE_DGI, $userSiteId, $userId, true);
+    if (isRegistryEnabled(TYPE_RAMI)) $ramiCount = countActiveReports($pdo, TYPE_RAMI, $userSiteId, $userId, true);
+    if (isRegistryEnabled(TYPE_DGI))  $dgiCount  = countActiveReports($pdo, TYPE_DGI, $userSiteId, $userId, true);
 } else {
     $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
     $rsstCount = countActiveReports($pdo, TYPE_RSST, $siteIdFilter);
-    $ramiCount = countActiveReports($pdo, TYPE_RAMI, $siteIdFilter);
-    $dgiCount  = countActiveReports($pdo, TYPE_DGI, $siteIdFilter);
+    if (isRegistryEnabled(TYPE_RAMI)) $ramiCount = countActiveReports($pdo, TYPE_RAMI, $siteIdFilter);
+    if (isRegistryEnabled(TYPE_DGI))  $dgiCount  = countActiveReports($pdo, TYPE_DGI, $siteIdFilter);
 }
 
 $totalReports = $rsstCount + $ramiCount + $dgiCount;
 $userRole = $user['role'] ?? ROLE_AGENT;
 $labelUnite = getConfig('app_label_unite', 'UR');
+$roleLabels = getRoleLabels();
+$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = isRegistryEnabled(TYPE_DGI);
 ?>
 
 <h1 class="page-title page-title--compact">Accueil</h1>
@@ -102,12 +111,13 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="registry-card__desc">Risques liés aux locaux, équipements, ergonomie, conditions environnementales</p>
         </div>
         <div>
-            <a href="<?php echo url('report_create', ['type' => TYPE_RSST]); ?>" class="registry-card__btn">Signaler un problème de sécurité</a>
+            <a href="<?php echo url('report_create', ['type' => TYPE_RSST]); ?>" class="registry-card__btn">Déposer un signalement</a>
             <a href="<?php echo url('report_list', ['type' => TYPE_RSST]); ?>" class="registry-card__link">Voir les signalements</a>
             <div class="registry-card__stat"><?php echo $rsstCount; ?> signalement<?php echo $rsstCount !== 1 ? 's' : ''; ?> enregistré<?php echo $rsstCount !== 1 ? 's' : ''; ?></div>
         </div>
     </div>
 
+    <?php if ($ramiEnabled): ?>
     <!-- RAMI Card -->
     <div class="registry-card registry-card--rami">
         <div>
@@ -122,7 +132,9 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <div class="registry-card__stat"><?php echo $ramiCount; ?> signalement<?php echo $ramiCount !== 1 ? 's' : ''; ?> enregistré<?php echo $ramiCount !== 1 ? 's' : ''; ?></div>
         </div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($dgiEnabled): ?>
     <!-- DGI Card -->
     <div class="registry-card registry-card--dgi">
         <div>
@@ -137,6 +149,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <div class="registry-card__stat"><?php echo $dgiCount; ?> signalement<?php echo $dgiCount !== 1 ? 's' : ''; ?> enregistré<?php echo $dgiCount !== 1 ? 's' : ''; ?></div>
         </div>
     </div>
+    <?php endif; ?>
 </div>
 
 <?php if (canSeeAllSites()): ?>

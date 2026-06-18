@@ -53,14 +53,14 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
             <?php else: ?>
                 <span class="header__logo-text"><?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?></span>
             <?php endif; ?>
-            <span class="header__title"><?php echo e(APP_NAME); ?></span>
+            <span class="header__title">Application SST</span>
         </div>
         <?php if (isUserLoggedIn()): ?>
         <div class="header__user">
             <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
             <span class="header__username">
                 <?php echo e(currentUserDisplayName()); ?>
-                <span class="badge <?php echo getRoleBadgeClass(currentUserRole()); ?> badge--sm"><?php echo e(ROLE_LABELS[currentUserRole()] ?? 'Agent'); ?></span>
+                <span class="badge <?php echo getRoleBadgeClass(currentUserRole()); ?> badge--sm"><?php echo e(getRoleLabel(currentUserRole())); ?></span>
             </span>
             <?php
             // Impersonation dropdown: only for superviseurs who are NOT already impersonating
@@ -82,7 +82,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
                         <input type="hidden" name="target_role" value="<?php echo ROLE_CHSCT; ?>">
-                        <button type="submit" class="impersonate-menu__item" role="menuitem">Membre CSA/CHSCT</button>
+                        <button type="submit" class="impersonate-menu__item" role="menuitem"><?php echo e(getRoleLabel(ROLE_CHSCT)); ?></button>
                     </form>
                     <label for="impersonate-toggle" class="impersonate-menu__item impersonate-menu__close" role="menuitem" tabindex="0">&#10005; Fermer</label>
                 </div>

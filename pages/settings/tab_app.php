@@ -124,6 +124,52 @@
         </div>
 
         <div class="separator">
+            <h4 class="card__subtitle">&#x1F514; Registres actifs</h4>
+            <p class="text-muted text-small mb-3">Activez ou désactivez les registres RAMI et DGI. Le registre RSST est toujours actif. Les registres désactivés n'apparaissent plus dans le menu, l'accueil, l'aide, les formulaires, les statistiques et les exports.</p>
+            <div class="form-group">
+                <label class="toggle-switch-label">
+                    <input type="checkbox" name="app_registry_rami_enabled" id="app_registry_rami_enabled" value="1"
+                           class="toggle-switch__input"
+                           <?php echo getConfig('app_registry_rami_enabled', '1') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                    <span>Activer le registre RAMI (Agressions, Menaces, Incivilités)</span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label class="toggle-switch-label">
+                    <input type="checkbox" name="app_registry_dgi_enabled" id="app_registry_dgi_enabled" value="1"
+                           class="toggle-switch__input"
+                           <?php echo getConfig('app_registry_dgi_enabled', '1') === '1' ? 'checked' : ''; ?>>
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                    <span>Activer le registre DGI (Danger Grave et Imminent)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="separator">
+            <h4 class="card__subtitle">&#x1F465; Noms des rôles</h4>
+            <p class="text-muted text-small mb-3">Personnalisez le nom affiché pour chaque rôle dans toute l'application (badge, aide, formulaires...). Par exemple : « Membre FS/CSA » au lieu de « Membre CSA/CHSCT ».</p>
+            <div class="form-group">
+                <label for="app_role_label_agent">Nom du rôle Agent</label>
+                <input type="text" id="app_role_label_agent" name="app_role_label_agent" class="form-control"
+                       value="<?php echo e(getConfig('app_role_label_agent', 'Agent')); ?>"
+                       placeholder="Agent">
+            </div>
+            <div class="form-group">
+                <label for="app_role_label_superviseur">Nom du rôle Superviseur</label>
+                <input type="text" id="app_role_label_superviseur" name="app_role_label_superviseur" class="form-control"
+                       value="<?php echo e(getConfig('app_role_label_superviseur', 'Superviseur')); ?>"
+                       placeholder="Superviseur">
+            </div>
+            <div class="form-group">
+                <label for="app_role_label_chsct">Nom du rôle FS/CSA</label>
+                <input type="text" id="app_role_label_chsct" name="app_role_label_chsct" class="form-control"
+                       value="<?php echo e(getConfig('app_role_label_chsct', 'Membre FS/CSA')); ?>"
+                       placeholder="Membre FS/CSA">
+            </div>
+        </div>
+
+        <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
             <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du CSA/CHSCT voient toujours tous les signalements.</p>
 

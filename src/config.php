@@ -105,11 +105,11 @@ define('REGISTRY_SHORT_LABELS', [
     'dgi'  => 'DGI',
 ]);
 
-// Role labels
-define('ROLE_LABELS', [
+// Role labels — defaults (overridden by DB config app_role_label_*)
+define('ROLE_LABELS_DEFAULT', [
     'agent'       => 'Agent',
     'superviseur' => 'Superviseur',
-    'chsct'       => 'Membre CSA/CHSCT',
+    'chsct'       => 'Membre FS/CSA',
 ]);
 
 // Report visibility modes (admin-configurable in Settings → Application)
@@ -130,6 +130,10 @@ define('ETAT_LABELS', [
     'abandonne'  => 'Abandonné',
     'reouvert'   => 'Réouvert',
 ]);
+
+// Registry toggle defaults (overridden by DB config app_registry_*_enabled)
+define('REGISTRY_RAMI_ENABLED_DEFAULT', true);
+define('REGISTRY_DGI_ENABLED_DEFAULT', true);
 
 // RAMI structured field labels (shared by statistics, export, and validation)
 define('RAMI_NATURE_AUTEUR_LABELS', [

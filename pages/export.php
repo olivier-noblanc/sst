@@ -18,6 +18,9 @@ $formErrors = getFormErrors();
 $formData = getFormData();
 
 $pageTitle = 'Export des données';
+
+$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = isRegistryEnabled(TYPE_DGI);
 ?>
 
 <h1 class="page-title">Export des données</h1>
@@ -39,8 +42,8 @@ $pageTitle = 'Export des données';
                     <select name="type" id="type">
                         <option value="" <?php echo empty($formData['type']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <option value="rsst" <?php echo ($formData['type'] ?? '') === 'rsst' ? 'selected' : ''; ?>>RSST</option>
-                        <option value="rami" <?php echo ($formData['type'] ?? '') === 'rami' ? 'selected' : ''; ?>>RAMI</option>
-                        <option value="dgi"  <?php echo ($formData['type'] ?? '') === 'dgi' ? 'selected' : ''; ?>>DGI</option>
+                        <?php if ($ramiEnabled): ?><option value="rami" <?php echo ($formData['type'] ?? '') === 'rami' ? 'selected' : ''; ?>>RAMI</option><?php endif; ?>
+                        <?php if ($dgiEnabled): ?><option value="dgi"  <?php echo ($formData['type'] ?? '') === 'dgi' ? 'selected' : ''; ?>>DGI</option><?php endif; ?>
                     </select>
                     <label class="label--checkbox">
                         <input type="checkbox" name="all_registries" id="all_registries" value="1"

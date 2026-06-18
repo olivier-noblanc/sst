@@ -14,6 +14,7 @@ $agentVisibility = getReportVisibility();
 $seeAllSites = canSeeAllSites();
 $activeSiteCount = countActiveSites($pdo);
 $multiSite = $activeSiteCount > 1;
+$noSiteMode = isNoSiteMode($pdo);
 
 // Get counts for each registry type based on report visibility
 $userId = (int) $user['id'];
@@ -69,7 +70,7 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
     <div class="welcome-banner__content">
         <h2 class="welcome-banner__title">Bienvenue dans l'Application SST</h2>
         <p class="welcome-banner__text">
-            Aucun signalement n'a encore été enregistré. Les agents de vos <?php echo e($labelUnite); ?>s pourront créer des signalements dans les trois registres ci-dessous.
+            Aucun signalement n'a encore été enregistré.<?php if (!$noSiteMode): ?> Les agents de vos <?php echo e($labelUnite); ?>s pourront créer des signalements dans les<?php if ($ramiEnabled || $dgiEnabled): ?> trois<?php else: ?> différents<?php endif; ?> registres ci-dessous.<?php endif; ?>
             En tant que <strong><?php echo e(ROLE_LABELS[$userRole] ?? $userRole); ?></strong>, vous pourrez les consulter, les filtrer et y répondre.
         </p>
         <a href="<?php echo url('help'); ?>" class="welcome-banner__link">Consulter la documentation</a>

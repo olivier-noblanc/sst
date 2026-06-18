@@ -8,6 +8,7 @@
 requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
+$noSiteMode = isNoSiteMode($pdo);
 $userId = (int) ($_GET['id'] ?? 0);
 
 if ($userId <= 0) {
@@ -70,10 +71,12 @@ $pageTitle = 'Utilisateur — ' . e($user['prenom'] . ' ' . $user['nom']);
             <th>Rôle</th>
             <td><span class="badge <?php echo getRoleBadgeClass($user['role']); ?>"><?php echo e(ROLE_LABELS[$user['role']] ?? $user['role']); ?></span></td>
         </tr>
+        <?php if (!$noSiteMode): ?>
         <tr>
-            <th>Site</th>
+            <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
             <td><?php echo e($user['site_nom'] ?? '—'); ?></td>
         </tr>
+        <?php endif; ?>
         <tr>
             <th>Signalements créés</th>
             <td><?php echo $reportCount; ?></td>

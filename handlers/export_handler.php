@@ -13,6 +13,7 @@
 validatePostRequest(url('export'), [ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 $pdo = getDB();
+$noSiteMode = isNoSiteMode($pdo);
 
 // Build filters from form data
 $filters = [];
@@ -72,8 +73,12 @@ $headers = [
     'Description',
     'Déclarant (nom)',
     'Déclarant (prénom)',
-    getConfig('app_label_unite', 'UR'),
-    'Nom ' . getConfig('app_label_unite', 'UR'),
+];
+if (!$noSiteMode) {
+    $headers[] = getConfig('app_label_unite', 'UR');
+    $headers[] = 'Nom ' . getConfig('app_label_unite', 'UR');
+}
+$headers = array_merge($headers, [
     'État',
     'Confidentiel',
     'Date création',
@@ -85,7 +90,7 @@ $headers = [
     'Dernier répondant',
     'Date dernière réponse',
     'Historique réponses',
-];
+]);
 fputcsv($tmpFile, $headers, ';');
 
 // Bulk-fetch all responses for the reports being exported (avoids N+1 queries)
@@ -150,11 +155,15 @@ foreach ($reports as $row) {
         $csvEscape($row['heure_evenement'] ?? ''),
         $csvEscape($row['lieu'] ?? ''),
         $csvEscape($row['objet'] ?? ''),
-        $csvEscape($row['description'] ?? ''),           // Newlines preserved by fputcsv enclosure
+        $csvEscape($row['description'] ?? ''),
         $csvEscape($row['declarant_nom'] ?? ''),
         $csvEscape($row['declarant_prenom'] ?? ''),
-        $csvEscape($row['site_code'] ?? ''),
-        $csvEscape($row['site_nom'] ?? ''),
+    ];
+    if (!$noSiteMode) {
+        $csvRow[] = $csvEscape($row['site_code'] ?? '');
+        $csvRow[] = $csvEscape($row['site_nom'] ?? '');
+    }
+    $csvRow = array_merge($csvRow, [
         $csvEscape(ETAT_LABELS[$row['etat'] ?? ''] ?? $row['etat'] ?? ''),
         !empty($row['is_confidential']) ? 'Oui' : 'Non',
         $csvEscape($row['created_at'] ?? ''),
@@ -166,7 +175,7 @@ foreach ($reports as $row) {
         $csvEscape(trim(($row['repondant_prenom'] ?? '') . ' ' . ($row['repondant_nom'] ?? ''))),
         $csvEscape($row['date_reponse'] ?? ''),
         $csvEscape($historyText),
-    ];
+    ]);
 
     fputcsv($tmpFile, $csvRow, ';');
 }

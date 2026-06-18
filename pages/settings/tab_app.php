@@ -130,7 +130,7 @@
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_registry_rami_enabled" id="app_registry_rami_enabled" value="1"
                            class="toggle-switch__input"
-                           <?php echo getConfig('app_registry_rami_enabled', '1') === '1' ? 'checked' : ''; ?>>
+                           <?php echo getConfig('app_registry_rami_enabled', REGISTRY_RAMI_ENABLED_DEFAULT ? '1' : '0') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Activer le registre RAMI (Agressions, Menaces, Incivilités)</span>
                 </label>
@@ -139,7 +139,7 @@
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_registry_dgi_enabled" id="app_registry_dgi_enabled" value="1"
                            class="toggle-switch__input"
-                           <?php echo getConfig('app_registry_dgi_enabled', '1') === '1' ? 'checked' : ''; ?>>
+                           <?php echo getConfig('app_registry_dgi_enabled', REGISTRY_DGI_ENABLED_DEFAULT ? '1' : '0') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Activer le registre DGI (Danger Grave et Imminent)</span>
                 </label>

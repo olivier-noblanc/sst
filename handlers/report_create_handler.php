@@ -55,19 +55,22 @@ $attachmentBlob = $attachment['blob'];
 $attachmentName = $attachment['name'];
 $attachmentMime = $attachment['mime'];
 
-// Validate site
-if ($siteId <= 0) {
-    $errors['site_id'] = 'L\'unité départementale est obligatoire.';
-} else {
-    $site = getSiteById($pdo, $siteId);
-    if (!$site) {
-        $errors['site_id'] = 'Unité départementale invalide.';
+// Validate site (skip in noSiteMode — site dropdown is hidden)
+$noSiteMode = isNoSiteMode($pdo);
+if (!$noSiteMode) {
+    if ($siteId <= 0) {
+        $errors['site_id'] = 'L\'unité départementale est obligatoire.';
+    } else {
+        $site = getSiteById($pdo, $siteId);
+        if (!$site) {
+            $errors['site_id'] = 'Unité départementale invalide.';
+        }
     }
-}
 
-// Agent can only create for their own site; superviseurs/chsct can create for any site
-if (!canSeeAllSites() && $siteId !== (int) $user['site_id']) {
-    $errors['site_id'] = 'Vous ne pouvez créer un signalement que pour votre ' . getConfig('app_label_unite', 'UR') . '.';
+    // Agent can only create for their own site; superviseurs/chsct can create for any site
+    if (!canSeeAllSites() && $siteId !== (int) $user['site_id']) {
+        $errors['site_id'] = 'Vous ne pouvez créer un signalement que pour votre ' . getConfig('app_label_unite', 'UR') . '.';
+    }
 }
 
 // RAMI-specific validation

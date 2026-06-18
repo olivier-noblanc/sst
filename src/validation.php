@@ -301,12 +301,15 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array
     }
 
     $siteId = (int) ($input['site_id'] ?? 0);
-    if ($siteId <= 0) {
-        $errors['site_id'] = 'Le site est requis.';
-    } else {
-        $site = getSiteById($pdo, $siteId);
-        if (!$site) {
-            $errors['site_id'] = 'Site invalide.';
+    // Skip site validation in noSiteMode (site dropdown is hidden)
+    if (!isNoSiteMode($pdo)) {
+        if ($siteId <= 0) {
+            $errors['site_id'] = 'Le site est requis.';
+        } else {
+            $site = getSiteById($pdo, $siteId);
+            if (!$site) {
+                $errors['site_id'] = 'Site invalide.';
+            }
         }
     }
 

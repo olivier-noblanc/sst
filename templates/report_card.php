@@ -8,6 +8,8 @@
  *   $report    — Report data array with joined site and respondent info
  *   $responses — Array of response history entries
  */
+
+$noSiteMode = isNoSiteMode(getDB());
 if (!isset($report) || !$report) {
     return;
 }
@@ -86,10 +88,12 @@ if (!isset($csrfToken)) {
                     <th>Signalé par</th>
                     <td><?php echo e($report['declarant_prenom'] . ' ' . $report['declarant_nom']); ?></td>
                 </tr>
+                <?php if (!$noSiteMode): ?>
                 <tr>
                     <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
                     <td><?php echo e($report['site_nom'] ?? '—'); ?> (<?php echo e($report['site_code'] ?? '—'); ?>)</td>
                 </tr>
+                <?php endif; ?>
                 <?php if ($type === TYPE_RAMI && !empty($report['pour_compte_nom'])): ?>
                 <tr>
                     <th>Signalé au nom de</th>

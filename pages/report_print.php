@@ -284,7 +284,9 @@ drawMultiField($pdf, 'Description', $report['description']);
 // Remaining fields
 $pdf->Ln(1);
 drawField($pdf, 'Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
-drawField($pdf, $labelUnite, ($report['site_nom'] ?? '—') . ' (' . ($report['site_code'] ?? '—') . ')');
+if (!isNoSiteMode($pdo)) {
+    drawField($pdf, $labelUnite, ($report['site_nom'] ?? '—') . ' (' . ($report['site_code'] ?? '—') . ')');
+}
 
 if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
     drawField(

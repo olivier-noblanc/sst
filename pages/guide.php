@@ -9,6 +9,9 @@
  * CSS is self-contained (print-optimized, no sidebar/header when printed).
  */
 $pageTitle = 'Guide rapide';
+$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = isRegistryEnabled(TYPE_DGI);
+$registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
 ?>
 <style>
     /* Guide page — self-contained print-ready styles */
@@ -238,9 +241,9 @@ $pageTitle = 'Guide rapide';
             <p class="guide-step__text">
                 Sur la page d'accueil, <strong>cliquez sur le bouton « Signaler un evenement »</strong>
                 sous le registre correspondant :
-                <strong>RSST (Sante et Securite au Travail)</strong>,
-                <strong>RAMI (Agressions, Menaces, Incivilites)</strong> ou
-                <strong>DGI (Danger Grave et Imminent)</strong>.
+                <strong>RSST (Sante et Securite au Travail)</strong><?php if ($ramiEnabled): ?>,
+                <strong>RAMI (Agressions, Menaces, Incivilites)</strong><?php endif; ?><?php if ($dgiEnabled): ?> ou
+                <strong>DGI (Danger Grave et Imminent)</strong><?php else: ?><?php if ($ramiEnabled): ?> ou<?php endif; ?><?php endif; ?>.
                 Choisissez le registre qui correspond a votre situation :
             </p>
             <div class="guide-registres">
@@ -249,19 +252,23 @@ $pageTitle = 'Guide rapide';
                     Sante et securite au travail<br>
                     <small>Risques, equipements, ergonomie</small>
                 </div>
+                <?php if ($ramiEnabled): ?>
                 <div class="guide-registre guide-registre--rami">
                     <span class="guide-registre__label">RAMI</span>
                     Agressions, menaces, incivilites<br>
                     <small>Harcement, violence verbale/physique</small>
                 </div>
+                <?php endif; ?>
+                <?php if ($dgiEnabled): ?>
                 <div class="guide-registre guide-registre--dgi">
                     <span class="guide-registre__label">DGI</span>
                     Danger grave et imminent<br>
                     <small>Urgence, droit de retrait</small>
                 </div>
+                <?php endif; ?>
             </div>
-            <img src="screenshots/guide-etape1.png" alt="Page d'accueil avec les 3 registres" class="guide-step__img" width="340">
-            <p class="guide-step__caption">Capture d'ecran : la page d'accueil avec les 3 registres et les boutons « Signaler un evenement »</p>
+            <img src="screenshots/guide-etape1.png" alt="Page d'accueil avec les <?php echo $registryCount; ?> registres" class="guide-step__img" width="340">
+            <p class="guide-step__caption">Capture d'ecran : la page d'accueil avec les <?php echo $registryCount; ?> registre<?php echo $registryCount > 1 ? 's' : ''; ?> et les boutons « Signaler un evenement »</p>
         </div>
     </div>
 

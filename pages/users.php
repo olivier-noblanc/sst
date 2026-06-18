@@ -8,6 +8,7 @@
 requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
+$noSiteMode = isNoSiteMode($pdo);
 
 // Active tab
 $activeTab = $_GET['tab'] ?? 'list';
@@ -26,7 +27,7 @@ if (!empty($search)) {
             stripos($u['prenom'], $search) !== false ||
             stripos($u['email'], $search) !== false ||
             stripos($u['username'], $search) !== false ||
-            stripos($u['site_nom'], $search) !== false) {
+            (!$noSiteMode && stripos($u['site_nom'], $search) !== false)) {
             $filtered[] = $u;
         }
     }
@@ -84,7 +85,7 @@ $pageTitle = 'Gestion des utilisateurs';
                     <th>Prénom</th>
                     <th>Email</th>
                     <th>Rôle</th>
-                    <th>Site</th>
+                    <?php if (!$noSiteMode): ?><th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th><?php endif; ?>
                     <th>Statut</th>
                     <th>Actions</th>
                 </tr>
@@ -92,7 +93,7 @@ $pageTitle = 'Gestion des utilisateurs';
             <tbody>
                 <?php if (empty($allUsers)): ?>
                 <tr>
-                    <td colspan="7" class="empty-state">
+                    <td colspan="<?php echo $noSiteMode ? '6' : '7'; ?>" class="empty-state">
                         Aucun utilisateur trouvé.
                         <div class="empty-state__cta">
                             <a href="<?php echo url('users', ['tab' => 'create']); ?>" class="btn btn--primary btn--sm">+ Inscrire un utilisateur</a>
@@ -106,7 +107,7 @@ $pageTitle = 'Gestion des utilisateurs';
                     <td><?php echo e($u['prenom']); ?></td>
                     <td><?php echo e($u['email'] ?? '—'); ?></td>
                     <td><span class="badge <?php echo getRoleBadgeClass($u['role']); ?>"><?php echo e(ROLE_LABELS[$u['role']] ?? $u['role']); ?></span></td>
-                    <td><?php echo e($u['site_nom'] ?? '—'); ?></td>
+                    <?php if (!$noSiteMode): ?><td><?php echo e($u['site_nom'] ?? '—'); ?></td><?php endif; ?>
                     <td>
                         <?php if ($u['is_active']): ?>
                             <span class="status-dot--active">&#x25CF; Actif</span>

@@ -20,6 +20,7 @@ if (!isset($formErrors)) $formErrors = getFormErrors();
 if (!isset($formData)) $formData = getFormData();
 
 $user = currentUser() ?? [];
+$noSiteMode = isNoSiteMode(getDB());
 
 // Determine values: prefer form data (on validation error), then report data, then defaults
 $val = function(string $field, string $default = '') use ($formData, $report, $isEdit) {
@@ -161,7 +162,7 @@ $submitBtnClass = $isEdit
                 <?php endif; ?>
             </div>
 
-            <?php if (!$isEdit): ?>
+            <?php if (!$isEdit && !$noSiteMode): ?>
             <div class="form-group">
                 <label for="site_id">Votre unité de rattachement <span class="required">*</span></label>
                 <select id="site_id" name="site_id" required
@@ -178,6 +179,8 @@ $submitBtnClass = $isEdit
                     <span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span>
                 <?php endif; ?>
             </div>
+            <?php elseif (!$isEdit && $noSiteMode): ?>
+            <input type="hidden" name="site_id" value="">
             <?php endif; ?>
 
             <?php if (reportVisibilityIsAgentChoice()): ?>

@@ -8,6 +8,7 @@
 requireRole([ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 $pdo = getDB();
+$noSiteMode = isNoSiteMode($pdo);
 
 // Get filter
 $year = $_GET['year'] ?? date('Y');
@@ -125,6 +126,7 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
 </div>
 
 <!-- Table: Reports by site and registry -->
+<?php if (!$noSiteMode): ?>
 <div class="card">
     <h3 class="card__title">Nombre de signalements réparti par <?php echo e(getConfig('app_label_unite', 'UR')); ?> et par registre</h3>
     <div class="table-wrapper">
@@ -160,6 +162,7 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
         </table>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- RAMI: Répartition par nature de l'auteur et type d'acte -->
 <?php if ($ramiEnabled && (!empty($ramiStats['by_nature_auteur']) || !empty($ramiStats['by_type_acte']))): ?>

@@ -28,6 +28,7 @@ $userId = (int) $user['id'];
 $userRole = $user['role'];
 $agentVisibility = getReportVisibility();
 $seeAllSites = canSeeAllSites();
+$noSiteMode = isNoSiteMode($pdo);
 
 // Build filters from GET params
 $filters = [
@@ -107,7 +108,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
             </select>
         </div>
 
-        <?php if ($seeAllSites): ?>
+        <?php if ($seeAllSites && !$noSiteMode): ?>
         <div class="form-group">
             <label for="site">Site (<?php echo e(getConfig('app_label_unite', 'UR')); ?>)</label>
             <select id="site" name="site">
@@ -140,7 +141,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                     <th>Objet</th>
                     <th>Nom</th>
                     <th>Prénom</th>
-                    <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
+                    <?php if (!$noSiteMode): ?><th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th><?php endif; ?>
                     <th>État</th>
                     <th>Visibilité</th>
                     <th>Actions</th>
@@ -149,7 +150,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
             <tbody>
                 <?php if (empty($reports)): ?>
                 <tr>
-                    <td colspan="9" class="empty-state">
+                    <td colspan="<?php echo $noSiteMode ? '8' : '9'; ?>" class="empty-state">
                         <div class="empty-state__icon">&#128203;</div>
                         <div class="empty-state__title">Aucun signalement trouvé</div>
                         <div class="empty-state__cta">
@@ -169,7 +170,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         <td data-label="Objet"><?php echo e(truncate($report['objet'], 50)); ?></td>
                         <td data-label="Nom"><?php echo e($report['declarant_nom']); ?></td>
                         <td data-label="Prénom"><?php echo e($report['declarant_prenom']); ?></td>
-                        <td data-label="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"><?php echo e($report['site_code'] ?? '—'); ?></td>
+                        <?php if (!$noSiteMode): ?><td data-label="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"><?php echo e($report['site_code'] ?? '—'); ?></td><?php endif; ?>
                         <td data-label="État">
                             <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>">
                                 <?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?>

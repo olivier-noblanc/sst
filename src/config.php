@@ -132,8 +132,10 @@ define('ETAT_LABELS', [
 ]);
 
 // Registry toggle defaults (overridden by DB config app_registry_*_enabled)
-define('REGISTRY_RAMI_ENABLED_DEFAULT', true);
-define('REGISTRY_DGI_ENABLED_DEFAULT', true);
+// RSST is always active. RAMI and DGI are disabled by default —
+// the supervisor can enable them in Settings > Application.
+define('REGISTRY_RAMI_ENABLED_DEFAULT', false);
+define('REGISTRY_DGI_ENABLED_DEFAULT', false);
 
 // RAMI structured field labels (shared by statistics, export, and validation)
 define('RAMI_NATURE_AUTEUR_LABELS', [

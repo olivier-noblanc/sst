@@ -116,11 +116,26 @@ function getRoleLabels(): array
 
 /**
  * Check if there are any active sites in the system.
+ * Returns true if at least one site is active (excluding the default RSST row).
  */
 function hasActiveSites(PDO $pdo): bool
 {
     $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
-    return ($stmt->fetchColumn() ?: 0) > 1; // >1 because RSST is always there
+    return ($stmt->fetchColumn() ?: 0) > 0;
+}
+
+/**
+ * Check if the application is in "no-site" mode (zero active sites).
+ * When true, site-related fields should be hidden from forms, tables, and filters.
+ */
+function isNoSiteMode(PDO $pdo): bool
+{
+    static $cache = null;
+    if ($cache === null) {
+        $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
+        $cache = (($stmt->fetchColumn() ?: 0) === 0);
+    }
+    return $cache;
 }
 
 /**

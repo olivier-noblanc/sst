@@ -14,6 +14,7 @@ $report = fetchReportOrRedirect($uuid);
 requireReportEditable($report, $uuid, 'répondu');
 
 $pdo = getDB();
+$noSiteMode = isNoSiteMode($pdo);
 
 // Get response history
 $responses = getReportResponses($pdo, $uuid);
@@ -57,10 +58,12 @@ $formData = getFormData();
             <th>Déclarant</th>
             <td><?php echo e($report['declarant_prenom'] . ' ' . $report['declarant_nom']); ?></td>
         </tr>
+        <?php if (!$noSiteMode): ?>
         <tr>
             <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
             <td><?php echo e($report['site_nom'] ?? '—'); ?></td>
         </tr>
+        <?php endif; ?>
         <tr>
             <th>Objet</th>
             <td><?php echo e($report['objet']); ?></td>

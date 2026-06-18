@@ -8,6 +8,7 @@
 requireRole([ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 $pdo = getDB();
+$noSiteMode = isNoSiteMode($pdo);
 
 // Get sites and users for filter dropdowns
 $sites = getAllSites($pdo);
@@ -54,8 +55,9 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
             </div>
 
             <!-- Site -->
+            <?php if (!$noSiteMode): ?>
             <div class="form-group">
-                <label for="site_id">Site</label>
+                <label for="site_id"><?php echo e(getConfig('app_label_unite', 'UR')); ?></label>
                 <div class="btn-group--inline items-center">
                     <select name="site_id" id="site_id">
                         <option value="" <?php echo empty($formData['site_id']) ? 'selected' : ''; ?>>— Choisir —</option>
@@ -70,6 +72,7 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
                     </label>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- Agent -->
             <div class="form-group">

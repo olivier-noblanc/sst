@@ -61,8 +61,12 @@ if (!isset($usernameHint)) {
         </select>
         <?php if (isset($formErrors['role'])): ?><span class="form-error" id="err_role"><?php echo e($formErrors['role']); ?></span><?php endif; ?>
     </div>
+    <?php
+    $noSiteMode = isNoSiteMode(getDB());
+    if (!$noSiteMode):
+    ?>
     <div class="form-group">
-        <label for="site_id">Site <span class="required">*</span></label>
+        <label for="site_id"><?php echo e(getConfig('app_label_unite', 'UR')); ?> <span class="required">*</span></label>
         <select name="site_id" id="site_id" required
                 <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : ''; ?>>
             <?php foreach ($sites as $site): ?>
@@ -71,4 +75,7 @@ if (!isset($usernameHint)) {
         </select>
         <?php if (isset($formErrors['site_id'])): ?><span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span><?php endif; ?>
     </div>
+    <?php else: ?>
+    <input type="hidden" name="site_id" value="">
+    <?php endif; ?>
 </div>

@@ -24,6 +24,13 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 $pageTitle = 'Choisir mon site';
 
 $pdo = getDB();
+
+// In noSiteMode, there are no sites to choose — redirect home
+if (isNoSiteMode($pdo)) {
+    setFlash('info', 'Aucun site n\'est configuré pour le moment. Vous pouvez utiliser l\'application sans rattachement.');
+    redirect(url('home'));
+}
+
 $user = currentUser();
 $hasExistingSite = !empty($user['site_id']);
 $isWithinGracePeriod = false;

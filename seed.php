@@ -26,6 +26,15 @@ $pdo = getDB();
 echo "Database initialized with schema.\n";
 
 // ================================================================
+// ENABLE ALL REGISTRIES FOR TEST DATA (RAMI/DGI are disabled by default)
+// ================================================================
+$pdo->prepare("INSERT OR IGNORE INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUES (?, ?, '', '', '', 1)")
+    ->execute(['app_registry_rami_enabled', '1']);
+$pdo->prepare("INSERT OR IGNORE INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUES (?, ?, '', '', '', 1)")
+    ->execute(['app_registry_dgi_enabled', '1']);
+echo "RAMI and DGI registries enabled for test data.\n";
+
+// ================================================================
 // ADDITIONAL SITES (7 more to supplement the 2 default ones = 9 total)
 // ================================================================
 // Default sites (IDs 1-2): UR21 Côte-d'Or, UR25 Doubs

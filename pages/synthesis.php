@@ -8,6 +8,7 @@
 requireRole([ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 $pdo = getDB();
+$noSiteMode = isNoSiteMode($pdo);
 
 // Get filter parameters
 $year = $_GET['year'] ?? date('Y');
@@ -97,21 +98,24 @@ $colSpan = count($activeTypes) * 4;
             <?php endforeach; ?>
         </select>
     </div>
+    <?php if (!$noSiteMode): ?>
     <div class="form-group">
-        <label for="site">Site</label>
+        <label for="site"><?php echo e(getConfig('app_label_unite', 'UR')); ?></label>
         <select name="site" id="site">
-            <option value="0" <?php echo $siteId === 0 ? 'selected' : ''; ?>>Tous les sites</option>
+            <option value="0" <?php echo $siteId === 0 ? 'selected' : ''; ?>>Tous</option>
             <?php foreach ($sites as $s): ?>
             <option value="<?php echo (int) $s['id']; ?>" <?php echo $siteId === (int) $s['id'] ? 'selected' : ''; ?>><?php echo e($s['nom']); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
+    <?php endif; ?>
     <div class="form-group align-self-end">
         <button type="submit" class="btn btn--outline">Filtrer</button>
     </div>
 </form>
 
 <!-- Synthesis Table -->
+<?php if (!$noSiteMode): ?>
 <div class="card">
     <div class="table-wrapper">
         <table class="synthesis-table" aria-label="Synthèse des signalements par site">
@@ -161,3 +165,8 @@ $colSpan = count($activeTypes) * 4;
         </table>
     </div>
 </div>
+<?php else: ?>
+<div class="card">
+    <p class="text-muted">Aucun site n'est configuré. La synthèse par site sera disponible dès qu'au moins un site sera activé dans les <a href="<?php echo url('settings'); ?>">paramètres</a>.</p>
+</div>
+<?php endif; ?>

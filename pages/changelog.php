@@ -5,10 +5,16 @@
  * Displays the CHANGELOG.md content rendered as HTML.
  * URL: index.php?page=changelog
  *
+ * Access: superviseur only — the changelog contains internal technical details
+ * that are not relevant to agents or CHSCT members.
+ *
  * NOTE: This page is included by the router with header/sidebar/footer.
  * The router has already started the session, loaded config/database/helpers/queries,
  * and checked authentication. We do NOT need to re-require or re-start session.
  */
+
+// Restrict changelog access to superviseurs only
+requireRole([ROLE_SUPERVISEUR]);
 
 // Try multiple path resolution strategies (same logic as getAppVersion())
 $changelogPath = null;

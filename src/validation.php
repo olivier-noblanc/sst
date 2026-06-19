@@ -13,6 +13,8 @@
  * (~100 lines duplicated between create/edit report).
  */
 
+require_once __DIR__ . '/validation_user.php';
+
 // ============================================================================
 // Report Validation
 // ============================================================================

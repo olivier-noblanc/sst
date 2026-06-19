@@ -8,6 +8,9 @@
  * report_agent_queries.php, report_invite_queries.php.
  */
 
+require_once __DIR__ . '/report_count_queries.php';
+require_once __DIR__ . '/report_response_queries.php';
+
 /** Base SELECT for report queries with site JOIN (excludes attachment_blob). */
 function reportSelectWithSite(): string
 {

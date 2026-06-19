@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
-    <base href="http://localhost:8765/">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application SST — DREETS BFC — Page</title>
-    <style>/* ============================================================
+<base href="http://localhost:8765/"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Application SST — DREETS BFC — Page</title>
+<style>/* ============================================================
    Style Sheet — Application SST DREETS BFC
    Version 2.0
    Complete DREETS visual identity theme
@@ -2561,72 +2562,66 @@ tr:hover td {
 
 .log-entry--fatal .log-entry__text { color: #f38ba8; }
 .log-entry--warning .log-entry__text { color: #fab387; }
-</style>            <link rel="icon" type="image/png" sizes="64x64" href="data:image/png;base64,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">    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAMAEBAAAAEAIADqAgAANgAAACAgAAABACAAAAgAACADAAAwMAAAAQAgALAOAAAgCwAAiVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACsUlEQVR4nFWTz2sVdxTFP/c735k3835kTExM7FNitaKCaYtGqdBFu5FiVxVEKLT/QLvp3yK0uBDc6M6V3RRaaDe1hUKsCi6MIqb4QtKHL5pn5s18v9/bxUwCvct74XDOPefIYH1dnXPE1gIgIgCoQlBFgUiEZo2qAuC8wxiD9d7T63axNkJVqM8QR0LaqkEnpad0AUURBCPgvWc8HmNbSUIcW5IkxtqE3Rm9Lfjl4QZB4ePjs0x3O3s35xxlWWKtZZc3URRzf23E2uY261sTng/HDN4UoPDH6pDF/R0O5ikLM23OLU5TNZqsAgah8oHvf11luFXyqnCMCs/K8y0Q4YPFHtOtEXlqaaeW61+doWUEECyqGIGi8kxlMXcfDVnf3IGgXL7QZziu+O3+BsSGfCrh6tkD7JSOLBUUxaqCAj4EdkpPULCZJUX54cslVl685q/Hm5StGBFh4gJBFaglmNqb2qrUGorKc7rf5dW1S/TSmE9PzjG4donptsUFJbWGSBo7FQwoLgQ6LUsvs8x1E178W/Dtrb9RVZ5ubPPdrQe8flsx27HkWUwvszivgGJFBB+UKIo4Ntfl1HybHx8Muf7TM94/nPNkY5sbPz+DXsqJ+Yyjcx3SOOHNpAKR2sbICEGVi6fm+f3pkAvv5dx7MuKb24/ACHRSlo9McbgX8/npg6hqk0ytAUSEEALzecbVs+9QlGuEkPPn6giCcv7YPk4caHFluc+hmTbOueZ5DQMAIzWLT04uUFSBOysD8ixGVenvS/jiwwUuLvXxqnVfdoPUBHEPxAfls6UFZrsJN+/9A8DXHx3i/NFZfGjkijSlE6zznhAU7x0h1MSKKrD87gxHZtqIwP6plEnpiAy4IKgqqooPDnn5cqCgJEnyvzoHVeKoBqx8wOzVvO5rVVU47/kPppczEcJZ/ZMAAAAASUVORK5CYIKJUE5HDQoaCgAAAA1JSERSAAAAIAAAACAIBgAAAHN6evQAAAfHSURBVHiclZdrjFXVFcd/+3HOvXfmzjAzMAgMoBaMiAIBwaIiYusjsbEmTVOS9pvWqkTbtDHWpIlJm7RNmjba2qRNmtSIbTWtsaaCJmgbW8oAahCoQAsVB2SYgcIw4zzOuWe/+uHc58z4wZ2ce/c5+7H+678ee22RGRPOnRsmq2RorRFCACCEqPebWwihPj7be+2bEKI+Nn2ttRalNfN7exEfnTkTrLOUiiWklMgmwbMB+LStGUSt75yjklVwzqEzk1Fub0dJjVISKWWL4OkgmjWermHzmtnGQgh1dgCSJEHHUYSSCq0VSimkFAghqxsB1ACE6ib5mw8BJQQI8D7k61qEzc6G974OUGuNliLXOn9EnQUQ1YlVDCHgQyAEiJRA6wiCzXHJCGcNxgdElQFBbWEreOccIYS6TC2ErDucUgKlNFLKfHLIWZBCoLRs0sXx0tun+eHO4xjr+e7dV/HVGy+nqFV9hnU+pxyQIn+8bzUBgBgaGgrFYpEo0mgdEUXRrBEwnmYcODXKqweH2HFoiIIQPHz7ZyhEkl+/eZLRxHDX6gXcu24R66/oYU4pnmEC5xzOOYwxGGNIkqQBQGtNFEUordFKcWTwEs//c4APRyt8NJJwYbxCrCSrF8/hzmvnMrcj5vn+QVLjuG/TEtLMsevoBQ6cGiUxgZ5yRF9XkSWdBe5d38eWFQuw1uF9DiDLMtI0bWYg1x6hiCPFoy8cYOeBIe679Uq6Sop55QilJMfPTfL6+xfYc3wEbNXOIrB+eRdfWDWPaxZ2IID/TWSMJY4dB4ZRBcnux7dgrCV4hzEWYwxpmqKbwyO3T07X6UsVtt2xjOGxlBf6zzOcOkbGUsgCRArVFiNrzoXg3YFx3v3PJdCSzs6YRZ0xK/s6eOj2K3j6zQEApBQ4X3PLfK2eGa/5+0RqsN7zyqHzfHBmEtojVClClsAHcBWLCyGfHil0USGKGu/h40rg47MJ/z6fsGnZHKzPw08CtiYvgCegpztb7S21nkgJEAJRVEgZCEEgpMAnhm/deQVb1y/GhcDDfzjMkTOT6FgRCEgJIZbESuRah0DFekrRtPSNaGUg71fztQOJIDWBIPKvIYDzEIxn7dIublw2D4DecoGQTeCmCTDeI8gTlPUeaA7lnAbdKrxhgkDuD82pVwCdRUlmJNY5nM/HYhUolyQiCoxXqn4URDUpNTEbZmZIzbRWG1fVlXEkQUpcYvnKZxfy1NZVZMbR21FAyQBItt93PZn1WOfZ8tQ+Tl3MEDLPmFLU3EQ0VGvStR4FDSZywW2xIrOB7pJmIKTgA4u6iiya0zYD7vyOxreOWINLCUg62yNCCERKUIgU1tomOeETGKgO9HUVOTdeYUl3gYMffAxacXRogt0nzpMZy8pFc1jY1Q7AwdMjjCUW6z0XpzKEFATrWdpTYKLi6W6PAVk3WbOZW3ygOQ/ccGU3Ow4PsWl5D3/Ze464XGTX0RF2HdkL4ynPPLCWh7ZcBQQe+v1B9h8ZgZIGpYi0xCQZG6+cw9GhcVb3lasyZpq77pa1cJQy/79nzQKOnJ3g2oVlCp0RzjpUJCgWI2QhoqstRkuBlpJySSMLEXEpQsr8qCYSbF7ezT9OXGLr+sX53kJAPS7y3xYTCCGQQmCd5/KeMisXltl7cpQHNvXxy9c+JO4uYn0gxJpf/X2AdwZGsd7zr8FJQiSxzqOUwIwZvnzzQk5emKKzqLlpWS/O+xycb2Vhhg80TAI/+dJKNv10Dzsf2cAr753nzGiGLkhEJOk/MUb/sRFAQFEjqgWJywJdZcWjty3lnmfe4aUHr2/yLVG3PSK0mqC5SQHOe9Ysncv9Ny3hO386xvb7VyGdI9jcT3RREXcWiDtiZDXcCAKfZGx/YDXff/UEd6/o4Y7rFuN8QMtp9WXI4chm+zdsAUoKMmN4eusqCJ7f7j7Ny99ch0sNzuQ8GusxziOFwDtwkxV+98hadh29yKnhCZ77xg1YZ5GykQOaZdQZmH4giWo5pqTEWM9bj91M/38v8fqh87z22AbaCNgph5YSLSU2ccTe8/K3r+fgwBh/3D9I//c2o2ql3QyOBVTzjZy9As7PBKUUPkBJKw48uYW3jl3k2bc+4q9PbGTlonbMWAUzlnHNghJvPL6BP789xIv7zvDeD26jt7OIdR6tVENoHUqjL86ePVuviOI4Rqm8Om4GlqQpsZaY4Ln7Z/sYnbL85utr+MUbAwgB2z53OduePYxSgl2P3UhnQZOaQKlYaJg8BJyzWOuw1pIZQ5ImM/PAbCYpxjEV45AB/vbELdxy9Vw+/6M93HXdPDZfPZc7ftzPxuXd7H9yM+2RIjWeYmFmTVirtJtZmHEW1AYb1ysQUlKIYiqmgplK+fnX1nDrih7uf+59tBQ8/+A6vriujyTJEEJQiONPvNDMgDQ4OFitCeNqZSwRQrVOaroHWmuxztPeFjN8aRIpYH5XG5NTGVGkUVIxPahqCnnvca5mgowkTdGZMcSFGO8dzgkgIESteAj1DWp9IQSRVkwlht5ykQBMJZZIawhgraMl3FpA5AC893jvsdaipZRMTSW0lcjrNilnvRfM1iZtA56zs8/JmW8AqrGQpinWGESapuHs0DDgiaO4Ljyvhj7dDXn6lX36Nb124lprMc5y2fzL+D/1ePi1QD7EPAAAAABJRU5ErkJggolQTkcNChoKAAAADUlIRFIAAAAwAAAAMAgGAAAAVwL5hwAADndJREFUeJy1mnlwXdV9xz9nue89rbZkyxaykfEm4wUTbFPKYmA8hEBaPAxbQpJJAiTQTDMsnbKETP9oMyydNnQSt4WmDdDQhCQwhJCEDJ3iTGFYwmJiYjs2ZrMlWZIXWbKlp7udc/rHvfe9+56ebei0Z+bOvbrvnnN+39/++x0J55wLgoDhkRGCIEBLhZACIQRA5Z5/ds7xvx1CiI89P/veWosxBu1pZs/uoq21FeH7vhsYHERKQbFQRCiJ5PgA/j9HI3DZO+ccxlriOCIIQ+Z2zUGPjIwglKBULCGFrACQUh6X6EbvnXPHfP9xADSStHMu+VsIpBAgBCMjI2g/DGhpaUFKiVYaIRLik0UE9fQcTwrHA1D//ljvGs3NAxBCYAAtFbFSaM/zUFKipEJKiRQCqRRCZMRPV6U8Acn6Lv3O1XxbJaiWEdU5VNYQ4tiSyoi31lZsSEqJ1hqtpEIKmRCfuzIAQsiaxaqgHCfSDGOTD5QUH2tenvBsWGsr9zyNWgpRozbJs6g8VyWREdDo2dU8WeuQQlAqFQGIoghjLVKCoJYhCfczCYqatRKwYppd5GnT2QNQQ7CUGaj8htkG9XrusC5ZXCuB9DRgeGbLXvzAcM3ZC/Ao4KwlMjZZP6dTCVGNmVSvPvWXzghP7gk3hFDI1Cay350TCJFwJOOcTVmulMRL17A25tdb+7n/V7t5YcswWMf9q97l7suWsvGM+RQ8r0JebB3OptwV09kCDiHkNOJrgA8O7nPFYgGlFForlJIo5aFUBiAlLBWdbOiEHO8MjfH0W/v4txf3snvnYZq7mviHL5zGzGbNLY/9nuG948xfOIMb1vdy5br5nHZyB9SpU4UxmZrgUglYrHXEcYwxBmMMURQRBAFicHDQFYtFtNYopSpA6iVQHYbxckj/aJltA0d4YfdBNu88zK4PxiGMWbq0gzsuXcLnzprH2/3jlIOY85Z18cvfDXPfs7t5Y9sBEIIFC9q4aEUXF/TNZvX8dno7m5nZUkAIVaNGifoYrHUYY4jjuHLVAKgSXwWSGffIkUlu/tFbfHDIp380YHjMh4kIYgdtHqed0sHln5jLVWtPom9uM6+9f5i/f+5dfrFlP1jL+Stnc+elS9iwfA7D4z5PbRniiTeGePW9MTgSgAKaNZ3tJXo7S8xvVdxx2QrW93VjrIUURALA1ADQefHVpw/WJULePjjOT38zwMLFHZzfN4vFc1pZ3t3Mqd3NnDKrhYKW7B6Z4Mk3B/nJG0O8s/coSIlsLoEQvLDrCC9s+y29JzVz1dpuLl/TzXXnngxA/+EpdgxN8oehCT48OMXO/RP88uX9nNo7xPq+bqwlVduq88hrhK4nPhNbNgVgcNxHKcHP/mwNbUWP7YPjjEyE/Oj1Qd4emODtwQkOHvLBCChqVFsTAos1FutAN2lo9tg7bnjgVx/ywLPv0z6zyKqeNj5xcjsrT2pm3YJ2/vS0Oaya10rXXz5P/+EgpQtSdzEt0Akh0JmbahgF03f7xgKMksxoKnDFQ6/x1tZD0OQlHPEkeArVUkKKJAY4l3gNqVJDTDdXnkQWizgnOBI4Xt41zsvbD4NLCEQ53r7nQrrbSwyO+VXGuozgHIPT17qWXpfjvsOlIjt41E84qyCIQXe2IAsyJQwsFucscSplZ8BGcbqxACWQBYXFYk2yulQC2eSlrjvZJ/ZD/Mgyu9XjUDmqEO1c9arjcG0gq/utMg6XI7xiQsDYVEQMKOuw5POhNF4YR0tBcurJLYBACseBiYg9oxFCJc4+I8bg0n0cUgpsZJkMYmY0KfaNpxIgscV6Eh0NJFARWd04ElhaCgpjHJNhJj43bY6WgnAy4uqzenjkurOwziKFZMueA6y95yWE9EAkck3jISKNtpmd+rGluajxI0Oi+9XAmdzTJDAhI4kkDfNubEUKfmQoaYW1jshAbch0FU4lwUfQVNQ4IDQJzJL20iovIZj0u4z4/FLGOgpaElmHtQ5R4XUNmyt3nc+3p0sjuUfWIWXCdVvRl5SYysaiAie2Lk3Nki+MszgLJlNo4WpyoXp2qEzP0o0aJq+pyKYZce1iVe4mYhbVybmczjlHSxG0gEA7Sqo6DxI/3uw5hE44GsWOwDiEEgiXLJZIxqEkxC4BKDK9cokUqvS5ilCm2UAehEifi0oSG1BK4HngxwIhk4w1mgj5xmWL+PqGxYTGIoHWkgdYtEogLO1uZ+e3NpAVNkFsueS7v+Xd/QGiIHA25bIQNHkSPzIUtKp4ICFqbaBCozuuEYuKBGY2a8b9GE9K2gqKo+W4WptaR9/cVnpmttatZJFpnl9QmpM722t+ndVc4N3YTwBkqqkl7SWP0YmQ9iYFKKyNIWcr9V5zWjpYCWyVAgPmzSgRTkY4J+lq8cDY1ACTOaFJ6oHknlVc1UwWEldoHRibZZxJ8BLWIVKDLZQUbSXFwJhPT3sxpxHTnUwGSOZ/qEGYU6Ulc1oQfsThqZBFc5ogtlVXKARTQYwUDi0SricVFjkADimSS0mHIyaITSUmCCHAOHpnFSlpzcChgL7u1hT4sUvQhnGgxgbS/VfNa8c5x/aho5y9sIOnXxxGkHqbpgJ/8+v3efTVgcQmJgOu/uN5/NXG04mMxVOSd4bHuPqh1xAqibxhbNi130d4EuscWgpsaPij3hkcmoww4z5rettyVOVLzdpSdhqAemkArOyZQfPsEs9s3c+dFy/ijsJODAJhHSgYnbKMHpkEJWHcZ21fkNTG6Trl0PD2nqOgClVCPFUlRYBzMRtXz2HzrkMgLecu7qwysUYCqdtPc6GKCjWKwAKIjaGpUOBTq+bwzOvD9HaWOH3RDKwfpyWmQynQJUWpqJBNiuaCSi0oWb6gJbKkUCWFTq/EwBNLi2PHjFklNiyfzfdeHGDBwpms6OnAOZBietWWRSAh6lsEDQBk48b1vZQPTPLstgPcfclinB8ipExjRGakDgsc9aMkoyMGLEenAqxJi/M02rrURyglcEcDbr6wl/cOTrJrx0G+tn4BUiiMdTkaslqgluSGKlRpYaQtRufgohXd9K2YxTef3Mnu+y5k1ZIZbB+YQpcUJlWV2DpEqcATWw7wxp7nESQ19KFymORBUOPDpRCYyDGrq8gdFy/ikk1v0jKryPXnnQKQSCkfvKAS1LLnaRKor8oEYKxFS829l/ex9/0xHnxxLz+84QxcFIHLEoZ0vgTfSP6wz2fHvjLbBsoMHbEIJXC2mn4IQEqJHZ/kkS+t4vndo7z0Uj/f+JOFdLU1Y2ySoVb7RRlTq8VWjQ1MH9UcSUlBbCxXru1lw3nzue3RbXS2edz32eVEY+VKxM2GFA5dlOiSRpc0SqXbVGsTtFJEBya46ZO9XLC8iy/905v0LWnn1ouXVRpjObbWs7myUINAVnuvGneiv9/7/Gm0lDSf+rtXuOvSJVxz/jyC0Sl0SmQSBJNvrc0Cm6uyzIGnFOF4yPrVnTx0/Ro2fud1xkfLPPLVNbSUmrDO5vL/+jwofSeOAWBa4ZD2aJQUhFHE4rkdfP/G1ex4Z4zLN73KT25axyfXzCIc9dFS1sxzWRDKcd7TivBIyJrFzWy+az03/mAr//3iAA9cv5pzTp1HEAXTJNqoG1hTDzQa9Z0wISRaKaZ8n2vWncI9163k55sHue7hN3nutnP59LrZhKPlHIhMb12FYZ6ShGM+5yxr45VvXsDdT+3gX5/czZ9ftYjbLl3JVBCgZK4v1MD/ZxaUxYGGXqg6IUOe5h1SIUXMlB9x96dXcsSP+dvHdmKN4xe3ns0ND2/h0f/ag5rZAmmBD1VGhGNTXHluN4/fdCa3//T3fOfHu/jixoVs+uKZ+GGYHKyI2hxqOlX5SiMH4KOcokiZtB1dHOEHEfdfsRoJ3PfYOxyciHnq5rNY2dPO7Y/vgGIB7SWbxZED3+evP7OMOy9dyucfep0n/vNDvrxxEd//8jrC2IC1KK1Tz5NnoSRrq2RSrbBWkBT10CgSZ0iz52RorbHWYm2MH8C9V5zOjCbNXQ/vYO3B3/Dc7eew5pQOPvPg6xwcNwDMnql4/NZzOLWnlbO+9QJbtx3iL65dxrevOZ0gStqGWmmU8o7B/aompKdLkJ4ziIGBgWO2FrODhPphrSOKApyzOCRNpQI/fPUDvvDQVoqe5OlbzuTMhR1c+y9voiT8x1fW8Mp7Y1z1z28QlCM2XbeSr2/oww8inLMoqdFaN9zLGJMyzGKMxZikwRvGEWEY1ALIiM8Wy3qjjSSUdYjBYpygpanIy+/t59oHf8fePePccc1S7r1yFUFsufOJ7fzjz96lZ0Er//6V07loeQ/lqTBNvSWe5zUkPjsXsNZincOk3ek4dkQmTJq79QAyECcC4JxLTl6MQQiHsYKW5iJD42W+9oO3+PnmflafMZep0LF7+0GuuGg+mz63mp6OVibLfnrsJNA6aeU3GhmA7B5XAFgiExGeCED1tLJ2VJq/uUXBYiw0FQooDZs2v8ctP95NUQu++9mlfPX8RcSxxQ8jdNr5VkpXuuCNRkZ8BqDSXjeGKDIEoY/o7++vnA/U6r9Apj75GOvXbGSMwTmDsYCDlhaP7f2H0UqyrGcmE5MBQji0UkipkVKdcN3sNDMDUgUQE2Xtdets0gfNnUNJCc7JpLEkZOVYqb4qyh++JWqgUOk6k+WYFSfNxDmYLEd4ObtK5tqa49bpFVfidbJontlClpZkktFhGFIoFLCieg5ljMidS1mqAXt6rdsozANoJfFjW3kGUlXLj/pyK/vb1fxdY8wVb2SIjUErpfGDgFIhLzpXl0acQNYnGPVkf5RRf7SatwOTntCEQYCYmJh0g/v2USgUKHi1HqgWRK6DkNukHmCjM91G3zUi+HjvMhuw1hLFMeWpMrM6OhHOOTcxMcHQ8DAAhdQn/19xv9H4KP8jkX+f7wXFNok/nR2dzOnq4n8ABlQB6lvfBZQAAAAASUVORK5CYII="></head>
+</style> <link href="data:image/png;base64,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" rel="icon" sizes="64x64" type="image/png"/> <link href="data:image/x-icon;base64,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" rel="icon" type="image/x-icon"/></head>
 <body>
-    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
-    <header class="header" role="banner">
-        <div class="header__logo">
-                            <span class="header__logo-text">DREETS BFC</span>
-                        <span class="header__title">Application SST — DREETS BFC</span>
-        </div>
-                <div class="header__user">
-            <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
-            <span class="header__username">
+<a class="skip-link" href="#main-content">Aller au contenu principal</a>
+<header class="header" role="banner">
+<div class="header__logo">
+<span class="header__logo-text">DREETS BFC</span>
+<span class="header__title">Application SST — DREETS BFC</span>
+</div>
+<div class="header__user">
+<label aria-label="Ouvrir le menu" class="header__menu-btn" for="sidebar-toggle" tabindex="0">☰</label>
+<span class="header__username">
                 Jean Dupont                <span class="badge badge--agent badge--sm">Agent</span>
-            </span>
-            <a href="index.php?page=logout" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
-        </div>
-            </header>
+</span>
+<a class="header__logout" href="index.php?page=logout" title="Déconnexion">⇥ Déconnexion</a>
+</div>
+</header>
 <!-- Hidden checkbox for CSS-only sidebar toggle (mobile) — tabindex="-1" prevents focus since hidden attr is not always sufficient -->
-<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox" tabindex="-1" hidden>
-<label for="sidebar-toggle" class="sidebar-overlay" aria-hidden="true"></label>
-<nav class="sidebar" id="sidebar-nav" role="navigation" aria-label="Menu principal">
-    <ul class="sidebar__nav">
-                                                    <li>
-                    <a href="index.php?page=home"
-                       class="sidebar__item"
-                       >
-                        <span class="sidebar__icon" aria-hidden="true">&#127968;</span>
+<input class="sidebar-toggle-checkbox" hidden="" id="sidebar-toggle" tabindex="-1" type="checkbox"/>
+<label aria-hidden="true" class="sidebar-overlay" for="sidebar-toggle"></label>
+<nav aria-label="Menu principal" class="sidebar" id="sidebar-nav" role="navigation">
+<ul class="sidebar__nav">
+<li>
+<a class="sidebar__item" href="index.php?page=home">
+<span aria-hidden="true" class="sidebar__icon">🏠</span>
                         Accueil                    </a>
-                </li>
-                                                                <li>
-                    <a href="index.php?page=report_list&type=rsst"
-                       class="sidebar__item"
-                       >
-                        <span class="sidebar__icon" aria-hidden="true">&#128203;</span>
+</li>
+<li>
+<a class="sidebar__item" href="index.php?page=report_list&amp;type=rsst">
+<span aria-hidden="true" class="sidebar__icon">📋</span>
                         RSST                    </a>
-                </li>
-                                                                                                                                                </ul>
-
-    <div class="sidebar__footer">
-        <a href="index.php?page=help" class="sidebar__item">
-            <span class="sidebar__icon" aria-hidden="true">&#128218;</span>
+</li>
+</ul>
+<div class="sidebar__footer">
+<a class="sidebar__item" href="index.php?page=help">
+<span aria-hidden="true" class="sidebar__icon">📚</span>
             Documentation
         </a>
-        <a href="index.php?page=preamble" class="sidebar__item">
-            <span class="sidebar__icon" aria-hidden="true">&#128214;</span>
+<a class="sidebar__item" href="index.php?page=preamble">
+<span aria-hidden="true" class="sidebar__icon">📖</span>
             Préambule
         </a>
-    </div>
-</nav>
-<span id="top" tabindex="-1"></span><main id="main-content" class="main" role="main">
-<div class="page-header">
-    <h1>Historique des modifications</h1>
 </div>
-
-    <div class="changelog-content">
-        <h1>Changelog — Application SST DREETS BFC</h1>
+</nav>
+<span id="top" tabindex="-1"></span><main class="main" id="main-content" role="main">
+<div class="page-header">
+<h1>Historique des modifications</h1>
+</div>
+<div class="changelog-content">
+<h1>Changelog — Application SST DREETS BFC</h1>
 <p>Toutes les modifications notables de ce projet sont documentées dans ce fichier.</p>
 <h2>[3.9.0] — 2026-06-14</h2>
 <h3>Corrections v4 — Audit SST DREETS BFC</h3>
 <ul>
-<li><strong>A</strong> 🔴 <strong>Références légales RAMI corrigées</strong> — Le bloc RAMI dans <code>pages/preamble.php</code> ne contient plus de TODO ni de « Cadre juridique à confirmer ». Remplacé par les références vérifiées sur Légifrance : Article L135-6 du CGFP (loi n° 2019-828), articles R135-1 à R135-10 du CGFP (décret n° 2024-1038 du 6 novembre 2024). Ajout des liens Légifrance pour RSST (Décret 82-453 art. 3-2) et DGI (Art. L4131-1 et D4132-1 Code du travail).</li>
+
 <li><strong>B</strong> 🔴 <strong>Anti-pattern de test corrigé</strong> — <code>canAccessReport()</code> dans <code>src/helpers.php</code> accepte désormais un 3ème paramètre optionnel <code>$forcedVisibility</code> pour injecter le mode de visibilité sans DB. Le test <code>tools/tests/test_can_access_report.php</code> appelle directement la vraie fonction (la copie locale <code>testCanAccessReport()</code> est supprimée). 79 cas couverts, comportement de production inchangé.</li>
 <li><strong>C</strong> 🔴 <strong>Protection anti-fixation de session activée</strong> — <code>login_handler.php</code> appelle désormais <code>safeSessionRegenerate()</code> au lieu du code commenté. Le fichier <code>session_patch.php</code> est inclus dans le bootstrap <code>index.php</code>. En production, l'ancienne session est détruite ; en dev, le drapeau <code>false</code> évite le crash du serveur intégré.</li>
 <li><strong>D</strong> 🟡 <strong>Header Content-Security-Policy ajouté</strong> — <code>public/web.config</code> inclut désormais un header CSP : <code>default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'</code>. <code>unsafe-inline</code> requis pour les styles/scripts inline existants. <code>frame-ancestors 'none'</code> complète X-Frame-Options.</li>
 <li><strong>E</strong> 🔴 <strong>Chiffrement de smtp_pass en base</strong> — Deux fonctions dédiées <code>encryptConfigValue()</code> et <code>decryptConfigValue()</code> dans <code>src/helpers.php</code> (AES-256-CBC, clé via variable d'environnement <code>SST_SECRET_KEY</code>). Lecture déchiffrée dans <code>src/mail.php</code>, écriture chiffrée dans <code>handlers/settings_handler.php</code>. Migration idempotente <code>migrateEncryptSmtpPass()</code> dans <code>src/database.php</code> chiffre automatiquement les valeurs en clair au premier démarrage. Section SST_SECRET_KEY ajoutée dans <code>DEPLOY.md</code>.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.8.3] — 2026-06-12</h2>
 <h3>Outil CLI — <code>nuclear-reset.php</code> : purge des signalements</h3>
 <ul>
@@ -2638,21 +2633,21 @@ tr:hover td {
 <li><strong>2</strong> 🟡 <strong>Bloc migration <code>report_responses_new</code> supprimé</strong> — Le nettoyage de la table orpheline <code>report_responses_new</code> dans <code>database.php</code> est retiré (la migration one-shot a déjà tout nettoyé sur le serveur).</li>
 <li><strong>3</strong> 🟢 <strong>Zéro trace résiduelle</strong> — Plus aucune référence à <code>report_uuid2</code>, <code>report_responses_new</code>, ou la sous-requête <code>SELECT id FROM reports WHERE uuid</code> dans les INSERT.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.8.2] — 2026-06-12</h2>
 <h3>Correctif — Suppression migration report_id nullable (database table is locked)</h3>
 <ul>
 <li><strong>1</strong> 🔴 <strong>Migration <code>report_id nullable</code> supprimée</strong> — La migration qui recréait la table <code>report_responses</code> pour rendre <code>report_id</code> nullable échouait systématiquement avec « database table is locked » sous IIS. SQLite ne supporte pas les écritures concurrentes : quand plusieurs processus PHP tentent la migration en même temps (DROP TABLE + CREATE TABLE + INSERT + ALTER TABLE), le verrou exclusif est refusé. <strong>Cette migration n'est plus nécessaire</strong> car depuis v3.8.1, l'INSERT fournit <code>report_id</code> via sous-requête <code>(SELECT id FROM reports WHERE uuid = ...)</code>. Le code fonctionne que <code>report_id</code> soit <code>NOT NULL</code> ou nullable.</li>
 <li><strong>2</strong> 🟢 <strong>Nettoyage conservé</strong> — Si une table orpheline <code>report_responses_new</code> existe (d'une ancienne tentative échouée), elle est supprimée. Cette opération est légère (DROP TABLE IF EXISTS) et ne provoque pas de verrouillage.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.8.1] — 2026-06-12</h2>
 <h3>Correctif — report_id NOT NULL : l'INSERT fournit désormais report_id</h3>
 <ul>
 <li><strong>1</strong> 🔴 <strong><code>respondToReport()</code> : INSERT inclut <code>report_id</code></strong> — L'INSERT dans <code>report_responses</code> ne fournissait pas <code>report_id</code>, ce qui échouait si la colonne était encore <code>NOT NULL</code> (migration pas encore passée sur le serveur). Correction : l'INSERT utilise une sous-requête <code>(SELECT id FROM reports WHERE uuid = :report_uuid2)</code> pour résoudre automatiquement le <code>report_id</code> à partir du <code>report_uuid</code>. <strong>Fonctionne que la migration soit passée ou non</strong> — c'est la solution définitive.</li>
 <li><strong>2</strong> 🟡 <strong><code>seed.php</code> même correctif</strong> — L'INSERT de seed pour les réponses de démo inclut désormais <code>report_id</code> via la même sous-requête.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.8.0] — 2026-06-12</h2>
 <h3>Architecture — Assets inline : zéro dépendance IIS pour les assets statiques</h3>
 <ul>
@@ -2669,7 +2664,7 @@ tr:hover td {
 <li><strong>8</strong> 🔴 <strong>Favicon Content-Type : <code>charset=utf-8</code> ajouté</strong> — <code>image/vnd.microsoft.icon; charset=utf-8</code> dans <code>asset.php</code> (au cas où asset.php serait encore appelé pour un favicon).</li>
 <li><strong>9</strong> 🔴 <strong>Cache-Control max-age = 180</strong> — <code>asset.php</code> et <code>router.php</code> appliquent <code>max-age=180</code> à tous les assets (webhint exige ≤180). Le flag <code>immutable</code> est retiré.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.7.3] — 2026-06-12</h2>
 <h3>Audit — webhint : Content-Type, Cache-Control, URL d'assets</h3>
 <ul>
@@ -2680,7 +2675,7 @@ tr:hover td {
 <li><strong>5</strong> 🟡 <strong><code>web.config</code> : règles URL Rewrite inbound</strong> — Deux nouvelles règles inbound dans <code>&lt;rewrite&gt;&lt;rules&gt;</code> : <code>Asset Rewrite</code> pour <code>/assets/(css|img|fonts|js)/fichier.ext</code> et <code>Asset Rewrite Root</code> pour <code>/assets/fichier.ext</code> (favicon). Les deux réécrivent vers <code>asset.php?f=...&amp;v=...</code> en utilisant les back-references <code>{R:1}</code> et <code>{R:2}</code>.</li>
 <li><strong>6</strong> 🟢 <strong><code>router.php</code> réécrit</strong> — Le routeur de développement gère désormais les URLs <code>/assets/...</code> via deux regex <code>preg_match</code>, avec une fonction <code>serveStaticAsset()</code> centralisée (MIME types, ETag, 304, Cache-Control). Support legacy de <code>asset.php?f=...</code> conservé.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.7.2] — 2026-06-12</h2>
 <h3>Audit — Accessibilité, Cache-Control, Server header</h3>
 <ul>
@@ -2690,7 +2685,7 @@ tr:hover td {
 <li><strong>4</strong> 🟡 <strong>Favicon Content-Type standardisé</strong> — <code>image/x-icon</code> remplacé par <code>image/vnd.microsoft.icon</code> (type MIME IANA officiel) dans <code>asset.php</code> et <code>router.php</code>. Pas de <code>charset</code> sur les types binaires.</li>
 <li><strong>5</strong> 🟡 <strong>Faux positifs documentés</strong> — L'audit signale que le <code>content-type</code> des assets CSS et favicon devrait être <code>text/html</code> : c'est une erreur de l'outil d'audit (les types <code>text/css</code> et <code>image/vnd.microsoft.icon</code> sont corrects). L'audit recommande aussi un <code>max-age ≤ 180</code> pour les assets versionnés avec <code>immutable</code> : c'est un faux positif (les assets versionnés avec cache busting doivent avoir un long cache pour la performance).</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.7.1] — 2026-06-12</h2>
 <h3>Correctif — Migration report_responses bloquée</h3>
 <ul>
@@ -2702,7 +2697,7 @@ tr:hover td {
 <li><strong>3</strong> 🟡 <strong>Case à cocher « Avertir l'utilisateur par e-mail »</strong> — Dans la page d'édition d'un utilisateur (<code>user_edit.php</code>), une case à cocher apparaît lorsque le rôle sélectionné diffère du rôle actuel ET que l'utilisateur a une adresse e-mail. Elle est cochée par défaut. Si l'utilisateur n'a pas d'e-mail, un message ⚠ est affiché dans le flash de succès.</li>
 <li><strong>4</strong> 🟢 <strong>CSS <code>.checkbox-label</code></strong> — Nouvelle classe CSS pour le style des labels de checkbox (flex, gap, cursor pointer).</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.7.0] — 2026-06-12</h2>
 <h3>Fonctionnalité — Notifications e-mail automatiques en cas d'erreur critique</h3>
 <ul>
@@ -2714,7 +2709,7 @@ tr:hover td {
 <li><strong>6</strong> 🟢 <strong>Journal d'erreurs : catégorie <code>[SST-ERROR-MAIL]</code></strong> — Les entrées de log liées aux notifications d'erreurs sont désormais catégorisées sous « E-mail » dans le journal d'erreurs (page Logs), au même titre que <code>[SST-MAIL]</code>.</li>
 <li><strong>7</strong> 🟡 <strong>Shutdown handler pour erreurs fatales</strong> — En plus du <code>set_error_handler()</code>, un <code>register_shutdown_function()</code> attrape les erreurs fatales (E_ERROR, E_PARSE, etc.) qui bypassent le error handler standard.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.6.0] — 2026-06-12</h2>
 <h3>Sécurité — Tout passe par l'authentification Windows</h3>
 <ul>
@@ -2723,7 +2718,7 @@ tr:hover td {
 <li><strong>3</strong> 🟡 <strong><code>asset.php</code> — Documentation mise à jour</strong> — Les commentaires du script documentent désormais le fait que l'authentification Windows est requise en production, et que l'accès direct aux répertoires d'assets est bloqué par le <code>web.config</code>.</li>
 <li><strong>4</strong> 🟡 <strong><code>web.config</code> — Commentaires clarifiés</strong> — Les commentaires expliquent que TOUT passe par Windows Auth, qu'aucune exception d'accès anonyme n'existe, et pourquoi les hiddenSegments sont utilisés pour forcer le passage par <code>asset.php</code>.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.5.0] — 2026-06-12</h2>
 <h3>Serveur d'assets PHP — Contrôle total des headers HTTP</h3>
 <ul>
@@ -2747,7 +2742,7 @@ tr:hover td {
 <li><strong>12</strong> 🟢 <strong>Bouton « Effacer les logs »</strong> — Permet de vider le fichier de log en un clic (protégé par CSRF token et confirmation).</li>
 <li><strong>13</strong> 🟡 <strong>Sidebar : entrée « Journal »</strong> — Nouvel item dans le menu sidebar (icône 📜), visible uniquement pour les superviseurs, entre « Paramètres » et le footer.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.4.0] — 2026-06-12</h2>
 <h3>Audit — Sécurité HTTP, cache busting, zéro JavaScript</h3>
 <ul>
@@ -2776,14 +2771,14 @@ tr:hover td {
 <li><strong>7</strong> 🔴 <strong>Headers dépréciés supprimés de FPDF</strong> — <code>Pragma: public</code> et <code>must-revalidate</code> retirés du header FPDF (<code>fpdf.php</code>). Le PDF utilise désormais <code>Cache-Control: private, max-age=0</code>.</li>
 <li><strong>8</strong> 🟢 <strong>71 styles inline migrés vers CSS externe</strong> — Tous les attributs <code>style="..."</code> (71 occurrences dans 14 fichiers PHP) ont été remplacés par 27 nouvelles classes CSS et 7 classes existantes réutilisées. Plus aucun style inline ne subsiste dans les templates, conformément aux bonnes pratiques de séparation contenu/présentation.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.2.1] — 2026-06-12</h2>
 <h3>Infrastructure — Suppression .htaccess + web.config minimal</h3>
 <ul>
 <li><strong>1</strong> 🔴 <strong><code>.htaccess</code> supprimé</strong> — L'application est déployée sur IIS, le <code>.htaccess</code> est inutile et source de confusion. Tout est géré par PHP.</li>
 <li><strong>2</strong> 🟡 <strong><code>web.config</code> réduit au strict minimum</strong> — Suppression de <code>customHeaders</code> (CSP, nosniff, etc. → gérés par PHP), suppression de <code>clientCache</code> (géré par PHP), suppression de <code>httpErrors</code>. Ne reste que : document par défaut, protection fichiers/dossiers sensibles, MIME types manquants (.woff, .woff2, .svg), authentification Windows.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.2.0] — 2026-06-12</h2>
 <h3>Correctif — CSS non chargé + headers HTTP conformes</h3>
 <ul>
@@ -2795,7 +2790,7 @@ tr:hover td {
 <li><strong>6</strong> 🟡 <strong><code>web.config</code> IIS corrigé</strong> — <code>staticContent</code> réécrit avec MIME types explicites et Cache-Control par type d'asset. <code>customHeaders</code> réduit aux seuls headers utiles (CSP, nosniff, Referrer-Policy, Permissions-Policy). <code>X-Frame-Options</code> et <code>X-XSS-Protection</code> retirés (redondants avec CSP).</li>
 <li><strong>7</strong> 🟡 <strong><code>router.php</code> réécrit</strong> — Les fichiers statiques sont servis AVANT l'output buffering gzip. Chaque type MIME a son charset. Seuls les assets texte ont <code>X-Content-Type-Options: nosniff</code>.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.1.0] — 2026-06-12</h2>
 <h3>Accessibilité — WCAG 2.1 (10/10)</h3>
 <ul>
@@ -2823,14 +2818,14 @@ tr:hover td {
 <ul>
 <li><strong>14</strong> 🟡 <strong>choose_site.php sans headers</strong> — Ajout des headers Cache-Control (no-store, no-cache, must-revalidate, max-age=0), Pragma, Expires et des security headers (X-Frame-Options, X-Content-Type-Options, CSP, etc.) sur la page choose_site.php qui sort avant le layout.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.0.1] — 2026-06-12</h2>
 <h3>Correctif — Réponse superviseur impossible sur signalement en cours</h3>
 <ul>
 <li><strong>F28</strong> 🔴 <strong><code>report_id NOT NULL</code> bloquait l'INSERT dans <code>report_responses</code></strong> — la migration ayant ajouté <code>report_uuid</code> n'avait pas assoupli la contrainte <code>NOT NULL</code> sur l'ancienne colonne <code>report_id</code>. L'INSERT du code actuel ne fournit que <code>report_uuid</code>, pas <code>report_id</code> → violation de contrainte silencieuse → la transaction était rollbackée → message d'erreur trompeur « Le signalement a peut-être déjà été traité ». Correction : migration automatique qui recrée <code>report_responses</code> avec <code>report_id</code> nullable (SQLite ne supporte pas ALTER COLUMN). Le <code>CREATE TABLE IF NOT EXISTS</code> de la migration est aussi mis à jour pour utiliser <code>report_uuid</code> au lieu de <code>report_id</code>.</li>
 <li><strong>F29</strong> 🟠 <strong><code>respondToReport()</code> retourne un code au lieu de <code>bool</code></strong> — la fonction retourne désormais <code>'true'</code> (succès), <code>'concurrent'</code> (modifié par un autre superviseur entre-temps) ou <code>'error'</code> (erreur base de données). Le handler affiche un message spécifique à chaque cas au lieu du générique « peut-être déjà été traité ». L'UPDATE réussi mais l'INSERT qui échouait n'est plus masqué par un message ambigu.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[3.0.0] — 2026-06-12</h2>
 <h3>Sécurité — Headers HTTP</h3>
 <ul>
@@ -2859,7 +2854,7 @@ tr:hover td {
 <ul>
 <li><strong>13</strong> 🟢 <strong><code>truncate()</code> corrigé</strong> — <code>strlen()</code>/<code>substr()</code> remplacés par <code>mb_strlen()</code>/<code>mb_substr()</code> avec encodage UTF-8 explicite. Les coupures ne se font plus au milieu d'un caractère accentué (é, ê, ç).</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.9.0] — 2026-06-12</h2>
 <h3>Fiabilité — SQLite</h3>
 <ul>
@@ -2877,14 +2872,14 @@ tr:hover td {
 <li><strong>E3</strong> 🟠 Colonnes ajoutées : <code>Nom UR</code>, <code>Date création</code>, <code>Déclaré pour le compte de</code>, <code>Heure événement</code>, <code>Lieu</code>.</li>
 <li><strong>E4</strong> 🟡 Description et réponse conservent leurs retours à la ligne (encapsulation <code>"</code> par <code>fputcsv</code>).</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.8.2] — 2026-06-12</h2>
 <h3>Correctif</h3>
 <ul>
 <li><strong>F04</strong> ↩️ <code>display_errors</code> rétabli à toujours activé — le paramétrage précédent (désactivation en prod) avait été appliqué sans accord. Les erreurs PHP sont de nouveau affichées en production comme en dev.</li>
 <li><strong>F07</strong> 🟠 Affichage multi-réponses corrigé — un signalement peut recevoir plusieurs réponses du superviseur. La carte "Réponse" (unique, dernier seulement) et l'"Historique des réponses" étaient redondantes et masquaient ce fait. Remplacées par une seule section "Réponses (N)" listant toutes les réponses, dans le card HTML (<code>report_card.php</code>) et le PDF (<code>report_print.php</code>).</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.8.1] — 2026-06-12</h2>
 <h3>Sécurité — Corrections de l'audit fonctionnel</h3>
 <p>Corrections prioritaires issues de l'audit fonctionnel complet (31 constats) :</p>
@@ -2904,7 +2899,7 @@ tr:hover td {
 <li><strong>F24</strong> Branche morte <code>elseif ($isEdit &amp;&amp; !empty($report['is_confidential']))</code> retirée de <code>report_form.php</code> — les 3 modes de visibilité couvrent tous les cas</li>
 <li><strong>F25</strong> Accents français corrigés dans <code>report_abandon.php</code> (événement, Êtes-vous sûr, irréversible, abandonné)</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.8.0] — 2026-06-11</h2>
 <h3>Sécurité — Audit XSS complet</h3>
 <p>Passage en revue systématique de toutes les sorties HTML. L'application utilisait déjà <code>e()</code> (alias <code>htmlspecialchars</code> avec <code>ENT_QUOTES</code> + <code>UTF-8</code>) de manière quasi systématique. Les quelques lacunes restantes sont corrigées :</p>
@@ -2920,7 +2915,7 @@ tr:hover td {
 </ul>
 <h3>Sécurité — CSRF déjà complet</h3>
 <p>Vérification que tous les handlers POST valident le token CSRF et que tous les formulaires l'envoient. <strong>Déjà en place</strong> : les 14 handlers vérifient <code>validateCsrfToken()</code> avec <code>hash_equals()</code>, et les 21 formulaires incluent le champ <code>csrf_token</code>. Aucune correction nécessaire.</p>
-<hr />
+<hr/>
 <h2>[2.7.3] — 2026-06-11</h2>
 <h3>Technique — Case confidentiel invisible pour les superviseurs</h3>
 <p>Les superviseurs ne voyaient pas la case « Signalement confidentiel » dans le formulaire de création/modification de signalement, même en mode « Au choix de l'agent ». Aucun <code>input hidden</code> n'était injecté non plus, donc le champ <code>is_confidential</code> n'était tout simplement pas envoyé. Cause : <code>getReportVisibility()</code> renvoie <code>'all'</code> pour les non-agents (lecture), et les fonctions <code>reportVisibilityIs*()</code> comparaient avec cette valeur — aucun match.</p>
@@ -2932,7 +2927,7 @@ tr:hover td {
 <ul>
 <li><code>templates/report_form.php</code> : style inline sur les <code>&lt;label&gt;</code> (<code>display:flex; align-items:center; gap:8px</code>) et les <code>&lt;input type="checkbox"&gt;</code> (<code>width:auto; margin:0</code>)</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.7.2] — 2026-06-11</h2>
 <h3>Fonctionnalité — Colonne Visibilité dans la liste des signalements</h3>
 <p>La liste des signalements (<code>report_list</code>) affiche désormais une colonne <strong>Visibilité</strong> indiquant si le signalement est 🔒 Confidentiel ou Public, avec des badges colorés (gris pour confidentiel, vert pour public). Cohérent avec le badge affiché dans la vue détaillée.</p>
@@ -2948,7 +2943,7 @@ tr:hover td {
 <ul>
 <li><code>templates/footer.php</code> : ajout de la version PHP (<code>PHP_VERSION</code>) dans le footer, après la version de l'application</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.7.1] — 2026-06-11</h2>
 <h3>Technique — Correction de l'erreur « finfo not found »</h3>
 <p>L'upload de pièces jointes provoquait une erreur fatale <code>Class "finfo" not found</code> lorsque l'extension PHP <code>fileinfo</code> n'était pas activée sur le serveur. Désormais, un message clair s'affiche à l'utilisateur demandant d'activer l'extension, sans contournement.</p>
@@ -2960,7 +2955,7 @@ tr:hover td {
 <li><code>DEPLOY.md</code> : <code>extension=fileinfo</code> ajouté dans l'exemple <code>php.ini</code></li>
 <li><code>DEPLOY.md</code> : checklist de vérification mise à jour avec <code>fileinfo</code></li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.7.0] — 2026-06-11</h2>
 <h3>Fonctionnalité — Images embarquées dans les PDF</h3>
 <p>Les pièces jointes de type image (JPG, PNG, GIF) sont désormais intégrées directement dans le PDF généré par FPDF, au lieu d'afficher uniquement le nom du fichier. Le PDF est ainsi autonome et contient toutes les informations visuelles du signalement.</p>
@@ -2973,7 +2968,7 @@ tr:hover td {
 <ul>
 <li><code>SPEC.md</code> : <code>MAX_DESCRIPTION_LENGTH</code> corrigé de 5000 à 20000 (la valeur réelle dans config.php était déjà 20000, la spec était en retard). Ajout des constantes <code>MAX_ATTACHMENT_SIZE</code> et <code>ALLOWED_ATTACHMENT_MIMES</code> dans le tableau des constantes. Ajout des colonnes <code>attachment_blob</code>, <code>attachment_name</code>, <code>attachment_mime</code> dans le schéma de la table <code>reports</code>. Ajout de la route <code>report_attachment</code> dans la table des routes. Ajout du champ <code>attachment</code> dans le tableau des champs du formulaire. Section PDF mise à jour avec la description de l'embarquement d'images.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.6.1] — 2026-06-11</h2>
 <h3>Sécurité — Correction critique : génération UUID invalide</h3>
 <p>La fonction <code>generateUuid()</code> utilisait <code>| 0x8</code> au lieu de <code>(&amp; 0x3F | 0x80)</code> pour les bits de variante UUID v4. Cela produisait des UUID invalides dans environ 25 % des cas (4e groupe commençant par c, d, e ou f au lieu de 8, 9, a, b uniquement). La fonction <code>isValidUuid()</code> les rejetait, et <code>getReportByUuid()</code> retournait <code>null</code> → message « Signalement introuvable » au clic sur « Voir » depuis la liste.</p>
@@ -2998,7 +2993,7 @@ tr:hover td {
 <li><code>README.md</code> : section installation mise à jour</li>
 <li><code>DEPLOY.md</code> : section configuration mise à jour</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.6.0] — 2026-06-11</h2>
 <h3>Sécurité — Migration des PK reports vers UUID</h3>
 <p>Les identifiants primaires de la table <code>reports</code> passent d'entiers auto-incrémentés (<code>id</code>) à des <strong>UUID v4</strong> (<code>uuid</code>). Cela empêche l'énumération d'URL : un agent ne peut plus deviner l'existence d'autres signalements en incrémentant l'ID dans l'URL.</p>
@@ -3028,7 +3023,7 @@ tr:hover td {
 <ul>
 <li><code>pdf_docs/</code> retiré du dépôt git et ajouté au <code>.gitignore</code> (80 fichiers, 14 128 lignes supprimées).</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.5.0] — 2026-06-11</h2>
 <h3>Technique — Migration mPDF → FPDF</h3>
 <p>Remplacement de <strong>mPDF 8.2</strong> (nécessite Composer, écrit des fichiers temporaires sur disque) par <strong>FPDF 1.9</strong> (zéro dépendance, zéro I/O disque, tout en mémoire). Ce changement élimine la dépendance Composer et garantit la pérennité du code (FPDF : 24 ans de stabilité d'API, 0 rupture de compatibilité depuis 2001).</p>
@@ -3049,7 +3044,7 @@ tr:hover td {
 <li><code>README.md</code> : mis à jour — stack technique, installation simplifiée, structure sans <code>vendor/</code>.</li>
 <li><code>update_sst.ps1</code> : script simplifié — étape Composer supprimée, seuls <code>git pull</code> + <code>iisreset</code> restent.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.4.1] — 2026-06-11</h2>
 <h3>Technique — Suppression totale du JavaScript</h3>
 <p>Plus aucune ligne de JavaScript dans l'application. Toutes les confirmations utilisent désormais un mécanisme PHP inline (rechargement de page avec paramètre URL de confirmation) au lieu de <code>&lt;dialog&gt;</code> HTML5 + <code>onclick</code> + <code>&lt;script&gt;</code>.</p>
@@ -3082,7 +3077,7 @@ tr:hover td {
 <ul>
 <li><code>templates/report_form.php</code> : warning CSS <code>:has()</code> affiché quand l'agent décoche « Signalement confidentiel » en mode « Choix de l'agent ». Pas de JavaScript, pur CSS.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.4.0] — 2026-06-11</h2>
 <h3>Fonctionnalités — Système de visibilité des signalements en 3 modes</h3>
 <p>Passage d'un système à 2 modes (confidentiel / public) à un système à <strong>3 modes</strong> configurable par le superviseur dans Paramètres → Application :</p>
@@ -3116,7 +3111,7 @@ tr:hover td {
 <li>Suppression de <code>data/sst.db</code> du suivi git</li>
 <li><code>.gitignore</code> racine fusionné avec les règles du projet (vendor, data, .env, IDE, OS, pdf, zip)</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.3.0] — 2026-06-11</h2>
 <h3>Fonctionnalités — Confidentialité des signalements par défaut, choix de l'agent</h3>
 <ul>
@@ -3147,7 +3142,7 @@ tr:hover td {
 <li><code>pages/help.php</code> : tableau de visibilité par rôle et par mode</li>
 <li><code>src/config.php</code> : version 2.3.0</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.2.0] — 2026-06-10</h2>
 <h3>Technique — Suppression du JavaScript personnalisé (zéro JS côté métier)</h3>
 <p>Objectif : éliminer tout JavaScript personnalisé de l'application. Les seuls <code>onclick</code> restants sont des appels natifs <code>showModal()</code> HTML5 pour ouvrir des <code>&lt;dialog&gt;</code> — aucun framework, aucune logique métier en JS.</p>
@@ -3178,7 +3173,7 @@ tr:hover td {
 <li><code>handlers/settings_handler.php</code> : parse textarea (une adresse/ligne) au lieu de tableaux</li>
 <li><code>handlers/smtp_test_handler.php</code> : redirect + flash au lieu de JSON</li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.1.0] — 2026-06-10</h2>
 <h3>Fonctionnalités — Changelog consultable dans l'UI</h3>
 <ul>
@@ -3214,7 +3209,7 @@ tr:hover td {
 <li><code>.gitignore</code> : exclusion de <code>vendor/</code>, <code>data/*.db</code>, IDE, OS</li>
 <li><code>DEPLOY.md</code> : documentation simplifiée — plus de Composer, extensions réduites, structure sans <code>vendor/</code></li>
 </ul>
-<hr />
+<hr/>
 <h2>[2.0.0] — 2026-06-10</h2>
 <h3>Breaking Changes — Refonte du système de rôles</h3>
 <ul>
@@ -3253,7 +3248,7 @@ tr:hover td {
 <li><code>public/css/style.css</code> : retrait de <code>--role-manager</code> et <code>.badge--manager</code></li>
 <li><code>promote.php</code> : rôles valides = agent, superviseur, chsct</li>
 </ul>
-<hr />
+<hr/>
 <h2>[1.1.0] — 2026-06-10</h2>
 <h3>Sécurité — Corrections de confidentialité</h3>
 <ul>
@@ -3272,22 +3267,22 @@ tr:hover td {
 <ul>
 <li><code>updateUserRole()</code>, <code>updateUserSite()</code>, <code>agentSeesOnlyOwn()</code> supprimées.</li>
 </ul>
-<hr />
+<hr/>
 <h2>[1.0.0] — 2025-06-05</h2>
 <h3>Première version</h3>
 <ul>
 <li>Application SST DREETS BFC complète.</li>
 <li>3 profils utilisateurs : Agent, Superviseur, CSA/CHSCT.</li>
-<li>3 registres : RSST, RAMI, DGI.</li>
+<li>Registre RSST.</li>
 <li>Authentification IIS Windows (prod) / mock login (dev).</li>
 <li>Notifications par e-mail, configuration SMTP.</li>
 <li>Statistiques, synthèse, export CSV.</li>
 <li>Gestion des utilisateurs et des sites.</li>
-</ul>    </div>
-</main>    <footer class="footer" role="contentinfo">
-        <p>&copy; 2026 DREETS Bourgogne-Franche-Comté — Application SST <a href="index.php?page=changelog" class="footer-version" title="Voir l'historique des modifications">v3.8.3</a> — PHP 8.4.16 — D&eacute;veloppeur : Olivier Noblanc</p>
-    </footer>
-    <a href="#top" class="back-to-top" aria-label="Retour en haut" title="Retour en haut">&#x25B2;</a>
-</main><!-- end #main-content -->
+</ul> </div>
+</main> <footer class="footer" role="contentinfo">
+<p>© 2026 DREETS Bourgogne-Franche-Comté — Application SST <a class="footer-version" href="index.php?page=changelog" title="Voir l'historique des modifications">v3.8.3</a> — PHP 8.4.16 — Développeur : Olivier Noblanc</p>
+</footer>
+<a aria-label="Retour en haut" class="back-to-top" href="#top" title="Retour en haut">▲</a>
+<!-- end #main-content -->
 </body>
 </html>

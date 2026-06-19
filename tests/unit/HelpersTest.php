@@ -20,12 +20,20 @@ class HelpersTest extends TestCase
         $this->assertTrue(canAccessReport($report, $user));
     }
 
-    public function testChsctCanAccessAnyReport(): void
+    public function testChsctCanAccessReportWithConsent(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 1, 'type' => 'rsst'];
+        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 1, 'type' => 'rsst', 'consent_syndicat' => 1];
         $user   = ['id' => 1, 'site_id' => 2, 'role' => 'chsct'];
 
         $this->assertTrue(canAccessReport($report, $user));
+    }
+
+    public function testChsctCannotAccessReportWithoutConsent(): void
+    {
+        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 1, 'type' => 'rsst', 'consent_syndicat' => 0];
+        $user   = ['id' => 1, 'site_id' => 2, 'role' => 'chsct'];
+
+        $this->assertFalse(canAccessReport($report, $user));
     }
 
     public function testAgentCannotAccessOtherSiteReport(): void

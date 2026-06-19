@@ -10,6 +10,11 @@
 
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../../src/queries/report_queries.php';
+require_once __DIR__ . '/../../src/queries/report_count_queries.php';
+require_once __DIR__ . '/../../src/queries/report_response_queries.php';
+
 class ReportQueriesTest extends TestCase
 {
     private static PDO $pdo;

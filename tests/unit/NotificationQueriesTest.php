@@ -9,7 +9,7 @@
 use PHPUnit\Framework\TestCase;
 
 // Load the queries file that contains notification functions
-require_once __DIR__ . '/../../src/queries/stats_queries.php';
+require_once __DIR__ . '/../../src/queries/notification_queries.php';
 
 class NotificationQueriesTest extends TestCase
 {

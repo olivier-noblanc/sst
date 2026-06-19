@@ -135,11 +135,18 @@ class AccessHelperTest extends TestCase
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
-    public function testChsctCanAlwaysAccess(): void
+    public function testChsctCanAlwaysAccessWithConsent(): void
     {
-        $report = ['site_id' => '1', 'declarant_id' => '99', 'is_confidential' => '1', 'type' => 'rsst'];
+        $report = ['site_id' => '1', 'declarant_id' => '99', 'is_confidential' => '1', 'type' => 'rsst', 'consent_syndicat' => '1'];
         $user = ['id' => 5, 'site_id' => 2, 'role' => 'chsct'];
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
+    }
+
+    public function testChsctCannotAccessWithoutConsent(): void
+    {
+        $report = ['site_id' => '1', 'declarant_id' => '99', 'is_confidential' => '1', 'type' => 'rsst', 'consent_syndicat' => '0'];
+        $user = ['id' => 5, 'site_id' => 2, 'role' => 'chsct'];
+        $this->assertFalse(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentCannotAccessOtherSiteReport(): void
@@ -194,9 +201,9 @@ class AccessHelperTest extends TestCase
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
-    public function testChsctCanAccessPublicAcrossSites(): void
+    public function testChsctCanAccessPublicAcrossSitesWithConsent(): void
     {
-        $report = ['site_id' => '10', 'declarant_id' => '99', 'is_confidential' => '0', 'type' => 'rsst'];
+        $report = ['site_id' => '10', 'declarant_id' => '99', 'is_confidential' => '0', 'type' => 'rsst', 'consent_syndicat' => '1'];
         $user = ['id' => 5, 'site_id' => 1, 'role' => 'chsct'];
         $this->assertTrue(canAccessReport($report, $user, 'public'));
     }

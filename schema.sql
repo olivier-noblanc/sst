@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS reports (
     -- Assignment
     site_id         INTEGER NOT NULL,                -- FK to sites (UR where event occurred, always set)
     -- Confidentiality
+    consent_syndicat INTEGER NOT NULL DEFAULT 0,   -- 1 = consentement syndicat donné, 0 = non
     is_confidential INTEGER NOT NULL DEFAULT 1,     -- 1 = confidentiel (défaut), 0 = public
     -- State management
     etat            TEXT NOT NULL DEFAULT 'nouveau', -- 'nouveau'|'en_cours'|'traite'|'abandonne'

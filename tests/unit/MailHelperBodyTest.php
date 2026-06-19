@@ -1,0 +1,87 @@
+<?php
+/**
+ * Mail Helper Unit Tests — Email Body
+ *
+ * Tests mail functions from src/mail.php:
+ * - buildEmailBody()
+ */
+
+use PHPUnit\Framework\TestCase;
+
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../../src/mail.php';
+
+class MailHelperBodyTest extends TestCase
+{
+    private PDO $pdo;
+
+    protected function setUp(): void
+    {
+        $this->pdo = getDB();
+        // Clean tables
+        $this->pdo->exec('DELETE FROM report_access_log');
+        $this->pdo->exec('DELETE FROM report_responses');
+        $this->pdo->exec('DELETE FROM reports');
+        $this->pdo->exec('DELETE FROM notification_settings');
+        $this->pdo->exec('DELETE FROM users');
+        $this->pdo->exec('DELETE FROM sites');
+        $this->pdo->exec('DELETE FROM config_app');
+        clearConfigCache();
+    }
+
+    // ─── buildEmailBody ─────────────────────────────────────────────────────
+
+    public function testBuildEmailBodyContainsHtmlTags(): void
+    {
+        $body = buildEmailBody('Test Title', '<p>Content</p>');
+        $this->assertStringStartsWith('<html><body>', $body);
+        $this->assertStringEndsWith('</body></html>', $body);
+    }
+
+    public function testBuildEmailBodyContainsTitle(): void
+    {
+        $body = buildEmailBody('Nouveau signalement', '<p>Content</p>');
+        $this->assertStringContainsString('<h2>Nouveau signalement</h2>', $body);
+    }
+
+    public function testBuildEmailBodyContainsContent(): void
+    {
+        $body = buildEmailBody('Title', '<p>Some important content</p>');
+        $this->assertStringContainsString('<p>Some important content</p>', $body);
+    }
+
+    public function testBuildEmailBodyContainsFooter(): void
+    {
+        $body = buildEmailBody('Title', '<p>Content</p>');
+        $this->assertStringContainsString('Cet e-mail a été envoyé automatiquement', $body);
+        $this->assertStringContainsString('Ne pas répondre directement à ce message', $body);
+    }
+
+    public function testBuildEmailBodyWithCustomSiteName(): void
+    {
+        $body = buildEmailBody('Title', '<p>Content</p>', 'Mon Organisation');
+        $this->assertStringContainsString('Mon Organisation', $body);
+    }
+
+    public function testBuildEmailBodyWithConfigSiteName(): void
+    {
+        updateConfig($this->pdo, 'app_nom_organisation', 'Test Org');
+        clearConfigCache();
+
+        $body = buildEmailBody('Title', '<p>Content</p>');
+        $this->assertStringContainsString('Test Org', $body);
+    }
+
+    public function testBuildEmailBodyEscapesTitle(): void
+    {
+        $body = buildEmailBody('<script>alert(1)</script>', '<p>Content</p>');
+        $this->assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt;', $body);
+        $this->assertStringNotContainsString('<script>alert(1)</script>', $body);
+    }
+
+    public function testBuildEmailBodyContainsHorizontalRule(): void
+    {
+        $body = buildEmailBody('Title', '<p>Content</p>');
+        $this->assertStringContainsString('<hr', $body);
+    }
+}

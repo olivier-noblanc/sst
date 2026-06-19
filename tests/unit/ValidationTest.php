@@ -1,14 +1,12 @@
 <?php
 /**
- * Validation Unit Tests — Application SST DREETS BFC
+ * Validation Unit Tests — Report Fields, RAMI, Pour Compte, Visibility
  *
  * Tests validation functions from src/validation.php:
  * - validateReportFields()
  * - validateRamiFields()
  * - validatePourCompte()
  * - enforceReportVisibility()
- * - validateUserFields()
- * - isLastActiveSuperviseur()
  */
 
 use PHPUnit\Framework\TestCase;
@@ -22,7 +20,6 @@ class ValidationTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = getDB();
-        // Clean tables in reverse FK order
         $this->pdo->exec('DELETE FROM report_access_log');
         $this->pdo->exec('DELETE FROM report_responses');
         $this->pdo->exec('DELETE FROM reports');
@@ -214,9 +211,6 @@ class ValidationTest extends TestCase
 
     public function testEnforceVisibilityPublicForcesPublic(): void
     {
-        // Need to mock the visibility mode — this test uses the $forcedVisibility parameter
-        // Since enforceReportVisibility() calls reportVisibilityIsPublic() which reads config,
-        // we test via the config system
         updateConfig($this->pdo, 'app_report_visibility', 'public');
         clearConfigCache();
         $this->assertEquals(0, enforceReportVisibility(1));
@@ -235,138 +229,5 @@ class ValidationTest extends TestCase
         clearConfigCache();
         $this->assertEquals(0, enforceReportVisibility(0));
         $this->assertEquals(1, enforceReportVisibility(1));
-    }
-
-    // ─── validateUserFields (DB-dependent) ──────────────────────────────────
-
-    public function testValidUserFieldsNoErrors(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-
-        $errors = validateUserFields($this->pdo, [
-            'nom' => 'Dupont',
-            'prenom' => 'Marie',
-            'username' => 'marie.dupont',
-            'role' => 'agent',
-            'site_id' => $siteId,
-            'email' => 'marie@test.gouv.fr',
-        ]);
-
-        $this->assertEmpty($errors);
-    }
-
-    public function testValidateUserFieldsMissingNom(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-
-        $errors = validateUserFields($this->pdo, [
-            'nom' => '',
-            'prenom' => 'Marie',
-            'username' => 'marie.dupont',
-            'role' => 'agent',
-            'site_id' => $siteId,
-            'email' => '',
-        ]);
-
-        $this->assertArrayHasKey('nom', $errors);
-    }
-
-    public function testValidateUserFieldsInvalidRole(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-
-        $errors = validateUserFields($this->pdo, [
-            'nom' => 'Dupont',
-            'prenom' => 'Marie',
-            'username' => 'marie.dupont',
-            'role' => 'admin',
-            'site_id' => $siteId,
-            'email' => '',
-        ]);
-
-        $this->assertArrayHasKey('role', $errors);
-    }
-
-    public function testValidateUserFieldsInvalidSite(): void
-    {
-        $errors = validateUserFields($this->pdo, [
-            'nom' => 'Dupont',
-            'prenom' => 'Marie',
-            'username' => 'marie.dupont',
-            'role' => 'agent',
-            'site_id' => 99999,
-            'email' => '',
-        ]);
-
-        $this->assertArrayHasKey('site_id', $errors);
-    }
-
-    public function testValidateUserFieldsInvalidEmail(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-
-        $errors = validateUserFields($this->pdo, [
-            'nom' => 'Dupont',
-            'prenom' => 'Marie',
-            'username' => 'marie.dupont',
-            'role' => 'agent',
-            'site_id' => $siteId,
-            'email' => 'not-an-email',
-        ]);
-
-        $this->assertArrayHasKey('email', $errors);
-    }
-
-    public function testValidateUserFieldsDuplicateUsername(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-        createUser($this->pdo, [
-            'nom' => 'Existing', 'prenom' => 'User', 'username' => 'existing.user',
-            'role' => 'agent', 'site_id' => $siteId, 'email' => '',
-        ]);
-
-        $errors = validateUserFields($this->pdo, [
-            'nom' => 'Dupont',
-            'prenom' => 'Marie',
-            'username' => 'existing.user',
-            'role' => 'agent',
-            'site_id' => $siteId,
-            'email' => '',
-        ]);
-
-        $this->assertArrayHasKey('username', $errors);
-    }
-
-    // ─── isLastActiveSuperviseur (DB-dependent) ─────────────────────────────
-
-    public function testIsLastActiveSuperviseurWhenNoSuperviseur(): void
-    {
-        $this->assertTrue(isLastActiveSuperviseur($this->pdo));
-    }
-
-    public function testIsLastActiveSuperviseurWhenOneSuperviseur(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-        createUser($this->pdo, [
-            'nom' => 'Admin', 'prenom' => 'Super', 'username' => 'admin.test',
-            'role' => 'superviseur', 'site_id' => $siteId, 'email' => '',
-        ]);
-
-        $this->assertTrue(isLastActiveSuperviseur($this->pdo));
-    }
-
-    public function testIsNotLastActiveSuperviseurWhenTwo(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-        createUser($this->pdo, [
-            'nom' => 'Admin1', 'prenom' => 'Super', 'username' => 'admin1.test',
-            'role' => 'superviseur', 'site_id' => $siteId, 'email' => '',
-        ]);
-        createUser($this->pdo, [
-            'nom' => 'Admin2', 'prenom' => 'Super', 'username' => 'admin2.test',
-            'role' => 'superviseur', 'site_id' => $siteId, 'email' => '',
-        ]);
-
-        $this->assertFalse(isLastActiveSuperviseur($this->pdo));
     }
 }

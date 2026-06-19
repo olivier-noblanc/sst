@@ -44,9 +44,7 @@ $roleLabels = getRoleLabels();
 $ramiEnabled = isRegistryEnabled(TYPE_RAMI);
 $dgiEnabled = isRegistryEnabled(TYPE_DGI);
 ?>
-
 <?php if ($userRole === ROLE_AGENT): ?>
-<!-- ====== AGENT LANDING PAGE — Action-first "page de garde" ====== -->
 <h1 class="home-welcome-heading">Bonjour, <?php echo e($user['prenom']); ?></h1>
 <p class="home-welcome-subtitle">Que souhaitez-vous faire ?</p>
 
@@ -119,7 +117,6 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
     </div>
 </div>
 <?php endif; ?>
-
 <?php if ($totalReports > 0): ?>
 <div class="workflow-legend" role="complementary" aria-label="Légende des états">
     <span class="workflow-legend__item">
@@ -142,12 +139,9 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
     </span>
 </div>
 <?php endif; ?>
-
 <?php else: ?>
-<!-- ====== SUPERVISEUR / CHSCT LANDING PAGE — Overview first ====== -->
 <h1 class="page-title page-title--compact">Accueil</h1>
 
-<!-- Welcome banner — contextual guidance based on user state -->
 <?php if ($totalReports === 0 && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])): ?>
 <div class="welcome-banner" role="status">
     <div class="welcome-banner__content">

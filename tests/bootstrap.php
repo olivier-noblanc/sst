@@ -100,4 +100,5 @@ require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/queries/user_queries.php';
 require_once __DIR__ . '/../src/queries/site_queries.php';
 require_once __DIR__ . '/../src/queries/report_queries.php';
+require_once __DIR__ . '/../src/queries/user_admin_queries.php';
 require_once __DIR__ . '/../src/user_context.php';

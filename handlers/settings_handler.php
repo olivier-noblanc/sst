@@ -7,6 +7,9 @@
  * Access: superviseur only
  */
 
+require_once __DIR__ . '/settings_handler_app.php';
+require_once __DIR__ . '/settings_handler_sites.php';
+
 validatePostRequest(url('settings'), [ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
@@ -106,160 +109,11 @@ try {
     }
 
     if ($tab === 'app') {
-        // Update application settings
-        // NOTE: app_version is NOT editable here — it is read from CHANGELOG.md by getAppVersion()
-        $appNomOrganisation = trim($_POST['app_nom_organisation'] ?? '');
-        $appNomComplet = trim($_POST['app_nom_complet'] ?? '');
-        $appLabelUnite = trim($_POST['app_label_unite'] ?? '');
-        $appSuperviseurUsernames = trim($_POST['app_superviseur_usernames'] ?? '');
-
-        // Validate: none should be empty (admin usernames can be empty)
-        $errors = [];
-        if (empty($appNomOrganisation)) {
-            $errors[] = 'Le nom de l\'organisation est requis.';
-        }
-        if (empty($appNomComplet)) {
-            $errors[] = 'Le nom complet est requis.';
-        }
-        if (empty($appLabelUnite)) {
-            $errors[] = 'Le libellé des unités est requis.';
-        }
-
-        if (!empty($errors)) {
-            $pdo->rollBack();
-            setFlash('error', implode(' ', $errors));
-            redirect(url('settings', ['tab' => 'app']));
-        }
-
-        updateConfig($pdo, 'app_nom_organisation', $appNomOrganisation);
-        updateConfig($pdo, 'app_nom_complet', $appNomComplet);
-        updateConfig($pdo, 'app_label_unite', $appLabelUnite);
-        updateConfig($pdo, 'app_superviseur_usernames', $appSuperviseurUsernames);
-
-        // Hotline number (displayed in help page)
-        $appHotlineNumber = trim($_POST['app_hotline_number'] ?? '');
-        updateConfig($pdo, 'app_hotline_number', $appHotlineNumber);
-
-        // DPO contact (displayed in RGPD preamble)
-        $appDpoContact = trim($_POST['app_dpo_contact'] ?? '');
-        updateConfig($pdo, 'app_dpo_contact', $appDpoContact);
-
-        // Admin email for error notifications
-        $appAdminEmail = trim($_POST['app_admin_email'] ?? '');
-        if (!empty($appAdminEmail) && !filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL)) {
-            $pdo->rollBack();
-            setFlash('error', 'L\'adresse e-mail de l\'administrateur technique n\'est pas valide.');
-            redirect(url('settings', ['tab' => 'app']));
-        }
-        updateConfig($pdo, 'app_admin_email', $appAdminEmail);
-
-        // Display PHP errors toggle (admin debug option)
-        $displayErrors = !empty($_POST['app_display_errors']) ? '1' : '0';
-        updateConfig($pdo, 'app_display_errors', $displayErrors);
-
-        // Registry toggles (RAMI / DGI)
-        $ramiEnabled = !empty($_POST['app_registry_rami_enabled']) ? '1' : '0';
-        $dgiEnabled = !empty($_POST['app_registry_dgi_enabled']) ? '1' : '0';
-        updateConfig($pdo, 'app_registry_rami_enabled', $ramiEnabled);
-        updateConfig($pdo, 'app_registry_dgi_enabled', $dgiEnabled);
-
-        // DGI: notify CSA/CHSCT (article L4131-2 Code du travail)
-        $dgiNotifyCsa = !empty($_POST['app_dgi_notify_csa']) ? '1' : '0';
-        updateConfig($pdo, 'app_dgi_notify_csa', $dgiNotifyCsa);
-
-        // Customizable role labels
-        $roleLabelAgent = trim($_POST['app_role_label_agent'] ?? 'Agent');
-        $roleLabelSuperviseur = trim($_POST['app_role_label_superviseur'] ?? 'Superviseur');
-        $roleLabelChsct = trim($_POST['app_role_label_chsct'] ?? 'Membre FS/CSA');
-        if (empty($roleLabelAgent)) $roleLabelAgent = 'Agent';
-        if (empty($roleLabelSuperviseur)) $roleLabelSuperviseur = 'Superviseur';
-        if (empty($roleLabelChsct)) $roleLabelChsct = 'Membre FS/CSA';
-        updateConfig($pdo, 'app_role_label_agent', $roleLabelAgent);
-        updateConfig($pdo, 'app_role_label_superviseur', $roleLabelSuperviseur);
-        updateConfig($pdo, 'app_role_label_chsct', $roleLabelChsct);
-
-        // Report visibility setting (radio: confidential / agent_choice / public)
-        $reportVisibility = $_POST['app_report_visibility'] ?? 'agent_choice';
-        if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'])) {
-            $reportVisibility = 'agent_choice';
-        }
-        updateConfig($pdo, 'app_report_visibility', $reportVisibility);
-
-        // Per-registry visibility settings
-        $registryTypes = [TYPE_RSST, TYPE_RAMI, TYPE_DGI];
-        foreach ($registryTypes as $type) {
-            $key = 'app_report_visibility_' . $type;
-            $value = $_POST[$key] ?? '';
-            if ($value !== '' && !in_array($value, ['confidential', 'agent_choice', 'public'])) {
-                $value = '';
-            }
-            updateConfig($pdo, $key, $value);
-        }
-
-        // Legacy keys: keep in sync for backward compatibility
-        updateConfig($pdo, 'app_agent_visibility', $reportVisibility);
-        updateConfig($pdo, 'app_agent_see_only_own', $reportVisibility === 'confidential' ? '1' : '0');
-
-        // Clear the getConfig() static cache so new values are picked up immediately
-        clearConfigCache();
+        handleSettingsAppTab($pdo, $_POST);
     }
 
     if ($tab === 'manage_sites') {
-        $action = $_POST['action'] ?? '';
-
-        if ($action === 'add_site') {
-            $code = trim($_POST['new_site_code'] ?? '');
-            $nom = trim($_POST['new_site_nom'] ?? '');
-            $departement = trim($_POST['new_site_departement'] ?? '');
-
-            if (empty($code) || empty($nom)) {
-                $pdo->rollBack();
-                setFlash('error', 'Le code et le nom du site sont requis.');
-                redirect(url('settings', ['tab' => 'manage_sites']));
-            }
-
-            // Check for duplicate code
-            $existing = getSiteByCode($pdo, $code);
-            if ($existing) {
-                $pdo->rollBack();
-                setFlash('error', 'Un site avec ce code existe déjà.');
-                redirect(url('settings', ['tab' => 'manage_sites']));
-            }
-
-            createSite($pdo, $code, $nom, $departement);
-        }
-
-        if ($action === 'toggle_site') {
-            $siteId = (int) ($_POST['site_id'] ?? 0);
-            $isActive = (bool) ($_POST['is_active'] ?? 0);
-
-            if ($siteId > 0) {
-                toggleSiteActive($pdo, $siteId, $isActive);
-            }
-        }
-
-        if ($action === 'delete_site') {
-            $siteId = (int) ($_POST['site_id'] ?? 0);
-
-            if ($siteId > 0) {
-                // Verify this site can be deleted (no users, no reports)
-                $userCount = countUsersBySite($pdo, $siteId);
-                $reportCount = countReportsBySite($pdo, $siteId);
-
-                if ($userCount > 0 || $reportCount > 0) {
-                    $pdo->rollBack();
-                    setFlash('error', 'Impossible de supprimer ce site : il contient ' . $userCount . ' agent(s) et ' . $reportCount . ' signalement(s). Désactivez-le plutôt.');
-                    redirect(url('settings', ['tab' => 'manage_sites']));
-                }
-
-                $deleted = deleteSite($pdo, $siteId);
-                if (!$deleted) {
-                    $pdo->rollBack();
-                    setFlash('error', 'Erreur lors de la suppression du site.');
-                    redirect(url('settings', ['tab' => 'manage_sites']));
-                }
-            }
-        }
+        handleSettingsManageSitesTab($pdo, $_POST);
     }
 
     $pdo->commit();

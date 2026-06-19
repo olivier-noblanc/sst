@@ -19,6 +19,8 @@
  * (filemtime + filesize) of the last backed-up state.
  */
 
+require_once __DIR__ . '/backup_protection.php';
+
 define('BACKUP_DIR', __DIR__ . '/../data/backups');
 define('BACKUP_MAX_FILES', 10);
 define('BACKUP_MARKER_FILE', BACKUP_DIR . '/.last_backup');
@@ -235,66 +237,4 @@ function rotateBackups(): void
     foreach ($toDelete as $file) {
         @unlink($file);
     }
-}
-
-/**
- * Write .htaccess and web.config to protect the backups directory
- * from direct HTTP access.
- */
-function writeBackupProtection(): void
-{
-    // Apache — deny all
-    if (!file_exists(BACKUP_DIR . '/.htaccess')) {
-        file_put_contents(BACKUP_DIR . '/.htaccess', "Deny from all\n");
-    }
-
-    // IIS — deny all
-    if (!file_exists(BACKUP_DIR . '/web.config')) {
-        file_put_contents(
-            BACKUP_DIR . '/web.config',
-            '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-            . '<configuration>' . "\n"
-            . '  <system.webServer>' . "\n"
-            . '    <handlers clear="true" />' . "\n"
-            . '    <authorization>' . "\n"
-            . '      <deny users="*" />' . "\n"
-            . '    </authorization>' . "\n"
-            . '  </system.webServer>' . "\n"
-            . '</configuration>' . "\n"
-        );
-    }
-}
-
-/**
- * List available backups for admin UI.
- *
- * @return array<int, array{file: string, path: string, size: int|false, date: int|false}>
- */
-function listBackups(): array
-{
-    if (!is_dir(BACKUP_DIR)) {
-        return [];
-    }
-
-    $files = glob(BACKUP_DIR . '/sst_*.db');
-    if ($files === false) {
-        return [];
-    }
-
-    $backups = [];
-    foreach ($files as $file) {
-        $backups[] = [
-            'file' => basename($file),
-            'path' => $file,
-            'size' => filesize($file),
-            'date' => filemtime($file),
-        ];
-    }
-
-    // Sort newest first
-    usort($backups, function ($a, $b) {
-        return $b['date'] - $a['date'];
-    });
-
-    return $backups;
 }

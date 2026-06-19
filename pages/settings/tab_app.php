@@ -8,11 +8,9 @@
 <form method="POST" action="<?php echo url('settings'); ?>">
     <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
     <input type="hidden" name="tab" value="app">
-
     <div class="card">
         <h3 class="card__title">&#x2699;&#xFE0F; Paramètres de l'application</h3>
         <p class="text-muted text-small mb-5">Configurez les paramètres généraux de l'application.</p>
-
         <div class="form-group">
             <label>Version de l'application</label>
             <div class="form-control-readonly"><?php echo e(getAppVersion()); ?></div>
@@ -24,16 +22,12 @@
 
         <div class="form-group">
             <label for="app_nom_organisation">Nom de l'organisation</label>
-            <input type="text" id="app_nom_organisation" name="app_nom_organisation" class="form-control"
-                   value="<?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?>"
-                   placeholder="DREETS BFC">
+            <input type="text" id="app_nom_organisation" name="app_nom_organisation" class="form-control" value="<?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?>" placeholder="DREETS BFC">
         </div>
 
         <div class="form-group">
             <label for="app_nom_complet">Nom complet</label>
-            <input type="text" id="app_nom_complet" name="app_nom_complet" class="form-control"
-                   value="<?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>"
-                   placeholder="DREETS Bourgogne-Franche-Comté">
+            <input type="text" id="app_nom_complet" name="app_nom_complet" class="form-control" value="<?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>" placeholder="DREETS Bourgogne-Franche-Comté">
         </div>
 
         <div class="form-group">
@@ -72,7 +66,6 @@
                 </small>
             </div>
         </div>
-
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Délégué à la Protection des Données (DPO)</h4>
             <p class="text-muted text-small mb-3">Les coordonnées du DPO sont affichées dans la mention RGPD du <a href="<?php echo url('preamble'); ?>">Préambule</a>, conformément à l'article 13 du RGPD.</p>
@@ -87,7 +80,6 @@
                 </small>
             </div>
         </div>
-
         <div class="separator">
             <h4 class="card__subtitle">&#x1F4E7; Administrateur technique</h4>
             <p class="text-muted text-small mb-3">Les erreurs critiques (Fatal, Parse, etc.) seront automatiquement envoyées par e-mail à cette adresse pour un diagnostic rapide. Laissez vide pour désactiver.</p>
@@ -102,7 +94,6 @@
                 </small>
             </div>
         </div>
-
         <div class="separator">
             <h4 class="card__subtitle">&#x1F41B; Affichage des erreurs PHP</h4>
             <p class="text-muted text-small mb-3">En production, les erreurs PHP sont masquées par défaut pour des raisons de sécurité. Activez cette option pour afficher toutes les erreurs à l'écran, utile pour le diagnostic.</p>
@@ -122,7 +113,6 @@
                 </small>
             </div>
         </div>
-
         <div class="separator">
             <h4 class="card__subtitle">&#x1F514; Registres actifs</h4>
             <p class="text-muted text-small mb-3">Activez ou désactivez les registres RAMI et DGI. Le registre RSST est toujours actif. Les registres désactivés n'apparaissent plus dans le menu, l'accueil, l'aide, les formulaires, les statistiques et les exports.</p>

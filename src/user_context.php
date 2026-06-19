@@ -1,5 +1,4 @@
 <?php
-
 /**
  * User Context — Application SST DREETS BFC
  *
@@ -18,9 +17,7 @@
  *   if (isSuperviseur()) { ... }
  *   if (canAccessReport($report)) { ... }
  */
-
 // ─── Identity ─────────────────────────────────────────────────────────────────
-
 /**
  * Get the current user's full data array from session.
  *
@@ -68,7 +65,6 @@ function currentUserDisplayName(): string
 }
 
 // ─── Role ─────────────────────────────────────────────────────────────────────
-
 /**
  * Get the current user's role.
  * During impersonation, returns the impersonated role (not the real one).
@@ -148,7 +144,6 @@ function isImpersonating(): bool
 }
 
 // ─── Site ─────────────────────────────────────────────────────────────────────
-
 /**
  * Get the current user's site ID.
  *
@@ -194,7 +189,6 @@ function currentUserHasSite(): bool
 }
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
-
 /**
  * Check if the current user can see all sites (superviseur or chsct).
  * Alias for canSeeAllSites() that uses the UserContext pattern.
@@ -236,7 +230,6 @@ function refreshCurrentUser(PDO $pdo): bool
     if ($id <= 0) {
         return false;
     }
-
     require_once __DIR__ . '/queries/user_queries.php';
     $freshUser = getUserById($pdo, $id);
     if ($freshUser) {

@@ -8,7 +8,11 @@
  *
  * All $_SESSION access is centralized through these functions.
  * No other file should read or write $_SESSION directly.
+ *
+ * Form data & error functions are in session_form.php.
  */
+
+require_once __DIR__ . '/session_form.php';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Session startup
@@ -33,14 +37,12 @@ function startSession(): void
         session_start();
     }
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // User session — authentication state
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
  * Check if a user is currently logged in.
- *
  * @return bool
  */
 function isUserLoggedIn(): bool
@@ -50,7 +52,6 @@ function isUserLoggedIn(): bool
 
 /**
  * Store the full user data array in session.
- *
  * @param array<string, mixed> $user  User data from DB
  */
 function setUserSession(array $user): void
@@ -60,7 +61,6 @@ function setUserSession(array $user): void
 
 /**
  * Get the current user's full data array from session.
- *
  * @return array<string, mixed>|null  The user array or null if not authenticated
  */
 function getUserSession(): ?array
@@ -75,14 +75,12 @@ function clearSession(): void
 {
     $_SESSION = [];
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Intended URL — redirect after login
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
  * Store the intended URL for post-login redirect.
- *
  * @param string $url  The URL to redirect to after login
  */
 function setIntendedUrl(string $url): void
@@ -92,7 +90,6 @@ function setIntendedUrl(string $url): void
 
 /**
  * Get the intended URL (without clearing it).
- *
  * @return string|null  The URL or null
  */
 function getIntendedUrl(): ?string
@@ -102,7 +99,6 @@ function getIntendedUrl(): ?string
 
 /**
  * Get and clear the intended URL.
- *
  * @return string|null  The URL or null
  */
 function clearIntendedUrl(): ?string
@@ -111,7 +107,6 @@ function clearIntendedUrl(): ?string
     unset($_SESSION['intended_url']);
     return $url;
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Impersonation — role switching by superviseur
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -132,7 +127,6 @@ function startImpersonation(string $realRole, string $targetRole): void
 
 /**
  * Stop impersonation and restore the real role.
- *
  * @return string|null  The restored real role, or null if not impersonating
  */
 function stopImpersonation(): ?string
@@ -149,7 +143,6 @@ function stopImpersonation(): ?string
 
 /**
  * Check if the user is currently impersonating a role.
- *
  * @return bool
  */
 function isImpersonatingRole(): bool
@@ -159,7 +152,6 @@ function isImpersonatingRole(): bool
 
 /**
  * Get the impersonated role (or null if not impersonating).
- *
  * @return string|null
  */
 function getImpersonatedRole(): ?string
@@ -169,14 +161,12 @@ function getImpersonatedRole(): ?string
 
 /**
  * Get the real role (before impersonation).
- *
  * @return string|null  The real role, or null if not impersonating
  */
 function getRealRole(): ?string
 {
     return $_SESSION['real_role'] ?? null;
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // CSRF token
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -223,7 +213,6 @@ function validateCsrfToken(string $token): bool
     unset($_SESSION['csrf_tokens'][$token]);
     return true;
 }
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Flash messages
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -252,70 +241,4 @@ function getFlash(): ?array
         return $flash;
     }
     return null;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// Form data & errors (repopulation after validation failure)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Store form data in session for repopulation after validation error.
- *
- * @param array<string, mixed> $data  Associative array of form field values
- */
-function setFormData(array $data): void
-{
-    $_SESSION['form_data'] = $data;
-}
-
-/**
- * Retrieve and clear stored form data.
- *
- * @return array<string, mixed>
- */
-function getFormData(): array
-{
-    if (isset($_SESSION['form_data'])) {
-        $data = $_SESSION['form_data'];
-        unset($_SESSION['form_data']);
-        return $data;
-    }
-    return [];
-}
-
-/**
- * Store form errors in session.
- *
- * @param array<string, string> $errors  Associative array of field => error message
- */
-function setFormErrors(array $errors): void
-{
-    $_SESSION['form_errors'] = $errors;
-}
-
-/**
- * Retrieve and clear stored form errors.
- *
- * @return array<string, string>
- */
-function getFormErrors(): array
-{
-    if (isset($_SESSION['form_errors'])) {
-        $errors = $_SESSION['form_errors'];
-        unset($_SESSION['form_errors']);
-        return $errors;
-    }
-    return [];
-}
-
-/**
- * Get a specific form error for a field.
- *
- * @param array<string, string> $errors  The errors array
- * @param string $field   The field name
- * @return string|null
- */
-function getFieldError(array $errors, string $field): ?string
-{
-    return $errors[$field] ?? null;
 }

@@ -58,22 +58,18 @@ $submitBtnClass = $isEdit
     <h2 class="mb-4">
         <?php echo $isEdit ? 'Modifier le signalement' : 'Signaler un événement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>
-
     <div class="alert alert--info form-encouragement" role="note">
         💡 <strong>Remplissez les champs marqués d'une étoile <span class="required">*</span>, les autres sont optionnels.</strong>
     </div>
-
     <form method="POST" action="<?php echo e($action); ?>" enctype="multipart/form-data">
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <?php if ($isEdit): ?>
             <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid'] ?? ''); ?>">
         <?php endif; ?>
-
         <?php if (!empty($formErrors)): ?>
         <?php require __DIR__ . '/form_error_summary.php'; ?>
         <?php endif; ?>
-
         <div class="form-grid">
             <div class="form-group">
                 <label for="date_evenement">Date de l'événement <span class="required">*</span></label>
@@ -86,7 +82,6 @@ $submitBtnClass = $isEdit
                     <span class="form-error" id="err_date_evenement"><?php echo e($formErrors['date_evenement']); ?></span>
                 <?php endif; ?>
             </div>
-
             <div class="form-group">
                 <label for="heure_depot">Heure du dépôt</label>
                 <input type="time" id="heure_depot" name="heure_evenement"
@@ -95,7 +90,6 @@ $submitBtnClass = $isEdit
                        autocomplete="off">
                 <span class="form-hint">Rempli automatiquement au moment du dépôt.</span>
             </div>
-
             <div class="form-group">
                 <label for="lieu"><?php echo $type === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></label>
                 <input type="text" id="lieu" name="lieu"
@@ -106,7 +100,6 @@ $submitBtnClass = $isEdit
                        aria-describedby="hint_lieu">
                 <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo $type === 'dgi' ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
             </div>
-
             <div class="form-group">
                 <label for="objet">Objet <span class="required">*</span></label>
                 <input type="text" id="objet" name="objet"
@@ -120,7 +113,6 @@ $submitBtnClass = $isEdit
                     <span class="form-error" id="err_objet"><?php echo e($formErrors['objet']); ?></span>
                 <?php endif; ?>
             </div>
-
             <div class="form-group form-grid__full">
                 <label for="description">Description <span class="required">*</span></label>
                 <textarea id="description" name="description" rows="8" minlength="10" maxlength="20000" required
@@ -136,7 +128,6 @@ $submitBtnClass = $isEdit
                     <span class="form-error" id="err_description"><?php echo e($formErrors['description']); ?></span>
                 <?php endif; ?>
             </div>
-
             <div class="form-group form-grid__full">
                 <label for="attachment">Pièce jointe</label>
                 <div class="file-upload-wrapper">
@@ -163,7 +154,6 @@ $submitBtnClass = $isEdit
                     <span class="form-error" id="err_attachment"><?php echo e($formErrors['attachment']); ?></span>
                 <?php endif; ?>
             </div>
-
             <?php if (!$isEdit && !$noSiteMode): ?>
             <div class="form-group">
                 <label for="site_id">Votre unité de rattachement <span class="required">*</span></label>
@@ -184,7 +174,6 @@ $submitBtnClass = $isEdit
             <?php elseif (!$isEdit && $noSiteMode): ?>
             <input type="hidden" name="site_id" value="">
             <?php endif; ?>
-
             <?php if (reportVisibilityIsAgentChoice()): ?>
             <div class="form-group form-grid__full confidential-toggle" id="confidential-toggle">
                 <label class="label--checkbox">
@@ -210,7 +199,6 @@ $submitBtnClass = $isEdit
             <?php elseif (reportVisibilityIsPublic()): ?>
             <input type="hidden" name="is_confidential" value="0">
             <?php endif; ?>
-
             <!-- Consent: transmission to union representatives -->
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">
@@ -223,109 +211,17 @@ $submitBtnClass = $isEdit
                     Si vous refusez, seul le superviseur pourra consulter ce signalement.
                 </span>
             </div>
-
             <div class="form-group">
                 <label for="declarant_nom">Déclarant — Nom</label>
                 <input type="text" id="declarant_nom" value="<?php echo e($user['nom'] ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
             </div>
-
             <div class="form-group">
                 <label for="declarant_prenom">Déclarant — Prénom</label>
                 <input type="text" id="declarant_prenom" value="<?php echo e($user['prenom'] ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
             </div>
-
-            <?php if ($type === 'rami'): ?>
-            <div class="form-group form-grid__full">
-                <label class="label--checkbox">
-                    <input type="checkbox" name="pour_compte" id="pour_compte" value="1"
-                           aria-controls="pour_compte_fields" aria-expanded="<?php echo ($val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? 'true' : 'false'; ?>"
-                           <?php echo ($val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? 'checked' : ''; ?>>
-                    Signaler pour le compte d'un autre agent
-                </label>
-            </div>
-
-            <div id="pour_compte_fields" class="form-group form-grid__full pour-compte-fields">
-                <div class="flex-row">
-                    <div>
-                        <label for="pour_compte_nom">Nom de l'agent</label>
-                        <input type="text" id="pour_compte_nom" name="pour_compte_nom"
-                               value="<?php echo e($val('pour_compte_nom')); ?>"
-                               minlength="2" maxlength="100"
-                               autocomplete="family-name"
-                               <?php echo isset($formErrors['pour_compte_nom']) ? 'aria-describedby="err_pour_compte_nom" aria-invalid="true"' : ''; ?>>
-                    </div>
-                    <div>
-                        <label for="pour_compte_prenom">Prénom de l'agent</label>
-                        <input type="text" id="pour_compte_prenom" name="pour_compte_prenom"
-                               value="<?php echo e($val('pour_compte_prenom')); ?>"
-                               minlength="2" maxlength="100"
-                               autocomplete="given-name">
-                    </div>
-                </div>
-                <?php if (isset($formErrors['pour_compte_nom'])): ?>
-                    <span class="form-error" id="err_pour_compte_nom"><?php echo e($formErrors['pour_compte_nom']); ?></span>
-                <?php endif; ?>
-            </div>
-
-            <div class="form-group">
-                <label for="nature_auteur">Nature de l'auteur</label>
-                <select id="nature_auteur" name="nature_auteur">
-                    <option value="">— Non renseigné —</option>
-                    <option value="usager" <?php echo $val('nature_auteur') === 'usager' ? 'selected' : ''; ?>>Usager</option>
-                    <option value="collegue" <?php echo $val('nature_auteur') === 'collegue' ? 'selected' : ''; ?>>Collègue</option>
-                    <option value="hierarchie" <?php echo $val('nature_auteur') === 'hierarchie' ? 'selected' : ''; ?>>Hiérarchie</option>
-                    <option value="tiers" <?php echo $val('nature_auteur') === 'tiers' ? 'selected' : ''; ?>>Tiers</option>
-                </select>
-                <span class="form-hint">Optionnel — utile pour les statistiques du <?php echo e(getRoleLabelShort('chsct')); ?>.</span>
-            </div>
-
-            <div class="form-group">
-                <label for="type_acte">Type d'acte</label>
-                <select id="type_acte" name="type_acte">
-                    <option value="">— Non renseigné —</option>
-                    <option value="verbal" <?php echo $val('type_acte') === 'verbal' ? 'selected' : ''; ?>>Verbal</option>
-                    <option value="physique" <?php echo $val('type_acte') === 'physique' ? 'selected' : ''; ?>>Physique</option>
-                    <option value="moral" <?php echo $val('type_acte') === 'moral' ? 'selected' : ''; ?>>Moral</option>
-                    <option value="sexiste" <?php echo $val('type_acte') === 'sexiste' ? 'selected' : ''; ?>>Sexiste</option>
-                    <option value="autre" <?php echo $val('type_acte') === 'autre' ? 'selected' : ''; ?>>Autre</option>
-                </select>
-                <span class="form-hint">Optionnel — utile pour les statistiques du <?php echo e(getRoleLabelShort('chsct')); ?>.</span>
-            </div>
-            <?php endif; ?>
+            <?php if ($type === 'rami'): require __DIR__ . '/report_form_rami.php'; endif; ?>
         </div>
-
-        <?php
-        // Linked agents — free email field with domain validation
-        $declarantEmail = $user['email'] ?? '';
-        $emailDomain = '';
-        if ($declarantEmail && strpos($declarantEmail, '@') !== false) {
-            $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
-        }
-        $linkedEmails = '';
-        if ($isEdit && $report) {
-            $existing = getLinkedAgents($pdo ?? getDB(), $report['uuid']);
-            $linkedEmails = implode(', ', array_map(function($a) { return $a['email']; }, $existing));
-        }
-        if (isset($formData['linked_emails'])) {
-            $linkedEmails = $formData['linked_emails'];
-        }
-        ?>
-        <div class="form-group form-grid__full">
-            <label for="linked_emails">Rattacher des collègues au signalement</label>
-            <input type="text" id="linked_emails" name="linked_emails"
-                   class="form-control"
-                   value="<?php echo e($linkedEmails); ?>"
-                   placeholder="prenom.nom@<?php echo e($emailDomain); ?>"
-                   autocomplete="off"
-                   aria-describedby="hint_linked_emails">
-            <span class="form-hint" id="hint_linked_emails">
-                Adresses e-mail séparées par des virgules. Domaine autorisé : <strong>@<?php echo e($emailDomain); ?></strong>.
-                Chaque collègue recevra un e-mail de confirmation — il devra cliquer pour confirmer son rattachement.
-            </span>
-            <?php if (isset($formErrors['linked_emails'])): ?>
-                <span class="form-error"><?php echo e($formErrors['linked_emails']); ?></span>
-            <?php endif; ?>
-        </div>
+        <?php require __DIR__ . '/report_form_linked_agents.php'; ?>
 
         <div class="form-actions">
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">
@@ -336,23 +232,15 @@ $submitBtnClass = $isEdit
         </div>
     </form>
 
-    <!-- File upload: update displayed filename when a file is chosen (graceful degradation if JS blocked) -->
+    <!-- File upload: update displayed filename when a file is chosen -->
     <script>
     (function() {
-        var input = document.getElementById('attachment');
-        var nameEl = document.getElementById('file_chosen_name');
-        if (input && nameEl) {
-            input.addEventListener('change', function() {
-                if (this.files && this.files.length > 0) {
-                    nameEl.textContent = this.files[0].name;
-                    nameEl.style.fontStyle = 'normal';
-                    nameEl.style.color = '';
-                } else {
-                    nameEl.textContent = 'Aucun fichier sélectionné';
-                    nameEl.style.fontStyle = 'italic';
-                }
-            });
-        }
+        var input = document.getElementById('attachment'), nameEl = document.getElementById('file_chosen_name');
+        if (input && nameEl) input.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                nameEl.textContent = this.files[0].name; nameEl.style.fontStyle = 'normal'; nameEl.style.color = '';
+            } else { nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.style.fontStyle = 'italic'; }
+        });
     })();
     </script>
 </div>

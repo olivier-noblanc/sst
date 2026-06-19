@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.25.1] — 2026-06-20
+
+### Technique — Corrections
+
+- **1** 🩹 **Correction de 3 `require_once` manquants dans le bootstrap** — Trois fichiers de requêtes n'étaient jamais inclus dans `public/index.php`, provoquant des erreurs fatales (`Call to undefined function`) lors de l'accès à certaines pages :
+  - `src/queries/notification_queries.php` → erreur fatale sur la page Paramètres (ligne 20 de `pages/settings.php`, fonction `getNotificationSettings()`).
+  - `src/queries/report_agent_queries.php` → fonctions `getLinkedAgents()`, `linkAgentsToReport()`, `replaceLinkedAgents()` indisponibles pour l'édition de signalement.
+  - `src/queries/report_invite_queries.php` → fonctions `getAgentInviteByToken()`, `confirmAgentInvite()`, `createAgentInvite()`, `getPendingInvites()` indisponibles pour la confirmation de rattachement d'agents.
+  - Détection effectuée via un script d'analyse statique Python parcourant la chaîne de `require_once` et croisant les définitions de fonctions avec les appels dans `pages/`, `handlers/` et `templates/`.
+
+
 ## [3.25.0] — 2026-06-19
 
 ### Produit — Corrections et nouvelles fonctionnalités

@@ -76,6 +76,8 @@ require_once __DIR__ . '/../src/queries/site_queries.php';
 require_once __DIR__ . '/../src/queries/stats_queries.php';
 require_once __DIR__ . '/../src/queries/user_admin_queries.php';
 require_once __DIR__ . '/../src/queries/notification_queries.php';
+require_once __DIR__ . '/../src/queries/report_agent_queries.php';
+require_once __DIR__ . '/../src/queries/report_invite_queries.php';
 
 // Load user context helpers (currentUser(), isSuperviseur(), etc.)
 require_once __DIR__ . '/../src/user_context.php';

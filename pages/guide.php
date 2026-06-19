@@ -6,7 +6,7 @@
  * Designed for non-technical users (large text, screenshots, simple words).
  * Accessible at index.php?page=guide — no login required for printing.
  *
- * CSS is self-contained (print-optimized, no sidebar/header when printed).
+ * CSS served via css.php with proper HTTP caching (ETag, 304).
  */
 $pageTitle = 'Guide rapide';
 $ramiEnabled = isRegistryEnabled(TYPE_RAMI);
@@ -15,7 +15,7 @@ $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
 $noSiteMode = isNoSiteMode(getDB());
 $labelUnite = getConfig('app_label_unite', 'UR');
 ?>
-<?php require __DIR__ . '/guide_styles.php'; ?>
+<?php echo cssLink('css/guide.css'); ?>
 
 <div class="guide">
     <div class="guide-header">
@@ -84,7 +84,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="guide-step__text">
                 Completez les champs obligatoires (marques d'une etoile <strong>*</strong>) :
             </p>
-            <ul style="margin: 0 0 10px 20px; font-size: 15px;">
+            <ul class="guide-step__list">
                 <li><strong>Date de l'evenement</strong> — la date ou cela s'est passe</li>
                 <?php if (!$noSiteMode): ?>
                 <li><strong><?php echo e($labelUnite); ?> de rattachement</strong> — votre unite de travail</li>
@@ -128,11 +128,11 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <p class="guide-step__caption">Capture d'ecran : le bandeau vert de confirmation apres l'envoi du signalement</p>
             <div class="guide-step__highlight">
                 <strong>Et apres ?</strong> Votre signalement passe par 3 etats :
-                <span style="color:#2E5C8A;font-weight:600;">Nouveau</span> : votre signalement vient d'etre envoye.
+                <span class="guide-status--nouveau">Nouveau</span> : votre signalement vient d'etre envoye.
                 &rarr;
-                <span style="color:#E67E22;font-weight:600;">En cours</span> : votre superviseur examine le probleme.
+                <span class="guide-status--encours">En cours</span> : votre superviseur examine le probleme.
                 &rarr;
-                <span style="color:#27AE60;font-weight:600;">Traite</span> : le probleme est resolu.
+                <span class="guide-status--traite">Traite</span> : le probleme est resolu.
             </div>
         </div>
     </div>

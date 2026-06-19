@@ -3509,3 +3509,146 @@ tr:hover td {
 .info-panel--info {
     border-left-color: #2E5C8A;
 }
+
+/* ============================================================
+   25. Help Page — Agent (_agent.php)
+   ============================================================ */
+
+/* Hotline number emphasis */
+.help-hotline-number {
+    font-size: 1.3em;
+}
+
+/* Profile card border variants */
+.help-profile-card--border-primary {
+    border-left: 5px solid var(--color-primary);
+}
+
+.help-profile-card--border-success {
+    border-left: 5px solid #16a34a;
+}
+
+.help-profile-card--border-purple {
+    border-left: 5px solid #8b5cf6;
+}
+
+/* Profile card center alignment (step cards) */
+.help-profile-card--center {
+    text-align: center;
+}
+
+/* Callout boxes */
+.help-callout--primary {
+    background: #eff6ff;
+    border: 2px solid var(--color-primary);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+}
+
+.help-callout--success {
+    background: #f0fdf4;
+    border: 2px solid #16a34a;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+}
+
+/* Ordered list inside callout */
+.help-callout__list {
+    margin: 0;
+    padding-left: 24px;
+    line-height: 2.2;
+}
+
+/* Tip paragraph inside callout */
+.help-callout__tip {
+    margin: 0 0 8px 0;
+}
+
+/* Section intro (centered heading text) */
+.help-section-intro {
+    text-align: center;
+    margin: 16px 0 8px 0;
+    font-size: 17px;
+}
+
+/* Single-column grid variant */
+.help-profiles-grid--single {
+    grid-template-columns: 1fr;
+}
+
+/* Step card title (left-aligned heading) */
+.help-step-title {
+    text-align: left;
+}
+
+/* Step card description (left-aligned muted text) */
+.help-step-desc {
+    text-align: left;
+    color: #555;
+}
+
+/* Muted text (no margin, grey) */
+.help-text-muted {
+    margin: 0;
+    color: #555;
+}
+
+/* FAQ item spacing */
+.help-faq-item {
+    margin-bottom: 20px;
+}
+
+/* FAQ question */
+.help-faq__question {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+}
+
+/* FAQ answer */
+.help-faq__answer {
+    margin: 0;
+    color: #555;
+}
+
+/* Large CTA button */
+.help-cta-btn {
+    font-size: 17px;
+    min-height: 48px;
+    display: inline-flex;
+    gap: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   Section 26 — Agent confirm page + Help image utilities
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.card--narrow-center {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.table--spaced {
+    margin: 16px 0;
+}
+
+.form-actions--center {
+    justify-content: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-top-spaced {
+    margin-top: 16px;
+}
+
+.help-img {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin: 8px 0;
+}

@@ -37,10 +37,10 @@ $pageTitle = 'Confirmer mon rattachement';
 
 <h1 class="page-title">Confirmer mon rattachement</h1>
 
-<div class="card card--spaced" style="max-width:600px; margin:0 auto;">
+<div class="card card--spaced card--narrow-center">
     <p>Vous avez été rattaché(e) au signalement <strong><?php echo e($report['reference']); ?></strong> par le déclarant.</p>
 
-    <table class="table table--compact" style="margin:16px 0;">
+    <table class="table table--compact table--spaced">
         <tr>
             <th>Référence</th>
             <td><?php echo e($report['reference']); ?></td>
@@ -63,14 +63,14 @@ $pageTitle = 'Confirmer mon rattachement';
 
     <form method="POST" action="<?php echo url('agent_confirm'); ?>">
         <input type="hidden" name="token" value="<?php echo e($token); ?>">
-        <div class="form-actions" style="justify-content:center;">
+        <div class="form-actions form-actions--center">
             <button type="submit" class="btn btn--primary btn--lg">
                 ✅ Confirmer mon rattachement
             </button>
         </div>
     </form>
 
-    <p class="text-muted text-small" style="text-align:center; margin-top:16px;">
+    <p class="text-muted text-small text-center text-top-spaced">
         Si vous ne souhaitez pas être rattaché(e), fermez simplement cette page. Aucune action ne sera effectuée.
     </p>
 </div>

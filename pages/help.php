@@ -20,7 +20,7 @@ $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
 function helpImg(string $name, string $alt, string $base): string
 {
     $src = $base . '/' . $name;
-    return '<img src="' . $src . '" alt="' . e($alt) . '" style="max-width:100%;border:1px solid #ddd;border-radius:8px;margin:8px 0;">';
+    return '<img src="' . $src . '" alt="' . e($alt) . '" class="help-img">';
 }
 
 /**

@@ -6,10 +6,9 @@
  * Security headers and cache-control sent as HTTP headers (not meta tags)
  * for maximum browser support.
  *
- * CSS and favicons are INLINED (no separate HTTP request).
- * This eliminates webhint false positives on content-type/cache-control
- * and removes all IIS dependency for serving static assets.
- * Gzip compression is handled via ob_gzhandler (started in index.php).
+ * CSS is served through css.php (PHP script) for proper HTTP caching:
+ * ETag + Last-Modified + 304 Not Modified responses.
+ * Favicons are inlined as data: URIs (tiny, no extra HTTP request).
  */
 
 // === Cache-Control for dynamic pages ===
@@ -22,12 +21,11 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 
-// Content-Security-Policy: allow same-origin + data: URIs (inline assets)
-// style-src 'unsafe-inline' needed for inline <style> tag (CSS inlined via inlineCss())
+// Content-Security-Policy: CSS served via css.php — no more 'unsafe-inline' for style-src
 // script-src 'unsafe-inline' needed for file-upload filename update in report_form.php
 // img-src data: needed for inline data: URIs (favicons, logos via inlineDataUri())
 // frame-ancestors 'none' : no iframing allowed (screenshots are now <img>, not <iframe>)
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -35,7 +33,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo e(APP_NAME); ?> — <?php echo e($pageTitle ?? 'Accueil'); ?></title>
-    <?php echo inlineCss('css/style.css'); ?>
+    <?php echo cssLink('css/style.css'); ?>
     <?php $faviconPng = inlineDataUri('favicon.png'); ?>
     <?php $faviconIco = inlineDataUri('favicon.ico'); ?>
     <?php if ($faviconPng): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>

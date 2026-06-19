@@ -18,7 +18,7 @@ header('Cache-Control: no-cache');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 
 $pageTitle = 'Connexion';
 
@@ -42,7 +42,7 @@ if (isUserLoggedIn()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo e(APP_NAME); ?> — Connexion</title>
-    <?php echo inlineCss('css/style.css'); ?>
+    <?php echo cssLink('css/style.css'); ?>
     <?php $faviconPng = inlineDataUri('favicon.png'); ?>
     <?php $faviconIco = inlineDataUri('favicon.ico'); ?>
     <?php if ($faviconPng): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>
@@ -78,58 +78,34 @@ if (isUserLoggedIn()) {
                 <input type="hidden" id="password" name="password" value="test">
             </form>
 
-            <p style="text-align:center;font-size:18px;margin:20px 0 8px 0;color:#555;">Choisissez votre profil</p>
-            <p style="text-align:center;font-size:15px;color:#1e40af;margin:0 0 16px 0;font-weight:600;">Cliquez sur votre profil. En cas de doute, choisissez Agent.</p>
+            <p class="login-choose-profile">Choisissez votre profil</p>
+            <p class="login-choose-hint">Cliquez sur votre profil. En cas de doute, choisissez Agent.</p>
             <div class="login-quick-buttons">
                 <div class="login-btn-wrapper">
-                    <button type="button" class="btn btn--primary" style="background:#1e3a5f;" onclick="document.getElementById('username').value='admin.dev';document.getElementById('quick-login-form').submit();">
+                    <button type="button" class="btn btn--primary login-btn--superviseur" onclick="document.getElementById('username').value='admin.dev';document.getElementById('quick-login-form').submit();">
                         Superviseur
                     </button>
                     <span class="login-btn-desc">Gestion et suivi des signalements</span>
                 </div>
                 <div class="login-btn-wrapper">
-                    <button type="button" class="btn btn--primary" style="background:#3b82f6;" onclick="document.getElementById('username').value='agent.dev';document.getElementById('quick-login-form').submit();">
+                    <button type="button" class="btn btn--primary login-btn--agent" onclick="document.getElementById('username').value='agent.dev';document.getElementById('quick-login-form').submit();">
                         Agent
                     </button>
                     <span class="login-btn-desc">Signaler un événement</span>
                 </div>
                 <div class="login-btn-wrapper">
-                    <button type="button" class="btn btn--primary" style="background:#6b7280;" onclick="document.getElementById('username').value='chsct.dev';document.getElementById('quick-login-form').submit();">
+                    <button type="button" class="btn btn--primary login-btn--chsct" onclick="document.getElementById('username').value='chsct.dev';document.getElementById('quick-login-form').submit();">
                         <?php echo e(getRoleLabel('chsct')); ?>
                     </button>
                     <span class="login-btn-desc">Consultation et synthèse</span>
                 </div>
             </div>
-            <p class="text-small text-muted" style="text-align:center;margin-top:12px;">
+            <p class="text-small text-muted login-dev-notice">
                 En utilisation normale, la connexion est automatique.
             </p>
         </div>
     </div>
     </main>
-<style>
-.login-quick-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 12px;
-}
-.login-btn-wrapper {
-    text-align: center;
-}
-.login-quick-buttons .btn {
-    justify-content: center;
-    font-size: 18px;
-    min-height: 56px;
-    padding: 14px 28px;
-    width: 100%;
-}
-.login-btn-desc {
-    display: block;
-    font-size: 14px;
-    color: #6b7280;
-    margin-top: 4px;
-    font-style: italic;
-}
-</style>
+<?php echo cssLink('css/login.css'); ?>
 </body>
 </html>

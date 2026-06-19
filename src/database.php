@@ -527,6 +527,59 @@ function migrateSchema(PDO $pdo): void
     } catch (Exception $e) {
         error_log('Migration warning for report_state_history: ' . $e->getMessage());
     }
+
+    // === Add consent_syndicat column to reports table ===
+    try {
+        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $hasConsentSyndicat = false;
+        foreach ($cols as $col) {
+            if ($col['name'] === 'consent_syndicat') {
+                $hasConsentSyndicat = true;
+                break;
+            }
+        }
+        if (!$hasConsentSyndicat) {
+            $pdo->exec('ALTER TABLE reports ADD COLUMN consent_syndicat INTEGER NOT NULL DEFAULT 0');
+        }
+    } catch (Exception $e) {
+        error_log('Migration warning for reports.consent_syndicat: ' . $e->getMessage());
+    }
+
+    // === Add report_agents table (many-to-many agent ↔ report) ===
+    try {
+        $pdo->exec('CREATE TABLE IF NOT EXISTS report_agents (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_uuid TEXT NOT NULL,
+            user_id     INTEGER NOT NULL,
+            created_at  TEXT NOT NULL DEFAULT (datetime(\'now\')),
+            FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            UNIQUE(report_uuid, user_id)
+        )');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_agents_uuid ON report_agents(report_uuid)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_agents_user ON report_agents(user_id)');
+    } catch (Exception $e) {
+        error_log('Migration warning for report_agents: ' . $e->getMessage());
+    }
+
+    // === Add report_agent_invites table (pending confirmation) ===
+    try {
+        $pdo->exec('CREATE TABLE IF NOT EXISTS report_agent_invites (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_uuid TEXT NOT NULL,
+            email       TEXT NOT NULL,
+            token       TEXT NOT NULL,
+            confirmed   INTEGER NOT NULL DEFAULT 0,
+            created_at  TEXT NOT NULL DEFAULT (datetime(\'now\')),
+            confirmed_at TEXT DEFAULT NULL,
+            FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+            UNIQUE(token)
+        )');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_agent_invites_uuid ON report_agent_invites(report_uuid)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_agent_invites_token ON report_agent_invites(token)');
+    } catch (Exception $e) {
+        error_log('Migration warning for report_agent_invites: ' . $e->getMessage());
+    }
 }
 
 /**

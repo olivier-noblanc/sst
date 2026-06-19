@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
-    <base href="http://localhost:8765/">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application SST — DREETS BFC — Page</title>
-    <style>/* ============================================================
+<base href="http://localhost:8765/"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Application SST — DREETS BFC — Page</title>
+<style>/* ============================================================
    Style Sheet — Application SST DREETS BFC
    Version 2.0
    Complete DREETS visual identity theme
@@ -2534,703 +2535,323 @@ tr:hover td {
 
 .log-entry--fatal .log-entry__text { color: #f38ba8; }
 .log-entry--warning .log-entry__text { color: #fab387; }
-</style>            <link rel="icon" type="image/png" sizes="64x64" href="data:image/png;base64,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">    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,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"></head>
+</style> <link href="data:image/png;base64,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" rel="icon" sizes="64x64" type="image/png"/> <link href="data:image/x-icon;base64,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" rel="icon" type="image/x-icon"/></head>
 <body>
-    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
-    <header class="header" role="banner">
-        <div class="header__logo">
-                            <span class="header__logo-text">DREETS BFC</span>
-                        <span class="header__title">Application SST — DREETS BFC</span>
-        </div>
-                <div class="header__user">
-            <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
-            <span class="header__username">
+<a class="skip-link" href="#main-content">Aller au contenu principal</a>
+<header class="header" role="banner">
+<div class="header__logo">
+<span class="header__logo-text">DREETS BFC</span>
+<span class="header__title">Application SST — DREETS BFC</span>
+</div>
+<div class="header__user">
+<label aria-label="Ouvrir le menu" class="header__menu-btn" for="sidebar-toggle" tabindex="0">☰</label>
+<span class="header__username">
                 Jean Dupont                <span class="badge badge--agent badge--sm">Agent</span>
-            </span>
-            <a href="index.php?page=logout" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
-        </div>
-            </header>
+</span>
+<a class="header__logout" href="index.php?page=logout" title="Déconnexion">⇥ Déconnexion</a>
+</div>
+</header>
 <!-- Hidden checkbox for CSS-only sidebar toggle (mobile) — tabindex="-1" prevents focus since hidden attr is not always sufficient -->
-<input type="checkbox" id="sidebar-toggle" class="sidebar-toggle-checkbox" tabindex="-1" hidden>
-<label for="sidebar-toggle" class="sidebar-overlay" aria-hidden="true"></label>
-<nav class="sidebar" id="sidebar-nav" role="navigation" aria-label="Menu principal">
-    <ul class="sidebar__nav">
-                                                    <li>
-                    <a href="index.php?page=home"
-                       class="sidebar__item"
-                       >
-                        <span class="sidebar__icon" aria-hidden="true">&#127968;</span>
+<input class="sidebar-toggle-checkbox" hidden="" id="sidebar-toggle" tabindex="-1" type="checkbox"/>
+<label aria-hidden="true" class="sidebar-overlay" for="sidebar-toggle"></label>
+<nav aria-label="Menu principal" class="sidebar" id="sidebar-nav" role="navigation">
+<ul class="sidebar__nav">
+<li>
+<a class="sidebar__item" href="index.php?page=home">
+<span aria-hidden="true" class="sidebar__icon">🏠</span>
                         Accueil                    </a>
-                </li>
-                                                                <li>
-                    <a href="index.php?page=report_list&type=rsst"
-                       class="sidebar__item"
-                       >
-                        <span class="sidebar__icon" aria-hidden="true">&#128203;</span>
+</li>
+<li>
+<a class="sidebar__item" href="index.php?page=report_list&amp;type=rsst">
+<span aria-hidden="true" class="sidebar__icon">📋</span>
                         RSST                    </a>
-                </li>
-                                                                <li>
-                    <a href="index.php?page=report_list&type=rami"
-                       class="sidebar__item"
-                       >
-                        <span class="sidebar__icon" aria-hidden="true">&#9888;</span>
-                        RAMI                    </a>
-                </li>
-                                                                <li>
-                    <a href="index.php?page=report_list&type=dgi"
-                       class="sidebar__item"
-                       >
-                        <span class="sidebar__icon" aria-hidden="true">&#128308;</span>
-                        DGI                    </a>
-                </li>
-                                                                                                                                                </ul>
-
-    <div class="sidebar__footer">
-        <a href="index.php?page=help" class="sidebar__item sidebar__item--active">
-            <span class="sidebar__icon" aria-hidden="true">&#128218;</span>
+</li>
+</ul>
+<div class="sidebar__footer">
+<a class="sidebar__item sidebar__item--active" href="index.php?page=help">
+<span aria-hidden="true" class="sidebar__icon">📚</span>
             Documentation
         </a>
-        <a href="index.php?page=preamble" class="sidebar__item">
-            <span class="sidebar__icon" aria-hidden="true">&#128214;</span>
+<a class="sidebar__item" href="index.php?page=preamble">
+<span aria-hidden="true" class="sidebar__icon">📖</span>
             Préambule
         </a>
-    </div>
+</div>
 </nav>
-<span id="top" tabindex="-1"></span><main id="main-content" class="main" role="main">
+<span id="top" tabindex="-1"></span><main class="main" id="main-content" role="main">
 <h1 class="page-title">Documentation</h1>
-
 <!-- ============================================================ -->
 <!-- Sommaire                                                      -->
 <!-- ============================================================ -->
-<nav class="help-toc" aria-label="Sommaire de la documentation">
-    <h2 class="help-toc__title">Sommaire</h2>
-    <ol class="help-toc__list">
-        <li><a href="#profils">Profils utilisateurs</a></li>
-        <li><a href="#droits">Tableau des droits</a></li>
-        <li><a href="#confidentialite">Confidentialité des signalements</a></li>
-        <li><a href="#registres">Les 3 registres</a></li>
-        <li><a href="#cycle-vie">Cycle de vie d'un signalement</a></li>
-        <li><a href="#cas-usage">Cas d'usage</a>
-            <ol>
-                <li><a href="#cu1">CU1 — Signaler un événement RSST</a></li>
-                <li><a href="#cu2">CU2 — Signalement RAMI pour un collègue</a></li>
-                <li><a href="#cu3">CU3 — Danger Grave et Imminent (DGI)</a></li>
-                <li><a href="#cu4">CU4 — Traiter un signalement</a></li>
-                <li><a href="#cu5">CU5 — Abandonner un signalement</a></li>
-                <li><a href="#cu6">CU6 — Consulter la synthèse (CSA/CHSCT)</a></li>
-                <li><a href="#cu7">CU7 — Gérer les utilisateurs et la configuration</a></li>
-                <li><a href="#cu8">CU8 — Imprimer une fiche de signalement</a></li>
-            </ol>
-        </li>
-        <li><a href="#auth">Authentification</a></li>
-    </ol>
+<nav aria-label="Sommaire de la documentation" class="help-toc">
+<h2 class="help-toc__title">Sommaire</h2>
+<ol class="help-toc__list">
+<li><a href="#profils">Profils utilisateurs</a></li>
+<li><a href="#droits">Tableau des droits</a></li>
+<li><a href="#confidentialite">Confidentialité des signalements</a></li>
+<li><a href="#registres">Les 3 registres</a></li>
+<li><a href="#cycle-vie">Cycle de vie d'un signalement</a></li>
+<li><a href="#cas-usage">Cas d'usage</a>
+<ol>
+<li><a href="#cu1">CU1 — Signaler un événement RSST</a></li>
+<li><a href="#cu2">CU2 — Signalement RAMI pour un collègue</a></li>
+<li><a href="#cu3">CU3 — Danger Grave et Imminent (DGI)</a></li>
+<li><a href="#cu4">CU4 — Traiter un signalement</a></li>
+<li><a href="#cu5">CU5 — Abandonner un signalement</a></li>
+<li><a href="#cu6">CU6 — Consulter la synthèse (CSA/CHSCT)</a></li>
+<li><a href="#cu7">CU7 — Gérer les utilisateurs et la configuration</a></li>
+<li><a href="#cu8">CU8 — Imprimer une fiche de signalement</a></li>
+</ol>
+</li>
+<li><a href="#auth">Authentification</a></li>
+</ol>
 </nav>
-
 <!-- ============================================================ -->
 <!-- 1. Profils utilisateurs                                       -->
 <!-- ============================================================ -->
-<div id="profils" class="card card--spaced content-section">
-    <h2>Profils utilisateurs</h2>
-    <p class="help-description">L'application dispose de 3 profils avec des droits croissants. En production, le profil est attribué par un Superviseur via la gestion des utilisateurs, ou automatiquement via la liste des superviseurs configurée dans les Paramètres (utile pour une première installation). Votre profil détermine les fonctionnalités accessibles dans le menu latéral et les actions possibles sur les signalements.</p>
-
-    <div class="help-profiles-grid">
-
-        <!-- Agent -->
-        <div class="help-profile-card">
-            <h3>
-                <span class="badge badge--agent badge--sm">Agent</span>
-            </h3>
-            <p class="help-description">Profil par défaut de tout nouvel utilisateur. L'agent peut signaler des événements et suivre les signalements de son site. À la première connexion, l'agent choisit son site (définitif, seul un superviseur peut le changer). La vue de l'agent est centrée sur son UR : seuls les signalements de son site sont visibles, et la visibilité dépend du paramétrage choisi par le superviseur.</p>
-            <ul class="help-feature-list">
-                <li>Accéder à l'accueil avec les 3 cartes de registres</li>
-                <li>Créer un signalement (RSST, RAMI, DGI)</li>
-                <li>Consulter la liste des signalements de son site</li>
-                <li>Voir le détail d'un signalement</li>
-                <li>Modifier un signalement tant qu'il n'est pas traité</li>
-                <li>Consulter le Préambule</li>
-            </ul>
-            <p class="help-note">
+<div class="card card--spaced content-section" id="profils">
+<h2>Profils utilisateurs</h2>
+<p class="help-description">L'application dispose de 3 profils avec des droits croissants. En production, le profil est attribué par un Superviseur via la gestion des utilisateurs, ou automatiquement via la liste des superviseurs configurée dans les Paramètres (utile pour une première installation). Votre profil détermine les fonctionnalités accessibles dans le menu latéral et les actions possibles sur les signalements.</p>
+<div class="help-profiles-grid">
+<!-- Agent -->
+<div class="help-profile-card">
+<h3>
+<span class="badge badge--agent badge--sm">Agent</span>
+</h3>
+<p class="help-description">Profil par défaut de tout nouvel utilisateur. L'agent peut signaler des événements et suivre les signalements de son site. À la première connexion, l'agent choisit son site (définitif, seul un superviseur peut le changer). La vue de l'agent est centrée sur son UR : seuls les signalements de son site sont visibles, et la visibilité dépend du paramétrage choisi par le superviseur.</p>
+<ul class="help-feature-list">
+<li>Accéder à l'accueil avec les 3 cartes de registres</li>
+<li>Créer un signalement (RSST, RAMI, DGI)</li>
+<li>Consulter la liste des signalements de son site</li>
+<li>Voir le détail d'un signalement</li>
+<li>Modifier un signalement tant qu'il n'est pas traité</li>
+<li>Consulter le Préambule</li>
+</ul>
+<p class="help-note">
                 La visibilité des signalements dépend du paramétrage choisi par le superviseur : confidentiel (ses signalements uniquement), choix de l'agent (public ou confidentiel au dépôt), ou public (tous les signalements du site).
             </p>
-        </div>
-
-        <!-- Superviseur -->
-        <div class="help-profile-card help-profile-card--superviseur">
-            <h3>
-                <span class="badge badge--superviseur badge--sm">Superviseur</span>
-            </h3>
-            <p class="help-description">Profil d'administration. Le superviseur gère les réponses aux signalements, les utilisateurs et la configuration de l'application. Il peut également attribuer le rôle superviseur à d'autres utilisateurs. Le superviseur dispose d'une vue transversale sur tous les sites, ce qui lui permet de suivre l'ensemble des signalements et d'intervenir rapidement, y compris sur les signalements confidentiels.</p>
-            <ul class="help-feature-list">
-                <li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
-                <li>Répondre à un signalement (passer en « En cours » ou « Traité »)</li>
-                <li>Abandonner un signalement</li>
-                <li>Voir les signalements de <strong>tous les sites</strong></li>
-                <li>Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
-                <li><strong>Exporter</strong> les données (CSV)</li>
-                <li>Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver, attribuer les rôles)</li>
-                <li>Configurer les <strong>paramètres</strong> (SMTP, notifications, visibilité, application)</li>
-                <li>Imprimer une fiche de signalement (PDF)</li>
-            </ul>
-            <p class="help-note">
-                Peut être attribué par un autre superviseur via la gestion des utilisateurs, ou auto-attribué via <strong>Paramètres &rarr; Logins Windows des superviseurs</strong> (utile pour une première installation).
+</div>
+<!-- Superviseur -->
+<div class="help-profile-card help-profile-card--superviseur">
+<h3>
+<span class="badge badge--superviseur badge--sm">Superviseur</span>
+</h3>
+<p class="help-description">Profil d'administration. Le superviseur gère les réponses aux signalements, les utilisateurs et la configuration de l'application. Il peut également attribuer le rôle superviseur à d'autres utilisateurs. Le superviseur dispose d'une vue transversale sur tous les sites, ce qui lui permet de suivre l'ensemble des signalements et d'intervenir rapidement, y compris sur les signalements confidentiels.</p>
+<ul class="help-feature-list">
+<li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
+<li>Répondre à un signalement (passer en « En cours » ou « Traité »)</li>
+<li>Abandonner un signalement</li>
+<li>Voir les signalements de <strong>tous les sites</strong></li>
+<li>Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
+<li><strong>Exporter</strong> les données (CSV)</li>
+<li>Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver, attribuer les rôles)</li>
+<li>Configurer les <strong>paramètres</strong> (SMTP, notifications, visibilité, application)</li>
+<li>Imprimer une fiche de signalement (PDF)</li>
+</ul>
+<p class="help-note">
+                Peut être attribué par un autre superviseur via la gestion des utilisateurs, ou auto-attribué via <strong>Paramètres → Logins Windows des superviseurs</strong> (utile pour une première installation).
             </p>
-        </div>
-
-        <!-- CHSCT -->
-        <div class="help-profile-card help-profile-card--chsct">
-            <h3>
-                <span class="badge badge--chsct badge--sm">Membre CSA/CHSCT</span>
-            </h3>
-            <p class="help-description">Membre de la Commission Santé, Sécurité et Conditions de Travail. Accès en consultation élargie sur tous les sites pour le suivi des registres SST. Ce profil est conçu pour permettre aux représentants du personnel d'exercer leur mission de suivi sans pouvoir modifier les données ou la configuration de l'application.</p>
-            <ul class="help-feature-list">
-                <li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
-                <li>Voir les signalements de <strong>tous les sites</strong></li>
-                <li>Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
-                <li><strong>Exporter</strong> les données (CSV)</li>
-            </ul>
-            <p class="help-note">
+</div>
+<!-- CHSCT -->
+<div class="help-profile-card help-profile-card--chsct">
+<h3>
+<span class="badge badge--chsct badge--sm">Membre CSA/CHSCT</span>
+</h3>
+<p class="help-description">Membre de la Commission Santé, Sécurité et Conditions de Travail. Accès en consultation élargie sur tous les sites pour le suivi des registres SST. Ce profil est conçu pour permettre aux représentants du personnel d'exercer leur mission de suivi sans pouvoir modifier les données ou la configuration de l'application.</p>
+<ul class="help-feature-list">
+<li><strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
+<li>Voir les signalements de <strong>tous les sites</strong></li>
+<li>Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
+<li><strong>Exporter</strong> les données (CSV)</li>
+</ul>
+<p class="help-note">
                 Ne peut pas répondre aux signalements ni gérer les utilisateurs. Rôle de consultation uniquement.
             </p>
-        </div>
-    </div>
-
-    <div class="help-screenshot-block" id="ss-b93b8796">
-    <p class="help-screenshot-label">Page d'accueil de l'agent avec les 3 cartes de registre</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu1-accueil.html" class="help-screenshot-iframe" title="Page d'accueil de l'agent avec les 3 cartes de registre" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div></div>
-
-<!-- ============================================================ -->
-<!-- 2. Tableau récapitulatif des droits                           -->
-<!-- ============================================================ -->
-<div id="droits" class="card card--spaced content-section">
-    <h2>Tableau des droits</h2>
-    <p class="help-description">Ce tableau récapitule les fonctionnalités accessibles selon chaque profil. Les droits sont cumulatifs : le Superviseur hérite de toutes les capacités de l'Agent, et le membre CSA/CHSCT dispose des mêmes droits de consultation que le Superviseur sans les capacités d'action.</p>
-    <div class="table-wrapper">
-        <table class="table table--compact help-rights-table" aria-label="Permissions par profil">
-            <thead>
-                <tr>
-                    <th class="text-left">Fonctionnalité</th>
-                    <th class="text-center">Agent</th>
-                    <th class="text-center">Superviseur</th>
-                    <th class="text-center">CSA/CHSCT</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Créer un signalement</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                </tr>
-                <tr>
-                    <td>Voir ses signalements</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                </tr>
-                <tr>
-                    <td>Modifier un signalement (non traité)</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                </tr>
-                <tr>
-                    <td>Voir les signalements de tous les sites</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                </tr>
-                <tr>
-                    <td>Répondre à un signalement</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x274C;</td>
-                </tr>
-                <tr>
-                    <td>Abandonner un signalement</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x274C;</td>
-                </tr>
-                <tr>
-                    <td>Imprimer une fiche</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x274C;</td>
-                </tr>
-                <tr>
-                    <td>Synthèse des signalements</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                </tr>
-                <tr>
-                    <td>Statistiques</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                </tr>
-                <tr>
-                    <td>Exporter les données</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
-                </tr>
-                <tr>
-                    <td>Gérer les utilisateurs</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x274C;</td>
-                </tr>
-                <tr>
-                    <td>Paramètres de l'application</td>
-                    <td class="text-center">&#x274C;</td>
-                    <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x274C;</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 </div>
+</div> </div>
 
-<!-- ============================================================ -->
-<!-- 3. Confidentialité des signalements                           -->
-<!-- ============================================================ -->
-<div id="confidentialite" class="card card--spaced content-section">
-    <h2>Confidentialité des signalements</h2>
-    <p class="help-description">La visibilité des signalements dépend du paramétrage choisi par le superviseur dans les Paramètres de l'application. Ce paramétrage peut être défini globalement ou par registre (RSST, RAMI, DGI), ce qui permet d'adapter la confidentialité aux exigences légales de chaque registre. Par exemple, le registre RSST est par défaut public conformément au décret 82-453 art. 3-2, tandis que le registre RAMI peut légitimement rester confidentiel.</p>
-    <div class="table-wrapper">
-        <table class="table table--compact" aria-label="Modes de visibilité des signalements">
-            <thead>
-                <tr>
-                    <th>Mode</th>
-                    <th>Visibilité de l'agent</th>
-                    <th>Détail</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>Confidentiel</strong></td>
-                    <td>Ses signalements uniquement</td>
-                    <td>L'agent ne voit que ses propres signalements. Les autres agents ne voient rien de ses signalements, pas même le titre. C'est le mode le plus restrictif, adapté aux situations sensibles (RAMI par exemple).</td>
-                </tr>
-                <tr>
-                    <td><strong>Choix de l'agent</strong></td>
-                    <td>Dépend du choix au dépôt</td>
-                    <td>L'agent choisit la visibilité de chaque signalement lors de la création. Par défaut, le signalement est confidentiel. L'agent voit les signalements publics de son UR ainsi que ses propres signalements (même confidentiels). Ce mode offre la meilleure flexibilité.</td>
-                </tr>
-                <tr>
-                    <td><strong>Visibilité publique</strong></td>
-                    <td>Tous les signalements du site</td>
-                    <td>Tous les signalements du site sont visibles par tous les agents du site. Conforme au décret 82-453 pour le registre RSST (consultable par tout agent).</td>
-                </tr>
-                <tr class="help-separator-row">
-                    <td><span class="badge badge--superviseur">Superviseur</span></td>
-                    <td>Tous les sites</td>
-                    <td>Le superviseur a accès à l'ensemble des signalements, tous sites confondus, y compris les confidentiels. L'accès aux signalements confidentiels est tracé dans le journal d'audit.</td>
-                </tr>
-                <tr>
-                    <td><span class="badge badge--chsct">CSA/CHSCT</span></td>
-                    <td>Tous les sites</td>
-                    <td>Le membre CSA/CHSCT peut consulter tous les signalements, y compris les confidentiels, pour l'exercice de ses missions. L'accès aux signalements confidentiels est également tracé.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+<!-- CU3 : DGI urgence -->
+
+<!-- CU4 : Superviseur traite -->
+<div class="help-profile-card card--spaced" id="cu4">
+<h3>CU4 — Un superviseur traite un signalement</h3>
+<p class="text-small text-muted help-case-label">Profil : Superviseur • Tous registres</p>
+<div class="help-feature-list help-case-body">
+<strong>Situation :</strong> Claire, superviseure, reçoit la notification du signalement RSST de Jean (rampe desserrée). Elle doit traiter le signalement en apportant une réponse adaptée et en faisant évoluer le statut.<br/><br/>
+<strong>Parcours :</strong>
+<ol>
+<li>Claire consulte la <strong>liste RSST</strong> ou le lien dans l'e-mail de notification</li>
+<li>Elle clique sur le signalement <code>rsst-25-001</code> pour voir le détail complet (objet, description, lieu, déclarant)</li>
+<li>Elle clique sur <strong>« Répondre »</strong></li>
+<li>Elle passe le statut à <span class="badge badge--en-cours">En cours</span> en indiquant : « Mission demandée au service technique pour réparation »</li>
+<li>Quelques jours plus tard, la rampe est réparée. Elle revient sur le signalement et le passe à <span class="badge badge--traite">Traité</span> avec la réponse : « Rampe réparée le 12/06/2025. Contrôle visuel effectué. »</li>
+<li>Le déclarant (Jean) peut voir la réponse dans le détail de son signalement</li>
+</ol>
+<div class="help-screenshot-block" id="ss-f7ca229e">
+<p class="help-screenshot-label">Vue détaillée d'un signalement RSST en cours de traitement</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/consultation-voir-rsst.html" title="Vue détaillée d'un signalement RSST en cours de traitement"></iframe>
 </div>
-
-<!-- ============================================================ -->
-<!-- 4. Les 3 registres                                            -->
-<!-- ============================================================ -->
-<div id="registres" class="card card--spaced content-section">
-    <h2>Les 3 registres</h2>
-    <p class="help-description">L'application gère 3 registres distincts, chacun couvrant un domaine spécifique de la santé et sécurité au travail. Chaque registre possède ses propres champs, son code couleur et ses règles de visibilité par défaut. Depuis l'accueil, les 3 registres sont présentés sous forme de cartes permettant un accès direct à la création d'un signalement.</p>
-
-    <div class="help-profiles-grid">
-
-        <div class="help-profile-card help-profile-card--rsst">
-            <h3>RSST</h3>
-            <p class="help-description help-description--title">Registre de Santé et de Sécurité au Travail</p>
-            <p class="help-description">Signalement de tout événement lié à la santé ou la sécurité au travail : conditions de travail dangereuses, équipements défectueux, risques professionnels, problèmes d'ergonomie, exposition à des substances nocives, etc. Ce registre est le plus courant et couvre l'ensemble des situations quotidiennes pouvant affecter la santé des agents.</p>
-            <p class="help-note help-note--inline">Champ spécifique : <strong>Lieu</strong> de l'événement.</p>
-            <p class="help-note help-note--inline">Visibilité par défaut : <strong>public</strong> (conforme décret 82-453 art. 3-2).</p>
-        </div>
-
-        <div class="help-profile-card help-profile-card--rami">
-            <h3>RAMI</h3>
-            <p class="help-description help-description--title">Registre des Actes d'Agressions, de Menaces et d'Incivilités</p>
-            <p class="help-description">Signalement d'agressions physiques ou verbales, de menaces, ou d'incivilités subies par un agent dans le cadre de ses fonctions. Ce registre permet également de signaler un événement survenu à un collègue (champ « Pour le compte de »), ce qui est important lorsque la victime est dans l'incapacité de faire le signalement elle-même.</p>
-            <p class="help-note help-note--inline">Champ spécifique : <strong>« Pour le compte de »</strong> (signalement pour un tiers).</p>
-            <p class="help-note help-note--inline">Champ spécifique : <strong>Nature de l'auteur</strong> (usager / collègue / hiérarchie / tiers) et <strong>type d'acte</strong> (verbal / physique / moral / sexiste / autre) — optionnels mais recommandés pour les statistiques.</p>
-        </div>
-
-        <div class="help-profile-card help-profile-card--dgi">
-            <h3>DGI</h3>
-            <p class="help-description help-description--title">Registre de signalement d'un Danger Grave et Imminent</p>
-            <p class="help-description">Signalement d'une situation de danger grave et imminent nécessitant une action immédiate. Ce registre bénéficie d'une procédure accélérée avec notification immédiate aux superviseurs. Le DGI est reservé aux situations où la vie ou l'intégrité physique des agents est menacée de manière directe et imminente.</p>
-            <p class="help-note help-note--inline">Procédure : <strong>traitement prioritaire</strong>, notification immédiate.</p>
-            <p class="help-note help-note--inline" style="background: #fff8e1; padding: 0.5rem; border-left: 3px solid #f0ad4e; border-radius: 3px; margin-top: 0.5rem;">
-                <strong>Clarification :</strong> Le formulaire vaut notification au sens <strong>L4131-1</strong> (droit de retrait individuel). La consignation formelle au sens <strong>D4132-1</strong> reste du ressort du représentant CSA/CHSCT — deux actes distincts.
-            </p>
-        </div>
-    </div>
-
-    <div class="help-screenshot-block" id="ss-6a07bdbb">
-    <p class="help-screenshot-label">Formulaire de création d'un signalement RSST</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu2-creation-rsst.html" class="help-screenshot-iframe" title="Formulaire de création d'un signalement RSST" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>    <div class="help-screenshot-block" id="ss-761d36b0">
-    <p class="help-screenshot-label">Formulaire de création d'un signalement RAMI avec le champ « Pour le compte de »</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu3-creation-rami.html" class="help-screenshot-iframe" title="Formulaire de création d'un signalement RAMI avec le champ « Pour le compte de »" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>    <div class="help-screenshot-block" id="ss-deb9ab73">
-    <p class="help-screenshot-label">Formulaire de création d'un signalement DGI avec le bandeau d'avertissement</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu4-creation-dgi.html" class="help-screenshot-iframe" title="Formulaire de création d'un signalement DGI avec le bandeau d'avertissement" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div></div>
-
-<!-- ============================================================ -->
-<!-- 5. Cycle de vie d'un signalement                              -->
-<!-- ============================================================ -->
-<div id="cycle-vie" class="card card--spaced content-section">
-    <h2>Cycle de vie d'un signalement</h2>
-    <p class="help-description">Chaque signalement suit un workflow en 4 états. Le passage d'un état à l'autre est tracé dans l'historique du signalement et dans le journal d'audit. L'agent qui a créé le signalement peut suivre l'évolution directement depuis la liste ou la vue détaillée de son signalement.</p>
-    <div class="help-workflow">
-        <span class="badge badge--nouveau">Nouveau</span>
-        <span class="text-muted">&rarr;</span>
-        <span class="badge badge--en-cours">En cours</span>
-        <span class="text-muted">&rarr;</span>
-        <span class="badge badge--traite">Traité</span>
-        <span class="text-muted">ou</span>
-        <span class="badge badge--abandonne">Abandonné</span>
-    </div>
-    <div class="table-wrapper">
-        <table class="table table--compact" aria-label="Cycle de vie des signalements">
-            <thead>
-                <tr>
-                    <th class="text-left">État</th>
-                    <th class="text-left">Description</th>
-                    <th class="text-left">Qui peut changer ?</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><span class="badge badge--nouveau">Nouveau</span></td>
-                    <td>Signalement créé par un agent, en attente de traitement par un superviseur. Une notification e-mail est envoyée aux adresses configurées pour le site concerné.</td>
-                    <td>État initial à la création</td>
-                </tr>
-                <tr>
-                    <td><span class="badge badge--en-cours">En cours</span></td>
-                    <td>Un superviseur a pris en charge le signalement et a commencé à le traiter. Il a fourni une première réponse indiquant les actions engagées.</td>
-                    <td>Superviseur (via « Répondre »)</td>
-                </tr>
-                <tr>
-                    <td><span class="badge badge--traite">Traité</span></td>
-                    <td>Le signalement a été traité et une réponse finale a été apportée par le superviseur. L'agent déclarant peut consulter la réponse.</td>
-                    <td>Superviseur (via « Répondre »)</td>
-                </tr>
-                <tr>
-                    <td><span class="badge badge--abandonne">Abandonné</span></td>
-                    <td>Le signalement a été abandonné avec un motif (doublon, hors périmètre, erreur de saisie, etc.). Le signalement reste visible mais n'est plus actif.</td>
-                    <td>Superviseur (via « Abandonner »)</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="help-screenshot-block" id="ss-9767fea8">
-    <p class="help-screenshot-label">Liste des signalements avec filtres et badges d'état</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/consultation-liste-signalements.html" class="help-screenshot-iframe" title="Liste des signalements avec filtres et badges d'état" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>    <div class="help-screenshot-block" id="ss-f7ca229e">
-    <p class="help-screenshot-label">Vue détaillée d'un signalement RSST avec son historique</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/consultation-voir-rsst.html" class="help-screenshot-iframe" title="Vue détaillée d'un signalement RSST avec son historique" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div></div>
-
-<!-- ============================================================ -->
-<!-- 6. Cas d'usage                                                -->
-<!-- ============================================================ -->
-<div id="cas-usage" class="card card--spaced content-section">
-    <h2>Cas d'usage</h2>
-    <p class="help-description">Scénarios concrets d'utilisation de l'application selon le profil et la situation. Chaque cas illustre le parcours complet de l'utilisateur avec des captures d'écran réelles de l'application.</p>
-
-    <!-- CU1 : Agent signale RSST -->
-    <div id="cu1" class="help-profile-card card--spaced">
-        <h3>CU1 — Un agent signale un événement dans le registre RSST</h3>
-        <p class="text-small text-muted help-case-label">Profil : Agent &bull; Registre : RSST</p>
-        <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Jean, agent à l'UR Côte-d'Or, constate que la rampe d'escalier du 2e étage est desserrée et présente un risque de chute. Il doit signaler cet événement dans le registre RSST pour que le service technique intervienne.<br><br>
-            <strong>Parcours :</strong>
-            <ol>
-                <li>Jean se connecte à l'application (automatiquement via Windows Auth en production)</li>
-                <li>Sur l'accueil, il clique sur <strong>« Inscrire un signalement »</strong> sur la carte RSST (carte bleue)</li>
-                <li>Il remplit le formulaire :
-                    <ul class="help-feature-list">
-                        <li><strong>Objet</strong> : « Rampe d'escalier desserrée - risque de chute »</li>
-                        <li><strong>Date de l'événement</strong> : date du jour</li>
-                        <li><strong>Lieu</strong> : « Bâtiment principal, 2e étage, escalier B »</li>
-                        <li><strong>Description</strong> : détail de la situation observée</li>
-                    </ul>
-                </li>
-                <li>Il valide &rarr; le signalement est créé avec le statut <span class="badge badge--nouveau">Nouveau</span> et la référence <code>rsst-25-001</code></li>
-                <li>Un e-mail de notification est envoyé aux adresses configurées pour ce site</li>
-                <li>Jean peut suivre son signalement dans la liste RSST de son site</li>
-            </ol>
-            <div class="help-screenshot-block" id="ss-b93b8796">
-    <p class="help-screenshot-label">Page d'accueil de l'agent avec les 3 cartes de registre</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu1-accueil.html" class="help-screenshot-iframe" title="Page d'accueil de l'agent avec les 3 cartes de registre" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>            <div class="help-screenshot-block" id="ss-6a07bdbb">
-    <p class="help-screenshot-label">Formulaire de création d'un signalement RSST</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu2-creation-rsst.html" class="help-screenshot-iframe" title="Formulaire de création d'un signalement RSST" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>        </div>
-    </div>
-
-    <!-- CU2 : RAMI pour un tiers -->
-    <div id="cu2" class="help-profile-card card--spaced">
-        <h3>CU2 — Signalement RAMI pour le compte d'un collègue</h3>
-        <p class="text-small text-muted help-case-label">Profil : Agent &bull; Registre : RAMI</p>
-        <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Sophie, agent au Siège, est témoin d'une agression verbale envers son collègue Pierre par un usager. Pierre est trop choqué pour faire le signalement lui-même. Sophie va signaler l'événement pour le compte de Pierre.<br><br>
-            <strong>Parcours :</strong>
-            <ol>
-                <li>Sophie clique sur <strong>« Inscrire un signalement »</strong> sur la carte RAMI (carte grise)</li>
-                <li>Elle remplit le formulaire et sélectionne un agent dans le champ <strong>« Pour le compte de »</strong> (champ spécifique RAMI, avec recherche par nom)</li>
-                <li>Elle renseigne les champs optionnels mais recommandés : <strong>Nature de l'auteur</strong> (ex : Usager) et <strong>Type d'acte</strong> (ex : Verbal)</li>
-                <li>Elle décrit les faits de manière objective avec date, heure et lieu</li>
-                <li>Le signalement est enregistré — Sophie apparaît comme déclarant, Pierre comme « pour le compte de »</li>
-            </ol>
-            <p class="help-note" style="background: #e8f5e9; padding: 0.5rem; border-left: 3px solid #4caf50; border-radius: 3px; margin-top: 0.5rem;">
-                <strong>Que se passe-t-il après ?</strong> Votre signalement est envoyé aux superviseurs de votre site par notification e-mail. Un superviseur le prendra en charge, passera le statut à « En cours », puis à « Traité » avec une réponse. Vous pouvez suivre l'avancement dans la liste des signalements. En cas d'absence de réponse prolongée, le superviseur en sera alerté automatiquement.
-            </p>
-            <div class="help-screenshot-block" id="ss-761d36b0">
-    <p class="help-screenshot-label">Formulaire RAMI avec le champ « Pour le compte de » et les listes déroulantes nature_auteur et type_acte</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu3-creation-rami.html" class="help-screenshot-iframe" title="Formulaire RAMI avec le champ « Pour le compte de » et les listes déroulantes nature_auteur et type_acte" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>        </div>
-    </div>
-
-    <!-- CU3 : DGI urgence -->
-    <div id="cu3" class="help-profile-card card--spaced">
-        <h3>CU3 — Signalement d'un Danger Grave et Imminent (DGI)</h3>
-        <p class="text-small text-muted help-case-label">Profil : Agent &bull; Registre : DGI</p>
-        <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Marc, agent à l'UR Doubs, découvre une fuite de gaz dans les locaux. La situation nécessite une intervention immédiate et constitue un danger grave et imminent pour les occupants du bâtiment.<br><br>
-            <strong>Parcours :</strong>
-            <ol>
-                <li>Marc clique sur <strong>« Inscrire un signalement »</strong> sur la carte DGI (carte rouge, signalant l'urgence)</li>
-                <li>Un bandeau d'avertissement rappelle la procédure DGI et la distinction L4131-1 / D4132-1</li>
-                <li>Il signale le danger en précisant la nature, le lieu exact et l'heure</li>
-                <li>Le signalement est créé avec la référence <code>dgi-26-001</code> et une <strong>notification immédiate</strong> est envoyée aux superviseurs</li>
-                <li>Le traitement est <strong>prioritaire</strong> — le superviseur doit répondre dans les plus brefs délais</li>
-            </ol>
-            <div class="help-screenshot-block" id="ss-deb9ab73">
-    <p class="help-screenshot-label">Formulaire DGI avec le bandeau d'avertissement sur la procédure prioritaire</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu4-creation-dgi.html" class="help-screenshot-iframe" title="Formulaire DGI avec le bandeau d'avertissement sur la procédure prioritaire" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>        </div>
-    </div>
-
-    <!-- CU4 : Superviseur traite -->
-    <div id="cu4" class="help-profile-card card--spaced">
-        <h3>CU4 — Un superviseur traite un signalement</h3>
-        <p class="text-small text-muted help-case-label">Profil : Superviseur &bull; Tous registres</p>
-        <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Claire, superviseure, reçoit la notification du signalement RSST de Jean (rampe desserrée). Elle doit traiter le signalement en apportant une réponse adaptée et en faisant évoluer le statut.<br><br>
-            <strong>Parcours :</strong>
-            <ol>
-                <li>Claire consulte la <strong>liste RSST</strong> ou le lien dans l'e-mail de notification</li>
-                <li>Elle clique sur le signalement <code>rsst-25-001</code> pour voir le détail complet (objet, description, lieu, déclarant)</li>
-                <li>Elle clique sur <strong>« Répondre »</strong></li>
-                <li>Elle passe le statut à <span class="badge badge--en-cours">En cours</span> en indiquant : « Mission demandée au service technique pour réparation »</li>
-                <li>Quelques jours plus tard, la rampe est réparée. Elle revient sur le signalement et le passe à <span class="badge badge--traite">Traité</span> avec la réponse : « Rampe réparée le 12/06/2025. Contrôle visuel effectué. »</li>
-                <li>Le déclarant (Jean) peut voir la réponse dans le détail de son signalement</li>
-            </ol>
-            <div class="help-screenshot-block" id="ss-f7ca229e">
-    <p class="help-screenshot-label">Vue détaillée d'un signalement RSST en cours de traitement</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/consultation-voir-rsst.html" class="help-screenshot-iframe" title="Vue détaillée d'un signalement RSST en cours de traitement" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>            <div class="help-screenshot-block" id="ss-68c367db">
-    <p class="help-screenshot-label">Formulaire de réponse du superviseur avec changement de statut En cours ou Traité</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu4-repondre-signalement.html" class="help-screenshot-iframe" title="Formulaire de réponse du superviseur avec changement de statut En cours ou Traité" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>        </div>
-    </div>
-
-    <!-- CU5 : Superviseur abandonne -->
-    <div id="cu5" class="help-profile-card card--spaced">
-        <h3>CU5 — Un superviseur abandonne un signalement</h3>
-        <p class="text-small text-muted help-case-label">Profil : Superviseur</p>
-        <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Un signalement s'avère être un doublon, une erreur de saisie, ou ne pas relever du registre concerné. Le superviseur décide de l'abandonner plutôt que de le traiter, afin de maintenir la fiabilité des données dans les registres.<br><br>
-            <strong>Parcours :</strong>
-            <ol>
-                <li>Le superviseur consulte le signalement</li>
-                <li>Il clique sur <strong>« Abandonner »</strong></li>
-                <li>Il saisit un motif d'abandon (ex : « Doublon du signalement rsst-25-003 » ou « Hors périmètre — relève du service logistique »)</li>
-                <li>Le statut passe à <span class="badge badge--abandonne">Abandonné</span></li>
-                <li>Le signalement reste visible dans la liste mais marqué comme abandonné avec le motif</li>
-            </ol>
-            <div class="help-screenshot-block" id="ss-6e2f38d6">
-    <p class="help-screenshot-label">Liste des signalements vue par le superviseur avec les actions Répondre et Abandonner</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu5-liste-signalements-sup.html" class="help-screenshot-iframe" title="Liste des signalements vue par le superviseur avec les actions Répondre et Abandonner" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>        </div>
-    </div>
-
-    <!-- CU6 : CHSCT consulte -->
-    <div id="cu6" class="help-profile-card card--spaced">
-        <h3>CU6 — Un membre CSA/CHSCT consulte les signalements</h3>
-        <p class="text-small text-muted help-case-label">Profil : Membre CSA/CHSCT</p>
-        <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Philippe, membre CSA/CHSCT, souhaite avoir une vue d'ensemble de l'activité des 3 registres sur l'ensemble des sites pour préparer la réunion trimestrielle de la commission. Il a besoin de données consolidées et de tendances.<br><br>
-            <strong>Parcours :</strong>
-            <ol>
-                <li>Il accède à la <strong>Synthèse</strong> pour voir le nombre de signalements par registre, par site et par état — cette vue croisée permet d'identifier les sites les plus touchés et les registres les plus actifs</li>
-                <li>Il consulte les <strong>Statistiques</strong> pour voir les tendances (évolution mensuelle, répartition par site, types d'actes pour le RAMI)</li>
-                <li>Il utilise l'<strong>Export</strong> pour télécharger les données au format CSV et les analyser dans Excel pour son rapport</li>
-                <li>Il peut consulter le détail de n'importe quel signalement sur <strong>tous les sites</strong>, y compris les confidentiels (l'accès est tracé)</li>
-            </ol>
-            <p class="help-warning-callout">
+</div> <div class="help-screenshot-block" id="ss-68c367db">
+<p class="help-screenshot-label">Formulaire de réponse du superviseur avec changement de statut En cours ou Traité</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/cu4-repondre-signalement.html" title="Formulaire de réponse du superviseur avec changement de statut En cours ou Traité"></iframe>
+</div>
+</div> </div>
+</div>
+<!-- CU5 : Superviseur abandonne -->
+<div class="help-profile-card card--spaced" id="cu5">
+<h3>CU5 — Un superviseur abandonne un signalement</h3>
+<p class="text-small text-muted help-case-label">Profil : Superviseur</p>
+<div class="help-feature-list help-case-body">
+<strong>Situation :</strong> Un signalement s'avère être un doublon, une erreur de saisie, ou ne pas relever du registre concerné. Le superviseur décide de l'abandonner plutôt que de le traiter, afin de maintenir la fiabilité des données dans les registres.<br/><br/>
+<strong>Parcours :</strong>
+<ol>
+<li>Le superviseur consulte le signalement</li>
+<li>Il clique sur <strong>« Abandonner »</strong></li>
+<li>Il saisit un motif d'abandon (ex : « Doublon du signalement rsst-25-003 » ou « Hors périmètre — relève du service logistique »)</li>
+<li>Le statut passe à <span class="badge badge--abandonne">Abandonné</span></li>
+<li>Le signalement reste visible dans la liste mais marqué comme abandonné avec le motif</li>
+</ol>
+<div class="help-screenshot-block" id="ss-6e2f38d6">
+<p class="help-screenshot-label">Liste des signalements vue par le superviseur avec les actions Répondre et Abandonner</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/cu5-liste-signalements-sup.html" title="Liste des signalements vue par le superviseur avec les actions Répondre et Abandonner"></iframe>
+</div>
+</div> </div>
+</div>
+<!-- CU6 : CHSCT consulte -->
+<div class="help-profile-card card--spaced" id="cu6">
+<h3>CU6 — Un membre CSA/CHSCT consulte les signalements</h3>
+<p class="text-small text-muted help-case-label">Profil : Membre CSA/CHSCT</p>
+<div class="help-feature-list help-case-body">
+<strong>Situation :</strong> Philippe, membre CSA/CHSCT, souhaite avoir une vue d'ensemble de l'activité des 3 registres sur l'ensemble des sites pour préparer la réunion trimestrielle de la commission. Il a besoin de données consolidées et de tendances.<br/><br/>
+<strong>Parcours :</strong>
+<ol>
+<li>Il accède à la <strong>Synthèse</strong> pour voir le nombre de signalements par registre, par site et par état — cette vue croisée permet d'identifier les sites les plus touchés et les registres les plus actifs</li>
+<li>Il consulte les <strong>Statistiques</strong> pour voir les tendances (évolution mensuelle, répartition par site, types d'actes pour le RAMI)</li>
+<li>Il utilise l'<strong>Export</strong> pour télécharger les données au format CSV et les analyser dans Excel pour son rapport</li>
+<li>Il peut consulter le détail de n'importe quel signalement sur <strong>tous les sites</strong>, y compris les confidentiels (l'accès est tracé)</li>
+</ol>
+<p class="help-warning-callout">
                 Le membre CSA/CHSCT <strong>ne peut pas répondre</strong> aux signalements ni modifier les utilisateurs — il a un rôle de consultation uniquement. S'il souhaite qu'un signalement soit traité, il doit en faire la demande à un superviseur.
             </p>
-            <div class="help-screenshot-block" id="ss-135408d8">
-    <p class="help-screenshot-label">Page de synthèse montrant le nombre de signalements par registre, par site et par état</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu7-synthese.html" class="help-screenshot-iframe" title="Page de synthèse montrant le nombre de signalements par registre, par site et par état" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>            <div class="help-screenshot-block" id="ss-5bb1290b">
-    <p class="help-screenshot-label">Page des statistiques avec graphiques d'évolution et répartition</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu6-statistiques.html" class="help-screenshot-iframe" title="Page des statistiques avec graphiques d'évolution et répartition" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>        </div>
-    </div>
-
-    <!-- CU7 : Superviseur gère utilisateurs -->
-    <div id="cu7" class="help-profile-card card--spaced">
-        <h3>CU7 — Un superviseur gère les utilisateurs et la configuration</h3>
-        <p class="text-small text-muted help-case-label">Profil : Superviseur uniquement</p>
-        <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Un nouvel agent arrive à l'UR Jura. Il doit pouvoir utiliser l'application. Par ailleurs, l'application vient d'être installée et le superviseur doit effectuer la configuration initiale (SMTP, notifications, visibilité).<br><br>
-            <strong>Gestion des utilisateurs :</strong>
-            <ol>
-                <li><strong>En production</strong> : l'agent se connecte &rarr; son compte est <strong>automatiquement créé</strong> avec le rôle Agent et sans site attribué</li>
-                <li>L'agent est alors redirigé vers la page <strong>« Choisir mon site »</strong> — il sélectionne son UR parmi les sites actifs. Ce choix est <strong>définitif</strong> pour l'agent (seul un superviseur peut le modifier ensuite)</li>
-                <li>Le superviseur peut ensuite modifier le site ou le rôle dans <strong>Utilisateurs</strong> si nécessaire</li>
-                <li>Il peut aussi <strong>désactiver</strong> un compte d'agent qui a quitté la structure (le compte reste en base pour l'historique mais n'est plus accessible)</li>
-            </ol>
-            <p class="help-feature-list card--spaced-top"><strong>Configuration initiale :</strong></p>
-            <ol>
-                <li>Dans <strong>Paramètres &rarr; Application</strong>, configurer le nom de l'organisation et le libellé des unités (UR, UD...)</li>
-                <li>Dans <strong>Paramètres &rarr; Application</strong>, compléter la <strong>liste des logins superviseurs</strong> — ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS (utile pour une première installation)</li>
-                <li>Dans <strong>Paramètres &rarr; SMTP</strong>, configurer le serveur d'envoi d'e-mails pour les notifications</li>
-                <li>Dans <strong>Paramètres &rarr; Notifications</strong>, ajouter les adresses e-mail à notifier par site et/ou globalement</li>
-                <li>Dans <strong>Paramètres &rarr; Application</strong>, ajuster la visibilité des signalements par registre (confidentiel, choix de l'agent, public)</li>
-            </ol>
-            <div class="help-screenshot-block" id="ss-b6f0db3d">
-    <p class="help-screenshot-label">Page de gestion des utilisateurs avec liste, rôles et sites d'affectation</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu10-utilisateurs.html" class="help-screenshot-iframe" title="Page de gestion des utilisateurs avec liste, rôles et sites d'affectation" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>            <div class="help-screenshot-block" id="ss-d6915427">
-    <p class="help-screenshot-label">Page des paramètres avec les onglets Application, SMTP et Notifications</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu9-parametres.html" class="help-screenshot-iframe" title="Page des paramètres avec les onglets Application, SMTP et Notifications" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>            <div class="help-screenshot-block" id="ss-1ba3b542">
-    <p class="help-screenshot-label">Page de choix du site lors de la première connexion d'un agent</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu15-choix-site.html" class="help-screenshot-iframe" title="Page de choix du site lors de la première connexion d'un agent" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>        </div>
-    </div>
-
-    <!-- CU8 : Impression -->
-    <div id="cu8" class="help-profile-card card--spaced">
-        <h3>CU8 — Imprimer une fiche de signalement</h3>
-        <p class="text-small text-muted help-case-label">Profil : Superviseur uniquement</p>
-        <div class="help-feature-list help-case-body">
-            <strong>Situation :</strong> Le superviseur doit archiver une fiche papier du signalement ou la transmettre à un service partenaire (médecine du travail, inspection du travail, etc.). L'application génère un PDF professionnel reprenant l'ensemble des informations du signalement.<br><br>
-            <strong>Parcours :</strong>
-            <ol>
-                <li>Le superviseur ouvre le signalement depuis la liste</li>
-                <li>Il clique sur <strong>« Télécharger en PDF »</strong></li>
-                <li>Un fichier PDF est généré automatiquement par le serveur et téléchargé par le navigateur</li>
-                <li>Le PDF contient : la référence, le type de registre, l'objet, la description, les dates, le déclarant, la réponse du superviseur et l'historique des réponses</li>
-                <li>Le document est prêt pour impression ou archivage numérique</li>
-            </ol>
-            <p class="help-note" style="background: #e3f2fd; padding: 0.5rem; border-left: 3px solid #1976d2; border-radius: 3px; margin-top: 0.5rem;">
-                <strong>Format :</strong> Le PDF est généré côté serveur via FPDF. Il ne nécessite aucun plugin ni JavaScript. Le format est optimisé pour l'impression A4.
+<div class="help-screenshot-block" id="ss-135408d8">
+<p class="help-screenshot-label">Page de synthèse montrant le nombre de signalements par registre, par site et par état</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/cu7-synthese.html" title="Page de synthèse montrant le nombre de signalements par registre, par site et par état"></iframe>
+</div>
+</div> <div class="help-screenshot-block" id="ss-5bb1290b">
+<p class="help-screenshot-label">Page des statistiques avec graphiques d'évolution et répartition</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/cu6-statistiques.html" title="Page des statistiques avec graphiques d'évolution et répartition"></iframe>
+</div>
+</div> </div>
+</div>
+<!-- CU7 : Superviseur gère utilisateurs -->
+<div class="help-profile-card card--spaced" id="cu7">
+<h3>CU7 — Un superviseur gère les utilisateurs et la configuration</h3>
+<p class="text-small text-muted help-case-label">Profil : Superviseur uniquement</p>
+<div class="help-feature-list help-case-body">
+<strong>Situation :</strong> Un nouvel agent arrive à l'UR Jura. Il doit pouvoir utiliser l'application. Par ailleurs, l'application vient d'être installée et le superviseur doit effectuer la configuration initiale (SMTP, notifications, visibilité).<br/><br/>
+<strong>Gestion des utilisateurs :</strong>
+<ol>
+<li><strong>En production</strong> : l'agent se connecte → son compte est <strong>automatiquement créé</strong> avec le rôle Agent et sans site attribué</li>
+<li>L'agent est alors redirigé vers la page <strong>« Choisir mon site »</strong> — il sélectionne son UR parmi les sites actifs. Ce choix est <strong>définitif</strong> pour l'agent (seul un superviseur peut le modifier ensuite)</li>
+<li>Le superviseur peut ensuite modifier le site ou le rôle dans <strong>Utilisateurs</strong> si nécessaire</li>
+<li>Il peut aussi <strong>désactiver</strong> un compte d'agent qui a quitté la structure (le compte reste en base pour l'historique mais n'est plus accessible)</li>
+</ol>
+<p class="help-feature-list card--spaced-top"><strong>Configuration initiale :</strong></p>
+<ol>
+<li>Dans <strong>Paramètres → Application</strong>, configurer le nom de l'organisation et le libellé des unités (UR, UD...)</li>
+<li>Dans <strong>Paramètres → Application</strong>, compléter la <strong>liste des logins superviseurs</strong> — ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS (utile pour une première installation)</li>
+<li>Dans <strong>Paramètres → SMTP</strong>, configurer le serveur d'envoi d'e-mails pour les notifications</li>
+<li>Dans <strong>Paramètres → Notifications</strong>, ajouter les adresses e-mail à notifier par site et/ou globalement</li>
+<li>Dans <strong>Paramètres → Application</strong>, ajuster la visibilité des signalements par registre (confidentiel, choix de l'agent, public)</li>
+</ol>
+<div class="help-screenshot-block" id="ss-b6f0db3d">
+<p class="help-screenshot-label">Page de gestion des utilisateurs avec liste, rôles et sites d'affectation</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/cu10-utilisateurs.html" title="Page de gestion des utilisateurs avec liste, rôles et sites d'affectation"></iframe>
+</div>
+</div> <div class="help-screenshot-block" id="ss-d6915427">
+<p class="help-screenshot-label">Page des paramètres avec les onglets Application, SMTP et Notifications</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/cu9-parametres.html" title="Page des paramètres avec les onglets Application, SMTP et Notifications"></iframe>
+</div>
+</div> <div class="help-screenshot-block" id="ss-1ba3b542">
+<p class="help-screenshot-label">Page de choix du site lors de la première connexion d'un agent</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/cu15-choix-site.html" title="Page de choix du site lors de la première connexion d'un agent"></iframe>
+</div>
+</div> </div>
+</div>
+<!-- CU8 : Impression -->
+<div class="help-profile-card card--spaced" id="cu8">
+<h3>CU8 — Imprimer une fiche de signalement</h3>
+<p class="text-small text-muted help-case-label">Profil : Superviseur uniquement</p>
+<div class="help-feature-list help-case-body">
+<strong>Situation :</strong> Le superviseur doit archiver une fiche papier du signalement ou la transmettre à un service partenaire (médecine du travail, inspection du travail, etc.). L'application génère un PDF professionnel reprenant l'ensemble des informations du signalement.<br/><br/>
+<strong>Parcours :</strong>
+<ol>
+<li>Le superviseur ouvre le signalement depuis la liste</li>
+<li>Il clique sur <strong>« Télécharger en PDF »</strong></li>
+<li>Un fichier PDF est généré automatiquement par le serveur et téléchargé par le navigateur</li>
+<li>Le PDF contient : la référence, le type de registre, l'objet, la description, les dates, le déclarant, la réponse du superviseur et l'historique des réponses</li>
+<li>Le document est prêt pour impression ou archivage numérique</li>
+</ol>
+<p class="help-note" style="background: #e3f2fd; padding: 0.5rem; border-left: 3px solid #1976d2; border-radius: 3px; margin-top: 0.5rem;">
+<strong>Format :</strong> Le PDF est généré côté serveur via FPDF. Il ne nécessite aucun plugin ni JavaScript. Le format est optimisé pour l'impression A4.
             </p>
-            <div class="help-screenshot-block" id="ss-df9a6f21">
-    <p class="help-screenshot-label">Page d'export des données avec sélection des filtres et format CSV</p>
-    <div class="help-screenshot-wrapper">
-        <iframe src="screenshots/cu8-export.html" class="help-screenshot-iframe" title="Page d'export des données avec sélection des filtres et format CSV" loading="lazy" sandbox="allow-same-origin"></iframe>
-    </div>
-</div>        </div>
-    </div>
+<div class="help-screenshot-block" id="ss-df9a6f21">
+<p class="help-screenshot-label">Page d'export des données avec sélection des filtres et format CSV</p>
+<div class="help-screenshot-wrapper">
+<iframe class="help-screenshot-iframe" loading="lazy" sandbox="allow-same-origin" src="screenshots/cu8-export.html" title="Page d'export des données avec sélection des filtres et format CSV"></iframe>
+</div>
+</div> </div>
 </div>
 
 <!-- ============================================================ -->
 <!-- 7. Authentification                                           -->
 <!-- ============================================================ -->
-<div id="auth" class="card card--spaced content-section">
-    <h2>Authentification</h2>
-    <p class="help-description">L'authentification fonctionne différemment selon l'environnement. En production, l'authentification est transparente grâce à Windows Authentication. En développement, un formulaire permet de tester les différents profils.</p>
-    <div class="help-profiles-grid">
-        <div class="help-auth-card--prod">
-            <h4>Production (IIS)</h4>
-            <p class="help-description">
+<div class="card card--spaced content-section" id="auth">
+<h2>Authentification</h2>
+<p class="help-description">L'authentification fonctionne différemment selon l'environnement. En production, l'authentification est transparente grâce à Windows Authentication. En développement, un formulaire permet de tester les différents profils.</p>
+<div class="help-profiles-grid">
+<div class="help-auth-card--prod">
+<h4>Production (IIS)</h4>
+<p class="help-description">
                 L'authentification est gérée par <strong>IIS Windows Authentication</strong>. 
                 L'utilisateur est automatiquement authentifié via son compte Windows Active Directory.
                 Aucun formulaire de login n'est affiché. Son compte est créé automatiquement à la première connexion avec le rôle Agent par défaut.
-                <br><br>
-                <strong>Promotion automatique :</strong> si le login Windows figure dans la liste configurée dans
-                <strong>Paramètres &rarr; Application &rarr; Logins Windows des superviseurs</strong>,
+                <br/><br/>
+<strong>Promotion automatique :</strong> si le login Windows figure dans la liste configurée dans
+                <strong>Paramètres → Application → Logins Windows des superviseurs</strong>,
                 l'utilisateur est automatiquement promu Superviseur. Cette promotion prend effet immédiatement, sans nécessiter de déconnexion/reconnexion.
             </p>
-        </div>
-        <div class="help-auth-card--dev">
-            <h4>Développement</h4>
-            <p class="help-description">
+</div>
+<div class="help-auth-card--dev">
+<h4>Développement</h4>
+<p class="help-description">
                 En mode développement, un <strong>formulaire de connexion mock</strong> permet de tester les différents profils sans infrastructure Windows.
                 Les comptes de test sont : <code>admin.dev</code> (superviseur), <code>agent.dev</code> (agent), <code>chsct.dev</code> (CSA/CHSCT).
-                <br><br>
-                <strong>Mode développement automatique :</strong> si le serveur ne détecte pas <code>AUTH_USER</code> (variable IIS), l'application bascule automatiquement en mode développement. Ceci est normal sur les serveurs Apache, Caddy, Docker ou tout environnement non-IIS.
+                <br/><br/>
+<strong>Mode développement automatique :</strong> si le serveur ne détecte pas <code>AUTH_USER</code> (variable IIS), l'application bascule automatiquement en mode développement. Ceci est normal sur les serveurs Apache, Caddy, Docker ou tout environnement non-IIS.
             </p>
-        </div>
-    </div>
 </div>
-
+</div>
+</div>
 <!-- ============================================================ -->
 <!-- Liens utiles                                                  -->
 <!-- ============================================================ -->
 <div class="card--spaced-top" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-    <a href="index.php?page=preamble" class="btn btn--outline">Lire le Préambule</a>
-    <a href="index.php?page=changelog" class="btn btn--outline">Journal des modifications</a>
+<a class="btn btn--outline" href="index.php?page=preamble">Lire le Préambule</a>
+<a class="btn btn--outline" href="index.php?page=changelog">Journal des modifications</a>
 </div>
-
-</main>    <footer class="footer" role="contentinfo">
-        <p>&copy; 2026 DREETS Bourgogne-Franche-Comté — Application SST <a href="index.php?page=changelog" class="footer-version" title="Voir l'historique des modifications">v3.8.3</a> — PHP 8.4.16 — D&eacute;veloppeur : Olivier Noblanc</p>
-    </footer>
-    <a href="#top" class="back-to-top" aria-label="Retour en haut" title="Retour en haut">&#x25B2;</a>
-</main><!-- end #main-content -->
+</main> <footer class="footer" role="contentinfo">
+<p>© 2026 DREETS Bourgogne-Franche-Comté — Application SST <a class="footer-version" href="index.php?page=changelog" title="Voir l'historique des modifications">v3.8.3</a> — PHP 8.4.16 — Développeur : Olivier Noblanc</p>
+</footer>
+<a aria-label="Retour en haut" class="back-to-top" href="#top" title="Retour en haut">▲</a>
+<!-- end #main-content -->
 </body>
 </html>

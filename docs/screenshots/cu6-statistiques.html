@@ -2597,20 +2597,6 @@ tr:hover td {
                         RSST                    </a>
                 </li>
                                                                 <li>
-                    <a href="index.php?page=report_list&type=rami"
-                       class="sidebar__item"
-                       >
-                        <span class="sidebar__icon" aria-hidden="true">&#9888;</span>
-                        RAMI                    </a>
-                </li>
-                                                                <li>
-                    <a href="index.php?page=report_list&type=dgi"
-                       class="sidebar__item"
-                       >
-                        <span class="sidebar__icon" aria-hidden="true">&#128308;</span>
-                        DGI                    </a>
-                </li>
-                                                                <li>
                     <a href="index.php?page=synthesis"
                        class="sidebar__item"
                        >
@@ -2697,14 +2683,6 @@ tr:hover td {
         <div class="indicateur-card__value">3</div>
         <div class="indicateur-card__label">Signalements RSST</div>
     </div>
-    <div class="indicateur-card indicateur-card--dgi">
-        <div class="indicateur-card__value">1</div>
-        <div class="indicateur-card__label">Signalements DGI</div>
-    </div>
-    <div class="indicateur-card indicateur-card--rami">
-        <div class="indicateur-card__value">2</div>
-        <div class="indicateur-card__label">Signalements RAMI</div>
-    </div>
 </div>
 
 <!-- Table: Reports by site and registry -->
@@ -2716,8 +2694,6 @@ tr:hover td {
                 <tr>
                     <th>UR</th>
                     <th class="text-center">RSST</th>
-                    <th class="text-center">DGI</th>
-                    <th class="text-center">RAMI</th>
                     <th class="text-center">Total</th>
                 </tr>
             </thead>
@@ -2725,63 +2701,63 @@ tr:hover td {
                                 <tr>
                     <td><strong>SIEGE</strong> — Siège DREETS BFC</td>
                     <td class="text-center synthesis-cell-value">2</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
-                    <td class="text-center synthesis-cell-value">1</td>
+                    
+                    
                     <td class="text-center synthesis-cell-value"><strong>3</strong></td>
                 </tr>
                                 <tr>
                     <td><strong>UR21</strong> — UR Côte-d&#039;Or</td>
-                    <td class="text-center synthesis-cell-value">1</td>
-                    <td class="text-center synthesis-cell-value">1</td>
+                    
+                    
                     <td class="text-center synthesis-cell-value">1</td>
                     <td class="text-center synthesis-cell-value"><strong>3</strong></td>
                 </tr>
                                 <tr>
                     <td><strong>UR25</strong> — UR Doubs</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
+                    
+                    
                     <td class="text-center synthesis-cell-zero">0</td>
                     <td class="text-center synthesis-cell-value"><strong>0</strong></td>
                 </tr>
                                 <tr>
                     <td><strong>UR39</strong> — UR Jura</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
+                    
+                    
                     <td class="text-center synthesis-cell-zero">0</td>
                     <td class="text-center synthesis-cell-value"><strong>0</strong></td>
                 </tr>
                                 <tr>
                     <td><strong>UR58</strong> — UR Nièvre</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
+                    
+                    
                     <td class="text-center synthesis-cell-zero">0</td>
                     <td class="text-center synthesis-cell-value"><strong>0</strong></td>
                 </tr>
                                 <tr>
                     <td><strong>UR70</strong> — UR Haute-Saône</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
+                    
+                    
                     <td class="text-center synthesis-cell-zero">0</td>
                     <td class="text-center synthesis-cell-value"><strong>0</strong></td>
                 </tr>
                                 <tr>
                     <td><strong>UR71</strong> — UR Saône-et-Loire</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
+                    
+                    
                     <td class="text-center synthesis-cell-zero">0</td>
                     <td class="text-center synthesis-cell-value"><strong>0</strong></td>
                 </tr>
                                 <tr>
                     <td><strong>UR89</strong> — UR Yonne</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
+                    
+                    
                     <td class="text-center synthesis-cell-zero">0</td>
                     <td class="text-center synthesis-cell-value"><strong>0</strong></td>
                 </tr>
                                 <tr>
                     <td><strong>UR90</strong> — UR Territoire de Belfort</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
-                    <td class="text-center synthesis-cell-zero">0</td>
+                    
+                    
                     <td class="text-center synthesis-cell-zero">0</td>
                     <td class="text-center synthesis-cell-value"><strong>0</strong></td>
                 </tr>
@@ -2789,67 +2765,13 @@ tr:hover td {
                 <tr class="row--totals">
                     <td><strong>Total</strong></td>
                     <td class="text-center synthesis-cell-value">3</td>
-                    <td class="text-center synthesis-cell-value">1</td>
-                    <td class="text-center synthesis-cell-value">2</td>
+                    
+                    
                     <td class="text-center synthesis-cell-value"><strong>6</strong></td>
                 </tr>
             </tbody>
         </table>
     </div>
-</div>
-
-<!-- RAMI: Répartition par nature de l'auteur et type d'acte -->
-<div class="card" style="margin-top: 1.5rem;">
-    <h3 class="card__title">RAMI — Répartition par nature de l'auteur et type d'acte</h3>
-    <p class="text-muted text-small">Statistiques sur les signalements RAMI ayant renseigné les champs « Nature de l'auteur » et « Type d'acte ».</p>
-    <div class="help-profiles-grid">
-                <div>
-            <h4>Nature de l'auteur</h4>
-            <div class="table-wrapper">
-                <table aria-label="RAMI par nature de l'auteur">
-                    <thead>
-                        <tr>
-                            <th>Nature</th>
-                            <th class="text-center">Nombre</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                                                <tr>
-                            <td>Usager</td>
-                            <td class="text-center">1</td>
-                        </tr>
-                                                <tr>
-                            <td>Collègue</td>
-                            <td class="text-center">1</td>
-                        </tr>
-                                            </tbody>
-                </table>
-            </div>
-        </div>
-                        <div>
-            <h4>Type d'acte</h4>
-            <div class="table-wrapper">
-                <table aria-label="RAMI par type d'acte">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th class="text-center">Nombre</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                                                <tr>
-                            <td>Verbal</td>
-                            <td class="text-center">1</td>
-                        </tr>
-                                                <tr>
-                            <td>Moral</td>
-                            <td class="text-center">1</td>
-                        </tr>
-                                            </tbody>
-                </table>
-            </div>
-        </div>
-            </div>
 </div>
 </main>    <footer class="footer" role="contentinfo">
         <p>&copy; 2026 DREETS Bourgogne-Franche-Comté — Application SST <a href="index.php?page=changelog" class="footer-version" title="Voir l'historique des modifications">v3.8.3</a> — PHP 8.4.16 — D&eacute;veloppeur : Olivier Noblanc</p>

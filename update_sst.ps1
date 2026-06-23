@@ -2,10 +2,12 @@
 # update_sst.ps1 — Mise à jour de l'application SST
 #
 # Ce script effectue :
-#   1. Vérification des prérequis (Git, PHP)
+#   0. Vérification des prérequis (Git, PHP)
+#   1. Migration du remote GitHub → Codeberg (si nécessaire)
 #   2. Git pull (via proxy Kerberos)
 #   3. Copie des captures d'écran (docs/screenshots/ → public/screenshots/)
-#   4. Création des dossiers + permissions IIS
+#   4. Vérification FPDF
+#   5. Création des dossiers + permissions IIS
 #
 # Note : Plus besoin de Composer — FPDF est inclus directement.
 #
@@ -16,6 +18,7 @@
 
 $ErrorActionPreference = "Stop"
 $AppDir = "C:\inetpub\sst"
+$ExpectedRemoteUrl = "https://codeberg.org/oliviernoblanc/sst.git"
 
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
@@ -56,9 +59,70 @@ if (-not (Test-Path $AppDir)) {
 Set-Location $AppDir
 Write-Host "  OK : Git, PHP, dossier $AppDir" -ForegroundColor Green
 
-# --- 1. Git sync (force le contenu du remote, écrase les modifs locales) ---
+# --- Vérifier / migrer le remote vers Codeberg ---
 Write-Host ""
-Write-Host "[1/5] Telechargement des mises a jour..." -ForegroundColor Yellow
+Write-Host "[1/5] Verification du depot distant..." -ForegroundColor Yellow
+
+$savedPref = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+$currentRemote = git remote get-url origin 2>&1
+$remoteExit = $LASTEXITCODE
+$ErrorActionPreference = $savedPref
+
+if ($remoteExit -ne 0 -or -not $currentRemote) {
+    Write-Host " ERREUR : Impossible de lire l'URL du remote origin." -ForegroundColor Red
+    Write-Host "  $currentRemote" -ForegroundColor Red
+    Read-Host "Appuyez sur Entree pour quitter"
+    exit 1
+}
+
+# Normaliser l'URL pour comparaison (retirer le token s'il est inclus)
+$currentRemoteNormalized = $currentRemote -replace 'https://[^@]+@', 'https://'
+
+if ($currentRemoteNormalized -match 'github\.com') {
+    Write-Host "  Remote actuel : $currentRemoteNormalized" -ForegroundColor Yellow
+    Write-Host "  Le depot a migre de GitHub vers Codeberg." -ForegroundColor Yellow
+    Write-Host "  Migration automatique du remote..." -ForegroundColor Yellow
+
+    $ErrorActionPreference = "Continue"
+    $null = git remote set-url origin $ExpectedRemoteUrl 2>&1
+    $setUrlExit = $LASTEXITCODE
+    $ErrorActionPreference = $savedPref
+
+    if ($setUrlExit -ne 0) {
+        Write-Host " ERREUR : Impossible de mettre a jour le remote." -ForegroundColor Red
+        Write-Host "  Executez manuellement :" -ForegroundColor Yellow
+        Write-Host "    cd $AppDir" -ForegroundColor Gray
+        Write-Host "    git remote set-url origin $ExpectedRemoteUrl" -ForegroundColor Gray
+        Read-Host "Appuyez sur Entree pour quitter"
+        exit 1
+    }
+
+    Write-Host "  OK : Remote migre vers Codeberg" -ForegroundColor Green
+} elseif ($currentRemoteNormalized -match 'codeberg\.org') {
+    Write-Host "  OK : Remote deja sur Codeberg ($currentRemoteNormalized)" -ForegroundColor Green
+} else {
+    Write-Host "  AVERTISSEMENT : Remote non reconnu : $currentRemoteNormalized" -ForegroundColor DarkYellow
+    Write-Host "  Le remote attendu est : $ExpectedRemoteUrl" -ForegroundColor DarkYellow
+    Write-Host "  Tentative de correction..." -ForegroundColor Yellow
+
+    $ErrorActionPreference = "Continue"
+    $null = git remote set-url origin $ExpectedRemoteUrl 2>&1
+    $setUrlExit = $LASTEXITCODE
+    $ErrorActionPreference = $savedPref
+
+    if ($setUrlExit -eq 0) {
+        Write-Host "  OK : Remote corrige vers Codeberg" -ForegroundColor Green
+    } else {
+        Write-Host " ERREUR : Impossible de corriger le remote." -ForegroundColor Red
+        Read-Host "Appuyez sur Entree pour quitter"
+        exit 1
+    }
+}
+
+# --- 2. Git sync (force le contenu du remote, écrase les modifs locales) ---
+Write-Host ""
+Write-Host "[2/5] Telechargement des mises a jour..." -ForegroundColor Yellow
 
 try {
     # Récupérer TOUTES les branches du remote, pas seulement celle trackée.
@@ -154,8 +218,8 @@ catch {
     Write-Host "  $_" -ForegroundColor Red
     Write-Host ""
     Write-Host " Causes possibles :" -ForegroundColor Yellow
-    Write-Host "   - Token GitHub expire (password auth not supported)" -ForegroundColor White
-    Write-Host "     > git remote set-url origin https://LOGIN:NOUVEAU_PAT@github.com/olivier-noblanc/sst.git" -ForegroundColor Gray
+    Write-Host "   - Token Codeberg expire ou invalide" -ForegroundColor White
+    Write-Host "     > git remote set-url origin https://TOKEN@codeberg.org/oliviernoblanc/sst.git" -ForegroundColor Gray
     Write-Host ""
     Write-Host "   - Proxy non configure (failed to connect port 443)" -ForegroundColor White
     Write-Host "     > git config --global http.proxy http://PROXY:PORT" -ForegroundColor Gray
@@ -164,13 +228,16 @@ catch {
     Write-Host "   - Clone single-branch bloque la branche" -ForegroundColor White
     Write-Host "     > git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'" -ForegroundColor Gray
     Write-Host "     > git fetch origin" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "   - Ancien remote GitHub encore configure" -ForegroundColor White
+    Write-Host "     > git remote set-url origin https://TOKEN@codeberg.org/oliviernoblanc/sst.git" -ForegroundColor Gray
     Read-Host "Appuyez sur Entree pour quitter"
     exit 1
 }
 
-# --- 2. Vérification FPDF ---
+# --- 3. Copie des captures d'écran ---
 Write-Host ""
-Write-Host "[2/5] Copie des captures d'ecran..." -ForegroundColor Yellow
+Write-Host "[3/5] Copie des captures d'ecran..." -ForegroundColor Yellow
 
 $srcScreenshots = "$AppDir\docs\screenshots"
 $dstScreenshots = "$AppDir\public\screenshots"
@@ -188,9 +255,9 @@ if (Test-Path $srcScreenshots) {
     Write-Host "  Les captures d'ecran ne seront pas disponibles dans la page Documentation." -ForegroundColor DarkYellow
 }
 
-# --- 3. Vérification FPDF ---
+# --- 4. Vérification FPDF ---
 Write-Host ""
-Write-Host "[3/5] Verification FPDF..." -ForegroundColor Yellow
+Write-Host "[4/5] Verification FPDF..." -ForegroundColor Yellow
 
 $fpdfPath = "$AppDir\src\lib\fpdf\fpdf.php"
 $fontPath = "$AppDir\src\lib\fpdf\font\DejaVuSans.json"
@@ -202,9 +269,9 @@ if ((Test-Path $fpdfPath) -and (Test-Path $fontPath)) {
     Write-Host "  Verifiez que src\lib\fpdf\ existe apres le git pull." -ForegroundColor DarkYellow
 }
 
-# --- 4. Création des dossiers + permissions ---
+# --- 5. Création des dossiers + permissions ---
 Write-Host ""
-Write-Host "[4/5] Configuration des dossiers et permissions..." -ForegroundColor Yellow
+Write-Host "[5/5] Configuration des dossiers et permissions..." -ForegroundColor Yellow
 
 $dirsToCreate = @(
     "$AppDir\data"

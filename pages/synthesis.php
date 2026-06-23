@@ -41,7 +41,7 @@ foreach ($sites as $site) {
 // Fill in the data
 foreach ($synthesisData as $row) {
     $sId = (int) $row['site_id'];
-    $type = $row['type'];
+        $type = $row['type'] ?? '';
     if (isset($siteData[$sId]) && isset($siteData[$sId][$type])) {
         $siteData[$sId][$type] = [
             'nouveau'   => (int) $row['nouveau'],

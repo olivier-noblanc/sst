@@ -35,7 +35,7 @@ function sstErrorHandler(int $errno, string $errstr, string $errfile, int $errli
         E_WARNING, E_USER_WARNING        => 'Warning',
         E_PARSE                          => 'Parse error',
         E_NOTICE, E_USER_NOTICE          => 'Notice',
-        E_STRICT                         => 'Strict Standards',
+        // E_STRICT deprecated since PHP 8.4 – omitted
         E_DEPRECATED, E_USER_DEPRECATED  => 'Deprecated',
         E_CORE_ERROR                     => 'Core error',
         E_CORE_WARNING                   => 'Core warning',

@@ -3,7 +3,13 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
-## [3.25.1] — 2026-06-20
+## [3.25.2] — 2026-06-23
+
+### Technique — Corrections
+
+- **1** 🟢 **Suppression du traitement de la constante `E_STRICT` obsolète** — Le `match` dans `src/error_handler.php` ne fait plus référence à `E_STRICT`, éliminant l’avertissement *“Constant E_STRICT is deprecated”* sous PHP 8.4.
+- **2** 🟢 **Gestion sécurisée du type `null` comme clé de tableau** — Dans `pages/synthesis.php`, la variable `$type` est désormais initialisée avec `$row['type'] ?? ''` afin d’éviter l’avertissement *“Using null as an array offset is deprecated”*.
+
 
 ### Technique — Corrections
 

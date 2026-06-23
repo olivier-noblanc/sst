@@ -130,7 +130,7 @@ try {
     # par défaut. Ce refspec explicite force la récupération de TOUTES les branches.
     $savedPref = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
-    $fetchOutput = git fetch origin "+refs/heads/*:refs/remotes/origin/*" 2>&1
+    $fetchOutput = git -c credential.helper= fetch origin "+refs/heads/*:refs/remotes/origin/*" 2>&1
     $fetchExit = $LASTEXITCODE
     $ErrorActionPreference = $savedPref
 

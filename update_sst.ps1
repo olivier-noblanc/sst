@@ -124,12 +124,25 @@ if ($currentRemoteNormalized -match 'github\.com') {
 Write-Host ""
 Write-Host "[2/5] Telechargement des mises a jour..." -ForegroundColor Yellow
 
+# Construire l'URL avec le token pour le fetch/pull
+$token = $env:FORMULAIRE_TOKEN
+if ($token) {
+    $authRemoteUrl = "https://${token}@codeberg.org/oliviernoblanc/sst.git"
+    $null = git remote set-url origin $authRemoteUrl 2>&1
+    Write-Host "  OK : Token Codeberg configure pour cette session" -ForegroundColor Green
+} else {
+    Write-Host "  AVERTISSEMENT : Aucun token FORMULAIRE_TOKEN dans l'environnement." -ForegroundColor DarkYellow
+    Write-Host "  Si le depot est prive, le fetch va echouer." -ForegroundColor DarkYellow
+    Write-Host '  Definissez : $env:FORMULAIRE_TOKEN = "votre_token"' -ForegroundColor Gray
+}
+
 try {
     # Récupérer TOUTES les branches du remote, pas seulement celle trackée.
     # Un clone --single-branch (ou ancien clone master) ne fetch que sa branche
     # par défaut. Ce refspec explicite force la récupération de TOUTES les branches.
     $savedPref = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
+    $env:GIT_TERMINAL_PROMPT = "0"
     $fetchOutput = git -c credential.helper= fetch origin "+refs/heads/*:refs/remotes/origin/*" 2>&1
     $fetchExit = $LASTEXITCODE
     $ErrorActionPreference = $savedPref
@@ -211,6 +224,11 @@ try {
     # Afficher le commit déployé
     $gitLog = git log -1 --format="%h %s" 2>$null
     Write-Host "  OK : Code synchronise sur origin/$remoteBranch ($gitLog)" -ForegroundColor Green
+
+    # Restaurer l'URL propre du remote (sans token) pour la sécurité
+    if ($token) {
+        $null = git remote set-url origin $ExpectedRemoteUrl 2>&1
+    }
 }
 catch {
     Write-Host ""

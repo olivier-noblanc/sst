@@ -97,7 +97,7 @@ class AuthTest extends TestCase
     public function testParseSuperviseurUsernamesEmpty(): void
     {
         $result = parseSuperviseurUsernames('');
-        $this->assertEquals([''], $result);
+        $this->assertEquals([], $result);
     }
 
     public function testParseSuperviseurUsernamesWhitespacePadding(): void
@@ -115,6 +115,6 @@ class AuthTest extends TestCase
     public function testParseSuperviseurUsernamesTrailingComma(): void
     {
         $result = parseSuperviseurUsernames('jean.martin,');
-        $this->assertEquals(['jean.martin', ''], $result);
+        $this->assertEquals(['jean.martin'], $result);
     }
 }

@@ -97,7 +97,7 @@ class ValidationUserTest extends TestCase
 
     public function testIsLastActiveSuperviseurWhenNoSuperviseur(): void
     {
-        $this->assertTrue(isLastActiveSuperviseur($this->pdo));
+        $this->assertFalse(isLastActiveSuperviseur($this->pdo));
     }
 
     public function testIsLastActiveSuperviseurWhenOneSuperviseur(): void

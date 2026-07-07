@@ -47,7 +47,21 @@ if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT])) {
 // Save response
 $pdo = getDB();
 $userId = currentUserId();
-$result = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat);
+
+// Handle optional attachment
+$attachment = ['blob' => null, 'name' => null, 'mime' => null];
+if (!empty($_FILES['response_attachment']['tmp_name'])) {
+    $fakeErrors = [];
+    $att = validateReportAttachment($fakeErrors);
+    if (!empty($fakeErrors)) {
+        setFlash('error', 'Erreur pièce jointe : ' . e(implode(', ', $fakeErrors)));
+        setFormData($_POST);
+        redirect(url('report_respond', ['uuid' => $reportUuid]));
+    }
+    $attachment = ['blob' => $att['blob'], 'name' => $att['name'], 'mime' => $att['mime']];
+}
+
+$result = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat, $attachment);
 
 if ($result['status'] === 'true') {
     // Audit log

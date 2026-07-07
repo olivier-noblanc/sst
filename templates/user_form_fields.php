@@ -67,8 +67,9 @@ if (!isset($usernameHint)) {
     ?>
     <div class="form-group">
         <label for="site_id"><?php echo e(getConfig('app_label_unite', 'UR')); ?> <span class="required">*</span></label>
-        <select name="site_id" id="site_id" required
+        <select name="site_id" id="site_id"
                 <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : ''; ?>>
+            <option value="0">— Aucun —</option>
             <?php foreach ($sites as $site): ?>
             <option value="<?php echo (int) $site['id']; ?>" <?php echo (int) $editSiteId === (int) $site['id'] ? 'selected' : ''; ?>><?php echo e($site['nom']); ?></option>
             <?php endforeach; ?>

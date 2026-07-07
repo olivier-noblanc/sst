@@ -175,6 +175,28 @@
         </div>
 
         <div class="separator">
+            <h4 class="card__subtitle">&#x1F4DD; Textes du formulaire</h4>
+            <p class="text-muted text-small mb-3">Configurez les textes affichés dans le formulaire de signalement.</p>
+            <div class="form-group">
+                <label for="app_report_preamble">Préambule du formulaire (zone readonly)</label>
+                <textarea id="app_report_preamble" name="app_report_preamble" class="form-control" rows="3"
+                          placeholder="Pour toute inscription d'un fait..."><?php echo e(getConfig('app_report_preamble', '')); ?></textarea>
+                <small class="text-muted block mt-1">
+                    Texte affiché en lecture seule sous le titre du formulaire de signalement. Informe l'agent de ses obligations.
+                </small>
+            </div>
+            <div class="form-group">
+                <label for="app_rsst_description">Description du registre RSST (page d'accueil)</label>
+                <input type="text" id="app_rsst_description" name="app_rsst_description" class="form-control"
+                       value="<?php echo e(getConfig('app_rsst_description', '')); ?>"
+                       placeholder="Risques liés aux locaux, équipements, ergonomie, conditions environnementales">
+                <small class="text-muted block mt-1">
+                    Texte descriptif affiché sous le titre du registre RSST sur la page d'accueil.
+                </small>
+            </div>
+        </div>
+
+        <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
             <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo e(getRoleLabelShort('chsct')); ?> voient toujours tous les signalements.</p>
 

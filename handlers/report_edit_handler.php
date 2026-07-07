@@ -25,6 +25,10 @@ $pdo = getDB();
 $dateEvenement = trim($_POST['date_evenement'] ?? '');
 $heureEvenement = trim($_POST['heure_evenement'] ?? '');
 $lieu = trim($_POST['lieu'] ?? '');
+$siteText = trim($_POST['site_text'] ?? '');
+$pole = trim($_POST['pole'] ?? '');
+$serviceAffectation = trim($_POST['service_affectation'] ?? '');
+$telephoneMobile = trim($_POST['telephone_mobile'] ?? '');
 $objet = trim($_POST['objet'] ?? '');
 $description = trim($_POST['description'] ?? '');
 $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
@@ -75,6 +79,10 @@ $updateData = [
     'lieu'              => $lieu ?: null,
     'is_confidential'   => $isConfidential,
     'consent_syndicat'  => $consentSyndicat,
+    'pole'              => $pole ?: null,
+    'service_affectation' => $serviceAffectation ?: null,
+    'telephone_mobile'  => $telephoneMobile ?: null,
+    'site_text'         => $siteText ?: null,
 ];
 
 // Handle attachment update

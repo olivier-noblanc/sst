@@ -5,7 +5,7 @@
  * Tableau de bord avec cartes indicateurs et répartition par site.
  * Access: superviseur, chsct
  */
-requireRole([ROLE_SUPERVISEUR, ROLE_CHSCT]);
+requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
@@ -28,9 +28,6 @@ $statsBySite = getStatsBySite($pdo, $year);
 
 // Get RAMI structured stats
 $ramiStats = getRamiStructuredStats($pdo, $year);
-
-// Count total active users
-$totalUsers = countActiveUsers($pdo);
 
 // Build table data by site
 $sites = getAllSites($pdo);
@@ -98,10 +95,6 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
 
 <!-- Cartes indicateurs -->
 <div class="indicateur-grid">
-    <div class="indicateur-card">
-        <div class="indicateur-card__value"><?php echo $totalUsers; ?></div>
-        <div class="indicateur-card__label">Nombre d'inscrits</div>
-    </div>
     <div class="indicateur-card">
         <div class="indicateur-card__value"><?php echo $indicateurs['total_reports']; ?></div>
         <div class="indicateur-card__label">Total signalements</div>

@@ -63,6 +63,11 @@ CREATE TABLE IF NOT EXISTS reports (
     type_acte       TEXT,                            -- RAMI only: 'verbal'|'physique'|'moral'|'sexiste'|'autre' (nullable)
     -- Assignment
     site_id         INTEGER NOT NULL,                -- FK to sites (UR where event occurred, always set)
+    site_text       TEXT,                            -- Free-text site name (autocomplete from history)
+    -- Declarant additional info
+    pole            TEXT,                            -- Pôle d'affectation
+    service_affectation TEXT,                        -- Service d'affectation
+    telephone_mobile TEXT,                           -- Numéro de téléphone mobile
     -- Confidentiality
     consent_syndicat INTEGER NOT NULL DEFAULT 0,   -- 1 = consentement syndicat donné, 0 = non
     is_confidential INTEGER NOT NULL DEFAULT 1,     -- 1 = confidentiel (défaut), 0 = public
@@ -95,6 +100,9 @@ CREATE TABLE IF NOT EXISTS report_responses (
     user_id         INTEGER NOT NULL,                -- FK to users (the supervisor)
     reponse         TEXT NOT NULL,                   -- Response text
     nouvel_etat     TEXT,                            -- State change if any: 'en_cours'|'traite'
+    attachment_blob BLOB,                            -- Optional file attached to response
+    attachment_name TEXT,                            -- Original filename
+    attachment_mime TEXT,                            -- MIME type
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id)

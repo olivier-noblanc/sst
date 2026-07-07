@@ -65,6 +65,22 @@ $formData = getFormData();
         </tr>
         <?php endif; ?>
         <tr>
+            <th><?php echo $type === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
+            <td><?php echo e($report['lieu'] ?? '—'); ?></td>
+        </tr>
+        <?php if (!empty($report['pole'])): ?>
+        <tr>
+            <th>Pôle</th>
+            <td><?php echo e($report['pole']); ?></td>
+        </tr>
+        <?php endif; ?>
+        <?php if (!empty($report['service_affectation'])): ?>
+        <tr>
+            <th>Service d'affectation</th>
+            <td><?php echo e($report['service_affectation']); ?></td>
+        </tr>
+        <?php endif; ?>
+        <tr>
             <th>Objet</th>
             <td><?php echo e($report['objet']); ?></td>
         </tr>
@@ -111,7 +127,7 @@ $formData = getFormData();
 <!-- Response Form -->
 <div class="card">
     <h3 class="card__title">Formuler une réponse</h3>
-    <form method="POST" action="<?php echo url('report_respond', ['uuid' => $uuid]); ?>">
+    <form method="POST" action="<?php echo url('report_respond', ['uuid' => $uuid]); ?>" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <input type="hidden" name="report_uuid" value="<?php echo e($uuid); ?>">
 
@@ -136,9 +152,39 @@ $formData = getFormData();
             <?php endif; ?>
         </div>
 
+        <div class="form-group">
+            <label for="response_attachment">Pièce jointe (optionnel)</label>
+            <div class="file-upload-wrapper">
+                <input type="file" id="response_attachment" name="response_attachment"
+                       accept=".jpg,.jpeg,.png,.gif,.pdf"
+                       title="Joindre un document à la réponse"
+                       class="file-upload-wrapper__input"
+                       aria-describedby="hint_response_attachment">
+                <label for="response_attachment" class="file-upload-wrapper__label btn btn--secondary">
+                    📎 Joindre un document (optionnel)
+                </label>
+                <span class="file-upload-wrapper__filename" id="resp_file_chosen_name">Aucun fichier sélectionné</span>
+            </div>
+            <span class="form-hint" id="hint_response_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max.</span>
+            <?php if (isset($formErrors['response_attachment'])): ?>
+                <span class="form-error"><?php echo e($formErrors['response_attachment']); ?></span>
+            <?php endif; ?>
+        </div>
+
         <div class="form-actions">
             <button type="submit" class="btn btn--primary">Enregistrer les modifications</button>
             <a href="<?php echo url('report_view', ['uuid' => $uuid]); ?>" class="btn btn--secondary">Annuler</a>
         </div>
     </form>
 </div>
+
+<script>
+(function() {
+    var input = document.getElementById('response_attachment'), nameEl = document.getElementById('resp_file_chosen_name');
+    if (input && nameEl) input.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            nameEl.textContent = this.files[0].name; nameEl.style.fontStyle = 'normal'; nameEl.style.color = '';
+        } else { nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.style.fontStyle = 'italic'; }
+    });
+})();
+</script>

@@ -51,15 +51,13 @@
             <h3>
                 <span class="badge badge--chsct badge--sm"><?php echo e(getRoleLabel('chsct')); ?></span>
             </h3>
-            <p class="help-description">Membre de la Commission Santé, Sécurité et Conditions de Travail. Consultez les signalements de tous les sites pour votre mission de suivi, sans modifier les données.</p>
+            <p class="help-description">Membre de la Formation Spécialisée du CSA. Consultez les signalements pour lesquels le déclarant a donné son consentement, sans modifier les données.</p>
             <ul class="help-feature-list">
                 <li>✅ <strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
-                <li>👁️ Voir les signalements de <strong>tous les sites</strong></li>
-                <li>📊 Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
-                <li>📥 <strong>Exporter</strong> les données (fichier tableur pour Excel)</li>
+                <li>👁️ Voir les signalements <strong>pour lesquels le consentement est donné</strong></li>
             </ul>
             <p class="help-note">
-                👁️ Rôle de consultation uniquement — pas de réponse aux signalements ni de gestion des utilisateurs.
+                👁️ Rôle de consultation uniquement — pas de réponse aux signalements, pas d'accès aux statistiques, ni de gestion des utilisateurs.
             </p>
         </div>
     </div>

@@ -31,6 +31,10 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool
         'type_acte = :type_acte',
         'is_confidential = :is_confidential',
         'consent_syndicat = :consent_syndicat',
+        'pole = :pole',
+        'service_affectation = :service_affectation',
+        'telephone_mobile = :telephone_mobile',
+        'site_text = :site_text',
     ];
 
     $params = [
@@ -45,6 +49,10 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool
         ':type_acte'         => $data['type_acte'] ?? null,
         ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
         ':consent_syndicat'  => isset($data['consent_syndicat']) ? (int) $data['consent_syndicat'] : 0,
+        ':pole'              => $data['pole'] ?? null,
+        ':service_affectation' => $data['service_affectation'] ?? null,
+        ':telephone_mobile'  => $data['telephone_mobile'] ?? null,
+        ':site_text'         => $data['site_text'] ?? null,
     ];
 
     // Attachment columns: only update if explicitly present in $data
@@ -111,9 +119,10 @@ function abandonReport(PDO $pdo, string $uuid, int $userId): bool
  * @param int    $userId       The responding user's ID
  * @param string $reponse      Response text
  * @param string $nouvelEtat   New state ('en_cours' or 'traite')
+ * @param array  $attachment   Optional attachment data ['blob', 'name', 'mime']
  * @return array{status: string, message?: string} Status result
  */
-function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat): array
+function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat, array $attachment = []): array
 {
     // Transaction: UPDATE reports + INSERT report_responses must be atomic.
     // Without this, a crash between the two queries would leave reports.reponse
@@ -179,14 +188,17 @@ function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, s
         // Insert into response history
         // report_id is nullable (migrated) — we only need report_uuid
         $stmt = $pdo->prepare('
-            INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
-            VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
+            INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat, attachment_blob, attachment_name, attachment_mime)
+            VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat, :attachment_blob, :attachment_name, :attachment_mime)
         ');
         $stmt->execute([
             ':report_uuid' => $uuid,
             ':user_id'     => $userId,
             ':reponse'     => $reponse,
             ':nouvel_etat' => $nouvelEtat,
+            ':attachment_blob' => $attachment['blob'] ?? null,
+            ':attachment_name' => $attachment['name'] ?? null,
+            ':attachment_mime' => $attachment['mime'] ?? null,
         ]);
 
         $pdo->commit();

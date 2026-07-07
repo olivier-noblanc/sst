@@ -76,6 +76,24 @@ if (!isset($csrfToken)) {
                     <th><?php echo $type === TYPE_DGI ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
                     <td><?php echo e($report['lieu'] ?? '—'); ?></td>
                 </tr>
+                <?php if (!empty($report['pole'])): ?>
+                <tr>
+                    <th>Pôle</th>
+                    <td><?php echo e($report['pole']); ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if (!empty($report['service_affectation'])): ?>
+                <tr>
+                    <th>Service d'affectation</th>
+                    <td><?php echo e($report['service_affectation']); ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if (!empty($report['telephone_mobile'])): ?>
+                <tr>
+                    <th>Téléphone mobile</th>
+                    <td><?php echo e($report['telephone_mobile']); ?></td>
+                </tr>
+                <?php endif; ?>
                 <tr>
                     <th>Objet</th>
                     <td><?php echo e($report['objet']); ?></td>
@@ -92,6 +110,12 @@ if (!isset($csrfToken)) {
                 <tr>
                     <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
                     <td><?php echo e($report['site_nom'] ?? '—'); ?> (<?php echo e($report['site_code'] ?? '—'); ?>)</td>
+                </tr>
+                <?php endif; ?>
+                <?php if (!empty($report['site_text'])): ?>
+                <tr>
+                    <th>Site</th>
+                    <td><?php echo e($report['site_text']); ?></td>
                 </tr>
                 <?php endif; ?>
                 <?php if ($type === TYPE_RAMI && !empty($report['pour_compte_nom'])): ?>
@@ -190,6 +214,24 @@ if (!isset($csrfToken)) {
                     </td>
                     <td><?php echo nl2br(e($resp['reponse'])); ?></td>
                 </tr>
+                <?php if (!empty($resp['attachment_name'])): ?>
+                <tr>
+                    <td colspan="4" style="padding-top:0;">
+                        <?php
+                        $isImage = !empty($resp['attachment_mime']) && in_array($resp['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
+                        ?>
+                        <?php if ($isImage): ?>
+                            <a href="<?php echo url('response_attachment', ['id' => $resp['id']]); ?>" title="<?php echo e($resp['attachment_name']); ?>">
+                                <img src="<?php echo url('response_attachment', ['id' => $resp['id'], 'inline' => 1]); ?>"
+                                     alt="<?php echo e($resp['attachment_name']); ?>"
+                                     class="attachment-image" loading="lazy" style="max-height:120px;">
+                            </a>
+                        <?php endif; ?>
+                        <a href="<?php echo url('response_attachment', ['id' => $resp['id']]); ?>"
+                           class="btn btn--outline btn--sm"><?php echo $isImage ? '&#11015;' : '&#128206;'; ?> <?php echo e($resp['attachment_name']); ?></a>
+                    </td>
+                </tr>
+                <?php endif; ?>
                 <?php endforeach; ?>
             </tbody>
         </table>

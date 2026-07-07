@@ -58,6 +58,12 @@ $submitBtnClass = $isEdit
     <h2 class="mb-4">
         <?php echo $isEdit ? 'Modifier le signalement' : 'Signaler un événement'; ?> — <?php echo e($registryFullLabel); ?>
     </h2>
+    <?php
+    $preamble = getConfig('app_report_preamble', '');
+    if (!empty($preamble)):
+    ?>
+    <div class="alert alert--info" role="note" style="white-space: pre-line;"><?php echo e($preamble); ?></div>
+    <?php endif; ?>
     <div class="alert alert--info form-encouragement" role="note">
         💡 <strong>Remplissez les champs marqués d'une étoile <span class="required">*</span>, les autres sont optionnels.</strong>
     </div>
@@ -99,6 +105,30 @@ $submitBtnClass = $isEdit
                        placeholder="Ex : Bâtiment B, 2e étage, couloir principal"
                        aria-describedby="hint_lieu">
                 <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo $type === 'dgi' ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
+            </div>
+            <div class="form-group">
+                <label for="pole">Pôle</label>
+                <input type="text" id="pole" name="pole"
+                       value="<?php echo e($val('pole')); ?>"
+                       maxlength="200"
+                       autocomplete="off"
+                       placeholder="Ex : Pôle Administratif">
+            </div>
+            <div class="form-group">
+                <label for="service_affectation">Service d'affectation</label>
+                <input type="text" id="service_affectation" name="service_affectation"
+                       value="<?php echo e($val('service_affectation')); ?>"
+                       maxlength="200"
+                       autocomplete="off"
+                       placeholder="Ex : Service juridique">
+            </div>
+            <div class="form-group">
+                <label for="telephone_mobile">Numéro de téléphone mobile</label>
+                <input type="tel" id="telephone_mobile" name="telephone_mobile"
+                       value="<?php echo e($val('telephone_mobile')); ?>"
+                       maxlength="20"
+                       autocomplete="off"
+                       placeholder="Ex : 06 12 34 56 78">
             </div>
             <div class="form-group">
                 <label for="objet">Objet <span class="required">*</span></label>
@@ -171,6 +201,21 @@ $submitBtnClass = $isEdit
                     <span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span>
                 <?php endif; ?>
             </div>
+            <div class="form-group">
+                <label for="site_text">Site</label>
+                <input type="text" id="site_text" name="site_text"
+                       value="<?php echo e($val('site_text')); ?>"
+                       maxlength="200"
+                       autocomplete="off"
+                       list="site_text_list"
+                       placeholder="Nom du site (optionnel)">
+                <datalist id="site_text_list">
+                    <?php foreach ($sites as $site): ?>
+                        <option value="<?php echo e($site['nom']); ?>">
+                    <?php endforeach; ?>
+                </datalist>
+                <span class="form-hint">Nom du site en texte libre (optionnel).</span>
+            </div>
             <?php elseif (!$isEdit && $noSiteMode): ?>
             <input type="hidden" name="site_id" value="">
             <?php endif; ?>
@@ -204,12 +249,8 @@ $submitBtnClass = $isEdit
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
                            <?php echo ($val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat']))) ? 'checked' : ''; ?>>
-                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives
+                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la DREETS
                 </label>
-                <span class="form-hint">
-                    Si vous acceptez, les <?php echo e(getRoleLabel('chsct')); ?>s pourront consulter ce signalement et seront notifiés.
-                    Si vous refusez, seul le superviseur pourra consulter ce signalement.
-                </span>
             </div>
             <div class="form-group">
                 <label for="declarant_nom">Déclarant — Nom</label>

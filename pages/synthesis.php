@@ -5,7 +5,7 @@
  * Summary table across all registries, showing counts by site, registry type, and state.
  * Access: superviseur, chsct
  */
-requireRole([ROLE_SUPERVISEUR, ROLE_CHSCT]);
+requireRole([ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);

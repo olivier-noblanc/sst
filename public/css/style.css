@@ -3652,3 +3652,28 @@ tr:hover td {
     border-radius: 8px;
     margin: 8px 0;
 }
+
+/* ============================================================
+   38. Word Cloud
+   ============================================================ */
+.word-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: baseline;
+    justify-content: center;
+    padding: 12px 0;
+    line-height: 1.6;
+}
+
+.word-cloud__word {
+    color: var(--color-primary);
+    font-weight: 500;
+    cursor: default;
+    transition: color 0.15s;
+    white-space: nowrap;
+}
+
+.word-cloud__word:hover {
+    color: var(--dgi-color);
+}

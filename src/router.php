@@ -23,7 +23,7 @@ function getValidPages(): array
     return [
         'home', 'preamble', 'help', 'guide', 'changelog', 'access_denied', 'choose_site',
         'report_create', 'report_list', 'report_view', 'report_edit',
-        'report_print', 'report_attachment', 'report_abandon', 'report_respond', 'report_reopen',
+        'report_print', 'report_attachment', 'response_attachment', 'report_abandon', 'report_respond', 'report_reopen',
         'agent_confirm',
         'synthesis', 'export', 'statistics',
         'settings', 'site_edit',

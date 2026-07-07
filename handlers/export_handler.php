@@ -10,7 +10,7 @@
  * quotes, and newlines inside fields). Exports multi-response history.
  */
 
-validatePostRequest(url('export'), [ROLE_SUPERVISEUR, ROLE_CHSCT]);
+validatePostRequest(url('export'), [ROLE_SUPERVISEUR]);
 
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
@@ -69,6 +69,10 @@ $headers = [
     'Date événement',
     'Heure dépôt',
     'Lieu',
+    'Pôle',
+    'Service d\'affectation',
+    'Téléphone mobile',
+    'Site (texte)',
     'Objet',
     'Description',
     'Déclarant (nom)',
@@ -155,6 +159,10 @@ foreach ($reports as $row) {
         $csvEscape($row['date_evenement'] ?? ''),
         $csvEscape($row['heure_evenement'] ?? ''),
         $csvEscape($row['lieu'] ?? ''),
+        $csvEscape($row['pole'] ?? ''),
+        $csvEscape($row['service_affectation'] ?? ''),
+        $csvEscape($row['telephone_mobile'] ?? ''),
+        $csvEscape($row['site_text'] ?? ''),
         $csvEscape($row['objet'] ?? ''),
         $csvEscape($row['description'] ?? ''),
         $csvEscape($row['declarant_nom'] ?? ''),

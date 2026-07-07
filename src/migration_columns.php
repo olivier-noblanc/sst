@@ -242,4 +242,30 @@ function migrateColumns(PDO $pdo): void
     } catch (Exception $e) {
         error_log('Migration warning for reports.consent_syndicat: ' . $e->getMessage());
     }
+    // ── Add pole, service_affectation, telephone_mobile, site_text ──────────
+    try {
+        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $existingCols = array_column($cols, 'name');
+        $newCols = ['pole', 'service_affectation', 'telephone_mobile', 'site_text'];
+        foreach ($newCols as $colName) {
+            if (!in_array($colName, $existingCols)) {
+                $pdo->exec("ALTER TABLE reports ADD COLUMN $colName TEXT");
+            }
+        }
+    } catch (Exception $e) {
+        error_log('Migration warning for reports new fields: ' . $e->getMessage());
+    }
+    // ── Add response attachment columns to report_responses ─────────────────
+    try {
+        $cols = $pdo->query('PRAGMA table_info(report_responses)')->fetchAll();
+        $existingCols = array_column($cols, 'name');
+        $newRespCols = ['attachment_blob', 'attachment_name', 'attachment_mime'];
+        foreach ($newRespCols as $colName) {
+            if (!in_array($colName, $existingCols)) {
+                $pdo->exec("ALTER TABLE report_responses ADD COLUMN $colName " . ($colName === 'attachment_blob' ? 'BLOB' : 'TEXT'));
+            }
+        }
+    } catch (Exception $e) {
+        error_log('Migration warning for report_responses attachment columns: ' . $e->getMessage());
+    }
 }

@@ -35,7 +35,7 @@
                     <td>Voir les signalements de tous les sites</td>
                     <td class="text-center">&#x274C;</td>
                     <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
+                    <td class="text-center">&#x274C;</td>
                 </tr>
                 <tr>
                     <td>Répondre à un signalement</td>
@@ -59,19 +59,19 @@
                     <td>Synthèse des signalements</td>
                     <td class="text-center">&#x274C;</td>
                     <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
+                    <td class="text-center">&#x274C;</td>
                 </tr>
                 <tr>
                     <td>Statistiques</td>
                     <td class="text-center">&#x274C;</td>
                     <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
+                    <td class="text-center">&#x274C;</td>
                 </tr>
                 <tr>
                     <td>Exporter les données</td>
                     <td class="text-center">&#x274C;</td>
                     <td class="text-center">&#x2705;</td>
-                    <td class="text-center">&#x2705;</td>
+                    <td class="text-center">&#x274C;</td>
                 </tr>
                 <tr>
                     <td>Gérer les utilisateurs</td>

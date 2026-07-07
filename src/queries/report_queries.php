@@ -19,7 +19,8 @@ function reportSelectWithSite(): string
                 r.declarant_id, r.declarant_nom, r.declarant_prenom,
                 r.pour_compte_de, r.pour_compte_nom, r.pour_compte_prenom,
                 r.nature_auteur, r.type_acte,
-                r.site_id, r.is_confidential, r.consent_syndicat, r.etat,
+                r.site_id, r.site_text, r.pole, r.service_affectation, r.telephone_mobile,
+                r.is_confidential, r.consent_syndicat, r.etat,
                 r.repondant_id, r.date_reponse, r.reponse,
                 r.attachment_name, r.attachment_mime,
                 r.created_at, r.updated_at,
@@ -60,13 +61,15 @@ function createReport(PDO $pdo, array $data): string
                 uuid, reference, type, objet, description, date_evenement, heure_evenement,
                 lieu, declarant_id, declarant_nom, declarant_prenom,
                 pour_compte_de, pour_compte_nom, pour_compte_prenom,
-                nature_auteur, type_acte, site_id, is_confidential, consent_syndicat, etat,
+                nature_auteur, type_acte, site_id, site_text, pole, service_affectation, telephone_mobile,
+                is_confidential, consent_syndicat, etat,
                 attachment_blob, attachment_name, attachment_mime
             ) VALUES (
                 :uuid, :reference, :type, :objet, :description, :date_evenement, :heure_evenement,
                 :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
                 :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
-                :nature_auteur, :type_acte, :site_id, :is_confidential, :consent_syndicat, '" . ETAT_NOUVEAU . "',
+                :nature_auteur, :type_acte, :site_id, :site_text, :pole, :service_affectation, :telephone_mobile,
+                :is_confidential, :consent_syndicat, '" . ETAT_NOUVEAU . "',
                 :attachment_blob, :attachment_name, :attachment_mime
             )
         ");
@@ -81,6 +84,10 @@ function createReport(PDO $pdo, array $data): string
             ':pour_compte_prenom' => $data['pour_compte_prenom'] ?? null,
             ':nature_auteur' => $data['nature_auteur'] ?? null, ':type_acte' => $data['type_acte'] ?? null,
             ':site_id' => $data['site_id'],
+            ':site_text' => $data['site_text'] ?? null,
+            ':pole' => $data['pole'] ?? null,
+            ':service_affectation' => $data['service_affectation'] ?? null,
+            ':telephone_mobile' => $data['telephone_mobile'] ?? null,
             ':is_confidential' => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
             ':consent_syndicat' => isset($data['consent_syndicat']) ? (int) $data['consent_syndicat'] : 0,
             ':attachment_blob' => $data['attachment_blob'] ?? null,

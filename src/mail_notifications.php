@@ -86,7 +86,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
     $body .= '<p><strong>Répondant :</strong> ' . e($respondent['prenom'] . ' ' . $respondent['nom']) . '</p>';
     $body .= '<p><strong>Nouvel état :</strong> ' . e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . '</p>';
-    $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+    $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter la réponse</a></p>';
     $body .= '</body></html>';
     sendMail($declarant['email'], $subject, $body);
 
@@ -101,7 +101,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
                 . '<p>Le signalement <strong>' . e($report['reference']) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>'
                 . '<p><strong>Répondant :</strong> ' . e($respondent['prenom'] . ' ' . $respondent['nom']) . '</p>'
                 . '<p><strong>Nouvel état :</strong> ' . e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . '</p>'
-                . '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
+                . '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter la réponse</a></p>'
             );
             sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
         }

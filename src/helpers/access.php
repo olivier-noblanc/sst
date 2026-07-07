@@ -91,7 +91,7 @@ function canSeeAllSites(): bool
     if (empty($role)) {
         return false;
     }
-    return in_array($role, [ROLE_SUPERVISEUR, ROLE_CHSCT]);
+    return $role === ROLE_SUPERVISEUR;
 }
 
 /**

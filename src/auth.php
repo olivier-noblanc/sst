@@ -172,7 +172,8 @@ function mockLogin(string $username): ?array
  */
 function parseSuperviseurUsernames(string $list): array
 {
-    return array_map('trim', explode(',', strtolower($list)));
+    $usernames = array_map('trim', explode(',', strtolower($list)));
+    return array_values(array_filter($usernames, fn($u) => $u !== ''));
 }
 
 /**

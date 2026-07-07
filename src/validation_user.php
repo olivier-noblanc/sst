@@ -104,5 +104,5 @@ function isLastActiveSuperviseur(PDO $pdo): bool
 {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = '" . ROLE_SUPERVISEUR . "' AND is_active = 1");
     $stmt->execute();
-    return (int) $stmt->fetchColumn() <= 1;
+    return (int) $stmt->fetchColumn() === 1;
 }

@@ -32,10 +32,11 @@ function countReportsByState(PDO $pdo, string $type, int $siteId = 0, bool $seeA
     $stmt->execute($params);
 
     $counts = [
-        ETAT_NOUVEAU  => 0,
-        ETAT_EN_COURS => 0,
-        ETAT_TRAITE   => 0,
-        'total'    => 0,
+        ETAT_NOUVEAU   => 0,
+        ETAT_EN_COURS  => 0,
+        ETAT_TRAITE    => 0,
+        ETAT_REOUVERT  => 0,
+        'total'        => 0,
     ];
 
     foreach ($stmt->fetchAll() as $row) {
@@ -126,56 +127,30 @@ function getAdjacentReportUuids(PDO $pdo, array $report): array
 
     $result = ['prev' => null, 'next' => null];
 
-    // Previous: same type, created before this report, most recent first
+    // Previous: same type, created before this report (with tie-break on uuid)
     $stmt = $pdo->prepare('
-        SELECT uuid FROM reports
-        WHERE type = :type AND created_at < :created_at
-        ORDER BY created_at DESC
+        SELECT uuid, created_at FROM reports
+        WHERE type = :type AND (created_at < :created_at OR (created_at = :created_at AND uuid < :uuid))
+        ORDER BY created_at DESC, uuid DESC
         LIMIT 1
     ');
-    $stmt->execute([':type' => $type, ':created_at' => $createdAt]);
-    $prev = $stmt->fetchColumn();
+    $stmt->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
+    $prev = $stmt->fetch();
     if ($prev) {
-        $result['prev'] = $prev;
+        $result['prev'] = $prev['uuid'];
     }
 
-    // Also check same timestamp but alphabetically before (tie-break)
+    // Next: same type, created after this report (with tie-break on uuid)
     $stmt2 = $pdo->prepare('
-        SELECT uuid FROM reports
-        WHERE type = :type AND created_at = :created_at AND uuid < :uuid
-        ORDER BY uuid DESC
+        SELECT uuid, created_at FROM reports
+        WHERE type = :type AND (created_at > :created_at OR (created_at = :created_at AND uuid > :uuid))
+        ORDER BY created_at ASC, uuid ASC
         LIMIT 1
     ');
     $stmt2->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
-    $prevTie = $stmt2->fetchColumn();
-    if ($prevTie && !$result['prev']) {
-        $result['prev'] = $prevTie;
-    }
-
-    // Next: same type, created after this report, earliest first
-    $stmt3 = $pdo->prepare('
-        SELECT uuid FROM reports
-        WHERE type = :type AND created_at > :created_at
-        ORDER BY created_at ASC
-        LIMIT 1
-    ');
-    $stmt3->execute([':type' => $type, ':created_at' => $createdAt]);
-    $next = $stmt3->fetchColumn();
+    $next = $stmt2->fetch();
     if ($next) {
-        $result['next'] = $next;
-    }
-
-    // Tie-break: same timestamp, uuid after current
-    $stmt4 = $pdo->prepare('
-        SELECT uuid FROM reports
-        WHERE type = :type AND created_at = :created_at AND uuid > :uuid
-        ORDER BY uuid ASC
-        LIMIT 1
-    ');
-    $stmt4->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
-    $nextTie = $stmt4->fetchColumn();
-    if ($nextTie && !$result['next']) {
-        $result['next'] = $nextTie;
+        $result['next'] = $next['uuid'];
     }
 
     return $result;

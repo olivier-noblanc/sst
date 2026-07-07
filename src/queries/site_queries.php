@@ -170,24 +170,34 @@ function countReportsBySite(PDO $pdo, int $id): int
  */
 function deleteSite(PDO $pdo, int $id): bool
 {
-    // Safety: refuse deletion if site has active users
-    $userCount = countUsersBySite($pdo, $id);
-    if ($userCount > 0) {
-        return false;
+    $pdo->beginTransaction();
+    try {
+        // Safety: refuse deletion if site has active users
+        $userCount = countUsersBySite($pdo, $id);
+        if ($userCount > 0) {
+            $pdo->rollBack();
+            return false;
+        }
+
+        // Safety: refuse deletion if site has reports
+        $reportCount = countReportsBySite($pdo, $id);
+        if ($reportCount > 0) {
+            $pdo->rollBack();
+            return false;
+        }
+
+        // Delete notification settings linked to this site
+        $stmt = $pdo->prepare('DELETE FROM notification_settings WHERE site_id = :id');
+        $stmt->execute([':id' => $id]);
+
+        // Delete the site
+        $stmt = $pdo->prepare('DELETE FROM sites WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        $deleted = $stmt->rowCount() > 0;
+        $pdo->commit();
+        return $deleted;
+    } catch (\Exception $e) {
+        $pdo->rollBack();
+        throw $e;
     }
-
-    // Safety: refuse deletion if site has reports
-    $reportCount = countReportsBySite($pdo, $id);
-    if ($reportCount > 0) {
-        return false;
-    }
-
-    // Delete notification settings linked to this site
-    $stmt = $pdo->prepare('DELETE FROM notification_settings WHERE site_id = :id');
-    $stmt->execute([':id' => $id]);
-
-    // Delete the site
-    $stmt = $pdo->prepare('DELETE FROM sites WHERE id = :id');
-    $stmt->execute([':id' => $id]);
-    return $stmt->rowCount() > 0;
 }

@@ -48,8 +48,12 @@ function validateReportAttachment(array &$errors): array
                     $errors['attachment'] = 'Type de fichier non autorisé. Formats acceptés : JPG, PNG, GIF, PDF.';
                 } else {
                     $attachmentBlob = file_get_contents($file['tmp_name']);
-                    $attachmentName = basename($file['name']);
-                    $attachmentMime = $mime;
+                    if ($attachmentBlob === false) {
+                        $errors['attachment'] = 'Erreur lors de la lecture du fichier.';
+                    } else {
+                        $attachmentName = basename($file['name']);
+                        $attachmentMime = $mime;
+                    }
                 }
             } catch (\RuntimeException $ex) {
                 $errors['attachment'] = $ex->getMessage();

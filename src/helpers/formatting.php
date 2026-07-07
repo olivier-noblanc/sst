@@ -88,11 +88,7 @@ function getNextSequence(PDO $pdo, string $type, int $year): int
         INSERT INTO report_sequence (type, year, last_sequence)
         VALUES (:type, :year, 1)
         ON CONFLICT(type, year) DO UPDATE SET last_sequence = last_sequence + 1
-    ');
-    $stmt->execute([':type' => $type, ':year' => $year]);
-
-    $stmt = $pdo->prepare('
-        SELECT last_sequence FROM report_sequence WHERE type = :type AND year = :year
+        RETURNING last_sequence
     ');
     $stmt->execute([':type' => $type, ':year' => $year]);
     return (int) $stmt->fetchColumn();

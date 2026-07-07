@@ -36,15 +36,24 @@ function getNotificationSettings(PDO $pdo): array
  */
 function saveNotificationSetting(PDO $pdo, ?int $siteId, string $type, string $registry, string $email): int
 {
+    // Prevent duplicates: delete existing matching setting first
+    $stmt = $pdo->prepare('DELETE FROM notification_settings WHERE site_id = :site_id AND type = :type AND registry = :registry AND email = :email');
+    $stmt->execute([
+        ':site_id'  => $siteId,
+        ':type'     => $type,
+        ':registry' => $registry,
+        ':email'    => $email,
+    ]);
+
     $stmt = $pdo->prepare('
         INSERT INTO notification_settings (site_id, type, registry, email)
         VALUES (:site_id, :type, :registry, :email)
     ');
     $stmt->execute([
-        ':site_id' => $siteId,
-        ':type'    => $type,
+        ':site_id'  => $siteId,
+        ':type'     => $type,
         ':registry' => $registry,
-        ':email'   => $email,
+        ':email'    => $email,
     ]);
     return (int) $pdo->lastInsertId();
 }

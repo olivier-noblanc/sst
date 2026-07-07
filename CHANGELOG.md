@@ -3,6 +3,24 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.25.3] — 2026-07-07
+
+### Technique — Corrections
+
+- **1** 🟢 **Race condition dans `getNextSequence()`** — Remplacement de l'INSERT + SELECT séquentiel par INSERT RETURNING, éliminant la possibilité de numéros de séquence dupliqués sous charge concurrente. (`src/helpers/formatting.php`)
+- **2** 🟢 **`isLastActiveSuperviseur()` : faux positif avec 0 superviseurs** — La fonction retournait `true` quand aucun superviseur n'existait (`<= 1`). Correction en `=== 1` pour ne retourner `true` que lorsqu'il reste exactement un superviseur actif. (`src/validation_user.php`)
+- **3** 🟢 **`parseSuperviseurUsernames()` : entrées vides dans la liste** — Une chaîne vide ou une virgule en fin de liste produisait un username vide `''` dans le tableau, pouvant potentiellement correspondre à n'importe quel utilisateur. Ajout de `array_filter` pour exclure les entrées vides. (`src/auth.php`)
+- **4** 🟢 **`getAdjacentReportUuids()` : 4 requêtes SQL remplacées par 2** — Les 4 requêtes séparées (prev, prevTie, next, nextTie) ont été consolidées en 2 requêtes avec tie-break intégré via `ORDER BY created_at, uuid`. (`src/queries/report_count_queries.php`)
+- **5** 🟢 **`notifyReportResponse()` : crash si le répondant est supprimé** — Accès à `$respondent['prenom']` sans null check provoquait un `TypeError` si l'utilisateur avait été supprimé entre-temps. Ajout de la vérification. (`src/mail_notifications.php`)
+- **6** 🟢 **`validateReportAttachment()` : `file_get_contents()` sans vérification** — Si la lecture du fichier échouait, `false` était inséré en base au lieu d'un blob. Ajout de la vérification `$attachmentBlob === false`. (`src/validation.php`)
+- **7** 🟢 **`countReportsByState()` : `ETAT_REOUVERT` ignoré** — Les signalements à l'état "reouvert" n'étaient pas comptabilisés dans les compteurs par état. Ajout de la clé `ETAT_REOUVERT`. (`src/queries/report_count_queries.php`)
+- **8** 🟢 **`deleteSite()` : suppression non atomique** — La suppression des notification_settings puis du site sans transaction pouvait mener à une suppression partielle. Wrapping dans une transaction. (`src/queries/site_queries.php`)
+- **9** 🟢 **Doublons de notifications** — `saveNotificationSetting()` ne vérifiait pas l'unicité. Un même email/registre/site pouvait être enregistré plusieurs fois. Ajout de DELETE avant INSERT (upsert). (`src/queries/notification_queries.php`)
+- **10** 🟢 **Deduplication emails non case-insensitive** — `getNotificationRecipients()` comparait les emails avec `in_array()` sensible à la casse. Un même email en casse différente envoyait deux notifications. Correction avec `strtolower()`. (`src/mail_notifications.php`)
+- **11** 🟢 **`getPageTitle()` accède à `$_GET` directement** — Les titres de pages report_create et report_list lisaient `$_GET['type']` directement dans une fonction qui devrait être pure. Remplacement par des labels hardcodés. (`src/router.php`)
+- **12** 🟢 **Code dupliqué backup** — `performBackup()` et `backupBeforeMigration()` étaient 90% identiques. Extraction de la logique commune dans `performBackupInternal()`. (`src/backup.php`)
+
+
 ## [3.25.2] — 2026-06-23
 
 ### Technique — Corrections

@@ -103,17 +103,16 @@ function shouldBackup(PDO $pdo): bool
 }
 
 /**
- * Perform a backup using VACUUM INTO.
- * This is a pure SQL command — no external tools, works on Windows/IIS.
- * Creates a compact, consistent snapshot of the entire database.
+ * Internal backup implementation shared by performBackup() and backupBeforeMigration().
  *
- * @param PDO $pdo
- * @return bool True if backup was created, false if skipped or failed
+ * @param PDO    $pdo      Database connection
+ * @param string $prefix   Filename prefix ('sst' or 'sst_pre_migration')
+ * @param bool   $force    Skip shouldBackup() check (for pre-migration)
+ * @return bool            True if backup was created, false if skipped or failed
  */
-function performBackup(PDO $pdo): bool
+function performBackupInternal(PDO $pdo, string $prefix = 'sst', bool $force = false): bool
 {
-    // Double-check: skip if nothing changed
-    if (!shouldBackup($pdo)) {
+    if (!$force && !shouldBackup($pdo)) {
         return false;
     }
 
@@ -121,11 +120,10 @@ function performBackup(PDO $pdo): bool
         mkdir(BACKUP_DIR, 0755, true);
     }
 
-    // Protect data/backups with a .htaccess (Apache) and web.config (IIS)
     writeBackupProtection();
 
     $timestamp = date('Y-md_His');
-    $backupFile = BACKUP_DIR . '/sst_' . $timestamp . '.db';
+    $backupFile = BACKUP_DIR . '/' . $prefix . '_' . $timestamp . '.db';
 
     // Path traversal check: ensure backup file stays within BACKUP_DIR
     $backupDir = defined('BACKUP_DIR') ? BACKUP_DIR : __DIR__ . '/../data/backups';
@@ -136,84 +134,51 @@ function performBackup(PDO $pdo): bool
 
     // Avoid filename collision (two backups in the same second)
     if (file_exists($backupFile)) {
-        $backupFile = BACKUP_DIR . '/sst_' . $timestamp . '_' . random_int(100, 999) . '.db';
+        $backupFile = BACKUP_DIR . '/' . $prefix . '_' . $timestamp . '_' . random_int(100, 999) . '.db';
     }
 
     try {
-        // VACUUM INTO: creates a new database file with a clean copy
-        // Works on Windows, no external tools, no file locking issues.
-        // Requires SQLite 3.27.0+ (2019-01) — universally available.
         $pdo->exec("VACUUM INTO '" . str_replace("'", "''", $backupFile) . "'");
     } catch (Exception $e) {
         error_log('[SST-BACKUP] VACUUM INTO failed: ' . $e->getMessage());
         return false;
     }
 
-    // Verify the backup was created and is readable
     if (!file_exists($backupFile) || filesize($backupFile) === 0) {
         error_log('[SST-BACKUP] Backup file missing or empty: ' . $backupFile);
         return false;
     }
 
-    // Update marker with the current fingerprint
     $fingerprint = getDbFingerprint($pdo);
     setLastBackupFingerprint($fingerprint);
 
-    // Rotate old backups
     rotateBackups();
 
     return true;
 }
 
 /**
+ * Perform a backup using VACUUM INTO.
+ * Skips if the DB hasn't changed since the last backup.
+ *
+ * @param PDO $pdo
+ * @return bool True if backup was created, false if skipped or failed
+ */
+function performBackup(PDO $pdo): bool
+{
+    return performBackupInternal($pdo, 'sst', false);
+}
+
+/**
  * Force a backup before a schema migration.
- * This always creates a backup, regardless of whether the DB changed,
- * because we're about to alter the structure.
+ * Always creates a backup regardless of DB changes.
  *
  * @param PDO $pdo
  * @return bool
  */
 function backupBeforeMigration(PDO $pdo): bool
 {
-    if (!is_dir(BACKUP_DIR)) {
-        mkdir(BACKUP_DIR, 0755, true);
-    }
-
-    writeBackupProtection();
-
-    $timestamp = date('Y-md_His');
-    $backupFile = BACKUP_DIR . '/sst_pre_migration_' . $timestamp . '.db';
-
-    // Path traversal check: ensure backup file stays within BACKUP_DIR
-    $backupDir = defined('BACKUP_DIR') ? BACKUP_DIR : __DIR__ . '/../data/backups';
-    if (!str_starts_with(realpath(dirname($backupFile)) ?: dirname($backupFile), realpath($backupDir) ?: $backupDir)) {
-        error_log("SST: backup path traversal blocked - $backupFile");
-        return false;
-    }
-
-    if (file_exists($backupFile)) {
-        $backupFile = BACKUP_DIR . '/sst_pre_migration_' . $timestamp . '_' . random_int(100, 999) . '.db';
-    }
-
-    try {
-        $pdo->exec("VACUUM INTO '" . str_replace("'", "''", $backupFile) . "'");
-    } catch (Exception $e) {
-        error_log('[SST-BACKUP] Pre-migration backup failed: ' . $e->getMessage());
-        return false;
-    }
-
-    if (!file_exists($backupFile) || filesize($backupFile) === 0) {
-        error_log('[SST-BACKUP] Pre-migration backup file missing or empty: ' . $backupFile);
-        return false;
-    }
-
-    // Update marker
-    $fingerprint = getDbFingerprint($pdo);
-    setLastBackupFingerprint($fingerprint);
-
-    rotateBackups();
-
-    return true;
+    return performBackupInternal($pdo, 'sst_pre_migration', true);
 }
 
 /**

@@ -5,28 +5,85 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 ## [3.26.0] — 2026-07-07
 
-### Fonctionnalités
+### Nouvelles fonctionnalités
 
-- **1** 🔴 **Nouveaux champs fiche signalement** — Ajout de Pôle, Service d'affectation, Numéro de téléphone mobile et Site (texte libre avec autocomplete) dans le formulaire de signalement. Champs optionnels, affichés dans la fiche détaillée et l'export CSV. (`templates/report_form.php`, `schema.sql`, `src/migration_columns.php`)
-- **2** 🔴 **Pièce jointe sur les réponses** — Le superviseur peut désormais joindre un document (image ou PDF, 10 Mo max) lors de la réponse à un signalement. La pièce jointe est affichée dans l'historique des réponses et téléchargeable. (`pages/report_respond.php`, `src/queries/report_response_queries.php`, `pages/response_attachment.php`)
-- **3** 🟡 **Zone readonly paramétable** — Ajout d'un texte d'information configurable sous le titre du formulaire de signalement (par défaut : « Pour toute inscription d'un fait… »). Configurable via Paramètres > Textes du formulaire. (`templates/report_form.php`, `pages/settings/tab_app.php`)
-- **4** 🟡 **Description RSST configurable** — Le texte « Risques liés aux locaux, équipements, ergonomie, conditions environnementales » sur la page d'accueil est désormais modifiable via l'admin. (`pages/home.php`, `pages/settings/tab_app.php`)
-- **5** 🟡 **Nuage de mots RSST** — Ajout d'un nuage de mots sur la page d'accueil, affichant les termes les plus fréquents dans les signalements RSST. Rendu 100% serveur (pas de JavaScript). (`src/helpers/formatting.php`, `pages/home.php`)
+- **1** 🔴 **Nouveaux champs fiche signalement** — Quatre nouveaux champs optionnels ajoutés au formulaire de création et de modification de signalement :
+  - **Pôle** — text maxlength=200, champ de saisie libre pour le pôle d'affectation du déclarant
+  - **Service d'affectation** — text maxlength=200, champ de saisie libre pour le service
+  - **Numéro de téléphone mobile** — tel maxlength=20, numéro de contact du déclarant
+  - **Site (texte libre)** — text maxlength=200 avec `<datalist>` alimenté par les sites existants, permettant de préciser le nom du site en texte libre (distinct du dropdown « Unité de rattachement » utilisé pour la logique métier)
+  - Les 4 champs sont optionnels, affichés dans la fiche détaillée (`report_card.php`), dans le résumé de réponse (`report_respond.php`), et dans l'export CSV (`export_handler.php`). La migration automatique ajoute les colonnes aux bases existantes via `migration_columns.php`.
+  - Fichiers : `schema.sql`, `src/migration_columns.php`, `templates/report_form.php`, `handlers/report_create_handler.php`, `handlers/report_edit_handler.php`, `src/queries/report_queries.php`, `src/queries/report_response_queries.php`, `templates/report_card.php`, `handlers/export_handler.php`, `pages/report_respond.php`
+
+- **2** 🔴 **Pièce jointe sur les réponses** — Le superviseur peut désormais joindre un document lors de la réponse à un signalement :
+  - Champ `<input type="file">` ajouté au formulaire de réponse (`report_respond.php`), avec `enctype="multipart/form-data"`
+  - Types acceptés : JPG, PNG, GIF, PDF — 10 Mo maximum (réutilise `validateReportAttachment()`)
+  - Stockage : colonnes `attachment_blob`, `attachment_name`, `attachment_mime` ajoutées à la table `report_responses`
+  - Affichage : les pièces jointes de réponse sont visibles dans l'historique des réponses (`report_card.php`), avec prévisualisation inline pour les images et bouton de téléchargement
+  - Téléchargement : nouvelle page `response_attachment.php` ajoutée au routeur, avec contrôle d'accès basé sur le signalement parent
+  - Fichiers : `schema.sql`, `src/migration_columns.php`, `pages/report_respond.php`, `handlers/report_respond_handler.php`, `src/queries/report_response_queries.php`, `templates/report_card.php`, `pages/response_attachment.php`, `src/router.php`
+
+- **3** 🟡 **Préambule du formulaire paramétable** — Zone de texte en lecture seule affichée sous le titre du formulaire de signalement :
+  - Texte par défaut : « Pour toute inscription d'un fait, vous devez être objectif et factuel. Ne pas mentionner de noms de personnes. Vous pouvez joindre un document ou une photo. »
+  - Configurable via **Paramètres > Textes du formulaire > Préambule du formulaire**
+  - Affiché uniquement si le texte n'est pas vide
+  - Fichiers : `templates/report_form.php`, `pages/settings/tab_app.php`, `src/migration_config.php`
+
+- **4** 🟡 **Description du registre RSST configurable** — Le texte descriptif affiché sous le titre du registre RSST sur la page d'accueil est désormais modifiable :
+  - Texte par défaut : « Risques liés aux locaux, équipements, ergonomie, conditions environnementales »
+  - Configurable via **Paramètres > Textes du formulaire > Description du registre RSST**
+  - S'affiche à la fois pour les agents et les superviseurs
+  - Fichiers : `pages/home.php`, `pages/settings/tab_app.php`, `src/migration_config.php`
+
+- **5** 🟡 **Nuage de mots RSST** — Nouvelle section sur la page d'accueil pour les agents, affichant les termes les plus fréquents dans les signalements RSST :
+  - Extraction côté serveur via `buildWordCloud()` dans `src/helpers/formatting.php`
+  - Affiche les 30 mots les plus fréquents (hors mots-outils français, minimum 4 caractères)
+  - Rendu 100% serveur (pas de JavaScript) — `<span>` avec tailles CSS proportionnelles à la fréquence
+  - Affiché uniquement si l'agent a au moins 1 signalement RSST
+  - Fichiers : `src/helpers/formatting.php`, `pages/home.php`, `public/css/style.css`
 
 ### Corrections
 
-- **6** 🔴 **Bug changement de rôle** — La modification de rôle d'un utilisateur échouait silencieusement si celui-ci n'avait pas de site assigné. Le champ `site_id` dans le formulaire de sélection d'utilisateur accepte désormais « Aucun » et la validation n'exige plus un site valide. (`templates/user_form_fields.php`, `src/validation_user.php`)
-- **7** 🟡 **URLs email réponse** — Les e-mails de notification de réponse affichaient « Consulter le signalement » au lieu de « Consulter la réponse ». (`src/mail_notifications.php`)
-- **8** 🟡 **Consentement organisations syndicales** — Précision que les organisations syndicales sont « au sein de la DREETS » dans la checkbox de consentement. Suppression du texte explicatif redondant sous la checkbox. (`templates/report_form.php`)
+- **6** 🔴 **Bug changement de rôle utilisateur** — La modification de rôle d'un utilisateur par un superviseur échouait silencieusement lorsque celui-ci n'avait pas de site assigné (`site_id = NULL`) :
+  - **Cause** : le champ `site_id` dans le formulaire de sélection d'utilisateur (`user_form_fields.php`) était marqué `required` sans option vide, et `validateUserFields()` exigeait un `site_id > 0`
+  - **Correction** : ajout d'une option « — Aucun — » (value=0) dans le `<select>`, et la validation accepte désormais `site_id = 0` (utilisateur sans site assigné)
+  - Fichiers : `templates/user_form_fields.php`, `src/validation_user.php`
 
-### Droits
+- **7** 🟡 **URLs email notification de réponse** — Les e-mails envoyés au déclarant et aux agents rattachés lors d'une réponse affichaient « Consulter le signalement » au lieu de « Consulter la réponse » :
+  - Correction dans `notifyReportResponse()` (déclarant + agents rattachés)
+  - Les autres notifications (nouveau signalement, réouverture, abandon, pour le compte de) conservent « Consulter le signalement » (correct)
+  - Fichier : `src/mail_notifications.php`
 
-- **9** 🔴 **Droits FS/CSA réduits** — Les membres de la Formation Spécialisée du CSA n'ont plus accès à la Synthèse, aux Statistiques ni à l'Export. La可视ibilité des signalements est limitée aux signalements pour lesquels le consentement est donné. (`src/helpers/access.php`, `pages/statistics.php`, `pages/synthesis.php`, `pages/export.php`, `handlers/export_handler.php`)
-- **10** 🟢 **Suppression « Nombre d'inscrits »** — L'indicateur « Nombre d'inscrits » a été retiré de la page Statistiques. (`pages/statistics.php`)
+- **8** 🟡 **Consentement organisations syndicales** — Deux modifications sur la checkbox de consentement :
+  - Le libellé est désormais : « J'accepte que mon signalement soit transmis aux organisations syndicales représentatives **au sein de la DREETS** »
+  - Le texte explicatif sous la checkbox (« Si vous acceptez, les Membres FS/CSA pourront consulter… ») a été supprimé (redondant)
+  - Fichier : `templates/report_form.php`
+
+### Droits modifiés
+
+- **9** 🔴 **Droits de la Formation Spécialisée du CSA réduits** — Les membres de la FS/CSA n'ont plus les droits suivants :
+  - **Accès à la Synthèse** retiré (`pages/synthesis.php` : `requireRole([ROLE_SUPERVISEUR])`)
+  - **Accès aux Statistiques** retiré (`pages/statistics.php` : `requireRole([ROLE_SUPERVISEUR])`)
+  - **Accès à l'Export CSV** retiré (`pages/export.php` + `handlers/export_handler.php`)
+  - **Visibilité de tous les sites** retirée (`canSeeAllSites()` dans `src/helpers/access.php` retourne `true` uniquement pour `ROLE_SUPERVISEUR`)
+  - La FS/CSA conserve : création de signalements, consultation de ses signalements, consultation des signalements pour lesquels le consentement est donné, réouverture de signalements
+  - Fichiers : `src/helpers/access.php`, `pages/statistics.php`, `pages/synthesis.php`, `pages/export.php`, `handlers/export_handler.php`
+
+- **10** 🟢 **Indicateur « Nombre d'inscrits » supprimé** — La carte indicateur « Nombre d'inscrits » a été retirée de la page Statistiques. La variable `$totalUsers` et l'appel `countActiveUsers()` ne sont plus utilisés.
+  - Fichier : `pages/statistics.php`
 
 ### Documentation
 
-- **11** 🟢 **Aide mise à jour** — Profils et tableau des droits mis à jour pour refléter les nouveaux droits FS/CSA. (`pages/help/_profiles.php`, `pages/help/_rights.php`)
+- **11** 🟢 **Aide mise à jour** — Plusieurs sections de l'aide dynamique mises à jour :
+  - **Profils** (`_profiles.php`) : profil FS/CSA mis à jour — description corrigée (« Formation Spécialisée du CSA »), note précisant l'absence d'accès à la synthèse, statistiques et export. Profil Superviseur enrichi avec « Joindre une pièce jointe à une réponse » et « paramètres (… textes du formulaire) »
+  - **Tableau des droits** (`_rights.php`) : lignes Synthèse/Statistiques/Export marquées avec ✘ pour FS/CSA. Nouvelle ligne « Joindre une pièce jointe à une réponse » (Superviseur uniquement). Description du rôle FS/CSA affinée
+  - Fichiers : `pages/help/_profiles.php`, `pages/help/_rights.php`
+
+### Technique
+
+- Migration automatique des bases existantes : 4 colonnes ajoutées à `reports` (`pole`, `service_affectation`, `telephone_mobile`, `site_text`) + 3 colonnes ajoutées à `report_responses` (`attachment_blob`, `attachment_name`, `attachment_mime`)
+- 2 nouvelles clés de configuration : `app_report_preamble` (préambule formulaire) et `app_rsst_description` (description RSST accueil)
+- 360 tests unitaires — 764 assertions — tous OK
 
 
 ## [3.25.3] — 2026-07-07

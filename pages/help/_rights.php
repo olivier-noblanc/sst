@@ -1,7 +1,7 @@
 <!-- 2. Tableau récapitulatif des droits -->
 <div id="droits" class="card card--spaced content-section">
     <h2>Tableau des droits</h2>
-    <p class="help-description">Ce qui est accessible selon votre profil. Le Superviseur peut faire tout ce que l'Agent fait. Le <?php echo e(getRoleLabelShort('chsct')); ?> peut consulter sans agir.</p>
+    <p class="help-description">Ce qui est accessible selon votre profil. Le Superviseur peut faire tout ce que l'Agent fait. Le <?php echo e(getRoleLabelShort('chsct')); ?> peut uniquement consulter les signalements pour lesquels le consentement est donné.</p>
     <div class="table-wrapper">
         <table class="table table--compact help-rights-table" aria-label="Permissions par profil">
             <thead>
@@ -39,6 +39,12 @@
                 </tr>
                 <tr>
                     <td>Répondre à un signalement</td>
+                    <td class="text-center">&#x274C;</td>
+                    <td class="text-center">&#x2705;</td>
+                    <td class="text-center">&#x274C;</td>
+                </tr>
+                <tr>
+                    <td>Joindre une pièce jointe à une réponse</td>
                     <td class="text-center">&#x274C;</td>
                     <td class="text-center">&#x2705;</td>
                     <td class="text-center">&#x274C;</td>

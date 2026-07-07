@@ -33,12 +33,13 @@
             <ul class="help-feature-list">
                 <li>✅ <strong>Tout ce que l'Agent peut faire</strong>, plus :</li>
                 <li>💬 Répondre à un signalement (passer en « En cours » ou « Traité »)</li>
+                <li>📎 Joindre une pièce jointe à une réponse</li>
                 <li>🚫 Abandonner un signalement</li>
                 <li>👁️ Voir les signalements de <strong>tous les sites</strong></li>
                 <li>📊 Accéder à la <strong>Synthèse</strong> et aux <strong>Statistiques</strong></li>
                 <li>📥 <strong>Exporter</strong> les données (fichier tableur pour Excel)</li>
                 <li>👥 Gérer les <strong>utilisateurs</strong> (créer, modifier, désactiver)</li>
-                <li>⚙️ Configurer les <strong>paramètres</strong> (envoi d'e-mails, notifications, visibilité)</li>
+                <li>⚙️ Configurer les <strong>paramètres</strong> (envoi d'e-mails, notifications, visibilité, textes du formulaire)</li>
                 <li>🖨️ Imprimer une fiche de signalement (document imprimable)</li>
             </ul>
             <p class="help-note">
@@ -57,7 +58,7 @@
                 <li>👁️ Voir les signalements <strong>pour lesquels le consentement est donné</strong></li>
             </ul>
             <p class="help-note">
-                👁️ Rôle de consultation uniquement — pas de réponse aux signalements, pas d'accès aux statistiques, ni de gestion des utilisateurs.
+                👁️ Rôle de consultation uniquement — pas de réponse aux signalements, pas d'accès à la synthèse, aux statistiques, à l'export, ni de gestion des utilisateurs.
             </p>
         </div>
     </div>

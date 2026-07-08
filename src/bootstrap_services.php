@@ -1,6 +1,11 @@
 <?php
 /** Service registration — wires up the DI Container. */
 
+use App\Container\Container;
+use App\Repository\ReportRepository;
+use App\Services\ReportService;
+use App\Event\EventDispatcher;
+
 function createContainer(): Container
 {
     $container = new Container();

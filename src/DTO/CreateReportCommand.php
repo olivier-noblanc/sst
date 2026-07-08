@@ -1,6 +1,8 @@
 <?php
 /** CreateReportCommand — DTO pour la création d'un signalement. */
 
+namespace App\DTO;
+
 class CreateReportCommand
 {
     public function __construct(

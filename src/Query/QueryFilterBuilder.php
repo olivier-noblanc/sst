@@ -1,6 +1,8 @@
 <?php
 /** QueryFilterBuilder — Construit des WHERE dynamiques sans duplication. */
 
+namespace App\Query;
+
 class QueryFilterBuilder
 {
     private string $where = '1=1';

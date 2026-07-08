@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.28.0] — 2026-07-08
+
+### Améliorations
+
+- **1** 🔴 **Autoload PSR-4** — Ajout de l'autoload Composer PSR-4 pour toutes les classes applicatives. Les 11 classes (Container, ReportRepository, ReportService, 4 DTOs, EventDispatcher, QueryFilterBuilder, Router, Route) sont désormais namespacées sous `App\` et chargées automatiquement par Composer, éliminant les `require_once` redondants dans les handlers, les tests et le bootstrap.
+
+- **2** 🟡 **Espaces de noms (namespaces)** — Toutes les classes applicatives sont désormais dans des espaces de noms : `App\Container`, `App\Repository`, `App\Services`, `App\DTO`, `App\Event`, `App\Query`, `App\Router`. `QueryFilterBuilder` déplacé de `src/helpers/` vers `src/Query/` pour refléter sa nature de classe.
+
+- **3** 🟡 **PHPStan avec autoload** — PHPScan utilise désormais `vendor/autoload.php` via `bootstrapFiles` au lieu de `scanDirectories`, permettant une analyse statique correcte des classes namespacées.
+
+
 ## [3.27.0] — 2026-07-08
 
 ### Corrections

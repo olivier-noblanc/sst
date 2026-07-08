@@ -1,5 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
+use App\Event\EventDispatcher;
 
 class EventDispatcherTest extends TestCase
 {

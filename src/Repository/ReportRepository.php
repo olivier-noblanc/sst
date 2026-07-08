@@ -1,6 +1,14 @@
 <?php
 /** ReportRepository — Couche d'accès aux données pour les signalements. */
 
+namespace App\Repository;
+
+use App\DTO\CreateReportCommand;
+use App\DTO\ReportFilter;
+use App\DTO\UpdateReportCommand;
+use App\DTO\RespondToReportCommand;
+use PDO;
+
 class ReportRepository
 {
     public function __construct(private PDO $pdo) {}

@@ -1,6 +1,8 @@
 <?php
 /** UpdateReportCommand — DTO pour l'édition d'un signalement. */
 
+namespace App\DTO;
+
 class UpdateReportCommand
 {
     public function __construct(

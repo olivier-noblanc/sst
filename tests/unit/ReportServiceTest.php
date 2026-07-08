@@ -1,5 +1,9 @@
 <?php
 use PHPUnit\Framework\TestCase;
+use App\Services\ReportService;
+use App\Repository\ReportRepository;
+use App\Event\EventDispatcher;
+use App\DTO\CreateReportCommand;
 
 class ReportServiceTest extends TestCase
 {

@@ -1,5 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
+use App\Repository\ReportRepository;
+use App\DTO\CreateReportCommand;
 
 class ReportRepositoryTest extends TestCase
 {

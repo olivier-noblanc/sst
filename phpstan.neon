@@ -13,6 +13,3 @@ parameters:
         - tests/
     bootstrapFiles:
         - phpstan-bootstrap.php
-    scanDirectories:
-        - src/
-        - handlers/

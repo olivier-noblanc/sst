@@ -137,8 +137,6 @@ function getPageTitle(string $page): string
 // Router-based dispatch
 // ═══════════════════════════════════════════════════════════════════════════════
 
-require_once __DIR__ . '/Router/Router.php';
-
 /**
  * Dispatch a page request using the Router class.
  *

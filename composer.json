@@ -8,6 +8,9 @@
         "friendsofphp/php-cs-fixer": "^3.95"
     },
     "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        },
         "files": [
             "src/config.php",
             "src/helpers.php",

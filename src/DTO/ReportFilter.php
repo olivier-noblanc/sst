@@ -1,6 +1,8 @@
 <?php
 /** ReportFilter — DTO pour les filtres de recherche de signalements. */
 
+namespace App\DTO;
+
 class ReportFilter
 {
     public function __construct(

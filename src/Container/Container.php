@@ -1,6 +1,8 @@
 <?php
 /** Container — Simple DI Container. */
 
+namespace App\Container;
+
 class Container
 {
     private array $factories = [];

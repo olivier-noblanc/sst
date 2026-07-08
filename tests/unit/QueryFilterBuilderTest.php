@@ -1,5 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
+use App\Query\QueryFilterBuilder;
 
 class QueryFilterBuilderTest extends TestCase
 {

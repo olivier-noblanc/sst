@@ -1,5 +1,9 @@
 <?php
 use PHPUnit\Framework\TestCase;
+use App\DTO\CreateReportCommand;
+use App\DTO\ReportFilter;
+use App\DTO\UpdateReportCommand;
+use App\DTO\RespondToReportCommand;
 
 class DTOTest extends TestCase
 {

@@ -1,6 +1,8 @@
 <?php
 /** RespondToReportCommand — DTO pour la réponse à un signalement. */
 
+namespace App\DTO;
+
 class RespondToReportCommand
 {
     public function __construct(

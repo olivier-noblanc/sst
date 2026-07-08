@@ -10,7 +10,8 @@
 
 require_once __DIR__ . '/report_count_queries.php';
 require_once __DIR__ . '/report_response_queries.php';
-require_once __DIR__ . '/../helpers/query_filter_builder.php';
+
+use App\Query\QueryFilterBuilder;
 
 /** Base SELECT for report queries with site JOIN (excludes attachment_blob). */
 function reportSelectWithSite(): string

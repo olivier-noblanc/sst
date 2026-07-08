@@ -1,6 +1,8 @@
 <?php
 /** EventDispatcher — Découple action métier / notifications. */
 
+namespace App\Event;
+
 class EventDispatcher
 {
     private array $listeners = [];

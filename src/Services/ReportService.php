@@ -1,6 +1,15 @@
 <?php
 /** ReportService — Couche métier pour les signalements. */
 
+namespace App\Services;
+
+use App\Repository\ReportRepository;
+use App\Event\EventDispatcher;
+use App\DTO\CreateReportCommand;
+use App\DTO\UpdateReportCommand;
+use App\DTO\RespondToReportCommand;
+use PDO;
+
 class ReportService
 {
     public function __construct(

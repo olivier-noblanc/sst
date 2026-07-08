@@ -11,18 +11,9 @@ class RespondToReportCommand
 
     public static function fromPost(array $post): self
     {
-        $attachment = [];
-        if (!empty($_FILES['attachment']['name'])) {
-            $attachment = [
-                'blob' => file_get_contents($_FILES['attachment']['tmp_name']),
-                'name' => $_FILES['attachment']['name'],
-                'mime' => $_FILES['attachment']['type'],
-            ];
-        }
         return new self(
             reponse: trim($post['reponse'] ?? ''),
             nouvelEtat: $post['nouvel_etat'] ?? ETAT_EN_COURS,
-            attachment: $attachment,
         );
     }
 }

@@ -61,7 +61,7 @@ class ReportRepository
 
     public function update(string $uuid, UpdateReportCommand $cmd, int $userId): bool
     {
-        return updateReport($this->pdo, $uuid, $cmd->toArray(), $userId);
+        return updateReport($this->pdo, $uuid, $this->toSnakeCase($cmd->toArray()), $userId);
     }
 
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array

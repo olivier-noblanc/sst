@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.27.0] — 2026-07-08
+
+### Corrections
+
+- **1** 🔴 **Notifications mail robustes** — Les handlers ne crashent plus si une fonction de notification mail est indisponible ou génère une erreur PHP. Les blocs `try/catch` des notifications utilisent désormais `\Throwable` au lieu de `\Exception` pour attraper les erreurs PHP 7+ (`Error`, `TypeError`, etc.) en plus des exceptions classiques. Handlers concernés : `report_respond_handler.php`, `report_create_handler.php`, `report_abandon_handler.php`, `report_reopen_handler.php`, `user_edit_handler.php`.
+
+- **2** 🔴 **Réponse au signalement : filet de sécurité** — Ajout d'un `catch (\Exception)` de dernier recours dans `report_respond_handler.php` pour rediriger l'utilisateur avec un message d'erreur en cas d'exception inattendue, au lieu d'afficher une page blanche.
+
+- **3** 🟡 **Correction snake_case dans ReportRepository** — `ReportRepository::update()` convertit désormais les propriétés camelCase du DTO `UpdateReportCommand` en snake_case avant de les transmettre aux requêtes SQL, corrigeant un bug silencieux lors de la modification de signalements.
+
+
 ## [3.26.0] — 2026-07-07
 
 ### Nouvelles fonctionnalités

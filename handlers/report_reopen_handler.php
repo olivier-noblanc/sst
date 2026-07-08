@@ -121,7 +121,7 @@ try {
                 sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
             }
         }
-    } catch (Exception $mailEx) {
+    } catch (\Throwable $mailEx) {
         error_log('[SST-MAIL] Reopen notification error: ' . $mailEx->getMessage());
     }
 

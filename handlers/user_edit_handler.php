@@ -115,7 +115,7 @@ try {
         try {
             require_once __DIR__ . '/../src/mail.php';
             notifyRoleChange($pdo, $userId, $oldRole, $role);
-        } catch (Exception $mailEx) {
+        } catch (\Throwable $mailEx) {
             error_log('[SST-MAIL] Role change notification error: ' . $mailEx->getMessage());
         }
     }

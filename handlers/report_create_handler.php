@@ -110,7 +110,7 @@ try {
                 sendAgentInviteEmails($pdo, $report['uuid'], $linkedEmails);
             }
         }
-    } catch (Exception $mailEx) {
+    } catch (\Throwable $mailEx) {
         error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());
     }
 

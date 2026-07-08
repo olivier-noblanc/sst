@@ -53,7 +53,7 @@ try {
                     sendMail($email, $subject, $body);
                 }
             }
-        } catch (Exception $mailEx) {
+        } catch (\Throwable $mailEx) {
             error_log('[SST-MAIL] Abandon notification error: ' . $mailEx->getMessage());
         }
 

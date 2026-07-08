@@ -134,6 +134,66 @@ function getPageTitle(string $page): string
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Router-based dispatch
+// ═══════════════════════════════════════════════════════════════════════════════
+
+require_once __DIR__ . '/Router/Router.php';
+
+/**
+ * Dispatch a page request using the Router class.
+ *
+ * @param string $page    The validated page name
+ * @param string $method  HTTP method (GET or POST)
+ */
+function dispatchPage(string $page, string $method = 'GET'): void
+{
+    static $router = null;
+    if ($router === null) {
+        $router = new \App\Router\Router();
+
+        // GET-only pages
+        $router->addRoute('home', 'home', ['GET'], function () { renderPageWithLayout('home', $_GET['_token'] ?? ''); });
+        $router->addRoute('preamble', 'preamble', ['GET'], function () { renderPageWithLayout('preamble', $_GET['_token'] ?? ''); });
+        $router->addRoute('help', 'help', ['GET'], function () { renderPageWithLayout('help', $_GET['_token'] ?? ''); });
+        $router->addRoute('guide', 'guide', ['GET'], function () { renderPageWithLayout('guide', $_GET['_token'] ?? ''); });
+        $router->addRoute('changelog', 'changelog', ['GET'], function () { renderPageWithLayout('changelog', $_GET['_token'] ?? ''); });
+        $router->addRoute('access_denied', 'access_denied', ['GET'], function () { renderPageWithLayout('access_denied', $_GET['_token'] ?? ''); });
+        $router->addRoute('report_list', 'report_list', ['GET'], function () { renderPageWithLayout('report_list', $_GET['_token'] ?? ''); });
+        $router->addRoute('report_view', 'report_view', ['GET'], function () { renderPageWithLayout('report_view', $_GET['_token'] ?? ''); });
+        $router->addRoute('report_print', 'report_print', ['GET'], function () { renderStandalonePage(__DIR__ . '/../pages/report_print.php'); });
+        $router->addRoute('report_attachment', 'report_attachment', ['GET'], function () { renderStandalonePage(__DIR__ . '/../pages/report_attachment.php'); });
+        $router->addRoute('response_attachment', 'response_attachment', ['GET'], function () { renderStandalonePage(__DIR__ . '/../pages/response_attachment.php'); });
+        $router->addRoute('report_abandon', 'report_abandon', ['GET'], function () { renderPageWithLayout('report_abandon', $_GET['_token'] ?? ''); });
+        $router->addRoute('report_reopen', 'report_reopen', ['GET'], function () { renderPageWithLayout('report_reopen', $_GET['_token'] ?? ''); });
+        $router->addRoute('synthesis', 'synthesis', ['GET'], function () { renderPageWithLayout('synthesis', $_GET['_token'] ?? ''); });
+        $router->addRoute('statistics', 'statistics', ['GET'], function () { renderPageWithLayout('statistics', $_GET['_token'] ?? ''); });
+        $router->addRoute('users', 'users', ['GET'], function () { renderPageWithLayout('users', $_GET['_token'] ?? ''); });
+        $router->addRoute('user_view', 'user_view', ['GET'], function () { renderPageWithLayout('user_view', $_GET['_token'] ?? ''); });
+        $router->addRoute('logs', 'logs', ['GET'], function () { renderPageWithLayout('logs', $_GET['_token'] ?? ''); });
+        $router->addRoute('logout', 'logout', ['GET'], function () { /* handled in index.php */ });
+
+        // GET + POST pages
+        $router->addRoute('choose_site', 'choose_site', ['GET', 'POST'], function () { renderPageWithLayout('choose_site', $_GET['_token'] ?? ''); });
+        $router->addRoute('report_create', 'report_create', ['GET', 'POST'], function () { renderPageWithLayout('report_create', $_GET['_token'] ?? ''); });
+        $router->addRoute('report_edit', 'report_edit', ['GET', 'POST'], function () { renderPageWithLayout('report_edit', $_GET['_token'] ?? ''); });
+        $router->addRoute('report_respond', 'report_respond', ['GET', 'POST'], function () { renderPageWithLayout('report_respond', $_GET['_token'] ?? ''); });
+        $router->addRoute('agent_confirm', 'agent_confirm', ['GET', 'POST'], function () { renderPageWithLayout('agent_confirm', $_GET['_token'] ?? ''); });
+        $router->addRoute('export', 'export', ['GET', 'POST'], function () { renderPageWithLayout('export', $_GET['_token'] ?? ''); });
+        $router->addRoute('settings', 'settings', ['GET', 'POST'], function () { renderPageWithLayout('settings', $_GET['_token'] ?? ''); });
+        $router->addRoute('site_edit', 'site_edit', ['GET', 'POST'], function () { renderPageWithLayout('site_edit', $_GET['_token'] ?? ''); });
+        $router->addRoute('user_edit', 'user_edit', ['GET', 'POST'], function () { renderPageWithLayout('user_edit', $_GET['_token'] ?? ''); });
+        $router->addRoute('impersonate', 'impersonate', ['GET', 'POST'], function () { renderPageWithLayout('impersonate', $_GET['_token'] ?? ''); });
+    }
+
+    $match = $router->match($method, $page);
+    if ($match) {
+        ($match['handler'])();
+    } else {
+        redirect(url('home'));
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // Page rendering
 // ═══════════════════════════════════════════════════════════════════════════════
 

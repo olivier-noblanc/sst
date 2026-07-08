@@ -180,4 +180,4 @@ if ($page === 'report_print') {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 $page = validatePage($page);
-renderPageWithLayout($page, $csrfToken);
+dispatchPage($page, $_SERVER['REQUEST_METHOD']);

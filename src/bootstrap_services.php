@@ -3,7 +3,10 @@
 
 use App\Container\Container;
 use App\Repository\ReportRepository;
+use App\Repository\UserRepository;
 use App\Services\ReportService;
+use App\Services\UserService;
+use App\Services\AuthService;
 use App\Event\EventDispatcher;
 
 function createContainer(): Container
@@ -12,11 +15,18 @@ function createContainer(): Container
 
     $container->set(PDO::class, fn() => getDB());
     $container->set(EventDispatcher::class, fn() => new EventDispatcher());
+
+    // Repositories
     $container->set(ReportRepository::class, fn($c) => new ReportRepository($c->get(PDO::class)));
+    $container->set(UserRepository::class, fn($c) => new UserRepository($c->get(PDO::class)));
+
+    // Services
     $container->set(ReportService::class, fn($c) => new ReportService(
         $c->get(ReportRepository::class),
         $c->get(EventDispatcher::class)
     ));
+    $container->set(UserService::class, fn($c) => new UserService($c->get(UserRepository::class)));
+    $container->set(AuthService::class, fn($c) => new AuthService($c->get(UserRepository::class)));
 
     return $container;
 }

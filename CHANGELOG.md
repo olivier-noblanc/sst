@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.30.0] — 2026-07-08
+
+### Améliorations
+
+- **1** 🔴 **UserService + UserRepository** — Nouvelles classes OOP pour la gestion des utilisateurs. `App\Repository\UserRepository` encapsule toutes les requêtes DB (CRUD, queries, GDPR). `App\Services\UserService` contient la logique métier (validation, guards dernier superviseur, transactions). Les 4 handlers user (`user_create`, `user_edit`, `user_delete`, `user_reactivate`) utilisent désormais le service au lieu d'appels directs aux fonctions query.
+
+- **2** 🔴 **AuthService** — Nouvelle classe `App\Services\AuthService` pour l'authentification. Encapsule l'authentification IIS, le mock login dev, l'auto-provisioning, la détection de rôle, et l'auto-promotion superviseur. Les DTOs `CreateUserCommand` et `UpdateUserCommand` structurent les données d'entrée.
+
+- **3** 🟡 **DI Container étendu** — Le Container gère désormais 6 services : ReportRepository, UserRepository, ReportService, UserService, AuthService, EventDispatcher.
+
+
 ## [3.29.0] — 2026-07-08
 
 ### Améliorations

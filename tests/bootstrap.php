@@ -99,6 +99,8 @@ require_once __DIR__ . '/../src/config.php';   // Constants: ROLE_*, ETAT_*, TYP
 require_once __DIR__ . '/../src/session.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/helpers/query_filter_builder.php';
+require_once __DIR__ . '/../src/helpers/registry_card_renderer.php';
+require_once __DIR__ . '/../src/mail/email_renderer.php';
 require_once __DIR__ . '/../src/queries/user_queries.php';
 require_once __DIR__ . '/../src/queries/site_queries.php';
 require_once __DIR__ . '/../src/queries/report_queries.php';
@@ -115,3 +117,13 @@ require_once __DIR__ . '/../src/Services/ReportService.php';
 require_once __DIR__ . '/../src/Container/Container.php';
 require_once __DIR__ . '/../src/Router/Attribute/Route.php';
 require_once __DIR__ . '/../src/Router/Router.php';
+
+// Register services in the DI Container for tests
+$container = new Container();
+$container->set('db', fn() => getDB());
+$container->set(ReportRepository::class, fn($c) => new ReportRepository($c->get('db')));
+$container->set(EventDispatcher::class, fn() => new EventDispatcher());
+$container->set(ReportService::class, fn($c) => new ReportService(
+    $c->get(ReportRepository::class),
+    $c->get(EventDispatcher::class)
+));

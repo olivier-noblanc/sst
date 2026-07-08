@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.32.0] — 2026-07-08
+
+### Améliorations
+
+- **1** 🔴 **Middleware Pipeline** — Intégration des middlewares (CsrfMiddleware, RoleMiddleware, AuthMiddleware) dans le Router. Le CSRF et la vérification de rôle sont désormais appliqués automatiquement par le Router avant l'exécution de chaque handler POST. Les 14 handlers n'appellent plus `validatePostRequest()` — c'est le Router qui gère la sécurité. Le Pipeline pattern permet d'empiler les middlewares par handler.
+
+- **2** 🔴 **EventDispatcher sur tous les services** — UserService et AuthService dispatchent désormais des événements (user.created, user.updated, user.deactivated, user.reactivated, user.role_changed, user.provisioned, user.promoted). Le EventDispatcher est wiré dans le DI Container pour les 6 services.
+
+- **3** 🟡 **Fix missing <?php tags** — Les 3 fichiers middleware créés par le subagent n'avaient pas de tag `<?php` d'ouverture, causant 46 erreurs d'autoloading en PHP 8.4 (et erreurs fatales en PHP 9).
+
+
 ## [3.31.0] — 2026-07-08
 
 ### Améliorations

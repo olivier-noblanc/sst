@@ -95,8 +95,10 @@ function getDB(): PDO {
 }
 
 // Load application source files
+require_once __DIR__ . '/../src/config.php';   // Constants: ROLE_*, ETAT_*, TYPE_*, DB_PATH, etc.
 require_once __DIR__ . '/../src/session.php';
 require_once __DIR__ . '/../src/helpers.php';
+require_once __DIR__ . '/../src/helpers/query_filter_builder.php';
 require_once __DIR__ . '/../src/queries/user_queries.php';
 require_once __DIR__ . '/../src/queries/site_queries.php';
 require_once __DIR__ . '/../src/queries/report_queries.php';

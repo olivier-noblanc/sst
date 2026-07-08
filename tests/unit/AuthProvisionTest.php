@@ -124,17 +124,17 @@ class AuthProvisionTest extends TestCase
     public function testCheckAndPromoteUpdatesDatabase(): void
     {
         $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-        createUser($this->pdo, [
+        $userId = createUser($this->pdo, [
             'nom' => 'Martin', 'prenom' => 'Jean', 'username' => 'jean.martin',
             'role' => 'agent', 'site_id' => $siteId, 'email' => '',
         ]);
         updateConfig($this->pdo, 'app_superviseur_usernames', 'jean.martin');
         clearConfigCache();
-        $user = ['id' => 1, 'role' => 'agent'];
+        $user = ['id' => $userId, 'role' => 'agent'];
         $result = checkAndPromoteUser($this->pdo, $user, 'jean.martin');
         $this->assertEquals('superviseur', $result['role']);
         $stmt = $this->pdo->prepare('SELECT role FROM users WHERE id = :id');
-        $stmt->execute([':id' => 1]);
+        $stmt->execute([':id' => $userId]);
         $dbRole = $stmt->fetchColumn();
         $this->assertEquals('superviseur', $dbRole);
     }

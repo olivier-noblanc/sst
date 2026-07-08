@@ -115,15 +115,6 @@ require_once __DIR__ . '/../src/Repository/ReportRepository.php';
 require_once __DIR__ . '/../src/Event/EventDispatcher.php';
 require_once __DIR__ . '/../src/Services/ReportService.php';
 require_once __DIR__ . '/../src/Container/Container.php';
+require_once __DIR__ . '/../src/bootstrap_services.php';
 require_once __DIR__ . '/../src/Router/Attribute/Route.php';
 require_once __DIR__ . '/../src/Router/Router.php';
-
-// Register services in the DI Container for tests
-$container = new Container();
-$container->set('db', fn() => getDB());
-$container->set(ReportRepository::class, fn($c) => new ReportRepository($c->get('db')));
-$container->set(EventDispatcher::class, fn() => new EventDispatcher());
-$container->set(ReportService::class, fn($c) => new ReportService(
-    $c->get(ReportRepository::class),
-    $c->get(EventDispatcher::class)
-));

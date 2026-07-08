@@ -7,9 +7,11 @@
  */
 
 require_once __DIR__ . '/../src/DTO/CreateReportCommand.php';
+require_once __DIR__ . '/../src/Container/Container.php';
 require_once __DIR__ . '/../src/Repository/ReportRepository.php';
 require_once __DIR__ . '/../src/Event/EventDispatcher.php';
 require_once __DIR__ . '/../src/Services/ReportService.php';
+require_once __DIR__ . '/../src/bootstrap_services.php';
 
 validatePostRequest(url('home'));
 
@@ -88,7 +90,7 @@ try {
         'attachmentMime' => $attachment['mime'],
     ]));
 
-    $service = new ReportService(new ReportRepository($pdo), new EventDispatcher());
+    $service = getContainer()->get(ReportService::class);
     $report = $service->create($cmd);
 
     // Audit log

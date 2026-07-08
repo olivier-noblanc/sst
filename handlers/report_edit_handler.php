@@ -7,9 +7,11 @@
  */
 
 require_once __DIR__ . '/../src/DTO/UpdateReportCommand.php';
+require_once __DIR__ . '/../src/Container/Container.php';
 require_once __DIR__ . '/../src/Repository/ReportRepository.php';
 require_once __DIR__ . '/../src/Event/EventDispatcher.php';
 require_once __DIR__ . '/../src/Services/ReportService.php';
+require_once __DIR__ . '/../src/bootstrap_services.php';
 
 validatePostRequest(url('home'));
 
@@ -73,7 +75,7 @@ try {
         ]));
     }
 
-    $service = new ReportService(new ReportRepository(getDB()), new EventDispatcher());
+    $service = getContainer()->get(ReportService::class);
     $updated = $service->update($reportUuid, $cmd, $userId);
 
     // Handle linked agents — send new invite emails for newly added addresses

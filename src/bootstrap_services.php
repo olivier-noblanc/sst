@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use App\Services\ReportService;
 use App\Services\UserService;
 use App\Services\AuthService;
+use App\Services\SessionManager;
 use App\Event\EventDispatcher;
 
 function createContainer(): Container
@@ -27,6 +28,7 @@ function createContainer(): Container
     ));
     $container->set(UserService::class, fn($c) => new UserService($c->get(UserRepository::class)));
     $container->set(AuthService::class, fn($c) => new AuthService($c->get(UserRepository::class)));
+    $container->set(SessionManager::class, fn() => new SessionManager());
 
     return $container;
 }

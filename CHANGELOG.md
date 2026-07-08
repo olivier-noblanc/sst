@@ -3,6 +3,21 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.31.0] — 2026-07-08
+
+### Améliorations
+
+- **1** 🔴 **SessionManager** — Nouvelle classe `App\Services\SessionManager` encapsulant toute la logique session (démarrage, CSRF, flash messages, données formulaire, impersonation, intended URL). Backward-compatible via délégation aux fonctions globales existantes.
+
+- **2** 🔴 **NotificationService** — Nouvelle classe `App\Services\NotificationService` regroupant les 6 fonctions de notification email (nouveau signalement, réponse, abandon, réouverture, changement de rôle, notifications retard). Extrait de `mail_notifications.php`.
+
+- **3** 🔴 **BackupService** — Nouvelle classe `App\Services\BackupService` encapsulant la logique de backup SQLite (fingerprint, vérification, VACUUM INTO, rotation). Extrait de `backup.php`.
+
+- **4** 🟡 **Pipeline Middleware** — Nouvelle classe `App\Middleware\Pipeline` implémentant le pattern chain-of-responsibility pour les middlewares. Prête à remplacer les guards procéduraux.
+
+- **5** 🟡 **Fix warnings PHP 9** — Ajout de guards `defined()` sur les 10 constantes `config.php` qui étaient redéfinies par `tests/bootstrap.php`. Suppression de 12 warnings PHP 8.x (qui deviendraient des erreurs fatales en PHP 9).
+
+
 ## [3.30.0] — 2026-07-08
 
 ### Améliorations

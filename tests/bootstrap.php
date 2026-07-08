@@ -108,3 +108,4 @@ require_once __DIR__ . '/../src/DTO/CreateReportCommand.php';
 require_once __DIR__ . '/../src/DTO/ReportFilter.php';
 require_once __DIR__ . '/../src/DTO/UpdateReportCommand.php';
 require_once __DIR__ . '/../src/DTO/RespondToReportCommand.php';
+require_once __DIR__ . '/../src/Repository/ReportRepository.php';

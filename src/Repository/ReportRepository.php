@@ -88,4 +88,6 @@ class ReportRepository
     {
         return getExportData($this->pdo, $filters);
     }
+
+    public function getPdo(): PDO { return $this->pdo; }
 }

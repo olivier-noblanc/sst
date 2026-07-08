@@ -108,5 +108,7 @@ require_once __DIR__ . '/../src/DTO/CreateReportCommand.php';
 require_once __DIR__ . '/../src/DTO/ReportFilter.php';
 require_once __DIR__ . '/../src/DTO/UpdateReportCommand.php';
 require_once __DIR__ . '/../src/DTO/RespondToReportCommand.php';
+require_once __DIR__ . '/../src/validation.php';
 require_once __DIR__ . '/../src/Repository/ReportRepository.php';
 require_once __DIR__ . '/../src/Event/EventDispatcher.php';
+require_once __DIR__ . '/../src/Services/ReportService.php';

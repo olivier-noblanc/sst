@@ -33,3 +33,13 @@ function renderBreadcrumb(array $items): string
     $html .= '</nav>';
     return $html;
 }
+
+/**
+ * Render a template with variables.
+ * @param array<string, mixed> $data  Variables available in the template
+ */
+function render(string $template, array $data = []): void
+{
+    extract($data);
+    require __DIR__ . '/../../templates/' . $template . '.php';
+}

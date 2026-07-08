@@ -108,3 +108,5 @@ require_once __DIR__ . '/../src/queries/user_admin_queries.php';
 require_once __DIR__ . '/../src/user_context.php';
 require_once __DIR__ . '/../src/validation.php';
 require_once __DIR__ . '/../src/bootstrap_services.php';
+require_once __DIR__ . '/../src/router.php';
+require_once __DIR__ . '/../src/Router/routes.php';

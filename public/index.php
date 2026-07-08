@@ -92,8 +92,9 @@ require_once __DIR__ . '/../src/middleware/bootstrap.php';
 // Load auth flow (auto-auth, login, logout)
 require_once __DIR__ . '/../src/auth_flow.php';
 
-// Load router (page whitelist, handler dispatch, titles)
+// Load router (page rendering) and routes
 require_once __DIR__ . '/../src/router.php';
+require_once __DIR__ . '/../src/Router/routes.php';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Session & Authentication
@@ -144,40 +145,20 @@ if ($page === 'choose_site') {
 checkUserSiteAssignment();
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// POST handler dispatch
+// Route dispatch (unified Router)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+$router = getRouter();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (dispatchPostHandler($page)) {
+    if ($router->dispatchPost($page)) {
         exit;
     }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// Logout
-// ═══════════════════════════════════════════════════════════════════════════════
 
 if ($page === 'logout') {
     handleLogout();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Special pages (no standard layout)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-if ($page === 'report_attachment') {
-    renderStandalonePage(__DIR__ . '/../pages/report_attachment.php');
-    exit;
-}
-
-if ($page === 'report_print') {
-    renderStandalonePage(__DIR__ . '/../pages/report_print.php');
-    exit;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// Render page with layout
-// ═══════════════════════════════════════════════════════════════════════════════
-
-$page = validatePage($page);
-dispatchPage($page, $_SERVER['REQUEST_METHOD']);
+$page = $router->validatePage($page);
+$router->dispatchGet($page);

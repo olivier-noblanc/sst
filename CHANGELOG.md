@@ -3,6 +3,13 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.29.0] — 2026-07-08
+
+### Améliorations
+
+- **1** 🔴 **Routage unifié** — Suppression de la dualité routage procédural / class-based. Le `App\Router\Router` est désormais l'unique point d'entrée pour tout le dispatch (GET pages + POST handlers). Les fonctions procédurales `getHandlerMap()`, `dispatchPostHandler()`, `dispatchPage()`, `validatePage()`, `getPageTitle()`, `getValidPages()` ont été déplacées dans le Router class. `src/router.php` ne contient plus que les fonctions de rendu (`renderPageWithLayout()`, `renderStandalonePage()`). Nouveau fichier `src/Router/routes.php` centralise toutes les définitions de routes.
+
+
 ## [3.28.0] — 2026-07-08
 
 ### Améliorations

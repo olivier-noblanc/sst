@@ -12,8 +12,6 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\CreateUserCommand;
 use App\Services\UserService;
 
-validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
-
 $service = getContainer()->get(UserService::class);
 $cmd = CreateUserCommand::fromPost($_POST);
 

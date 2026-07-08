@@ -11,8 +11,6 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 use App\Services\UserService;
 
-validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
-
 $userId = (int) ($_POST['user_id'] ?? 0);
 
 if ($userId <= 0) {

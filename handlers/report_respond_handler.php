@@ -11,8 +11,6 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\RespondToReportCommand;
 use App\Services\ReportService;
 
-validatePostRequest(url('home'), [ROLE_SUPERVISEUR]);
-
 $reportUuid = trim($_POST['report_uuid'] ?? '');
 
 // Validate nouvel_etat

@@ -14,8 +14,6 @@
  * ~120 lines of duplicated socket code.
  */
 
-validatePostRequest(url('settings', ['tab' => 'smtp']), [ROLE_SUPERVISEUR]);
-
 // ── Parameters ────────────────────────────────────────────────────────────────
 
 $to = trim($_POST['smtp_test_to'] ?? '');

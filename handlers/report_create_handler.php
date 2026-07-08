@@ -11,8 +11,6 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\CreateReportCommand;
 use App\Services\ReportService;
 
-validatePostRequest(url('home'));
-
 // Pre-validation: type and registry enabled
 $type = $_POST['type'] ?? '';
 if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {

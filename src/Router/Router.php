@@ -5,6 +5,7 @@ class Router
 {
     private array $routes = [];
     private array $postHandlers = [];
+    private array $postMiddlewares = [];
     private array $pageTitles = [];
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -19,6 +20,11 @@ class Router
     public function addPostHandler(string $name, string $handlerFile): void
     {
         $this->postHandlers[$name] = $handlerFile;
+    }
+
+    public function setPostMiddleware(string $name, array $middlewares): void
+    {
+        $this->postMiddlewares[$name] = $middlewares;
     }
 
     public function setPageTitle(string $name, string $title): void
@@ -48,14 +54,31 @@ class Router
 
     /**
      * Dispatch a POST request to the appropriate handler file.
+     * Applies configured middlewares before the handler.
      */
     public function dispatchPost(string $page): bool
     {
-        if (isset($this->postHandlers[$page])) {
-            require $this->postHandlers[$page];
-            return true;
+        if (!isset($this->postHandlers[$page])) {
+            return false;
         }
-        return false;
+
+        $middlewares = $this->postMiddlewares[$page] ?? [];
+        $handlerFile = $this->postHandlers[$page];
+
+        $handler = function () use ($handlerFile) {
+            require $handlerFile;
+        };
+
+        // Apply middlewares in reverse order (innermost first)
+        foreach (array_reverse($middlewares) as $middleware) {
+            $next = $handler;
+            $handler = function () use ($middleware, $next) {
+                $middleware($next);
+            };
+        }
+
+        $handler();
+        return true;
     }
 
     /**

@@ -11,8 +11,6 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\UpdateReportCommand;
 use App\Services\ReportService;
 
-validatePostRequest(url('home'));
-
 // Fetch report
 $reportUuid = trim($_POST['report_uuid'] ?? '');
 $report = fetchReportOrRedirect($reportUuid);

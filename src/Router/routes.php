@@ -7,6 +7,8 @@
  */
 
 use App\Router\Router;
+use App\Middleware\CsrfMiddleware;
+use App\Middleware\RoleMiddleware;
 
 function createRouter(): Router
 {
@@ -32,6 +34,25 @@ function createRouter(): Router
     $router->addPostHandler('user_reactivate', "$handlers/user_reactivate_handler.php");
     $router->addPostHandler('impersonate',     "$handlers/impersonate_handler.php");
     $router->addPostHandler('agent_confirm',   "$handlers/agent_confirm_handler.php");
+
+    // CSRF middleware for all POST handlers
+    $csrf = new CsrfMiddleware();
+    $allHandlers = array_keys($router->getHandlerMap());
+    foreach ($allHandlers as $name) {
+        $router->setPostMiddleware($name, [$csrf]);
+    }
+
+    // Role-based middlewares (override CSRF-only for specific handlers)
+    $superviseur = new RoleMiddleware([ROLE_SUPERVISEUR]);
+    $router->setPostMiddleware('export',          [$csrf, $superviseur]);
+    $router->setPostMiddleware('settings',        [$csrf, $superviseur]);
+    $router->setPostMiddleware('site_edit',       [$csrf, $superviseur]);
+    $router->setPostMiddleware('smtp_test',       [$csrf, $superviseur]);
+    $router->setPostMiddleware('user_edit',       [$csrf, $superviseur]);
+    $router->setPostMiddleware('user_create',     [$csrf, $superviseur]);
+    $router->setPostMiddleware('user_delete',     [$csrf, $superviseur]);
+    $router->setPostMiddleware('user_reactivate', [$csrf, $superviseur]);
+    $router->setPostMiddleware('report_respond',  [$csrf, $superviseur]);
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // GET pages (with standard layout)

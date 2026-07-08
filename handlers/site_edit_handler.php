@@ -7,8 +7,6 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('settings', ['tab' => 'manage_sites']), [ROLE_SUPERVISEUR]);
-
 $siteId = (int) ($_POST['site_id'] ?? 0);
 
 if ($siteId <= 0) {

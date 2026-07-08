@@ -10,8 +10,6 @@
 require_once __DIR__ . '/settings_handler_app.php';
 require_once __DIR__ . '/settings_handler_sites.php';
 
-validatePostRequest(url('settings'), [ROLE_SUPERVISEUR]);
-
 $pdo = getDB();
 $tab = $_POST['tab'] ?? 'sites';
 

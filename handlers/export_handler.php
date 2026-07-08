@@ -10,8 +10,6 @@
  * quotes, and newlines inside fields). Exports multi-response history.
  */
 
-validatePostRequest(url('export'), [ROLE_SUPERVISEUR]);
-
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
 

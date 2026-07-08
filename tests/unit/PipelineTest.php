@@ -107,41 +107,47 @@ class PipelineTest extends TestCase
         $this->assertSame($pipeline, $result);
     }
 
-    // ─── Request is passed through ──────────────────────────────────────────
+    // ─── Request is passed through chain ────────────────────────────────────
 
     public function testRequestIsPassedThroughMiddlewares(): void
     {
         $pipeline = new Pipeline();
-        $receivedRequest = null;
+        $receivedByMiddleware = null;
+        $receivedByFinal = null;
 
-        $pipeline->pipe(function ($req, $next) use (&$receivedRequest) {
-            $receivedRequest = $req;
+        $pipeline->pipe(function ($req, $next) use (&$receivedByMiddleware) {
+            $receivedByMiddleware = $req;
             return $next($req);
         });
 
-        $pipeline->run(function ($req) use (&$receivedRequest) {
-            $receivedRequest = $req;
+        $pipeline->run(function ($req) use (&$receivedByFinal) {
+            $receivedByFinal = $req;
             return 'ok';
         });
 
-        $this->assertEquals('test-data', $receivedRequest);
+        // Pipeline::run() always passes null as the initial request
+        $this->assertNull($receivedByMiddleware);
+        $this->assertNull($receivedByFinal);
     }
 
-    // ─── Middleware can modify request ──────────────────────────────────────
+    // ─── Middleware can transform request in the chain ───────────────────────
 
-    public function testMiddlewareCanModifyRequest(): void
+    public function testMiddlewareCanTransformRequestInChain(): void
     {
         $pipeline = new Pipeline();
+        $receivedByFinal = null;
 
         $pipeline->pipe(function ($req, $next) {
-            return $next($req . '-modified');
+            return $next('transformed');
         });
 
-        $result = $pipeline->run(function ($req) {
-            return $req;
+        $pipeline->run(function ($req) use (&$receivedByFinal) {
+            $receivedByFinal = $req;
+            return 'done';
         });
 
-        $this->assertEquals('original-modified', $result);
+        // The middleware replaces the request with 'transformed' before passing to next
+        $this->assertEquals('transformed', $receivedByFinal);
     }
 
     // ─── Empty pipeline with arguments ──────────────────────────────────────

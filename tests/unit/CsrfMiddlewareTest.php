@@ -12,10 +12,9 @@ class CsrfMiddlewareTest extends TestCase
         $this->middleware = new CsrfMiddleware();
         $this->nextCalled = false;
 
-        // Reset superglobals
         $_POST = [];
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        unset($_SESSION);
+        $_SESSION = [];
         $GLOBALS['_PHP_REDIRECT'] = null;
     }
 
@@ -24,23 +23,29 @@ class CsrfMiddlewareTest extends TestCase
         $this->nextCalled = true;
     }
 
+    private function runMiddleware(array $config): array
+    {
+        $tmpFile = tempnam(sys_get_temp_dir(), 'csrf_test_');
+        file_put_contents($tmpFile, json_encode($config));
+        $cmd = 'php ' . escapeshellarg(__DIR__ . '/../middleware_runner.php') . ' ' . escapeshellarg($tmpFile) . ' 2>NUL';
+        exec($cmd, $output, $exitCode);
+        unlink($tmpFile);
+        return json_decode(implode('', $output), true) ?? ['error' => 'No output'];
+    }
+
     // ─── GET requests ───────────────────────────────────────────────────────
 
     public function testGetRequestSkipsCsrfCheck(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
-
         $this->middleware->__invoke(fn() => $this->callNext());
-
         $this->assertTrue($this->nextCalled);
     }
 
     public function testGetRequestDoesNotRedirect(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
-
         $this->middleware->__invoke(fn() => $this->callNext());
-
         $this->assertNull($GLOBALS['_PHP_REDIRECT']);
     }
 
@@ -48,92 +53,88 @@ class CsrfMiddlewareTest extends TestCase
 
     public function testPostWithValidTokenProceeds(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
         $token = 'valid-token-123';
-        $_SESSION['csrf_tokens'][$token] = true;
-        $_POST['csrf_token'] = $token;
+        $result = $this->runMiddleware([
+            'middleware' => 'CsrfMiddleware',
+            'session' => ['csrf_tokens' => [$token => time()]],
+            'post' => ['csrf_token' => $token],
+            'server' => ['REQUEST_METHOD' => 'POST'],
+        ]);
 
-        $this->middleware->__invoke(fn() => $this->callNext());
-
-        $this->assertTrue($this->nextCalled);
+        $this->assertTrue($result['next_called']);
+        $this->assertNull($result['redirect']);
     }
 
     public function testPostWithValidTokenConsumesToken(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        // Test token consumption within a single subprocess by running
+        // the middleware twice in sequence via a pipeline
         $token = 'single-use-token';
-        $_SESSION['csrf_tokens'][$token] = true;
-        $_POST['csrf_token'] = $token;
+        $result = $this->runMiddleware([
+            'middleware' => 'CsrfMiddleware',
+            'args' => [],
+            'session' => ['csrf_tokens' => [$token => time()]],
+            'post' => ['csrf_token' => $token],
+            'server' => ['REQUEST_METHOD' => 'POST'],
+            'run_twice' => true,
+        ]);
 
-        $this->middleware->__invoke(fn() => $this->callNext());
-
-        // Token should be consumed (removed from session)
-        $this->assertArrayNotHasKey($token, $_SESSION['csrf_tokens']);
+        // First call should succeed, second should fail (token consumed)
+        $this->assertTrue($result['first_called']);
+        $this->assertFalse($result['second_called']);
     }
 
     // ─── POST with invalid CSRF token ──────────────────────────────────────
 
     public function testPostWithInvalidTokenRedirects(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST['csrf_token'] = 'bad-token';
-        $_SESSION['csrf_tokens'] = [];
+        $result = $this->runMiddleware([
+            'middleware' => 'CsrfMiddleware',
+            'session' => ['csrf_tokens' => []],
+            'post' => ['csrf_token' => 'bad-token'],
+            'server' => ['REQUEST_METHOD' => 'POST'],
+        ]);
 
-        $this->expectException(\Exception::class);
-
-        $this->middleware->__invoke(fn() => $this->callNext());
+        $this->assertFalse($result['next_called']);
+        $this->assertNotNull($result['redirect']);
     }
 
     public function testPostWithEmptyTokenRedirects(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST['csrf_token'] = '';
-        $_SESSION['csrf_tokens'] = [];
+        $result = $this->runMiddleware([
+            'middleware' => 'CsrfMiddleware',
+            'session' => ['csrf_tokens' => []],
+            'post' => ['csrf_token' => ''],
+            'server' => ['REQUEST_METHOD' => 'POST'],
+        ]);
 
-        $this->expectException(\Exception::class);
-
-        $this->middleware->__invoke(fn() => $this->callNext());
+        $this->assertFalse($result['next_called']);
+        $this->assertNotNull($result['redirect']);
     }
 
     public function testPostWithMissingTokenRedirects(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        unset($_POST['csrf_token']);
-        $_SESSION['csrf_tokens'] = [];
+        $result = $this->runMiddleware([
+            'middleware' => 'CsrfMiddleware',
+            'session' => ['csrf_tokens' => []],
+            'post' => [],
+            'server' => ['REQUEST_METHOD' => 'POST'],
+        ]);
 
-        $this->expectException(\Exception::class);
-
-        $this->middleware->__invoke(fn() => $this->callNext());
-    }
-
-    public function testPostWithInvalidTokenDoesNotCallNext(): void
-    {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST['csrf_token'] = 'wrong';
-        $_SESSION['csrf_tokens'] = [];
-
-        try {
-            $this->middleware->__invoke(fn() => $this->callNext());
-        } catch (\Exception $e) {
-            // redirect() calls exit, which throws in test
-        }
-
-        $this->assertFalse($this->nextCalled);
+        $this->assertFalse($result['next_called']);
+        $this->assertNotNull($result['redirect']);
     }
 
     public function testPostWithInvalidTokenSetsFlashError(): void
     {
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        $_POST['csrf_token'] = 'invalid';
-        $_SESSION['csrf_tokens'] = [];
+        $result = $this->runMiddleware([
+            'middleware' => 'CsrfMiddleware',
+            'session' => ['csrf_tokens' => []],
+            'post' => ['csrf_token' => 'invalid'],
+            'server' => ['REQUEST_METHOD' => 'POST'],
+        ]);
 
-        try {
-            $this->middleware->__invoke(fn() => $this->callNext());
-        } catch (\Exception $e) {
-            // redirect() calls exit
-        }
-
-        $this->assertEquals('error', $_SESSION['flash']['type']);
-        $this->assertEquals('Erreur de sécurité.', $_SESSION['flash']['message']);
+        $this->assertEquals('error', $result['flash']['type']);
+        $this->assertEquals('Erreur de sécurité.', $result['flash']['message']);
     }
 }

@@ -9,9 +9,7 @@ class RoleMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         $this->nextCalled = false;
-
-        // Reset session and globals
-        unset($_SESSION);
+        $_SESSION = [];
         $GLOBALS['_PHP_REDIRECT'] = null;
     }
 
@@ -20,115 +18,125 @@ class RoleMiddlewareTest extends TestCase
         $this->nextCalled = true;
     }
 
-    private function setUserRole(string $role): void
+    private function runMiddleware(array $config): array
     {
-        $_SESSION['user'] = ['role' => $role];
+        $tmpFile = tempnam(sys_get_temp_dir(), 'role_test_');
+        file_put_contents($tmpFile, json_encode($config));
+        $cmd = 'php ' . escapeshellarg(__DIR__ . '/../middleware_runner.php') . ' ' . escapeshellarg($tmpFile) . ' 2>NUL';
+        exec($cmd, $output, $exitCode);
+        unlink($tmpFile);
+        return json_decode(implode('', $output), true) ?? ['error' => 'No output'];
     }
 
     // ─── User has matching role ─────────────────────────────────────────────
 
     public function testUserWithMatchingRoleProceeds(): void
     {
-        $this->setUserRole('superviseur');
-        $middleware = new RoleMiddleware(['superviseur']);
+        $result = $this->runMiddleware([
+            'middleware' => 'RoleMiddleware',
+            'args' => [['superviseur']],
+            'session' => ['user' => ['role' => 'superviseur']],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+        ]);
 
-        $middleware->__invoke(fn() => $this->callNext());
-
-        $this->assertTrue($this->nextCalled);
+        $this->assertTrue($result['next_called']);
+        $this->assertNull($result['redirect']);
     }
 
     public function testUserWithOneOfMultipleRolesProceeds(): void
     {
-        $this->setUserRole('chsct');
-        $middleware = new RoleMiddleware(['superviseur', 'chsct']);
+        $result = $this->runMiddleware([
+            'middleware' => 'RoleMiddleware',
+            'args' => [['superviseur', 'chsct']],
+            'session' => ['user' => ['role' => 'chsct']],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+        ]);
 
-        $middleware->__invoke(fn() => $this->callNext());
-
-        $this->assertTrue($this->nextCalled);
+        $this->assertTrue($result['next_called']);
+        $this->assertNull($result['redirect']);
     }
 
     public function testUserWithFirstRoleInListProceeds(): void
     {
-        $this->setUserRole('agent');
-        $middleware = new RoleMiddleware(['agent', 'superviseur']);
+        $result = $this->runMiddleware([
+            'middleware' => 'RoleMiddleware',
+            'args' => [['agent', 'superviseur']],
+            'session' => ['user' => ['role' => 'agent']],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+        ]);
 
-        $middleware->__invoke(fn() => $this->callNext());
-
-        $this->assertTrue($this->nextCalled);
+        $this->assertTrue($result['next_called']);
+        $this->assertNull($result['redirect']);
     }
 
     // ─── User does NOT have matching role ───────────────────────────────────
 
     public function testUserWithWrongRoleRedirects(): void
     {
-        $this->setUserRole('agent');
-        $middleware = new RoleMiddleware(['superviseur']);
+        $result = $this->runMiddleware([
+            'middleware' => 'RoleMiddleware',
+            'args' => [['superviseur']],
+            'session' => ['user' => ['role' => 'agent']],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+        ]);
 
-        $this->expectException(\Exception::class);
-
-        $middleware->__invoke(fn() => $this->callNext());
-    }
-
-    public function testUserWithWrongRoleDoesNotCallNext(): void
-    {
-        $this->setUserRole('agent');
-        $middleware = new RoleMiddleware(['superviseur', 'chsct']);
-
-        try {
-            $middleware->__invoke(fn() => $this->callNext());
-        } catch (\Exception $e) {
-            // redirect() calls exit
-        }
-
-        $this->assertFalse($this->nextCalled);
+        $this->assertFalse($result['next_called']);
+        $this->assertNotNull($result['redirect']);
     }
 
     public function testUserWithWrongRoleSetsFlashError(): void
     {
-        $this->setUserRole('agent');
-        $middleware = new RoleMiddleware(['superviseur']);
+        $result = $this->runMiddleware([
+            'middleware' => 'RoleMiddleware',
+            'args' => [['superviseur']],
+            'session' => ['user' => ['role' => 'agent']],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+        ]);
 
-        try {
-            $middleware->__invoke(fn() => $this->callNext());
-        } catch (\Exception $e) {
-            // redirect() calls exit
-        }
-
-        $this->assertEquals('error', $_SESSION['flash']['type']);
-        $this->assertEquals('Accès refusé.', $_SESSION['flash']['message']);
+        $this->assertEquals('error', $result['flash']['type']);
+        $this->assertEquals('Accès refusé.', $result['flash']['message']);
     }
 
     // ─── No user session ────────────────────────────────────────────────────
 
     public function testNoSessionRedirects(): void
     {
-        unset($_SESSION['user']);
-        $middleware = new RoleMiddleware(['agent']);
+        $result = $this->runMiddleware([
+            'middleware' => 'RoleMiddleware',
+            'args' => [['agent']],
+            'session' => [],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+        ]);
 
-        $this->expectException(\Exception::class);
-
-        $middleware->__invoke(fn() => $this->callNext());
+        $this->assertFalse($result['next_called']);
+        $this->assertNotNull($result['redirect']);
     }
 
     public function testEmptyRoleArrayAllowsNoOne(): void
     {
-        $this->setUserRole('superviseur');
-        $middleware = new RoleMiddleware([]);
+        $result = $this->runMiddleware([
+            'middleware' => 'RoleMiddleware',
+            'args' => [[]],
+            'session' => ['user' => ['role' => 'superviseur']],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+        ]);
 
-        $this->expectException(\Exception::class);
-
-        $middleware->__invoke(fn() => $this->callNext());
+        $this->assertFalse($result['next_called']);
+        $this->assertNotNull($result['redirect']);
     }
 
     // ─── Role comparison is strict ──────────────────────────────────────────
 
     public function testRoleComparisonIsStrict(): void
     {
-        $this->setUserRole('agent');
-        $middleware = new RoleMiddleware(['Agent']); // different case
+        $result = $this->runMiddleware([
+            'middleware' => 'RoleMiddleware',
+            'args' => [['Agent']],
+            'session' => ['user' => ['role' => 'agent']],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+        ]);
 
-        $this->expectException(\Exception::class);
-
-        $middleware->__invoke(fn() => $this->callNext());
+        $this->assertFalse($result['next_called']);
+        $this->assertNotNull($result['redirect']);
     }
 }

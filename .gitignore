@@ -47,6 +47,11 @@ worklog.md
 test_pdf_real.php
 test_fpdf.php
 scripts/screenshot_sst.sh
+*_test.txt
+*_test2.txt
+test_output.txt
+full_test_suite.txt
+appmap.log
 
 # Internal session notes
 CORRECTIONS.md

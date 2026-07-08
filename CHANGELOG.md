@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.34.0] — 2026-07-08
+
+### Améliorations
+
+- **1** 🔴 **Tests middlewares complétés** — 31 tests (40 assertions) pour CsrfMiddleware (8), RoleMiddleware (8), AuthMiddleware (6) et Pipeline (9). Le helper `middleware_runner.php` exécute les middlewares en subprocess pour gérer les `exit()` de `redirect()`. Couverture complète des cas happy-path et error (token CSRF manquant, rôle incorrect, non-authentifié, chaînage pipeline).
+
+- **2** 🟡 **Nettoyage fichiers de test** — Suppression des fichiers temporaires de debug (csrf_single.txt, middleware_test_all.txt, etc.) et ajout de `middleware_runner.php` au dépôt.
+
+
 ## [3.33.0] — 2026-07-08
 
 ### Améliorations

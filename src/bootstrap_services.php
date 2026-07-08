@@ -26,8 +26,14 @@ function createContainer(): Container
         $c->get(ReportRepository::class),
         $c->get(EventDispatcher::class)
     ));
-    $container->set(UserService::class, fn($c) => new UserService($c->get(UserRepository::class)));
-    $container->set(AuthService::class, fn($c) => new AuthService($c->get(UserRepository::class)));
+    $container->set(UserService::class, fn($c) => new UserService(
+        $c->get(UserRepository::class),
+        $c->get(EventDispatcher::class)
+    ));
+    $container->set(AuthService::class, fn($c) => new AuthService(
+        $c->get(UserRepository::class),
+        $c->get(EventDispatcher::class)
+    ));
     $container->set(SessionManager::class, fn() => new SessionManager());
 
     return $container;

@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.33.0] — 2026-07-08
+
+### Améliorations
+
+- **1** 🔴 **EventDispatcher sur tous les services** — UserService et AuthService dispatchent désormais des événements (`user.created`, `user.updated`, `user.deactivated`, `user.reactivated`, `user.role_changed`, `user.provisioned`, `user.promoted`). Le EventDispatcher est wiré dans le DI Container pour les 6 services.
+
+- **2** 🔴 **Analyse qualité complète** — PHPStan level 9 : 330 erreurs (principalement warnings de typage `mixed`, pas de bugs réels). Code coverage : 18.39% global (100% Container/Event, 84% Router, 7% Services). Les classes OOP sont testées indirectement via les tests handlers ; les middlewares n'ont pas encore de tests unitaires dédiés.
+
+
 ## [3.32.0] — 2026-07-08
 
 ### Améliorations

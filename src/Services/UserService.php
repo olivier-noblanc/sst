@@ -4,12 +4,16 @@
 namespace App\Services;
 
 use App\Repository\UserRepository;
+use App\Event\EventDispatcher;
 use App\DTO\CreateUserCommand;
 use App\DTO\UpdateUserCommand;
 
 class UserService
 {
-    public function __construct(private UserRepository $repo) {}
+    public function __construct(
+        private UserRepository $repo,
+        private EventDispatcher $events
+    ) {}
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // CRUD
@@ -17,7 +21,16 @@ class UserService
 
     public function create(CreateUserCommand $cmd): int
     {
-        return $this->repo->create($cmd->toArray());
+        $userId = $this->repo->create($cmd->toArray());
+        $user = $this->repo->findById($userId);
+
+        $this->events->dispatch('user.created', [
+            'user' => $user,
+            'cmd' => $cmd,
+            'pdo' => $this->repo->getPdo(),
+        ]);
+
+        return $userId;
     }
 
     public function update(int $id, UpdateUserCommand $cmd, int $currentUserId): bool
@@ -32,10 +45,26 @@ class UserService
             throw new \RuntimeException(implode(' ', $demoteErrors));
         }
 
+        $roleChanged = $user['role'] !== $cmd->role;
         $this->repo->update($id, $cmd->toArray());
 
         if ($currentUserId === $id) {
             refreshCurrentUser($this->repo->getPdo());
+        }
+
+        $this->events->dispatch('user.updated', [
+            'user' => $user,
+            'cmd' => $cmd,
+            'pdo' => $this->repo->getPdo(),
+        ]);
+
+        if ($roleChanged) {
+            $this->events->dispatch('user.role_changed', [
+                'user' => $user,
+                'oldRole' => $user['role'],
+                'newRole' => $cmd->role,
+                'pdo' => $this->repo->getPdo(),
+            ]);
         }
 
         return true;
@@ -56,7 +85,14 @@ class UserService
             throw new \RuntimeException('Impossible de désactiver le dernier superviseur actif.');
         }
 
-        return $this->repo->deactivate($id);
+        $result = $this->repo->deactivate($id);
+
+        $this->events->dispatch('user.deactivated', [
+            'user' => $user,
+            'pdo' => $this->repo->getPdo(),
+        ]);
+
+        return $result;
     }
 
     public function reactivate(int $id): bool
@@ -68,7 +104,14 @@ class UserService
         if ($user['is_active']) {
             throw new \RuntimeException('Cet utilisateur est déjà actif.');
         }
-        return $this->repo->reactivate($id);
+        $result = $this->repo->reactivate($id);
+
+        $this->events->dispatch('user.reactivated', [
+            'user' => $user,
+            'pdo' => $this->repo->getPdo(),
+        ]);
+
+        return $result;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

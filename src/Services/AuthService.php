@@ -4,10 +4,14 @@
 namespace App\Services;
 
 use App\Repository\UserRepository;
+use App\Event\EventDispatcher;
 
 class AuthService
 {
-    public function __construct(private UserRepository $repo) {}
+    public function __construct(
+        private UserRepository $repo,
+        private EventDispatcher $events
+    ) {}
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Authentication
@@ -112,7 +116,15 @@ class AuthService
             'site_id'  => null,
         ]);
 
-        return $this->repo->findById($userId);
+        $user = $this->repo->findById($userId);
+
+        $this->events->dispatch('user.provisioned', [
+            'user' => $user,
+            'username' => $username,
+            'pdo' => $this->repo->getPdo(),
+        ]);
+
+        return $user;
     }
 
     /**
@@ -146,6 +158,13 @@ class AuthService
                 $this->repo->promoteToSuperviseur($user['id']);
                 $user['role'] = ROLE_SUPERVISEUR;
                 error_log("SST App: Auto-promoted user '$username' to superviseur (config list rule)");
+
+                $this->events->dispatch('user.promoted', [
+                    'user' => $user,
+                    'oldRole' => ROLE_AGENT,
+                    'newRole' => ROLE_SUPERVISEUR,
+                    'pdo' => $this->repo->getPdo(),
+                ]);
             }
         }
 

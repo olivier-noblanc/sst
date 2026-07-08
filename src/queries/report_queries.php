@@ -138,7 +138,10 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
     $builder = new QueryFilterBuilder();
     $builder->addEqual('r.type', $type);
     if (!$seeAllSites) { $builder->addEqual('r.site_id', $userSiteId); }
-    if (!empty($filters['confidential_filter'])) { $builder->addEqual('r.declarant_id', $filters['confidential_filter']); }
+    if (!empty($filters['confidential_filter'])) {
+        $cfId = (int) $filters['confidential_filter'];
+        $builder->addRaw('(r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)', [':cf_declarant_id' => $cfId]);
+    }
     if (!empty($filters['own_only'])) { $builder->addEqual('r.declarant_id', $filters['own_only']); }
     if (!empty($filters['etat'])) { $builder->addEqual('r.etat', $filters['etat']); }
     if (!empty($filters['site_id']) && $seeAllSites) { $builder->addEqual('r.site_id', $filters['site_id']); }

@@ -33,6 +33,13 @@ class QueryFilterBuilder
         return $this;
     }
 
+    public function addRaw(string $sqlFragment, array $params = []): self
+    {
+        $this->where .= " AND $sqlFragment";
+        $this->params = array_merge($this->params, $params);
+        return $this;
+    }
+
     public function getWhere(): string { return $this->where; }
     public function getParams(): array { return $this->params; }
     public function build(): array { return ['where' => $this->where, 'params' => $this->params]; }

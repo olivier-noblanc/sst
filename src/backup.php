@@ -43,6 +43,9 @@ function getDbFingerprint(PDO $pdo): array
     }
 
     clearstatcache(true, DB_PATH);
+    if (!file_exists(DB_PATH)) {
+        return ['mtime' => 0, 'size' => 0];
+    }
     return [
         'mtime' => filemtime(DB_PATH) ?: 0,
         'size'  => filesize(DB_PATH) ?: 0,

@@ -7,9 +7,7 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 ### Améliorations
 
-- **1** 🔴 **EventDispatcher sur tous les services** — UserService et AuthService dispatchent désormais des événements (`user.created`, `user.updated`, `user.deactivated`, `user.reactivated`, `user.role_changed`, `user.provisioned`, `user.promoted`). Le EventDispatcher est wiré dans le DI Container pour les 6 services.
-
-- **2** 🔴 **Analyse qualité complète** — PHPStan level 9 : 330 erreurs (principalement warnings de typage `mixed`, pas de bugs réels). Code coverage : 18.39% global (100% Container/Event, 84% Router, 7% Services). Les classes OOP sont testées indirectement via les tests handlers ; les middlewares n'ont pas encore de tests unitaires dédiés.
+- **1** 🔴 **Analyse qualité complète** — PHPStan level 9 : 330 erreurs (principalement warnings de typage `mixed`, pas de bugs réels). Code coverage : 18.39% global (100% Container/Event, 84% Router, 7% Services). Les classes OOP sont testées indirectement via les tests handlers ; les middlewares n'ont pas encore de tests unitaires dédiés.
 
 
 ## [3.32.0] — 2026-07-08
@@ -186,10 +184,7 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **1** 🟢 **Suppression du traitement de la constante `E_STRICT` obsolète** — Le `match` dans `src/error_handler.php` ne fait plus référence à `E_STRICT`, éliminant l’avertissement *“Constant E_STRICT is deprecated”* sous PHP 8.4.
 - **2** 🟢 **Gestion sécurisée du type `null` comme clé de tableau** — Dans `pages/synthesis.php`, la variable `$type` est désormais initialisée avec `$row['type'] ?? ''` afin d’éviter l’avertissement *“Using null as an array offset is deprecated”*.
 
-
-### Technique — Corrections
-
-- **1** 🩹 **Correction de 3 `require_once` manquants dans le bootstrap** — Trois fichiers de requêtes n'étaient jamais inclus dans `public/index.php`, provoquant des erreurs fatales (`Call to undefined function`) lors de l'accès à certaines pages :
+- **3** 🩹 **Correction de 3 `require_once` manquants dans le bootstrap** — Trois fichiers de requêtes n'étaient jamais inclus dans `public/index.php`, provoquant des erreurs fatales (`Call to undefined function`) lors de l'accès à certaines pages :
   - `src/queries/notification_queries.php` → erreur fatale sur la page Paramètres (ligne 20 de `pages/settings.php`, fonction `getNotificationSettings()`).
   - `src/queries/report_agent_queries.php` → fonctions `getLinkedAgents()`, `linkAgentsToReport()`, `replaceLinkedAgents()` indisponibles pour l'édition de signalement.
   - `src/queries/report_invite_queries.php` → fonctions `getAgentInviteByToken()`, `confirmAgentInvite()`, `createAgentInvite()`, `getPendingInvites()` indisponibles pour la confirmation de rattachement d'agents.
@@ -247,7 +242,7 @@ Itérations successives basées sur les retours d'un utilisateur non-technique d
 ### Tests — Mise à jour E2E
 
 - **10** 🟡 **`auth.spec.js`** — Tests adaptés aux boutons de connexion rapide. Login par clic bouton au lieu de remplissage formulaire. Auto-create agent via POST direct.
-- **11** 🟡 **`settings.spec.js`** — Onglet audit par défaut (déjà en v3.22.0, consolidé ici).
+- **11** 🟡 **`settings.spec.js`** — Onglet audit par défaut (test ajouté pour valider le changement de v3.22.0).
 
 ## [3.22.0] — 2026-06-17
 

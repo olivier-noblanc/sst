@@ -73,3 +73,15 @@ playwright-report/
 .php-cs-fixer.cache
 psalm-cache/
 phpstan-result.txt
+phpstan_output.txt
+coverage-report/
+
+# Mimocode agent workspace
+.mimocode/
+
+# Superpowers auto-generated plans
+docs/superpowers/
+
+# Dev tools not used directly
+tools/phive.phar
+tools/phpcov.phar

@@ -1,0 +1,1051 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Offset ''prenom'' on array\{id\: int, nom\: string, prenom\: string, email\: non\-falsy\-string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/report_reopen_handler.php
+
+		-
+			message: '#^Variable \$registryLabel might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: handlers/report_reopen_handler.php
+
+		-
+			message: '#^Function handleSettingsAppTab\(\) has parameter \$postData with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: handlers/settings_handler_app.php
+
+		-
+			message: '#^Function handleSettingsManageSitesTab\(\) has parameter \$postData with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: handlers/settings_handler_sites.php
+
+		-
+			message: '#^Call to method setSafeMode\(\) on an unknown class Parsedown\.$#'
+			identifier: class.notFound
+			count: 1
+			path: pages/changelog.php
+
+		-
+			message: '#^Call to method text\(\) on an unknown class Parsedown\.$#'
+			identifier: class.notFound
+			count: 1
+			path: pages/changelog.php
+
+		-
+			message: '#^Instantiated class Parsedown not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: pages/changelog.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between 0\|float and 1 will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: pages/choose_site.php
+
+		-
+			message: '#^Offset ''etats'' on non\-empty\-array\<string, mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/export.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/export.php
+
+		-
+			message: '#^Function a not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: pages/help/_agent.php
+
+		-
+			message: '#^Variable \$dgiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: pages/help/_agent.php
+
+		-
+			message: '#^Variable \$hotlineEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_agent.php
+
+		-
+			message: '#^Variable \$hotlineNumber might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_agent.php
+
+		-
+			message: '#^Variable \$ramiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: pages/help/_agent.php
+
+		-
+			message: '#^Variable \$registryCount might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: pages/help/_agent.php
+
+		-
+			message: '#^Variable \$screenshotBase might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: pages/help/_agent.php
+
+		-
+			message: '#^Variable \$dgiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_confidentiality.php
+
+		-
+			message: '#^Variable \$labelUnite might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_confidentiality.php
+
+		-
+			message: '#^Variable \$ramiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_confidentiality.php
+
+		-
+			message: '#^Variable \$dgiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_full.php
+
+		-
+			message: '#^Variable \$hotlineEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_full.php
+
+		-
+			message: '#^Variable \$hotlineNumber might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_full.php
+
+		-
+			message: '#^Variable \$ramiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_full.php
+
+		-
+			message: '#^Variable \$registryCount might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_full.php
+
+		-
+			message: '#^Variable \$dgiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_lifecycle.php
+
+		-
+			message: '#^Variable \$ramiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_lifecycle.php
+
+		-
+			message: '#^Variable \$screenshotBase might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: pages/help/_lifecycle.php
+
+		-
+			message: '#^Variable \$dgiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_profiles.php
+
+		-
+			message: '#^Variable \$ramiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_profiles.php
+
+		-
+			message: '#^Variable \$registryCount might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_profiles.php
+
+		-
+			message: '#^Variable \$screenshotBase might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_profiles.php
+
+		-
+			message: '#^Variable \$dgiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_registres.php
+
+		-
+			message: '#^Variable \$ramiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_registres.php
+
+		-
+			message: '#^Variable \$registryCount might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: pages/help/_registres.php
+
+		-
+			message: '#^Variable \$screenshotBase might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: pages/help/_registres.php
+
+		-
+			message: '#^Variable \$dgiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_use_cases.php
+
+		-
+			message: '#^Variable \$labelUnite might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_use_cases.php
+
+		-
+			message: '#^Variable \$ramiEnabled might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_use_cases.php
+
+		-
+			message: '#^Variable \$registryCount might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/help/_use_cases.php
+
+		-
+			message: '#^Variable \$screenshotBase might not be defined\.$#'
+			identifier: variable.undefined
+			count: 15
+			path: pages/help/_use_cases.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/logs.php
+
+		-
+			message: '#^Function readErrorLog\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: pages/logs/_error_log_reader.php
+
+		-
+			message: '#^Variable \$blueDark might not be defined\.$#'
+			identifier: variable.undefined
+			count: 5
+			path: pages/report_print.php
+
+		-
+			message: '#^Variable \$colorNouveau might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/report_print.php
+
+		-
+			message: '#^Variable \$colorRsst might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/report_print.php
+
+		-
+			message: '#^Function drawBadge\(\) has parameter \$bgColor with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Function drawEmbeddedImage\(\) has parameter \$blueDark with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Function drawEmbeddedImage\(\) has parameter \$report with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Function drawResponseTable\(\) has parameter \$blueDark with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Function drawResponseTable\(\) has parameter \$responses with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Function drawSectionTitle\(\) has parameter \$color with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and false will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/report_respond.php
+
+		-
+			message: '#^Variable \$type might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/report_respond.php
+
+		-
+			message: '#^Ternary operator condition is always false\.$#'
+			identifier: ternary.alwaysFalse
+			count: 2
+			path: pages/settings/tab_app.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/settings/tab_app.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/settings/tab_global.php
+
+		-
+			message: '#^Variable \$globalEmails might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/settings/tab_global.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: pages/settings/tab_manage_sites.php
+
+		-
+			message: '#^Variable \$pdo might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: pages/settings/tab_manage_sites.php
+
+		-
+			message: '#^Variable \$sites might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/settings/tab_manage_sites.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/settings/tab_sites.php
+
+		-
+			message: '#^Variable \$sites might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/settings/tab_sites.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: pages/settings/tab_smtp.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: pages/site_edit.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: pages/user_edit.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: pages/user_view.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: pages/users.php
+
+		-
+			message: '#^Property App\\Container\\Container\:\:\$factories type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Container/Container.php
+
+		-
+			message: '#^Property App\\Container\\Container\:\:\$instances type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Container/Container.php
+
+		-
+			message: '#^Method App\\DTO\\CreateReportCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/CreateReportCommand.php
+
+		-
+			message: '#^Method App\\DTO\\CreateReportCommand\:\:fromPost\(\) has parameter \$user with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/CreateReportCommand.php
+
+		-
+			message: '#^Method App\\DTO\\CreateReportCommand\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/CreateReportCommand.php
+
+		-
+			message: '#^Method App\\DTO\\CreateUserCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/CreateUserCommand.php
+
+		-
+			message: '#^Method App\\DTO\\CreateUserCommand\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/CreateUserCommand.php
+
+		-
+			message: '#^Method App\\DTO\\ReportFilter\:\:fromGet\(\) has parameter \$get with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/ReportFilter.php
+
+		-
+			message: '#^Method App\\DTO\\ReportFilter\:\:fromGet\(\) has parameter \$user with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/ReportFilter.php
+
+		-
+			message: '#^Method App\\DTO\\ReportFilter\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/ReportFilter.php
+
+		-
+			message: '#^Method App\\DTO\\RespondToReportCommand\:\:__construct\(\) has parameter \$attachment with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/RespondToReportCommand.php
+
+		-
+			message: '#^Method App\\DTO\\RespondToReportCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/RespondToReportCommand.php
+
+		-
+			message: '#^Method App\\DTO\\UpdateReportCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/UpdateReportCommand.php
+
+		-
+			message: '#^Method App\\DTO\\UpdateReportCommand\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/UpdateReportCommand.php
+
+		-
+			message: '#^Method App\\DTO\\UpdateUserCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/UpdateUserCommand.php
+
+		-
+			message: '#^Method App\\DTO\\UpdateUserCommand\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/UpdateUserCommand.php
+
+		-
+			message: '#^Method App\\Event\\EventDispatcher\:\:dispatch\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Event/EventDispatcher.php
+
+		-
+			message: '#^Property App\\Event\\EventDispatcher\:\:\$listeners type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Event/EventDispatcher.php
+
+		-
+			message: '#^Method App\\Query\\QueryFilterBuilder\:\:addIn\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Query/QueryFilterBuilder.php
+
+		-
+			message: '#^Method App\\Query\\QueryFilterBuilder\:\:addRaw\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Query/QueryFilterBuilder.php
+
+		-
+			message: '#^Method App\\Query\\QueryFilterBuilder\:\:build\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Query/QueryFilterBuilder.php
+
+		-
+			message: '#^Method App\\Query\\QueryFilterBuilder\:\:getParams\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Query/QueryFilterBuilder.php
+
+		-
+			message: '#^Property App\\Query\\QueryFilterBuilder\:\:\$params type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Query/QueryFilterBuilder.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:countByState\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:findBySite\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:findPaginated\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:getExportData\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:getExportData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:getStatistics\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:respond\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:toSnakeCase\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:toSnakeCase\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Method App\\Repository\\UserRepository\:\:create\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Method App\\Repository\\UserRepository\:\:exportData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Method App\\Repository\\UserRepository\:\:findAll\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Method App\\Repository\\UserRepository\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Method App\\Repository\\UserRepository\:\:findByRole\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Method App\\Repository\\UserRepository\:\:findByUsername\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Method App\\Repository\\UserRepository\:\:findByUsernameOrAny\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Method App\\Repository\\UserRepository\:\:update\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Method App\\Router\\Attribute\\Route\:\:__construct\(\) has parameter \$methods with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Attribute/Route.php
+
+		-
+			message: '#^Method App\\Router\\Router\:\:addRoute\(\) has parameter \$methods with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Method App\\Router\\Router\:\:getHandlerMap\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Method App\\Router\\Router\:\:getRoutes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Method App\\Router\\Router\:\:getValidPages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Method App\\Router\\Router\:\:match\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Method App\\Router\\Router\:\:setPostMiddleware\(\) has parameter \$middlewares with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Property App\\Router\\Router\:\:\$pageTitles type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Property App\\Router\\Router\:\:\$postHandlers type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Property App\\Router\\Router\:\:\$postMiddlewares type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Property App\\Router\\Router\:\:\$routes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Router/Router.php
+
+		-
+			message: '#^Method App\\Services\\AuthService\:\:autoProvision\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Method App\\Services\\AuthService\:\:checkAndPromote\(\) has parameter \$user with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Method App\\Services\\AuthService\:\:checkAndPromote\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Method App\\Services\\AuthService\:\:findOrCreateUser\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Method App\\Services\\AuthService\:\:getAuthenticatedUser\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Method App\\Services\\AuthService\:\:mockLogin\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Method App\\Services\\AuthService\:\:parseSuperviseurUsernames\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Method App\\Services\\BackupService\:\:getDbFingerprint\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/BackupService.php
+
+		-
+			message: '#^Offset ''prenom'' on array\{id\: int, nom\: string, prenom\: string, email\: non\-falsy\-string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/NotificationService.php
+
+		-
+			message: '#^Method App\\Services\\ReportService\:\:create\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/ReportService.php
+
+		-
+			message: '#^Method App\\Services\\ReportService\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/ReportService.php
+
+		-
+			message: '#^Method App\\Services\\ReportService\:\:respond\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/ReportService.php
+
+		-
+			message: '#^Method App\\Services\\UserService\:\:canDemote\(\) has parameter \$user with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/UserService.php
+
+		-
+			message: '#^Method App\\Services\\UserService\:\:canDemote\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/UserService.php
+
+		-
+			message: '#^Method App\\Services\\UserService\:\:exportData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/UserService.php
+
+		-
+			message: '#^Method App\\Services\\UserService\:\:findAll\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/UserService.php
+
+		-
+			message: '#^Method App\\Services\\UserService\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/UserService.php
+
+		-
+			message: '#^Method App\\Services\\UserService\:\:findByUsername\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/UserService.php
+
+		-
+			message: '#^Method App\\Services\\UserService\:\:validate\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/UserService.php
+
+		-
+			message: '#^Method App\\Services\\UserService\:\:validate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/UserService.php
+
+		-
+			message: '#^Ternary operator condition is always false\.$#'
+			identifier: ternary.alwaysFalse
+			count: 2
+			path: src/helpers/config.php
+
+		-
+			message: '#^Function buildRegistryCards\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/helpers/registry_card_renderer.php
+
+		-
+			message: '#^Function renderRegistryCard\(\) has parameter \$card with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/helpers/registry_card_renderer.php
+
+		-
+			message: '#^Function renderRegistryCards\(\) has parameter \$cards with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/helpers/registry_card_renderer.php
+
+		-
+			message: '#^Offset ''prenom'' on array\{id\: int, nom\: string, prenom\: string, email\: non\-falsy\-string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/mail_notifications.php
+
+		-
+			message: '#^Property App\\Middleware\\Pipeline\:\:\$middlewares type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/middleware/Pipeline.php
+
+		-
+			message: '#^Method App\\Middleware\\RoleMiddleware\:\:__construct\(\) has parameter \$roles with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/middleware/RoleMiddleware.php
+
+		-
+			message: '#^Function getAgentInviteByToken\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/queries/report_invite_queries.php
+
+		-
+			message: '#^Function getPendingInvites\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/queries/report_invite_queries.php
+
+		-
+			message: '#^Function getReportByUuid\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/queries/report_queries.php
+
+		-
+			message: '#^Function getReportsByRegistry\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/queries/report_queries.php
+
+		-
+			message: '#^Function getReportsBySite\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/queries/report_queries.php
+
+		-
+			message: '#^Function respondToReport\(\) has parameter \$attachment with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/queries/report_response_queries.php
+
+		-
+			message: '#^Offset ''message'' on array\{type\: string, message\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/alert.php
+
+		-
+			message: '#^Offset ''type'' on array\{type\: string, message\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/alert.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: templates/header.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/impersonate_banner.php
+
+		-
+			message: '#^Variable \$action might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/report_form.php
+
+		-
+			message: '#^Variable \$csrfToken might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/report_form.php
+
+		-
+			message: '#^Variable \$sites might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/report_form.php
+
+		-
+			message: '#^Variable \$type might not be defined\.$#'
+			identifier: variable.undefined
+			count: 5
+			path: templates/report_form.php
+
+		-
+			message: '#^Variable \$isEdit might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/report_form_linked_agents.php
+
+		-
+			message: '#^Variable \$report might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/report_form_linked_agents.php
+
+		-
+			message: '#^Variable \$isEdit might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: templates/report_form_rami.php
+
+		-
+			message: '#^Variable \$val might not be defined\.$#'
+			identifier: variable.undefined
+			count: 13
+			path: templates/report_form_rami.php
+
+		-
+			message: '#^Offset ''params'' on array\{label\: ''Accueil'', icon\: ''&\#127968;'', page\: ''home'', params\: array\{\}, roles\: array\{''agent'', ''superviseur'', ''chsct''\}\}\|array\{label\: ''DGI'', icon\: ''&\#128308;'', page\: ''report_list'', params\: array\{type\: ''dgi''\}, roles\: array\{''agent'', ''superviseur'', ''chsct''\}\}\|array\{label\: ''Export'', icon\: ''&\#128229;'', page\: ''export'', params\: array\{\}, roles\: array\{''superviseur'', ''chsct''\}\}\|array\{label\: ''Journal'', icon\: ''&\#128220;'', page\: ''logs'', params\: array\{\}, roles\: array\{''superviseur''\}\}\|array\{label\: ''Paramètres'', icon\: ''&\#9881;'', page\: ''settings'', params\: array\{\}, roles\: array\{''superviseur''\}\}\|array\{label\: ''RAMI'', icon\: ''&\#9888;'', page\: ''report_list'', params\: array\{type\: ''rami''\}, roles\: array\{''agent'', ''superviseur'', ''chsct''\}\}\|array\{label\: ''RSST'', icon\: ''&\#128203;'', page\: ''report_list'', params\: array\{type\: ''rsst''\}, roles\: array\{''agent'', ''superviseur'', ''chsct''\}\}\|array\{label\: ''Statistiques'', icon\: ''&\#128200;'', page\: ''statistics'', params\: array\{\}, roles\: array\{''superviseur'', ''chsct''\}\}\|array\{label\: ''Synthèse'', icon\: ''&\#128202;'', page\: ''synthesis'', params\: array\{\}, roles\: array\{''superviseur'', ''chsct''\}\}\|array\{label\: ''Utilisateurs'', icon\: ''&\#128101;'', page\: ''users'', params\: array\{\}, roles\: array\{''superviseur''\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/sidebar.php
+
+		-
+			message: '#^Offset ''uuid'' on non\-empty\-array\<mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/sidebar.php
+
+		-
+			message: '#^Variable \$editEmail might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/user_form_fields.php
+
+		-
+			message: '#^Variable \$editNom might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/user_form_fields.php
+
+		-
+			message: '#^Variable \$editPrenom might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/user_form_fields.php
+
+		-
+			message: '#^Variable \$editRole might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/user_form_fields.php
+
+		-
+			message: '#^Variable \$editSiteId might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/user_form_fields.php
+
+		-
+			message: '#^Variable \$editUsername might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/user_form_fields.php
+
+		-
+			message: '#^Variable \$sites might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: templates/user_form_fields.php

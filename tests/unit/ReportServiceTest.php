@@ -39,6 +39,9 @@ class ReportServiceTest extends TestCase
         $this->pdo->exec('DELETE FROM config_app');
         clearConfigCache();
 
+        // Set up default config for RSST visibility (public by default per decree 82-453)
+        $this->pdo->exec("INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUES ('app_report_visibility_rsst', 'public', 'text', 'app', 'Visibilité des signalements RSST', 1)");
+
         $this->repo = new ReportRepository($this->pdo);
         $this->events = new EventDispatcher();
         $this->service = new ReportService($this->repo, $this->events);

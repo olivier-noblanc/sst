@@ -104,9 +104,9 @@ function abandonReport(PDO $pdo, string $uuid, int $userId): bool
     $stmt = $pdo->prepare("
         UPDATE reports
         SET etat = '" . ETAT_ABANDONNE . "', updated_at = datetime('now')
-        WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')
+        WHERE uuid = :uuid AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')
     ");
-    $stmt->execute([':uuid' => $uuid, ':user_id' => $userId]);
+    $stmt->execute([':uuid' => $uuid]);
     return $stmt->rowCount() > 0;
 }
 

@@ -189,10 +189,10 @@ class ReportCreateHandlerTest extends TestCase
             ],
         ]);
 
-        // Should redirect to report_create with error
+        // Should redirect to report_create with form errors
         $this->assertNotNull($result['redirect']);
         $this->assertStringContainsString('page=report_create', $result['redirect']);
-        $this->assertEquals('error', $result['flash']['type'] ?? null);
+        $this->assertNotEmpty($result['form_errors'], 'Expected form validation errors for empty objet');
 
         // No report created
         $this->assertEquals(0, $result['queries']['report_count']);
@@ -225,10 +225,10 @@ class ReportCreateHandlerTest extends TestCase
             ],
         ]);
 
-        // Should redirect to report_create with error
+        // Should redirect to report_create with form errors
         $this->assertNotNull($result['redirect']);
         $this->assertStringContainsString('page=report_create', $result['redirect']);
-        $this->assertEquals('error', $result['flash']['type'] ?? null);
+        $this->assertNotEmpty($result['form_errors'], 'Expected form validation errors for missing date');
 
         // No report created
         $this->assertEquals(0, $result['queries']['report_count']);

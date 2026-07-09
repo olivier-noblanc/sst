@@ -174,9 +174,9 @@ class ReportEditHandlerTest extends TestCase
         $this->assertEquals('error', $result['flash']['type'] ?? null);
     }
 
-    public function testEditReportWithEmptyObjetSucceeds(): void
+    public function testEditReportWithEmptyObjetFails(): void
     {
-        // The edit handler does NOT validate objet emptiness — it passes through to the service.
+        // The edit handler validates objet emptiness — empty objet returns form errors.
         $reportUuid = '11111111-2222-4333-a444-555555555555';
         $token = bin2hex(random_bytes(32));
         $session = array_merge($this->makeAgentSession(), ['csrf_tokens' => [$token => time()]]);
@@ -198,7 +198,9 @@ class ReportEditHandlerTest extends TestCase
         ]);
 
         $this->assertNotNull($result['redirect']);
-        $this->assertEquals('success', $result['flash']['type'] ?? null);
-        $this->assertEquals('', $result['queries']['report_objet']);
+        $this->assertStringContainsString('page=report_edit', $result['redirect']);
+        $this->assertNotEmpty($result['form_errors'], 'Expected form validation errors for empty objet');
+        // Report should NOT be modified
+        $this->assertNotEquals('', $result['queries']['report_objet']);
     }
 }

@@ -87,7 +87,7 @@ require_once __DIR__ . '/../src/validation.php';
 require_once __DIR__ . '/../src/validation_user.php';
 
 // Load bootstrap middleware (superviseur promotion, site check)
-require_once __DIR__ . '/../src/middleware/bootstrap.php';
+require_once __DIR__ . '/../src/Middleware/bootstrap.php';
 
 // Load auth flow (auto-auth, login, logout)
 require_once __DIR__ . '/../src/auth_flow.php';
@@ -120,8 +120,8 @@ handleNotAuthenticated();
 // Load middleware & CSRF
 // ═══════════════════════════════════════════════════════════════════════════════
 
-require_once __DIR__ . '/../src/middleware/require_auth.php';
-require_once __DIR__ . '/../src/middleware/require_role.php';
+require_once __DIR__ . '/../src/Middleware/require_auth.php';
+require_once __DIR__ . '/../src/Middleware/require_role.php';
 
 $csrfToken = generateCsrfToken();
 

@@ -253,9 +253,42 @@ catch {
     exit 1
 }
 
-# --- 3. Copie des captures d'écran ---
+# --- 3. Composer install (autoload + dépendances) ---
 Write-Host ""
-Write-Host "[3/5] Copie des captures d'ecran..." -ForegroundColor Yellow
+Write-Host "[3/6] Installation des dependances Composer..." -ForegroundColor Yellow
+
+$composerJson = "$AppDir\composer.json"
+if (Test-Path $composerJson) {
+    $savedPrefComposer = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+
+    # Vérifier si vendor/ existe, sinon composer install complet
+    if (-not (Test-Path "$AppDir\vendor\autoload.php")) {
+        Write-Host "  vendor/ absent, installation complete..." -ForegroundColor Gray
+        $composerOutput = composer install --no-dev --optimize --no-interaction 2>&1
+    } else {
+        # vendor/ existe — régénérer l'autoload optimisé
+        $composerOutput = composer dump-autoload --optimize --no-dev 2>&1
+    }
+    $composerExit = $LASTEXITCODE
+    $ErrorActionPreference = $savedPrefComposer
+
+    if ($composerExit -eq 0) {
+        Write-Host "  OK : Dependances et autoload installés" -ForegroundColor Green
+    } else {
+        Write-Host "  ERREUR : Composer a echoue (code $composerExit)" -ForegroundColor Red
+        Write-Host "  $composerOutput" -ForegroundColor Gray
+        Write-Host "  Les classes PSR-4 ne seront pas chargees — l'application ne demarrera pas." -ForegroundColor Red
+        Read-Host "Appuyez sur Entree pour quitter"
+        exit 1
+    }
+} else {
+    Write-Host "  SKIP : composer.json absent" -ForegroundColor DarkYellow
+}
+
+# --- 4. Copie des captures d'écran ---
+Write-Host ""
+Write-Host "[4/6] Copie des captures d'ecran..." -ForegroundColor Yellow
 
 $srcScreenshots = "$AppDir\docs\screenshots"
 $dstScreenshots = "$AppDir\public\screenshots"
@@ -275,7 +308,7 @@ if (Test-Path $srcScreenshots) {
 
 # --- 4. Vérification FPDF ---
 Write-Host ""
-Write-Host "[4/5] Verification FPDF..." -ForegroundColor Yellow
+Write-Host "[5/6] Verification FPDF..." -ForegroundColor Yellow
 
 $fpdfPath = "$AppDir\src\lib\fpdf\fpdf.php"
 $fontPath = "$AppDir\src\lib\fpdf\font\DejaVuSans.json"

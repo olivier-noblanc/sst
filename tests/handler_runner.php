@@ -46,7 +46,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/bootstrap.php';
 
 // Load middleware functions not included by bootstrap
-require_once __DIR__ . '/../src/middleware/require_role.php';
+require_once __DIR__ . '/../src/Middleware/require_role.php';
 require_once __DIR__ . '/../src/audit.php';
 
 // Restore error reporting for actual test code

@@ -42,11 +42,11 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/bootstrap.php';
 
 // Load middleware functions not included by bootstrap
-require_once __DIR__ . '/../src/middleware/require_role.php';
-require_once __DIR__ . '/../src/middleware/CsrfMiddleware.php';
-require_once __DIR__ . '/../src/middleware/RoleMiddleware.php';
-require_once __DIR__ . '/../src/middleware/AuthMiddleware.php';
-require_once __DIR__ . '/../src/middleware/Pipeline.php';
+require_once __DIR__ . '/../src/Middleware/require_role.php';
+require_once __DIR__ . '/../src/Middleware/CsrfMiddleware.php';
+require_once __DIR__ . '/../src/Middleware/RoleMiddleware.php';
+require_once __DIR__ . '/../src/Middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../src/Middleware/Pipeline.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', '1');

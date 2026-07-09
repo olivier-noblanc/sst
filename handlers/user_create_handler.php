@@ -7,19 +7,15 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
+require_once __DIR__ . '/../src/bootstrap_services.php';
 
-$pdo = getDB();
+use App\DTO\CreateUserCommand;
+use App\Services\UserService;
 
-// Validate required fields
-$errors = validateUserFields($pdo, $_POST);
+$service = getContainer()->get(UserService::class);
+$cmd = CreateUserCommand::fromPost($_POST);
 
-$nom = trim($_POST['nom'] ?? '');
-$prenom = trim($_POST['prenom'] ?? '');
-$username = trim($_POST['username'] ?? '');
-$role = trim($_POST['role'] ?? '');
-$siteId = (int) ($_POST['site_id'] ?? 0);
-$email = trim($_POST['email'] ?? '');
+$errors = $service->validate($_POST);
 
 if (!empty($errors)) {
     setFormErrors($errors);
@@ -27,20 +23,13 @@ if (!empty($errors)) {
     redirect(url('users', ['tab' => 'create']));
 }
 
-// Create user
 try {
-    $newId = createUser($pdo, [
-        'nom'      => $nom,
-        'prenom'   => $prenom,
-        'email'    => !empty($email) ? $email : null,
-        'username' => $username,
-        'role'     => $role,
-        'site_id'  => $siteId,
-    ]);
+    $newId = $service->create($cmd);
 
-    auditLog($pdo, 'user', 'create', 'Utilisateur créé : ' . $prenom . ' ' . $nom, (int) $newId, 'user', ['username' => $username, 'role' => $role]);
-    setFlash('success', 'Utilisateur ' . e($prenom . ' ' . $nom) . ' créé avec succès (ID: ' . $newId . ').');
-} catch (Exception $e) {
+    $pdo = getDB();
+    auditLog($pdo, 'user', 'create', 'Utilisateur créé : ' . $cmd->prenom . ' ' . $cmd->nom, (int) $newId, 'user', ['username' => $cmd->username, 'role' => $cmd->role]);
+    setFlash('success', 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' créé avec succès (ID: ' . $newId . ').');
+} catch (\Throwable $e) {
     error_log('[SST-DB] user_create failed: ' . $e->getMessage());
     setFlash('error', 'Erreur lors de la création de l\'utilisateur : ' . e($e->getMessage()));
     setFormData($_POST);

@@ -17,6 +17,7 @@ parameters:
         - src/lib/
         - tests/
     bootstrapFiles:
+        - vendor/autoload.php
         - phpstan-bootstrap.php
         - src/lib/fpdf/fpdf.php
         - src/lib/Parsedown.php

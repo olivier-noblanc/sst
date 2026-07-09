@@ -40,7 +40,7 @@ if (defined('APP_ENV_FORCE')) {
     define('APP_ENV', $hasAuthUser ? 'prod' : 'dev');
 }
 
-define('DEV_MODE', APP_ENV === 'dev');
+if (!defined('DEV_MODE')) define('DEV_MODE', APP_ENV === 'dev');
 
 // Error handling: environment-dependent
 // DEV : errors displayed on screen for immediate diagnosis.
@@ -59,13 +59,13 @@ define('DB_PATH', __DIR__ . '/../data/sst.db');
 define('ITEMS_PER_PAGE', 20);
 
 // Field constraints
-define('MAX_OBJECT_LENGTH', 100);
-define('MAX_DESCRIPTION_LENGTH', 20000);
-define('MAX_LIEU_LENGTH', 200);
+if (!defined('MAX_OBJECT_LENGTH')) define('MAX_OBJECT_LENGTH', 100);
+if (!defined('MAX_DESCRIPTION_LENGTH')) define('MAX_DESCRIPTION_LENGTH', 20000);
+if (!defined('MAX_LIEU_LENGTH')) define('MAX_LIEU_LENGTH', 200);
 
 // Attachment constraints
-define('MAX_ATTACHMENT_SIZE', 10 * 1024 * 1024); // 10 MB
-define('ALLOWED_ATTACHMENT_MIMES', ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']);
+if (!defined('MAX_ATTACHMENT_SIZE')) define('MAX_ATTACHMENT_SIZE', 10 * 1024 * 1024); // 10 MB
+if (!defined('ALLOWED_ATTACHMENT_MIMES')) define('ALLOWED_ATTACHMENT_MIMES', ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']);
 
 // No LDAP needed — IIS Windows Auth provides $_SERVER['AUTH_USER']
 // Format: "DOMAIN\username" — PHP extracts the username and strips the domain.
@@ -93,13 +93,13 @@ define('TYPE_RAMI', 'rami');
 define('TYPE_DGI', 'dgi');
 
 // Registry type labels
-define('REGISTRY_LABELS', [
+if (!defined('REGISTRY_LABELS')) define('REGISTRY_LABELS', [
     'rsst' => 'Registre de Santé et de Sécurité au Travail',
     'rami' => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
     'dgi'  => 'Registre de signalement d\'un Danger Grave et Imminent',
 ]);
 
-define('REGISTRY_SHORT_LABELS', [
+if (!defined('REGISTRY_SHORT_LABELS')) define('REGISTRY_SHORT_LABELS', [
     'rsst' => 'RSST',
     'rami' => 'RAMI',
     'dgi'  => 'DGI',
@@ -114,7 +114,7 @@ define('ROLE_LABELS_DEFAULT', [
 // ROLE_LABELS is the runtime constant used throughout the application.
 // It mirrors ROLE_LABELS_DEFAULT; custom labels from DB are resolved
 // at display time via getRoleLabel() / getRoleLabels().
-define('ROLE_LABELS', ROLE_LABELS_DEFAULT);
+if (!defined('ROLE_LABELS')) define('ROLE_LABELS', ROLE_LABELS_DEFAULT);
 
 // Report visibility modes (admin-configurable in Settings → Application)
 // 'confidential'  : Agent sees ONLY their own reports — most restrictive
@@ -127,7 +127,7 @@ define('REPORT_VISIBILITY_MODES', [
 ]);
 
 // State labels
-define('ETAT_LABELS', [
+if (!defined('ETAT_LABELS')) define('ETAT_LABELS', [
     'nouveau'    => 'Nouveau',
     'en_cours'   => 'En cours',
     'traite'     => 'Traité',
@@ -142,14 +142,14 @@ define('REGISTRY_RAMI_ENABLED_DEFAULT', false);
 define('REGISTRY_DGI_ENABLED_DEFAULT', false);
 
 // RAMI structured field labels (shared by statistics, export, and validation)
-define('RAMI_NATURE_AUTEUR_LABELS', [
+if (!defined('RAMI_NATURE_AUTEUR_LABELS')) define('RAMI_NATURE_AUTEUR_LABELS', [
     'usager'    => 'Usager',
     'collegue'  => 'Collègue',
     'hierarchie' => 'Hiérarchie',
     'tiers'     => 'Tiers',
 ]);
 
-define('RAMI_TYPE_ACTE_LABELS', [
+if (!defined('RAMI_TYPE_ACTE_LABELS')) define('RAMI_TYPE_ACTE_LABELS', [
     'verbal'  => 'Verbal',
     'physique' => 'Physique',
     'moral'   => 'Moral',

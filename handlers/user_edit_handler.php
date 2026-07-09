@@ -7,7 +7,10 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
+require_once __DIR__ . '/../src/bootstrap_services.php';
+
+use App\DTO\UpdateUserCommand;
+use App\Services\UserService;
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 if ($userId <= 0) {
@@ -20,25 +23,24 @@ if ($userId <= 0) {
 }
 
 $pdo = getDB();
+$service = getContainer()->get(UserService::class);
 
 // Handle GDPR actions (export_data, anonymize)
 $action = $_POST['action'] ?? '';
 if ($action === 'export_data') {
-    $userData = exportUserData($pdo, $userId);
+    $userData = $service->exportData($userId);
     auditLog($pdo, 'gdpr', 'data_export', 'Export RGPD des données de l\'utilisateur ID ' . $userId, $userId, 'user');
-
-    // Generate JSON export as download
     $filename = 'rgpd_export_user_' . $userId . '_' . date('Y-m-d') . '.json';
     $json = json_encode($userData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     sendFileDownload($json, $filename, 'application/json; charset=utf-8');
 }
 
 if ($action === 'anonymize') {
-    $success = anonymizeUser($pdo, $userId);
-    if ($success) {
+    try {
+        $service->anonymize($userId);
         auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
         setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
-    } else {
+    } catch (\Throwable $e) {
         error_log('[SST-DB] anonymizeUser failed for user_id=' . $userId);
         setFlash('error', 'Erreur lors de l\'anonymisation de l\'utilisateur. (user_id=' . $userId . ')');
     }
@@ -46,34 +48,26 @@ if ($action === 'anonymize') {
 }
 
 // Verify user exists
-$user = getUserById($pdo, $userId);
+$user = $service->findById($userId);
 if (!$user) {
     setFlash('error', 'Utilisateur introuvable.');
     redirect(url('users'));
 }
 
-// Validate required fields
-$errors = validateUserFields($pdo, $_POST, $userId);
+// Validate
+$errors = $service->validate($_POST, $userId);
 
-$nom = trim($_POST['nom'] ?? '');
-$prenom = trim($_POST['prenom'] ?? '');
-$username = trim($_POST['username'] ?? '');
-$role = trim($_POST['role'] ?? '');
-$siteId = (int) ($_POST['site_id'] ?? 0);
-$email = trim($_POST['email'] ?? '');
+$cmd = UpdateUserCommand::fromPost($_POST);
 
 // Guard: prevent demoting the last active superviseur
-if ($user['role'] === ROLE_SUPERVISEUR && $role !== ROLE_SUPERVISEUR) {
-    if (isLastActiveSuperviseur($pdo)) {
-        $errors['role'] = 'Impossible de rétrograder le dernier superviseur actif. Nommez un autre superviseur d\'abord.';
-    }
-    // Require explicit confirmation for superviseur → agent demotion
-    if ($role === ROLE_AGENT && empty($_POST['confirm_demotion'])) {
+if ($user['role'] === ROLE_SUPERVISEUR && $cmd->role !== ROLE_SUPERVISEUR) {
+    $demoteErrors = $service->canDemote($userId, $cmd->role, $user);
+    $errors = array_merge($errors, $demoteErrors);
+
+    if ($cmd->role === ROLE_AGENT && empty($_POST['confirm_demotion'])) {
         $errors['role'] = 'Veuillez confirmer la rétrogradation en cochant la case de confirmation.';
     }
 }
-
-// Note: No password field — auth is via IIS Windows Authentication
 
 if (!empty($errors)) {
     setFormErrors($errors);
@@ -83,52 +77,31 @@ if (!empty($errors)) {
 
 // Update user
 try {
-    $pdo->beginTransaction();
-
     $oldRole = $user['role'];
-    $roleChanged = ($role !== $oldRole);
-    $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($email));
+    $roleChanged = ($cmd->role !== $oldRole);
+    $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
 
-    // Update main fields using query function
-    updateUser($pdo, $userId, [
-        'nom'      => $nom,
-        'prenom'   => $prenom,
-        'email'    => !empty($email) ? $email : null,
-        'username' => $username,
-        'role'     => $role,
-        'site_id'  => $siteId,
-    ]);
+    $service->update($userId, $cmd, currentUserId());
 
-    // Note: No password field in current schema — mock auth doesn't use passwords.
+    auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, (int) $userId, 'user', ['role' => $cmd->role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
 
-    $pdo->commit();
-
-    // Update session if editing self
-    if (currentUserId() === $userId) {
-        refreshCurrentUser($pdo);
-    }
-
-    auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $prenom . ' ' . $nom, (int) $userId, 'user', ['role' => $role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
-
-    // Send email notification for role change (non-blocking — errors are logged, not shown to user)
     if ($notifyRoleChange) {
         try {
             require_once __DIR__ . '/../src/mail.php';
-            notifyRoleChange($pdo, $userId, $oldRole, $role);
-        } catch (Exception $mailEx) {
+            notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
+        } catch (\Throwable $mailEx) {
             error_log('[SST-MAIL] Role change notification error: ' . $mailEx->getMessage());
         }
     }
 
-    $successMsg = 'Utilisateur ' . e($prenom . ' ' . $nom) . ' mis à jour avec succès.';
+    $successMsg = 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' mis à jour avec succès.';
     if ($notifyRoleChange) {
-        $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($email) . '.';
-    } elseif ($roleChanged && empty($email)) {
+        $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($cmd->email) . '.';
+    } elseif ($roleChanged && empty($cmd->email)) {
         $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\'a été envoyé (adresse manquante).';
     }
     setFlash('success', $successMsg);
-} catch (Exception $e) {
-    $pdo->rollBack();
+} catch (\Throwable $e) {
     error_log('[SST-DB] user_edit failed: ' . $e->getMessage());
     setFlash('error', 'Erreur lors de la mise à jour de l\'utilisateur : ' . e($e->getMessage()));
 }

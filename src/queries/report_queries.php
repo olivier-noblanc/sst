@@ -11,6 +11,8 @@
 require_once __DIR__ . '/report_count_queries.php';
 require_once __DIR__ . '/report_response_queries.php';
 
+use App\Query\QueryFilterBuilder;
+
 /** Base SELECT for report queries with site JOIN (excludes attachment_blob). */
 function reportSelectWithSite(): string
 {
@@ -136,33 +138,20 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array
  */
 function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page = 1, int $perPage = 20): array
 {
-    $where = 'r.type = :type';
-    $params = [':type' => $type];
-
-    if (!$seeAllSites) {
-        $where .= ' AND r.site_id = :user_site_id';
-        $params[':user_site_id'] = $userSiteId;
-    }
+    $builder = new QueryFilterBuilder();
+    $builder->addEqual('r.type', $type);
+    if (!$seeAllSites) { $builder->addEqual('r.site_id', $userSiteId); }
     if (!empty($filters['confidential_filter'])) {
-        $where .= ' AND (r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)';
-        $params[':cf_declarant_id'] = (int) $filters['confidential_filter'];
+        $cfId = (int) $filters['confidential_filter'];
+        $builder->addRaw('(r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)', [':cf_declarant_id' => $cfId]);
     }
-    if (!empty($filters['own_only'])) {
-        $where .= ' AND r.declarant_id = :own_only_declarant_id';
-        $params[':own_only_declarant_id'] = (int) $filters['own_only'];
-    }
-    if (!empty($filters['etat'])) {
-        $where .= ' AND r.etat = :etat';
-        $params[':etat'] = $filters['etat'];
-    }
-    if (!empty($filters['site_id']) && $seeAllSites) {
-        $where .= ' AND r.site_id = :filter_site_id';
-        $params[':filter_site_id'] = $filters['site_id'];
-    }
-    if (!empty($filters['force_site_id'])) {
-        $where .= ' AND r.site_id = :force_site_id';
-        $params[':force_site_id'] = (int) $filters['force_site_id'];
-    }
+    if (!empty($filters['own_only'])) { $builder->addEqual('r.declarant_id', $filters['own_only']); }
+    if (!empty($filters['etat'])) { $builder->addEqual('r.etat', $filters['etat']); }
+    if (!empty($filters['site_id']) && $seeAllSites) { $builder->addEqual('r.site_id', $filters['site_id']); }
+    if (!empty($filters['force_site_id'])) { $builder->addEqual('r.site_id', (int) $filters['force_site_id']); }
+    if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) { $builder->addEqual('r.declarant_id', $filters['declarant_id']); }
+
+    ['where' => $where, 'params' => $params] = $builder->build();
 
     // Search: FTS5 if available, else LIKE
     if (!empty($filters['q'])) {
@@ -188,10 +177,6 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
             $where .= ' AND (r.objet LIKE :q OR r.description LIKE :q2)';
             $params[':q'] = $params[':q2'] = '%' . $filters['q'] . '%';
         }
-    }
-    if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) {
-        $where .= ' AND r.declarant_id = :declarant_id';
-        $params[':declarant_id'] = (int) $filters['declarant_id'];
     }
 
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM reports r WHERE $where");

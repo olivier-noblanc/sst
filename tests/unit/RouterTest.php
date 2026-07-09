@@ -2,29 +2,38 @@
 /**
  * Router Unit Tests — Valid Pages, Validation, Handler Map
  *
- * Tests routing functions from src/router.php:
+ * Tests the App\Router\Router class methods:
  * - getValidPages()
  * - validatePage()
  * - getHandlerMap()
  */
 
 use PHPUnit\Framework\TestCase;
+use App\Router\Router;
 
 require_once __DIR__ . '/../../src/router.php';
+require_once __DIR__ . '/../../src/Router/routes.php';
 
 class RouterTest extends TestCase
 {
+    private Router $router;
+
+    protected function setUp(): void
+    {
+        $this->router = getRouter();
+    }
+
     // ─── getValidPages ─────────────────────────────────────────────────────
 
     public function testGetValidPagesReturnsArray(): void
     {
-        $pages = getValidPages();
+        $pages = $this->router->getValidPages();
         $this->assertIsArray($pages);
     }
 
     public function testGetValidPagesContainsEssentialPages(): void
     {
-        $pages = getValidPages();
+        $pages = $this->router->getValidPages();
         $this->assertContains('home', $pages);
         $this->assertContains('logout', $pages);
         $this->assertContains('report_create', $pages);
@@ -44,7 +53,7 @@ class RouterTest extends TestCase
 
     public function testGetValidPagesDoesNotContainEmptyStrings(): void
     {
-        $pages = getValidPages();
+        $pages = $this->router->getValidPages();
         foreach ($pages as $page) {
             $this->assertNotEmpty($page, "Valid pages should not contain empty strings");
         }
@@ -52,7 +61,7 @@ class RouterTest extends TestCase
 
     public function testGetValidPagesAreAllStrings(): void
     {
-        $pages = getValidPages();
+        $pages = $this->router->getValidPages();
         foreach ($pages as $page) {
             $this->assertIsString($page, "Each page name should be a string");
         }
@@ -60,7 +69,7 @@ class RouterTest extends TestCase
 
     public function testGetValidPagesAreUnique(): void
     {
-        $pages = getValidPages();
+        $pages = $this->router->getValidPages();
         $uniquePages = array_unique($pages);
         $this->assertCount(count($pages), $uniquePages, 'All page names should be unique');
     }
@@ -69,105 +78,105 @@ class RouterTest extends TestCase
 
     public function testValidatePageWithValidHomePage(): void
     {
-        $this->assertEquals('home', validatePage('home'));
+        $this->assertEquals('home', $this->router->validatePage('home'));
     }
 
     public function testValidatePageWithValidReportCreate(): void
     {
-        $this->assertEquals('report_create', validatePage('report_create'));
+        $this->assertEquals('report_create', $this->router->validatePage('report_create'));
     }
 
     public function testValidatePageWithValidSettings(): void
     {
-        $this->assertEquals('settings', validatePage('settings'));
+        $this->assertEquals('settings', $this->router->validatePage('settings'));
     }
 
     public function testValidatePageWithInvalidPageReturnsHome(): void
     {
-        $this->assertEquals('home', validatePage('nonexistent'));
+        $this->assertEquals('home', $this->router->validatePage('nonexistent'));
     }
 
     public function testValidatePageWithEmptyStringReturnsHome(): void
     {
-        $this->assertEquals('home', validatePage(''));
+        $this->assertEquals('home', $this->router->validatePage(''));
     }
 
     public function testValidatePageWithMaliciousInputReturnsHome(): void
     {
-        $this->assertEquals('home', validatePage('../../../etc/passwd'));
+        $this->assertEquals('home', $this->router->validatePage('../../../etc/passwd'));
     }
 
     public function testValidatePageWithXssInputReturnsHome(): void
     {
-        $this->assertEquals('home', validatePage('<script>alert(1)</script>'));
+        $this->assertEquals('home', $this->router->validatePage('<script>alert(1)</script>'));
     }
 
     public function testValidatePageCaseSensitive(): void
     {
-        $this->assertEquals('home', validatePage('Home'));
-        $this->assertEquals('home', validatePage('HOME'));
-        $this->assertEquals('home', validatePage('Settings'));
+        $this->assertEquals('home', $this->router->validatePage('Home'));
+        $this->assertEquals('home', $this->router->validatePage('HOME'));
+        $this->assertEquals('home', $this->router->validatePage('Settings'));
     }
 
     public function testValidatePageAllValidPages(): void
     {
-        $pages = getValidPages();
+        $pages = $this->router->getValidPages();
         foreach ($pages as $page) {
-            $this->assertEquals($page, validatePage($page), "validatePage('$page') should return '$page'");
+            $this->assertEquals($page, $this->router->validatePage($page), "validatePage('$page') should return '$page'");
         }
     }
 
     public function testValidatePageWithSqlInjectionReturnsHome(): void
     {
-        $this->assertEquals('home', validatePage("'; DROP TABLE users; --"));
+        $this->assertEquals('home', $this->router->validatePage("'; DROP TABLE users; --"));
     }
 
     public function testValidatePageWithNumericStringReturnsHome(): void
     {
-        $this->assertEquals('home', validatePage('123'));
+        $this->assertEquals('home', $this->router->validatePage('123'));
     }
 
     // ─── getHandlerMap ──────────────────────────────────────────────────────
 
     public function testGetHandlerMapReturnsArray(): void
     {
-        $map = getHandlerMap();
+        $map = $this->router->getHandlerMap();
         $this->assertIsArray($map);
     }
 
     public function testGetHandlerMapContainsReportCreate(): void
     {
-        $this->assertArrayHasKey('report_create', getHandlerMap());
+        $this->assertArrayHasKey('report_create', $this->router->getHandlerMap());
     }
 
     public function testGetHandlerMapContainsReportEdit(): void
     {
-        $this->assertArrayHasKey('report_edit', getHandlerMap());
+        $this->assertArrayHasKey('report_edit', $this->router->getHandlerMap());
     }
 
     public function testGetHandlerMapContainsReportRespond(): void
     {
-        $this->assertArrayHasKey('report_respond', getHandlerMap());
+        $this->assertArrayHasKey('report_respond', $this->router->getHandlerMap());
     }
 
     public function testGetHandlerMapContainsSettings(): void
     {
-        $this->assertArrayHasKey('settings', getHandlerMap());
+        $this->assertArrayHasKey('settings', $this->router->getHandlerMap());
     }
 
     public function testGetHandlerMapContainsUserEdit(): void
     {
-        $this->assertArrayHasKey('user_edit', getHandlerMap());
+        $this->assertArrayHasKey('user_edit', $this->router->getHandlerMap());
     }
 
     public function testGetHandlerMapContainsImpersonate(): void
     {
-        $this->assertArrayHasKey('impersonate', getHandlerMap());
+        $this->assertArrayHasKey('impersonate', $this->router->getHandlerMap());
     }
 
     public function testGetHandlerMapValuesAreStrings(): void
     {
-        $map = getHandlerMap();
+        $map = $this->router->getHandlerMap();
         foreach ($map as $page => $path) {
             $this->assertIsString($path, "Handler path for '$page' should be a string");
         }
@@ -175,7 +184,7 @@ class RouterTest extends TestCase
 
     public function testGetHandlerMapHandlerPathsContainHandlerDirectory(): void
     {
-        $map = getHandlerMap();
+        $map = $this->router->getHandlerMap();
         foreach ($map as $page => $path) {
             $this->assertStringContainsString('handlers', $path,
                 "Handler path for '$page' should contain 'handlers' directory");
@@ -184,7 +193,7 @@ class RouterTest extends TestCase
 
     public function testGetHandlerMapHandlerPathsEndWithPhp(): void
     {
-        $map = getHandlerMap();
+        $map = $this->router->getHandlerMap();
         foreach ($map as $page => $path) {
             $this->assertStringEndsWith('.php', $path,
                 "Handler path for '$page' should end with .php");

@@ -47,6 +47,11 @@ worklog.md
 test_pdf_real.php
 test_fpdf.php
 scripts/screenshot_sst.sh
+*_test.txt
+*_test2.txt
+test_output.txt
+full_test_suite.txt
+appmap.log
 
 # Internal session notes
 CORRECTIONS.md
@@ -73,3 +78,15 @@ playwright-report/
 .php-cs-fixer.cache
 psalm-cache/
 phpstan-result.txt
+phpstan_output.txt
+coverage-report/
+
+# Mimocode agent workspace
+.mimocode/
+
+# Superpowers auto-generated plans
+docs/superpowers/
+
+# Dev tools not used directly
+tools/phive.phar
+tools/phpcov.phar

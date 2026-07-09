@@ -15,8 +15,6 @@
  *   - Impersonation only changes the session, not the database
  */
 
-validatePostRequest(url('home'));
-
 // Must be authenticated
 if (!isUserLoggedIn()) {
     redirect(url('home'));

@@ -7,7 +7,9 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
+require_once __DIR__ . '/../src/bootstrap_services.php';
+
+use App\Services\UserService;
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 
@@ -16,28 +18,19 @@ if ($userId <= 0) {
     redirect(url('users'));
 }
 
-$pdo = getDB();
+$service = getContainer()->get(UserService::class);
 
-// Verify user exists and is currently inactive
-$user = getUserById($pdo, $userId);
-if (!$user) {
-    setFlash('error', 'Utilisateur introuvable.');
-    redirect(url('users'));
-}
+try {
+    $service->reactivate($userId);
 
-if ($user['is_active']) {
-    setFlash('warning', 'Cet utilisateur est déjà actif.');
-    redirect(url('users'));
-}
-
-// Reactivate
-$success = reactivateUser($pdo, $userId);
-
-if ($success) {
+    $pdo = getDB();
+    $user = $service->findById($userId);
     auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' réactivé avec succès.');
-} else {
-    error_log('[SST-DB] user_reactivate failed for user_id=' . $userId);
+} catch (\RuntimeException $e) {
+    setFlash('error', e($e->getMessage()));
+} catch (\Throwable $e) {
+    error_log('[SST-DB] user_reactivate failed: ' . $e->getMessage());
     setFlash('error', 'Erreur lors de la réactivation de l\'utilisateur. (user_id=' . $userId . ')');
 }
 

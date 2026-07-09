@@ -3,11 +3,13 @@
 /**
  * Report Respond Handler — Application SST DREETS BFC
  *
- * POST handler: save supervisor response + update report state.
- * Access: superviseur only
+ * Thin controller: validates request → DTO → ReportService → flash + redirect.
  */
 
-validatePostRequest(url('home'), [ROLE_SUPERVISEUR]);
+require_once __DIR__ . '/../src/bootstrap_services.php';
+
+use App\DTO\RespondToReportCommand;
+use App\Services\ReportService;
 
 $reportUuid = trim($_POST['report_uuid'] ?? '');
 
@@ -27,7 +29,6 @@ if (empty($reponse)) {
     setFormData($_POST);
     redirect(url('report_respond', ['uuid' => $reportUuid]));
 }
-
 if (strlen($reponse) > 5000) {
     setFlash('error', 'La réponse ne doit pas dépasser 5000 caractères.');
     setFormErrors(['reponse' => 'Maximum 5000 caractères.']);
@@ -35,21 +36,15 @@ if (strlen($reponse) > 5000) {
     redirect(url('report_respond', ['uuid' => $reportUuid]));
 }
 
-// Get the report
+// Validate report state
 $report = fetchReportOrRedirect($reportUuid);
-
-// Verify report state
 if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT])) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
     redirect(url('report_view', ['uuid' => $reportUuid]));
 }
 
-// Save response
-$pdo = getDB();
-$userId = currentUserId();
-
 // Handle optional attachment
-$attachment = ['blob' => null, 'name' => null, 'mime' => null];
+$attachment = [];
 if (!empty($_FILES['response_attachment']['tmp_name'])) {
     $fakeErrors = [];
     $att = validateReportAttachment($fakeErrors);
@@ -61,29 +56,47 @@ if (!empty($_FILES['response_attachment']['tmp_name'])) {
     $attachment = ['blob' => $att['blob'], 'name' => $att['name'], 'mime' => $att['mime']];
 }
 
-$result = respondToReport($pdo, $reportUuid, $userId, $reponse, $nouvelEtat, $attachment);
+$pdo = getDB();
+$userId = currentUserId();
 
-if ($result['status'] === 'true') {
-    // Audit log
-    auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . $report['reference'] . ' — état : ' . $nouvelEtat, (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
+try {
+    $cmd = new RespondToReportCommand(
+        reponse: $reponse,
+        nouvelEtat: $nouvelEtat,
+        attachment: $attachment,
+    );
 
-    // Notify declarant about the response (non-blocking — errors are logged, not shown to user)
-    try {
-        require_once __DIR__ . '/../src/mail.php';
-        notifyReportResponse($pdo, $reportUuid, $userId);
-    } catch (Exception $mailEx) {
-        error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());
-    }
+    $service = getContainer()->get(ReportService::class);
+    $result = $service->respond($reportUuid, $cmd, $userId);
 
-    setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report['reference']) . '.');
-} else {
-    if ($result['status'] === 'concurrent') {
-        setFlash('error', 'Ce signalement a été modifié par un autre superviseur pendant votre saisie. Veuillez recommencer.');
+    if ($result['status'] === 'true') {
+        auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . $report['reference'] . ' — état : ' . $nouvelEtat, (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
+
+        try {
+            require_once __DIR__ . '/../src/mail.php';
+            notifyReportResponse($pdo, $reportUuid, $userId);
+        } catch (\Throwable $mailEx) {
+            error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());
+        }
+
+        setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report['reference']) . '.');
     } else {
-        $errorMsg = $result['message'] ?? 'Erreur inconnue';
-        error_log('[SST-RESPOND] respondToReport failed: ' . $errorMsg . ' | user_id=' . $userId . ' report_uuid=' . $reportUuid);
-        setFlash('error', 'Erreur lors de l\'enregistrement de la réponse : ' . e($errorMsg));
+        if ($result['status'] === 'concurrent') {
+            setFlash('error', 'Ce signalement a été modifié par un autre superviseur pendant votre saisie. Veuillez recommencer.');
+        } else {
+            $errorMsg = $result['message'] ?? 'Erreur inconnue';
+            error_log('[SST-RESPOND] respondToReport failed: ' . $errorMsg . ' | user_id=' . $userId . ' report_uuid=' . $reportUuid);
+            setFlash('error', 'Erreur lors de l\'enregistrement de la réponse : ' . e($errorMsg));
+        }
     }
+} catch (\RuntimeException $e) {
+    setFlash('error', e($e->getMessage()));
+    setFormData($_POST);
+    redirect(url('report_respond', ['uuid' => $reportUuid]));
+} catch (\Exception $e) {
+    error_log('[SST-RESPOND] Unexpected error: ' . $e->getMessage());
+    setFlash('error', 'Une erreur inattendue est survenue.');
+    redirect(url('report_respond', ['uuid' => $reportUuid]));
 }
 
 redirect(url('report_view', ['uuid' => $reportUuid]));

@@ -7,7 +7,9 @@
  * Access: superviseur only
  */
 
-validatePostRequest(url('users'), [ROLE_SUPERVISEUR]);
+require_once __DIR__ . '/../src/bootstrap_services.php';
+
+use App\Services\UserService;
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 
@@ -16,34 +18,19 @@ if ($userId <= 0) {
     redirect(url('users'));
 }
 
-$pdo = getDB();
+$service = getContainer()->get(UserService::class);
 
-// Prevent self-deletion
-if (currentUserId() === $userId) {
-    setFlash('error', 'Vous ne pouvez pas désactiver votre propre compte.');
-    redirect(url('users'));
-}
+try {
+    $service->deactivate($userId, currentUserId());
 
-// Verify user exists
-$user = getUserById($pdo, $userId);
-if (!$user) {
-    setFlash('error', 'Utilisateur introuvable.');
-    redirect(url('users'));
-}
-
-// Soft delete — guard: prevent deactivating the last active superviseur
-if ($user['role'] === ROLE_SUPERVISEUR && isLastActiveSuperviseur($pdo)) {
-    setFlash('error', 'Impossible de désactiver le dernier superviseur actif. Nommez un autre superviseur d\'abord.');
-    redirect(url('users'));
-}
-
-$success = deactivateUser($pdo, $userId);
-
-if ($success) {
+    $pdo = getDB();
+    $user = $service->findById($userId);
     auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' désactivé avec succès.');
-} else {
-    error_log('[SST-DB] user_delete failed for user_id=' . $userId);
+} catch (\RuntimeException $e) {
+    setFlash('error', e($e->getMessage()));
+} catch (\Throwable $e) {
+    error_log('[SST-DB] user_delete failed: ' . $e->getMessage());
     setFlash('error', 'Erreur lors de la désactivation de l\'utilisateur. Veuillez contacter un administrateur.');
 }
 

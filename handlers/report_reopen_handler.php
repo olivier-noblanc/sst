@@ -7,8 +7,6 @@
  * Access: superviseur or CHSCT only (not declarant — French labor law)
  */
 
-validatePostRequest(url('home'));
-
 $reportUuid = trim($_POST['report_uuid'] ?? '');
 $motifReouverture = trim($_POST['motif_reouverture'] ?? '');
 
@@ -121,7 +119,7 @@ try {
                 sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
             }
         }
-    } catch (Exception $mailEx) {
+    } catch (\Throwable $mailEx) {
         error_log('[SST-MAIL] Reopen notification error: ' . $mailEx->getMessage());
     }
 

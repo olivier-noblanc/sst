@@ -93,7 +93,9 @@ if (!empty($linkedEmailsRaw)) {
     }
     $linkedEmailsList = array_map('trim', explode(',', $linkedEmailsRaw));
     foreach ($linkedEmailsList as $idx => $em) {
-        if (empty($em)) continue;
+        if (empty($em)) {
+            continue;
+        }
         if (!filter_var($em, FILTER_VALIDATE_EMAIL)) {
             $errors['linked_emails'] = 'Adresse e-mail invalide : ' . e($em);
             break;
@@ -179,7 +181,9 @@ try {
         $linkedEmailsRaw = trim($_POST['linked_emails'] ?? '');
         if (!empty($linkedEmailsRaw)) {
             $linkedEmails = array_map('trim', explode(',', $linkedEmailsRaw));
-            $linkedEmails = array_filter($linkedEmails, function($e) { return filter_var($e, FILTER_VALIDATE_EMAIL); });
+            $linkedEmails = array_filter($linkedEmails, function ($e) {
+                return filter_var($e, FILTER_VALIDATE_EMAIL);
+            });
             if (!empty($linkedEmails)) {
                 sendAgentInviteEmails($pdo, $newUuid, $linkedEmails);
             }

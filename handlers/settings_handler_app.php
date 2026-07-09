@@ -80,9 +80,15 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     $roleLabelAgent = trim($postData['app_role_label_agent'] ?? 'Agent');
     $roleLabelSuperviseur = trim($postData['app_role_label_superviseur'] ?? 'Superviseur');
     $roleLabelChsct = trim($postData['app_role_label_chsct'] ?? 'Membre FS/CSA');
-    if (empty($roleLabelAgent)) $roleLabelAgent = 'Agent';
-    if (empty($roleLabelSuperviseur)) $roleLabelSuperviseur = 'Superviseur';
-    if (empty($roleLabelChsct)) $roleLabelChsct = 'Membre FS/CSA';
+    if (empty($roleLabelAgent)) {
+        $roleLabelAgent = 'Agent';
+    }
+    if (empty($roleLabelSuperviseur)) {
+        $roleLabelSuperviseur = 'Superviseur';
+    }
+    if (empty($roleLabelChsct)) {
+        $roleLabelChsct = 'Membre FS/CSA';
+    }
     updateConfig($pdo, 'app_role_label_agent', $roleLabelAgent);
     updateConfig($pdo, 'app_role_label_superviseur', $roleLabelSuperviseur);
     updateConfig($pdo, 'app_role_label_chsct', $roleLabelChsct);

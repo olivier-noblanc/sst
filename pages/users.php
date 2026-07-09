@@ -23,11 +23,11 @@ $allUsers = getAllUsers($pdo, 0, false); // include inactive
 if (!empty($search)) {
     $filtered = [];
     foreach ($allUsers as $u) {
-        if (stripos($u['nom'], $search) !== false ||
-            stripos($u['prenom'], $search) !== false ||
-            stripos($u['email'], $search) !== false ||
-            stripos($u['username'], $search) !== false ||
-            (!$noSiteMode && stripos($u['site_nom'], $search) !== false)) {
+        if (stripos($u['nom'], $search) !== false
+            || stripos($u['prenom'], $search) !== false
+            || stripos($u['email'], $search) !== false
+            || stripos($u['username'], $search) !== false
+            || (!$noSiteMode && stripos($u['site_nom'], $search) !== false)) {
             $filtered[] = $u;
         }
     }

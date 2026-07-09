@@ -41,7 +41,7 @@ foreach ($sites as $site) {
 // Fill in the data
 foreach ($synthesisData as $row) {
     $sId = (int) $row['site_id'];
-        $type = $row['type'] ?? '';
+    $type = $row['type'] ?? '';
     if (isset($siteData[$sId]) && isset($siteData[$sId][$type])) {
         $siteData[$sId][$type] = [
             'nouveau'   => (int) $row['nouveau'],
@@ -80,8 +80,12 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
 
 // Build list of active registry types for the table columns
 $activeTypes = ['rsst' => 'RSST'];
-if ($ramiEnabled) $activeTypes['rami'] = 'RAMI';
-if ($dgiEnabled) $activeTypes['dgi'] = 'DGI';
+if ($ramiEnabled) {
+    $activeTypes['rami'] = 'RAMI';
+}
+if ($dgiEnabled) {
+    $activeTypes['dgi'] = 'DGI';
+}
 $colSpan = count($activeTypes) * 4;
 ?>
 
@@ -146,8 +150,10 @@ $colSpan = count($activeTypes) * 4;
                     <?php endforeach; ?>
                     <td data-label="Total" class="synthesis-cell-value"><strong><?php
                         $rowTotal = 0;
-                        foreach ($activeTypes as $type => $_) { $rowTotal += $sd[$type]['total']; }
-                        echo $rowTotal;
+                    foreach ($activeTypes as $type => $_) {
+                        $rowTotal += $sd[$type]['total'];
+                    }
+                    echo $rowTotal;
                     ?></strong></td>
                 </tr>
                 <?php endforeach; ?>

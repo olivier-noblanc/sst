@@ -18,10 +18,10 @@
 function createAgentInvite(PDO $pdo, string $reportUuid, string $email): string
 {
     $token = bin2hex(random_bytes(32));
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         INSERT INTO report_agent_invites (report_uuid, email, token)
         VALUES (:uuid, :email, :token)
-    ");
+    ');
     $stmt->execute([':uuid' => $reportUuid, ':email' => $email, ':token' => $token]);
     return $token;
 }
@@ -32,9 +32,9 @@ function createAgentInvite(PDO $pdo, string $reportUuid, string $email): string
  */
 function getAgentInviteByToken(PDO $pdo, string $token): ?array
 {
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         SELECT * FROM report_agent_invites WHERE token = ? AND confirmed = 0
-    ");
+    ');
     $stmt->execute([$token]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row ?: null;
@@ -68,11 +68,11 @@ function confirmAgentInvite(PDO $pdo, string $token, int $userId): bool
  */
 function getPendingInvites(PDO $pdo, string $reportUuid): array
 {
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         SELECT email, created_at FROM report_agent_invites
         WHERE report_uuid = ? AND confirmed = 0
         ORDER BY created_at
-    ");
+    ');
     $stmt->execute([$reportUuid]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

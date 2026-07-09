@@ -114,7 +114,9 @@ function createReport(PDO $pdo, array $data): string
 /** Get a single report by UUID with site and respondent info. */
 function getReportByUuid(PDO $pdo, string $uuid): ?array
 {
-    if (!isValidUuid($uuid)) return null;
+    if (!isValidUuid($uuid)) {
+        return null;
+    }
     $stmt = $pdo->prepare('
         SELECT r.*, s.code as site_code, s.nom as site_nom,
                rep.nom as repondant_nom, rep.prenom as repondant_prenom
@@ -169,7 +171,9 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
             try {
                 $c = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='reports_fts'");
                 $hasFts = ($c !== false && $c->fetch() !== false);
-            } catch (Exception $e) { $hasFts = false; }
+            } catch (Exception $e) {
+                $hasFts = false;
+            }
         }
         if ($hasFts) {
             $where .= ' AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)';

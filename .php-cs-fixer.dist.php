@@ -16,7 +16,7 @@ $finder = PhpCsFixer\Finder::create()
 
 return (new PhpCsFixer\Config())
     ->setRules([
-        '@PSR12' => true,
+        '@PER-CS' => true,
         'array_syntax' => ['syntax' => 'short'],
         'no_unused_imports' => true,
         'no_superfluous_phpdoc_tags' => false, // Keep PHPStan types

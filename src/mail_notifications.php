@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Mail Notification Functions — Application SST DREETS BFC
  *
@@ -43,7 +44,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         $csaUsers = getUsersByRole($pdo, ROLE_CHSCT);
         foreach ($csaUsers as $csaUser) {
             if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients)) {
-                $csaSubject = "Signalement DGI — Notification " . getRoleLabelShort('chsct') . " — {$report['reference']}";
+                $csaSubject = 'Signalement DGI — Notification ' . getRoleLabelShort('chsct') . " — {$report['reference']}";
                 $csaBody = '<html><body>';
                 $csaBody .= '<h2>Notification DGI — Article L4131-2 du Code du travail</h2>';
                 $csaBody .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>';
@@ -224,12 +225,14 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
     }
     foreach ($emails as $email) {
         $email = trim($email);
-        if (empty($email)) continue;
+        if (empty($email)) {
+            continue;
+        }
         // Create invite token
         $token = createAgentInvite($pdo, $reportUuid, $email);
         // Build confirmation link
         $confirmUrl = url('agent_confirm', ['token' => $token]);
-        $subject = "Vous avez été rattaché(e) au signalement " . $report['reference'];
+        $subject = 'Vous avez été rattaché(e) au signalement ' . $report['reference'];
         $body = buildEmailBody(
             'Confirmation de rattachement',
             '<p>Bonjour,</p>'

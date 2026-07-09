@@ -22,7 +22,7 @@ function getRamiStructuredStats(PDO $pdo, string $year = ''): array
     if (!empty($year)) {
         $yearFilter = ' AND created_at >= :year_start AND created_at < :year_next';
         $params[':year_start'] = $year . '-01-01 00:00:00';
-        $params[':year_next'] = ((int)$year + 1) . '-01-01 00:00:00';
+        $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
     }
 
     // By nature_auteur

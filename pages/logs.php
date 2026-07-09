@@ -44,11 +44,21 @@ if ($activeTab === 'audit') {
     $pdo = getDB();
 
     $auditFilters = [];
-    if (!empty($_GET['category']))  $auditFilters['category'] = $_GET['category'];
-    if (!empty($_GET['user']))      $auditFilters['username'] = trim($_GET['user']);
-    if (!empty($_GET['q']))         $auditFilters['q'] = trim($_GET['q']);
-    if (!empty($_GET['date_from'])) $auditFilters['date_from'] = $_GET['date_from'] . ' 00:00:00';
-    if (!empty($_GET['date_to']))   $auditFilters['date_to'] = $_GET['date_to'] . ' 23:59:59';
+    if (!empty($_GET['category'])) {
+        $auditFilters['category'] = $_GET['category'];
+    }
+    if (!empty($_GET['user'])) {
+        $auditFilters['username'] = trim($_GET['user']);
+    }
+    if (!empty($_GET['q'])) {
+        $auditFilters['q'] = trim($_GET['q']);
+    }
+    if (!empty($_GET['date_from'])) {
+        $auditFilters['date_from'] = $_GET['date_from'] . ' 00:00:00';
+    }
+    if (!empty($_GET['date_to'])) {
+        $auditFilters['date_to'] = $_GET['date_to'] . ' 23:59:59';
+    }
 
     $result = getAuditLog($pdo, $auditFilters, $auditPage, $auditPerPage);
     $auditEntries = $result['entries'];
@@ -202,7 +212,8 @@ $auditActionLabels = [
                         <tr>
                             <td class="text-small text-muted"><?php echo e($entry['created_at']); ?></td>
                             <td>
-                                <?php $catKey = $entry['category']; $catLabel = $auditCategoryLabels[$catKey] ?? $catKey; ?>
+                                <?php $catKey = $entry['category'];
+                        $catLabel = $auditCategoryLabels[$catKey] ?? $catKey; ?>
                                 <span class="badge badge--cat-<?php echo e($catKey); ?>"><?php echo e($catLabel); ?></span>
                             </td>
                             <td class="text-small"><?php echo e($entry['username']); ?></td>
@@ -228,7 +239,7 @@ $auditActionLabels = [
                 'q'         => $_GET['q'] ?? '',
                 'date_from' => $_GET['date_from'] ?? '',
                 'date_to'   => $_GET['date_to'] ?? '',
-            ], fn ($v) => $v !== '');
+            ], fn($v) => $v !== '');
             ?>
         <div class="pagination pagination--flex">
             <?php if ($auditPage > 1): ?>

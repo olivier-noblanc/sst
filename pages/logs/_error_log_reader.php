@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Error Log Reader — Tail-reading algorithm + categorization
  *

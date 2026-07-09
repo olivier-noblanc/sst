@@ -25,12 +25,12 @@
                 <?php echo e($site['nom']); ?>
             </h3>
             <div class="form-group">
-                <label for="site_emails_<?php echo e((string)$sId); ?>">Adresses e-mail de notification</label>
-                <textarea id="site_emails_<?php echo e((string)$sId); ?>" name="site_emails[<?php echo e((string)$sId); ?>]"
+                <label for="site_emails_<?php echo e((string) $sId); ?>">Adresses e-mail de notification</label>
+                <textarea id="site_emails_<?php echo e((string) $sId); ?>" name="site_emails[<?php echo e((string) $sId); ?>]"
                           rows="3" class="form-control"
-                          aria-describedby="hint_site_emails_<?php echo e((string)$sId); ?>"
+                          aria-describedby="hint_site_emails_<?php echo e((string) $sId); ?>"
                           placeholder="Une adresse par ligne&#10;ex: jean.martin@dreets.gouv.fr&#10;sophie.dupont@dreets.gouv.fr"><?php echo e(implode("\n", $existingEmails)); ?></textarea>
-                <div class="form-hint" id="hint_site_emails_<?php echo e((string)$sId); ?>">Une adresse e-mail par ligne. Laissez vide pour aucune notification.</div>
+                <div class="form-hint" id="hint_site_emails_<?php echo e((string) $sId); ?>">Une adresse e-mail par ligne. Laissez vide pour aucune notification.</div>
             </div>
         </div>
     <?php endforeach; ?>

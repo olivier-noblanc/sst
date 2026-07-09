@@ -24,17 +24,29 @@ $dgiCount  = 0;
 
 if ($agentVisibility === 'confidential') {
     $rsstCount = countActiveReportsForUser($pdo, TYPE_RSST, $userId);
-    if (isRegistryEnabled(TYPE_RAMI)) $ramiCount = countActiveReportsForUser($pdo, TYPE_RAMI, $userId);
-    if (isRegistryEnabled(TYPE_DGI))  $dgiCount  = countActiveReportsForUser($pdo, TYPE_DGI, $userId);
+    if (isRegistryEnabled(TYPE_RAMI)) {
+        $ramiCount = countActiveReportsForUser($pdo, TYPE_RAMI, $userId);
+    }
+    if (isRegistryEnabled(TYPE_DGI)) {
+        $dgiCount  = countActiveReportsForUser($pdo, TYPE_DGI, $userId);
+    }
 } elseif ($agentVisibility === 'agent_choice') {
     $rsstCount = countActiveReports($pdo, TYPE_RSST, $userSiteId, $userId, true);
-    if (isRegistryEnabled(TYPE_RAMI)) $ramiCount = countActiveReports($pdo, TYPE_RAMI, $userSiteId, $userId, true);
-    if (isRegistryEnabled(TYPE_DGI))  $dgiCount  = countActiveReports($pdo, TYPE_DGI, $userSiteId, $userId, true);
+    if (isRegistryEnabled(TYPE_RAMI)) {
+        $ramiCount = countActiveReports($pdo, TYPE_RAMI, $userSiteId, $userId, true);
+    }
+    if (isRegistryEnabled(TYPE_DGI)) {
+        $dgiCount  = countActiveReports($pdo, TYPE_DGI, $userSiteId, $userId, true);
+    }
 } else {
     $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
     $rsstCount = countActiveReports($pdo, TYPE_RSST, $siteIdFilter);
-    if (isRegistryEnabled(TYPE_RAMI)) $ramiCount = countActiveReports($pdo, TYPE_RAMI, $siteIdFilter);
-    if (isRegistryEnabled(TYPE_DGI))  $dgiCount  = countActiveReports($pdo, TYPE_DGI, $siteIdFilter);
+    if (isRegistryEnabled(TYPE_RAMI)) {
+        $ramiCount = countActiveReports($pdo, TYPE_RAMI, $siteIdFilter);
+    }
+    if (isRegistryEnabled(TYPE_DGI)) {
+        $dgiCount  = countActiveReports($pdo, TYPE_DGI, $siteIdFilter);
+    }
 }
 
 $totalReports = $rsstCount + $ramiCount + $dgiCount;

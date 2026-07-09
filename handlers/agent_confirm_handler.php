@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Agent Confirmation Handler — Application SST DREETS BFC
  *

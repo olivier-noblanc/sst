@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Report Print Helpers — Application SST DREETS BFC
  *
@@ -23,7 +24,9 @@ $etatColors = [
 /** Convert UTF-8 string to cp1252 for FPDF TrueType font rendering. */
 function utf8ToCp1252(?string $s): string
 {
-    if ($s === null || $s === '') return '';
+    if ($s === null || $s === '') {
+        return '';
+    }
     $converted = mb_convert_encoding($s, 'cp1252', 'UTF-8');
     return $converted !== false ? $converted : $s;
 }
@@ -34,8 +37,14 @@ class SSTPDF extends FPDF
     public string $headerText = '';
     public string $footerOrgName = '';
 
-    public function getLeftMargin(): float { return $this->lMargin; }
-    public function getRightMargin(): float { return $this->rMargin; }
+    public function getLeftMargin(): float
+    {
+        return $this->lMargin;
+    }
+    public function getRightMargin(): float
+    {
+        return $this->rMargin;
+    }
 
     public function Header(): void
     {
@@ -66,7 +75,9 @@ class SSTPDF extends FPDF
 /** Draw a colored badge (rounded rectangle with text). */
 function drawBadge(SSTPDF $pdf, string $text, array $bgColor, ?float $x = null, float $w = 0): void
 {
-    if ($x !== null) $pdf->SetX($x);
+    if ($x !== null) {
+        $pdf->SetX($x);
+    }
     $pdf->SetFont('DejaVu', 'B', 8);
     $textCp = utf8ToCp1252($text);
     $badgeW = ($w > 0) ? $w : $pdf->GetStringWidth($textCp) + 6;
@@ -173,7 +184,9 @@ function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
 /** Draw response history table with auto page-break and repeated headers. */
 function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void
 {
-    if (empty($responses)) return;
+    if (empty($responses)) {
+        return;
+    }
     drawHR($pdf);
     drawSectionTitle($pdf, 'Réponses (' . count($responses) . ')', $blueDark);
     $colWidths = [30, 35, 25, 70]; // Date, Répondant, État, Réponse

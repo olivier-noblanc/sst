@@ -38,7 +38,7 @@ $pageTitle = 'Éditer l\'utilisateur — ' . e($user['prenom'] . ' ' . $user['no
 <div class="card">
     <form method="POST" action="<?php echo url('user_edit', ['id' => $userId]); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-        <input type="hidden" name="user_id" value="<?php echo e((string)$userId); ?>">
+        <input type="hidden" name="user_id" value="<?php echo e((string) $userId); ?>">
 
         <?php
         // Prepare variables for the shared template
@@ -104,7 +104,7 @@ require __DIR__ . '/../templates/user_form_fields.php';
         <p>Êtes-vous sûr de vouloir désactiver cet utilisateur ?</p>
         <form method="POST" action="<?php echo url('user_delete'); ?>" class="btn-group">
             <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-            <input type="hidden" name="user_id" value="<?php echo e((string)$userId); ?>">
+            <input type="hidden" name="user_id" value="<?php echo e((string) $userId); ?>">
             <button type="submit" class="btn btn--danger">Oui, désactiver</button>
             <a href="<?php echo url('user_edit', ['id' => $userId]); ?>" class="btn btn--secondary">Annuler</a>
         </form>

@@ -30,7 +30,7 @@ function sstErrorHandler(int $errno, string $errstr, string $errfile, int $errli
     }
 
     // Log to PHP error log (standard format)
-    $levelName = match($errno) {
+    $levelName = match ($errno) {
         E_ERROR, E_USER_ERROR            => 'Fatal error',
         E_WARNING, E_USER_WARNING        => 'Warning',
         E_PARSE                          => 'Parse error',
@@ -82,7 +82,7 @@ function sstShutdownHandler(): void
         return;
     }
 
-    $levelName = match($error['type']) {
+    $levelName = match ($error['type']) {
         E_ERROR             => 'Fatal error',
         E_PARSE             => 'Parse error',
         E_CORE_ERROR        => 'Core error',

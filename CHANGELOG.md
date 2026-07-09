@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.26.1] — 2026-07-09
+
+### Technique — Modernisation PHP
+
+- **1** 🔴 **PHPStan level 9** — Niveau d'analyse statique relevé de 6 à 9 avec `treatPhpDocTypesAsCertain: false`. Baseline de 919 erreurs existantes générée. Nouvelles violations bloquées en CI. (`phpstan.neon`, `phpstan-baseline.neon`)
+- **2** 🔴 **PHP-CS-Fixer : migration @PSR12 → @PER-CS** — Le ruleset de codage mis à jour vers PER Coding Style (successeur officiel de PSR-12). 28 fichiers reformattés. (`.php-cs-fixer.dist.php`)
+- **3** 🟡 **Rector configuré** — Ajout de `rector.php` pour les migrations PHP 8.x automatisées (readonly, enums, typed properties). (`rector.php`)
+- **4** 🟡 **Infection configuré** — Ajout de `infection.json` pour le mutation testing en mode PR-diff. (`infection.json`)
+- **5** 🟢 **Scripts Composer** — Ajout de `cs:fix`, `cs:check`, `phpstan`, `phpstan:baseline`, `rector`, `rector:check`, `test`, `test:coverage` dans `composer.json`.
+- **6** 🟢 **PHPStan bootstrap FPDF/Parsedown** — Ajout des librairies tierces aux `bootstrapFiles` pour résoudre les erreurs `class.notFound`. (`phpstan.neon`)
+
+
 ## [3.26.0] — 2026-07-07
 
 ### Nouvelles fonctionnalités

@@ -104,7 +104,7 @@ function dispatchPostHandler(string $page): bool
  */
 function getPageTitle(string $page): string
 {
-    return match($page) {
+    return match ($page) {
         'home'            => 'Accueil',
         'preamble'        => 'Préambule',
         'help'            => 'Documentation',

@@ -30,7 +30,7 @@ function getSynthesisData(PDO $pdo, string $year, int $siteId = 0): array
             AND r.created_at >= :year_start AND r.created_at < :year_next
     ";
 
-    $params = [':year_start' => $year . '-01-01 00:00:00', ':year_next' => ((int)$year + 1) . '-01-01 00:00:00'];
+    $params = [':year_start' => $year . '-01-01 00:00:00', ':year_next' => ((int) $year + 1) . '-01-01 00:00:00'];
 
     if ($siteId > 0) {
         $sql .= ' AND r.site_id = :site_id';
@@ -142,7 +142,7 @@ function getStatisticsIndicateurs(PDO $pdo, string $year = '', int $siteId = 0):
     if (!empty($year)) {
         $sql .= ' AND created_at >= :year_start AND created_at < :year_next';
         $params[':year_start'] = $year . '-01-01 00:00:00';
-        $params[':year_next'] = ((int)$year + 1) . '-01-01 00:00:00';
+        $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
     }
 
     if ($siteId > 0) {
@@ -196,7 +196,7 @@ function getStatsBySite(PDO $pdo, string $year = '', int $siteId = 0): array
     if (!empty($year)) {
         $where[] = 'r.created_at >= :year_start AND r.created_at < :year_next';
         $params[':year_start'] = $year . '-01-01 00:00:00';
-        $params[':year_next'] = ((int)$year + 1) . '-01-01 00:00:00';
+        $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
     }
 
     if ($siteId > 0) {

@@ -40,7 +40,7 @@ $pageTitle = 'Éditer le site — ' . e($site['code'] . ' ' . $site['nom']);
 <div class="card">
     <form method="POST" action="<?php echo url('site_edit', ['id' => $siteId]); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-        <input type="hidden" name="site_id" value="<?php echo e((string)$siteId); ?>">
+        <input type="hidden" name="site_id" value="<?php echo e((string) $siteId); ?>">
 
         <div class="form-grid">
             <div class="form-group">

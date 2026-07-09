@@ -155,8 +155,8 @@ function getMimeType(string $filePath): string
 {
     if (!class_exists('finfo')) {
         throw new \RuntimeException(
-            'L\'extension PHP "fileinfo" est requise pour le téléchargement de pièces jointes. ' .
-            'Veuillez l\'activer dans php.ini : extension=fileinfo, puis redémarrer le serveur web.'
+            'L\'extension PHP "fileinfo" est requise pour le téléchargement de pièces jointes. '
+            . 'Veuillez l\'activer dans php.ini : extension=fileinfo, puis redémarrer le serveur web.'
         );
     }
     $finfo = new finfo(FILEINFO_MIME_TYPE);
@@ -267,12 +267,18 @@ function buildWordCloud(PDO $pdo, string $type, int $maxWords = 30): string
     $freq = [];
     foreach ($words as $word) {
         $word = trim($word);
-        if (mb_strlen($word, 'UTF-8') < 4) continue;
-        if (in_array($word, $stopWords)) continue;
+        if (mb_strlen($word, 'UTF-8') < 4) {
+            continue;
+        }
+        if (in_array($word, $stopWords)) {
+            continue;
+        }
         $freq[$word] = ($freq[$word] ?? 0) + 1;
     }
 
-    if (empty($freq)) return '';
+    if (empty($freq)) {
+        return '';
+    }
 
     arsort($freq);
     $topWords = array_slice($freq, 0, $maxWords, true);

@@ -130,3 +130,15 @@ function createRouter(): Router
 
     return $router;
 }
+
+/**
+ * Get the singleton Router instance.
+ */
+function getRouter(): Router
+{
+    static $router = null;
+    if ($router === null) {
+        $router = createRouter();
+    }
+    return $router;
+}

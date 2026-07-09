@@ -2,8 +2,9 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
-    level: 9
+    level: 10
     treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
     paths:
         - src/
         - pages/

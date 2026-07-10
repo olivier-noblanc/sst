@@ -32,6 +32,15 @@
 - Les binaires sont directement dans le PATH grâce aux shims : `phpunit`, `phpstan`, `php-cs-fixer`, `rector`, `phparkitect`, `infection`.
 - `composer.json` ne contient que les dépendances runtime (pas les outils dev en PHAR).
 
+### Git — Interdctions
+- **JAMAIS** modifier `git config --global` — c'est un environnement partagé.
+- Toute modification git doit se faire au niveau projet : `git config --local` ou variables d'environnement.
+
+### Testing — Obligatoire avant chaque push
+- **TOUJOURS** lancer les tests (`php "$env:USERPROFILE\scoop\shims\phpunit.phar" --no-coverage`) avant un `git push`.
+- **TOUJOURS** vérifier que PHPStan passe (`phpstan analyse --memory-limit=1G`) avant de push.
+- **Ne jamais pusher sans test préalable.**
+
 ### Structure du dépôt
 - `docs/screenshots/` : captures HTML source + PNG annotés + CAPTURES.md
 - `tools/` : scripts CLI manuels (capture_screenshots.py, annotate_screenshots.py, anonymize_old_reports.php, check_delays.php, backup_sst_db.ps1)

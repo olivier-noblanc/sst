@@ -94,7 +94,7 @@ try {
         require_once __DIR__ . '/../src/mail.php';
         $declarant = getUserById($pdo, (int) $report['declarant_id']);
         if ($declarant && !empty($declarant['email']) && (int) $report['declarant_id'] !== $userId) {
-            $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper($report['type']);
+            $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
             $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
             $body = '<html><body>';
             $body .= '<h2>Votre signalement a été réouvert</h2>';
@@ -119,7 +119,7 @@ try {
                 sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
             }
         }
-    } catch (\Throwable $mailEx) {
+    } catch (Throwable $mailEx) {
         error_log('[SST-MAIL] Reopen notification error: ' . $mailEx->getMessage());
     }
 

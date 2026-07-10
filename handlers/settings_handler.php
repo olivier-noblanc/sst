@@ -26,7 +26,7 @@ try {
             foreach ($siteEmails as $siteId => $emailText) {
                 $siteId = (int) $siteId;
                 // Parse textarea: split by newlines, trim, filter valid emails
-                $lines = preg_split('/[\r\n]+/', $emailText);
+                $lines = preg_split('/[\r\n]+/', (string) $emailText);
                 foreach ($lines as $email) {
                     $email = trim($email);
                     if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {

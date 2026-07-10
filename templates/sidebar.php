@@ -19,7 +19,7 @@ if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_G
     try {
         $pdo = getDB();
         $reportUuid = $_GET['uuid'] ?? '';
-        if (strlen($reportUuid) === 36) {
+        if (strlen((string) $reportUuid) === 36) {
             $stmt = $pdo->prepare('SELECT type FROM reports WHERE uuid = :uuid');
             $stmt->execute([':uuid' => $reportUuid]);
             $row = $stmt->fetch();
@@ -27,7 +27,7 @@ if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_G
                 $activeRegistryType = $row['type'];
             }
         }
-    } catch (Exception $e) {
+    } catch (Exception) {
         // Ignore database errors in sidebar
     }
 }

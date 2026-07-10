@@ -3,14 +3,15 @@
 
 namespace App\Services;
 
+use Exception;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 
 class AuthService
 {
     public function __construct(
-        private UserRepository $repo,
-        private EventDispatcher $events
+        private readonly UserRepository $repo,
+        private readonly EventDispatcher $events
     ) {}
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -23,8 +24,8 @@ class AuthService
      */
     public function getAuthenticatedUser(): ?array
     {
-        if (isUserLoggedIn()) {
-            return getUserSession();
+        if (\isUserLoggedIn()) {
+            return \getUserSession();
         }
 
         if (!DEV_MODE) {
@@ -40,7 +41,7 @@ class AuthService
 
             $user = $this->findOrCreateUser($username);
             if ($user) {
-                setUserSession($user);
+                \setUserSession($user);
                 return $user;
             }
         }
@@ -82,7 +83,7 @@ class AuthService
 
         $user = $this->findOrCreateUser($username);
         if ($user) {
-            setUserSession($user);
+            \setUserSession($user);
             return $user;
         }
 
@@ -132,7 +133,7 @@ class AuthService
      */
     public function determineRole(string $username): string
     {
-        $superviseurUsernames = getConfig('app_superviseur_usernames', '');
+        $superviseurUsernames = \getConfig('app_superviseur_usernames', '');
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users)) {
@@ -151,7 +152,7 @@ class AuthService
             return $user;
         }
 
-        $superviseurUsernames = getConfig('app_superviseur_usernames', '');
+        $superviseurUsernames = \getConfig('app_superviseur_usernames', '');
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users)) {
@@ -185,11 +186,11 @@ class AuthService
             return '';
         }
 
-        if (strpos($authUser, '\\') !== false) {
+        if (str_contains($authUser, '\\')) {
             $parts = explode('\\', $authUser);
             return strtolower(trim(end($parts)));
         }
-        if (strpos($authUser, '@') !== false) {
+        if (str_contains($authUser, '@')) {
             $parts = explode('@', $authUser);
             return strtolower(trim($parts[0]));
         }
@@ -201,7 +202,123 @@ class AuthService
      */
     public static function parseSuperviseurUsernames(string $list): array
     {
-        $usernames = array_map('trim', explode(',', strtolower($list)));
+        $usernames = array_map(trim(...), explode(',', strtolower($list)));
         return array_values(array_filter($usernames, fn($u) => $u !== ''));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Auth Flow (from auth_flow.php)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Handle auto-authentication via IIS Windows Authentication.
+     */
+    public function handleAutoAuth(): void
+    {
+        if (\isUserLoggedIn()) {
+            return;
+        }
+
+        $autoUser = $this->getAuthenticatedUser();
+        if ($autoUser) {
+            \setUserSession($autoUser);
+
+            require_once __DIR__ . '/../cron.php';
+            try {
+                \runLazyCron(\getDB());
+            } catch (Exception $e) {
+                error_log('[SST-CRON] Lazy cron failed on IIS auto-auth: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Handle the login page (dev mode only).
+     * Always calls exit — never returns.
+     */
+    public function handleLoginPage(string $page): void
+    {
+        if ($page !== 'login') {
+            return;
+        }
+
+        if (!DEV_MODE) {
+            if (\isUserLoggedIn()) {
+                \redirect(\url('home'));
+            } else {
+                http_response_code(500);
+                $message = 'L\'authentification Windows IIS n\'est pas active. Vérifiez que Windows Authentication est activée et Anonymous Authentication désactivée dans IIS Manager.';
+                echo '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Erreur de configuration</title>';
+                echo '<style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5;}';
+                echo '.error-box{background:white;padding:2rem;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);max-width:500px;text-align:center;}';
+                echo 'h1{color:#dc3545;}</style></head><body><div class="error-box">';
+                echo '<h1>Erreur de configuration</h1>';
+                echo '<p>' . htmlspecialchars($message) . '</p>';
+                echo '<p>Contactez l\'administrateur.</p>';
+                echo '</div></body></html>';
+                exit;
+            }
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require __DIR__ . '/../../handlers/login_handler.php';
+            exit;
+        }
+
+        $pageFile = __DIR__ . '/../../pages/login.php';
+        if (file_exists($pageFile)) {
+            require $pageFile;
+        }
+        exit;
+    }
+
+    /**
+     * Handle the case where the user is not authenticated.
+     */
+    public function handleNotAuthenticated(): void
+    {
+        if (\isUserLoggedIn()) {
+            return;
+        }
+
+        if (DEV_MODE) {
+            \setIntendedUrl($_SERVER['REQUEST_URI'] ?? '');
+            \redirect(\url('login'));
+        } else {
+            http_response_code(500);
+            $message = 'AUTH_USER non disponible. Vérifiez que Windows Authentication est activée dans IIS Manager.';
+            echo '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Erreur de configuration</title>';
+            echo '<style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5;}';
+            echo '.error-box{background:white;padding:2rem;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);max-width:500px;text-align:center;}';
+            echo 'h1{color:#dc3545;}</style></head><body><div class="error-box">';
+            echo '<h1>Erreur de configuration</h1>';
+            echo '<p>' . htmlspecialchars($message) . '</p>';
+            echo '<p>Contactez l\'administrateur.</p>';
+            echo '</div></body></html>';
+            exit;
+        }
+    }
+
+    /**
+     * Handle logout: clear session, destroy cookie, redirect.
+     */
+    public function handleLogout(): void
+    {
+        \clearSession();
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                ['expires' => time() - 42000, 'path' => $params['path'], 'domain' => $params['domain'], 'secure' => $params['secure'], 'httponly' => $params['httponly']]
+            );
+        }
+        session_destroy();
+
+        if (DEV_MODE) {
+            \redirect(\url('login'));
+        } else {
+            \redirect(\url('home'));
+        }
     }
 }

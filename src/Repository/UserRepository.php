@@ -3,11 +3,21 @@
 
 namespace App\Repository;
 
+use Exception;
 use PDO;
 
 class UserRepository
 {
-    public function __construct(private PDO $pdo) {}
+    public function __construct(private readonly PDO $pdo) {}
+
+    public static function instance(): self
+    {
+        static $instance = null;
+        if ($instance === null) {
+            $instance = new self(getDB());
+        }
+        return $instance;
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Queries
@@ -228,13 +238,13 @@ class UserRepository
             try {
                 $this->pdo->exec('DELETE FROM reports_fts');
                 $this->pdo->exec('INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL');
-            } catch (\Exception $ftsE) {
+            } catch (Exception) {
                 // Non-critical
             }
 
             $this->pdo->commit();
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
             error_log('[SST-DB] anonymize failed: ' . $e->getMessage());
             return false;

@@ -23,6 +23,15 @@
 - Les PNG annotés finaux sont dans `public/screenshots/` (servis aux navigateurs) et copiés dans `docs/screenshots/`.
 - Voir `docs/screenshots/CAPTURES.md` pour la liste complète et la procédure de régénération.
 
+### Skills disponibles
+- Avant de répondre, invoquer le skill `using-superpowers` (`.claude/skills/using-superpowers/SKILL.md`) pour découvrir et charger les skills pertinents à la tâche en cours.
+
+### Outils PHP (PHAR)
+- Les outils PHP (PHPUnit, PHPStan, PHP-CS-Fixer, Rector, PHPArkitect, Infection) sont installés en **PHAR dans les shims scoop** (`~\scoop\shims\`).
+- **Toujours vérifier** si un PHAR existe dans les shims scoop avant de tenter un `composer require` ou un téléchargement.
+- Les binaires sont directement dans le PATH grâce aux shims : `phpunit`, `phpstan`, `php-cs-fixer`, `rector`, `phparkitect`, `infection`.
+- `composer.json` ne contient que les dépendances runtime (pas les outils dev en PHAR).
+
 ### Structure du dépôt
 - `docs/screenshots/` : captures HTML source + PNG annotés + CAPTURES.md
 - `tools/` : scripts CLI manuels (capture_screenshots.py, annotate_screenshots.py, anonymize_old_reports.php, check_delays.php, backup_sst_db.ps1)

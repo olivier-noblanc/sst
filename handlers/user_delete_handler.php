@@ -27,9 +27,9 @@ try {
     $user = $service->findById($userId);
     auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' désactivé avec succès.');
-} catch (\RuntimeException $e) {
+} catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
-} catch (\Throwable $e) {
+} catch (Throwable $e) {
     error_log('[SST-DB] user_delete failed: ' . $e->getMessage());
     setFlash('error', 'Erreur lors de la désactivation de l\'utilisateur. Veuillez contacter un administrateur.');
 }

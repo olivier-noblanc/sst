@@ -12,7 +12,7 @@ $noSiteMode = isNoSiteMode($pdo);
 
 // Get filter
 $year = $_GET['year'] ?? date('Y');
-$year = trim($year);
+$year = trim((string) $year);
 
 // Get available years
 $availableYears = getAvailableYears($pdo);

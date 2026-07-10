@@ -76,7 +76,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     if (!$declarant || empty($declarant['email'])) {
         return;
     }
-    $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper($report['type']);
+    $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
     $subject = "Réponse à votre signalement $registryLabel — {$report['reference']}";
     $respondent = getUserById($pdo, $respondentId);
     if (!$respondent) {
@@ -155,7 +155,7 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
     $stmt = $pdo->prepare("SELECT DISTINCT email FROM notification_settings WHERE site_id = :site_id AND type = 'site'");
     $stmt->execute([':site_id' => $siteId]);
     foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $email) {
-        $lower = strtolower($email);
+        $lower = strtolower((string) $email);
         $seen[] = $lower;
         $emails[] = $email;
     }
@@ -163,7 +163,7 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
     $stmt = $pdo->prepare("SELECT DISTINCT email FROM notification_settings WHERE type = 'global'");
     $stmt->execute();
     foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $email) {
-        $lower = strtolower($email);
+        $lower = strtolower((string) $email);
         if (!in_array($lower, $seen)) {
             $seen[] = $lower;
             $emails[] = $email;

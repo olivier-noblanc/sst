@@ -75,7 +75,7 @@ try {
         try {
             require_once __DIR__ . '/../src/mail.php';
             notifyReportResponse($pdo, $reportUuid, $userId);
-        } catch (\Throwable $mailEx) {
+        } catch (Throwable $mailEx) {
             error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());
         }
 
@@ -89,11 +89,11 @@ try {
             setFlash('error', 'Erreur lors de l\'enregistrement de la réponse : ' . e($errorMsg));
         }
     }
-} catch (\RuntimeException $e) {
+} catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
     setFormData($_POST);
     redirect(url('report_respond', ['uuid' => $reportUuid]));
-} catch (\Exception $e) {
+} catch (Exception $e) {
     error_log('[SST-RESPOND] Unexpected error: ' . $e->getMessage());
     setFlash('error', 'Une erreur inattendue est survenue.');
     redirect(url('report_respond', ['uuid' => $reportUuid]));

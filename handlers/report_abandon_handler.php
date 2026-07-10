@@ -35,7 +35,7 @@ try {
             $siteId = (int) $report['site_id'];
             $recipients = getNotificationRecipients($pdo, $siteId);
             if (!empty($recipients)) {
-                $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+                $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type);
                 $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
                 $body = '<html><body>';
                 $body .= '<h2>Signalement abandonné</h2>';
@@ -49,7 +49,7 @@ try {
                     sendMail($email, $subject, $body);
                 }
             }
-        } catch (\Throwable $mailEx) {
+        } catch (Throwable $mailEx) {
             error_log('[SST-MAIL] Abandon notification error: ' . $mailEx->getMessage());
         }
 
@@ -59,7 +59,7 @@ try {
         setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps. (uuid=' . e($reportUuid) . ', etat=' . e($report['etat']) . ')');
         redirect(url('report_view', ['uuid' => $reportUuid]));
     }
-} catch (\RuntimeException $e) {
+} catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
     redirect(url('report_view', ['uuid' => $reportUuid]));
 }

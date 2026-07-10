@@ -3,6 +3,21 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.35.0] — 2026-07-09
+
+### Technique — Refactoring OOP complet + modernisation
+
+- **1** 🔴 **Services OOP** — 7 nouveaux services créés : `AccessService`, `ConfigService`, `CryptoService`, `FormattingService`, `HttpService`, `AssetService`, `SessionService`. Chaque service encapsule une responsabilité unique avec un singleton pour le cache. (`src/Services/`)
+- **2** 🔴 **Repositories OOP** — 3 nouveaux repositories : `SiteRepository`, `NotificationRepository`, `StatsRepository`. Les 12 fichiers `queries/*.php` déléguent désormais aux repositories. (`src/Repository/`)
+- **3** 🔴 **DI Container** — `bootstrap_services.php` connecte tous les services et repositories au conteneur d'injection de dépendances. (`src/bootstrap_services.php`)
+- **4** 🔴 **PHPUnit 13** — Upgrade de PHPUnit 11 à 13 (PHAR dans `~\scoop\shims\`). `composer.json` nettoyé des outils dev en faveur des PHAR.
+- **5** 🔴 **Rector PHP 8.3** — 71 fichiers modernisés : `readonly` properties, `str_contains`/`str_starts_with`, arrow functions, `#[Override]`, first-class callables.
+- **6** 🟡 **Dead code supprimé** — `escaping.php`, `badges.php`, `wordcloud.php` (doublons de formatting.php), `auth_provision.php` (dead code).
+- **7** 🟡 **Middleware casing** — Renommage `src/middleware/` → `src/Middleware/` pour conformité PSR-4.
+- **8** 🟡 **update_sst.ps1** — Ajout de `composer install` après git pull pour régénérer l'autoload.
+- **9** 🟢 **AGENTS.md** — Instructions ajoutées : skills `using-superpowers`, outils PHP en PHAR scoop shims.
+
+
 ## [3.34.0] — 2026-07-08
 
 ### Améliorations

@@ -88,10 +88,10 @@ $linkedEmailsRaw = trim($_POST['linked_emails'] ?? '');
 if (!empty($linkedEmailsRaw)) {
     $declarantEmail = $user['email'] ?? '';
     $emailDomain = '';
-    if ($declarantEmail && strpos($declarantEmail, '@') !== false) {
-        $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
+    if ($declarantEmail && str_contains((string) $declarantEmail, '@')) {
+        $emailDomain = substr((string) $declarantEmail, strrpos((string) $declarantEmail, '@') + 1);
     }
-    $linkedEmailsList = array_map('trim', explode(',', $linkedEmailsRaw));
+    $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
     foreach ($linkedEmailsList as $idx => $em) {
         if (empty($em)) {
             continue;
@@ -180,10 +180,8 @@ try {
         // Send invite emails to linked agents
         $linkedEmailsRaw = trim($_POST['linked_emails'] ?? '');
         if (!empty($linkedEmailsRaw)) {
-            $linkedEmails = array_map('trim', explode(',', $linkedEmailsRaw));
-            $linkedEmails = array_filter($linkedEmails, function ($e) {
-                return filter_var($e, FILTER_VALIDATE_EMAIL);
-            });
+            $linkedEmails = array_map(trim(...), explode(',', $linkedEmailsRaw));
+            $linkedEmails = array_filter($linkedEmails, fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL));
             if (!empty($linkedEmails)) {
                 sendAgentInviteEmails($pdo, $newUuid, $linkedEmails);
             }

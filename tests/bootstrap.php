@@ -4,6 +4,7 @@
  *
  * Sets up an in-memory SQLite database for unit testing.
  * Loads the application's source files and seeds the test database.
+ * Bootstraps the DI Container for service access in tests.
  */
 
 // Define constants that config.php expects — only if not already defined.
@@ -110,3 +111,6 @@ require_once __DIR__ . '/../src/validation.php';
 require_once __DIR__ . '/../src/bootstrap_services.php';
 require_once __DIR__ . '/../src/router.php';
 require_once __DIR__ . '/../src/Router/routes.php';
+
+// Bootstrap the DI Container for tests
+$testContainer = getContainer();

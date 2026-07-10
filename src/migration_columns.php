@@ -147,10 +147,10 @@ function migrateColumns(PDO $pdo): void
             $fixes = [];
             while ($row = $stmt->fetch()) {
                 $oldUuid = $row['uuid'];
-                $variantNibble = strtolower($oldUuid[19]);
+                $variantNibble = strtolower((string) $oldUuid[19]);
                 if (in_array($variantNibble, ['c', 'd', 'e', 'f'])) {
                     $nibbleMap = ['c' => '8', 'd' => '9', 'e' => 'a', 'f' => 'b'];
-                    $newUuid = substr($oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr($oldUuid, 20);
+                    $newUuid = substr((string) $oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr((string) $oldUuid, 20);
                     $fixes[] = ['old' => $oldUuid, 'new' => $newUuid];
                 }
             }

@@ -1,17 +1,21 @@
 <?php
 
+use App\DTO\ReportFilter;
+
 /**
  * Report Queries — Application SST DREETS BFC
  *
  * Core SQL queries for reports (CRUD, listing, search).
  * Related: report_response_queries.php, report_count_queries.php,
  * report_agent_queries.php, report_invite_queries.php.
+ *
+ * All functions delegate to App\Repository\ReportRepository.
  */
 
 require_once __DIR__ . '/report_count_queries.php';
 require_once __DIR__ . '/report_response_queries.php';
 
-use App\Query\QueryFilterBuilder;
+use App\Repository\ReportRepository;
 
 /** Base SELECT for report queries with site JOIN (excludes attachment_blob). */
 function reportSelectWithSite(): string
@@ -51,14 +55,15 @@ function isValidUuid(string $uuid): bool
  */
 function createReport(PDO $pdo, array $data): string
 {
-    $pdo->beginTransaction();
-    try {
-        $year = (int) date('Y');
-        $seq = getNextSequence($pdo, $data['type'], $year);
-        $reference = generateReference($data['type'], date('y'), $seq);
-        $uuid = generateUuid();
+    $repo = ReportRepository::instance();
+    $year = (int) date('Y');
+    $seq = getNextSequence($pdo, $data['type'], $year);
+    $reference = generateReference($data['type'], date('y'), $seq);
+    $uuid = generateUuid();
 
-        $stmt = $pdo->prepare("
+    $repo->getPdo()->beginTransaction();
+    try {
+        $stmt = $repo->getPdo()->prepare("
             INSERT INTO reports (
                 uuid, reference, type, objet, description, date_evenement, heure_evenement,
                 lieu, declarant_id, declarant_nom, declarant_prenom,
@@ -96,18 +101,18 @@ function createReport(PDO $pdo, array $data): string
             ':attachment_name' => $data['attachment_name'] ?? null,
             ':attachment_mime' => $data['attachment_mime'] ?? null,
         ]);
-        $pdo->commit();
+        $repo->getPdo()->commit();
 
         // Update FTS5 index (non-critical)
         try {
-            $pdo->prepare('INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)')
+            $repo->getPdo()->prepare('INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)')
                 ->execute([':uuid' => $uuid, ':objet' => $data['objet'], ':description' => $data['description']]);
         } catch (Exception $ftsE) {
             error_log('[SST-DB] FTS5 insert warning: ' . $ftsE->getMessage());
         }
         return $uuid;
     } catch (Exception $e) {
-        $pdo->rollBack();
+        $repo->getPdo()->rollBack();
         error_log('[SST-DB] createReport failed: ' . $e->getMessage());
         throw $e;
     }
@@ -116,19 +121,7 @@ function createReport(PDO $pdo, array $data): string
 /** Get a single report by UUID with site and respondent info. */
 function getReportByUuid(PDO $pdo, string $uuid): ?array
 {
-    if (!isValidUuid($uuid)) {
-        return null;
-    }
-    $stmt = $pdo->prepare('
-        SELECT r.*, s.code as site_code, s.nom as site_nom,
-               rep.nom as repondant_nom, rep.prenom as repondant_prenom
-        FROM reports r
-        LEFT JOIN sites s ON r.site_id = s.id
-        LEFT JOIN users rep ON r.repondant_id = rep.id
-        WHERE r.uuid = :uuid
-    ');
-    $stmt->execute([':uuid' => $uuid]);
-    return $stmt->fetch() ?: null;
+    return ReportRepository::instance()->findById($uuid);
 }
 
 /**
@@ -138,62 +131,21 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array
  */
 function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page = 1, int $perPage = 20): array
 {
-    $builder = new QueryFilterBuilder();
-    $builder->addEqual('r.type', $type);
-    if (!$seeAllSites) { $builder->addEqual('r.site_id', $userSiteId); }
-    if (!empty($filters['confidential_filter'])) {
-        $cfId = (int) $filters['confidential_filter'];
-        $builder->addRaw('(r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)', [':cf_declarant_id' => $cfId]);
-    }
-    if (!empty($filters['own_only'])) { $builder->addEqual('r.declarant_id', $filters['own_only']); }
-    if (!empty($filters['etat'])) { $builder->addEqual('r.etat', $filters['etat']); }
-    if (!empty($filters['site_id']) && $seeAllSites) { $builder->addEqual('r.site_id', $filters['site_id']); }
-    if (!empty($filters['force_site_id'])) { $builder->addEqual('r.site_id', (int) $filters['force_site_id']); }
-    if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) { $builder->addEqual('r.declarant_id', $filters['declarant_id']); }
-
-    ['where' => $where, 'params' => $params] = $builder->build();
-
-    // Search: FTS5 if available, else LIKE
-    if (!empty($filters['q'])) {
-        static $hasFts = null;
-        if ($hasFts === null) {
-            try {
-                $c = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='reports_fts'");
-                $hasFts = ($c !== false && $c->fetch() !== false);
-            } catch (Exception $e) {
-                $hasFts = false;
-            }
-        }
-        if ($hasFts) {
-            $where .= ' AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)';
-            $ftsQuery = trim(preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $filters['q']));
-            if ($ftsQuery === '') {
-                $where = str_replace('AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)', 'AND (r.objet LIKE :q OR r.description LIKE :q2)', $where);
-                $params[':q'] = $params[':q2'] = '%' . $filters['q'] . '%';
-            } else {
-                $params[':q_fts'] = $ftsQuery;
-            }
-        } else {
-            $where .= ' AND (r.objet LIKE :q OR r.description LIKE :q2)';
-            $params[':q'] = $params[':q2'] = '%' . $filters['q'] . '%';
-        }
-    }
-
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM reports r WHERE $where");
-    $stmt->execute($params);
-    $total = (int) $stmt->fetchColumn();
-
-    $params[':limit'] = $perPage;
-    $params[':offset'] = ($page - 1) * $perPage;
-    $stmt = $pdo->prepare(reportSelectWithSite() . " WHERE $where ORDER BY r.created_at DESC LIMIT :limit OFFSET :offset");
-    $stmt->execute($params);
-    return ['reports' => $stmt->fetchAll(), 'total' => $total];
+    $filter = new ReportFilter(
+        type: $type,
+        etat: $filters['etat'] ?? '',
+        siteId: (int) ($filters['site_id'] ?? 0),
+        declarantId: !empty($filters['declarant_id']) ? (int) $filters['declarant_id'] : null,
+        confidentialFilter: !empty($filters['confidential_filter']) ? (int) $filters['confidential_filter'] : null,
+        forceSiteId: !empty($filters['force_site_id']) ? (int) $filters['force_site_id'] : null,
+        search: $filters['q'] ?? null,
+        seeAllSites: $seeAllSites,
+    );
+    return ReportRepository::instance()->findPaginated($filter, $page, $perPage);
 }
 
 /** Get reports by site. */
 function getReportsBySite(PDO $pdo, int $siteId): array
 {
-    $stmt = $pdo->prepare(reportSelectWithSite() . ' WHERE r.site_id = :site_id ORDER BY r.created_at DESC');
-    $stmt->execute([':site_id' => $siteId]);
-    return $stmt->fetchAll();
+    return ReportRepository::instance()->findBySite($siteId);
 }

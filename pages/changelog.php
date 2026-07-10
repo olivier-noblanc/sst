@@ -25,12 +25,12 @@ $candidatePaths = [
 
 // IIS: resolve from document root
 if (!empty($_SERVER['DOCUMENT_ROOT'])) {
-    $candidatePaths[] = rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') . '/../CHANGELOG.md';
+    $candidatePaths[] = rtrim((string) $_SERVER['DOCUMENT_ROOT'], '/\\') . '/../CHANGELOG.md';
 }
 
 // From entry script location
 if (!empty($_SERVER['SCRIPT_FILENAME'])) {
-    $candidatePaths[] = dirname(dirname($_SERVER['SCRIPT_FILENAME'])) . '/CHANGELOG.md';
+    $candidatePaths[] = dirname((string) $_SERVER['SCRIPT_FILENAME'], 2) . '/CHANGELOG.md';
 }
 
 foreach ($candidatePaths as $candidate) {
@@ -57,7 +57,7 @@ if ($changelogExists) {
             $parsedown = new Parsedown();
             $parsedown->setSafeMode(true);  // Strip raw HTML blocks — prevents XSS via Markdown
             $htmlContent = $parsedown->text($mdContent);
-            if (empty(trim($htmlContent))) {
+            if (empty(trim((string) $htmlContent))) {
                 $parseError = 'Le fichier CHANGELOG.md a été lu mais le rendu Markdown a produit un contenu vide.';
             }
         } else {

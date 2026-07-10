@@ -20,7 +20,7 @@ if (!isRegistryEnabled($type)) {
     redirect(url('home'));
 }
 
-$pageTitle = 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
+$pageTitle = 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type));
 
 $pdo = getDB();
 $user = currentUser();

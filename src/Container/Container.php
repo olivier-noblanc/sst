@@ -3,6 +3,8 @@
 
 namespace App\Container;
 
+use RuntimeException;
+
 class Container
 {
     private array $factories = [];
@@ -17,7 +19,7 @@ class Container
     {
         if (!isset($this->instances[$id])) {
             if (!isset($this->factories[$id])) {
-                throw new \RuntimeException("Service '$id' not registered.");
+                throw new RuntimeException("Service '$id' not registered.");
             }
             $this->instances[$id] = ($this->factories[$id])($this);
         }

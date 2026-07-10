@@ -4,6 +4,8 @@
  *
  * Creates and configures the Router with all application routes.
  * Called once per request from public/index.php.
+ *
+ * Uses the DI Container for middleware instantiation.
  */
 
 use App\Router\Router;
@@ -58,11 +60,9 @@ function createRouter(): Router
     // GET pages (with standard layout)
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    $layout = function (string $page): callable {
-        return function () use ($page) {
-            renderPageWithLayout($page, $_GET['_token'] ?? '');
-        };
-    };
+    $layout = (fn(string $page): callable => function () use ($page) {
+        renderPageWithLayout($page, $_GET['_token'] ?? '');
+    });
 
     $router->addRoute('home',           'home',           ['GET'], $layout('home'));
     $router->addRoute('preamble',       'preamble',       ['GET'], $layout('preamble'));

@@ -19,9 +19,7 @@ class Pipeline
 
         foreach (array_reverse($this->middlewares) as $middleware) {
             $next = $pipeline;
-            $pipeline = function ($request) use ($middleware, $next) {
-                return $middleware($request, $next);
-            };
+            $pipeline = (fn($request) => $middleware($request, $next));
         }
 
         return $pipeline(null);

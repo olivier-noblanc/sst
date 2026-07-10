@@ -19,7 +19,7 @@ if (!isRegistryEnabled($type)) {
     redirect(url('home'));
 }
 
-$pageTitle = 'Liste des fiches du registre — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
+$pageTitle = 'Liste des fiches du registre — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type));
 
 $pdo = getDB();
 $user = currentUser();
@@ -78,7 +78,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 ?>
 
 <h1 class="page-title">
-    Liste des fiches — <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?>
+    Liste des fiches — <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)); ?>
     <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 
@@ -88,7 +88,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 
 <?php echo renderBreadcrumb([
     ['url' => url('home'), 'label' => 'Accueil'],
-    ['label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)],
+    ['label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)],
 ]); ?>
 
 
@@ -133,7 +133,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 
 <div class="card">
     <div class="table-wrapper table-wrapper--responsive">
-        <table aria-label="Liste des signalements <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)); ?>">
+        <table aria-label="Liste des signalements <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)); ?>">
             <thead>
                 <tr>
                     <th>Référence</th>

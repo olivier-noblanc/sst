@@ -27,9 +27,9 @@ try {
     $user = $service->findById($userId);
     auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' réactivé avec succès.');
-} catch (\RuntimeException $e) {
+} catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
-} catch (\Throwable $e) {
+} catch (Throwable $e) {
     error_log('[SST-DB] user_reactivate failed: ' . $e->getMessage());
     setFlash('error', 'Erreur lors de la réactivation de l\'utilisateur. (user_id=' . $userId . ')');
 }

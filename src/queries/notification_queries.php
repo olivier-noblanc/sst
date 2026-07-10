@@ -5,7 +5,11 @@
  *
  * Notification email settings management.
  * Split from stats_queries.php for readability.
+ *
+ * All functions delegate to App\Repository\NotificationRepository.
  */
+
+use App\Repository\NotificationRepository;
 
 /**
  * Get notification settings.
@@ -15,13 +19,7 @@
  */
 function getNotificationSettings(PDO $pdo): array
 {
-    $stmt = $pdo->query('
-        SELECT ns.*, s.code as site_code, s.nom as site_nom
-        FROM notification_settings ns
-        LEFT JOIN sites s ON ns.site_id = s.id
-        ORDER BY ns.type, s.code, ns.registry
-    ');
-    return $stmt->fetchAll();
+    return NotificationRepository::instance()->findAll();
 }
 
 /**
@@ -36,26 +34,7 @@ function getNotificationSettings(PDO $pdo): array
  */
 function saveNotificationSetting(PDO $pdo, ?int $siteId, string $type, string $registry, string $email): int
 {
-    // Prevent duplicates: delete existing matching setting first
-    $stmt = $pdo->prepare('DELETE FROM notification_settings WHERE site_id = :site_id AND type = :type AND registry = :registry AND email = :email');
-    $stmt->execute([
-        ':site_id'  => $siteId,
-        ':type'     => $type,
-        ':registry' => $registry,
-        ':email'    => $email,
-    ]);
-
-    $stmt = $pdo->prepare('
-        INSERT INTO notification_settings (site_id, type, registry, email)
-        VALUES (:site_id, :type, :registry, :email)
-    ');
-    $stmt->execute([
-        ':site_id'  => $siteId,
-        ':type'     => $type,
-        ':registry' => $registry,
-        ':email'    => $email,
-    ]);
-    return (int) $pdo->lastInsertId();
+    return NotificationRepository::instance()->save($siteId, $type, $registry, $email);
 }
 
 /**
@@ -67,9 +46,7 @@ function saveNotificationSetting(PDO $pdo, ?int $siteId, string $type, string $r
  */
 function deleteNotificationSetting(PDO $pdo, int $id): bool
 {
-    $stmt = $pdo->prepare('DELETE FROM notification_settings WHERE id = :id');
-    $stmt->execute([':id' => $id]);
-    return $stmt->rowCount() > 0;
+    return NotificationRepository::instance()->delete($id);
 }
 
 /**
@@ -81,9 +58,7 @@ function deleteNotificationSetting(PDO $pdo, int $id): bool
  */
 function deleteNotificationSettingsByType(PDO $pdo, string $type): int
 {
-    $stmt = $pdo->prepare('DELETE FROM notification_settings WHERE type = :type');
-    $stmt->execute([':type' => $type]);
-    return $stmt->rowCount();
+    return NotificationRepository::instance()->deleteByType($type);
 }
 
 /**
@@ -95,9 +70,7 @@ function deleteNotificationSettingsByType(PDO $pdo, string $type): int
  */
 function getSiteNotificationEmails(PDO $pdo, int $siteId): array
 {
-    $stmt = $pdo->prepare("SELECT email FROM notification_settings WHERE site_id = :site_id AND type = 'site'");
-    $stmt->execute([':site_id' => $siteId]);
-    return array_column($stmt->fetchAll(), 'email');
+    return NotificationRepository::instance()->findSiteEmails($siteId);
 }
 
 /**
@@ -108,6 +81,5 @@ function getSiteNotificationEmails(PDO $pdo, int $siteId): array
  */
 function getGlobalNotificationEmails(PDO $pdo): array
 {
-    $stmt = $pdo->query("SELECT email FROM notification_settings WHERE type = 'global'");
-    return array_column($stmt->fetchAll(), 'email');
+    return NotificationRepository::instance()->findGlobalEmails();
 }

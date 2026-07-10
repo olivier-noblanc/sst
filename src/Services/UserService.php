@@ -3,6 +3,7 @@
 
 namespace App\Services;
 
+use RuntimeException;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 use App\DTO\CreateUserCommand;
@@ -11,8 +12,8 @@ use App\DTO\UpdateUserCommand;
 class UserService
 {
     public function __construct(
-        private UserRepository $repo,
-        private EventDispatcher $events
+        private readonly UserRepository $repo,
+        private readonly EventDispatcher $events
     ) {}
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -37,12 +38,12 @@ class UserService
     {
         $user = $this->repo->findById($id);
         if (!$user) {
-            throw new \RuntimeException('Utilisateur introuvable.');
+            throw new RuntimeException('Utilisateur introuvable.');
         }
 
         $demoteErrors = $this->canDemote($id, $cmd->role, $user);
         if (!empty($demoteErrors)) {
-            throw new \RuntimeException(implode(' ', $demoteErrors));
+            throw new RuntimeException(implode(' ', $demoteErrors));
         }
 
         $roleChanged = $user['role'] !== $cmd->role;
@@ -73,16 +74,16 @@ class UserService
     public function deactivate(int $id, int $currentUserId): bool
     {
         if ($currentUserId === $id) {
-            throw new \RuntimeException('Vous ne pouvez pas désactiver votre propre compte.');
+            throw new RuntimeException('Vous ne pouvez pas désactiver votre propre compte.');
         }
 
         $user = $this->repo->findById($id);
         if (!$user) {
-            throw new \RuntimeException('Utilisateur introuvable.');
+            throw new RuntimeException('Utilisateur introuvable.');
         }
 
         if (!$this->canDeactivate($id)) {
-            throw new \RuntimeException('Impossible de désactiver le dernier superviseur actif.');
+            throw new RuntimeException('Impossible de désactiver le dernier superviseur actif.');
         }
 
         $result = $this->repo->deactivate($id);
@@ -99,10 +100,10 @@ class UserService
     {
         $user = $this->repo->findById($id);
         if (!$user) {
-            throw new \RuntimeException('Utilisateur introuvable.');
+            throw new RuntimeException('Utilisateur introuvable.');
         }
         if ($user['is_active']) {
-            throw new \RuntimeException('Cet utilisateur est déjà actif.');
+            throw new RuntimeException('Cet utilisateur est déjà actif.');
         }
         $result = $this->repo->reactivate($id);
 

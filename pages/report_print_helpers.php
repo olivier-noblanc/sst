@@ -46,6 +46,7 @@ class SSTPDF extends FPDF
         return $this->rMargin;
     }
 
+    #[Override]
     public function Header(): void
     {
         if ($this->headerText !== '') {
@@ -58,6 +59,7 @@ class SSTPDF extends FPDF
         }
     }
 
+    #[Override]
     public function Footer(): void
     {
         $this->SetY(-18);
@@ -150,7 +152,7 @@ function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
         $typeStr = match ($report['attachment_mime']) {
             'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', default => 'jpg',
         };
-        $dataUri = 'data://' . $report['attachment_mime'] . ';base64,' . base64_encode($report['attachment_blob']);
+        $dataUri = 'data://' . $report['attachment_mime'] . ';base64,' . base64_encode((string) $report['attachment_blob']);
         $imageInfo = @getimagesize($dataUri);
         $pageWidth = $pdf->GetPageWidth() - $pdf->getLeftMargin() - $pdf->getRightMargin();
         $maxImgH = 120;
@@ -176,7 +178,7 @@ function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
         $pdf->Rect($x, $y, $displayWidth + 4, $displayHeight + 4, 'F');
         $pdf->Image($dataUri, $x + 2, $y + 2, $displayWidth, $displayHeight, $typeStr);
         $pdf->SetY($y + $displayHeight + 8);
-    } catch (\Throwable $e) {
+    } catch (Throwable) {
         // If image embedding fails, skip — don't break PDF generation
     }
 }

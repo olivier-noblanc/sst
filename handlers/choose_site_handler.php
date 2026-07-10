@@ -30,7 +30,7 @@ if ($hasExistingSite) {
     // Check grace period: agent can change site within 7 days of first choice
     $siteChosenAt = $user['site_chosen_at'] ?? null;
     if ($siteChosenAt) {
-        $chosenTime = strtotime($siteChosenAt);
+        $chosenTime = strtotime((string) $siteChosenAt);
         $daysSinceChoice = (time() - $chosenTime) / 86400;
         $isWithinGracePeriod = $daysSinceChoice <= 7;
     }

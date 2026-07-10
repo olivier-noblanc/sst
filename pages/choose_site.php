@@ -40,7 +40,7 @@ $daysRemaining = 0;
 if ($hasExistingSite) {
     $siteChosenAt = $user['site_chosen_at'] ?? null;
     if ($siteChosenAt) {
-        $chosenTime = strtotime($siteChosenAt);
+        $chosenTime = strtotime((string) $siteChosenAt);
         $daysSinceChoice = (time() - $chosenTime) / 86400;
         $isWithinGracePeriod = $daysSinceChoice <= 7;
         $daysRemaining = max(0, ceil(7 - $daysSinceChoice));

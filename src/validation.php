@@ -51,11 +51,11 @@ function validateReportAttachment(array &$errors): array
                     if ($attachmentBlob === false) {
                         $errors['attachment'] = 'Erreur lors de la lecture du fichier.';
                     } else {
-                        $attachmentName = basename($file['name']);
+                        $attachmentName = basename((string) $file['name']);
                         $attachmentMime = $mime;
                     }
                 }
-            } catch (\RuntimeException $ex) {
+            } catch (RuntimeException $ex) {
                 $errors['attachment'] = $ex->getMessage();
             }
         }

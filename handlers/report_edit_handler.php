@@ -116,10 +116,8 @@ $updated = updateReport($pdo, $reportUuid, $updateData, $userId);
 // Update linked agents — send new invite emails for newly added addresses
 $linkedEmailsRaw = trim($_POST['linked_emails'] ?? '');
 if (!empty($linkedEmailsRaw)) {
-    $linkedEmailsList = array_map('trim', explode(',', $linkedEmailsRaw));
-    $linkedEmailsList = array_filter($linkedEmailsList, function ($e) {
-        return filter_var($e, FILTER_VALIDATE_EMAIL);
-    });
+    $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
+    $linkedEmailsList = array_filter($linkedEmailsList, fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL));
     // Get existing linked agents' emails
     $existingLinked = getLinkedAgents($pdo, $reportUuid);
     $existingEmails = array_column($existingLinked, 'email');

@@ -3,18 +3,19 @@
 
 namespace App\Services;
 
+use RuntimeException;
+use InvalidArgumentException;
 use App\Repository\ReportRepository;
 use App\Event\EventDispatcher;
 use App\DTO\CreateReportCommand;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
-use PDO;
 
 class ReportService
 {
     public function __construct(
-        private ReportRepository $repo,
-        private EventDispatcher $events
+        private readonly ReportRepository $repo,
+        private readonly EventDispatcher $events
     ) {}
 
     public function create(CreateReportCommand $cmd): array
@@ -37,10 +38,10 @@ class ReportService
     {
         $report = $this->repo->findById($uuid);
         if (!$report) {
-            throw new \RuntimeException('Signalement introuvable.');
+            throw new RuntimeException('Signalement introuvable.');
         }
         if (!canRespondToReport($report, currentUserRole())) {
-            throw new \RuntimeException('Accès refusé.');
+            throw new RuntimeException('Accès refusé.');
         }
 
         $result = $this->repo->respond($uuid, $cmd, $userId);
@@ -59,10 +60,10 @@ class ReportService
     {
         $report = $this->repo->findById($uuid);
         if (!$report) {
-            throw new \RuntimeException('Signalement introuvable.');
+            throw new RuntimeException('Signalement introuvable.');
         }
         if (!canEditReport($report, $userId)) {
-            throw new \RuntimeException('Accès refusé.');
+            throw new RuntimeException('Accès refusé.');
         }
 
         $result = $this->repo->update($uuid, $cmd, $userId);
@@ -80,10 +81,10 @@ class ReportService
     {
         $report = $this->repo->findById($uuid);
         if (!$report) {
-            throw new \RuntimeException('Signalement introuvable.');
+            throw new RuntimeException('Signalement introuvable.');
         }
         if (!canRespondToReport($report, currentUserRole())) {
-            throw new \RuntimeException('Accès refusé.');
+            throw new RuntimeException('Accès refusé.');
         }
         return $this->repo->abandon($uuid, $userId);
     }
@@ -102,7 +103,7 @@ class ReportService
             ));
         }
         if (!empty($errors)) {
-            throw new \InvalidArgumentException(implode(', ', $errors));
+            throw new InvalidArgumentException(implode(', ', $errors));
         }
     }
 

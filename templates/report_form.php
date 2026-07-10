@@ -33,7 +33,7 @@ $val = function(string $field, string $default = '') use ($formData, $report, $i
     return $default;
 };
 
-$registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+$registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type);
 $registryFullLabel = REGISTRY_LABELS[$type] ?? $type;
 
 // Determine card accent class

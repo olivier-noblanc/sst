@@ -33,7 +33,7 @@ $responses = getReportResponses($pdo, $uuid);
 
 $type = $report['type'] ?? 'rsst';
 $registryLabel = REGISTRY_LABELS[$type] ?? strtoupper($type);
-$registryShortLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+$registryShortLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type);
 $etatLabel = ETAT_LABELS[$report['etat']] ?? $report['etat'];
 
 // --- Build PDF with FPDF ---

@@ -22,7 +22,7 @@ class UpdateUserCommand
             prenom: trim($post['prenom'] ?? ''),
             role: trim($post['role'] ?? ROLE_AGENT),
             siteId: (int) ($post['site_id'] ?? 0),
-            email: !empty(trim($post['email'] ?? '')) ? trim($post['email']) : null,
+            email: !empty(trim($post['email'] ?? '')) ? trim((string) $post['email']) : null,
         );
     }
 

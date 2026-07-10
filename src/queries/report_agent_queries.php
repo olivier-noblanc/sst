@@ -5,11 +5,11 @@
  *
  * Functions for managing agents linked to a report (many-to-many).
  * Split from report_queries.php for readability (max 250 lines per file).
+ *
+ * All functions delegate to App\Repository\ReportRepository.
  */
 
-// ============================================================
-// Linked agents (report_agents)
-// ============================================================
+use App\Repository\ReportRepository;
 
 /**
  * Get all agents linked to a report.
@@ -17,15 +17,7 @@
  */
 function getLinkedAgents(PDO $pdo, string $reportUuid): array
 {
-    $stmt = $pdo->prepare('
-        SELECT u.id, u.nom, u.prenom, u.email
-        FROM report_agents ra
-        JOIN users u ON u.id = ra.user_id
-        WHERE ra.report_uuid = ?
-        ORDER BY u.nom, u.prenom
-    ');
-    $stmt->execute([$reportUuid]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return ReportRepository::instance()->getLinkedAgents($reportUuid);
 }
 
 /**
@@ -35,19 +27,7 @@ function getLinkedAgents(PDO $pdo, string $reportUuid): array
  */
 function linkAgentsToReport(PDO $pdo, string $reportUuid, array $userIds): void
 {
-    if (empty($userIds)) {
-        return;
-    }
-    $stmt = $pdo->prepare('
-        INSERT OR IGNORE INTO report_agents (report_uuid, user_id)
-        VALUES (:uuid, :user_id)
-    ');
-    foreach ($userIds as $uid) {
-        $uid = (int) $uid;
-        if ($uid > 0) {
-            $stmt->execute([':uuid' => $reportUuid, ':user_id' => $uid]);
-        }
-    }
+    ReportRepository::instance()->linkAgents($reportUuid, $userIds);
 }
 
 /**
@@ -56,6 +36,5 @@ function linkAgentsToReport(PDO $pdo, string $reportUuid, array $userIds): void
  */
 function replaceLinkedAgents(PDO $pdo, string $reportUuid, array $userIds): void
 {
-    $pdo->prepare('DELETE FROM report_agents WHERE report_uuid = ?')->execute([$reportUuid]);
-    linkAgentsToReport($pdo, $reportUuid, $userIds);
+    ReportRepository::instance()->replaceLinkedAgents($reportUuid, $userIds);
 }

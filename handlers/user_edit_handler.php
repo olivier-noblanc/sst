@@ -40,7 +40,7 @@ if ($action === 'anonymize') {
         $service->anonymize($userId);
         auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
         setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
-    } catch (\Throwable $e) {
+    } catch (Throwable) {
         error_log('[SST-DB] anonymizeUser failed for user_id=' . $userId);
         setFlash('error', 'Erreur lors de l\'anonymisation de l\'utilisateur. (user_id=' . $userId . ')');
     }
@@ -89,7 +89,7 @@ try {
         try {
             require_once __DIR__ . '/../src/mail.php';
             notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
-        } catch (\Throwable $mailEx) {
+        } catch (Throwable $mailEx) {
             error_log('[SST-MAIL] Role change notification error: ' . $mailEx->getMessage());
         }
     }
@@ -101,7 +101,7 @@ try {
         $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\'a été envoyé (adresse manquante).';
     }
     setFlash('success', $successMsg);
-} catch (\Throwable $e) {
+} catch (Throwable $e) {
     error_log('[SST-DB] user_edit failed: ' . $e->getMessage());
     setFlash('error', 'Erreur lors de la mise à jour de l\'utilisateur : ' . e($e->getMessage()));
 }

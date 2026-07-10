@@ -40,7 +40,7 @@ class Router
     {
         foreach ($this->routes as $route) {
             if (!in_array($method, $route['methods'])) continue;
-            $pattern = preg_replace('#\{(\w+)\}#', '(?P<$1>[^/]+)', $route['path']);
+            $pattern = preg_replace('#\{(\w+)\}#', '(?P<$1>[^/]+)', (string) $route['path']);
             if (preg_match('#^' . $pattern . '$#', $uri, $matches)) {
                 return ['handler' => $route['handler'], 'params' => $matches, 'name' => $route['name']];
             }

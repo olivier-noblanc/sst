@@ -21,6 +21,7 @@ use App\DTO\RespondToReportCommand;
 class ReportServiceTest extends TestCase
 {
     private PDO $pdo;
+    private ReportRepository $repo;
     private ReportService $service;
     private EventDispatcher $events;
     private int $siteId;

@@ -133,11 +133,11 @@ if (!isset($csrfToken)) {
                     <th>Agents rattachés</th>
                     <td>
                         <?php if (!empty($linkedAgents)): ?>
-                            <?php echo e(implode(', ', array_map(function($a) { return $a['prenom'] . ' ' . $a['nom']; }, $linkedAgents))); ?>
+                            <?php echo e(implode(', ', array_map(fn($a) => $a['prenom'] . ' ' . $a['nom'], $linkedAgents))); ?>
                         <?php endif; ?>
                         <?php if (!empty($pendingInvites)): ?>
                             <?php
-                            $pendingEmails = array_map(function($i) { return $i['email'] . ' (en attente)'; }, $pendingInvites);
+                            $pendingEmails = array_map(fn($i) => $i['email'] . ' (en attente)', $pendingInvites);
                             $existingText = !empty($linkedAgents) ? ', ' : '';
                             echo $existingText . '<span class="text-muted">' . e(implode(', ', $pendingEmails)) . '</span>';
                             ?>

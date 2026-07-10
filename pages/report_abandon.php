@@ -27,7 +27,7 @@ $csrfToken = generateCsrfToken();
 
 <?php echo renderBreadcrumb([
     ['url' => url('home'), 'label' => 'Accueil'],
-    ['url' => url('report_list', ['type' => $type]), 'label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)],
+    ['url' => url('report_list', ['type' => $type]), 'label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)],
     ['url' => url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
     ['label' => 'Abandonner'],
 ]); ?>

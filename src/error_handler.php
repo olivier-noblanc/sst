@@ -104,7 +104,7 @@ function sstShutdownHandler(): void
     if (function_exists('getConfig')) {
         try {
             $adminDisplayErrors = (getConfig('app_display_errors', '') === '1');
-        } catch (Exception $e) {
+        } catch (Exception) {
         }
     }
     if ((!defined('DEV_MODE') || !DEV_MODE) && !$adminDisplayErrors) {

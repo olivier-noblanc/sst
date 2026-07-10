@@ -46,7 +46,7 @@ if (!$user) {
 }
 
 // Verify the email matches
-if (strtolower($user['email'] ?? '') !== strtolower($invite['email'])) {
+if (strtolower($user['email'] ?? '') !== strtolower((string) $invite['email'])) {
     setFlash('error', 'Cette invitation est destinée à ' . e($invite['email']) . '. Vous êtes connecté(e) en tant que ' . e($user['email'] ?? 'inconnu') . '.');
     redirect(url('home'));
 }

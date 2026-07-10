@@ -4,7 +4,11 @@
  * Site Queries — Application SST DREETS BFC
  *
  * All SQL queries related to sites (Unités Régionales).
+ *
+ * All functions delegate to App\Repository\SiteRepository.
  */
+
+use App\Repository\SiteRepository;
 
 /**
  * Get all sites.
@@ -14,8 +18,7 @@
  */
 function getAllSites(PDO $pdo): array
 {
-    $stmt = $pdo->query('SELECT * FROM sites ORDER BY code ASC');
-    return $stmt->fetchAll();
+    return SiteRepository::instance()->findAll();
 }
 
 /**
@@ -26,8 +29,7 @@ function getAllSites(PDO $pdo): array
  */
 function getActiveSites(PDO $pdo): array
 {
-    $stmt = $pdo->query('SELECT * FROM sites WHERE is_active = 1 ORDER BY code ASC');
-    return $stmt->fetchAll();
+    return SiteRepository::instance()->findActive();
 }
 
 /**
@@ -39,10 +41,7 @@ function getActiveSites(PDO $pdo): array
  */
 function getSiteById(PDO $pdo, int $id): ?array
 {
-    $stmt = $pdo->prepare('SELECT * FROM sites WHERE id = :id');
-    $stmt->execute([':id' => $id]);
-    $result = $stmt->fetch();
-    return $result ?: null;
+    return SiteRepository::instance()->findById($id);
 }
 
 /**
@@ -54,10 +53,7 @@ function getSiteById(PDO $pdo, int $id): ?array
  */
 function getSiteByCode(PDO $pdo, string $code): ?array
 {
-    $stmt = $pdo->prepare('SELECT * FROM sites WHERE code = :code');
-    $stmt->execute([':code' => $code]);
-    $result = $stmt->fetch();
-    return $result ?: null;
+    return SiteRepository::instance()->findByCode($code);
 }
 
 /**
@@ -69,10 +65,7 @@ function getSiteByCode(PDO $pdo, string $code): ?array
  */
 function getSiteByName(PDO $pdo, string $nom): ?array
 {
-    $stmt = $pdo->prepare('SELECT * FROM sites WHERE nom = :nom');
-    $stmt->execute([':nom' => $nom]);
-    $result = $stmt->fetch();
-    return $result ?: null;
+    return SiteRepository::instance()->findByName($nom);
 }
 
 /**
@@ -86,13 +79,7 @@ function getSiteByName(PDO $pdo, string $nom): ?array
  */
 function createSite(PDO $pdo, string $code, string $nom, string $departement = ''): int
 {
-    $stmt = $pdo->prepare('INSERT INTO sites (code, nom, departement) VALUES (:code, :nom, :departement)');
-    $stmt->execute([
-        ':code'        => $code,
-        ':nom'         => $nom,
-        ':departement' => $departement,
-    ]);
-    return (int) $pdo->lastInsertId();
+    return SiteRepository::instance()->create($code, $nom, $departement);
 }
 
 /**
@@ -107,14 +94,7 @@ function createSite(PDO $pdo, string $code, string $nom, string $departement = '
  */
 function updateSite(PDO $pdo, int $id, string $code, string $nom, string $departement = ''): bool
 {
-    $stmt = $pdo->prepare('UPDATE sites SET code = :code, nom = :nom, departement = :departement WHERE id = :id');
-    $stmt->execute([
-        ':code'        => $code,
-        ':nom'         => $nom,
-        ':departement' => $departement,
-        ':id'          => $id,
-    ]);
-    return $stmt->rowCount() > 0;
+    return SiteRepository::instance()->update($id, $code, $nom, $departement);
 }
 
 /**
@@ -127,9 +107,7 @@ function updateSite(PDO $pdo, int $id, string $code, string $nom, string $depart
  */
 function toggleSiteActive(PDO $pdo, int $id, bool $active): bool
 {
-    $stmt = $pdo->prepare('UPDATE sites SET is_active = :active WHERE id = :id');
-    $stmt->execute([':active' => $active ? 1 : 0, ':id' => $id]);
-    return $stmt->rowCount() > 0;
+    return SiteRepository::instance()->toggleActive($id, $active);
 }
 
 /**
@@ -141,9 +119,7 @@ function toggleSiteActive(PDO $pdo, int $id, bool $active): bool
  */
 function countUsersBySite(PDO $pdo, int $id): int
 {
-    $stmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE site_id = :id AND is_active = 1');
-    $stmt->execute([':id' => $id]);
-    return (int) $stmt->fetchColumn();
+    return SiteRepository::instance()->countUsers($id);
 }
 
 /**
@@ -155,9 +131,7 @@ function countUsersBySite(PDO $pdo, int $id): int
  */
 function countReportsBySite(PDO $pdo, int $id): int
 {
-    $stmt = $pdo->prepare('SELECT COUNT(*) FROM reports WHERE site_id = :id');
-    $stmt->execute([':id' => $id]);
-    return (int) $stmt->fetchColumn();
+    return SiteRepository::instance()->countReports($id);
 }
 
 /**
@@ -170,34 +144,5 @@ function countReportsBySite(PDO $pdo, int $id): int
  */
 function deleteSite(PDO $pdo, int $id): bool
 {
-    $pdo->beginTransaction();
-    try {
-        // Safety: refuse deletion if site has active users
-        $userCount = countUsersBySite($pdo, $id);
-        if ($userCount > 0) {
-            $pdo->rollBack();
-            return false;
-        }
-
-        // Safety: refuse deletion if site has reports
-        $reportCount = countReportsBySite($pdo, $id);
-        if ($reportCount > 0) {
-            $pdo->rollBack();
-            return false;
-        }
-
-        // Delete notification settings linked to this site
-        $stmt = $pdo->prepare('DELETE FROM notification_settings WHERE site_id = :id');
-        $stmt->execute([':id' => $id]);
-
-        // Delete the site
-        $stmt = $pdo->prepare('DELETE FROM sites WHERE id = :id');
-        $stmt->execute([':id' => $id]);
-        $deleted = $stmt->rowCount() > 0;
-        $pdo->commit();
-        return $deleted;
-    } catch (\Exception $e) {
-        $pdo->rollBack();
-        throw $e;
-    }
+    return SiteRepository::instance()->delete($id);
 }

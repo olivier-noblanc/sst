@@ -21,7 +21,7 @@ $responses = getReportResponses($pdo, $uuid);
 
 $pageTitle = 'Répondre au signalement — ' . e($report['reference']);
 $registryType = $report['type'];
-$registryLabel = REGISTRY_SHORT_LABELS[$registryType] ?? strtoupper($registryType);
+$registryLabel = REGISTRY_SHORT_LABELS[$registryType] ?? strtoupper((string) $registryType);
 
 // Get form errors and data from session
 $formErrors = getFormErrors();

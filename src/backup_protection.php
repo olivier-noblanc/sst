@@ -62,9 +62,7 @@ function listBackups(): array
     }
 
     // Sort newest first
-    usort($backups, function ($a, $b) {
-        return $b['date'] - $a['date'];
-    });
+    usort($backups, fn($a, $b) => $b['date'] - $a['date']);
 
     return $backups;
 }

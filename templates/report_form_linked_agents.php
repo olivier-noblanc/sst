@@ -11,13 +11,13 @@
  */
 $declarantEmail = $user['email'] ?? '';
 $emailDomain = '';
-if ($declarantEmail && strpos($declarantEmail, '@') !== false) {
-    $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
+if ($declarantEmail && str_contains((string) $declarantEmail, '@')) {
+    $emailDomain = substr((string) $declarantEmail, strrpos((string) $declarantEmail, '@') + 1);
 }
 $linkedEmails = '';
 if ($isEdit && $report) {
     $existing = getLinkedAgents($pdo ?? getDB(), $report['uuid']);
-    $linkedEmails = implode(', ', array_map(function($a) { return $a['email']; }, $existing));
+    $linkedEmails = implode(', ', array_map(fn($a) => $a['email'], $existing));
 }
 if (isset($formData['linked_emails'])) {
     $linkedEmails = $formData['linked_emails'];

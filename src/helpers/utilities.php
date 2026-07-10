@@ -47,7 +47,7 @@ function getNextSequence(PDO $pdo, string $type, int $year): int
 function getMimeType(string $filePath): string
 {
     if (!class_exists('finfo')) {
-        throw new \RuntimeException(
+        throw new RuntimeException(
             'L\'extension PHP "fileinfo" est requise pour le téléchargement de pièces jointes. ' .
             'Veuillez l\'activer dans php.ini : extension=fileinfo, puis redémarrer le serveur web.'
         );
@@ -55,7 +55,7 @@ function getMimeType(string $filePath): string
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mime = $finfo->file($filePath);
     if ($mime === false) {
-        throw new \RuntimeException('Impossible de déterminer le type du fichier.');
+        throw new RuntimeException('Impossible de déterminer le type du fichier.');
     }
     return $mime;
 }

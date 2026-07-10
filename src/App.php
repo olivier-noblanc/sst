@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SST;
 
+use PDO;
+
 /**
  * Application entry point — SST DREETS BFC
  *
@@ -11,13 +13,13 @@ namespace SST;
  */
 final class App
 {
-    private static ?\PDO $pdo = null;
+    private static ?PDO $pdo = null;
     private static ?array $config = null;
 
     /**
      * Get the database connection (singleton).
      */
-    public static function pdo(): \PDO
+    public static function pdo(): PDO
     {
         if (self::$pdo === null) {
             self::$pdo = \getDatabase();

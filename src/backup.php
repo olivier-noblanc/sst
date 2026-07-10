@@ -196,9 +196,7 @@ function rotateBackups(): void
     }
 
     // Sort by modification time, oldest first
-    usort($files, function ($a, $b) {
-        return filemtime($a) - filemtime($b);
-    });
+    usort($files, fn($a, $b) => filemtime($a) - filemtime($b));
 
     // Delete the oldest files beyond the limit
     $toDelete = array_slice($files, 0, count($files) - BACKUP_MAX_FILES);

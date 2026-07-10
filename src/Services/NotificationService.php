@@ -12,7 +12,7 @@ use PDO;
 
 class NotificationService
 {
-    private PDO $pdo;
+    private readonly PDO $pdo;
 
     public function __construct()
     {
@@ -53,7 +53,7 @@ class NotificationService
 
         require_once __DIR__ . '/../mail.php';
 
-        $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper($report['type']);
+        $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
         $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
         $body = '<html><body>';
         $body .= '<h2>Signalement abandonné</h2>';
@@ -81,7 +81,7 @@ class NotificationService
 
         require_once __DIR__ . '/../mail.php';
 
-        $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper($report['type']);
+        $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
 
         // Notify declarant
         $declarant = getUserById($this->pdo, (int) $report['declarant_id']);

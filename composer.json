@@ -4,10 +4,10 @@
     "type": "project",
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.95",
-        "infection/infection": "^0.29",
+        "infection/infection": "^0.34",
         "phparkitect/phparkitect": "*",
         "phpstan/phpstan": "^2.2",
-        "phpunit/phpunit": "^11",
+        "phpunit/phpunit": "^13",
         "rector/rector": "^2.0"
     },
     "autoload": {

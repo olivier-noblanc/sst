@@ -4,7 +4,11 @@
  * User Queries — Application SST DREETS BFC
  *
  * All SQL queries related to user management.
+ *
+ * All functions delegate to App\Repository\UserRepository.
  */
+
+use App\Repository\UserRepository;
 
 /**
  * Base SELECT for user queries with site JOIN.
@@ -30,12 +34,7 @@ function userSelectWithSite(): string
  */
 function getUserByUsername(PDO $pdo, string $username): ?array
 {
-    $stmt = $pdo->prepare(
-        userSelectWithSite() . ' WHERE u.username = :username AND u.is_active = 1'
-    );
-    $stmt->execute([':username' => $username]);
-    $result = $stmt->fetch();
-    return $result ?: null;
+    return UserRepository::instance()->findByUsername($username);
 }
 
 /**
@@ -47,12 +46,7 @@ function getUserByUsername(PDO $pdo, string $username): ?array
  */
 function getUserById(PDO $pdo, int $id): ?array
 {
-    $stmt = $pdo->prepare(
-        userSelectWithSite() . ' WHERE u.id = :id'
-    );
-    $stmt->execute([':id' => $id]);
-    $result = $stmt->fetch();
-    return $result ?: null;
+    return UserRepository::instance()->findById($id);
 }
 
 /**
@@ -64,10 +58,7 @@ function getUserById(PDO $pdo, int $id): ?array
  */
 function getUsersByRole(PDO $pdo, string $role): array
 {
-    $sql = userSelectWithSite() . ' WHERE u.role = :role AND u.is_active = 1';
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':role' => $role]);
-    return $stmt->fetchAll();
+    return UserRepository::instance()->findByRole($role);
 }
 
 /**
@@ -80,21 +71,5 @@ function getUsersByRole(PDO $pdo, string $role): array
  */
 function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array
 {
-    $sql = userSelectWithSite() . ' WHERE 1=1';
-    $params = [];
-
-    if ($active) {
-        $sql .= ' AND u.is_active = 1';
-    }
-
-    if ($siteId > 0) {
-        $sql .= ' AND u.site_id = :site_id';
-        $params[':site_id'] = $siteId;
-    }
-
-    $sql .= ' ORDER BY u.nom, u.prenom';
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    return $stmt->fetchAll();
+    return UserRepository::instance()->findAll($siteId, $active);
 }

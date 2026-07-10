@@ -12,85 +12,85 @@ require_once __DIR__ . '/session_form.php';
 
 function startSession(): void
 {
-    (new SessionService())->startSession();
+    (SessionService::getInstance())->startSession();
 }
 
 function isUserLoggedIn(): bool
 {
-    return (new SessionService())->isUserLoggedIn();
+    return (SessionService::getInstance())->isUserLoggedIn();
 }
 
 function setUserSession(array $user): void
 {
-    (new SessionService())->setUserSession($user);
+    (SessionService::getInstance())->setUserSession($user);
 }
 
 function getUserSession(): ?array
 {
-    return (new SessionService())->getUserSession();
+    return (SessionService::getInstance())->getUserSession();
 }
 
 function clearSession(): void
 {
-    (new SessionService())->clearSession();
+    (SessionService::getInstance())->clearSession();
 }
 
 function setIntendedUrl(string $url): void
 {
-    (new SessionService())->setIntendedUrl($url);
+    (SessionService::getInstance())->setIntendedUrl($url);
 }
 
 function getIntendedUrl(): ?string
 {
-    return (new SessionService())->getIntendedUrl();
+    return (SessionService::getInstance())->getIntendedUrl();
 }
 
 function clearIntendedUrl(): ?string
 {
-    return (new SessionService())->clearIntendedUrl();
+    return (SessionService::getInstance())->clearIntendedUrl();
 }
 
 function startImpersonation(string $realRole, string $targetRole): void
 {
-    (new SessionService())->startImpersonation($realRole, $targetRole);
+    (SessionService::getInstance())->startImpersonation($realRole, $targetRole);
 }
 
 function stopImpersonation(): ?string
 {
-    return (new SessionService())->stopImpersonation();
+    return (SessionService::getInstance())->stopImpersonation();
 }
 
 function isImpersonatingRole(): bool
 {
-    return (new SessionService())->isImpersonatingRole();
+    return (SessionService::getInstance())->isImpersonatingRole();
 }
 
 function getImpersonatedRole(): ?string
 {
-    return (new SessionService())->getImpersonatedRole();
+    return (SessionService::getInstance())->getImpersonatedRole();
 }
 
 function getRealRole(): ?string
 {
-    return (new SessionService())->getRealRole();
+    return (SessionService::getInstance())->getRealRole();
 }
 
 function generateCsrfToken(): string
 {
-    return (new SessionService())->generateCsrfToken();
+    return (SessionService::getInstance())->generateCsrfToken();
 }
 
 function validateCsrfToken(string $token): bool
 {
-    return (new SessionService())->validateCsrfToken($token);
+    return (SessionService::getInstance())->validateCsrfToken($token);
 }
 
 function setFlash(string $type, string $message): void
 {
-    (new SessionService())->setFlash($type, $message);
+    (SessionService::getInstance())->setFlash($type, $message);
 }
 
 function getFlash(): ?array
 {
-    return (new SessionService())->getFlash();
+    return (SessionService::getInstance())->getFlash();
 }

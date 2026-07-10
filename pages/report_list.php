@@ -9,26 +9,26 @@ $type = $_GET['type'] ?? '';
 
 // Validate type
 if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {
-    setFlash('error', 'Type de registre invalide.');
-    redirect(url('home'));
+    (new \App\Services\SessionService())->setFlash('error', 'Type de registre invalide.');
+    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('home'));
 }
 
 // Block access to disabled registries
-if (!isRegistryEnabled($type)) {
-    setFlash('error', 'Ce registre est désactivé.');
-    redirect(url('home'));
+if (!\App\Services\ConfigService::getInstance()->isRegistryEnabled($type)) {
+    (new \App\Services\SessionService())->setFlash('error', 'Ce registre est désactivé.');
+    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('home'));
 }
 
 $pageTitle = 'Liste des fiches du registre — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type));
 
-$pdo = getDB();
-$user = currentUser();
+$pdo = getContainer()->get(\PDO::class);
+$user = (new \App\Services\SessionService())->getUserSession();
 $userSiteId = (int) $user['site_id'];
 $userId = (int) $user['id'];
 $userRole = $user['role'];
-$agentVisibility = getReportVisibility();
-$seeAllSites = canSeeAllSites();
-$noSiteMode = isNoSiteMode($pdo);
+$agentVisibility = (new \App\Services\AccessService())->getReportVisibility();
+$seeAllSites = (new \App\Services\AccessService())->canSeeAllSites();
+$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
 
 // Build filters from GET params
 $filters = [
@@ -53,12 +53,12 @@ $pageNum = max(1, (int) ($_GET['p'] ?? 1));
 $perPage = ITEMS_PER_PAGE;
 
 // Fetch reports
-$result = getReportsByRegistry($pdo, $type, $filters, $userSiteId, $seeAllSites, $pageNum, $perPage);
+$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type:$type, etat:$filters['etat']??'', siteId:(int)($filters['site_id']??0), declarantId:!empty($filters['declarant_id'])?(int)$filters['declarant_id']:null, confidentialFilter:!empty($filters['confidential_filter'])?(int)$filters['confidential_filter']:null, forceSiteId:!empty($filters['force_site_id'])?(int)$filters['force_site_id']:null, search:$filters['q']??null, seeAllSites:$seeAllSites), $pageNum, $perPage);
 $reports = $result['reports'];
 $totalItems = $result['total'];
 
 // Get all sites for filter dropdown
-$allSites = getAllSites($pdo);
+$allSites = \App\Repository\SiteRepository::instance()->findAll();
 
 // Build base URL for pagination (without &p=)
 $baseUrlParams = [
@@ -78,16 +78,16 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 ?>
 
 <h1 class="page-title">
-    Liste des fiches — <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)); ?>
-    <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
+    Liste des fiches — <?php echo (new \App\Services\FormattingService())->e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)); ?>
+    <a href="<?php echo (new \App\Services\HttpService())->url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 
 <?php if (in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])): ?>
-<p class="mb-3"><a href="<?php echo url('export'); ?>" class="btn btn--sm btn--outline">&#x1F4E5; Exporter les signalements filtrés</a></p>
+<p class="mb-3"><a href="<?php echo (new \App\Services\HttpService())->url('export'); ?>" class="btn btn--sm btn--outline">&#x1F4E5; Exporter les signalements filtrés</a></p>
 <?php endif; ?>
 
-<?php echo renderBreadcrumb([
-    ['url' => url('home'), 'label' => 'Accueil'],
+<?php echo (new \App\Services\FormattingService())->renderBreadcrumb([
+    ['url' => (new \App\Services\HttpService())->url('home'), 'label' => 'Accueil'],
     ['label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)],
 ]); ?>
 
@@ -95,7 +95,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 <div class="filter-bar">
     <form method="GET" action="index.php" class="flex flex-wrap gap-4 items-center w-full">
         <input type="hidden" name="page" value="report_list">
-        <input type="hidden" name="type" value="<?php echo e($type); ?>">
+        <input type="hidden" name="type" value="<?php echo (new \App\Services\FormattingService())->e($type); ?>">
 
         <div class="form-group">
             <label for="etat">État</label>
@@ -110,12 +110,12 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 
         <?php if ($seeAllSites && !$noSiteMode): ?>
         <div class="form-group">
-            <label for="site">Site (<?php echo e(getConfig('app_label_unite', 'UR')); ?>)</label>
+            <label for="site">Site (<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>)</label>
             <select id="site" name="site">
                 <option value="">Tous</option>
                 <?php foreach ($allSites as $site): ?>
-                <option value="<?php echo e($site['id']); ?>" <?php echo $filters['site_id'] === (string) $site['id'] ? 'selected' : ''; ?>>
-                    <?php echo e($site['code'] . ' — ' . $site['nom']); ?>
+                <option value="<?php echo (new \App\Services\FormattingService())->e($site['id']); ?>" <?php echo $filters['site_id'] === (string) $site['id'] ? 'selected' : ''; ?>>
+                    <?php echo (new \App\Services\FormattingService())->e($site['code'] . ' — ' . $site['nom']); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
@@ -124,7 +124,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 
         <div class="form-group filter-search-group">
             <label for="q">Recherche</label>
-            <input type="text" id="q" name="q" value="<?php echo e($filters['q']); ?>" placeholder="Rechercher dans l'objet ou la description...">
+            <input type="text" id="q" name="q" value="<?php echo (new \App\Services\FormattingService())->e($filters['q']); ?>" placeholder="Rechercher dans l'objet ou la description...">
         </div>
 
         <button type="submit" class="btn btn--primary">Filtrer</button>
@@ -133,7 +133,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
 
 <div class="card">
     <div class="table-wrapper table-wrapper--responsive">
-        <table aria-label="Liste des signalements <?php echo e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)); ?>">
+        <table aria-label="Liste des signalements <?php echo (new \App\Services\FormattingService())->e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)); ?>">
             <thead>
                 <tr>
                     <th>Référence</th>
@@ -141,7 +141,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                     <th>Objet</th>
                     <th>Nom</th>
                     <th>Prénom</th>
-                    <?php if (!$noSiteMode): ?><th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th><?php endif; ?>
+                    <?php if (!$noSiteMode): ?><th><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></th><?php endif; ?>
                     <th>État</th>
                     <th>Visibilité</th>
                     <th>Actions</th>
@@ -154,26 +154,26 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         <div class="empty-state__icon">&#128203;</div>
                         <div class="empty-state__title">Aucun signalement trouvé</div>
                         <div class="empty-state__cta">
-                            <a href="<?php echo url('report_create', ['type' => $type]); ?>" class="btn btn--primary btn--sm">+ Signaler un événement</a>
+                            <a href="<?php echo (new \App\Services\HttpService())->url('report_create', ['type' => $type]); ?>" class="btn btn--primary btn--sm">+ Signaler un événement</a>
                         </div>
                     </td>
                 </tr>
                 <?php else: ?>
                     <?php foreach ($reports as $report): ?>
                     <?php
-                        $canEdit = canEditReport($report, $userId);
-                        $canRespond = canRespondToReport($report, $userRole);
+                        $canEdit = (new \App\Services\AccessService())->canEditReport($report, $userId);
+                        $canRespond = (new \App\Services\AccessService())->canRespondToReport($report, $userRole);
                         ?>
                     <tr>
-                        <td data-label="Référence"><strong><?php echo e($report['reference']); ?></strong></td>
-                        <td data-label="Date"><?php echo e(formatDateFR($report['date_evenement'])); ?></td>
-                        <td data-label="Objet"><?php echo e(truncate($report['objet'], 50)); ?></td>
-                        <td data-label="Nom"><?php echo e($report['declarant_nom']); ?></td>
-                        <td data-label="Prénom"><?php echo e($report['declarant_prenom']); ?></td>
-                        <?php if (!$noSiteMode): ?><td data-label="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"><?php echo e($report['site_code'] ?? '—'); ?></td><?php endif; ?>
+                        <td data-label="Référence"><strong><?php echo (new \App\Services\FormattingService())->e($report['reference']); ?></strong></td>
+                        <td data-label="Date"><?php echo (new \App\Services\FormattingService())->e((new \App\Services\FormattingService())->formatDateFR($report['date_evenement'])); ?></td>
+                        <td data-label="Objet"><?php echo (new \App\Services\FormattingService())->e((new \App\Services\FormattingService())->truncate($report['objet'], 50)); ?></td>
+                        <td data-label="Nom"><?php echo (new \App\Services\FormattingService())->e($report['declarant_nom']); ?></td>
+                        <td data-label="Prénom"><?php echo (new \App\Services\FormattingService())->e($report['declarant_prenom']); ?></td>
+                        <?php if (!$noSiteMode): ?><td data-label="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>"><?php echo (new \App\Services\FormattingService())->e($report['site_code'] ?? '—'); ?></td><?php endif; ?>
                         <td data-label="État">
-                            <span class="badge <?php echo getEtatBadgeClass($report['etat']); ?>">
-                                <?php echo e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?>
+                            <span class="badge <?php echo (new \App\Services\FormattingService())->getEtatBadgeClass($report['etat']); ?>">
+                                <?php echo (new \App\Services\FormattingService())->e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?>
                             </span>
                         </td>
                         <td data-label="Visibilité">
@@ -185,12 +185,12 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         </td>
                         <td data-label="Actions">
                             <div class="btn-group">
-                                <a href="<?php echo url('report_view', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--outline">Voir</a>
+                                <a href="<?php echo (new \App\Services\HttpService())->url('report_view', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--outline">Voir</a>
                                 <?php if ($canEdit): ?>
-                                <a href="<?php echo url('report_edit', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--secondary">Modifier</a>
+                                <a href="<?php echo (new \App\Services\HttpService())->url('report_edit', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--secondary">Modifier</a>
                                 <?php endif; ?>
                                 <?php if ($canRespond): ?>
-                                <a href="<?php echo url('report_respond', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--primary">Répondre</a>
+                                <a href="<?php echo (new \App\Services\HttpService())->url('report_respond', ['uuid' => $report['uuid']]); ?>" class="btn btn--sm btn--primary">Répondre</a>
                                 <?php endif; ?>
                             </div>
                         </td>

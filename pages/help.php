@@ -9,18 +9,18 @@
  */
 $pageTitle = 'Documentation';
 $userRole = currentUserRole() ?: 'agent';
-$labelUnite = e(getConfig('app_label_unite', 'UR'));
+$labelUnite = (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR'));
 $screenshotBase = 'asset.php?f=screenshots';
 $isAgent = ($userRole === 'agent');
-$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
 $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
 
 // Screenshot helper — must be defined BEFORE any HTML output
 function helpImg(string $name, string $alt, string $base): string
 {
     $src = $base . '/' . $name;
-    return '<img src="' . $src . '" alt="' . e($alt) . '" class="help-img">';
+    return '<img src="' . $src . '" alt="' . (new \App\Services\FormattingService())->e($alt) . '" class="help-img">';
 }
 
 /**

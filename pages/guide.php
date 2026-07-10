@@ -9,13 +9,13 @@
  * CSS served via css.php with proper HTTP caching (ETag, 304).
  */
 $pageTitle = 'Guide rapide';
-$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
 $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
-$noSiteMode = isNoSiteMode(getDB());
-$labelUnite = getConfig('app_label_unite', 'UR');
+$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
+$labelUnite = \App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR');
 ?>
-<?php echo cssLink('css/guide.css'); ?>
+<?php echo (new \App\Services\AssetService())->cssLink('css/guide.css'); ?>
 
 <div class="guide">
     <div class="guide-header">
@@ -87,7 +87,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             <ul class="guide-step__list">
                 <li><strong>Date de l'evenement</strong> — la date ou cela s'est passe</li>
                 <?php if (!$noSiteMode): ?>
-                <li><strong><?php echo e($labelUnite); ?> de rattachement</strong> — votre unite de travail</li>
+                <li><strong><?php echo (new \App\Services\FormattingService())->e($labelUnite); ?> de rattachement</strong> — votre unite de travail</li>
                 <?php endif; ?>
                 <li><strong>Objet</strong> — un resume court en quelques mots</li>
                 <li><strong>Description</strong> — expliquez ce qui s'est passe en detail</li>

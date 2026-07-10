@@ -211,7 +211,7 @@ function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void
         $etatResp = !empty($resp['nouvel_etat'])
             ? (ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat']) : '—';
         $row = [
-            formatDateTimeFR($resp['created_at']),
+            (new \App\Services\FormattingService())->formatDateTimeFR($resp['created_at']),
             ($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? ''),
             $etatResp,
             $resp['reponse'] ?? '',

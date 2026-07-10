@@ -17,19 +17,19 @@ $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 // Access control: centralized via canAccessReport()
-$user = currentUser();
+$user = (new \App\Services\SessionService())->getUserSession();
 
-if (!canAccessReport($report, $user)) {
-    setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
-    redirect(url('home'));
+if (!(new \App\Services\AccessService())->canAccessReport($report, $user)) {
+    (new \App\Services\SessionService())->setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
+    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('home'));
 }
 
 // Log confidential report access by supervisor/CHSCT
-$pdo = getDB();
-logConfidentialReportAccess($pdo, $report, $user);
+$pdo = getContainer()->get(\PDO::class);
+(new \App\Services\AccessService())->logConfidentialReportAccess($pdo, $report, $user);
 
 // Get response history
-$responses = getReportResponses($pdo, $uuid);
+$responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 
 $type = $report['type'] ?? 'rsst';
 $registryLabel = REGISTRY_LABELS[$type] ?? strtoupper($type);
@@ -42,9 +42,9 @@ require_once __DIR__ . '/report_print_helpers.php';
 
 // Create PDF
 $pdf = new SSTPDF('P', 'mm', 'A4');
-$pdf->headerText = getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')
+$pdf->headerText = \App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')
     . ' — Signalement ' . $report['reference'];
-$pdf->footerOrgName = getConfig('app_nom_organisation', 'DREETS BFC');
+$pdf->footerOrgName = \App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
 $pdf->AliasNbPages();
 $pdf->SetAutoPageBreak(true, 22);
 $pdf->SetMargins(15, 22, 15);
@@ -58,14 +58,14 @@ $pdf->AddPage();
 
 // Set PDF metadata (pass UTF-8, FPDF handles conversion internally)
 $pdf->SetTitle('Signalement ' . $report['reference'], true);
-$pdf->SetAuthor(getConfig('app_nom_organisation', 'DREETS BFC'), true);
+$pdf->SetAuthor(\App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC'), true);
 
 // =====================================================================
 // BUILD THE PDF CONTENT
 // =====================================================================
 
-$orgName = getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté');
-$labelUnite = getConfig('app_label_unite', 'UR');
+$orgName = \App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté');
+$labelUnite = \App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR');
 
 // --- Title ---
 $pdf->SetFont('DejaVu', 'B', 16);
@@ -89,11 +89,11 @@ $pdf->Ln(8);
 $fields = [
     'Référence'             => $report['reference'],
     'Registre'              => $registryLabel,
-    'Date de l\'événement'  => formatDateFR($report['date_evenement']),
+    'Date de l\'événement'  => (new \App\Services\FormattingService())->formatDateFR($report['date_evenement']),
     'Heure du dépôt'        => $report['heure_evenement'] ?? '—',
     'Lieu'                  => $report['lieu'] ?? '—',
     'Objet'                 => $report['objet'],
-    'Transmission aux ' . getRoleLabel('chsct') . 's' => ($report['consent_syndicat'] ?? 0) ? 'Acceptée' : 'Refusée',
+    'Transmission aux ' . \App\Services\ConfigService::getInstance()->getRoleLabel('chsct') . 's' => ($report['consent_syndicat'] ?? 0) ? 'Acceptée' : 'Refusée',
 ];
 
 foreach ($fields as $label => $value) {
@@ -107,7 +107,7 @@ drawMultiField($pdf, 'Description', $report['description']);
 // Remaining fields
 $pdf->Ln(1);
 drawField($pdf, 'Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
-if (!isNoSiteMode($pdo)) {
+if (!\App\Services\ConfigService::getInstance()->isNoSiteMode()) {
     drawField($pdf, $labelUnite, ($report['site_nom'] ?? '—') . ' (' . ($report['site_code'] ?? '—') . ')');
 }
 
@@ -119,7 +119,7 @@ if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
     );
 }
 
-drawField($pdf, 'Date de création', formatDateTimeFR($report['created_at']));
+drawField($pdf, 'Date de création', (new \App\Services\FormattingService())->formatDateTimeFR($report['created_at']));
 
 if (!empty($report['attachment_name'])) {
     $isImage = !empty($report['attachment_mime']) && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
@@ -149,8 +149,8 @@ drawHR($pdf);
 $pdf->SetFont('DejaVu', '', 8);
 $pdf->SetTextColor(153, 153, 153);
 $pdf->Cell(0, 5, utf8ToCp1252(
-    'Document généré le ' . formatDateFR(date('Y-m-d'))
-    . ' — ' . getConfig('app_nom_organisation', 'DREETS BFC')
+    'Document généré le ' . (new \App\Services\FormattingService())->formatDateFR(date('Y-m-d'))
+    . ' — ' . \App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC')
 ), 0, 1, 'C');
 
 // Output PDF inline (displayed in browser, not forced download)
@@ -162,7 +162,7 @@ while (ob_get_level() > 0) {
     ob_end_clean();
 }
 
-removeUnwantedHeaders();
+(new \App\Services\HttpService())->removeUnwantedHeaders();
 header('Cache-Control: no-cache');
 header('X-Content-Type-Options: nosniff');
 

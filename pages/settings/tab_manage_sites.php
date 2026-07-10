@@ -6,12 +6,12 @@
  */
 ?>
 <div class="card">
-    <h3 class="card__title">&#x1F3E2; Gestion des sites (<?php echo e(getConfig('app_label_unite', 'UR')); ?>)</h3>
+    <h3 class="card__title">&#x1F3E2; Gestion des sites (<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>)</h3>
     <p class="text-muted text-small mb-4">Gérez les sites disponibles. Les sites désactivés n'apparaissent plus dans les listes de choix (pour les nouveaux agents) mais les signalements existants restent accessibles.</p>
 
     <!-- Add new site form -->
-    <form method="POST" action="<?php echo url('settings'); ?>" class="add-site-form">
-        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('settings'); ?>" class="add-site-form">
+        <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
         <input type="hidden" name="tab" value="manage_sites">
         <input type="hidden" name="action" value="add_site">
         <h4 class="card__subtitle">+ Ajouter un site</h4>
@@ -56,9 +56,9 @@
                 $isActive = !isset($site['is_active']) || $site['is_active'] == 1;
                 ?>
             <tr class="<?php echo !$isActive ? 'row--inactive' : ''; ?>">
-                <td><strong><?php echo e($site['code']); ?></strong></td>
-                <td><?php echo e($site['nom']); ?></td>
-                <td><?php echo e($site['departement'] ?? '—'); ?></td>
+                <td><strong><?php echo (new \App\Services\FormattingService())->e($site['code']); ?></strong></td>
+                <td><?php echo (new \App\Services\FormattingService())->e($site['nom']); ?></td>
+                <td><?php echo (new \App\Services\FormattingService())->e($site['departement'] ?? '—'); ?></td>
                 <td class="text-center"><?php echo $userCount; ?></td>
                 <td class="text-center"><?php echo $reportCount; ?></td>
                 <td>
@@ -70,20 +70,20 @@
                 </td>
                 <td class="whitespace-nowrap">
                     <?php if ($isActive): ?>
-                    <form method="POST" action="<?php echo url('settings'); ?>" class="form--inline">
-                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('settings'); ?>" class="form--inline">
+                        <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
                         <input type="hidden" name="tab" value="manage_sites">
                         <input type="hidden" name="action" value="toggle_site">
-                        <input type="hidden" name="site_id" value="<?php echo e($site['id']); ?>">
+                        <input type="hidden" name="site_id" value="<?php echo (new \App\Services\FormattingService())->e($site['id']); ?>">
                         <input type="hidden" name="is_active" value="0">
                         <button type="submit" class="btn btn--sm btn--outline">Désactiver</button>
                     </form>
                     <?php else: ?>
-                    <form method="POST" action="<?php echo url('settings'); ?>" class="form--inline">
-                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('settings'); ?>" class="form--inline">
+                        <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
                         <input type="hidden" name="tab" value="manage_sites">
                         <input type="hidden" name="action" value="toggle_site">
-                        <input type="hidden" name="site_id" value="<?php echo e($site['id']); ?>">
+                        <input type="hidden" name="site_id" value="<?php echo (new \App\Services\FormattingService())->e($site['id']); ?>">
                         <input type="hidden" name="is_active" value="1">
                         <button type="submit" class="btn btn--sm btn--success">Réactiver</button>
                     </form>
@@ -92,21 +92,21 @@
                     <?php if ($userCount === 0 && $reportCount === 0): ?>
                     <?php if (isset($_GET['confirm_delete_site']) && (int) $_GET['confirm_delete_site'] === (int) $site['id']): ?>
                     <!-- Confirmation inline — pas de JavaScript -->
-                    <span class="section-header--danger confirm-delete-label">&#x26A0;&#xFE0F; Supprimer <strong><?php echo e($site['code']); ?></strong> ?</span>
-                    <form method="POST" action="<?php echo url('settings'); ?>" class="form--inline">
-                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                    <span class="section-header--danger confirm-delete-label">&#x26A0;&#xFE0F; Supprimer <strong><?php echo (new \App\Services\FormattingService())->e($site['code']); ?></strong> ?</span>
+                    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('settings'); ?>" class="form--inline">
+                        <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
                         <input type="hidden" name="tab" value="manage_sites">
                         <input type="hidden" name="action" value="delete_site">
-                        <input type="hidden" name="site_id" value="<?php echo e($site['id']); ?>">
+                        <input type="hidden" name="site_id" value="<?php echo (new \App\Services\FormattingService())->e($site['id']); ?>">
                         <button type="submit" class="btn btn--sm btn--danger">Oui, supprimer</button>
                     </form>
-                    <a href="<?php echo url('settings', ['tab' => 'manage_sites']); ?>" class="btn btn--sm btn--secondary">Annuler</a>
+                    <a href="<?php echo (new \App\Services\HttpService())->url('settings', ['tab' => 'manage_sites']); ?>" class="btn btn--sm btn--secondary">Annuler</a>
                     <?php else: ?>
-                    <a href="<?php echo url('site_edit', ['id' => $site['id']]); ?>" class="btn btn--sm btn--outline">Éditer</a>
-                    <a href="<?php echo url('settings', ['tab' => 'manage_sites', 'confirm_delete_site' => $site['id']]); ?>" class="btn btn--sm btn--danger">Supprimer</a>
+                    <a href="<?php echo (new \App\Services\HttpService())->url('site_edit', ['id' => $site['id']]); ?>" class="btn btn--sm btn--outline">Éditer</a>
+                    <a href="<?php echo (new \App\Services\HttpService())->url('settings', ['tab' => 'manage_sites', 'confirm_delete_site' => $site['id']]); ?>" class="btn btn--sm btn--danger">Supprimer</a>
                     <?php endif; ?>
                     <?php else: ?>
-                    <a href="<?php echo url('site_edit', ['id' => $site['id']]); ?>" class="btn btn--sm btn--outline">Éditer</a>
+                    <a href="<?php echo (new \App\Services\HttpService())->url('site_edit', ['id' => $site['id']]); ?>" class="btn btn--sm btn--outline">Éditer</a>
                     <?php endif; ?>
                 </td>
             </tr>

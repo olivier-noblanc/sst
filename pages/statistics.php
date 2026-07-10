@@ -7,30 +7,29 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
-$pdo = getDB();
-$noSiteMode = isNoSiteMode($pdo);
+$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
 
 // Get filter
 $year = $_GET['year'] ?? date('Y');
 $year = trim((string) $year);
 
 // Get available years
-$availableYears = getAvailableYears($pdo);
+$availableYears = \App\Repository\StatsRepository::instance()->getAvailableYears();
 if (empty($availableYears)) {
     $availableYears = [date('Y')];
 }
 
 // Get indicateurs
-$indicateurs = getStatisticsIndicateurs($pdo, $year);
+$indicateurs = \App\Repository\StatsRepository::instance()->getIndicateurs($year);
 
 // Get stats by site
-$statsBySite = getStatsBySite($pdo, $year);
+$statsBySite = \App\Repository\StatsRepository::instance()->getBySite($year);
 
 // Get RAMI structured stats
-$ramiStats = getRamiStructuredStats($pdo, $year);
+$ramiStats = \App\Repository\StatsRepository::instance()->getRamiStructuredStats($year);
 
 // Build table data by site
-$sites = getAllSites($pdo);
+$sites = \App\Repository\SiteRepository::instance()->findAll();
 $tableData = [];
 foreach ($sites as $site) {
     $tableData[$site['id']] = [
@@ -71,20 +70,20 @@ foreach ($tableData as $td) {
 
 $pageTitle = 'Statistiques';
 
-$ramiEnabled = isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
 ?>
 
 <h1 class="page-title">Statistiques</h1>
 
 
 <!-- Year filter -->
-<form method="GET" action="<?php echo url('statistics'); ?>" class="filter-bar">
+<form method="GET" action="<?php echo (new \App\Services\HttpService())->url('statistics'); ?>" class="filter-bar">
     <div class="form-group">
         <label for="year">Année</label>
         <select name="year" id="year">
             <?php foreach ($availableYears as $y): ?>
-            <option value="<?php echo e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo e($y); ?></option>
+            <option value="<?php echo (new \App\Services\FormattingService())->e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo (new \App\Services\FormattingService())->e($y); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
@@ -121,12 +120,12 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
 <!-- Table: Reports by site and registry -->
 <?php if (!$noSiteMode): ?>
 <div class="card">
-    <h3 class="card__title">Nombre de signalements réparti par <?php echo e(getConfig('app_label_unite', 'UR')); ?> et par registre</h3>
+    <h3 class="card__title">Nombre de signalements réparti par <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?> et par registre</h3>
     <div class="table-wrapper">
         <table aria-label="Statistiques des signalements">
             <thead>
                 <tr>
-                    <th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th>
+                    <th><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></th>
                     <th class="text-center">RSST</th>
                     <?php if ($dgiEnabled): ?><th class="text-center">DGI</th><?php endif; ?>
                     <?php if ($ramiEnabled): ?><th class="text-center">RAMI</th><?php endif; ?>
@@ -136,7 +135,7 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
             <tbody>
                 <?php foreach ($tableData as $td): ?>
                 <tr>
-                    <td><strong><?php echo e($td['code']); ?></strong> — <?php echo e($td['nom']); ?></td>
+                    <td><strong><?php echo (new \App\Services\FormattingService())->e($td['code']); ?></strong> — <?php echo (new \App\Services\FormattingService())->e($td['nom']); ?></td>
                     <td class="text-center <?php echo $td['rsst'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rsst']; ?></td>
                     <?php if ($dgiEnabled): ?><td class="text-center <?php echo $td['dgi'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['dgi']; ?></td><?php endif; ?>
                     <?php if ($ramiEnabled): ?><td class="text-center <?php echo $td['rami'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rami']; ?></td><?php endif; ?>
@@ -177,7 +176,7 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
                     <tbody>
                         <?php foreach ($ramiStats['by_nature_auteur'] as $row): ?>
                         <tr>
-                            <td><?php echo e(RAMI_NATURE_AUTEUR_LABELS[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
+                            <td><?php echo (new \App\Services\FormattingService())->e(RAMI_NATURE_AUTEUR_LABELS[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -200,7 +199,7 @@ $dgiEnabled = isRegistryEnabled(TYPE_DGI);
                     <tbody>
                         <?php foreach ($ramiStats['by_type_acte'] as $row): ?>
                         <tr>
-                            <td><?php echo e(RAMI_TYPE_ACTE_LABELS[$row['type_acte']] ?? $row['type_acte']); ?></td>
+                            <td><?php echo (new \App\Services\FormattingService())->e(RAMI_TYPE_ACTE_LABELS[$row['type_acte']] ?? $row['type_acte']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
                         </tr>
                         <?php endforeach; ?>

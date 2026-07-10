@@ -17,10 +17,10 @@ $maxLines = 5000;
 
 // Handle clear action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'clear_logs') {
-    if (validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    if ((new \App\Services\SessionService())->validateCsrfToken($_POST['csrf_token'] ?? '')) {
         file_put_contents($logFile, '');
-        setFlash('success', 'Journal d\'erreurs effacé avec succès.');
-        redirect(url('logs', ['tab' => 'errors']));
+        (new \App\Services\SessionService())->setFlash('success', 'Journal d\'erreurs effacé avec succès.');
+        (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('logs', ['tab' => 'errors']));
     }
 }
 
@@ -41,7 +41,7 @@ $auditPage = max(1, (int) ($_GET['p'] ?? 1));
 $auditPerPage = 50;
 
 if ($activeTab === 'audit') {
-    $pdo = getDB();
+    $pdo = getContainer()->get(\PDO::class);
 
     $auditFilters = [];
     if (!empty($_GET['category'])) {
@@ -91,15 +91,15 @@ $auditActionLabels = [
 
 <h1 class="page-title">Journal</h1>
 
-<?php echo renderBreadcrumb([
-    ['url' => url('home'), 'label' => 'Accueil'],
+<?php echo (new \App\Services\FormattingService())->renderBreadcrumb([
+    ['url' => (new \App\Services\HttpService())->url('home'), 'label' => 'Accueil'],
     ['label' => 'Journal'],
 ]); ?>
 
 <!-- Main tab bar: Audit / Erreurs -->
 <div class="tab-bar tab-bar--flush">
-    <a href="<?php echo url('logs', ['tab' => 'audit']); ?>" class="tab<?php echo $activeTab === 'audit' ? ' tab--active' : ''; ?>">Journal d'audit</a>
-    <a href="<?php echo url('logs', ['tab' => 'errors']); ?>" class="tab<?php echo $activeTab === 'errors' ? ' tab--active' : ''; ?>">Erreurs PHP</a>
+    <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'audit']); ?>" class="tab<?php echo $activeTab === 'audit' ? ' tab--active' : ''; ?>">Journal d'audit</a>
+    <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors']); ?>" class="tab<?php echo $activeTab === 'errors' ? ' tab--active' : ''; ?>">Erreurs PHP</a>
 </div>
 
 <?php if ($activeTab === 'errors'): ?>
@@ -107,11 +107,11 @@ $auditActionLabels = [
 <div class="card card--flush-top">
     <div class="card__title-row">
         <h3 class="card__subtitle">
-            <?php echo e(basename($logFile)); ?>
+            <?php echo (new \App\Services\FormattingService())->e(basename($logFile)); ?>
             <span class="text-muted text-small">(<?php echo number_format($logFileSize, 0, ',', ' '); ?> octets — <?php echo $logCount; ?> lignes<?php echo $logCount > $maxLines ? ', ' . $maxLines . ' dernières affichées' : ''; ?>)</span>
         </h3>
-        <form method="POST" action="<?php echo url('logs', ['tab' => 'errors']); ?>" class="form--inline">
-            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+        <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors']); ?>" class="form--inline">
+            <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
             <input type="hidden" name="action" value="clear_logs">
             <button type="submit" class="btn btn--sm btn--danger" onclick="return confirm('Effacer tous les logs ? Cette action est irreversible.')">Effacer les logs</button>
         </form>
@@ -119,14 +119,14 @@ $auditActionLabels = [
 
     <!-- Sub-filter tabs -->
     <div class="tab-bar">
-        <a href="<?php echo url('logs', ['tab' => 'errors']); ?>" class="tab<?php echo $errorFilter === 'all' ? ' tab--active' : ''; ?>">Tout (<?php echo count($categorized); ?>)</a>
-        <a href="<?php echo url('logs', ['tab' => 'errors', 'filter' => 'fatal']); ?>" class="tab<?php echo $errorFilter === 'fatal' ? ' tab--active' : ''; ?>">Fatal</a>
-        <a href="<?php echo url('logs', ['tab' => 'errors', 'filter' => 'warning']); ?>" class="tab<?php echo $errorFilter === 'warning' ? ' tab--active' : ''; ?>">Warnings</a>
-        <a href="<?php echo url('logs', ['tab' => 'errors', 'filter' => 'db']); ?>" class="tab<?php echo $errorFilter === 'db' ? ' tab--active' : ''; ?>">Base de données</a>
-        <a href="<?php echo url('logs', ['tab' => 'errors', 'filter' => 'mail']); ?>" class="tab<?php echo $errorFilter === 'mail' ? ' tab--active' : ''; ?>">E-mail</a>
-        <a href="<?php echo url('logs', ['tab' => 'errors', 'filter' => 'respond']); ?>" class="tab<?php echo $errorFilter === 'respond' ? ' tab--active' : ''; ?>">Réponses</a>
-        <a href="<?php echo url('logs', ['tab' => 'errors', 'filter' => 'backup']); ?>" class="tab<?php echo $errorFilter === 'backup' ? ' tab--active' : ''; ?>">Sauvegarde</a>
-        <a href="<?php echo url('logs', ['tab' => 'errors', 'filter' => 'migration']); ?>" class="tab<?php echo $errorFilter === 'migration' ? ' tab--active' : ''; ?>">Migration</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors']); ?>" class="tab<?php echo $errorFilter === 'all' ? ' tab--active' : ''; ?>">Tout (<?php echo count($categorized); ?>)</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors', 'filter' => 'fatal']); ?>" class="tab<?php echo $errorFilter === 'fatal' ? ' tab--active' : ''; ?>">Fatal</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors', 'filter' => 'warning']); ?>" class="tab<?php echo $errorFilter === 'warning' ? ' tab--active' : ''; ?>">Warnings</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors', 'filter' => 'db']); ?>" class="tab<?php echo $errorFilter === 'db' ? ' tab--active' : ''; ?>">Base de données</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors', 'filter' => 'mail']); ?>" class="tab<?php echo $errorFilter === 'mail' ? ' tab--active' : ''; ?>">E-mail</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors', 'filter' => 'respond']); ?>" class="tab<?php echo $errorFilter === 'respond' ? ' tab--active' : ''; ?>">Réponses</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors', 'filter' => 'backup']); ?>" class="tab<?php echo $errorFilter === 'backup' ? ' tab--active' : ''; ?>">Sauvegarde</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'errors', 'filter' => 'migration']); ?>" class="tab<?php echo $errorFilter === 'migration' ? ' tab--active' : ''; ?>">Migration</a>
     </div>
 
     <?php if (empty($filteredLines)): ?>
@@ -136,9 +136,9 @@ $auditActionLabels = [
     <?php else: ?>
         <div class="log-viewer">
             <?php foreach ($filteredLines as $i => $entry): ?>
-                <div class="log-entry log-entry--<?php echo e($entry['category']); ?>">
-                    <span class="log-entry__badge badge badge--<?php echo e($entry['category']); ?>"><?php echo e($entry['label']); ?></span>
-                    <pre class="log-entry__text"><?php echo e($entry['text']); ?></pre>
+                <div class="log-entry log-entry--<?php echo (new \App\Services\FormattingService())->e($entry['category']); ?>">
+                    <span class="log-entry__badge badge badge--<?php echo (new \App\Services\FormattingService())->e($entry['category']); ?>"><?php echo (new \App\Services\FormattingService())->e($entry['label']); ?></span>
+                    <pre class="log-entry__text"><?php echo (new \App\Services\FormattingService())->e($entry['text']); ?></pre>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -156,7 +156,7 @@ $auditActionLabels = [
     </div>
 
     <!-- Filters -->
-    <form method="GET" action="<?php echo url('logs'); ?>" class="filter-bar filter-bar--spaced">
+    <form method="GET" action="<?php echo (new \App\Services\HttpService())->url('logs'); ?>" class="filter-bar filter-bar--spaced">
         <input type="hidden" name="page" value="logs">
         <input type="hidden" name="tab" value="audit">
         <div class="filter-bar__group">
@@ -164,29 +164,29 @@ $auditActionLabels = [
             <select id="audit-category" name="category" class="form-control form-control--auto">
                 <option value="">Toutes</option>
                 <?php foreach ($auditCategoryLabels as $key => $label): ?>
-                    <option value="<?php echo e($key); ?>"<?php echo ($_GET['category'] ?? '') === $key ? ' selected' : ''; ?>><?php echo e($label); ?></option>
+                    <option value="<?php echo (new \App\Services\FormattingService())->e($key); ?>"<?php echo ($_GET['category'] ?? '') === $key ? ' selected' : ''; ?>><?php echo (new \App\Services\FormattingService())->e($label); ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="filter-bar__group">
             <label for="audit-user" class="filter-bar__label">Utilisateur</label>
-            <input type="text" id="audit-user" name="user" class="form-control form-control--search" placeholder="Nom d'utilisateur…" value="<?php echo e($_GET['user'] ?? ''); ?>">
+            <input type="text" id="audit-user" name="user" class="form-control form-control--search" placeholder="Nom d'utilisateur…" value="<?php echo (new \App\Services\FormattingService())->e($_GET['user'] ?? ''); ?>">
         </div>
         <div class="filter-bar__group">
             <label for="audit-q" class="filter-bar__label">Recherche</label>
-            <input type="text" id="audit-q" name="q" class="form-control form-control--search" placeholder="Utilisateur, détail…" value="<?php echo e($_GET['q'] ?? ''); ?>">
+            <input type="text" id="audit-q" name="q" class="form-control form-control--search" placeholder="Utilisateur, détail…" value="<?php echo (new \App\Services\FormattingService())->e($_GET['q'] ?? ''); ?>">
         </div>
         <div class="filter-bar__group">
             <label for="audit-from" class="filter-bar__label">Du</label>
-            <input type="date" id="audit-from" name="date_from" class="form-control form-control--auto" value="<?php echo e($_GET['date_from'] ?? ''); ?>">
+            <input type="date" id="audit-from" name="date_from" class="form-control form-control--auto" value="<?php echo (new \App\Services\FormattingService())->e($_GET['date_from'] ?? ''); ?>">
         </div>
         <div class="filter-bar__group">
             <label for="audit-to" class="filter-bar__label">Au</label>
-            <input type="date" id="audit-to" name="date_to" class="form-control form-control--auto" value="<?php echo e($_GET['date_to'] ?? ''); ?>">
+            <input type="date" id="audit-to" name="date_to" class="form-control form-control--auto" value="<?php echo (new \App\Services\FormattingService())->e($_GET['date_to'] ?? ''); ?>">
         </div>
         <div class="filter-bar__group">
             <button type="submit" class="btn btn--sm btn--primary">Filtrer</button>
-            <a href="<?php echo url('logs', ['tab' => 'audit']); ?>" class="btn btn--sm btn--outline">Réinitialiser</a>
+            <a href="<?php echo (new \App\Services\HttpService())->url('logs', ['tab' => 'audit']); ?>" class="btn btn--sm btn--outline">Réinitialiser</a>
         </div>
     </form>
 
@@ -210,18 +210,18 @@ $auditActionLabels = [
                 <tbody>
                     <?php foreach ($auditEntries as $entry): ?>
                         <tr>
-                            <td class="text-small text-muted"><?php echo e($entry['created_at']); ?></td>
+                            <td class="text-small text-muted"><?php echo (new \App\Services\FormattingService())->e($entry['created_at']); ?></td>
                             <td>
                                 <?php $catKey = $entry['category'];
                         $catLabel = $auditCategoryLabels[$catKey] ?? $catKey; ?>
-                                <span class="badge badge--cat-<?php echo e($catKey); ?>"><?php echo e($catLabel); ?></span>
+                                <span class="badge badge--cat-<?php echo (new \App\Services\FormattingService())->e($catKey); ?>"><?php echo (new \App\Services\FormattingService())->e($catLabel); ?></span>
                             </td>
-                            <td class="text-small"><?php echo e($entry['username']); ?></td>
+                            <td class="text-small"><?php echo (new \App\Services\FormattingService())->e($entry['username']); ?></td>
                             <td>
-                                <span class="text-small"><?php echo e($auditActionLabels[$entry['action']] ?? $entry['action']); ?></span>
+                                <span class="text-small"><?php echo (new \App\Services\FormattingService())->e($auditActionLabels[$entry['action']] ?? $entry['action']); ?></span>
                             </td>
-                            <td class="text-small"><?php echo e($entry['details']); ?></td>
-                            <td class="text-small text-muted"><?php echo e($entry['ip_address']); ?></td>
+                            <td class="text-small"><?php echo (new \App\Services\FormattingService())->e($entry['details']); ?></td>
+                            <td class="text-small text-muted"><?php echo (new \App\Services\FormattingService())->e($entry['ip_address']); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -243,7 +243,7 @@ $auditActionLabels = [
             ?>
         <div class="pagination pagination--flex">
             <?php if ($auditPage > 1): ?>
-                <a href="<?php echo url('logs', array_merge($paginationParams, ['p' => $auditPage - 1])); ?>" class="btn btn--sm btn--outline">&larr; Précédent</a>
+                <a href="<?php echo (new \App\Services\HttpService())->url('logs', array_merge($paginationParams, ['p' => $auditPage - 1])); ?>" class="btn btn--sm btn--outline">&larr; Précédent</a>
             <?php endif; ?>
 
             <span class="text-small text-muted">
@@ -252,7 +252,7 @@ $auditActionLabels = [
             </span>
 
             <?php if ($auditPage < $totalPages): ?>
-                <a href="<?php echo url('logs', array_merge($paginationParams, ['p' => $auditPage + 1])); ?>" class="btn btn--sm btn--outline">Suivant &rarr;</a>
+                <a href="<?php echo (new \App\Services\HttpService())->url('logs', array_merge($paginationParams, ['p' => $auditPage + 1])); ?>" class="btn btn--sm btn--outline">Suivant &rarr;</a>
             <?php endif; ?>
         </div>
         <?php endif; ?>

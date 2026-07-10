@@ -5,15 +5,15 @@
  * Variables attendues: $csrfToken
  */
 ?>
-<form method="POST" action="<?php echo url('settings'); ?>">
-    <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+<form method="POST" action="<?php echo (new \App\Services\HttpService())->url('settings'); ?>">
+    <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
     <input type="hidden" name="tab" value="app">
     <div class="card">
         <h3 class="card__title">&#x2699;&#xFE0F; Paramètres de l'application</h3>
         <p class="text-muted text-small mb-5">Configurez les paramètres généraux de l'application.</p>
         <div class="form-group">
             <label>Version de l'application</label>
-            <div class="form-control-readonly"><?php echo e(getAppVersion()); ?></div>
+            <div class="form-control-readonly"><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->getAppVersion()); ?></div>
             <small class="text-muted block mt-1" id="hint_app_version">
                 La version est lue automatiquement depuis le fichier CHANGELOG.md. 
                 Pour la modifier, mettez à jour la première entrée du changelog.
@@ -22,18 +22,18 @@
 
         <div class="form-group">
             <label for="app_nom_organisation">Nom de l'organisation</label>
-            <input type="text" id="app_nom_organisation" name="app_nom_organisation" class="form-control" value="<?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?>" placeholder="DREETS BFC">
+            <input type="text" id="app_nom_organisation" name="app_nom_organisation" class="form-control" value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC')); ?>" placeholder="DREETS BFC">
         </div>
 
         <div class="form-group">
             <label for="app_nom_complet">Nom complet</label>
-            <input type="text" id="app_nom_complet" name="app_nom_complet" class="form-control" value="<?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>" placeholder="DREETS Bourgogne-Franche-Comté">
+            <input type="text" id="app_nom_complet" name="app_nom_complet" class="form-control" value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>" placeholder="DREETS Bourgogne-Franche-Comté">
         </div>
 
         <div class="form-group">
             <label for="app_label_unite">Libellé des unités</label>
             <input type="text" id="app_label_unite" name="app_label_unite" class="form-control"
-                   value="<?php echo e(getConfig('app_label_unite', 'UR')); ?>"
+                   value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>"
                    placeholder="UR">
             <small class="text-muted block mt-1">
                 Exemple : UR, UD, Direction... Ce libellé est utilisé partout dans l'application.
@@ -43,7 +43,7 @@
         <div class="form-group">
             <label for="app_superviseur_usernames">Logins Windows des superviseurs (liste explicite)</label>
             <input type="text" id="app_superviseur_usernames" name="app_superviseur_usernames" class="form-control"
-                   value="<?php echo e(getConfig('app_superviseur_usernames', '')); ?>"
+                   value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_superviseur_usernames', '')); ?>"
                    placeholder="jean.martin, sophie.dupont">
             <small class="text-muted block mt-1">
                 Séparés par des virgules. Ces utilisateurs seront automatiquement promus <strong>Superviseur</strong>
@@ -58,7 +58,7 @@
             <div class="form-group">
                 <label for="app_hotline_number">Numéro de hotline</label>
                 <input type="text" id="app_hotline_number" name="app_hotline_number" class="form-control"
-                       value="<?php echo e(getConfig('app_hotline_number', '')); ?>"
+                       value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_hotline_number', '')); ?>"
                        placeholder="01 23 45 67 89 ou poste 1234">
                 <small class="text-muted block mt-1">
                     Ce numéro sera affiché en gros dans la page Aide. Laissez vide pour désactiver la hotline
@@ -68,11 +68,11 @@
         </div>
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Délégué à la Protection des Données (DPO)</h4>
-            <p class="text-muted text-small mb-3">Les coordonnées du DPO sont affichées dans la mention RGPD du <a href="<?php echo url('preamble'); ?>">Préambule</a>, conformément à l'article 13 du RGPD.</p>
+            <p class="text-muted text-small mb-3">Les coordonnées du DPO sont affichées dans la mention RGPD du <a href="<?php echo (new \App\Services\HttpService())->url('preamble'); ?>">Préambule</a>, conformément à l'article 13 du RGPD.</p>
             <div class="form-group">
                 <label for="app_dpo_contact">Contact DPO</label>
                 <input type="text" id="app_dpo_contact" name="app_dpo_contact" class="form-control"
-                       value="<?php echo e(getConfig('app_dpo_contact', '')); ?>"
+                       value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_dpo_contact', '')); ?>"
                        placeholder="dpo@dreets-bfc.gouv.fr — M. Jean Martin, Délégué à la Protection des Données">
                 <small class="text-muted block mt-1">
                     Adresse e-mail et/ou nom du DPO. Ce texte apparaît dans la mention d'information RGPD
@@ -86,11 +86,11 @@
             <div class="form-group">
                 <label for="app_admin_email">E-mail administrateur technique</label>
                 <input type="email" id="app_admin_email" name="app_admin_email" class="form-control"
-                       value="<?php echo e(getConfig('app_admin_email', '')); ?>"
+                       value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_admin_email', '')); ?>"
                        placeholder="admin.tech@dreets-bfc.gouv.fr">
                 <small class="text-muted block mt-1">
                     Une même erreur ne déclenche qu'un seul e-mail toutes les 5 minutes pour éviter le spam.
-                    Consultez le <a href="<?php echo url('logs'); ?>">Journal d'erreurs</a> pour voir toutes les entrées.
+                    Consultez le <a href="<?php echo (new \App\Services\HttpService())->url('logs'); ?>">Journal d'erreurs</a> pour voir toutes les entrées.
                 </small>
             </div>
         </div>
@@ -101,7 +101,7 @@
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_display_errors" id="app_display_errors" value="1"
                            class="toggle-switch__input"
-                           <?php echo getConfig('app_display_errors', '') === '1' ? 'checked' : ''; ?>>
+                           <?php echo \App\Services\ConfigService::getInstance()->get('app_display_errors', '') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Afficher les erreurs PHP à l'écran (même en production)</span>
                 </label>
@@ -109,7 +109,7 @@
                     <strong>&#x26A0;&#xFE0F; Attention :</strong> cette option affiche les erreurs PHP brutes (warnings, notices, fatal errors) directement dans les pages.
                     Utile pour le débogage, mais désactivez-la en utilisation normale — les erreurs peuvent contenir des informations sensibles
                     (chemins de fichiers, requêtes SQL, variables internes). Les erreurs restent toujours enregistrées dans le
-                    <a href="<?php echo url('logs'); ?>">journal</a> et envoyées par e-mail à l'administrateur technique, que cette option soit activée ou non.
+                    <a href="<?php echo (new \App\Services\HttpService())->url('logs'); ?>">journal</a> et envoyées par e-mail à l'administrateur technique, que cette option soit activée ou non.
                 </small>
             </div>
         </div>
@@ -120,7 +120,7 @@
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_registry_rami_enabled" id="app_registry_rami_enabled" value="1"
                            class="toggle-switch__input"
-                           <?php echo getConfig('app_registry_rami_enabled', REGISTRY_RAMI_ENABLED_DEFAULT ? '1' : '0') === '1' ? 'checked' : ''; ?>>
+                           <?php echo \App\Services\ConfigService::getInstance()->get('app_registry_rami_enabled', REGISTRY_RAMI_ENABLED_DEFAULT ? '1' : '0') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Activer le registre RAMI (Agressions, Menaces, Incivilités)</span>
                 </label>
@@ -129,7 +129,7 @@
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_registry_dgi_enabled" id="app_registry_dgi_enabled" value="1"
                            class="toggle-switch__input"
-                           <?php echo getConfig('app_registry_dgi_enabled', REGISTRY_DGI_ENABLED_DEFAULT ? '1' : '0') === '1' ? 'checked' : ''; ?>>
+                           <?php echo \App\Services\ConfigService::getInstance()->get('app_registry_dgi_enabled', REGISTRY_DGI_ENABLED_DEFAULT ? '1' : '0') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Activer le registre DGI (Danger Grave et Imminent)</span>
                 </label>
@@ -138,14 +138,14 @@
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_dgi_notify_csa" id="app_dgi_notify_csa" value="1"
                            class="toggle-switch__input"
-                           <?php echo getConfig('app_dgi_notify_csa', '1') === '1' ? 'checked' : ''; ?>>
+                           <?php echo \App\Services\ConfigService::getInstance()->get('app_dgi_notify_csa', '1') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
-                    <span>Notifier le <?php echo e(getConfig('app_role_label_chsct', 'Membre FS/CSA')); ?> lors d'un signalement DGI</span>
+                    <span>Notifier le <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> lors d'un signalement DGI</span>
                 </label>
                 <small class="text-muted block mt-1">
-                    Conformément à l'article L4131-2 du Code du travail, le <?php echo e(getConfig('app_role_label_chsct', 'Membre FS/CSA')); ?>
+                    Conformément à l'article L4131-2 du Code du travail, le <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_role_label_chsct', 'Membre FS/CSA')); ?>
                     doit être informé de tout signalement relatif à un danger grave et imminent.
-                    Si activé, les membres <?php echo e(getConfig('app_role_label_chsct', 'Membre FS/CSA')); ?> recevront un e-mail de notification
+                    Si activé, les membres <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> recevront un e-mail de notification
                     pour chaque nouveau signalement DGI.
                 </small>
             </div>
@@ -157,19 +157,19 @@
             <div class="form-group">
                 <label for="app_role_label_agent">Nom du rôle Agent</label>
                 <input type="text" id="app_role_label_agent" name="app_role_label_agent" class="form-control"
-                       value="<?php echo e(getConfig('app_role_label_agent', 'Agent')); ?>"
+                       value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_role_label_agent', 'Agent')); ?>"
                        placeholder="Agent">
             </div>
             <div class="form-group">
                 <label for="app_role_label_superviseur">Nom du rôle Superviseur</label>
                 <input type="text" id="app_role_label_superviseur" name="app_role_label_superviseur" class="form-control"
-                       value="<?php echo e(getConfig('app_role_label_superviseur', 'Superviseur')); ?>"
+                       value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_role_label_superviseur', 'Superviseur')); ?>"
                        placeholder="Superviseur">
             </div>
             <div class="form-group">
                 <label for="app_role_label_chsct">Nom du rôle FS/CSA</label>
                 <input type="text" id="app_role_label_chsct" name="app_role_label_chsct" class="form-control"
-                       value="<?php echo e(getConfig('app_role_label_chsct', 'Membre FS/CSA')); ?>"
+                       value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_role_label_chsct', 'Membre FS/CSA')); ?>"
                        placeholder="Membre FS/CSA">
             </div>
         </div>
@@ -180,7 +180,7 @@
             <div class="form-group">
                 <label for="app_report_preamble">Préambule du formulaire (zone readonly)</label>
                 <textarea id="app_report_preamble" name="app_report_preamble" class="form-control" rows="3"
-                          placeholder="Pour toute inscription d'un fait..."><?php echo e(getConfig('app_report_preamble', '')); ?></textarea>
+                          placeholder="Pour toute inscription d'un fait..."><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_report_preamble', '')); ?></textarea>
                 <small class="text-muted block mt-1">
                     Texte affiché en lecture seule sous le titre du formulaire de signalement. Informe l'agent de ses obligations.
                 </small>
@@ -188,7 +188,7 @@
             <div class="form-group">
                 <label for="app_rsst_description">Description du registre RSST (page d'accueil)</label>
                 <input type="text" id="app_rsst_description" name="app_rsst_description" class="form-control"
-                       value="<?php echo e(getConfig('app_rsst_description', '')); ?>"
+                       value="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_rsst_description', '')); ?>"
                        placeholder="Risques liés aux locaux, équipements, ergonomie, conditions environnementales">
                 <small class="text-muted block mt-1">
                     Texte descriptif affiché sous le titre du registre RSST sur la page d'accueil.
@@ -198,7 +198,7 @@
 
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo e(getRoleLabelShort('chsct')); ?> voient toujours tous les signalements.</p>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voient toujours tous les signalements.</p>
 
             <?php
             $registries = [
@@ -208,18 +208,18 @@
             ];
 foreach ($registries as $type => $info):
     $configKey = 'app_report_visibility_' . $type;
-    $currentValue = getConfig($configKey, '');
+    $currentValue = \App\Services\ConfigService::getInstance()->get($configKey, '');
     // Fallback to global if per-registry key is empty
     if ($currentValue === '') {
-        $currentValue = getConfig('app_report_visibility', 'agent_choice');
+        $currentValue = \App\Services\ConfigService::getInstance()->get('app_report_visibility', 'agent_choice');
     }
     $currentValue = normalizeVisibilityValue($currentValue);
     ?>
-            <fieldset class="form-group visibility-radios" id="visibility-radios-<?php echo e($type); ?>">
-                <legend class="visibility-legend"><?php echo e($info['label']); ?></legend>
+            <fieldset class="form-group visibility-radios" id="visibility-radios-<?php echo (new \App\Services\FormattingService())->e($type); ?>">
+                <legend class="visibility-legend"><?php echo (new \App\Services\FormattingService())->e($info['label']); ?></legend>
                 <div class="visibility-radios">
                     <label class="visibility-radio-label">
-                        <input type="radio" name="<?php echo e($configKey); ?>" value="confidential"
+                        <input type="radio" name="<?php echo (new \App\Services\FormattingService())->e($configKey); ?>" value="confidential"
                                <?php echo $currentValue === 'confidential' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Confidentiel</strong> <span class="text-muted text-small">(le plus restrictif)</span>
@@ -227,7 +227,7 @@ foreach ($registries as $type => $info):
                         </div>
                     </label>
                     <label class="visibility-radio-label">
-                        <input type="radio" name="<?php echo e($configKey); ?>" value="agent_choice"
+                        <input type="radio" name="<?php echo (new \App\Services\FormattingService())->e($configKey); ?>" value="agent_choice"
                                <?php echo $currentValue === 'agent_choice' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Choix de l'agent</strong> <span class="text-muted text-small">(confidentiel par défaut)</span>
@@ -235,7 +235,7 @@ foreach ($registries as $type => $info):
                         </div>
                     </label>
                     <label class="visibility-radio-label">
-                        <input type="radio" name="<?php echo e($configKey); ?>" value="public"
+                        <input type="radio" name="<?php echo (new \App\Services\FormattingService())->e($configKey); ?>" value="public"
                                <?php echo $currentValue === 'public' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Visibilité publique</strong>
@@ -249,19 +249,19 @@ foreach ($registries as $type => $info):
                 </div>
                 <?php endif; ?>
                 <div class="info-panel info-panel--info">
-                    &#x2139;&#xFE0F; <?php echo e($info['legal']); ?>
+                    &#x2139;&#xFE0F; <?php echo (new \App\Services\FormattingService())->e($info['legal']); ?>
                 </div>
             </fieldset>
             <?php endforeach; ?>
 
             <div class="info-panel agent-visibility-warning">
-                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?> voient tous les signalements, y compris les confidentiels.
+                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voient tous les signalements, y compris les confidentiels.
             </div>
         </div>
     </div>
 
     <div class="form-actions">
         <button type="submit" class="btn btn--success">Enregistrer les modifications</button>
-        <a href="<?php echo url('settings', ['tab' => 'app']); ?>" class="btn btn--outline">Annuler</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('settings', ['tab' => 'app']); ?>" class="btn btn--outline">Annuler</a>
     </div>
 </form>

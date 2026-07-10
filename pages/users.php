@@ -7,8 +7,7 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
-$pdo = getDB();
-$noSiteMode = isNoSiteMode($pdo);
+$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
 
 // Active tab
 $activeTab = $_GET['tab'] ?? 'list';
@@ -17,7 +16,7 @@ $activeTab = $_GET['tab'] ?? 'list';
 $search = trim($_GET['q'] ?? '');
 
 // Get all users
-$allUsers = getAllUsers($pdo, 0, false); // include inactive
+$allUsers = \App\Repository\UserRepository::instance()->findAll(0, false); // include inactive
 
 // Filter by search
 if (!empty($search)) {
@@ -35,11 +34,11 @@ if (!empty($search)) {
 }
 
 // Get sites for the create form
-$sites = getAllSites($pdo);
+$sites = \App\Repository\SiteRepository::instance()->findAll();
 
 // Form data and errors from session
-$formErrors = getFormErrors();
-$formData = getFormData();
+$formErrors = (new \App\Services\SessionService())->getFormErrors();
+$formData = (new \App\Services\SessionService())->getFormData();
 
 $pageTitle = 'Gestion des utilisateurs';
 ?>
@@ -49,11 +48,11 @@ $pageTitle = 'Gestion des utilisateurs';
 
 <!-- Tabs -->
 <div class="tab-bar">
-    <a href="<?php echo url('users', ['tab' => 'list']); ?>"
+    <a href="<?php echo (new \App\Services\HttpService())->url('users', ['tab' => 'list']); ?>"
        class="settings-tab <?php echo $activeTab === 'list' ? 'settings-tab--active' : ''; ?>">
         &#x1F465; Liste des utilisateurs
     </a>
-    <a href="<?php echo url('users', ['tab' => 'create']); ?>"
+    <a href="<?php echo (new \App\Services\HttpService())->url('users', ['tab' => 'create']); ?>"
        class="settings-tab <?php echo $activeTab === 'create' ? 'settings-tab--active' : ''; ?>">
         &#x2795; Inscrire un utilisateur
     </a>
@@ -66,11 +65,11 @@ $pageTitle = 'Gestion des utilisateurs';
         <input type="hidden" name="page" value="users">
         <input type="hidden" name="tab" value="list">
         <div class="form-group flex-1 mb-0">
-            <input type="text" name="q" value="<?php echo e($search); ?>" placeholder="Rechercher un utilisateur..." class="w-full">
+            <input type="text" name="q" value="<?php echo (new \App\Services\FormattingService())->e($search); ?>" placeholder="Rechercher un utilisateur..." class="w-full">
         </div>
         <button type="submit" class="btn btn--primary">Rechercher</button>
         <?php if (!empty($search)): ?>
-        <a href="<?php echo url('users', ['tab' => 'list']); ?>" class="btn btn--outline">Effacer</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('users', ['tab' => 'list']); ?>" class="btn btn--outline">Effacer</a>
         <?php endif; ?>
     </form>
 </div>
@@ -85,7 +84,7 @@ $pageTitle = 'Gestion des utilisateurs';
                     <th>Prénom</th>
                     <th>Email</th>
                     <th>Rôle</th>
-                    <?php if (!$noSiteMode): ?><th><?php echo e(getConfig('app_label_unite', 'UR')); ?></th><?php endif; ?>
+                    <?php if (!$noSiteMode): ?><th><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></th><?php endif; ?>
                     <th>Statut</th>
                     <th>Actions</th>
                 </tr>
@@ -96,18 +95,18 @@ $pageTitle = 'Gestion des utilisateurs';
                     <td colspan="<?php echo $noSiteMode ? '6' : '7'; ?>" class="empty-state">
                         Aucun utilisateur trouvé.
                         <div class="empty-state__cta">
-                            <a href="<?php echo url('users', ['tab' => 'create']); ?>" class="btn btn--primary btn--sm">+ Inscrire un utilisateur</a>
+                            <a href="<?php echo (new \App\Services\HttpService())->url('users', ['tab' => 'create']); ?>" class="btn btn--primary btn--sm">+ Inscrire un utilisateur</a>
                         </div>
                     </td>
                 </tr>
                 <?php else: ?>
                 <?php foreach ($allUsers as $u): ?>
                 <tr class="<?php echo !$u['is_active'] ? 'row--inactive' : ''; ?>">
-                    <td><?php echo e($u['nom']); ?></td>
-                    <td><?php echo e($u['prenom']); ?></td>
-                    <td><?php echo e($u['email'] ?? '—'); ?></td>
-                    <td><span class="badge <?php echo getRoleBadgeClass($u['role']); ?>"><?php echo e(ROLE_LABELS[$u['role']] ?? $u['role']); ?></span></td>
-                    <?php if (!$noSiteMode): ?><td><?php echo e($u['site_nom'] ?? '—'); ?></td><?php endif; ?>
+                    <td><?php echo (new \App\Services\FormattingService())->e($u['nom']); ?></td>
+                    <td><?php echo (new \App\Services\FormattingService())->e($u['prenom']); ?></td>
+                    <td><?php echo (new \App\Services\FormattingService())->e($u['email'] ?? '—'); ?></td>
+                    <td><span class="badge <?php echo (new \App\Services\FormattingService())->getRoleBadgeClass($u['role']); ?>"><?php echo (new \App\Services\FormattingService())->e(ROLE_LABELS[$u['role']] ?? $u['role']); ?></span></td>
+                    <?php if (!$noSiteMode): ?><td><?php echo (new \App\Services\FormattingService())->e($u['site_nom'] ?? '—'); ?></td><?php endif; ?>
                     <td>
                         <?php if ($u['is_active']): ?>
                             <span class="status-dot--active">&#x25CF; Actif</span>
@@ -116,12 +115,12 @@ $pageTitle = 'Gestion des utilisateurs';
                         <?php endif; ?>
                     </td>
                     <td>
-                        <a href="<?php echo url('user_view', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--outline">Voir</a>
+                        <a href="<?php echo (new \App\Services\HttpService())->url('user_view', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--outline">Voir</a>
                         <?php if ($u['is_active']): ?>
-                        <a href="<?php echo url('user_edit', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--primary">Éditer</a>
+                        <a href="<?php echo (new \App\Services\HttpService())->url('user_edit', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--primary">Éditer</a>
                         <?php else: ?>
-                        <form method="POST" action="<?php echo url('user_reactivate'); ?>" class="form--inline">
-                            <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+                        <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('user_reactivate'); ?>" class="form--inline">
+                            <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
                             <input type="hidden" name="user_id" value="<?php echo (int) $u['id']; ?>">
                             <button type="submit" class="btn btn--sm btn--success">Réactiver</button>
                         </form>
@@ -143,8 +142,8 @@ $pageTitle = 'Gestion des utilisateurs';
 <!-- Create user form -->
 <div class="card">
     <h3 class="card__title">Inscrire un nouvel utilisateur</h3>
-    <form method="POST" action="<?php echo url('user_create'); ?>">
-        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('user_create'); ?>">
+        <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
 
         <?php
         // Prepare variables for the shared template
@@ -160,7 +159,7 @@ $pageTitle = 'Gestion des utilisateurs';
 
         <div class="form-actions">
             <button type="submit" class="btn btn--success">Créer l'utilisateur</button>
-            <a href="<?php echo url('users', ['tab' => 'list']); ?>" class="btn btn--secondary">Annuler</a>
+            <a href="<?php echo (new \App\Services\HttpService())->url('users', ['tab' => 'list']); ?>" class="btn btn--secondary">Annuler</a>
         </div>
     </form>
 </div>

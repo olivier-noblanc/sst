@@ -23,15 +23,13 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 
 $pageTitle = 'Choisir mon site';
 
-$pdo = getDB();
-
 // In noSiteMode, there are no sites to choose — redirect home
-if (isNoSiteMode($pdo)) {
-    setFlash('info', 'Aucun site n\'est configuré pour le moment. Vous pouvez utiliser l\'application sans rattachement.');
-    redirect(url('home'));
+if (\App\Services\ConfigService::getInstance()->isNoSiteMode()) {
+    (new \App\Services\SessionService())->setFlash('info', 'Aucun site n\'est configuré pour le moment. Vous pouvez utiliser l\'application sans rattachement.');
+    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('home'));
 }
 
-$user = currentUser();
+$user = (new \App\Services\SessionService())->getUserSession();
 $hasExistingSite = !empty($user['site_id']);
 $isWithinGracePeriod = false;
 $daysRemaining = 0;
@@ -48,58 +46,58 @@ if ($hasExistingSite) {
 
     if (!$isWithinGracePeriod) {
         // Outside grace period — redirect home with message
-        setFlash('info', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
-        redirect(url('home'));
+        (new \App\Services\SessionService())->setFlash('info', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
+        (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('home'));
     }
 } else {
     // No site yet — redirect to choose_site if trying to access home
     // This is the normal first-login flow
 }
 
-$sites = getActiveSites($pdo);
+$sites = \App\Repository\SiteRepository::instance()->findActive();
 
-$labelUnite = getConfig('app_label_unite', 'UR');
+$labelUnite = \App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR');
 ?>
 
-<h1 class="page-title"><span aria-hidden="true">&#x1F4CD;</span> <?php echo $hasExistingSite ? 'Modifier mon site' : 'Choisissez votre ' . e($labelUnite); ?></h1>
+<h1 class="page-title"><span aria-hidden="true">&#x1F4CD;</span> <?php echo $hasExistingSite ? 'Modifier mon site' : 'Choisissez votre ' . (new \App\Services\FormattingService())->e($labelUnite); ?></h1>
 
 <div class="card container--narrow">
     <?php if ($hasExistingSite): ?>
     <p class="choose-site-welcome">
-        <strong><?php echo e(currentUserDisplayName()); ?></strong>, vous pouvez modifier votre <?php echo e($labelUnite); ?>.
+        <strong><?php echo (new \App\Services\FormattingService())->e(currentUserDisplayName()); ?></strong>, vous pouvez modifier votre <?php echo (new \App\Services\FormattingService())->e($labelUnite); ?>.
     </p>
     <p class="text-muted text-small mb-4">
-        Votre site actuel : <strong><?php echo e($user['site_code'] ?? ''); ?> — <?php echo e($user['site_nom'] ?? ''); ?></strong>.
+        Votre site actuel : <strong><?php echo (new \App\Services\FormattingService())->e($user['site_code'] ?? ''); ?> — <?php echo (new \App\Services\FormattingService())->e($user['site_nom'] ?? ''); ?></strong>.
         Vous avez <strong><?php echo $daysRemaining; ?> jour<?php echo $daysRemaining !== 1 ? 's' : ''; ?></strong> pour modifier votre choix.
         Après ce délai, seul un superviseur pourra le changer.
     </p>
     <?php else: ?>
     <p class="choose-site-welcome">
-        Bienvenue, <strong><?php echo e(currentUserDisplayName()); ?></strong>.
+        Bienvenue, <strong><?php echo (new \App\Services\FormattingService())->e(currentUserDisplayName()); ?></strong>.
     </p>
     <p class="text-muted text-small mb-4">
-        Avant de continuer, vous devez sélectionner votre site (<?php echo e($labelUnite); ?>). 
+        Avant de continuer, vous devez sélectionner votre site (<?php echo (new \App\Services\FormattingService())->e($labelUnite); ?>). 
         Vous pourrez modifier votre choix pendant <strong>7 jours</strong>. Après ce délai, seul un superviseur pourra le changer.
     </p>
     <?php endif; ?>
 
-    <?php $flash = getFlash(); ?>
+    <?php $flash = (new \App\Services\SessionService())->getFlash(); ?>
     <?php if ($flash): ?>
-        <div class="alert alert--<?php echo e($flash['type']); ?>" role="alert">
-            <?php echo e($flash['message']); ?>
+        <div class="alert alert--<?php echo (new \App\Services\FormattingService())->e($flash['type']); ?>" role="alert">
+            <?php echo (new \App\Services\FormattingService())->e($flash['message']); ?>
         </div>
     <?php endif; ?>
 
-    <form method="POST" action="<?php echo url('choose_site'); ?>" id="chooseSiteForm">
-        <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
+    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('choose_site'); ?>" id="chooseSiteForm">
+        <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e((new \App\Services\SessionService())->generateCsrfToken()); ?>">
         
         <div class="form-group">
-            <label for="site_id">Votre site (<?php echo e($labelUnite); ?>) <span class="required">*</span></label>
+            <label for="site_id">Votre site (<?php echo (new \App\Services\FormattingService())->e($labelUnite); ?>) <span class="required">*</span></label>
             <select id="site_id" name="site_id" required>
-                <option value="">— Sélectionnez votre <?php echo e($labelUnite); ?> —</option>
+                <option value="">— Sélectionnez votre <?php echo (new \App\Services\FormattingService())->e($labelUnite); ?> —</option>
                 <?php foreach ($sites as $site): ?>
-                <option value="<?php echo e($site['id']); ?>" <?php echo $hasExistingSite && (int) $user['site_id'] === (int) $site['id'] ? '' : ''; ?>>
-                    <?php echo e($site['code'] . ' — ' . $site['nom']); ?>
+                <option value="<?php echo (new \App\Services\FormattingService())->e($site['id']); ?>" <?php echo $hasExistingSite && (int) $user['site_id'] === (int) $site['id'] ? '' : ''; ?>>
+                    <?php echo (new \App\Services\FormattingService())->e($site['code'] . ' — ' . $site['nom']); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
@@ -110,7 +108,7 @@ $labelUnite = getConfig('app_label_unite', 'UR');
             &#x26A0;&#xFE0F; <strong>Attention :</strong> modifier votre site affectera la visibilité de vos signalements. Ce changement sera enregistré dans le journal d'audit.
         </div>
         <button type="submit" class="btn btn--primary btn--full">Modifier mon site</button>
-        <a href="<?php echo url('home'); ?>" class="btn btn--secondary btn--full mt-2">Annuler</a>
+        <a href="<?php echo (new \App\Services\HttpService())->url('home'); ?>" class="btn btn--secondary btn--full mt-2">Annuler</a>
         <?php else: ?>
         <div class="danger-panel">
             &#x26A0;&#xFE0F; <strong>Attention :</strong> ce choix peut être modifié pendant 7 jours uniquement. Passé ce délai, contactez un superviseur.

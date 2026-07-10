@@ -79,7 +79,7 @@ if ($changelogExists) {
             <summary>Chemins testés (mode dev)</summary>
             <ul>
                 <?php foreach ($candidatePaths as $p): ?>
-                <li><code><?php echo e($p); ?></code> — <?php echo is_readable(realpath($p) ?: $p) ? '✓ lisible' : '✗ introuvable/illisible'; ?></li>
+                <li><code><?php echo (new \App\Services\FormattingService())->e($p); ?></code> — <?php echo is_readable(realpath($p) ?: $p) ? '✓ lisible' : '✗ introuvable/illisible'; ?></li>
                 <?php endforeach; ?>
             </ul>
         </details>
@@ -87,7 +87,7 @@ if ($changelogExists) {
     </div>
 <?php elseif ($parseError): ?>
     <div class="alert alert--danger">
-        <p>Erreur lors du rendu du changelog : <?php echo e($parseError); ?></p>
+        <p>Erreur lors du rendu du changelog : <?php echo (new \App\Services\FormattingService())->e($parseError); ?></p>
     </div>
 <?php else: ?>
     <div class="changelog-content">

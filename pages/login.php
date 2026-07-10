@@ -24,16 +24,16 @@ $pageTitle = 'Connexion';
 
 // Safety: if somehow accessed in prod, redirect away
 if (!DEV_MODE) {
-    if (isUserLoggedIn()) {
-        redirect(url('home'));
+    if ((new \App\Services\SessionService())->isUserLoggedIn()) {
+        (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('home'));
     }
     die('Erreur : cette page n\'est pas accessible en production. '
       . 'L\'authentification est gérée par IIS Windows Authentication.');
 }
 
 // If already authenticated, redirect to home
-if (isUserLoggedIn()) {
-    redirect(url('home'));
+if ((new \App\Services\SessionService())->isUserLoggedIn()) {
+    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('home'));
 }
 ?>
 <!DOCTYPE html>
@@ -41,10 +41,10 @@ if (isUserLoggedIn()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo e(APP_NAME); ?> — Connexion</title>
-    <?php echo cssLink('css/style.css'); ?>
-    <?php $faviconPng = inlineDataUri('favicon.png'); ?>
-    <?php $faviconIco = inlineDataUri('favicon.ico'); ?>
+    <title><?php echo (new \App\Services\FormattingService())->e(APP_NAME); ?> — Connexion</title>
+    <?php echo (new \App\Services\AssetService())->cssLink('css/style.css'); ?>
+    <?php $faviconPng = (new \App\Services\AssetService())->inlineDataUri('favicon.png'); ?>
+    <?php $faviconIco = (new \App\Services\AssetService())->inlineDataUri('favicon.ico'); ?>
     <?php if ($faviconPng): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>
     <?php if ($faviconIco): ?><link rel="icon" type="image/x-icon" href="<?php echo $faviconIco; ?>"><?php endif; ?>
 </head>
@@ -54,8 +54,8 @@ if (isUserLoggedIn()) {
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1><?php echo e(APP_NAME); ?></h1>
-                <p class="login-subtitle"><?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?></p>
+                <h1><?php echo (new \App\Services\FormattingService())->e(APP_NAME); ?></h1>
+                <p class="login-subtitle"><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?></p>
                 <p class="login-dev-badge">
                     <?php if (!empty($_SERVER['AUTH_USER'])): ?>
                     🔒 Authentification Windows IIS
@@ -65,15 +65,15 @@ if (isUserLoggedIn()) {
                 </p>
             </div>
 
-            <?php $flash = getFlash(); ?>
+            <?php $flash = (new \App\Services\SessionService())->getFlash(); ?>
             <?php if ($flash): ?>
-                <div class="alert alert--<?php echo e($flash['type']); ?>" role="alert">
-                    <?php echo e($flash['message']); ?>
+                <div class="alert alert--<?php echo (new \App\Services\FormattingService())->e($flash['type']); ?>" role="alert">
+                    <?php echo (new \App\Services\FormattingService())->e($flash['message']); ?>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="<?php echo url('login'); ?>" class="login-form" id="quick-login-form">
-                <input type="hidden" name="csrf_token" value="<?php echo e(generateCsrfToken()); ?>">
+            <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('login'); ?>" class="login-form" id="quick-login-form">
+                <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e((new \App\Services\SessionService())->generateCsrfToken()); ?>">
                 <input type="hidden" id="username" name="username" value="">
                 <input type="hidden" id="password" name="password" value="test">
             </form>
@@ -95,7 +95,7 @@ if (isUserLoggedIn()) {
                 </div>
                 <div class="login-btn-wrapper">
                     <button type="button" class="btn btn--primary login-btn--chsct" onclick="document.getElementById('username').value='chsct.dev';document.getElementById('quick-login-form').submit();">
-                        <?php echo e(getRoleLabel('chsct')); ?>
+                        <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->getRoleLabel('chsct')); ?>
                     </button>
                     <span class="login-btn-desc">Consultation et synthèse</span>
                 </div>
@@ -106,6 +106,6 @@ if (isUserLoggedIn()) {
         </div>
     </div>
     </main>
-<?php echo cssLink('css/login.css'); ?>
+<?php echo (new \App\Services\AssetService())->cssLink('css/login.css'); ?>
 </body>
 </html>

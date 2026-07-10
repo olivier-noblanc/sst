@@ -64,26 +64,10 @@ try {
 set_error_handler('sstErrorHandler');
 register_shutdown_function('sstShutdownHandler');
 
-// Composer autoloader (if present — no longer required since FPDF replaces mPDF)
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
-}
+// PSR-4 autoloader + fichiers procéduraux (remplace Composer en prod)
+require_once __DIR__ . '/../src/autoload.php';
 
-// Load query functions
-require_once __DIR__ . '/../src/queries/report_queries.php';
-require_once __DIR__ . '/../src/queries/user_queries.php';
-require_once __DIR__ . '/../src/queries/site_queries.php';
-require_once __DIR__ . '/../src/queries/stats_queries.php';
-require_once __DIR__ . '/../src/queries/user_admin_queries.php';
-require_once __DIR__ . '/../src/queries/notification_queries.php';
-require_once __DIR__ . '/../src/queries/report_agent_queries.php';
-require_once __DIR__ . '/../src/queries/report_invite_queries.php';
-
-// Load user context helpers (currentUser(), isSuperviseur(), etc.)
-require_once __DIR__ . '/../src/user_context.php';
-
-// Load shared validation functions
-require_once __DIR__ . '/../src/validation.php';
+// Validation user (pas dans autoload)
 require_once __DIR__ . '/../src/validation_user.php';
 
 // Load bootstrap middleware (superviseur promotion, site check)

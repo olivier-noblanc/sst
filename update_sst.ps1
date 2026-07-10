@@ -253,42 +253,17 @@ catch {
     exit 1
 }
 
-# --- 3. Composer autoload (PSR-4) ---
+# --- 3. Vérification autoload ---
 Write-Host ""
-Write-Host "[3/6] Generation de l'autoload Composer..." -ForegroundColor Yellow
+Write-Host "[3/6] Verification de l'autoload..." -ForegroundColor Yellow
 
-$composerJson = "$AppDir\composer.json"
-if (Test-Path $composerJson) {
-    $savedPrefComposer = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-
-    # Toujours régénérer l'autoload — vendor/ peut être absent (gitignore)
-    # composer dump-autoload fonctionne même sans vendor/ (crée la structure)
-    if (-not (Test-Path "$AppDir\vendor\autoload.php")) {
-        Write-Host "  vendor/ absent — composer install puis dump-autoload..." -ForegroundColor Gray
-        $composerOutput = composer install --no-interaction 2>&1
-        $composerExit = $LASTEXITCODE
-        if ($composerExit -eq 0) {
-            $composerOutput = composer dump-autoload --optimize --no-dev 2>&1
-            $composerExit = $LASTEXITCODE
-        }
-    } else {
-        $composerOutput = composer dump-autoload --optimize --no-dev 2>&1
-        $composerExit = $LASTEXITCODE
-    }
-    $ErrorActionPreference = $savedPrefComposer
-
-    if ($composerExit -eq 0) {
-        Write-Host "  OK : Autoload PSR-4 genere" -ForegroundColor Green
-    } else {
-        Write-Host "  ERREUR : Composer a echoue (code $composerExit)" -ForegroundColor Red
-        Write-Host "  $composerOutput" -ForegroundColor Gray
-        Write-Host "  Les classes PSR-4 ne seront pas chargees — l'application ne demarrera pas." -ForegroundColor Red
-        Read-Host "Appuyez sur Entree pour quitter"
-        exit 1
-    }
+$autoloadFile = "$AppDir\src\autoload.php"
+if (Test-Path $autoloadFile) {
+    Write-Host "  OK : src/autoload.php present" -ForegroundColor Green
 } else {
-    Write-Host "  SKIP : composer.json absent" -ForegroundColor DarkYellow
+    Write-Host "  ERREUR : src/autoload.php manquant — l'application ne demarrera pas." -ForegroundColor Red
+    Read-Host "Appuyez sur Entree pour quitter"
+    exit 1
 }
 
 # --- 4. Copie des captures d'écran ---

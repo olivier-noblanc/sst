@@ -253,28 +253,33 @@ catch {
     exit 1
 }
 
-# --- 3. Composer install (autoload + dépendances) ---
+# --- 3. Composer autoload (PSR-4) ---
 Write-Host ""
-Write-Host "[3/6] Installation des dependances Composer..." -ForegroundColor Yellow
+Write-Host "[3/6] Generation de l'autoload Composer..." -ForegroundColor Yellow
 
 $composerJson = "$AppDir\composer.json"
 if (Test-Path $composerJson) {
     $savedPrefComposer = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
 
-    # Vérifier si vendor/ existe, sinon composer install complet
+    # Toujours régénérer l'autoload — vendor/ peut être absent (gitignore)
+    # composer dump-autoload fonctionne même sans vendor/ (crée la structure)
     if (-not (Test-Path "$AppDir\vendor\autoload.php")) {
-        Write-Host "  vendor/ absent, installation complete..." -ForegroundColor Gray
-        $composerOutput = composer install --no-dev --optimize --no-interaction 2>&1
+        Write-Host "  vendor/ absent — composer install puis dump-autoload..." -ForegroundColor Gray
+        $composerOutput = composer install --no-interaction 2>&1
+        $composerExit = $LASTEXITCODE
+        if ($composerExit -eq 0) {
+            $composerOutput = composer dump-autoload --optimize --no-dev 2>&1
+            $composerExit = $LASTEXITCODE
+        }
     } else {
-        # vendor/ existe — régénérer l'autoload optimisé
         $composerOutput = composer dump-autoload --optimize --no-dev 2>&1
+        $composerExit = $LASTEXITCODE
     }
-    $composerExit = $LASTEXITCODE
     $ErrorActionPreference = $savedPrefComposer
 
     if ($composerExit -eq 0) {
-        Write-Host "  OK : Dependances et autoload installés" -ForegroundColor Green
+        Write-Host "  OK : Autoload PSR-4 genere" -ForegroundColor Green
     } else {
         Write-Host "  ERREUR : Composer a echoue (code $composerExit)" -ForegroundColor Red
         Write-Host "  $composerOutput" -ForegroundColor Gray
@@ -370,6 +375,17 @@ if ($version) {
 $gitLog = git log -1 --format="%h - %s (%cr)" 2>$null
 if ($gitLog) {
     Write-Host "  Dernier commit : $gitLog" -ForegroundColor Gray
+}
+
+# --- 6. Clear PHP opcache ---
+Write-Host ""
+Write-Host "[6/6] Clear du cache PHP..." -ForegroundColor Yellow
+
+# Toucher un fichier PHP pour forcer IIS à recharger
+$indexPhp = "$AppDir\public\index.php"
+if (Test-Path $indexPhp) {
+    (Get-Item $indexPhp).LastWriteTime = Get-Date
+    Write-Host "  OK : index.php mis a jour (opcache clear)" -ForegroundColor Green
 }
 
 # --- Résumé ---

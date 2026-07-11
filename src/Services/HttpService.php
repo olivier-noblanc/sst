@@ -59,7 +59,7 @@ class HttpService
     }
 
     /**
-     * Remove unwanted HTTP headers.
+     * Remove unwanted HTTP headers and set security headers.
      */
     public function removeUnwantedHeaders(): void
     {
@@ -67,6 +67,11 @@ class HttpService
         header_remove('Server');
         header_remove('Expires');
         header_remove('Pragma');
+
+        // Security headers
+        header('X-Frame-Options: DENY');
+        header('X-Content-Type-Options: nosniff');
+        header('Referrer-Policy: strict-origin-when-cross-origin');
     }
 
     /**

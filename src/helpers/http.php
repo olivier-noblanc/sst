@@ -8,37 +8,45 @@ use App\Services\HttpService;
  * Delegates to App\Services\HttpService.
  */
 
+function getHttpService(): HttpService
+{
+    if (function_exists('getContainer') && getContainer()->has(HttpService::class)) {
+        return getContainer()->get(HttpService::class);
+    }
+    return new HttpService();
+}
+
 function url(string $page, array $params = []): string
 {
-    return (new HttpService())->url($page, $params);
+    return getHttpService()->url($page, $params);
 }
 
 function redirect(string $url): void
 {
-    (new HttpService())->redirect($url);
+    getHttpService()->redirect($url);
 }
 
 function setCookieSafe(string $name, string $value = '', int $expires = 0, string $path = '/', bool $httpOnly = true, string $sameSite = 'Lax'): void
 {
-    (new HttpService())->setCookieSafe($name, $value, $expires, $path, $httpOnly, $sameSite);
+    getHttpService()->setCookieSafe($name, $value, $expires, $path, $httpOnly, $sameSite);
 }
 
 function removeUnwantedHeaders(): void
 {
-    (new HttpService())->removeUnwantedHeaders();
+    getHttpService()->removeUnwantedHeaders();
 }
 
 function sendFileDownload(string $content, string $filename, string $contentType, string $disposition = 'attachment'): void
 {
-    (new HttpService())->sendFileDownload($content, $filename, $contentType, $disposition);
+    getHttpService()->sendFileDownload($content, $filename, $contentType, $disposition);
 }
 
 function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string $csrfToken = null): void
 {
-    (new HttpService())->validatePostRequest($fallbackUrl, $roles, $csrfToken);
+    getHttpService()->validatePostRequest($fallbackUrl, $roles, $csrfToken);
 }
 
 function flashAndRedirect(string $type, string $message, string $url): void
 {
-    (new HttpService())->flashAndRedirect($type, $message, $url);
+    getHttpService()->flashAndRedirect($type, $message, $url);
 }

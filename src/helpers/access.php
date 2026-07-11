@@ -8,57 +8,65 @@ use App\Services\AccessService;
  * Delegates to App\Services\AccessService.
  */
 
+function getAccessService(): AccessService
+{
+    if (function_exists('getContainer') && getContainer()->has(AccessService::class)) {
+        return getContainer()->get(AccessService::class);
+    }
+    return new AccessService();
+}
+
 function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool
 {
-    return (new AccessService())->canAccessReport($report, $user, $forcedVisibility);
+    return getAccessService()->canAccessReport($report, $user, $forcedVisibility);
 }
 
 function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
 {
-    (new AccessService())->logConfidentialReportAccess($pdo, $report, $user);
+    getAccessService()->logConfidentialReportAccess($pdo, $report, $user);
 }
 
 function canSeeAllSites(): bool
 {
-    return (new AccessService())->canSeeAllSites();
+    return getAccessService()->canSeeAllSites();
 }
 
 function normalizeVisibilityValue(string $value): string
 {
-    return (new AccessService())->normalizeVisibilityValue($value);
+    return getAccessService()->normalizeVisibilityValue($value);
 }
 
 function getReportVisibilityMode(?string $type = null): string
 {
-    return (new AccessService())->getReportVisibilityMode($type);
+    return getAccessService()->getReportVisibilityMode($type);
 }
 
 function getReportVisibility(?string $type = null): string
 {
-    return (new AccessService())->getReportVisibility($type);
+    return getAccessService()->getReportVisibility($type);
 }
 
 function reportVisibilityIsConfidential(?string $type = null): bool
 {
-    return (new AccessService())->reportVisibilityIsConfidential($type);
+    return getAccessService()->reportVisibilityIsConfidential($type);
 }
 
 function reportVisibilityIsAgentChoice(?string $type = null): bool
 {
-    return (new AccessService())->reportVisibilityIsAgentChoice($type);
+    return getAccessService()->reportVisibilityIsAgentChoice($type);
 }
 
 function reportVisibilityIsPublic(?string $type = null): bool
 {
-    return (new AccessService())->reportVisibilityIsPublic($type);
+    return getAccessService()->reportVisibilityIsPublic($type);
 }
 
 function canEditReport(array $report, int $userId): bool
 {
-    return (new AccessService())->canEditReport($report, $userId);
+    return getAccessService()->canEditReport($report, $userId);
 }
 
 function canRespondToReport(array $report, string $role): bool
 {
-    return (new AccessService())->canRespondToReport($report, $role);
+    return getAccessService()->canRespondToReport($report, $role);
 }

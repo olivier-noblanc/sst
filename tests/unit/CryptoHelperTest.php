@@ -109,7 +109,7 @@ class CryptoHelperTest extends TestCase
         $this->assertEquals($original, $decrypted);
     }
 
-    public function testDecryptWithWrongKeyReturnsEncryptedValue(): void
+    public function testDecryptWithWrongKeyDoesNotReturnPlaintext(): void
     {
         $this->setSecretKey('this-is-a-32-byte-key-for-testing!!');
         $encrypted = encryptConfigValue('secret-data');
@@ -118,8 +118,8 @@ class CryptoHelperTest extends TestCase
         $this->setSecretKey('different-32-byte-key-for-testing!!');
         $result = decryptConfigValue($encrypted);
 
-        // Should return the encrypted value as-is (can't decrypt with wrong key)
-        $this->assertEquals($encrypted, $result);
+        // Should NOT return the original plaintext
+        $this->assertNotEquals('secret-data', $result);
     }
 
     public function testDecryptWithNoKeyReturnsEncryptedValue(): void

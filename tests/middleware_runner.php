@@ -46,7 +46,6 @@ require_once __DIR__ . '/../src/Middleware/require_role.php';
 require_once __DIR__ . '/../src/Middleware/CsrfMiddleware.php';
 require_once __DIR__ . '/../src/Middleware/RoleMiddleware.php';
 require_once __DIR__ . '/../src/Middleware/AuthMiddleware.php';
-require_once __DIR__ . '/../src/Middleware/Pipeline.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', '1');

@@ -56,13 +56,14 @@ function isValidUuid(string $uuid): bool
 function createReport(PDO $pdo, array $data): string
 {
     $repo = ReportRepository::instance();
-    $year = (int) date('Y');
-    $seq = getNextSequence($pdo, $data['type'], $year);
-    $reference = generateReference($data['type'], date('y'), $seq);
     $uuid = generateUuid();
 
     $repo->getPdo()->beginTransaction();
     try {
+        $year = (int) date('Y');
+        $seq = getNextSequence($repo->getPdo(), $data['type'], $year);
+        $reference = generateReference($data['type'], date('y'), $seq);
+
         $stmt = $repo->getPdo()->prepare("
             INSERT INTO reports (
                 uuid, reference, type, objet, description, date_evenement, heure_evenement,

@@ -47,7 +47,7 @@ if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT])) {
 $attachment = [];
 if (!empty($_FILES['response_attachment']['tmp_name'])) {
     $fakeErrors = [];
-    $att = validateReportAttachment($fakeErrors);
+    $att = validateReportAttachment($fakeErrors, 'response_attachment');
     if (!empty($fakeErrors)) {
         setFlash('error', 'Erreur pièce jointe : ' . e(implode(', ', $fakeErrors)));
         setFormData($_POST);

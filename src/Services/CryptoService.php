@@ -6,6 +6,15 @@ namespace App\Services;
 class CryptoService
 {
     /**
+     * Check if encryption is available (SST_SECRET_KEY is configured and valid).
+     */
+    public function isEncryptionAvailable(): bool
+    {
+        $key = getenv('SST_SECRET_KEY');
+        return $key !== false && strlen($key) >= 32;
+    }
+
+    /**
      * Encrypt a value with AES-256-CBC using SST_SECRET_KEY env var.
      * Returns "enc:base64(iv + ciphertext)". Returns plain value unchanged if encryption unavailable.
      */

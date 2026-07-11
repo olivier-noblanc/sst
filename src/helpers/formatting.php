@@ -8,77 +8,85 @@ use App\Services\FormattingService;
  * Delegates to App\Services\FormattingService.
  */
 
+function getFormattingService(): FormattingService
+{
+    if (function_exists('getContainer') && getContainer()->has(FormattingService::class)) {
+        return getContainer()->get(FormattingService::class);
+    }
+    return new FormattingService();
+}
+
 function e(?string $string): string
 {
-    return (new FormattingService())->e($string);
+    return getFormattingService()->e($string);
 }
 
 function formatDateFR(?string $date): string
 {
-    return (new FormattingService())->formatDateFR($date);
+    return getFormattingService()->formatDateFR($date);
 }
 
 function formatDateTimeFR(?string $datetime): string
 {
-    return (new FormattingService())->formatDateTimeFR($datetime);
+    return getFormattingService()->formatDateTimeFR($datetime);
 }
 
 function generateReference(string $type, string $year2, int $seq): string
 {
-    return (new FormattingService())->generateReference($type, $year2, $seq);
+    return getFormattingService()->generateReference($type, $year2, $seq);
 }
 
 function getNextSequence(PDO $pdo, string $type, int $year): int
 {
-    return (new FormattingService())->getNextSequence($pdo, $type, $year);
+    return getFormattingService()->getNextSequence($pdo, $type, $year);
 }
 
 function getRegistryColor(string $type): string
 {
-    return (new FormattingService())->getRegistryColor($type);
+    return getFormattingService()->getRegistryColor($type);
 }
 
 function getEtatBadgeClass(string $etat): string
 {
-    return (new FormattingService())->getEtatBadgeClass($etat);
+    return getFormattingService()->getEtatBadgeClass($etat);
 }
 
 function getRegistryBadgeClass(string $type): string
 {
-    return (new FormattingService())->getRegistryBadgeClass($type);
+    return getFormattingService()->getRegistryBadgeClass($type);
 }
 
 function getRoleBadgeClass(string $role): string
 {
-    return (new FormattingService())->getRoleBadgeClass($role);
+    return getFormattingService()->getRoleBadgeClass($role);
 }
 
 function getMimeType(string $filePath): string
 {
-    return (new FormattingService())->getMimeType($filePath);
+    return getFormattingService()->getMimeType($filePath);
 }
 
 function truncate(string $string, int $length = 50): string
 {
-    return (new FormattingService())->truncate($string, $length);
+    return getFormattingService()->truncate($string, $length);
 }
 
 function todayISO(): string
 {
-    return (new FormattingService())->todayISO();
+    return getFormattingService()->todayISO();
 }
 
 function nowTime(): string
 {
-    return (new FormattingService())->nowTime();
+    return getFormattingService()->nowTime();
 }
 
 function renderBreadcrumb(array $items): string
 {
-    return (new FormattingService())->renderBreadcrumb($items);
+    return getFormattingService()->renderBreadcrumb($items);
 }
 
 function buildWordCloud(PDO $pdo, string $type, int $maxWords = 30): string
 {
-    return (new FormattingService())->buildWordCloud($pdo, $type, $maxWords);
+    return getFormattingService()->buildWordCloud($pdo, $type, $maxWords);
 }

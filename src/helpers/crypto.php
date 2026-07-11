@@ -9,12 +9,20 @@ use App\Services\CryptoService;
  * Delegates to App\Services\CryptoService.
  */
 
+function getCryptoService(): CryptoService
+{
+    if (function_exists('getContainer') && getContainer()->has(CryptoService::class)) {
+        return getContainer()->get(CryptoService::class);
+    }
+    return new CryptoService();
+}
+
 function encryptConfigValue(string $plaintext): string
 {
-    return (new CryptoService())->encrypt($plaintext);
+    return getCryptoService()->encrypt($plaintext);
 }
 
 function decryptConfigValue(string $value): string
 {
-    return (new CryptoService())->decrypt($value);
+    return getCryptoService()->decrypt($value);
 }

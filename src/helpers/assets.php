@@ -8,17 +8,25 @@ use App\Services\AssetService;
  * Delegates to App\Services\AssetService.
  */
 
+function getAssetService(): AssetService
+{
+    if (function_exists('getContainer') && getContainer()->has(AssetService::class)) {
+        return getContainer()->get(AssetService::class);
+    }
+    return new AssetService();
+}
+
 function cssLink(string $path): string
 {
-    return (new AssetService())->cssLink($path);
+    return getAssetService()->cssLink($path);
 }
 
 function assetUrl(string $path): string
 {
-    return (new AssetService())->assetUrl($path);
+    return getAssetService()->assetUrl($path);
 }
 
 function inlineDataUri(string $path): string
 {
-    return (new AssetService())->inlineDataUri($path);
+    return getAssetService()->inlineDataUri($path);
 }

@@ -222,6 +222,7 @@ class AuthService
         $autoUser = $this->getAuthenticatedUser();
         if ($autoUser) {
             \setUserSession($autoUser);
+            \safeSessionRegenerate();
 
             require_once __DIR__ . '/../cron.php';
             try {

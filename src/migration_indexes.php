@@ -19,6 +19,10 @@ function migrateIndexes(PDO $pdo): void
         'CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)',
         'CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)',
         'CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)',
+        // Composite indexes for common query patterns
+        'CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)',
+        'CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)',
+        'CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)',
         'CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)',
         'CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id)',
         'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)',

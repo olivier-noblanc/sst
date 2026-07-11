@@ -14,7 +14,11 @@ class SiteRepository
     {
         static $instance = null;
         if ($instance === null) {
-            $instance = new self(getDB());
+            if (function_exists('getContainer') && getContainer()->has(self::class)) {
+                $instance = getContainer()->get(self::class);
+            } else {
+                $instance = new self(getDB());
+            }
         }
         return $instance;
     }

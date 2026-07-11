@@ -13,6 +13,12 @@
         <h3 class="card__title">&#x1F4E7; Configuration SMTP</h3>
         <p class="text-muted text-small mb-5">Configurez le serveur SMTP pour l'envoi des e-mails de notification.</p>
 
+        <?php if (!(new \App\Services\CryptoService())->isEncryptionAvailable()): ?>
+        <div class="alert alert--warning mb-5">
+            <strong>Chiffrement non actif.</strong> La variable d'environnement <code>SST_SECRET_KEY</code> n'est pas configurée ou est trop courte (32 caractères minimum). Le mot de passe SMTP sera stocké en clair dans la base de données. Configurez cette variable dans IIS pour activer le chiffrement AES-256-CBC.
+        </div>
+        <?php endif; ?>
+
         <div class="form-row form-row--2-1">
             <div class="form-group">
                 <label for="smtp_host">Serveur SMTP</label>

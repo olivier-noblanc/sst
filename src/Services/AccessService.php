@@ -73,13 +73,13 @@ class AccessService
     /**
      * Check if the current user can see all sites.
      */
-    public function canSeeAllSites(): bool
+    public function canSeeAllSites(?string $role = null): bool
     {
-        $role = \currentUserRole();
+        $role = $role ?? \currentUserRole();
         if (empty($role)) {
             return false;
         }
-        return $role === ROLE_SUPERVISEUR;
+        return in_array($role, [ROLE_SUPERVISEUR, ROLE_CHSCT]);
     }
 
     /**
@@ -118,9 +118,9 @@ class AccessService
     /**
      * Get the report visibility for the current user (for reading/filtering).
      */
-    public function getReportVisibility(?string $type = null): string
+    public function getReportVisibility(?string $type = null, ?string $role = null): string
     {
-        $role = \currentUserRole();
+        $role = $role ?? \currentUserRole();
         if (empty($role) || $role !== ROLE_AGENT) {
             return 'all';
         }

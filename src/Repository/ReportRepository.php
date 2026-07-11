@@ -19,7 +19,12 @@ class ReportRepository
     {
         static $instance = null;
         if ($instance === null) {
-            $instance = new self(getDB());
+            // Prefer container instance if available (shared lifecycle)
+            if (function_exists('getContainer') && getContainer()->has(self::class)) {
+                $instance = getContainer()->get(self::class);
+            } else {
+                $instance = new self(getDB());
+            }
         }
         return $instance;
     }
@@ -84,7 +89,17 @@ class ReportRepository
             return null;
         }
         $stmt = $this->pdo->prepare('
-            SELECT r.*, s.code as site_code, s.nom as site_nom,
+            SELECT r.uuid, r.reference, r.type, r.objet, r.description,
+                   r.date_evenement, r.heure_evenement, r.lieu,
+                   r.declarant_id, r.declarant_nom, r.declarant_prenom,
+                   r.pour_compte_de, r.pour_compte_nom, r.pour_compte_prenom,
+                   r.nature_auteur, r.type_acte,
+                   r.site_id, r.site_text, r.pole, r.service_affectation, r.telephone_mobile,
+                   r.is_confidential, r.consent_syndicat, r.etat,
+                   r.repondant_id, r.date_reponse, r.reponse,
+                   r.attachment_name, r.attachment_mime,
+                   r.created_at, r.updated_at,
+                   s.code as site_code, s.nom as site_nom,
                    rep.nom as repondant_nom, rep.prenom as repondant_prenom
             FROM reports r
             LEFT JOIN sites s ON r.site_id = s.id
@@ -93,6 +108,25 @@ class ReportRepository
         ');
         $stmt->execute([':uuid' => $uuid]);
         return $stmt->fetch() ?: null;
+    }
+
+    /**
+     * Fetch only the attachment blob for a report (used by print page).
+     *
+     * @return array{attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null}|null
+     */
+    public function getAttachmentBlob(string $uuid): ?array
+    {
+        if (!isValidUuid($uuid)) {
+            return null;
+        }
+        $stmt = $this->pdo->prepare('
+            SELECT attachment_blob, attachment_name, attachment_mime
+            FROM reports WHERE uuid = :uuid
+        ');
+        $stmt->execute([':uuid' => $uuid]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row !== false ? $row : null;
     }
 
     public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): array
@@ -604,16 +638,23 @@ class ReportRepository
     public function linkAgents(string $reportUuid, array $userIds): void
     {
         if (empty($userIds)) { return; }
-        $stmt = $this->pdo->prepare('
-            INSERT OR IGNORE INTO report_agents (report_uuid, user_id)
-            VALUES (:uuid, :user_id)
-        ');
-        foreach ($userIds as $uid) {
-            $uid = (int) $uid;
-            if ($uid > 0) {
-                $stmt->execute([':uuid' => $reportUuid, ':user_id' => $uid]);
-            }
+
+        // Filter valid user IDs
+        $validIds = array_filter(array_map(fn($id) => (int) $id, $userIds), fn($id) => $id > 0);
+        if (empty($validIds)) { return; }
+
+        // Build multi-row INSERT with UNION ALL for SQLite
+        $rows = [];
+        $params = [];
+        foreach ($validIds as $i => $uid) {
+            $rows[] = "(:uuid, :uid_{$i})";
+            $params[":uid_{$i}"] = $uid;
         }
+        $params[':uuid'] = $reportUuid;
+
+        $sql = 'INSERT OR IGNORE INTO report_agents (report_uuid, user_id) VALUES '
+            . implode(', ', $rows);
+        $this->pdo->prepare($sql)->execute($params);
     }
 
     public function replaceLinkedAgents(string $reportUuid, array $userIds): void

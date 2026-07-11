@@ -84,7 +84,7 @@ class ReportService
         if (!$report) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        if (!canRespondToReport($report, currentUserRole())) {
+        if (!canEditReport($report, $userId)) {
             throw new RuntimeException('Accès refusé.');
         }
         return $this->repo->abandon($uuid, $userId);
@@ -137,6 +137,9 @@ class ReportService
         $mode = getReportVisibilityMode($cmd->type);
         if ($mode === 'public') {
             return new CreateReportCommand(...array_merge($cmd->toArray(), ['isConfidential' => 0]));
+        }
+        if ($mode === 'confidential') {
+            return new CreateReportCommand(...array_merge($cmd->toArray(), ['isConfidential' => 1]));
         }
         return $cmd;
     }

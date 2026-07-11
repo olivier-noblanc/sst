@@ -7,13 +7,19 @@ use PDO;
 
 class StatsRepository
 {
+    public const EXPORT_MAX_ROWS = 50000;
+
     public function __construct(private readonly PDO $pdo) {}
 
     public static function instance(): self
     {
         static $instance = null;
         if ($instance === null) {
-            $instance = new self(getDB());
+            if (function_exists('getContainer') && getContainer()->has(self::class)) {
+                $instance = getContainer()->get(self::class);
+            } else {
+                $instance = new self(getDB());
+            }
         }
         return $instance;
     }
@@ -103,7 +109,7 @@ class StatsRepository
             $sql .= ' AND r.etat IN (' . implode(', ', $placeholders) . ')';
         }
 
-        $sql .= ' ORDER BY r.created_at DESC';
+        $sql .= ' ORDER BY r.created_at DESC LIMIT ' . self::EXPORT_MAX_ROWS;
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);

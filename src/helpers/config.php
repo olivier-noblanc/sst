@@ -8,62 +8,70 @@ use App\Services\ConfigService;
  * Delegates to App\Services\ConfigService.
  */
 
+function getConfigService(): ConfigService
+{
+    if (function_exists('getContainer') && getContainer()->has(ConfigService::class)) {
+        return getContainer()->get(ConfigService::class);
+    }
+    return ConfigService::getInstance();
+}
+
 function getConfig(string $cle, string $default = ''): string
 {
-    return ConfigService::getInstance()->get($cle, $default);
+    return getConfigService()->get($cle, $default);
 }
 
 function updateConfig(PDO $pdo, string $cle, string $valeur): void
 {
-    ConfigService::getInstance()->set($cle, $valeur);
+    getConfigService()->set($cle, $valeur);
 }
 
 function clearConfigCache(): void
 {
-    ConfigService::getInstance()->clearCache();
+    getConfigService()->clearCache();
 }
 
 function isRegistryEnabled(string $type): bool
 {
-    return (new ConfigService())->isRegistryEnabled($type);
+    return getConfigService()->isRegistryEnabled($type);
 }
 
 function getEnabledRegistries(): array
 {
-    return (new ConfigService())->getEnabledRegistries();
+    return getConfigService()->getEnabledRegistries();
 }
 
 function getRoleLabel(string $role): string
 {
-    return (new ConfigService())->getRoleLabel($role);
+    return getConfigService()->getRoleLabel($role);
 }
 
 function getRoleLabels(): array
 {
-    return (new ConfigService())->getRoleLabels();
+    return getConfigService()->getRoleLabels();
 }
 
 function getRoleLabelShort(string $role): string
 {
-    return (new ConfigService())->getRoleLabelShort($role);
+    return getConfigService()->getRoleLabelShort($role);
 }
 
 function hasActiveSites(PDO $pdo): bool
 {
-    return (new ConfigService())->hasActiveSites();
+    return getConfigService()->hasActiveSites();
 }
 
 function isNoSiteMode(PDO $pdo): bool
 {
-    return (new ConfigService())->isNoSiteMode();
+    return getConfigService()->isNoSiteMode();
 }
 
 function countActiveSites(PDO $pdo): int
 {
-    return (new ConfigService())->countActiveSites();
+    return getConfigService()->countActiveSites();
 }
 
 function getAppVersion(): string
 {
-    return (new ConfigService())->getAppVersion();
+    return getConfigService()->getAppVersion();
 }

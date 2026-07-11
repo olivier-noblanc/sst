@@ -34,9 +34,16 @@ define('BACKUP_MARKER_FILE', BACKUP_DIR . '/.last_backup');
  */
 function getDbFingerprint(PDO $pdo): array
 {
+    // Cache fingerprint within a single request to avoid repeated WAL checkpoints
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
+
     // Checkpoint WAL → flush pending writes into the main .db file
+    // PASSIVE mode: allows concurrent readers, non-blocking (safe for web apps)
     try {
-        $pdo->exec('PRAGMA wal_checkpoint(TRUNCATE)');
+        $pdo->exec('PRAGMA wal_checkpoint(PASSIVE)');
     } catch (Exception $e) {
         // Non-critical: checkpoint may fail if no WAL, just proceed
         error_log('[SST-BACKUP] WAL checkpoint warning: ' . $e->getMessage());
@@ -44,12 +51,14 @@ function getDbFingerprint(PDO $pdo): array
 
     clearstatcache(true, DB_PATH);
     if (!file_exists(DB_PATH)) {
-        return ['mtime' => 0, 'size' => 0];
+        $cached = ['mtime' => 0, 'size' => 0];
+    } else {
+        $cached = [
+            'mtime' => filemtime(DB_PATH) ?: 0,
+            'size'  => filesize(DB_PATH) ?: 0,
+        ];
     }
-    return [
-        'mtime' => filemtime(DB_PATH) ?: 0,
-        'size'  => filesize(DB_PATH) ?: 0,
-    ];
+    return $cached;
 }
 
 /**
@@ -125,7 +134,7 @@ function performBackupInternal(PDO $pdo, string $prefix = 'sst', bool $force = f
 
     writeBackupProtection();
 
-    $timestamp = date('Y-md_His');
+    $timestamp = date('Y-m-d_His');
     $backupFile = BACKUP_DIR . '/' . $prefix . '_' . $timestamp . '.db';
 
     // Path traversal check: ensure backup file stays within BACKUP_DIR

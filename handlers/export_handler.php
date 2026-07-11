@@ -49,7 +49,9 @@ if (!empty($_POST['etats']) && is_array($_POST['etats'])) {
 
 // Get data
 $reports = $reportRepo->getExportData($filters);
-auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . count($reports) . ' signalements', null, null, ['filters' => $filters, 'count' => count($reports)]);
+$count = count($reports);
+$truncated = $count >= \App\Repository\StatsRepository::EXPORT_MAX_ROWS;
+auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . $count . ' signalements' . ($truncated ? ' (tronqué)' : ''), null, null, ['filters' => $filters, 'count' => $count]);
 
 // Build CSV in memory using fputcsv (proper enclosure, no injection risk)
 $filename = 'export_sst_' . date('Y-m-d_His') . '.csv';

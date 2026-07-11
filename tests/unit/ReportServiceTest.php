@@ -347,27 +347,27 @@ class ReportServiceTest extends TestCase
     {
         $report = $this->createReport();
         setUserSession([
-            'id' => $this->supervisorId,
-            'username' => 'svc.sup',
-            'role' => ROLE_SUPERVISEUR,
+            'id' => $this->userId,
+            'username' => 'svc.agent',
+            'role' => ROLE_AGENT,
             'site_id' => $this->siteId,
             'is_active' => 1,
         ]);
-        $result = $this->service->abandon($report['uuid'], $this->supervisorId);
+        $result = $this->service->abandon($report['uuid'], $this->userId);
         $this->assertTrue($result);
     }
 
     public function testAbandonThrowsForUnknownReport(): void
     {
         setUserSession([
-            'id' => $this->supervisorId,
-            'username' => 'svc.sup',
-            'role' => ROLE_SUPERVISEUR,
+            'id' => $this->userId,
+            'username' => 'svc.agent',
+            'role' => ROLE_AGENT,
             'site_id' => $this->siteId,
             'is_active' => 1,
         ]);
         $this->expectException(\RuntimeException::class);
-        $this->service->abandon('nonexistent-uuid', $this->supervisorId);
+        $this->service->abandon('nonexistent-uuid', $this->userId);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

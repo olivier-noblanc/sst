@@ -28,6 +28,10 @@ if (!(new \App\Services\AccessService())->canAccessReport($report, $user)) {
 $pdo = getContainer()->get(\PDO::class);
 (new \App\Services\AccessService())->logConfidentialReportAccess($pdo, $report, $user);
 
+// Fetch attachment blob separately (not loaded by findById for performance)
+$attachmentData = \App\Repository\ReportRepository::instance()->getAttachmentBlob((string) $uuid);
+$report['attachment_blob'] = $attachmentData['attachment_blob'] ?? null;
+
 // Get response history
 $responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 

@@ -29,14 +29,14 @@ require_once __DIR__ . '/validation_user.php';
  * @param array<string, string> $errors  Reference to the errors array (modified in place)
  * @return array{blob: string|null, name: string|null, mime: string|null}
  */
-function validateReportAttachment(array &$errors): array
+function validateReportAttachment(array &$errors, string $fieldName = 'attachment'): array
 {
     $attachmentBlob = null;
     $attachmentName = null;
     $attachmentMime = null;
 
-    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
-        $file = $_FILES['attachment'];
+    if (isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES[$fieldName];
         if ($file['error'] !== UPLOAD_ERR_OK) {
             $errors['attachment'] = 'Erreur lors du téléchargement du fichier.';
         } elseif ($file['size'] > MAX_ATTACHMENT_SIZE) {

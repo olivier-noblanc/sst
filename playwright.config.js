@@ -1,4 +1,18 @@
-import { defineConfig } from '@playwright/test';
+// @ts-check
+const { defineConfig } = require('@playwright/test');
+const path = require('path');
+
+// Cross-platform: detect OS and build appropriate PHP command
+const isWindows = process.platform === 'win32';
+const phpBinary = isWindows ? 'php' : '/home/z/my-project/tools/php/bin/php';
+const sessionPath = isWindows ? path.join(__dirname, 'data', 'sessions') : '/tmp/php_sessions';
+const routerPath = path.join(__dirname, 'public', 'router.php').replace(/\\/g, '/');
+
+// On Windows, use 'set DEV_MODE=1 &&' prefix; on Linux, use 'DEV_MODE=1' prefix
+const devModePrefix = isWindows ? 'set DEV_MODE=1 &&' : 'DEV_MODE=1';
+
+// Disable Xdebug for E2E tests (causes timeouts)
+const xdebugFlag = isWindows ? '-d xdebug.mode=off' : '-d xdebug.mode=off';
 
 /**
  * Playwright configuration for SST application E2E tests.
@@ -6,7 +20,7 @@ import { defineConfig } from '@playwright/test';
  * Uses the PHP built-in development server with our custom router.
  * The server is started automatically by Playwright before tests.
  */
-export default defineConfig({
+module.exports = defineConfig({
   testDir: './e2e',
   fullyParallel: false,          // PHP built-in server is single-threaded
   retries: 1,
@@ -28,9 +42,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'DEV_MODE=1 /home/z/my-project/tools/php/bin/php -d session.auto_start=0 -d session.save_path=/tmp/php_sessions -d display_errors=1 -S 127.0.0.1:8850 /home/z/my-project/sst/public/router.php',
+    command: `${devModePrefix} ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
     port: 8850,
     reuseExistingServer: true,
-    timeout: 10000,
+    timeout: 30000,
   },
 });

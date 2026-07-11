@@ -29,6 +29,10 @@ if ($useGzip) {
 
 require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/error_handler.php';
+
+// PSR-4 autoloader — must be loaded before helpers (they use classes)
+require_once __DIR__ . '/../src/autoload.php';
+
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/session.php';
 if (defined('DEV_MODE') && DEV_MODE) {
@@ -38,7 +42,7 @@ require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/audit.php';
 
-// Now that helpers.php is loaded, use the centralised function
+// Remove unwanted headers (needs autoloader for HttpService)
 removeUnwantedHeaders();
 
 // === Override display_errors from DB config (admin toggle) ===
@@ -63,9 +67,6 @@ try {
 // Register custom error handler (email critical errors to admin)
 set_error_handler('sstErrorHandler');
 register_shutdown_function('sstShutdownHandler');
-
-// PSR-4 autoloader + fichiers procéduraux (remplace Composer en prod)
-require_once __DIR__ . '/../src/autoload.php';
 
 // Validation user (pas dans autoload)
 require_once __DIR__ . '/../src/validation_user.php';

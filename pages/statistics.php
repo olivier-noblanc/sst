@@ -7,11 +7,15 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
-$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
+// Service instances (created once for the page)
+$fmt = new \App\Services\FormattingService();
+$http = new \App\Services\HttpService();
+$config = \App\Services\ConfigService::getInstance();
+
+$noSiteMode = $config->isNoSiteMode();
 
 // Get filter
-$year = $_GET['year'] ?? date('Y');
-$year = trim((string) $year);
+$year = trim((string) ($_GET['year'] ?? date('Y')));
 
 // Get available years
 $availableYears = \App\Repository\StatsRepository::instance()->getAvailableYears();
@@ -20,15 +24,19 @@ if (empty($availableYears)) {
 }
 
 // Get indicateurs
+/** @var array<string, int> $indicateurs */
 $indicateurs = \App\Repository\StatsRepository::instance()->getIndicateurs($year);
 
 // Get stats by site
+/** @var array<int, array<string, mixed>> $statsBySite */
 $statsBySite = \App\Repository\StatsRepository::instance()->getBySite($year);
 
 // Get RAMI structured stats
+/** @var array<string, mixed> $ramiStats */
 $ramiStats = \App\Repository\StatsRepository::instance()->getRamiStructuredStats($year);
 
 // Build table data by site
+/** @var array<int, array<string, mixed>> $sites */
 $sites = \App\Repository\SiteRepository::instance()->findAll();
 $tableData = [];
 foreach ($sites as $site) {
@@ -70,20 +78,20 @@ foreach ($tableData as $td) {
 
 $pageTitle = 'Statistiques';
 
-$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = $config->isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 ?>
 
 <h1 class="page-title">Statistiques</h1>
 
 
 <!-- Year filter -->
-<form method="GET" action="<?php echo (new \App\Services\HttpService())->url('statistics'); ?>" class="filter-bar">
+<form method="GET" action="<?php echo $http->url('statistics'); ?>" class="filter-bar">
     <div class="form-group">
         <label for="year">Année</label>
         <select name="year" id="year">
             <?php foreach ($availableYears as $y): ?>
-            <option value="<?php echo (new \App\Services\FormattingService())->e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo (new \App\Services\FormattingService())->e($y); ?></option>
+            <option value="<?php echo $fmt->e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo $fmt->e($y); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
@@ -120,12 +128,12 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
 <!-- Table: Reports by site and registry -->
 <?php if (!$noSiteMode): ?>
 <div class="card">
-    <h3 class="card__title">Nombre de signalements réparti par <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?> et par registre</h3>
+    <h3 class="card__title">Nombre de signalements réparti par <?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?> et par registre</h3>
     <div class="table-wrapper">
         <table aria-label="Statistiques des signalements">
             <thead>
                 <tr>
-                    <th><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></th>
+                    <th><?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?></th>
                     <th class="text-center">RSST</th>
                     <?php if ($dgiEnabled): ?><th class="text-center">DGI</th><?php endif; ?>
                     <?php if ($ramiEnabled): ?><th class="text-center">RAMI</th><?php endif; ?>
@@ -135,7 +143,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
             <tbody>
                 <?php foreach ($tableData as $td): ?>
                 <tr>
-                    <td><strong><?php echo (new \App\Services\FormattingService())->e($td['code']); ?></strong> — <?php echo (new \App\Services\FormattingService())->e($td['nom']); ?></td>
+                    <td><strong><?php echo $fmt->e($td['code']); ?></strong> — <?php echo $fmt->e($td['nom']); ?></td>
                     <td class="text-center <?php echo $td['rsst'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rsst']; ?></td>
                     <?php if ($dgiEnabled): ?><td class="text-center <?php echo $td['dgi'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['dgi']; ?></td><?php endif; ?>
                     <?php if ($ramiEnabled): ?><td class="text-center <?php echo $td['rami'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rami']; ?></td><?php endif; ?>
@@ -176,7 +184,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                     <tbody>
                         <?php foreach ($ramiStats['by_nature_auteur'] as $row): ?>
                         <tr>
-                            <td><?php echo (new \App\Services\FormattingService())->e(RAMI_NATURE_AUTEUR_LABELS[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
+                            <td><?php echo $fmt->e(RAMI_NATURE_AUTEUR_LABELS[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -199,7 +207,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                     <tbody>
                         <?php foreach ($ramiStats['by_type_acte'] as $row): ?>
                         <tr>
-                            <td><?php echo (new \App\Services\FormattingService())->e(RAMI_TYPE_ACTE_LABELS[$row['type_acte']] ?? $row['type_acte']); ?></td>
+                            <td><?php echo $fmt->e(RAMI_TYPE_ACTE_LABELS[$row['type_acte']] ?? $row['type_acte']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
                         </tr>
                         <?php endforeach; ?>

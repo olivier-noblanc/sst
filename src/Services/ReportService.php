@@ -10,6 +10,7 @@ use App\Event\EventDispatcher;
 use App\DTO\CreateReportCommand;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
+use App\DTO\ReopenReportCommand;
 
 class ReportService
 {
@@ -87,6 +88,30 @@ class ReportService
             throw new RuntimeException('Accès refusé.');
         }
         return $this->repo->abandon($uuid, $userId);
+    }
+
+    public function reopen(string $uuid, ReopenReportCommand $cmd, int $userId): bool
+    {
+        $report = $this->repo->findById($uuid);
+        if (!$report) {
+            throw new RuntimeException('Signalement introuvable.');
+        }
+        if (!in_array($report['etat'], ['traite', 'abandonne'])) {
+            throw new RuntimeException('Ce signalement ne peut pas être réouvert.');
+        }
+        if (!in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
+            throw new RuntimeException('Accès refusé — seuls les superviseurs et le CHSCT peuvent réouvrir.');
+        }
+
+        $result = $this->repo->reopen($uuid, $userId, $cmd->motif);
+
+        $this->events->dispatch('report.reopened', [
+            'report' => $report,
+            'cmd'    => $cmd,
+            'pdo'    => $this->repo->getPdo(),
+        ]);
+
+        return $result;
     }
 
     public function findById(string $uuid): ?array { return $this->repo->findById($uuid); }

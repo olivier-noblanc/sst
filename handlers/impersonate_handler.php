@@ -15,19 +15,26 @@
  *   - Impersonation only changes the session, not the database
  */
 
+require_once __DIR__ . '/../src/bootstrap_services.php';
+
+use App\Services\SessionManager;
+
+/** @var SessionManager $session */
+$session = getContainer()->get(SessionManager::class);
+
 // Must be authenticated
-if (!isUserLoggedIn()) {
+if (!$session->isLoggedIn()) {
     redirect(url('home'));
 }
 
-$action = $_POST['action'] ?? '';
+$action = (string) ($_POST['action'] ?? '');
 
 // === START IMPERSONATION ===
 if ($action === 'start') {
-    $targetRole = $_POST['target_role'] ?? '';
+    $targetRole = (string) ($_POST['target_role'] ?? '');
 
     // Only superviseurs can impersonate (check real_role if already impersonating)
-    $effectiveRole = getRealRole() ?? currentUserRole();
+    $effectiveRole = $session->getRealRole() ?? currentUserRole();
     if ($effectiveRole !== ROLE_SUPERVISEUR) {
         setFlash('error', 'Seuls les superviseurs peuvent incarner un autre rôle.');
         redirect(url('home'));
@@ -40,13 +47,13 @@ if ($action === 'start') {
     }
 
     // Don't impersonate if already impersonating the same role
-    if (getImpersonatedRole() === $targetRole) {
+    if ($session->getImpersonatedRole() === $targetRole) {
         redirect(url('home'));
     }
 
     // Save the real role and switch to the impersonated role
-    $realRole = getRealRole() ?? currentUserRole();
-    startImpersonation($realRole, $targetRole);
+    $realRole = $session->getRealRole() ?? currentUserRole();
+    $session->startImpersonation($realRole, $targetRole);
 
     // Audit log
     $pdo = getDB();
@@ -61,13 +68,13 @@ if ($action === 'start') {
 
 // === STOP IMPERSONATION (restore real role) ===
 if ($action === 'stop') {
-    $realRole = stopImpersonation();
+    $realRole = $session->stopImpersonation();
     if ($realRole === null) {
         // Not impersonating — nothing to do
         redirect(url('home'));
     }
 
-    $impersonatedRole = getImpersonatedRole() ?? 'inconnu';
+    $impersonatedRole = $session->getImpersonatedRole() ?? 'inconnu';
 
     // Audit log
     $pdo = getDB();

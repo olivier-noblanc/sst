@@ -22,7 +22,13 @@ if (!isset($formData)) $formData = getFormData();
 $user = currentUser() ?? [];
 $noSiteMode = isNoSiteMode(getDB());
 
+/** @var string $type */
+/** @var string $action */
+/** @var string $csrfToken */
+/** @var list<array<string, mixed>> $sites */
+
 // Determine values: prefer form data (on validation error), then report data, then defaults
+/** @var array<string, mixed> $formData */
 $val = function(string $field, string $default = '') use ($formData, $report, $isEdit) {
     if (isset($formData[$field]) && $formData[$field] !== '') {
         return $formData[$field];
@@ -33,8 +39,10 @@ $val = function(string $field, string $default = '') use ($formData, $report, $i
     return $default;
 };
 
-$registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type);
-$registryFullLabel = REGISTRY_LABELS[$type] ?? $type;
+/** @var string $registryLabel */
+$registryLabel = (string) (REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type));
+/** @var string $registryFullLabel */
+$registryFullLabel = (string) (REGISTRY_LABELS[$type] ?? $type);
 
 // Determine card accent class
 $cardClass = match($type) {

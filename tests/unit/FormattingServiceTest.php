@@ -1,0 +1,311 @@
+<?php
+/**
+ * FormattingService Unit Tests — HTML escaping, dates, references, badges, truncate
+ *
+ * Tests FormattingService from src/Services/FormattingService.php:
+ * - e() escapes HTML entities
+ * - formatDateFR() formats ISO dates to French d/m/Y
+ * - formatDateTimeFR() formats ISO datetimes to French d/m/Y à H:i
+ * - generateReference() builds {type}-{YY}-{NNN} strings
+ * - getRegistryColor() returns CSS variable names
+ * - getEtatBadgeClass() returns badge classes for report states
+ * - getRegistryBadgeClass() returns badge classes for registry types
+ * - getRoleBadgeClass() returns badge classes for user roles
+ * - truncate() shortens long strings with ellipsis
+ * - todayISO() returns current date in Y-m-d
+ * - nowTime() returns current time in H:i
+ */
+
+use PHPUnit\Framework\TestCase;
+use App\Services\FormattingService;
+
+class FormattingServiceTest extends TestCase
+{
+    private FormattingService $service;
+
+    protected function setUp(): void
+    {
+        $this->service = new FormattingService();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // e()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testEEscapesHtmlEntities(): void
+    {
+        $this->assertEquals('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;', $this->service->e('<script>alert("xss")</script>'));
+    }
+
+    public function testEReturnsEmptyStringForNull(): void
+    {
+        $this->assertEquals('', $this->service->e(null));
+    }
+
+    public function testEReturnsEmptyStringForEmptyString(): void
+    {
+        $this->assertEquals('', $this->service->e(''));
+    }
+
+    public function testEPassesThroughPlainTextUnchanged(): void
+    {
+        $this->assertEquals('Hello World', $this->service->e('Hello World'));
+    }
+
+    public function testEEscapesAmpersandAndQuotes(): void
+    {
+        $result = $this->service->e("a & b 'c' \"d\"");
+        $this->assertEquals('a &amp; b &#039;c&#039; &quot;d&quot;', $result);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // formatDateFR()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testFormatDateFRConvertsIsoToFrench(): void
+    {
+        $this->assertEquals('15/03/2025', $this->service->formatDateFR('2025-03-15'));
+    }
+
+    public function testFormatDateFRReturnsDashForEmpty(): void
+    {
+        $this->assertEquals('—', $this->service->formatDateFR(''));
+    }
+
+    public function testFormatDateFRReturnsDashForNull(): void
+    {
+        $this->assertEquals('—', $this->service->formatDateFR(null));
+    }
+
+    public function testFormatDateFRHandlesDatetimeFormat(): void
+    {
+        $this->assertEquals('01/01/2025', $this->service->formatDateFR('2025-01-01 10:30:00'));
+    }
+
+    public function testFormatDateFREscapesInvalidFormat(): void
+    {
+        $result = $this->service->formatDateFR('not-a-date');
+        $this->assertStringContainsString('not-a-date', $result);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // formatDateTimeFR()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testFormatDateTimeFRConvertsIsoToFrench(): void
+    {
+        $this->assertEquals('15/03/2025 à 14:30', $this->service->formatDateTimeFR('2025-03-15 14:30:00'));
+    }
+
+    public function testFormatDateTimeFRReturnsDashForEmpty(): void
+    {
+        $this->assertEquals('—', $this->service->formatDateTimeFR(''));
+    }
+
+    public function testFormatDateTimeFRReturnsDashForNull(): void
+    {
+        $this->assertEquals('—', $this->service->formatDateTimeFR(null));
+    }
+
+    public function testFormatDateTimeFRHandlesTFormat(): void
+    {
+        $this->assertEquals('01/01/2025 à 00:00', $this->service->formatDateTimeFR('2025-01-01T00:00:00'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // generateReference()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testGenerateReferenceBuildsCorrectFormat(): void
+    {
+        $this->assertEquals('RSST-25-001', $this->service->generateReference('RSST', '25', 1));
+    }
+
+    public function testGenerateReferencePadsSequenceWithZeros(): void
+    {
+        $this->assertEquals('RAMI-25-042', $this->service->generateReference('RAMI', '25', 42));
+    }
+
+    public function testGenerateReferenceWithLargeSequence(): void
+    {
+        $this->assertEquals('DGI-26-1000', $this->service->generateReference('DGI', '26', 1000));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // getRegistryColor()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testGetRegistryColorRsst(): void
+    {
+        $this->assertEquals('var(--rsst-color)', $this->service->getRegistryColor('rsst'));
+    }
+
+    public function testGetRegistryColorRami(): void
+    {
+        $this->assertEquals('var(--rami-color)', $this->service->getRegistryColor('rami'));
+    }
+
+    public function testGetRegistryColorDgi(): void
+    {
+        $this->assertEquals('var(--dgi-color)', $this->service->getRegistryColor('dgi'));
+    }
+
+    public function testGetRegistryColorDefaultReturnsPrimary(): void
+    {
+        $this->assertEquals('var(--color-primary)', $this->service->getRegistryColor('unknown'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // getEtatBadgeClass()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testGetEtatBadgeClassNouveau(): void
+    {
+        $this->assertEquals('badge--nouveau', $this->service->getEtatBadgeClass('nouveau'));
+    }
+
+    public function testGetEtatBadgeClassEnCours(): void
+    {
+        $this->assertEquals('badge--en-cours', $this->service->getEtatBadgeClass('en_cours'));
+    }
+
+    public function testGetEtatBadgeClassTraite(): void
+    {
+        $this->assertEquals('badge--traite', $this->service->getEtatBadgeClass('traite'));
+    }
+
+    public function testGetEtatBadgeClassAbandonne(): void
+    {
+        $this->assertEquals('badge--abandonne', $this->service->getEtatBadgeClass('abandonne'));
+    }
+
+    public function testGetEtatBadgeClassReouvert(): void
+    {
+        $this->assertEquals('badge--reouvert', $this->service->getEtatBadgeClass('reouvert'));
+    }
+
+    public function testGetEtatBadgeClassUnknownReturnsEmpty(): void
+    {
+        $this->assertEquals('', $this->service->getEtatBadgeClass('unknown'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // getRegistryBadgeClass()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testGetRegistryBadgeClassRsst(): void
+    {
+        $this->assertEquals('badge--rsst', $this->service->getRegistryBadgeClass('rsst'));
+    }
+
+    public function testGetRegistryBadgeClassRami(): void
+    {
+        $this->assertEquals('badge--rami', $this->service->getRegistryBadgeClass('rami'));
+    }
+
+    public function testGetRegistryBadgeClassDgi(): void
+    {
+        $this->assertEquals('badge--dgi', $this->service->getRegistryBadgeClass('dgi'));
+    }
+
+    public function testGetRegistryBadgeClassUnknownReturnsEmpty(): void
+    {
+        $this->assertEquals('', $this->service->getRegistryBadgeClass('unknown'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // getRoleBadgeClass()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testGetRoleBadgeClassAgent(): void
+    {
+        $this->assertEquals('badge--agent', $this->service->getRoleBadgeClass('agent'));
+    }
+
+    public function testGetRoleBadgeClassSuperviseur(): void
+    {
+        $this->assertEquals('badge--superviseur', $this->service->getRoleBadgeClass('superviseur'));
+    }
+
+    public function testGetRoleBadgeClassChsct(): void
+    {
+        $this->assertEquals('badge--chsct', $this->service->getRoleBadgeClass('chsct'));
+    }
+
+    public function testGetRoleBadgeClassUnknownReturnsEmpty(): void
+    {
+        $this->assertEquals('', $this->service->getRoleBadgeClass('unknown'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // truncate()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testTruncateReturnsSameStringIfShortEnough(): void
+    {
+        $this->assertEquals('Hello', $this->service->truncate('Hello', 50));
+    }
+
+    public function testTruncateAddsEllipsisWhenTooLong(): void
+    {
+        $result = $this->service->truncate('This is a very long sentence that should be truncated', 20);
+        $this->assertStringEndsWith('…', $result);
+        $this->assertEquals(21, mb_strlen($result, 'UTF-8'));
+    }
+
+    public function testTruncateDefaultLengthIs50(): void
+    {
+        $short = str_repeat('a', 50);
+        $this->assertEquals($short, $this->service->truncate($short));
+        $long = str_repeat('a', 51);
+        $this->assertStringEndsWith('…', $this->service->truncate($long));
+    }
+
+    public function testTruncateHandlesUtf8Characters(): void
+    {
+        $input = 'Rémi est à la maison — très bien!';
+        $result = $this->service->truncate($input, 15);
+        $this->assertStringEndsWith('…', $result);
+        $this->assertEquals(16, mb_strlen($result, 'UTF-8'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // todayISO()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testTodayISOReturnsYMDFormat(): void
+    {
+        $result = $this->service->todayISO();
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $result);
+    }
+
+    public function testTodayISOMatchesCurrentDate(): void
+    {
+        $this->assertEquals(date('Y-m-d'), $this->service->todayISO());
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // nowTime()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testNowTimeReturnsHIFormat(): void
+    {
+        $result = $this->service->nowTime();
+        $this->assertMatchesRegularExpression('/^\d{2}:\d{2}$/', $result);
+    }
+
+    public function testNowTimeMatchesCurrentTime(): void
+    {
+        $this->assertEquals(date('H:i'), $this->service->nowTime());
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Service instantiation
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testServiceCanBeInstantiated(): void
+    {
+        $service = new FormattingService();
+        $this->assertInstanceOf(FormattingService::class, $service);
+    }
+}

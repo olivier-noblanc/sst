@@ -259,6 +259,32 @@ class ReportRepository
         return $stmt->fetchAll();
     }
 
+    /**
+     * @param list<string> $uuids
+     * @return array<string, list<array<string, mixed>>>
+     */
+    public function getResponsesForUuids(array $uuids): array
+    {
+        if (empty($uuids)) {
+            return [];
+        }
+        $placeholders = implode(',', array_fill(0, count($uuids), '?'));
+        $stmt = $this->pdo->prepare("
+            SELECT rr.*, rr.report_uuid, u.nom, u.prenom
+            FROM report_responses rr
+            LEFT JOIN users u ON rr.user_id = u.id
+            WHERE rr.report_uuid IN ($placeholders)
+            ORDER BY rr.created_at ASC
+        ");
+        $stmt->execute($uuids);
+        $result = [];
+        while ($resp = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $uuid = (string) $resp['report_uuid'];
+            $result[$uuid][] = $resp;
+        }
+        return $result;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // Read — Linked agents
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -442,6 +468,63 @@ class ReportRepository
         ");
         $stmt->execute([':uuid' => $uuid]);
         return $stmt->rowCount() > 0;
+    }
+
+    public function reopen(string $uuid, int $userId, string $motif): bool
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $checkStmt = $this->pdo->prepare("SELECT etat FROM reports WHERE uuid = :uuid AND etat IN ('traite', 'abandonne')");
+            $checkStmt->execute([':uuid' => $uuid]);
+            $current = $checkStmt->fetch();
+            if (!$current) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $histStmt = $this->pdo->prepare('
+                INSERT INTO report_state_history (report_uuid, etat_precedent, etat_suivant, user_id, motif)
+                VALUES (:report_uuid, :etat_precedent, :etat_suivant, :user_id, :motif)
+            ');
+            $histStmt->execute([
+                ':report_uuid'    => $uuid,
+                ':etat_precedent' => $current['etat'],
+                ':etat_suivant'   => ETAT_REOUVERT,
+                ':user_id'        => $userId,
+                ':motif'          => $motif,
+            ]);
+
+            $updateStmt = $this->pdo->prepare("
+                UPDATE reports
+                SET etat = :nouvel_etat, updated_at = datetime('now')
+                WHERE uuid = :uuid AND etat IN ('traite', 'abandonne')
+            ");
+            $updateStmt->execute([':nouvel_etat' => ETAT_REOUVERT, ':uuid' => $uuid]);
+            if ($updateStmt->rowCount() === 0) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $respStmt = $this->pdo->prepare('
+                INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
+                VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
+            ');
+            $respStmt->execute([
+                ':report_uuid' => $uuid,
+                ':user_id'     => $userId,
+                ':reponse'     => 'Réouverture du signalement. Motif : ' . $motif,
+                ':nouvel_etat' => ETAT_REOUVERT,
+            ]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log('[SST-DB] reopen failed: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array

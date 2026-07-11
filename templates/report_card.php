@@ -14,7 +14,8 @@ if (!isset($report) || !$report) {
     return;
 }
 
-$type = $report['type'] ?? TYPE_RSST;
+/** @var array<string, mixed> $report */
+$type = (string) ($report['type'] ?? TYPE_RSST);
 $cardClass = match($type) {
     'rsst' => 'card--rsst',
     'rami' => 'card--rami',
@@ -24,13 +25,13 @@ $cardClass = match($type) {
 
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
 $user = (new \App\Services\SessionService())->getUserSession() ?? [];
-$userRole = $user['role'] ?? ROLE_AGENT;
+$userRole = (string) ($user['role'] ?? ROLE_AGENT);
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $isDeclarant = ((int) $report['declarant_id'] === $userId);
-$canEdit = (new \App\Services\AccessService())->canEditReport($report, $userId);
+$canEdit = (new \App\Services\AccessService())->canEditReport((array) $report, $userId);
 $canAbandon = $isDeclarant && !in_array($report['etat'], [ETAT_ABANDONNE, ETAT_TRAITE]);
-$canRespondToReport = (new \App\Services\AccessService())->canRespondToReport($report, $userRole);
+$canRespondToReport = (new \App\Services\AccessService())->canRespondToReport((array) $report, $userRole);
 $canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE]) && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 // Ensure $csrfToken is available (set by index.php but may not be in scope)
@@ -125,8 +126,8 @@ if (!isset($csrfToken)) {
                 </tr>
                 <?php endif; ?>
                 <?php
-                $linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents($report['uuid']);
-                $pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites($report['uuid']);
+                $linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents((string) $report['uuid']);
+                $pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites((string) $report['uuid']);
                 if (!empty($linkedAgents) || !empty($pendingInvites)):
                 ?>
                 <tr>
@@ -202,7 +203,7 @@ if (!isset($csrfToken)) {
                 <?php foreach ($responses as $resp): ?>
                 <tr>
                     <td><?php echo (new \App\Services\FormattingService())->e((new \App\Services\FormattingService())->formatDateTimeFR($resp['created_at'])); ?></td>
-                    <td><?php echo (new \App\Services\FormattingService())->e(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? '')); ?></td>
+                    <td><?php echo (new \App\Services\FormattingService())->e((string) ($resp['prenom'] ?? '') . ' ' . (string) ($resp['nom'] ?? '')); ?></td>
                     <td>
                         <?php if (!empty($resp['nouvel_etat'])): ?>
                             <span class="badge <?php echo (new \App\Services\FormattingService())->getEtatBadgeClass($resp['nouvel_etat']); ?>">

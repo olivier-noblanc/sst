@@ -7,18 +7,23 @@
  * Access: superviseur only
  */
 
+use App\Repository\NotificationRepository;
+use App\Services\ConfigService;
+
 require_once __DIR__ . '/settings_handler_app.php';
 require_once __DIR__ . '/settings_handler_sites.php';
 
 $pdo = getDB();
-$tab = $_POST['tab'] ?? 'sites';
+$tab = (string) ($_POST['tab'] ?? 'sites');
+$notifRepo = NotificationRepository::instance();
+$configService = ConfigService::getInstance();
 
 try {
     $pdo->beginTransaction();
 
     if ($tab === 'sites') {
         // Delete all existing site notification settings
-        $pdo->prepare("DELETE FROM notification_settings WHERE type = 'site'")->execute();
+        $notifRepo->deleteByType('site');
 
         // Insert new site emails (textarea format: one email per line)
         $siteEmails = $_POST['site_emails'] ?? [];
@@ -26,11 +31,11 @@ try {
             foreach ($siteEmails as $siteId => $emailText) {
                 $siteId = (int) $siteId;
                 // Parse textarea: split by newlines, trim, filter valid emails
-                $lines = preg_split('/[\r\n]+/', (string) $emailText);
+                $lines = preg_split('/[\r\n]+/', (string) $emailText) ?: [];
                 foreach ($lines as $email) {
                     $email = trim($email);
                     if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        saveNotificationSetting($pdo, $siteId, 'site', 'all', $email);
+                        $notifRepo->save($siteId, 'site', 'all', $email);
                     }
                 }
             }
@@ -39,16 +44,16 @@ try {
 
     if ($tab === 'global') {
         // Delete all existing global notification settings
-        $pdo->prepare("DELETE FROM notification_settings WHERE type = 'global'")->execute();
+        $notifRepo->deleteByType('global');
 
         // Insert new global emails (textarea format: one email per line)
-        $globalEmailsText = trim($_POST['global_emails'] ?? '');
+        $globalEmailsText = trim((string) ($_POST['global_emails'] ?? ''));
         if ($globalEmailsText !== '') {
-            $lines = preg_split('/[\r\n]+/', $globalEmailsText);
+            $lines = preg_split('/[\r\n]+/', $globalEmailsText) ?: [];
             foreach ($lines as $email) {
                 $email = trim($email);
                 if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    saveNotificationSetting($pdo, null, 'global', 'all', $email);
+                    $notifRepo->save(null, 'global', 'all', $email);
                 }
             }
         }
@@ -56,12 +61,12 @@ try {
 
     if ($tab === 'smtp') {
         // Update SMTP configuration
-        $smtpHost = trim($_POST['smtp_host'] ?? '');
-        $smtpPort = trim($_POST['smtp_port'] ?? '25');
-        $smtpUser = trim($_POST['smtp_user'] ?? '');
-        $smtpPass = trim($_POST['smtp_pass'] ?? '');
-        $smtpFrom = trim($_POST['smtp_from'] ?? '');
-        $smtpEncryption = trim($_POST['smtp_encryption'] ?? 'none');
+        $smtpHost = trim((string) ($_POST['smtp_host'] ?? ''));
+        $smtpPort = trim((string) ($_POST['smtp_port'] ?? '25'));
+        $smtpUser = trim((string) ($_POST['smtp_user'] ?? ''));
+        $smtpPass = trim((string) ($_POST['smtp_pass'] ?? ''));
+        $smtpFrom = trim((string) ($_POST['smtp_from'] ?? ''));
+        $smtpEncryption = trim((string) ($_POST['smtp_encryption'] ?? 'none'));
 
         // Validate encryption value
         if (!in_array($smtpEncryption, ['none', 'tls', 'starttls'])) {
@@ -73,15 +78,15 @@ try {
             $smtpPort = '25';
         }
 
-        updateConfig($pdo, 'smtp_host', $smtpHost);
-        updateConfig($pdo, 'smtp_port', $smtpPort);
-        updateConfig($pdo, 'smtp_user', $smtpUser);
+        $configService->set('smtp_host', $smtpHost);
+        $configService->set('smtp_port', $smtpPort);
+        $configService->set('smtp_user', $smtpUser);
         // Only update password if a non-empty value is provided
         if (!empty($smtpPass)) {
-            updateConfig($pdo, 'smtp_pass', encryptConfigValue($smtpPass));
+            $configService->set('smtp_pass', encryptConfigValue($smtpPass));
         }
-        updateConfig($pdo, 'smtp_from', $smtpFrom);
-        updateConfig($pdo, 'smtp_encryption', $smtpEncryption);
+        $configService->set('smtp_from', $smtpFrom);
+        $configService->set('smtp_encryption', $smtpEncryption);
 
         // Auto-test SMTP connection after saving
         if (!empty($smtpHost)) {

@@ -7,7 +7,12 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
-$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
+// Service instances (created once for the page)
+$fmt = new \App\Services\FormattingService();
+$http = new \App\Services\HttpService();
+$config = \App\Services\ConfigService::getInstance();
+
+$noSiteMode = $config->isNoSiteMode();
 
 // Get filter parameters
 $year = $_GET['year'] ?? date('Y');
@@ -74,8 +79,8 @@ foreach (['rsst', 'rami', 'dgi'] as $type) {
 
 $pageTitle = 'Synthèse des signalements';
 
-$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = $config->isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 
 // Build list of active registry types for the table columns
 $activeTypes = ['rsst' => 'RSST'];
@@ -92,22 +97,22 @@ $colSpan = count($activeTypes) * 4;
 
 
 <!-- Filter Bar -->
-<form method="GET" action="<?php echo (new \App\Services\HttpService())->url('synthesis'); ?>" class="filter-bar">
+<form method="GET" action="<?php echo $http->url('synthesis'); ?>" class="filter-bar">
     <div class="form-group">
         <label for="year">Année</label>
         <select name="year" id="year">
             <?php foreach ($availableYears as $y): ?>
-            <option value="<?php echo (new \App\Services\FormattingService())->e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo (new \App\Services\FormattingService())->e($y); ?></option>
+            <option value="<?php echo $fmt->e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo $fmt->e($y); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
     <?php if (!$noSiteMode): ?>
     <div class="form-group">
-        <label for="site"><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></label>
+        <label for="site"><?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?></label>
         <select name="site" id="site">
             <option value="0" <?php echo $siteId === 0 ? 'selected' : ''; ?>>Tous</option>
             <?php foreach ($sites as $s): ?>
-            <option value="<?php echo (int) $s['id']; ?>" <?php echo $siteId === (int) $s['id'] ? 'selected' : ''; ?>><?php echo (new \App\Services\FormattingService())->e($s['nom']); ?></option>
+            <option value="<?php echo (int) $s['id']; ?>" <?php echo $siteId === (int) $s['id'] ? 'selected' : ''; ?>><?php echo $fmt->e($s['nom']); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
@@ -124,7 +129,7 @@ $colSpan = count($activeTypes) * 4;
         <table class="synthesis-table" aria-label="Synthèse des signalements par site">
             <thead>
                 <tr>
-                    <th rowspan="2"><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></th>
+                    <th rowspan="2"><?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?></th>
                     <th colspan="4" class="synthesis-th-rsst">RSST</th>
                     <?php if ($ramiEnabled): ?><th colspan="4" class="synthesis-th-rami">RAMI</th><?php endif; ?>
                     <?php if ($dgiEnabled): ?><th colspan="4" class="synthesis-th-dgi">DGI</th><?php endif; ?>
@@ -139,7 +144,7 @@ $colSpan = count($activeTypes) * 4;
             <tbody>
                 <?php foreach ($siteData as $sId => $sd): ?>
                 <tr>
-                    <td data-label="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>"><strong><?php echo (new \App\Services\FormattingService())->e($sd['code']); ?></strong></td>
+                    <td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><strong><?php echo $fmt->e($sd['code']); ?></strong></td>
                     <?php foreach ($activeTypes as $type => $typeLabel): ?>
                         <?php foreach (['nouveau' => 'Nouv.', 'en_cours' => 'En cours', 'traite' => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
                             <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="<?php echo $sd[$type][$state] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>">
@@ -158,7 +163,7 @@ $colSpan = count($activeTypes) * 4;
                 <?php endforeach; ?>
                 <!-- Totals row -->
                 <tr class="row--totals">
-                    <td data-label="<?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>"><strong>Total</strong></td>
+                    <td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><strong>Total</strong></td>
                     <?php foreach ($activeTypes as $type => $typeLabel): ?>
                         <?php foreach (['nouveau' => 'Nouv.', 'en_cours' => 'En cours', 'traite' => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
                             <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="synthesis-cell-value"><?php echo $totals[$type][$state]; ?></td>
@@ -172,6 +177,6 @@ $colSpan = count($activeTypes) * 4;
 </div>
 <?php else: ?>
 <div class="card">
-    <p class="text-muted">Aucun site n'est configuré. La synthèse par site sera disponible dès qu'au moins un site sera activé dans les <a href="<?php echo (new \App\Services\HttpService())->url('settings'); ?>">paramètres</a>.</p>
+    <p class="text-muted">Aucun site n'est configuré. La synthèse par site sera disponible dès qu'au moins un site sera activé dans les <a href="<?php echo $http->url('settings'); ?>">paramètres</a>.</p>
 </div>
 <?php endif; ?>

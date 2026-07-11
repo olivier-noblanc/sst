@@ -1,21 +1,21 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/agent_confirm_handler.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 1
 			path: handlers/agent_confirm_handler.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 8
+			path: handlers/agent_confirm_handler.php
+
+		-
 			message: '#^Offset ''email'' might not exist on array\<string, mixed\>\|null\.$#'
 			identifier: offsetAccess.notFound
-			count: 2
+			count: 1
 			path: handlers/agent_confirm_handler.php
 
 		-
@@ -25,58 +25,10 @@ parameters:
 			path: handlers/agent_confirm_handler.php
 
 		-
-			message: '#^Offset ''id'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/agent_confirm_handler.php
-
-		-
 			message: '#^Offset ''report_uuid'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
-			count: 3
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtolower expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Parameter \#2 \$uuid of function getReportByUuid expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Agent a changé son…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/choose_site_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Votre site a été…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: handlers/choose_site_handler.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 3
-			path: handlers/choose_site_handler.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
@@ -85,33 +37,39 @@ parameters:
 			path: handlers/choose_site_handler.php
 
 		-
-			message: '#^Offset ''code'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 7
+			path: handlers/choose_site_handler.php
+
+		-
+			message: '#^Offset ''code'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 3
 			path: handlers/choose_site_handler.php
 
 		-
-			message: '#^Offset ''nom'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Offset ''nom'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 3
-			path: handlers/choose_site_handler.php
-
-		-
-			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: handlers/choose_site_handler.php
 
 		-
 			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 3
+			count: 2
 			path: handlers/export_handler.php
 
 		-
 			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 3
+			count: 2
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''consent_syndicat'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
 			path: handlers/export_handler.php
 
 		-
@@ -121,19 +79,103 @@ parameters:
 			path: handlers/export_handler.php
 
 		-
-			message: '#^Cannot access offset ''nom'' on mixed\.$#'
+			message: '#^Cannot access offset ''date_evenement'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: handlers/export_handler.php
 
 		-
-			message: '#^Cannot access offset ''nouvel_etat'' on mixed\.$#'
+			message: '#^Cannot access offset ''date_reponse'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''declarant_nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''declarant_prenom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''description'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''etat'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
 			path: handlers/export_handler.php
 
 		-
-			message: '#^Cannot access offset ''prenom'' on mixed\.$#'
+			message: '#^Cannot access offset ''heure_evenement'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''is_confidential'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''lieu'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''nature_auteur'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''objet'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''pole'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''pour_compte_nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''pour_compte_prenom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''reference'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''repondant_nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''repondant_prenom'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: handlers/export_handler.php
@@ -145,7 +187,49 @@ parameters:
 			path: handlers/export_handler.php
 
 		-
-			message: '#^Cannot access offset ''report_uuid'' on mixed\.$#'
+			message: '#^Cannot access offset ''service_affectation'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''site_code'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''site_nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''site_text'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''telephone_mobile'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''type'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''type_acte'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Cannot access offset ''uuid'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: handlers/export_handler.php
@@ -159,37 +243,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Parameter \#1 \$stream of function fputcsv expects resource, resource\|false given\.$#'
-			identifier: argument.type
-			count: 2
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Parameter \#1 \$stream of function fwrite expects resource, resource\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Parameter \#1 \$stream of function rewind expects resource, resource\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Parameter \#1 \$stream of function stream_get_contents expects resource, resource\|false given\.$#'
-			identifier: argument.type
-			count: 1
+			count: 15
 			path: handlers/export_handler.php
 
 		-
@@ -199,50 +253,14 @@ parameters:
 			path: handlers/export_handler.php
 
 		-
-			message: '#^Part \$date \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Part \$etat \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Part \$text \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 6
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Incarnation du rôle '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/impersonate_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Vous incarnez…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/impersonate_handler.php
-
-		-
-			message: '#^Parameter \#2 \$targetRole of function startImpersonation expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$uuids of method App\\Repository\\ReportRepository\:\:getResponsesForUuids\(\) expects list\<string\>, non\-empty\-list given\.$#'
 			identifier: argument.type
 			count: 1
-			path: handlers/impersonate_handler.php
+			path: handlers/export_handler.php
 
 		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
 			count: 2
 			path: handlers/impersonate_handler.php
 
@@ -253,70 +271,16 @@ parameters:
 			path: handlers/impersonate_handler.php
 
 		-
-			message: '#^Binary operation "\-" between int\<1, max\> and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 3
-			path: handlers/login_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Bienvenue, '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/login_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Connexion \: '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/login_handler.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: handlers/login_handler.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 1
 			path: handlers/login_handler.php
 
 		-
-			message: '#^Cannot use \+\+ on mixed\.$#'
-			identifier: postInc.type
-			count: 1
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 5
 			path: handlers/login_handler.php
-
-		-
-			message: '#^Parameter \#1 \$pdo of function auditLog expects PDO, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/login_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/login_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Signalement…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_abandon_handler.php
 
 		-
 			message: '#^Cannot call method abandon\(\) on mixed\.$#'
@@ -331,21 +295,9 @@ parameters:
 			path: handlers/report_abandon_handler.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 9
 			path: handlers/report_abandon_handler.php
 
 		-
@@ -355,177 +307,51 @@ parameters:
 			path: handlers/report_abandon_handler.php
 
 		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Signalement créé \: '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 4
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Offset ''id'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Offset ''id'' might not exist on array\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Offset ''nom'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Offset ''prenom'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Offset ''reference'' might not exist on array\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 3
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Offset ''site_id'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$haystack of function strpos expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$haystack of function strrpos expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function substr expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 14
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$type of function isRegistryEnabled expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(string\)\: bool\)\|null, Closure\(mixed\)\: \(non\-falsy\-string\|false\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#3 \$type of function notifyNewReport expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Signalement modifié…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 15
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(string\)\: bool\)\|null, Closure\(mixed\)\: \(non\-falsy\-string\|false\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Signalement…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_reopen_handler.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 3
-			path: handlers/report_reopen_handler.php
+			path: handlers/report_create_handler.php
 
 		-
-			message: '#^Offset ''id'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/report_reopen_handler.php
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 6
+			path: handlers/report_create_handler.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: handlers/report_reopen_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$type of class App\\DTO\\CreateReportCommand constructor expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
-			path: handlers/report_reopen_handler.php
+			path: handlers/report_create_handler.php
 
 		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: handlers/report_edit_handler.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 12
+			path: handlers/report_edit_handler.php
+
+		-
+			message: '#^Parameter \#1 \$objet of class App\\DTO\\UpdateReportCommand constructor expects string, mixed given\.$#'
 			identifier: argument.type
+			count: 1
+			path: handlers/report_edit_handler.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
 			count: 2
+			path: handlers/report_reopen_handler.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 8
 			path: handlers/report_reopen_handler.php
 
 		-
@@ -547,38 +373,14 @@ parameters:
 			path: handlers/report_reopen_handler.php
 
 		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
-			path: handlers/report_reopen_handler.php
-
-		-
 			message: '#^Variable \$registryLabel might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
 			path: handlers/report_reopen_handler.php
 
 		-
-			message: '#^Binary operation "\." between ''Réponse au…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_respond_handler.php
-
-		-
 			message: '#^Binary operation "\." between ''\[SST\-RESPOND\]…'' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Cannot access offset ''message'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Cannot access offset ''status'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: handlers/report_respond_handler.php
 
@@ -601,46 +403,28 @@ parameters:
 			path: handlers/report_respond_handler.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 4
+			path: handlers/report_respond_handler.php
+
+		-
 			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 2
 			path: handlers/report_respond_handler.php
 
 		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 2
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 9
 			path: handlers/settings_handler.php
 
 		-
-			message: '#^Binary operation "\." between ''Paramètres modifiés…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/settings_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 7
-			path: handlers/settings_handler.php
-
-		-
-			message: '#^Parameter \#2 \$subject of function preg_split expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/settings_handler.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: handlers/settings_handler.php
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 12
+			path: handlers/settings_handler_app.php
 
 		-
 			message: '#^Function handleSettingsAppTab\(\) has parameter \$postData with no value type specified in iterable type array\.$#'
@@ -649,21 +433,15 @@ parameters:
 			path: handlers/settings_handler_app.php
 
 		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 10
-			path: handlers/settings_handler_app.php
-
-		-
-			message: '#^Parameter \#3 \$valeur of function updateConfig expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: handlers/settings_handler_app.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 2
+			path: handlers/settings_handler_sites.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 4
 			path: handlers/settings_handler_sites.php
 
 		-
@@ -673,32 +451,20 @@ parameters:
 			path: handlers/settings_handler_sites.php
 
 		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: handlers/settings_handler_sites.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 1
 			path: handlers/site_edit_handler.php
 
 		-
-			message: '#^Offset ''code'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 4
 			path: handlers/site_edit_handler.php
 
 		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: handlers/site_edit_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
 			count: 1
 			path: handlers/smtp_test_handler.php
 
@@ -829,6 +595,12 @@ parameters:
 			path: handlers/user_edit_handler.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 3
+			path: handlers/user_edit_handler.php
+
+		-
 			message: '#^Parameter \#1 \$content of function sendFileDownload expects string, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -848,12 +620,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Parameter \#3 \$oldRole of function notifyRoleChange expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: handlers/user_edit_handler.php
@@ -907,28 +673,10 @@ parameters:
 			path: handlers/user_reactivate_handler.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/access_denied.php
-
-		-
 			message: '#^Possibly invalid array key type string\|null\.$#'
 			identifier: offsetAccess.invalidOffset
 			count: 2
 			path: pages/access_denied.php
-
-		-
-			message: '#^Parameter \#1 \$date of function formatDateFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/agent_confirm.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: pages/agent_confirm.php
 
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
@@ -937,7 +685,7 @@ parameters:
 			path: pages/agent_confirm.php
 
 		-
-			message: '#^Parameter \#2 \$uuid of function getReportByUuid expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$uuid of method App\\Repository\\ReportRepository\:\:findById\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/agent_confirm.php
@@ -949,21 +697,9 @@ parameters:
 			path: pages/agent_confirm.php
 
 		-
-			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/changelog.php
-
-		-
-			message: '#^Parameter \#1 \$string of function rtrim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/changelog.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 3
 			path: pages/changelog.php
 
 		-
@@ -985,21 +721,33 @@ parameters:
 			path: pages/choose_site.php
 
 		-
+			message: '#^Cannot access offset ''code'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/choose_site.php
+
+		-
+			message: '#^Cannot access offset ''id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: pages/choose_site.php
+
+		-
+			message: '#^Cannot access offset ''nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/choose_site.php
+
+		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 2
 			path: pages/choose_site.php
 
 		-
-			message: '#^Parameter \#1 \$datetime of function strtotime expects string, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
 			count: 1
-			path: pages/choose_site.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 5
 			path: pages/choose_site.php
 
 		-
@@ -1015,15 +763,27 @@ parameters:
 			path: pages/export.php
 
 		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
+			message: '#^Cannot access offset ''id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: pages/export.php
+
+		-
+			message: '#^Cannot access offset ''nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
 			path: pages/export.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 4
+			message: '#^Cannot access offset ''prenom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/export.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 2
 			path: pages/export.php
 
 		-
@@ -1405,27 +1165,27 @@ parameters:
 			path: pages/home.php
 
 		-
-			message: '#^Offset ''id'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Offset ''id'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: pages/home.php
 
 		-
-			message: '#^Offset ''prenom'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Offset ''prenom'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: pages/home.php
 
 		-
-			message: '#^Offset ''site_id'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Offset ''site_id'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: pages/home.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
+			message: '#^Parameter \#1 \$pdo of method App\\Services\\FormattingService\:\:buildWordCloud\(\) expects PDO, mixed given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
 			path: pages/home.php
 
 		-
@@ -1433,12 +1193,6 @@ parameters:
 			identifier: offsetAccess.invalidOffset
 			count: 1
 			path: pages/home.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: pages/login.php
 
 		-
 			message: '#^Binary operation "\." between mixed and '' 00\:00\:00'' results in an error\.$#'
@@ -1477,19 +1231,19 @@ parameters:
 			path: pages/logs.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 16
-			path: pages/logs.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
 			count: 2
 			path: pages/logs.php
 
 		-
-			message: '#^Parameter \#1 \$token of function validateCsrfToken expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$pdo of function getAuditLog expects PDO, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: pages/logs.php
+
+		-
+			message: '#^Parameter \#1 \$token of method App\\Services\\SessionService\:\:validateCsrfToken\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/logs.php
@@ -1555,38 +1309,14 @@ parameters:
 			path: pages/report_abandon.php
 
 		-
-			message: '#^Offset ''id'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: pages/report_abandon.php
+
+		-
+			message: '#^Offset ''id'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
-			count: 1
-			path: pages/report_abandon.php
-
-		-
-			message: '#^Parameter \#1 \$date of function formatDateFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_abandon.php
-
-		-
-			message: '#^Parameter \#1 \$etat of function getEtatBadgeClass expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_abandon.php
-
-		-
-			message: '#^Parameter \#1 \$items of function renderBreadcrumb expects array\<int, array\{url\?\: string, label\: string\}\>, array\{array\{url\: string, label\: ''Accueil''\}, array\{url\: string, label\: string\}, array\{url\: string, label\: mixed\}, array\{label\: ''Abandonner''\}\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_abandon.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 5
-			path: pages/report_abandon.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: pages/report_abandon.php
 
@@ -1669,19 +1399,19 @@ parameters:
 			path: pages/report_create.php
 
 		-
-			message: '#^Offset ''site_id'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: pages/report_create.php
+
+		-
+			message: '#^Offset ''site_id'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: pages/report_create.php
 
 		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_create.php
-
-		-
-			message: '#^Parameter \#1 \$type of function isRegistryEnabled expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$type of method App\\Services\\ConfigService\:\:isRegistryEnabled\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_create.php
@@ -1729,171 +1459,45 @@ parameters:
 			path: pages/report_edit.php
 
 		-
-			message: '#^Binary operation "\." between mixed and '' — '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''date_evenement'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''declarant_nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''declarant_prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''etat'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''is_confidential'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''objet'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''reference'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''site_code'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Cannot access offset ''uuid'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: pages/report_list.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 3
+			count: 4
 			path: pages/report_list.php
 
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 1
+			count: 17
 			path: pages/report_list.php
 
 		-
-			message: '#^Offset ''id'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Offset ''declarant_id'' does not exist on array\{etat\: string, site_id\: string, q\: string, force_site_id\: int, own_only\: int\}\|array\{etat\: string, site_id\: string, q\: string, force_site_id\?\: int, confidential_filter\?\: int\}\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: pages/report_list.php
 
 		-
-			message: '#^Offset ''role'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
+			message: '#^Offset ''declarant_id'' on array\{etat\: string, site_id\: string, q\: string, force_site_id\: int, own_only\: int\}\|array\{etat\: string, site_id\: string, q\: string, force_site_id\?\: int, confidential_filter\?\: int\} in empty\(\) does not exist\.$#'
+			identifier: empty.offset
 			count: 1
 			path: pages/report_list.php
 
 		-
-			message: '#^Offset ''site_id'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
+			message: '#^Offset ''etat'' on array\{etat\: string, site_id\: string, q\: string, force_site_id\: int, own_only\: int\}\|array\{etat\: string, site_id\: string, q\: string, force_site_id\?\: int, confidential_filter\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
 			count: 1
 			path: pages/report_list.php
 
 		-
-			message: '#^Parameter \#1 \$date of function formatDateFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Offset ''q'' on array\{etat\: string, site_id\: string, q\: string, force_site_id\: int, own_only\: int\}\|array\{etat\: string, site_id\: string, q\: string, force_site_id\?\: int, confidential_filter\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
 			count: 1
 			path: pages/report_list.php
 
 		-
-			message: '#^Parameter \#1 \$etat of function getEtatBadgeClass expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#1 \$report of function canEditReport expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#1 \$report of function canRespondToReport expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 7
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 4
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#1 \$string of function truncate expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#1 \$type of function isRegistryEnabled expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#2 \$role of function canRespondToReport expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Parameter \#2 \$type of function getReportsByRegistry expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_list.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 5
+			message: '#^Offset ''site_id'' on array\{etat\: string, site_id\: string, q\: string, force_site_id\: int, own_only\: int\}\|array\{etat\: string, site_id\: string, q\: string, force_site_id\?\: int, confidential_filter\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
 			path: pages/report_list.php
 
 		-
@@ -1969,13 +1573,19 @@ parameters:
 			path: pages/report_print.php
 
 		-
-			message: '#^Parameter \#1 \$date of function formatDateFR expects string\|null, mixed given\.$#'
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: pages/report_print.php
+
+		-
+			message: '#^Parameter \#1 \$pdo of method App\\Services\\AccessService\:\:logConfidentialReportAccess\(\) expects PDO, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_print.php
 
 		-
-			message: '#^Parameter \#1 \$datetime of function formatDateTimeFR expects string\|null, mixed given\.$#'
+			message: '#^Parameter \#1 \$reportUuid of method App\\Repository\\ReportRepository\:\:getResponses\(\) expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_print.php
@@ -1983,17 +1593,11 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 2
-			path: pages/report_print.php
-
-		-
-			message: '#^Parameter \#1 \$uuid of function fetchReportOrRedirect expects string, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: pages/report_print.php
 
 		-
-			message: '#^Parameter \#2 \$reportUuid of function getReportResponses expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$uuid of function fetchReportOrRedirect expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_print.php
@@ -2005,7 +1609,7 @@ parameters:
 			path: pages/report_print.php
 
 		-
-			message: '#^Parameter \#2 \$user of function canAccessReport expects array, array\<string, mixed\>\|null given\.$#'
+			message: '#^Parameter \#2 \$user of method App\\Services\\AccessService\:\:canAccessReport\(\) expects array\<string, mixed\>, array\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_print.php
@@ -2029,7 +1633,7 @@ parameters:
 			path: pages/report_print.php
 
 		-
-			message: '#^Parameter \#3 \$user of function logConfidentialReportAccess expects array, array\<string, mixed\>\|null given\.$#'
+			message: '#^Parameter \#3 \$user of method App\\Services\\AccessService\:\:logConfidentialReportAccess\(\) expects array, array\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_print.php
@@ -2191,6 +1795,12 @@ parameters:
 			path: pages/report_print_helpers.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
 			message: '#^Function drawBadge\(\) has parameter \$bgColor with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -2239,21 +1849,9 @@ parameters:
 			path: pages/report_print_helpers.php
 
 		-
-			message: '#^Parameter \#1 \$datetime of function formatDateTimeFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_print_helpers.php
-
-		-
 			message: '#^Parameter \#1 \$s of function utf8ToCp1252 expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 2
-			path: pages/report_print_helpers.php
-
-		-
-			message: '#^Parameter \#1 \$string of function base64_encode expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: pages/report_print_helpers.php
 
 		-
@@ -2269,32 +1867,8 @@ parameters:
 			path: pages/report_reopen.php
 
 		-
-			message: '#^Parameter \#1 \$date of function formatDateFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_reopen.php
-
-		-
-			message: '#^Parameter \#1 \$etat of function getEtatBadgeClass expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_reopen.php
-
-		-
-			message: '#^Parameter \#1 \$items of function renderBreadcrumb expects array\<int, array\{url\?\: string, label\: string\}\>, array\{array\{url\: string, label\: ''Accueil''\}, array\{url\: string, label\: string\}, array\{url\: string, label\: mixed\}, array\{label\: ''Réouvrir''\}\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_reopen.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 9
-			path: pages/report_reopen.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
 			count: 1
 			path: pages/report_reopen.php
 
@@ -2323,55 +1897,49 @@ parameters:
 			path: pages/report_respond.php
 
 		-
-			message: '#^Parameter \#1 \$date of function formatDateFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Cannot access offset ''created_at'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: pages/report_respond.php
 
 		-
-			message: '#^Parameter \#1 \$datetime of function formatDateTimeFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Cannot access offset ''nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: pages/report_respond.php
 
 		-
-			message: '#^Parameter \#1 \$etat of function getEtatBadgeClass expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
+			message: '#^Cannot access offset ''nouvel_etat'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
 			path: pages/report_respond.php
 
 		-
-			message: '#^Parameter \#1 \$items of function renderBreadcrumb expects array\<int, array\{url\?\: string, label\: string\}\>, array\{array\{url\: string, label\: ''Accueil''\}, array\{url\: string, label\: string\}, array\{url\: string, label\: mixed\}, array\{label\: ''Répondre''\}\} given\.$#'
-			identifier: argument.type
+			message: '#^Cannot access offset ''prenom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: pages/report_respond.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 19
-			path: pages/report_respond.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Cannot access offset ''reponse'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: pages/report_respond.php
 
 		-
-			message: '#^Parameter \#1 \$type of function getRegistryBadgeClass expects string, mixed given\.$#'
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: pages/report_respond.php
+
+		-
+			message: '#^Parameter \#1 \$reportUuid of method App\\Repository\\ReportRepository\:\:getResponses\(\) expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
 			path: pages/report_respond.php
 
 		-
 			message: '#^Parameter \#1 \$uuid of function fetchReportOrRedirect expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/report_respond.php
-
-		-
-			message: '#^Parameter \#2 \$reportUuid of function getReportResponses expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_respond.php
@@ -2527,8 +2095,32 @@ parameters:
 			path: pages/response_attachment.php
 
 		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: pages/settings.php
+
+		-
 			message: '#^Binary operation "\." between literal\-string&non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
+			count: 1
+			path: pages/settings.php
+
+		-
+			message: '#^Call to an undefined method App\\Repository\\NotificationRepository\:\:getSettings\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: pages/settings.php
+
+		-
+			message: '#^Cannot access offset ''site_id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/settings.php
+
+		-
+			message: '#^Cannot access offset ''type'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: pages/settings.php
 
@@ -2537,12 +2129,6 @@ parameters:
 			identifier: cast.int
 			count: 1
 			path: pages/settings.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/settings/tab_app.php
 
 		-
 			message: '#^Ternary operator condition is always false\.$#'
@@ -2565,12 +2151,6 @@ parameters:
 		-
 			message: '#^Cannot access offset ''email'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: pages/settings/tab_global.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: pages/settings/tab_global.php
 
@@ -2647,12 +2227,6 @@ parameters:
 			path: pages/settings/tab_manage_sites.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 11
-			path: pages/settings/tab_manage_sites.php
-
-		-
 			message: '#^Variable \$csrfToken might not be defined\.$#'
 			identifier: variable.undefined
 			count: 4
@@ -2713,12 +2287,6 @@ parameters:
 			path: pages/settings/tab_sites.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: pages/settings/tab_sites.php
-
-		-
 			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, list given\.$#'
 			identifier: argument.type
 			count: 1
@@ -2735,12 +2303,6 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: pages/settings/tab_sites.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: pages/settings/tab_smtp.php
 
 		-
 			message: '#^Variable \$csrfToken might not be defined\.$#'
@@ -2767,21 +2329,15 @@ parameters:
 			path: pages/site_edit.php
 
 		-
-			message: '#^Offset ''code'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Offset ''code'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 2
 			path: pages/site_edit.php
 
 		-
-			message: '#^Offset ''nom'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Offset ''nom'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 2
-			path: pages/site_edit.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 7
 			path: pages/site_edit.php
 
 		-
@@ -2789,6 +2345,12 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: pages/site_edit.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 2
+			path: pages/statistics.php
 
 		-
 			message: '#^Cannot access offset ''count'' on mixed\.$#'
@@ -2815,117 +2377,123 @@ parameters:
 			path: pages/statistics.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: pages/statistics.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 3
+			path: pages/statistics.php
+
+		-
+			message: '#^Cannot access offset ''abandonne'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''code'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''en_cours'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''nouveau'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''site_id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''total'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''traite'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot access offset ''type'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 9
+			path: pages/synthesis.php
+
+		-
+			message: '#^Parameter \#1 \$year of method App\\Repository\\StatsRepository\:\:getSynthesis\(\) expects string, mixed given\.$#'
 			identifier: argument.type
+			count: 1
+			path: pages/synthesis.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 2
+			path: pages/synthesis.php
+
+		-
+			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: pages/user_edit.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: pages/user_edit.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 3
+			path: pages/user_edit.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
 			count: 4
-			path: pages/statistics.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/statistics.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 3
-			path: pages/statistics.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 9
-			path: pages/synthesis.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: pages/synthesis.php
-
-		-
-			message: '#^Parameter \#2 \$year of function getSynthesisData expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/synthesis.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
-			path: pages/synthesis.php
-
-		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: pages/user_edit.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: pages/user_edit.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: pages/user_edit.php
-
-		-
-			message: '#^Offset ''email'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: pages/user_edit.php
-
-		-
-			message: '#^Offset ''is_active'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: pages/user_edit.php
-
-		-
-			message: '#^Offset ''nom'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: pages/user_edit.php
-
-		-
-			message: '#^Offset ''prenom'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: pages/user_edit.php
-
-		-
-			message: '#^Offset ''role'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 5
-			path: pages/user_edit.php
-
-		-
-			message: '#^Offset ''site_id'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: pages/user_edit.php
-
-		-
-			message: '#^Offset ''username'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: pages/user_edit.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 5
 			path: pages/user_edit.php
 
 		-
 			message: '#^Possibly invalid array key type mixed\.$#'
 			identifier: offsetAccess.invalidOffset
-			count: 2
+			count: 1
 			path: pages/user_edit.php
 
 		-
@@ -2935,69 +2503,21 @@ parameters:
 			path: pages/user_edit.php
 
 		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: pages/user_view.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: pages/user_view.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 7
 			path: pages/user_view.php
 
 		-
-			message: '#^Offset ''is_active'' might not exist on array\<string, mixed\>\|null\.$#'
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 17
+			path: pages/user_view.php
+
+		-
+			message: '#^Offset ''is_active'' might not exist on array\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
-			path: pages/user_view.php
-
-		-
-			message: '#^Offset ''nom'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: pages/user_view.php
-
-		-
-			message: '#^Offset ''prenom'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: pages/user_view.php
-
-		-
-			message: '#^Offset ''role'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 3
-			path: pages/user_view.php
-
-		-
-			message: '#^Parameter \#1 \$datetime of function formatDateTimeFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: pages/user_view.php
-
-		-
-			message: '#^Parameter \#1 \$role of function getRoleBadgeClass expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: pages/user_view.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 9
-			path: pages/user_view.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
 			path: pages/user_view.php
 
 		-
@@ -3007,39 +2527,45 @@ parameters:
 			path: pages/user_view.php
 
 		-
+			message: '#^Cannot access offset ''email'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/users.php
+
+		-
+			message: '#^Cannot access offset ''nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/users.php
+
+		-
+			message: '#^Cannot access offset ''prenom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/users.php
+
+		-
+			message: '#^Cannot access offset ''site_nom'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/users.php
+
+		-
+			message: '#^Cannot access offset ''username'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: pages/users.php
+
+		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 3
 			path: pages/users.php
 
 		-
-			message: '#^Parameter \#1 \$haystack of function stripos expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 5
-			path: pages/users.php
-
-		-
-			message: '#^Parameter \#1 \$role of function getRoleBadgeClass expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/users.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 7
-			path: pages/users.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/users.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 14
 			path: pages/users.php
 
 		-
@@ -3247,6 +2773,12 @@ parameters:
 			path: src/DTO/CreateUserCommand.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/DTO/CreateUserCommand.php
+
+		-
 			message: '#^Method App\\DTO\\CreateUserCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3261,7 +2793,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 6
+			count: 5
 			path: src/DTO/CreateUserCommand.php
 
 		-
@@ -3361,6 +2893,12 @@ parameters:
 			path: src/DTO/UpdateUserCommand.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/DTO/UpdateUserCommand.php
+
+		-
 			message: '#^Method App\\DTO\\UpdateUserCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3375,7 +2913,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 6
+			count: 5
 			path: src/DTO/UpdateUserCommand.php
 
 		-
@@ -3573,7 +3111,7 @@ parameters:
 		-
 			message: '#^Cannot access offset ''etat'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
+			count: 3
 			path: src/Repository/ReportRepository.php
 
 		-
@@ -3589,6 +3127,12 @@ parameters:
 			path: src/Repository/ReportRepository.php
 
 		-
+			message: '#^Cannot access offset ''report_uuid'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
 			message: '#^Cannot access offset ''uuid'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
@@ -3598,6 +3142,12 @@ parameters:
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 10
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
 			path: src/Repository/ReportRepository.php
 
 		-
@@ -3685,6 +3235,12 @@ parameters:
 			path: src/Repository/ReportRepository.php
 
 		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:getResponsesForUuids\(\) should return array\<string, list\<array\<string, mixed\>\>\> but returns array\<string, non\-empty\-list\<mixed\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
 			message: '#^Method App\\Repository\\ReportRepository\:\:getStatistics\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3758,12 +3314,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#2 \$type of function getNextSequence expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Repository/ReportRepository.php
@@ -4051,6 +3601,12 @@ parameters:
 			path: src/Router/Router.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Router/Router.php
+
+		-
 			message: '#^Method App\\Router\\Router\:\:addRoute\(\) has parameter \$methods with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -4100,12 +3656,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#2 \$haystack of function in_array expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Router/Router.php
@@ -4273,6 +3823,12 @@ parameters:
 			path: src/Services/ConfigService.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: src/Services/ConfigService.php
+
+		-
 			message: '#^Method App\\Services\\ConfigService\:\:get\(\) should return string but returns mixed\.$#'
 			identifier: return.type
 			count: 1
@@ -4297,19 +3853,7 @@ parameters:
 			path: src/Services/ConfigService.php
 
 		-
-			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Services/ConfigService.php
-
-		-
 			message: '#^Parameter \#1 \$path of function realpath expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Services/ConfigService.php
-
-		-
-			message: '#^Parameter \#1 \$string of function rtrim expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Services/ConfigService.php
@@ -4363,7 +3907,13 @@ parameters:
 			path: src/Services/FormattingService.php
 
 		-
-			message: '#^Offset ''url'' might not exist on array\{url\?\: string, label\: string\}\.$#'
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 7
+			path: src/Services/FormattingService.php
+
+		-
+			message: '#^Offset ''url'' might not exist on array\{url\?\: string, label\: mixed\}\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: src/Services/FormattingService.php
@@ -4423,15 +3973,15 @@ parameters:
 			path: src/Services/NotificationService.php
 
 		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 4
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
 			path: src/Services/NotificationService.php
 
 		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
+			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 4
 			path: src/Services/NotificationService.php
 
 		-
@@ -4777,12 +4327,6 @@ parameters:
 			path: src/auth.php
 
 		-
-			message: '#^Function autoProvisionUser\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/auth_provision.php
-
-		-
 			message: '#^Function getLastBackupFingerprint\(\) should return array\{mtime\: int, size\: int\}\|null but returns non\-empty\-array\.$#'
 			identifier: return.type
 			count: 1
@@ -4791,7 +4335,7 @@ parameters:
 		-
 			message: '#^Cannot call method get\(\) on mixed\.$#'
 			identifier: method.nonObject
-			count: 8
+			count: 11
 			path: src/bootstrap_services.php
 
 		-
@@ -4801,7 +4345,25 @@ parameters:
 			path: src/bootstrap_services.php
 
 		-
+			message: '#^Parameter \#1 \$pdo of class App\\Repository\\NotificationRepository constructor expects PDO, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/bootstrap_services.php
+
+		-
 			message: '#^Parameter \#1 \$pdo of class App\\Repository\\ReportRepository constructor expects PDO, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/bootstrap_services.php
+
+		-
+			message: '#^Parameter \#1 \$pdo of class App\\Repository\\SiteRepository constructor expects PDO, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/bootstrap_services.php
+
+		-
+			message: '#^Parameter \#1 \$pdo of class App\\Repository\\StatsRepository constructor expects PDO, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/bootstrap_services.php
@@ -4945,6 +4507,12 @@ parameters:
 			path: src/error_notify.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: src/error_notify.php
+
+		-
 			message: '#^Function sstGetAdminEmail\(\) should return string but returns mixed\.$#'
 			identifier: return.type
 			count: 1
@@ -4954,12 +4522,6 @@ parameters:
 			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
-			path: src/error_notify.php
-
-		-
-			message: '#^Parameter \#1 \$string of function htmlspecialchars expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
 			path: src/error_notify.php
 
 		-
@@ -5029,7 +4591,7 @@ parameters:
 			path: src/helpers/formatting.php
 
 		-
-			message: '#^Parameter \#1 \$items of method App\\Services\\FormattingService\:\:renderBreadcrumb\(\) expects array\<int, array\{url\?\: string, label\: string\}\>, array given\.$#'
+			message: '#^Parameter \#1 \$items of method App\\Services\\FormattingService\:\:renderBreadcrumb\(\) expects array\<int, array\{url\?\: string, label\: mixed\}\>, array given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/helpers/formatting.php
@@ -5101,12 +4663,6 @@ parameters:
 			path: src/helpers/rendering.php
 
 		-
-			message: '#^Parameter \#1 \$string of function substr expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 8
-			path: src/mail.php
-
-		-
 			message: '#^Binary operation "\." between ''Vous avez été…'' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -5137,6 +4693,12 @@ parameters:
 			path: src/mail_notifications.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 3
+			path: src/mail_notifications.php
+
+		-
 			message: '#^Function getNotificationRecipients\(\) should return array\<int, string\> but returns list\.$#'
 			identifier: return.type
 			count: 1
@@ -5152,18 +4714,6 @@ parameters:
 			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 12
-			path: src/mail_notifications.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtolower expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/mail_notifications.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: src/mail_notifications.php
 
 		-
@@ -5239,15 +4789,9 @@ parameters:
 			path: src/mail_templates.php
 
 		-
-			message: '#^Parameter \#1 \$string of function htmlspecialchars expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 3
-			path: src/mail_templates.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 4
 			path: src/mail_templates.php
 
 		-
@@ -5311,15 +4855,9 @@ parameters:
 			path: src/migration_columns.php
 
 		-
-			message: '#^Parameter \#1 \$string of function strtolower expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/migration_columns.php
-
-		-
-			message: '#^Parameter \#1 \$string of function substr expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 3
 			path: src/migration_columns.php
 
 		-
@@ -5521,6 +5059,12 @@ parameters:
 			path: src/queries/stats_queries.php
 
 		-
+			message: '#^Function exportUserData\(\) should return array\<string, mixed\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/queries/user_gdpr_queries.php
+
+		-
 			message: '#^Function getAllUsers\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
 			identifier: return.type
 			count: 1
@@ -5683,6 +5227,12 @@ parameters:
 			path: src/validation.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/validation.php
+
+		-
 			message: '#^Function fetchReportOrRedirect\(\) should return array\<string, mixed\> but returns array\|null\.$#'
 			identifier: return.type
 			count: 1
@@ -5702,12 +5252,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#1 \$filename of function file_get_contents expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/validation.php
-
-		-
-			message: '#^Parameter \#1 \$path of function basename expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/validation.php
@@ -5853,53 +5397,17 @@ parameters:
 		-
 			message: '#^Cannot access offset ''attachment_mime'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
+			count: 1
 			path: templates/report_card.php
 
 		-
 			message: '#^Cannot access offset ''attachment_name'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''consent_syndicat'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: templates/report_card.php
 
 		-
 			message: '#^Cannot access offset ''created_at'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''date_evenement'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''declarant_id'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''declarant_nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''declarant_prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''description'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: templates/report_card.php
@@ -5911,39 +5419,15 @@ parameters:
 			path: templates/report_card.php
 
 		-
-			message: '#^Cannot access offset ''etat'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 5
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''heure_evenement'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
 			message: '#^Cannot access offset ''id'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 3
 			path: templates/report_card.php
 
 		-
-			message: '#^Cannot access offset ''is_confidential'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''lieu'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
 			message: '#^Cannot access offset ''nom'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
+			count: 2
 			path: templates/report_card.php
 
 		-
@@ -5953,37 +5437,7 @@ parameters:
 			path: templates/report_card.php
 
 		-
-			message: '#^Cannot access offset ''objet'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''pole'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''pour_compte_nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''pour_compte_prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
 			message: '#^Cannot access offset ''prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''reference'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
 			path: templates/report_card.php
@@ -5995,111 +5449,15 @@ parameters:
 			path: templates/report_card.php
 
 		-
-			message: '#^Cannot access offset ''service_affectation'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''site_code'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''site_nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''site_text'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''telephone_mobile'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''type'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Cannot access offset ''uuid'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 11
-			path: templates/report_card.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 3
 			path: templates/report_card.php
 
 		-
-			message: '#^Parameter \#1 \$date of function formatDateFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$datetime of function formatDateTimeFR expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$etat of function getEtatBadgeClass expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$pdo of function getLinkedAgents expects PDO, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$pdo of function getPendingInvites expects PDO, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$report of function canEditReport expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$report of function canRespondToReport expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 22
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#1 \$type of function getRegistryBadgeClass expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 6
 			path: templates/report_card.php
 
 		-
@@ -6109,34 +5467,10 @@ parameters:
 			path: templates/report_card.php
 
 		-
-			message: '#^Parameter \#2 \$reportUuid of function getLinkedAgents expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#2 \$reportUuid of function getPendingInvites expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
-			message: '#^Parameter \#2 \$role of function canRespondToReport expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_card.php
-
-		-
 			message: '#^Possibly invalid array key type mixed\.$#'
 			identifier: offsetAccess.invalidOffset
-			count: 3
-			path: templates/report_card.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
 			count: 2
-			path: templates/report_form.php
+			path: templates/report_card.php
 
 		-
 			message: '#^Binary operation "\." between mixed and '' — '' results in an error\.$#'
@@ -6163,12 +5497,6 @@ parameters:
 			path: templates/report_form.php
 
 		-
-			message: '#^Cannot access offset ''code'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/report_form.php
-
-		-
 			message: '#^Cannot access offset ''consent_syndicat'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -6182,18 +5510,6 @@ parameters:
 
 		-
 			message: '#^Cannot access offset ''description'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: templates/report_form.php
-
-		-
-			message: '#^Cannot access offset ''id'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: templates/report_form.php
-
-		-
-			message: '#^Cannot access offset ''nom'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
 			path: templates/report_form.php
@@ -6219,7 +5535,7 @@ parameters:
 		-
 			message: '#^Cannot access offset string on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
+			count: 1
 			path: templates/report_form.php
 
 		-
@@ -6235,51 +5551,21 @@ parameters:
 			path: templates/report_form.php
 
 		-
+			message: '#^PHPDoc tag @var with type string is not subtype of native type uppercase\-string\.$#'
+			identifier: varTag.nativeType
+			count: 1
+			path: templates/report_form.php
+
+		-
 			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
 			identifier: argument.type
-			count: 24
+			count: 20
 			path: templates/report_form.php
 
 		-
 			message: '#^Parameter \#1 \$string of function mb_strlen expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
-			path: templates/report_form.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_form.php
-
-		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
-			path: templates/report_form.php
-
-		-
-			message: '#^Variable \$action might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: templates/report_form.php
-
-		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: templates/report_form.php
-
-		-
-			message: '#^Variable \$sites might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: templates/report_form.php
-
-		-
-			message: '#^Variable \$type might not be defined\.$#'
-			identifier: variable.undefined
-			count: 5
 			path: templates/report_form.php
 
 		-
@@ -6301,15 +5587,9 @@ parameters:
 			path: templates/report_form_linked_agents.php
 
 		-
-			message: '#^Parameter \#1 \$haystack of function strpos expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: templates/report_form_linked_agents.php
-
-		-
-			message: '#^Parameter \#1 \$haystack of function strrpos expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 3
 			path: templates/report_form_linked_agents.php
 
 		-
@@ -6322,12 +5602,6 @@ parameters:
 			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 2
-			path: templates/report_form_linked_agents.php
-
-		-
-			message: '#^Parameter \#1 \$string of function substr expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: templates/report_form_linked_agents.php
 
 		-
@@ -6385,8 +5659,8 @@ parameters:
 			path: templates/sidebar.php
 
 		-
-			message: '#^Parameter \#1 \$string of function strlen expects string, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
 			count: 1
 			path: templates/sidebar.php
 

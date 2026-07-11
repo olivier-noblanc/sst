@@ -11,10 +11,10 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\RespondToReportCommand;
 use App\Services\ReportService;
 
-$reportUuid = trim($_POST['report_uuid'] ?? '');
+$reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 
 // Validate nouvel_etat
-$nouvelEtat = trim($_POST['nouvel_etat'] ?? '');
+$nouvelEtat = trim((string) ($_POST['nouvel_etat'] ?? ''));
 if (!in_array($nouvelEtat, [ETAT_EN_COURS, ETAT_TRAITE])) {
     setFlash('error', 'L\'état sélectionné n\'est pas valide.');
     setFormData($_POST);
@@ -22,7 +22,7 @@ if (!in_array($nouvelEtat, [ETAT_EN_COURS, ETAT_TRAITE])) {
 }
 
 // Validate reponse
-$reponse = trim($_POST['reponse'] ?? '');
+$reponse = trim((string) ($_POST['reponse'] ?? ''));
 if (empty($reponse)) {
     setFlash('error', 'La réponse ne peut pas être vide.');
     setFormErrors(['reponse' => 'La réponse ne peut pas être vide.']);
@@ -69,8 +69,8 @@ try {
     $service = getContainer()->get(ReportService::class);
     $result = $service->respond($reportUuid, $cmd, $userId);
 
-    if ($result['status'] === 'true') {
-        auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . $report['reference'] . ' — état : ' . $nouvelEtat, (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
+    if (is_array($result) && ($result['status'] ?? '') === 'true') {
+        auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report['reference'] . ' — état : ' . $nouvelEtat, (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
 
         try {
             require_once __DIR__ . '/../src/mail.php';
@@ -81,10 +81,11 @@ try {
 
         setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report['reference']) . '.');
     } else {
-        if ($result['status'] === 'concurrent') {
+        $status = is_array($result) ? ($result['status'] ?? '') : '';
+        if ($status === 'concurrent') {
             setFlash('error', 'Ce signalement a été modifié par un autre superviseur pendant votre saisie. Veuillez recommencer.');
         } else {
-            $errorMsg = $result['message'] ?? 'Erreur inconnue';
+            $errorMsg = is_array($result) ? ($result['message'] ?? 'Erreur inconnue') : 'Erreur inconnue';
             error_log('[SST-RESPOND] respondToReport failed: ' . $errorMsg . ' | user_id=' . $userId . ' report_uuid=' . $reportUuid);
             setFlash('error', 'Erreur lors de l\'enregistrement de la réponse : ' . e($errorMsg));
         }

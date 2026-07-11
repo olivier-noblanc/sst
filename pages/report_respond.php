@@ -7,6 +7,12 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
+// Service instances (created once for the page)
+$fmt = new \App\Services\FormattingService();
+$http = new \App\Services\HttpService();
+$config = \App\Services\ConfigService::getInstance();
+$session = new \App\Services\SessionService();
+
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
@@ -14,83 +20,83 @@ $report = fetchReportOrRedirect($uuid);
 requireReportEditable($report, $uuid, 'répondu');
 
 $pdo = getContainer()->get(\PDO::class);
-$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
+$noSiteMode = $config->isNoSiteMode();
 
 // Get response history
 $responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 
-$pageTitle = 'Répondre au signalement — ' . (new \App\Services\FormattingService())->e($report['reference']);
+$pageTitle = 'Répondre au signalement — ' . $fmt->e($report['reference']);
 $registryType = $report['type'];
 $registryLabel = REGISTRY_SHORT_LABELS[$registryType] ?? strtoupper((string) $registryType);
 
 // Get form errors and data from session
-$formErrors = (new \App\Services\SessionService())->getFormErrors();
-$formData = (new \App\Services\SessionService())->getFormData();
+$formErrors = $session->getFormErrors();
+$formData = $session->getFormData();
 ?>
 
-<h1 class="page-title">Répondre au signalement — <span class="badge <?php echo (new \App\Services\FormattingService())->getRegistryBadgeClass($registryType); ?>"><?php echo (new \App\Services\FormattingService())->e($report['reference']); ?></span></h1>
+<h1 class="page-title">Répondre au signalement — <span class="badge <?php echo $fmt->getRegistryBadgeClass($registryType); ?>"><?php echo $fmt->e($report['reference']); ?></span></h1>
 
-<?php echo (new \App\Services\FormattingService())->renderBreadcrumb([
-    ['url' => (new \App\Services\HttpService())->url('home'), 'label' => 'Accueil'],
-    ['url' => (new \App\Services\HttpService())->url('report_list', ['type' => $registryType]), 'label' => $registryLabel],
-    ['url' => (new \App\Services\HttpService())->url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
+<?php echo $fmt->renderBreadcrumb([
+    ['url' => $http->url('home'), 'label' => 'Accueil'],
+    ['url' => $http->url('report_list', ['type' => $registryType]), 'label' => $registryLabel],
+    ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
     ['label' => 'Répondre'],
 ]); ?>
 
 
 <!-- Report Summary (read-only) -->
-<div class="card card--<?php echo (new \App\Services\FormattingService())->e($registryType); ?>">
+<div class="card card--<?php echo $fmt->e($registryType); ?>">
     <h3 class="card__subtitle">Résumé du signalement</h3>
     <table class="report-detail__table" aria-label="Détails du signalement">
         <tr>
             <th>Référence</th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['reference']); ?></td>
+            <td><?php echo $fmt->e($report['reference']); ?></td>
         </tr>
         <tr>
             <th>Registre</th>
-            <td><span class="badge <?php echo (new \App\Services\FormattingService())->getRegistryBadgeClass($registryType); ?>"><?php echo (new \App\Services\FormattingService())->e($registryLabel); ?></span></td>
+            <td><span class="badge <?php echo $fmt->getRegistryBadgeClass($registryType); ?>"><?php echo $fmt->e($registryLabel); ?></span></td>
         </tr>
         <tr>
             <th>Date de l'événement</th>
-            <td><?php echo (new \App\Services\FormattingService())->e((new \App\Services\FormattingService())->formatDateFR($report['date_evenement'])); ?></td>
+            <td><?php echo $fmt->e($fmt->formatDateFR($report['date_evenement'])); ?></td>
         </tr>
         <tr>
             <th>Déclarant</th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['declarant_prenom'] . ' ' . $report['declarant_nom']); ?></td>
+            <td><?php echo $fmt->e($report['declarant_prenom'] . ' ' . $report['declarant_nom']); ?></td>
         </tr>
         <?php if (!$noSiteMode): ?>
         <tr>
-            <th><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['site_nom'] ?? '—'); ?></td>
+            <th><?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?></th>
+            <td><?php echo $fmt->e($report['site_nom'] ?? '—'); ?></td>
         </tr>
         <?php endif; ?>
         <tr>
             <th><?php echo $type === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['lieu'] ?? '—'); ?></td>
+            <td><?php echo $fmt->e($report['lieu'] ?? '—'); ?></td>
         </tr>
         <?php if (!empty($report['pole'])): ?>
         <tr>
             <th>Pôle</th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['pole']); ?></td>
+            <td><?php echo $fmt->e($report['pole']); ?></td>
         </tr>
         <?php endif; ?>
         <?php if (!empty($report['service_affectation'])): ?>
         <tr>
             <th>Service d'affectation</th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['service_affectation']); ?></td>
+            <td><?php echo $fmt->e($report['service_affectation']); ?></td>
         </tr>
         <?php endif; ?>
         <tr>
             <th>Objet</th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['objet']); ?></td>
+            <td><?php echo $fmt->e($report['objet']); ?></td>
         </tr>
         <tr>
             <th>Description</th>
-            <td><?php echo nl2br((new \App\Services\FormattingService())->e($report['description'])); ?></td>
+            <td><?php echo nl2br($fmt->e($report['description'])); ?></td>
         </tr>
         <tr>
             <th>État actuel</th>
-            <td><span class="badge <?php echo (new \App\Services\FormattingService())->getEtatBadgeClass($report['etat']); ?>"><?php echo (new \App\Services\FormattingService())->e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?></span></td>
+            <td><span class="badge <?php echo $fmt->getEtatBadgeClass($report['etat']); ?>"><?php echo $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?></span></td>
         </tr>
     </table>
 </div>
@@ -112,10 +118,10 @@ $formData = (new \App\Services\SessionService())->getFormData();
             <tbody>
                 <?php foreach ($responses as $resp): ?>
                 <tr>
-                    <td><?php echo (new \App\Services\FormattingService())->e((new \App\Services\FormattingService())->formatDateTimeFR($resp['created_at'])); ?></td>
-                    <td><?php echo (new \App\Services\FormattingService())->e(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? '')); ?></td>
-                    <td><span class="badge <?php echo (new \App\Services\FormattingService())->getEtatBadgeClass($resp['nouvel_etat'] ?? ''); ?>"><?php echo (new \App\Services\FormattingService())->e(ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat'] ?? '—'); ?></span></td>
-                    <td><?php echo nl2br((new \App\Services\FormattingService())->e($resp['reponse'])); ?></td>
+                    <td><?php echo $fmt->e($fmt->formatDateTimeFR($resp['created_at'])); ?></td>
+                    <td><?php echo $fmt->e(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? '')); ?></td>
+                    <td><span class="badge <?php echo $fmt->getEtatBadgeClass($resp['nouvel_etat'] ?? ''); ?>"><?php echo $fmt->e(ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat'] ?? '—'); ?></span></td>
+                    <td><?php echo nl2br($fmt->e($resp['reponse'])); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -127,9 +133,9 @@ $formData = (new \App\Services\SessionService())->getFormData();
 <!-- Response Form -->
 <div class="card">
     <h3 class="card__title">Formuler une réponse</h3>
-    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('report_respond', ['uuid' => $uuid]); ?>" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
-        <input type="hidden" name="report_uuid" value="<?php echo (new \App\Services\FormattingService())->e($uuid); ?>">
+    <form method="POST" action="<?php echo $http->url('report_respond', ['uuid' => $uuid]); ?>" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
+        <input type="hidden" name="report_uuid" value="<?php echo $fmt->e($uuid); ?>">
 
         <div class="form-group">
             <label for="nouvel_etat">Nouvel état <span class="required">*</span></label>
@@ -139,16 +145,16 @@ $formData = (new \App\Services\SessionService())->getFormData();
                 <option value="traite" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === 'traite') ? 'selected' : ''; ?>>Traité</option>
             </select>
             <?php if (isset($formErrors['nouvel_etat'])): ?>
-                <span class="form-error" id="err_nouvel_etat"><?php echo (new \App\Services\FormattingService())->e($formErrors['nouvel_etat']); ?></span>
+                <span class="form-error" id="err_nouvel_etat"><?php echo $fmt->e($formErrors['nouvel_etat']); ?></span>
             <?php endif; ?>
         </div>
 
         <div class="form-group">
             <label for="reponse">Réponse <span class="required">*</span></label>
-            <textarea name="reponse" id="reponse" rows="6" maxlength="5000" required placeholder="Saisissez votre réponse..." aria-describedby="hint_reponse"><?php echo (new \App\Services\FormattingService())->e($formData['reponse'] ?? ''); ?></textarea>
+            <textarea name="reponse" id="reponse" rows="6" maxlength="5000" required placeholder="Saisissez votre réponse..." aria-describedby="hint_reponse"><?php echo $fmt->e($formData['reponse'] ?? ''); ?></textarea>
             <div class="form-hint" id="hint_reponse">Maximum 5000 caractères</div>
             <?php if (isset($formErrors['reponse'])): ?>
-                <span class="form-error" id="err_reponse"><?php echo (new \App\Services\FormattingService())->e($formErrors['reponse']); ?></span>
+                <span class="form-error" id="err_reponse"><?php echo $fmt->e($formErrors['reponse']); ?></span>
             <?php endif; ?>
         </div>
 
@@ -167,13 +173,13 @@ $formData = (new \App\Services\SessionService())->getFormData();
             </div>
             <span class="form-hint" id="hint_response_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max.</span>
             <?php if (isset($formErrors['response_attachment'])): ?>
-                <span class="form-error"><?php echo (new \App\Services\FormattingService())->e($formErrors['response_attachment']); ?></span>
+                <span class="form-error"><?php echo $fmt->e($formErrors['response_attachment']); ?></span>
             <?php endif; ?>
         </div>
 
         <div class="form-actions">
             <button type="submit" class="btn btn--primary">Enregistrer les modifications</button>
-            <a href="<?php echo (new \App\Services\HttpService())->url('report_view', ['uuid' => $uuid]); ?>" class="btn btn--secondary">Annuler</a>
+            <a href="<?php echo $http->url('report_view', ['uuid' => $uuid]); ?>" class="btn btn--secondary">Annuler</a>
         </div>
     </form>
 </div>

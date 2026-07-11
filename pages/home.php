@@ -7,14 +7,19 @@
  */
 $pageTitle = 'Accueil';
 
+// Service instances (created once for the page)
+$fmt = new \App\Services\FormattingService();
+$http = new \App\Services\HttpService();
+$config = \App\Services\ConfigService::getInstance();
+
 $pdo = getContainer()->get(\PDO::class);
 $user = (new \App\Services\SessionService())->getUserSession();
 $userSiteId = (int) $user['site_id'];
 $agentVisibility = (new \App\Services\AccessService())->getReportVisibility();
 $seeAllSites = (new \App\Services\AccessService())->canSeeAllSites();
-$activeSiteCount = \App\Services\ConfigService::getInstance()->countActiveSites();
+$activeSiteCount = $config->countActiveSites();
 $multiSite = $activeSiteCount > 1;
-$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
+$noSiteMode = $config->isNoSiteMode();
 
 // Get counts for each registry type based on report visibility
 $userId = (int) $user['id'];
@@ -24,46 +29,46 @@ $dgiCount  = 0;
 
 if ($agentVisibility === 'confidential') {
     $rsstCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_RSST, $userId);
-    if (\App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI)) {
+    if ($config->isRegistryEnabled(TYPE_RAMI)) {
         $ramiCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_RAMI, $userId);
     }
-    if (\App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI)) {
+    if ($config->isRegistryEnabled(TYPE_DGI)) {
         $dgiCount  = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_DGI, $userId);
     }
 } elseif ($agentVisibility === 'agent_choice') {
     $rsstCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RSST, $userSiteId, $userId, true);
-    if (\App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI)) {
+    if ($config->isRegistryEnabled(TYPE_RAMI)) {
         $ramiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RAMI, $userSiteId, $userId, true);
     }
-    if (\App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI)) {
+    if ($config->isRegistryEnabled(TYPE_DGI)) {
         $dgiCount  = \App\Repository\ReportRepository::instance()->countActive(TYPE_DGI, $userSiteId, $userId, true);
     }
 } else {
     $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
     $rsstCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RSST, $siteIdFilter);
-    if (\App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI)) {
+    if ($config->isRegistryEnabled(TYPE_RAMI)) {
         $ramiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RAMI, $siteIdFilter);
     }
-    if (\App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI)) {
+    if ($config->isRegistryEnabled(TYPE_DGI)) {
         $dgiCount  = \App\Repository\ReportRepository::instance()->countActive(TYPE_DGI, $siteIdFilter);
     }
 }
 
 $totalReports = $rsstCount + $ramiCount + $dgiCount;
 $userRole = $user['role'] ?? ROLE_AGENT;
-$labelUnite = \App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR');
-$roleLabels = \App\Services\ConfigService::getInstance()->getRoleLabels();
-$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
+$labelUnite = $config->get('app_label_unite', 'UR');
+$roleLabels = $config->getRoleLabels();
+$ramiEnabled = $config->isRegistryEnabled(TYPE_RAMI);
+$dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 ?>
 <?php if ($userRole === ROLE_AGENT): ?>
-<h1 class="home-welcome-heading">Bonjour, <?php echo (new \App\Services\FormattingService())->e($user['prenom']); ?></h1>
+<h1 class="home-welcome-heading">Bonjour, <?php echo $fmt->e($user['prenom']); ?></h1>
 <p class="home-welcome-subtitle">Que souhaitez-vous faire ?</p>
 
 <?php $cards = buildRegistryCards($rsstCount, $ramiCount, $dgiCount, $ramiEnabled, $dgiEnabled); ?>
 <?php echo renderRegistryCards($cards, 'large'); ?>
 <?php if ($rsstCount > 0 && hasRole(ROLE_AGENT)): ?>
-<?php $wordCloud = (new \App\Services\FormattingService())->buildWordCloud($pdo, TYPE_RSST); ?>
+<?php $wordCloud = $fmt->buildWordCloud($pdo, TYPE_RSST); ?>
 <?php if (!empty($wordCloud)): ?>
 <div class="card mt-4">
     <h3 class="card__subtitle">Nuage de mots — RSST</h3>
@@ -80,10 +85,10 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
     <div class="welcome-banner__content">
         <h2 class="welcome-banner__title">Bienvenue dans l'Application SST</h2>
         <p class="welcome-banner__text">
-            Aucun signalement n'a encore été enregistré.<?php if (!$noSiteMode): ?> Les agents de vos <?php echo (new \App\Services\FormattingService())->e($labelUnite); ?>s pourront créer des signalements dans les<?php if ($ramiEnabled || $dgiEnabled): ?> trois<?php else: ?> différents<?php endif; ?> registres ci-dessous.<?php endif; ?>
-            En tant que <strong><?php echo (new \App\Services\FormattingService())->e(ROLE_LABELS[$userRole] ?? $userRole); ?></strong>, vous pourrez les consulter, les filtrer et y répondre.
+            Aucun signalement n'a encore été enregistré.<?php if (!$noSiteMode): ?> Les agents de vos <?php echo $fmt->e($labelUnite); ?>s pourront créer des signalements dans les<?php if ($ramiEnabled || $dgiEnabled): ?> trois<?php else: ?> différents<?php endif; ?> registres ci-dessous.<?php endif; ?>
+            En tant que <strong><?php echo $fmt->e(ROLE_LABELS[$userRole] ?? $userRole); ?></strong>, vous pourrez les consulter, les filtrer et y répondre.
         </p>
-        <a href="<?php echo (new \App\Services\HttpService())->url('help'); ?>" class="welcome-banner__link">Consulter la documentation</a>
+        <a href="<?php echo $http->url('help'); ?>" class="welcome-banner__link">Consulter la documentation</a>
     </div>
 </div>
 <?php endif; ?>
@@ -120,12 +125,12 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
 <div class="card mt-6">
     <h3 class="card__subtitle">Accès rapide superviseur</h3>
     <div class="quick-access">
-        <a href="<?php echo (new \App\Services\HttpService())->url('synthesis'); ?>" class="btn btn--outline">&#x1F4CA; Synthèse</a>
-        <a href="<?php echo (new \App\Services\HttpService())->url('statistics'); ?>" class="btn btn--outline">&#x1F4C8; Statistiques</a>
-        <a href="<?php echo (new \App\Services\HttpService())->url('export'); ?>" class="btn btn--outline">&#x1F4E5; Export</a>
+        <a href="<?php echo $http->url('synthesis'); ?>" class="btn btn--outline">&#x1F4CA; Synthèse</a>
+        <a href="<?php echo $http->url('statistics'); ?>" class="btn btn--outline">&#x1F4C8; Statistiques</a>
+        <a href="<?php echo $http->url('export'); ?>" class="btn btn--outline">&#x1F4E5; Export</a>
         <?php if (hasRole(ROLE_SUPERVISEUR)): ?>
-        <a href="<?php echo (new \App\Services\HttpService())->url('users'); ?>" class="btn btn--outline">&#x1F465; Utilisateurs</a>
-        <a href="<?php echo (new \App\Services\HttpService())->url('settings'); ?>" class="btn btn--outline">&#x2699;&#xFE0F; Paramètres</a>
+        <a href="<?php echo $http->url('users'); ?>" class="btn btn--outline">&#x1F465; Utilisateurs</a>
+        <a href="<?php echo $http->url('settings'); ?>" class="btn btn--outline">&#x2699;&#xFE0F; Paramètres</a>
         <?php endif; ?>
     </div>
 </div>

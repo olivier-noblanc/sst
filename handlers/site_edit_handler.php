@@ -1,11 +1,10 @@
 <?php
 
 /**
- * Site Edit Handler — Application SST DREETS BFC
- *
- * POST handler: update an existing site's code, name, and department.
- * Access: superviseur only
+ * Site Edit Handler — Thin controller delegating to SiteRepository.
  */
+
+use App\Repository\SiteRepository;
 
 $siteId = (int) ($_POST['site_id'] ?? 0);
 
@@ -14,19 +13,18 @@ if ($siteId <= 0) {
     redirect(url('settings', ['tab' => 'manage_sites']));
 }
 
-$pdo = getDB();
+/** @var SiteRepository $repo */
+$repo = getContainer()->get(SiteRepository::class);
+$site = $repo->findById($siteId);
 
-// Verify site exists
-$site = getSiteById($pdo, $siteId);
 if (!$site) {
     setFlash('error', 'Site introuvable.');
     redirect(url('settings', ['tab' => 'manage_sites']));
 }
 
-// Validate input
-$code = trim($_POST['code'] ?? '');
-$nom = trim($_POST['nom'] ?? '');
-$departement = trim($_POST['departement'] ?? '');
+$code = trim((string) ($_POST['code'] ?? ''));
+$nom = trim((string) ($_POST['nom'] ?? ''));
+$departement = trim((string) ($_POST['departement'] ?? ''));
 
 $errors = [];
 if (empty($code)) {
@@ -35,13 +33,8 @@ if (empty($code)) {
 if (empty($nom)) {
     $errors['nom'] = 'Le nom est requis.';
 }
-
-// Check for duplicate code (exclude current site)
-if (!empty($code) && $code !== $site['code']) {
-    $existing = getSiteByCode($pdo, $code);
-    if ($existing) {
-        $errors['code'] = 'Un site avec ce code existe déjà.';
-    }
+if (!empty($code) && $code !== (string) ($site['code'] ?? '') && $repo->findByCode($code)) {
+    $errors['code'] = 'Un site avec ce code existe déjà.';
 }
 
 if (!empty($errors)) {
@@ -50,11 +43,10 @@ if (!empty($errors)) {
     redirect(url('site_edit', ['id' => $siteId]));
 }
 
-// Update site
-$success = updateSite($pdo, $siteId, $code, $nom, $departement);
+$success = $repo->update($siteId, $code, $nom, $departement);
 
 if ($success) {
-    auditLog($pdo, 'site', 'edit', 'Site modifié : ' . $code . ' — ' . $nom, (int) $siteId, 'site');
+    auditLog(getDB(), 'site', 'edit', 'Site modifié : ' . $code . ' — ' . $nom, (int) $siteId, 'site');
     setFlash('success', 'Site ' . e($code . ' — ' . $nom) . ' mis à jour avec succès.');
 } else {
     error_log('[SST-DB] site_edit failed for site_id=' . $siteId);

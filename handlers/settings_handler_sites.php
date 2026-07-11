@@ -15,12 +15,12 @@
  */
 function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 {
-    $action = $postData['action'] ?? '';
+    $action = (string) ($postData['action'] ?? '');
 
     if ($action === 'add_site') {
-        $code = trim($postData['new_site_code'] ?? '');
-        $nom = trim($postData['new_site_nom'] ?? '');
-        $departement = trim($postData['new_site_departement'] ?? '');
+        $code = trim((string) ($postData['new_site_code'] ?? ''));
+        $nom = trim((string) ($postData['new_site_nom'] ?? ''));
+        $departement = trim((string) ($postData['new_site_departement'] ?? ''));
 
         if (empty($code) || empty($nom)) {
             $pdo->rollBack();

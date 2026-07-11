@@ -17,10 +17,10 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
 {
     // Update application settings
     // NOTE: app_version is NOT editable here — it is read from CHANGELOG.md by getAppVersion()
-    $appNomOrganisation = trim($postData['app_nom_organisation'] ?? '');
-    $appNomComplet = trim($postData['app_nom_complet'] ?? '');
-    $appLabelUnite = trim($postData['app_label_unite'] ?? '');
-    $appSuperviseurUsernames = trim($postData['app_superviseur_usernames'] ?? '');
+    $appNomOrganisation = trim((string) ($postData['app_nom_organisation'] ?? ''));
+    $appNomComplet = trim((string) ($postData['app_nom_complet'] ?? ''));
+    $appLabelUnite = trim((string) ($postData['app_label_unite'] ?? ''));
+    $appSuperviseurUsernames = trim((string) ($postData['app_superviseur_usernames'] ?? ''));
 
     // Validate: none should be empty (admin usernames can be empty)
     $errors = [];
@@ -46,15 +46,15 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     updateConfig($pdo, 'app_superviseur_usernames', $appSuperviseurUsernames);
 
     // Hotline number (displayed in help page)
-    $appHotlineNumber = trim($postData['app_hotline_number'] ?? '');
+    $appHotlineNumber = trim((string) ($postData['app_hotline_number'] ?? ''));
     updateConfig($pdo, 'app_hotline_number', $appHotlineNumber);
 
     // DPO contact (displayed in RGPD preamble)
-    $appDpoContact = trim($postData['app_dpo_contact'] ?? '');
+    $appDpoContact = trim((string) ($postData['app_dpo_contact'] ?? ''));
     updateConfig($pdo, 'app_dpo_contact', $appDpoContact);
 
     // Admin email for error notifications
-    $appAdminEmail = trim($postData['app_admin_email'] ?? '');
+    $appAdminEmail = trim((string) ($postData['app_admin_email'] ?? ''));
     if (!empty($appAdminEmail) && !filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL)) {
         $pdo->rollBack();
         setFlash('error', 'L\'adresse e-mail de l\'administrateur technique n\'est pas valide.');
@@ -77,9 +77,9 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     updateConfig($pdo, 'app_dgi_notify_csa', $dgiNotifyCsa);
 
     // Customizable role labels
-    $roleLabelAgent = trim($postData['app_role_label_agent'] ?? 'Agent');
-    $roleLabelSuperviseur = trim($postData['app_role_label_superviseur'] ?? 'Superviseur');
-    $roleLabelChsct = trim($postData['app_role_label_chsct'] ?? 'Membre FS/CSA');
+    $roleLabelAgent = trim((string) ($postData['app_role_label_agent'] ?? 'Agent'));
+    $roleLabelSuperviseur = trim((string) ($postData['app_role_label_superviseur'] ?? 'Superviseur'));
+    $roleLabelChsct = trim((string) ($postData['app_role_label_chsct'] ?? 'Membre FS/CSA'));
     if (empty($roleLabelAgent)) {
         $roleLabelAgent = 'Agent';
     }
@@ -94,7 +94,7 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     updateConfig($pdo, 'app_role_label_chsct', $roleLabelChsct);
 
     // Report visibility setting (radio: confidential / agent_choice / public)
-    $reportVisibility = $postData['app_report_visibility'] ?? 'agent_choice';
+    $reportVisibility = (string) ($postData['app_report_visibility'] ?? 'agent_choice');
     if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'])) {
         $reportVisibility = 'agent_choice';
     }
@@ -104,7 +104,7 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     $registryTypes = [TYPE_RSST, TYPE_RAMI, TYPE_DGI];
     foreach ($registryTypes as $type) {
         $key = 'app_report_visibility_' . $type;
-        $value = $postData[$key] ?? '';
+        $value = (string) ($postData[$key] ?? '');
         if ($value !== '' && !in_array($value, ['confidential', 'agent_choice', 'public'])) {
             $value = '';
         }

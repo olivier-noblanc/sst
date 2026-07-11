@@ -14,22 +14,23 @@ class FormattingService
     /**
      * Escape HTML special characters. Use for ALL output.
      */
-    public function e(?string $string): string
+    public function e(mixed $string): string
     {
-        if ($string === null) {
+        if ($string === null || $string === '') {
             return '';
         }
-        return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+        return htmlspecialchars((string) $string, ENT_QUOTES, 'UTF-8');
     }
 
     /**
      * Format an ISO date to French format (d/m/Y).
      */
-    public function formatDateFR(?string $date): string
+    public function formatDateFR(mixed $date): string
     {
         if (empty($date)) {
             return '—';
         }
+        $date = (string) $date;
         $dt = DateTime::createFromFormat('Y-m-d', $date);
         if ($dt === false) {
             $dt = DateTime::createFromFormat('Y-m-d H:i:s', $date);
@@ -40,11 +41,12 @@ class FormattingService
     /**
      * Format an ISO datetime to French format (d/m/Y à H:i).
      */
-    public function formatDateTimeFR(?string $datetime): string
+    public function formatDateTimeFR(mixed $datetime): string
     {
         if (empty($datetime)) {
             return '—';
         }
+        $datetime = (string) $datetime;
         $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime);
         if ($dt === false) {
             $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime);
@@ -106,9 +108,9 @@ class FormattingService
     /**
      * Get the badge CSS class for a report state.
      */
-    public function getEtatBadgeClass(string $etat): string
+    public function getEtatBadgeClass(mixed $etat): string
     {
-        return match ($etat) {
+        return match ((string) $etat) {
             'nouveau'    => 'badge--nouveau',
             'en_cours'   => 'badge--en-cours',
             'traite'     => 'badge--traite',
@@ -121,9 +123,9 @@ class FormattingService
     /**
      * Get the badge CSS class for a registry type.
      */
-    public function getRegistryBadgeClass(string $type): string
+    public function getRegistryBadgeClass(mixed $type): string
     {
-        return match ($type) {
+        return match ((string) $type) {
             'rsst' => 'badge--rsst',
             'rami' => 'badge--rami',
             'dgi'  => 'badge--dgi',
@@ -134,9 +136,9 @@ class FormattingService
     /**
      * Get the badge CSS class for a user role.
      */
-    public function getRoleBadgeClass(string $role): string
+    public function getRoleBadgeClass(mixed $role): string
     {
-        return match ($role) {
+        return match ((string) $role) {
             'agent'       => 'badge--agent',
             'superviseur' => 'badge--superviseur',
             'chsct'       => 'badge--chsct',
@@ -166,8 +168,9 @@ class FormattingService
     /**
      * Truncate a string to a given length with ellipsis.
      */
-    public function truncate(string $string, int $length = 50): string
+    public function truncate(mixed $string, int $length = 50): string
     {
+        $string = (string) $string;
         if (mb_strlen($string, 'UTF-8') > $length) {
             return mb_substr($string, 0, $length, 'UTF-8') . '…';
         }
@@ -193,7 +196,7 @@ class FormattingService
     /**
      * Render a breadcrumb navigation bar.
      *
-     * @param array<int, array{url?: string, label: string}> $items
+     * @param array<int, array{url?: string, label: mixed}> $items
      * @return string HTML for the breadcrumb nav
      */
     public function renderBreadcrumb(array $items): string

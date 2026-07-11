@@ -3,6 +3,29 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.37.0] — 2026-07-11
+
+### Technique — Migration handlers report en thin controllers
+
+- **1** 🔴 **report_create_handler** — Réécrit en thin controller : `CreateReportCommand::fromPost()` + `ReportService::create()`. Validation site/emails liés conservée dans le handler (domain-specific). (202 → 117 lignes, -42%)
+- **2** 🔴 **report_edit_handler** — Réécrit en thin controller : `UpdateReportCommand::fromPost()` + `ReportService::update()`. Validation champs + RAMI ajoutée. (140 → 97 lignes, -31%)
+- **3** 🔴 **report_reopen_handler** — Réécrit en thin controller : nouveau DTO `ReopenReportCommand` + `ReportService::reopen()` + `ReportRepository::reopen()` (transaction SQL). (136 → 77 lignes, -43%)
+- **4** 🟡 **ReopenReportCommand DTO** — Nouveau DTO pour la réouverture de signalement. (`src/DTO/ReopenReportCommand.php`)
+- **5** 🟡 **ReportService::reopen()** — Méthode ajoutée avec validation métier (état vérifiable, rôle superviseur/CHSCT). (`src/Services/ReportService.php`)
+- **6** 🟡 **ReportRepository::reopen()** — Transaction SQL : historique état + update etat + insertion réponse. (`src/Repository/ReportRepository.php`)
+
+
+## [3.36.0] — 2026-07-10
+
+### Technique — Autoload custom + Migration OOP handlers/pages/templates
+
+- **1** 🔴 **Autoload PSR-4 custom** — Nouveau fichier `src/autoload.php` avec un autoloader `spl_autoload_register` pour les classes `App\` + chargement ordonné des fichiers procéduraux (helpers, config, session, auth, queries). Supprime la dépendance à Composer en production (`vendor/` n'est plus nécessaire). (`src/autoload.php`)
+- **2** 🔴 **Migration OOP handlers/pages/templates** — 32 fichiers migrés : les pages et templates utilisent désormais les services OOP (FormattingService, AccessService, SessionService, ConfigService, CryptoService, HttpService) via le DI Container au lieu des appels directs aux fonctions globales. (`pages/`, `templates/`)
+- **3** 🟡 **SessionService singleton** — Ajout de la méthode `getInstance()` à `SessionService` pour un accès centralisé hors du DI Container (pages/templates). (`src/Services/SessionService.php`)
+- **4** 🟡 **update_sst.ps1** — `composer install` complet si `vendor/` absent, clairage opcache. (`update_sst.ps1`)
+- **5** 🟢 **AGENTS.md** — Instructions ajoutées : tests obligatoires avant push, interdiction de modifier `git config --global`. (`AGENTS.md`)
+
+
 ## [3.35.0] — 2026-07-09
 
 ### Technique — Refactoring OOP complet + modernisation

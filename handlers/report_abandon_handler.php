@@ -10,12 +10,12 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 use App\Services\ReportService;
 
-$reportUuid = trim($_POST['report_uuid'] ?? '');
+$reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
 
 $user = currentUser();
 $userId = currentUserId();
-$type = $report['type'];
+$type = (string) ($report['type'] ?? '');
 
 requireReportOwnership($report, $userId, $reportUuid, 'abandonner');
 requireReportEditable($report, $reportUuid, 'abandonné');
@@ -27,22 +27,22 @@ try {
     $abandoned = $service->abandon($reportUuid, $userId);
 
     if ($abandoned) {
-        auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . $report['reference'], (int) $report['id'], 'report', ['reference' => $report['reference']]);
+        auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . (string) $report['reference'], (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'] ?? '']);
 
         // Notify supervisors of the site
         try {
             require_once __DIR__ . '/../src/mail.php';
-            $siteId = (int) $report['site_id'];
+            $siteId = (int) ($report['site_id'] ?? 0);
             $recipients = getNotificationRecipients($pdo, $siteId);
             if (!empty($recipients)) {
-                $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type);
+                $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
                 $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
                 $body = '<html><body>';
                 $body .= '<h2>Signalement abandonné</h2>';
-                $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
+                $body .= '<p><strong>Référence :</strong> ' . e((string) $report['reference']) . '</p>';
                 $body .= "<p><strong>Registre :</strong> $registryLabel</p>";
-                $body .= '<p><strong>Objet :</strong> ' . e($report['objet']) . '</p>';
-                $body .= '<p><strong>Déclarant :</strong> ' . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . '</p>';
+                $body .= '<p><strong>Objet :</strong> ' . e((string) $report['objet']) . '</p>';
+                $body .= '<p><strong>Déclarant :</strong> ' . e((string) $report['declarant_prenom'] . ' ' . (string) $report['declarant_nom']) . '</p>';
                 $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
                 $body .= '</body></html>';
                 foreach ($recipients as $email) {
@@ -53,10 +53,10 @@ try {
             error_log('[SST-MAIL] Abandon notification error: ' . $mailEx->getMessage());
         }
 
-        setFlash('success', 'Signalement ' . e($report['reference']) . ' abandonné.');
+        setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' abandonné.');
         redirect(url('report_list', ['type' => $type]));
     } else {
-        setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps. (uuid=' . e($reportUuid) . ', etat=' . e($report['etat']) . ')');
+        setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps. (uuid=' . e($reportUuid) . ', etat=' . e((string) ($report['etat'] ?? '')) . ')');
         redirect(url('report_view', ['uuid' => $reportUuid]));
     }
 } catch (RuntimeException $e) {

@@ -26,7 +26,7 @@ $pdo = getDB();
 $service = getContainer()->get(UserService::class);
 
 // Handle GDPR actions (export_data, anonymize)
-$action = $_POST['action'] ?? '';
+$action = (string) ($_POST['action'] ?? '');
 if ($action === 'export_data') {
     $userData = $service->exportData($userId);
     auditLog($pdo, 'gdpr', 'data_export', 'Export RGPD des données de l\'utilisateur ID ' . $userId, $userId, 'user');
@@ -60,7 +60,7 @@ $errors = $service->validate($_POST, $userId);
 $cmd = UpdateUserCommand::fromPost($_POST);
 
 // Guard: prevent demoting the last active superviseur
-if ($user['role'] === ROLE_SUPERVISEUR && $cmd->role !== ROLE_SUPERVISEUR) {
+if ((string) ($user['role'] ?? '') === ROLE_SUPERVISEUR && $cmd->role !== ROLE_SUPERVISEUR) {
     $demoteErrors = $service->canDemote($userId, $cmd->role, $user);
     $errors = array_merge($errors, $demoteErrors);
 
@@ -77,7 +77,7 @@ if (!empty($errors)) {
 
 // Update user
 try {
-    $oldRole = $user['role'];
+    $oldRole = (string) ($user['role'] ?? '');
     $roleChanged = ($cmd->role !== $oldRole);
     $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
 

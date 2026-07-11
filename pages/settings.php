@@ -10,8 +10,13 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
+// Service instances (created once for the page)
+$fmt = new \App\Services\FormattingService();
+$http = new \App\Services\HttpService();
+$config = \App\Services\ConfigService::getInstance();
+
 $pdo = getContainer()->get(\PDO::class);
-$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
+$noSiteMode = $config->isNoSiteMode();
 
 // Get sites
 $sites = \App\Repository\SiteRepository::instance()->findAll();
@@ -56,24 +61,24 @@ $pageTitle = 'Paramètres';
 <!-- Tabs -->
 <div class="tab-bar">
     <?php if (!$noSiteMode): ?>
-    <a href="<?php echo (new \App\Services\HttpService())->url('settings', ['tab' => 'sites']); ?>"
+    <a href="<?php echo $http->url('settings', ['tab' => 'sites']); ?>"
        class="settings-tab <?php echo $activeTab === 'sites' ? 'settings-tab--active' : ''; ?>">
         &#x1F4CD; Notifications par site
     </a>
     <?php endif; ?>
-    <a href="<?php echo (new \App\Services\HttpService())->url('settings', ['tab' => 'global']); ?>"
+    <a href="<?php echo $http->url('settings', ['tab' => 'global']); ?>"
        class="settings-tab <?php echo $activeTab === 'global' ? 'settings-tab--active' : ''; ?>">
         &#x1F310; Notifications globales
     </a>
-    <a href="<?php echo (new \App\Services\HttpService())->url('settings', ['tab' => 'smtp']); ?>"
+    <a href="<?php echo $http->url('settings', ['tab' => 'smtp']); ?>"
        class="settings-tab <?php echo $activeTab === 'smtp' ? 'settings-tab--active' : ''; ?>">
         &#x1F4E7; Configuration SMTP
     </a>
-    <a href="<?php echo (new \App\Services\HttpService())->url('settings', ['tab' => 'manage_sites']); ?>"
+    <a href="<?php echo $http->url('settings', ['tab' => 'manage_sites']); ?>"
        class="settings-tab <?php echo $activeTab === 'manage_sites' ? 'settings-tab--active' : ''; ?>">
-        &#x1F3E2; Gestion des <?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>s
+        &#x1F3E2; Gestion des <?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>s
     </a>
-    <a href="<?php echo (new \App\Services\HttpService())->url('settings', ['tab' => 'app']); ?>"
+    <a href="<?php echo $http->url('settings', ['tab' => 'app']); ?>"
        class="settings-tab <?php echo $activeTab === 'app' ? 'settings-tab--active' : ''; ?>">
         &#x2699;&#xFE0F; Paramètres de l'application
     </a>

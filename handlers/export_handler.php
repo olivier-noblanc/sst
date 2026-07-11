@@ -10,33 +10,36 @@
  * quotes, and newlines inside fields). Exports multi-response history.
  */
 
+use App\Repository\ReportRepository;
+
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
+$reportRepo = ReportRepository::instance();
 
 // Build filters from form data
 $filters = [];
 
 // Registry type
 if (empty($_POST['all_registries']) && !empty($_POST['type'])) {
-    $filters['type'] = $_POST['type'];
+    $filters['type'] = (string) ($_POST['type'] ?? '');
 }
 
 // Site
 if (empty($_POST['all_sites']) && !empty($_POST['site_id'])) {
-    $filters['site_id'] = (int) $_POST['site_id'];
+    $filters['site_id'] = (int) ($_POST['site_id'] ?? 0);
 }
 
 // Agent (declarant)
 if (empty($_POST['all_agents']) && !empty($_POST['declarant_id'])) {
-    $filters['declarant_id'] = (int) $_POST['declarant_id'];
+    $filters['declarant_id'] = (int) ($_POST['declarant_id'] ?? 0);
 }
 
 // Date range
 if (!empty($_POST['date_from'])) {
-    $filters['date_from'] = $_POST['date_from'];
+    $filters['date_from'] = (string) ($_POST['date_from'] ?? '');
 }
 if (!empty($_POST['date_to'])) {
-    $filters['date_to'] = $_POST['date_to'];
+    $filters['date_to'] = (string) ($_POST['date_to'] ?? '');
 }
 
 // States
@@ -45,7 +48,7 @@ if (!empty($_POST['etats']) && is_array($_POST['etats'])) {
 }
 
 // Get data
-$reports = getExportData($pdo, $filters);
+$reports = $reportRepo->getExportData($filters);
 auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . count($reports) . ' signalements', null, null, ['filters' => $filters, 'count' => count($reports)]);
 
 // Build CSV in memory using fputcsv (proper enclosure, no injection risk)
@@ -57,6 +60,7 @@ if ($tmpFile === false) {
     redirect(url('export'));
 }
 
+/** @var resource $tmpFile */
 // UTF-8 BOM for Excel compatibility
 fwrite($tmpFile, "\xEF\xBB\xBF");
 
@@ -100,24 +104,13 @@ fputcsv($tmpFile, $headers, ';');
 $allResponses = [];
 if (!empty($reports)) {
     $allUuids = array_column($reports, 'uuid');
-    $uuidPlaceholders = implode(',', array_fill(0, count($allUuids), '?'));
-    $stmt = $pdo->prepare("
-        SELECT rr.*, rr.report_uuid, u.nom, u.prenom
-        FROM report_responses rr
-        LEFT JOIN users u ON rr.user_id = u.id
-        WHERE rr.report_uuid IN ($uuidPlaceholders)
-        ORDER BY rr.created_at ASC
-    ");
-    $stmt->execute($allUuids);
-    while ($resp = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $allResponses[$resp['report_uuid']][] = $resp;
-    }
+    $allResponses = $reportRepo->getResponsesForUuids($allUuids);
 }
 
 // Data rows
 foreach ($reports as $row) {
     // Get response history for this report (from bulk-fetched data)
-    $responses = $allResponses[$row['uuid']] ?? [];
+    $responses = $allResponses[(string) ($row['uuid'] ?? '')] ?? [];
     $responseCount = count($responses);
 
     // Build "Pour le compte de" field
@@ -127,17 +120,17 @@ foreach ($reports as $row) {
     }
 
     // Build RAMI structured fields labels
-    $natureAuteurLabel = RAMI_NATURE_AUTEUR_LABELS[$row['nature_auteur'] ?? ''] ?? '';
-    $typeActeLabel = RAMI_TYPE_ACTE_LABELS[$row['type_acte'] ?? ''] ?? '';
+    $natureAuteurLabel = RAMI_NATURE_AUTEUR_LABELS[(string) ($row['nature_auteur'] ?? '')] ?? '';
+    $typeActeLabel = RAMI_TYPE_ACTE_LABELS[(string) ($row['type_acte'] ?? '')] ?? '';
 
     // Build response history as structured text
     // Format: [Date] Répondant (État) : Réponse | [Date] ...
     $historyParts = [];
     foreach ($responses as $resp) {
-        $date = $resp['created_at'] ?? '';
-        $respondent = trim(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? ''));
-        $etat = ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat'] ?? '';
-        $text = $resp['reponse'] ?? '';
+        $date = (string) ($resp['created_at'] ?? '');
+        $respondent = trim((string) ($resp['prenom'] ?? '') . ' ' . (string) ($resp['nom'] ?? ''));
+        $etat = ETAT_LABELS[(string) ($resp['nouvel_etat'] ?? '')] ?? (string) ($resp['nouvel_etat'] ?? '');
+        $text = (string) ($resp['reponse'] ?? '');
         $historyParts[] = "[$date] $respondent ($etat) : $text";
     }
     $historyText = implode(' | ', $historyParts);
@@ -171,7 +164,7 @@ foreach ($reports as $row) {
         $csvRow[] = $csvEscape($row['site_nom'] ?? '');
     }
     $csvRow = array_merge($csvRow, [
-        $csvEscape(ETAT_LABELS[$row['etat'] ?? ''] ?? $row['etat'] ?? ''),
+        $csvEscape(ETAT_LABELS[(string) ($row['etat'] ?? '')] ?? (string) ($row['etat'] ?? '')),
         !empty($row['is_confidential']) ? 'Oui' : 'Non',
         !empty($row['consent_syndicat']) ? 'Acceptée' : 'Refusée',
         $csvEscape($row['created_at'] ?? ''),

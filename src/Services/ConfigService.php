@@ -156,7 +156,8 @@ class ConfigService
     public function isNoSiteMode(): bool
     {
         static $cache = null;
-        if ($cache === null) {
+        if ($cache === null || !empty($GLOBALS['_config_cache_cleared'])) {
+            $GLOBALS['_config_cache_cleared'] = false;
             $pdo = \getDB();
             $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
             $cache = (($stmt->fetchColumn() ?: 0) === 0);

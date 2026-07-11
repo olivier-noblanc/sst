@@ -88,7 +88,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     stream_set_timeout($socket, 10);
 
     $response = fgets($socket);
-    if (!str_starts_with($response, '220')) {
+    if ($response === false || !str_starts_with($response, '220')) {
         error_log("[SST-MAIL] Unexpected greeting: $response");
         fclose($socket);
         return false;
@@ -107,7 +107,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     if ($encryption === 'starttls') {
         fwrite($socket, "STARTTLS\r\n");
         $response = fgets($socket);
-        if (!str_starts_with($response, '220')) {
+        if ($response === false || !str_starts_with($response, '220')) {
             error_log("[SST-MAIL] STARTTLS failed: $response");
             fclose($socket);
             return false;
@@ -129,7 +129,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     if (!empty($user) && !empty($pass)) {
         fwrite($socket, "AUTH LOGIN\r\n");
         $response = fgets($socket);
-        if (!str_starts_with($response, '334')) {
+        if ($response === false || !str_starts_with($response, '334')) {
             error_log("[SST-MAIL] AUTH LOGIN rejected: $response");
             fclose($socket);
             return false;
@@ -138,7 +138,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
         fgets($socket);
         fwrite($socket, base64_encode($pass) . "\r\n");
         $response = fgets($socket);
-        if (!str_starts_with($response, '235')) {
+        if ($response === false || !str_starts_with($response, '235')) {
             error_log("[SST-MAIL] SMTP auth failed: $response");
             fclose($socket);
             return false;
@@ -148,7 +148,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     // MAIL FROM
     fwrite($socket, "MAIL FROM:<$from>\r\n");
     $response = fgets($socket);
-    if (!str_starts_with($response, '250')) {
+    if ($response === false || !str_starts_with($response, '250')) {
         error_log("[SST-MAIL] MAIL FROM rejected: $response");
         fclose($socket);
         return false;
@@ -157,7 +157,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     // RCPT TO
     fwrite($socket, "RCPT TO:<$to>\r\n");
     $response = fgets($socket);
-    if (!str_starts_with($response, '250')) {
+    if ($response === false || !str_starts_with($response, '250')) {
         error_log("[SST-MAIL] RCPT TO rejected: $response");
         fclose($socket);
         return false;
@@ -166,7 +166,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     // DATA
     fwrite($socket, "DATA\r\n");
     $response = fgets($socket);
-    if (!str_starts_with($response, '354')) {
+    if ($response === false || !str_starts_with($response, '354')) {
         error_log("[SST-MAIL] DATA rejected: $response");
         fclose($socket);
         return false;
@@ -186,7 +186,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     fwrite($socket, "QUIT\r\n");
     fclose($socket);
 
-    $ok = str_starts_with($response, '250');
+    $ok = $response !== false && str_starts_with($response, '250');
     if (!$ok) {
         error_log("[SST-MAIL] Message send failed: $response");
     }

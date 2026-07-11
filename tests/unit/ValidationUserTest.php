@@ -26,6 +26,12 @@ class ValidationUserTest extends TestCase
         $this->pdo->exec('DELETE FROM users');
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec('DELETE FROM config_app');
+
+        // Reset ConfigService static caches so each test starts clean
+        (new \App\Services\ConfigService())->clearCache();
+
+        // Seed an active site so isNoSiteMode() returns false
+        $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UR01', 'Site Test', 1)");
     }
 
     // ─── validateUserFields (DB-dependent) ──────────────────────────────────

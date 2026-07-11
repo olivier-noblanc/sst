@@ -47,7 +47,11 @@ function createContainer(): Container
     // ═══════════════════════════════════════════════════════════════════════════════
 
     $container->set(AccessService::class, fn() => new AccessService());
-    $container->set(ConfigService::class, fn() => new ConfigService());
+    $container->set(ConfigService::class, function() {
+        $instance = new ConfigService();
+        ConfigService::setInstance($instance);
+        return $instance;
+    });
     $container->set(FormattingService::class, fn() => new FormattingService());
     $container->set(CryptoService::class, fn() => new CryptoService());
     $container->set(HttpService::class, fn() => new HttpService());

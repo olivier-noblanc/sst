@@ -20,6 +20,14 @@ class ConfigService
     }
 
     /**
+     * Reset singleton (used by container to share instance).
+     */
+    public static function setInstance(self $instance): void
+    {
+        self::$instance = $instance;
+    }
+
+    /**
      * Get a configuration value from the config_app table.
      */
     public function get(string $cle, string $default = ''): string

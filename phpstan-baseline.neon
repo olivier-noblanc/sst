@@ -1,6 +1,18 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Static property App\\Services\\ConfigService\:\:\$instance .+ does not accept mixed\.$#'
+			identifier: property.type
+			count: 1
+			path: src/Services/ConfigService.php
+
+		-
+			message: '#^Method App\\Services\\ConfigService\:\:getInstance\(\) should return App\\Services\\ConfigService but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Services/ConfigService.php
+
+		-
 			message: '#^Function getAccessService\(\) should return App\\Services\\AccessService but returns mixed\.$#'
 			identifier: return.type
 			count: 1

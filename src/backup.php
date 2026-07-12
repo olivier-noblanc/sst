@@ -27,9 +27,8 @@ define('BACKUP_MARKER_FILE', BACKUP_DIR . '/.last_backup');
 
 /**
  * Get a fingerprint of the current database file.
- * Reads filemtime + filesize to detect changes.
- * No WAL checkpoint here — checkpoint is deferred to performBackupInternal()
- * to avoid per-request disk I/O.
+ * Reads filemtime + filesize of both the main .db and the WAL file
+ * to detect changes without forcing a checkpoint.
  *
  * @return array{mtime: int, size: int}
  */
@@ -45,10 +44,18 @@ function getDbFingerprint(PDO $pdo): array
     if (!file_exists(DB_PATH)) {
         $cached = ['mtime' => 0, 'size' => 0];
     } else {
-        $cached = [
-            'mtime' => filemtime(DB_PATH) ?: 0,
-            'size'  => filesize(DB_PATH) ?: 0,
-        ];
+        $mtime = (int) filemtime(DB_PATH);
+        $size = (int) filesize(DB_PATH);
+
+        // In WAL mode, writes go to the -wal file without changing .db
+        // Include the WAL file's mtime/size to detect pending changes
+        $walPath = DB_PATH . '-wal';
+        if (file_exists($walPath)) {
+            $mtime = max($mtime, (int) filemtime($walPath));
+            $size += (int) filesize($walPath);
+        }
+
+        $cached = ['mtime' => $mtime, 'size' => $size];
     }
     return $cached;
 }

@@ -67,6 +67,7 @@ try {
                 $linkedEmailsList = array_filter($linkedEmailsList, fn($e) => filter_var((string) $e, FILTER_VALIDATE_EMAIL) !== false);
 
                 // Domain validation: only allow emails from the declarant's domain
+                // Fail-closed: if we can't determine the domain, reject all invites
                 $declarantEmail = (string) ($user['email'] ?? '');
                 if ($declarantEmail && str_contains($declarantEmail, '@')) {
                     $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
@@ -74,6 +75,8 @@ try {
                         $emDomain = substr($em, strrpos($em, '@') + 1);
                         return strtolower($emDomain) === strtolower($emailDomain);
                     });
+                } else {
+                    $linkedEmailsList = [];
                 }
 
                 $existingLinked = getLinkedAgents($pdo, $reportUuid);

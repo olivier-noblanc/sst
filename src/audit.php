@@ -131,8 +131,8 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
  */
 function getAuditLogForTarget(PDO $pdo, string $targetType, int|string $targetId): array
 {
-    if (is_string($targetId)) {
-        // UUID-based lookup (reports)
+    if (is_string($targetId) && !is_numeric($targetId)) {
+        // UUID-based lookup (reports) — numeric strings are integer IDs, not UUIDs
         $stmt = $pdo->prepare('
             SELECT * FROM audit_log
             WHERE target_type = :target_type AND target_uuid = :target_uuid

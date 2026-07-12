@@ -3,6 +3,23 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.38.0] — 2026-07-12
+
+### Corrections — Ultrareview 13 issues
+
+- **1** 🔴 **audit_log target_uuid** — Ajout colonne `target_uuid TEXT` à la table `audit_log` pour stocker l'UUID des signalements (les entrées d'audit avaient toujours `target_id = 0` car la table `reports` utilise `uuid` comme clé primaire). 6 handlers mis à jour. (`src/audit.php`, `src/migration_columns.php`, `schema.sql`)
+- **2** 🔴 **Export CSV mémoire** — Remplacement de `stream_get_contents()` par `fpassthru()` pour un streaming O(1) au lieu de charger tout le fichier en mémoire (risque OOM avec 50k lignes). (`handlers/export_handler.php`)
+- **3** 🔴 **Requêtes DB dans template** — Déplacement de `getLinkedAgents()`/`getPendingInvites()` du template `report_card.php` vers le contrôleur `report_view.php` (élimine le risque N+1 et la violation de couche). (`templates/report_card.php`, `pages/report_view.php`)
+- **4** 🔴 **FormattingService 30x** — Un seul `$fmt` remplace 30+ instanciations de `FormattingService` par rendu de template. (`templates/report_card.php`)
+- **5** 🔴 **WAL checkpoint** — Suppression du checkpoint forcé de `getDbFingerprint()` ; fingerprint inclut maintenant le fichier `-wal` pour détecter les changements sans I/O disque par requête. (`src/backup.php`)
+- **6** 🔴 **Constantes état** — Remplacement de littéraux `'traite'`/`'abandonne'` par `ETAT_TRAITE`/`ETAT_ABANDONNE` dans `ReportService::reopen()`. (`src/Services/ReportService.php`)
+- **7** 🟡 **CSRF choose_site** — Ajout de `validatePostRequest()` au handler POST `choose_site` qui contournerait la chaîne de middleware CSRF. (`public/index.php`)
+- **8** 🟡 **Domaine email édition** — Validation du domaine des emails rattachés ajoutée au handler d'édition (fail-closed si email déclarant manquant). (`handlers/report_edit_handler.php`)
+- **9** 🟡 **Injection CRLF SMTP** — Blocage des adresses email contenant `\r\n` dans `sendViaSMTP()` + sanitisation de `$appName` dans les en-têtes. (`src/mail.php`)
+- **10** 🟡 **Précédence opérateur** — Correction du bug de précédence `&&`/`||` dans la logique `display_errors` (`!defined('DEV_MODE') || !DEV_MODE` entre-parenthèses). (`public/index.php`)
+- **11** 🟡 **Audit UUID lookup** — `getAuditLogForTarget()` utilise `is_numeric()` pour distinguer UUIDs des IDs numériques HTTP. (`src/audit.php`)
+
+
 ## [3.37.0] — 2026-07-11
 
 ### Technique — Migration handlers report en thin controllers

@@ -85,7 +85,7 @@ try {
     $report = $service->create($cmd);
 
     // Audit log
-    auditLog(getDB(), 'report', 'create', 'Signalement créé : ' . (string) $report['reference'], (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'type' => $type, 'site_id' => $siteId]);
+    auditLog(getDB(), 'report', 'create', 'Signalement créé : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference'], 'type' => $type, 'site_id' => $siteId], $report['uuid']);
 
     // Send linked agent invite emails (non-blocking)
     if (!empty($linkedEmailsRaw)) {

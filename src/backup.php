@@ -8,9 +8,9 @@
  *
  * How it works:
  *   1. On every page load, check if the DB has changed since the last backup
- *      (compare filemtime + filesize after WAL checkpoint).
+ *      (compare filemtime + filesize — no WAL checkpoint needed for detection).
  *   2. If unchanged → skip. Zero wasted I/O.
- *   3. If changed → VACUUM INTO creates a compact, consistent snapshot.
+ *   3. If changed → WAL checkpoint + VACUUM INTO creates a compact, consistent snapshot.
  *   4. Rotation: keep the N most recent backups, delete the rest.
  *   5. Before schema migration: forced backup (safety net).
  *
@@ -27,26 +27,18 @@ define('BACKUP_MARKER_FILE', BACKUP_DIR . '/.last_backup');
 
 /**
  * Get a fingerprint of the current database file.
- * Forces a WAL checkpoint first so all data is in the main file,
- * then reads filemtime + filesize.
+ * Reads filemtime + filesize to detect changes.
+ * No WAL checkpoint here — checkpoint is deferred to performBackupInternal()
+ * to avoid per-request disk I/O.
  *
  * @return array{mtime: int, size: int}
  */
 function getDbFingerprint(PDO $pdo): array
 {
-    // Cache fingerprint within a single request to avoid repeated WAL checkpoints
+    // Cache fingerprint within a single request
     static $cached = null;
     if ($cached !== null) {
         return $cached;
-    }
-
-    // Checkpoint WAL → flush pending writes into the main .db file
-    // PASSIVE mode: allows concurrent readers, non-blocking (safe for web apps)
-    try {
-        $pdo->exec('PRAGMA wal_checkpoint(PASSIVE)');
-    } catch (Exception $e) {
-        // Non-critical: checkpoint may fail if no WAL, just proceed
-        error_log('[SST-BACKUP] WAL checkpoint warning: ' . $e->getMessage());
     }
 
     clearstatcache(true, DB_PATH);
@@ -150,6 +142,13 @@ function performBackupInternal(PDO $pdo, string $prefix = 'sst', bool $force = f
     }
 
     try {
+        // Flush WAL before VACUUM INTO to ensure backup captures all pending writes
+        try {
+            $pdo->exec('PRAGMA wal_checkpoint(PASSIVE)');
+        } catch (Exception $e) {
+            // Non-critical: proceed with backup even if checkpoint fails
+            error_log('[SST-BACKUP] WAL checkpoint before backup failed: ' . $e->getMessage());
+        }
         $pdo->exec("VACUUM INTO '" . str_replace("'", "''", $backupFile) . "'");
     } catch (Exception $e) {
         error_log('[SST-BACKUP] VACUUM INTO failed: ' . $e->getMessage());

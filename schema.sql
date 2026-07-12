@@ -197,8 +197,9 @@ CREATE TABLE IF NOT EXISTS audit_log (
     username        TEXT NOT NULL,                    -- Denormalized for speed + survives user deletion
     category        TEXT NOT NULL,                    -- 'auth'|'report'|'user'|'site'|'config'|'export'|'backup'|'gdpr'
     action          TEXT NOT NULL,                    -- 'create'|'edit'|'delete'|'reactivate'|'role_change'|'login'|'logout'|etc.
-    target_id       INTEGER,                         -- ID of the affected entity (nullable)
+    target_id       INTEGER,                         -- ID of the affected entity (nullable, for integer-keyed entities)
     target_type     TEXT,                            -- 'report'|'user'|'site'|'config'|etc.
+    target_uuid     TEXT,                            -- UUID of the affected entity (for report entries)
     details         TEXT NOT NULL,                    -- Human-readable description
     context         TEXT,                            -- JSON-encoded additional context
     ip_address      TEXT,                            -- Client IP address
@@ -208,6 +209,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE INDEX IF NOT EXISTS idx_audit_log_category ON audit_log(category);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_target ON audit_log(target_type, target_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_target_uuid ON audit_log(target_uuid);
 CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at);
 
 -- ============================================================

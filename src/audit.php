@@ -24,11 +24,12 @@
  * @param string $category  Action category (auth, report, user, site, config, export, backup, gdpr)
  * @param string $action    Specific action (create, edit, delete, etc.)
  * @param string $details   Human-readable description of the action
- * @param int|null $targetId ID of the affected entity (optional)
+ * @param int|null $targetId ID of the affected entity (optional, for integer-keyed entities)
  * @param string|null $targetType Type of entity (report, user, site, etc.)
  * @param array<string, mixed> $context   Additional context data (will be JSON-encoded)
+ * @param string|null $targetUuid UUID of the affected entity (for report entries)
  */
-function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = []): void
+function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = [], ?string $targetUuid = null): void
 {
     try {
         $userId = currentUserId();
@@ -36,19 +37,20 @@ function auditLog(PDO $pdo, string $category, string $action, string $details, ?
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
 
         $stmt = $pdo->prepare('
-            INSERT INTO audit_log (user_id, username, category, action, target_id, target_type, details, context, ip_address)
-            VALUES (:user_id, :username, :category, :action, :target_id, :target_type, :details, :context, :ip)
+            INSERT INTO audit_log (user_id, username, category, action, target_id, target_type, target_uuid, details, context, ip_address)
+            VALUES (:user_id, :username, :category, :action, :target_id, :target_type, :target_uuid, :details, :context, :ip)
         ');
         $stmt->execute([
-            ':user_id'     => $userId,
-            ':username'    => $username,
-            ':category'    => $category,
-            ':action'      => $action,
-            ':target_id'   => $targetId,
-            ':target_type' => $targetType,
-            ':details'     => $details,
-            ':context'     => !empty($context) ? json_encode($context, JSON_UNESCAPED_UNICODE) : null,
-            ':ip'          => $ip,
+            ':user_id'      => $userId,
+            ':username'     => $username,
+            ':category'     => $category,
+            ':action'       => $action,
+            ':target_id'    => $targetId,
+            ':target_type'  => $targetType,
+            ':target_uuid'  => $targetUuid,
+            ':details'      => $details,
+            ':context'      => !empty($context) ? json_encode($context, JSON_UNESCAPED_UNICODE) : null,
+            ':ip'           => $ip,
         ]);
     } catch (Exception $e) {
         // Audit logging must NEVER break the application
@@ -124,16 +126,26 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
  *
  * @param PDO    $pdo         Database connection
  * @param string $targetType  Entity type (report, user, site)
- * @param int    $targetId    Entity ID
+ * @param int|string $targetId Entity ID (int for user/site, UUID string for report)
  * @return array<int, array<string, mixed>>
  */
-function getAuditLogForTarget(PDO $pdo, string $targetType, int $targetId): array
+function getAuditLogForTarget(PDO $pdo, string $targetType, int|string $targetId): array
 {
-    $stmt = $pdo->prepare('
-        SELECT * FROM audit_log
-        WHERE target_type = :target_type AND target_id = :target_id
-        ORDER BY created_at DESC
-    ');
-    $stmt->execute([':target_type' => $targetType, ':target_id' => $targetId]);
+    if (is_string($targetId)) {
+        // UUID-based lookup (reports)
+        $stmt = $pdo->prepare('
+            SELECT * FROM audit_log
+            WHERE target_type = :target_type AND target_uuid = :target_uuid
+            ORDER BY created_at DESC
+        ');
+        $stmt->execute([':target_type' => $targetType, ':target_uuid' => $targetId]);
+    } else {
+        $stmt = $pdo->prepare('
+            SELECT * FROM audit_log
+            WHERE target_type = :target_type AND target_id = :target_id
+            ORDER BY created_at DESC
+        ');
+        $stmt->execute([':target_type' => $targetType, ':target_id' => $targetId]);
+    }
     return $stmt->fetchAll();
 }

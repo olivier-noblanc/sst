@@ -26,7 +26,7 @@ function sendMail(string $to, string $subject, string $body, string $from = ''):
 {
     $smtpHost = getConfig('smtp_host', '');
     $smtpFrom = $from ?: getConfig('smtp_from', 'noreply@dreets-bfc.gouv.fr');
-    $appName = getConfig('app_nom_organisation', 'DREETS BFC');
+    $appName = str_replace(["\r", "\n"], '', getConfig('app_nom_organisation', 'DREETS BFC'));
 
     // Build email headers
     $headers = "From: $appName <$smtpFrom>\r\n";
@@ -70,6 +70,12 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     $from = getConfig('smtp_from', 'noreply@dreets-bfc.gouv.fr');
 
     if (empty($host)) {
+        return false;
+    }
+
+    // CRLF injection prevention: reject email addresses containing CR/LF
+    if (str_contains($to, "\r") || str_contains($to, "\n") || str_contains($from, "\r") || str_contains($from, "\n")) {
+        error_log("[SST-MAIL] CRLF injection attempt blocked in email address");
         return false;
     }
 

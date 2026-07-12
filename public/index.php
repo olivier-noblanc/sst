@@ -54,7 +54,7 @@ try {
         if ($displayErrorsOverride === '1') {
             ini_set('display_errors', '1');
             ini_set('display_startup_errors', '1');
-        } elseif ($displayErrorsOverride === '0' && !defined('DEV_MODE') || (defined('DEV_MODE') && !DEV_MODE)) {
+        } elseif ($displayErrorsOverride === '0' && (!defined('DEV_MODE') || !DEV_MODE)) {
             // Explicitly disabled in prod — keep errors hidden
             ini_set('display_errors', '0');
             ini_set('display_startup_errors', '0');
@@ -116,6 +116,7 @@ $csrfToken = generateCsrfToken();
 
 if ($page === 'choose_site') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        validatePostRequest(url('home'));
         require __DIR__ . '/../handlers/choose_site_handler.php';
         exit;
     }

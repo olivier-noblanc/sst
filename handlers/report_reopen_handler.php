@@ -26,7 +26,7 @@ try {
     $result = $service->reopen($reportUuid, $cmd, $userId);
 
     if ($result) {
-        auditLog(getDB(), 'report', 'reopen', 'Signalement réouvert : ' . (string) $report['reference'] . ' — Motif : ' . $motifReouverture, null, 'report', ['reference' => $report['reference'], 'motif' => $motifReouverture]);
+        auditLog(getDB(), 'report', 'reopen', 'Signalement réouvert : ' . (string) $report['reference'] . ' — Motif : ' . $motifReouverture, null, 'report', ['reference' => $report['reference'], 'motif' => $motifReouverture], $reportUuid);
 
         // Notify declarant + linked agents (non-blocking)
         try {

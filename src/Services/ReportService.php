@@ -96,7 +96,7 @@ class ReportService
         if (!$report) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        if (!in_array($report['etat'], ['traite', 'abandonne'])) {
+        if (!in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE])) {
             throw new RuntimeException('Ce signalement ne peut pas être réouvert.');
         }
         if (!in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT])) {

@@ -373,6 +373,12 @@ parameters:
 			path: handlers/report_create_handler.php
 
 		-
+			message: '#^Parameter \#8 \$targetUuid of function auditLog expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: handlers/report_create_handler.php
+
+		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 1
@@ -381,11 +387,23 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 12
+			count: 13
+			path: handlers/report_edit_handler.php
+
+		-
+			message: '#^Cannot access offset ''email'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
 			path: handlers/report_edit_handler.php
 
 		-
 			message: '#^Parameter \#1 \$objet of class App\\DTO\\UpdateReportCommand constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: handlers/report_edit_handler.php
+
+		-
+			message: '#^Parameter \#8 \$targetUuid of function auditLog expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: handlers/report_edit_handler.php
@@ -2086,6 +2104,12 @@ parameters:
 			message: '#^Possibly invalid array key type mixed\.$#'
 			identifier: offsetAccess.invalidOffset
 			count: 1
+			path: pages/report_view.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
 			path: pages/report_view.php
 
 		-
@@ -4923,7 +4947,7 @@ parameters:
 		-
 			message: '#^Cannot call method fetchAll\(\) on PDOStatement\|false\.$#'
 			identifier: method.nonObject
-			count: 11
+			count: 12
 			path: src/migration_columns.php
 
 		-
@@ -5541,6 +5565,12 @@ parameters:
 		-
 			message: '#^Possibly invalid array key type mixed\.$#'
 			identifier: offsetAccess.invalidOffset
+			count: 2
+			path: templates/report_card.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
 			count: 2
 			path: templates/report_card.php
 

@@ -269,4 +269,17 @@ function migrateColumns(PDO $pdo): void
     } catch (Exception $e) {
         error_log('Migration warning for report_responses attachment columns: ' . $e->getMessage());
     }
+    // ── Add target_uuid column to audit_log ────────────────────────────────
+    // Reports use uuid (TEXT) as primary key, not an integer id.
+    // target_id is always 0 for report entries — target_uuid stores the actual UUID.
+    try {
+        $cols = $pdo->query('PRAGMA table_info(audit_log)')->fetchAll();
+        $existingCols = array_column($cols, 'name');
+        if (!in_array('target_uuid', $existingCols)) {
+            $pdo->exec('ALTER TABLE audit_log ADD COLUMN target_uuid TEXT');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_audit_log_target_uuid ON audit_log(target_uuid)');
+        }
+    } catch (Exception $e) {
+        error_log('Migration warning for audit_log.target_uuid: ' . $e->getMessage());
+    }
 }

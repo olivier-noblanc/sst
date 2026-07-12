@@ -183,10 +183,20 @@ foreach ($reports as $row) {
     fputcsv($tmpFile, $csvRow, ';');
 }
 
-// Read the CSV content from temp file
+// Stream CSV directly to output (avoids loading entire file into memory)
 rewind($tmpFile);
-$csv = stream_get_contents($tmpFile);
-fclose($tmpFile);
 
-// Send as download
-sendFileDownload($csv, $filename, 'text/csv; charset=utf-8');
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
+header_remove('X-Powered-By');
+header_remove('Server');
+header('Content-Type: text/csv; charset=utf-8');
+header('Content-Disposition: attachment; filename="' . str_replace('"', '\\"', $filename) . '"');
+header('Cache-Control: no-cache');
+header('X-Content-Type-Options: nosniff');
+
+fpassthru($tmpFile);
+fclose($tmpFile);
+exit;

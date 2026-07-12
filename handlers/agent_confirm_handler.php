@@ -43,7 +43,7 @@ if ($confirmed) {
     $reportUuid = (string) $invite['report_uuid'];
     $report = $repo->findById($reportUuid);
     $ref = $report ? (string) $report['reference'] : $reportUuid;
-    auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e((string) $user['email']) . ' confirmé rattachement au signalement ' . $ref, 0, 'report', ['reference' => $ref, 'email' => $user['email'] ?? '']);
+    auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e((string) $user['email']) . ' confirmé rattachement au signalement ' . $ref, null, 'report', ['reference' => $ref, 'email' => $user['email'] ?? ''], $reportUuid);
     setFlash('success', 'Votre rattachement au signalement ' . e($ref) . ' est confirmé.');
     redirect(url('report_view', ['uuid' => $reportUuid]));
 } else {

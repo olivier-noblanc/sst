@@ -65,6 +65,17 @@ try {
                 $pdo = getDB();
                 $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
                 $linkedEmailsList = array_filter($linkedEmailsList, fn($e) => filter_var((string) $e, FILTER_VALIDATE_EMAIL) !== false);
+
+                // Domain validation: only allow emails from the declarant's domain
+                $declarantEmail = (string) ($user['email'] ?? '');
+                if ($declarantEmail && str_contains($declarantEmail, '@')) {
+                    $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
+                    $linkedEmailsList = array_filter($linkedEmailsList, function (string $em) use ($emailDomain): bool {
+                        $emDomain = substr($em, strrpos($em, '@') + 1);
+                        return strtolower($emDomain) === strtolower($emailDomain);
+                    });
+                }
+
                 $existingLinked = getLinkedAgents($pdo, $reportUuid);
                 $existingEmails = array_column($existingLinked, 'email');
                 $newEmails = array_diff($linkedEmailsList, $existingEmails);
@@ -77,7 +88,7 @@ try {
             }
         }
 
-        auditLog(getDB(), 'report', 'edit', 'Signalement modifié : ' . (string) $report['reference'], (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference']]);
+        auditLog(getDB(), 'report', 'edit', 'Signalement modifié : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference']], $report['uuid']);
         setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' modifié avec succès.');
     } else {
         error_log("SST: report_edit failed - uuid=$reportUuid, user_id=$userId, etat=" . (string) ($report['etat'] ?? ''));

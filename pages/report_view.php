@@ -30,6 +30,10 @@ $pageTitle = 'Signalement — ' . $report['reference'];
 // Get response history
 $responses = getReportResponses($pdo, $uuid);
 
+// Get linked agents and pending invites (moved from template to avoid DB queries in presentation layer)
+$linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents((string) $report['uuid']);
+$pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites((string) $report['uuid']);
+
 // Breadcrumb data
 $reportType = $report['type'] ?? TYPE_RSST;
 $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);

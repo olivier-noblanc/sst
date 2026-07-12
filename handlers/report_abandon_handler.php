@@ -27,7 +27,7 @@ try {
     $abandoned = $service->abandon($reportUuid, $userId);
 
     if ($abandoned) {
-        auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . (string) $report['reference'], (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'] ?? '']);
+        auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference'] ?? ''], $reportUuid);
 
         // Notify supervisors of the site
         try {

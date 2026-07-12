@@ -70,7 +70,7 @@ try {
     $result = $service->respond($reportUuid, $cmd, $userId);
 
     if (is_array($result) && ($result['status'] ?? '') === 'true') {
-        auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report['reference'] . ' — état : ' . $nouvelEtat, (int) ($report['id'] ?? 0), 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat]);
+        auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report['reference'] . ' — état : ' . $nouvelEtat, null, 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat], $reportUuid);
 
         try {
             require_once __DIR__ . '/../src/mail.php';

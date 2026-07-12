@@ -15,23 +15,23 @@ $config = \App\Services\ConfigService::getInstance();
 $userId = (int) ($_GET['id'] ?? 0);
 
 if ($userId <= 0) {
-    (new \App\Services\SessionService())->setFlash('error', 'Utilisateur introuvable.');
-    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('users'));
+    new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
+    new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('users'));
 }
 
 $user = \App\Repository\UserRepository::instance()->findById($userId);
 
 if (!$user) {
-    (new \App\Services\SessionService())->setFlash('error', 'Utilisateur introuvable.');
-    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('users'));
+    new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
+    new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('users'));
 }
 
 // Get sites for dropdown
 $sites = \App\Repository\SiteRepository::instance()->findAll();
 
 // Form data and errors from session
-$formErrors = (new \App\Services\SessionService())->getFormErrors();
-$formData = (new \App\Services\SessionService())->getFormData();
+$formErrors = new \App\Services\SessionService()->getFormErrors();
+$formData = new \App\Services\SessionService()->getFormData();
 
 $pageTitle = 'Éditer l\'utilisateur — ' . $fmt->e((string) ($user['prenom'] ?? '') . ' ' . (string) ($user['nom'] ?? ''));
 ?>
@@ -47,11 +47,11 @@ $pageTitle = 'Éditer l\'utilisateur — ' . $fmt->e((string) ($user['prenom'] ?
         <?php
         // Prepare variables for the shared template
         $editNom = $formData['nom'] ?? $user['nom'] ?? '';
-    $editPrenom = $formData['prenom'] ?? $user['prenom'] ?? '';
-    $editEmail = $formData['email'] ?? $user['email'] ?? '';
-    $editUsername = $formData['username'] ?? $user['username'] ?? '';
-    $editRole = $formData['role'] ?? $user['role'] ?? ROLE_AGENT;
-    $editSiteId = $formData['site_id'] ?? $user['site_id'] ?? 1;
+$editPrenom = $formData['prenom'] ?? $user['prenom'] ?? '';
+$editEmail = $formData['email'] ?? $user['email'] ?? '';
+$editUsername = $formData['username'] ?? $user['username'] ?? '';
+$editRole = $formData['role'] ?? $user['role'] ?? ROLE_AGENT;
+$editSiteId = $formData['site_id'] ?? $user['site_id'] ?? 1;
 $usernameHint = 'Identifiant de connexion Windows';
 require __DIR__ . '/../templates/user_form_fields.php';
 ?>
@@ -97,7 +97,7 @@ require __DIR__ . '/../templates/user_form_fields.php';
 </div>
 
 <!-- Delete user (soft delete) -->
-<?php if (!empty($user['is_active']) && (int) ($user['id'] ?? 0) !== (int) ((new \App\Services\SessionService())->getUserSession()['id'] ?? 0)): ?>
+<?php if (!empty($user['is_active']) && (int) ($user['id'] ?? 0) !== (int) (new \App\Services\SessionService()->getUserSession()['id'] ?? 0)): ?>
 <div class="card card--danger">
     <h3 class="section-header--danger">Zone dangereuse</h3>
     <p class="text-muted mb-4">La désactivation rendra le compte inutilisable. Cette action est réversible.</p>

@@ -1,4 +1,5 @@
 <?php
+
 /** CreateReportCommand — DTO pour la création d'un signalement. */
 
 namespace App\DTO;
@@ -70,5 +71,8 @@ class CreateReportCommand
         );
     }
 
-    public function toArray(): array { return get_object_vars($this); }
+    public function toArray(): array
+    {
+        return get_object_vars($this);
+    }
 }

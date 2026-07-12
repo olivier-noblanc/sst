@@ -13,6 +13,7 @@ $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
 
 $userId = currentUserId();
+$user = currentUser();
 requireReportOwnership($report, $userId, $reportUuid, 'modifier');
 requireReportEditable($report, $reportUuid, 'modifié');
 

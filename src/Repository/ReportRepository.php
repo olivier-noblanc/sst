@@ -1,4 +1,5 @@
 <?php
+
 /** ReportRepository — Couche d'accès aux données pour les signalements. */
 
 namespace App\Repository;
@@ -125,7 +126,7 @@ class ReportRepository
             FROM reports WHERE uuid = :uuid
         ');
         $stmt->execute([':uuid' => $uuid]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row !== false ? $row : null;
     }
 
@@ -133,17 +134,29 @@ class ReportRepository
     {
         $builder = new QueryFilterBuilder();
         $builder->addEqual('r.type', $filter->type);
-        if (!$filter->seeAllSites) { $builder->addEqual('r.site_id', $filter->forceSiteId ?? 0); }
+        if (!$filter->seeAllSites) {
+            $builder->addEqual('r.site_id', $filter->forceSiteId ?? 0);
+        }
         $filters = $filter->toArray();
         if (!empty($filters['confidential_filter'])) {
             $cfId = (int) $filters['confidential_filter'];
             $builder->addRaw('(r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)', [':cf_declarant_id' => $cfId]);
         }
-        if (!empty($filters['own_only'])) { $builder->addEqual('r.declarant_id', $filters['own_only']); }
-        if (!empty($filters['etat'])) { $builder->addEqual('r.etat', $filters['etat']); }
-        if (!empty($filters['site_id']) && $filter->seeAllSites) { $builder->addEqual('r.site_id', $filters['site_id']); }
-        if (!empty($filters['force_site_id'])) { $builder->addEqual('r.site_id', (int) $filters['force_site_id']); }
-        if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) { $builder->addEqual('r.declarant_id', $filters['declarant_id']); }
+        if (!empty($filters['own_only'])) {
+            $builder->addEqual('r.declarant_id', $filters['own_only']);
+        }
+        if (!empty($filters['etat'])) {
+            $builder->addEqual('r.etat', $filters['etat']);
+        }
+        if (!empty($filters['site_id']) && $filter->seeAllSites) {
+            $builder->addEqual('r.site_id', $filters['site_id']);
+        }
+        if (!empty($filters['force_site_id'])) {
+            $builder->addEqual('r.site_id', (int) $filters['force_site_id']);
+        }
+        if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) {
+            $builder->addEqual('r.declarant_id', $filters['declarant_id']);
+        }
 
         ['where' => $where, 'params' => $params] = $builder->build();
 
@@ -204,7 +217,9 @@ class ReportRepository
         ');
         $stmt->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
         $prev = $stmt->fetch();
-        if ($prev) { $result['prev'] = $prev['uuid']; }
+        if ($prev) {
+            $result['prev'] = $prev['uuid'];
+        }
 
         $stmt2 = $this->pdo->prepare('
             SELECT uuid, created_at FROM reports
@@ -213,7 +228,9 @@ class ReportRepository
         ');
         $stmt2->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
         $next = $stmt2->fetch();
-        if ($next) { $result['next'] = $next['uuid']; }
+        if ($next) {
+            $result['next'] = $next['uuid'];
+        }
 
         return $result;
     }
@@ -312,7 +329,7 @@ class ReportRepository
         ");
         $stmt->execute($uuids);
         $result = [];
-        while ($resp = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        while ($resp = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $uuid = (string) $resp['report_uuid'];
             $result[$uuid][] = $resp;
         }
@@ -409,7 +426,6 @@ class ReportRepository
                 ':attachment_name' => $data['attachment_name'] ?? null,
                 ':attachment_mime' => $data['attachment_mime'] ?? null,
             ]);
-            $this->pdo->commit();
 
             try {
                 $this->pdo->prepare('INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)')
@@ -417,6 +433,8 @@ class ReportRepository
             } catch (Exception $ftsE) {
                 error_log('[SST-DB] FTS5 insert warning: ' . $ftsE->getMessage());
             }
+
+            $this->pdo->commit();
             return $uuid;
         } catch (Exception $e) {
             $this->pdo->rollBack();
@@ -477,20 +495,29 @@ class ReportRepository
         $sql = 'UPDATE reports SET ' . implode(', ', $setClauses)
             . " WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        $updated = $stmt->rowCount() > 0;
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            $updated = $stmt->rowCount() > 0;
 
-        if ($updated) {
-            try {
-                $this->pdo->prepare('DELETE FROM reports_fts WHERE uuid = :uuid')->execute([':uuid' => $uuid]);
-                $this->pdo->prepare('INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)')
-                    ->execute([':uuid' => $uuid, ':objet' => $data['objet'], ':description' => $data['description']]);
-            } catch (Exception $ftsE) {
-                error_log('[SST-DB] FTS5 update warning: ' . $ftsE->getMessage());
+            if ($updated) {
+                try {
+                    $this->pdo->prepare('DELETE FROM reports_fts WHERE uuid = :uuid')->execute([':uuid' => $uuid]);
+                    $this->pdo->prepare('INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)')
+                        ->execute([':uuid' => $uuid, ':objet' => $data['objet'], ':description' => $data['description']]);
+                } catch (Exception $ftsE) {
+                    error_log('[SST-DB] FTS5 update warning: ' . $ftsE->getMessage());
+                }
             }
+
+            $this->pdo->commit();
+            return $updated;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            error_log('[SST-DB] updateReport failed: ' . $e->getMessage());
+            throw $e;
         }
-        return $updated;
     }
 
     public function abandon(string $uuid, int $userId): bool
@@ -498,9 +525,9 @@ class ReportRepository
         $stmt = $this->pdo->prepare("
             UPDATE reports
             SET etat = '" . ETAT_ABANDONNE . "', updated_at = datetime('now')
-            WHERE uuid = :uuid AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')
+            WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')
         ");
-        $stmt->execute([':uuid' => $uuid]);
+        $stmt->execute([':uuid' => $uuid, ':user_id' => $userId]);
         return $stmt->rowCount() > 0;
     }
 
@@ -623,7 +650,7 @@ class ReportRepository
             ]);
 
             $this->pdo->commit();
-            return ['status' => 'true'];
+            return ['status' => 'ok'];
         } catch (Exception $e) {
             $this->pdo->rollBack();
             error_log('[SST-DB] respondToReport transaction failed: ' . $e->getMessage());
@@ -637,11 +664,15 @@ class ReportRepository
 
     public function linkAgents(string $reportUuid, array $userIds): void
     {
-        if (empty($userIds)) { return; }
+        if (empty($userIds)) {
+            return;
+        }
 
         // Filter valid user IDs
         $validIds = array_filter(array_map(fn($id) => (int) $id, $userIds), fn($id) => $id > 0);
-        if (empty($validIds)) { return; }
+        if (empty($validIds)) {
+            return;
+        }
 
         // Build multi-row INSERT with UNION ALL for SQLite
         $rows = [];
@@ -659,8 +690,17 @@ class ReportRepository
 
     public function replaceLinkedAgents(string $reportUuid, array $userIds): void
     {
-        $this->pdo->prepare('DELETE FROM report_agents WHERE report_uuid = ?')->execute([$reportUuid]);
-        $this->linkAgents($reportUuid, $userIds);
+        $this->pdo->beginTransaction();
+        try {
+            $this->pdo->prepare('DELETE FROM report_agents WHERE report_uuid = ?')->execute([$reportUuid]);
+            $this->linkAgents($reportUuid, $userIds);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -681,12 +721,23 @@ class ReportRepository
     public function confirmAgentInvite(string $token, int $userId): bool
     {
         $invite = $this->getAgentInviteByToken($token);
-        if (!$invite) { return false; }
-        $stmt = $this->pdo->prepare("
-            UPDATE report_agent_invites SET confirmed = 1, confirmed_at = datetime('now') WHERE token = ?
-        ");
-        $stmt->execute([$token]);
-        $this->linkAgents($invite['report_uuid'], [$userId]);
+        if (!$invite) {
+            return false;
+        }
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare("
+                UPDATE report_agent_invites SET confirmed = 1, confirmed_at = datetime('now') WHERE token = ?
+            ");
+            $stmt->execute([$token]);
+            $this->linkAgents($invite['report_uuid'], [$userId]);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
         return true;
     }
 
@@ -704,5 +755,8 @@ class ReportRepository
         return StatsRepository::instance()->getExportData($filters);
     }
 
-    public function getPdo(): PDO { return $this->pdo; }
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
 }

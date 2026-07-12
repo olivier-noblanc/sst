@@ -1,4 +1,5 @@
 <?php
+
 /** QueryFilterBuilder — Construit des WHERE dynamiques sans duplication. */
 
 namespace App\Query;
@@ -42,7 +43,16 @@ class QueryFilterBuilder
         return $this;
     }
 
-    public function getWhere(): string { return $this->where; }
-    public function getParams(): array { return $this->params; }
-    public function build(): array { return ['where' => $this->where, 'params' => $this->params]; }
+    public function getWhere(): string
+    {
+        return $this->where;
+    }
+    public function getParams(): array
+    {
+        return $this->params;
+    }
+    public function build(): array
+    {
+        return ['where' => $this->where, 'params' => $this->params];
+    }
 }

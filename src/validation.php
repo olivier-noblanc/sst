@@ -140,17 +140,17 @@ function validateReportFields(string $dateEvenement, string $objet, string $desc
 
     if (empty($objet)) {
         $errors['objet'] = 'L\'objet est obligatoire.';
-    } elseif (strlen($objet) > MAX_OBJECT_LENGTH) {
+    } elseif (mb_strlen($objet, 'UTF-8') > MAX_OBJECT_LENGTH) {
         $errors['objet'] = 'L\'objet ne doit pas dépasser ' . MAX_OBJECT_LENGTH . ' caractères.';
     }
 
     if (empty($description)) {
         $errors['description'] = 'La description est obligatoire.';
-    } elseif (strlen($description) > MAX_DESCRIPTION_LENGTH) {
+    } elseif (mb_strlen($description, 'UTF-8') > MAX_DESCRIPTION_LENGTH) {
         $errors['description'] = 'La description ne doit pas dépasser ' . MAX_DESCRIPTION_LENGTH . ' caractères.';
     }
 
-    if (!empty($lieu) && strlen($lieu) > MAX_LIEU_LENGTH) {
+    if (!empty($lieu) && mb_strlen($lieu, 'UTF-8') > MAX_LIEU_LENGTH) {
         $errors['lieu'] = 'Le lieu ne doit pas dépasser ' . MAX_LIEU_LENGTH . ' caractères.';
     }
 
@@ -176,12 +176,12 @@ function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pou
     if ($pourCompte) {
         if (empty($pourCompteNom)) {
             $errors['pour_compte_nom'] = 'Le nom de l\'agent est obligatoire si vous signalez pour le compte d\'un autre agent.';
-        } elseif (strlen($pourCompteNom) > 100) {
+        } elseif (mb_strlen($pourCompteNom, 'UTF-8') > 100) {
             $errors['pour_compte_nom'] = 'Le nom ne doit pas dépasser 100 caractères.';
         }
         if (empty($pourComptePrenom)) {
             $errors['pour_compte_prenom'] = 'Le prénom de l\'agent est obligatoire si vous signalez pour le compte d\'un autre agent.';
-        } elseif (strlen($pourComptePrenom) > 100) {
+        } elseif (mb_strlen($pourComptePrenom, 'UTF-8') > 100) {
             $errors['pour_compte_prenom'] = 'Le prénom ne doit pas dépasser 100 caractères.';
         }
     }

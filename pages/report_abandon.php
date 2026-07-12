@@ -16,7 +16,7 @@ $http = new \App\Services\HttpService();
 $config = \App\Services\ConfigService::getInstance();
 
 // Access control: only the declarant
-$user = (new \App\Services\SessionService())->getUserSession();
+$user = new \App\Services\SessionService()->getUserSession();
 $userId = (int) $user['id'];
 
 requireReportOwnership($report, $userId, $uuid, 'abandonner');
@@ -24,7 +24,7 @@ requireReportEditable($report, $uuid, 'abandonné');
 
 $pageTitle = 'Abandonner le signalement — ' . $report['reference'];
 $type = $report['type'];
-$csrfToken = (new \App\Services\SessionService())->generateCsrfToken();
+$csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 
 ?>
 

@@ -33,7 +33,7 @@ $user = $session->getUserSession();
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $userRole = (string) ($user['role'] ?? '');
-$agentVisibility = $access->getReportVisibility();
+$agentVisibility = $access->getReportVisibility($type);
 $seeAllSites = $access->canSeeAllSites();
 $noSiteMode = $config->isNoSiteMode();
 
@@ -61,7 +61,7 @@ $perPage = ITEMS_PER_PAGE;
 
 // Fetch reports
 /** @var array{reports: list<array<string, mixed>>, total: int} $result */
-$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type:$type, etat:$filters['etat']??'', siteId:(int)($filters['site_id']??0), declarantId:!empty($filters['declarant_id'])?(int)$filters['declarant_id']:null, confidentialFilter:!empty($filters['confidential_filter'])?(int)$filters['confidential_filter']:null, forceSiteId:!empty($filters['force_site_id'])?(int)$filters['force_site_id']:null, search:$filters['q']??null, seeAllSites:$seeAllSites), $pageNum, $perPage);
+$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: (int) ($filters['site_id'] ?? 0), declarantId: !empty($filters['declarant_id']) ? (int) $filters['declarant_id'] : null, confidentialFilter: !empty($filters['confidential_filter']) ? (int) $filters['confidential_filter'] : null, forceSiteId: !empty($filters['force_site_id']) ? (int) $filters['force_site_id'] : null, search: $filters['q'] ?? null, seeAllSites: $seeAllSites), $pageNum, $perPage);
 $reports = $result['reports'];
 $totalItems = $result['total'];
 

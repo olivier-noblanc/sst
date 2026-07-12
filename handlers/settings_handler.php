@@ -92,7 +92,7 @@ try {
         if (!empty($smtpHost)) {
             require_once __DIR__ . '/../src/mail.php';
             $testTo = $smtpFrom;
-            if (!empty($testTo) && filter_var($testTo, $smtpPass !== '' ? FILTER_VALIDATE_EMAIL : FILTER_VALIDATE_EMAIL)) {
+            if (!empty($testTo) && filter_var($testTo, FILTER_VALIDATE_EMAIL)) {
                 $appName = getConfig('app_nom_organisation', 'DREETS BFC');
                 $testSubject = 'Test de connexion SMTP';
                 $testBody = '<html><body><h2>Test SMTP</h2><p>Ce message confirme que la connexion SMTP est fonctionnelle.</p></body></html>';

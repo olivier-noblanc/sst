@@ -10,7 +10,7 @@ use App\Services\ReportService;
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $motifReouverture = trim((string) ($_POST['motif_reouverture'] ?? ''));
 
-if (strlen($motifReouverture) < 10) {
+if (mb_strlen($motifReouverture, 'UTF-8') < 10) {
     setFlash('error', 'Le motif de réouverture doit contenir au moins 10 caractères.');
     setFormData($_POST);
     redirect(url('report_reopen', ['uuid' => $reportUuid]));
@@ -32,9 +32,9 @@ try {
         try {
             require_once __DIR__ . '/../src/mail.php';
             $pdo = getDB();
+            $registryLabel = REGISTRY_SHORT_LABELS[(string) ($report['type'] ?? '')] ?? strtoupper((string) ($report['type'] ?? ''));
             $declarant = getUserById($pdo, (int) ($report['declarant_id'] ?? 0));
             if ($declarant && !empty($declarant['email']) && (int) ($report['declarant_id'] ?? 0) !== $userId) {
-                $registryLabel = REGISTRY_SHORT_LABELS[(string) ($report['type'] ?? '')] ?? strtoupper((string) ($report['type'] ?? ''));
                 $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
                 $body = '<html><body>';
                 $body .= '<h2>Votre signalement a été réouvert</h2>';

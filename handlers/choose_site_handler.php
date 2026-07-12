@@ -30,7 +30,12 @@ $hasExistingSite = !empty($user['site_id']);
 if ($hasExistingSite) {
     $siteChosenAt = $user['site_chosen_at'] ?? null;
     if ($siteChosenAt) {
-        $daysSinceChoice = (time() - strtotime((string) $siteChosenAt)) / 86400;
+        $timestamp = strtotime((string) $siteChosenAt);
+        if ($timestamp !== false) {
+            $daysSinceChoice = (time() - $timestamp) / 86400;
+        } else {
+            $daysSinceChoice = 999;
+        }
         if ($daysSinceChoice > 7) {
             setFlash('error', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
             session_write_close();
@@ -44,8 +49,8 @@ if ($hasExistingSite) {
 }
 
 $site = $siteRepo->findById($siteId);
-if (!$site) {
-    setFlash('error', 'Site invalide. Veuillez réessayer.');
+if (!$site || empty($site['is_active'])) {
+    setFlash('error', 'Site invalide ou désactivé.');
     session_write_close();
     redirect(url('choose_site'));
 }

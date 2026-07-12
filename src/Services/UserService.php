@@ -1,4 +1,5 @@
 <?php
+
 /** UserService — Couche métier pour la gestion des utilisateurs. */
 
 namespace App\Services;
@@ -217,8 +218,21 @@ class UserService
         return $this->repo->exportData($id);
     }
 
-    public function anonymize(int $id): bool
+    public function anonymize(int $id, int $currentUserId): bool
     {
+        if ($currentUserId === $id) {
+            throw new RuntimeException('Vous ne pouvez pas anonymiser votre propre compte.');
+        }
+
+        $user = $this->repo->findById($id);
+        if (!$user) {
+            throw new RuntimeException('Utilisateur introuvable.');
+        }
+
+        if (!$this->canDeactivate($id)) {
+            throw new RuntimeException('Impossible d\'anonymiser le dernier superviseur actif.');
+        }
+
         return $this->repo->anonymize($id);
     }
 }

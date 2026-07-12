@@ -1,4 +1,5 @@
 <?php
+
 /** SessionService — Session management, CSRF, flash messages, form data, impersonation. */
 
 namespace App\Services;

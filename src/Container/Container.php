@@ -1,4 +1,5 @@
 <?php
+
 /** Container — Simple DI Container. */
 
 namespace App\Container;

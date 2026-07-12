@@ -10,25 +10,25 @@ use App\Services\SessionService;
 
 function setFormData(array $data): void
 {
-    (new SessionService())->setFormData($data);
+    SessionService::getInstance()->setFormData($data);
 }
 
 function getFormData(): array
 {
-    return (new SessionService())->getFormData();
+    return SessionService::getInstance()->getFormData();
 }
 
 function setFormErrors(array $errors): void
 {
-    (new SessionService())->setFormErrors($errors);
+    SessionService::getInstance()->setFormErrors($errors);
 }
 
 function getFormErrors(): array
 {
-    return (new SessionService())->getFormErrors();
+    return SessionService::getInstance()->getFormErrors();
 }
 
 function getFieldError(array $errors, string $field): ?string
 {
-    return (new SessionService())->getFieldError($errors, $field);
+    return SessionService::getInstance()->getFieldError($errors, $field);
 }

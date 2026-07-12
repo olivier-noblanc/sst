@@ -28,19 +28,19 @@ $cardClass = match($type) {
 };
 
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
-$user = (new \App\Services\SessionService())->getUserSession() ?? [];
+$user = new \App\Services\SessionService()->getUserSession() ?? [];
 $userRole = (string) ($user['role'] ?? ROLE_AGENT);
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $isDeclarant = ((int) $report['declarant_id'] === $userId);
-$canEdit = (new \App\Services\AccessService())->canEditReport((array) $report, $userId);
+$canEdit = new \App\Services\AccessService()->canEditReport((array) $report, $userId);
 $canAbandon = $isDeclarant && !in_array($report['etat'], [ETAT_ABANDONNE, ETAT_TRAITE]);
-$canRespondToReport = (new \App\Services\AccessService())->canRespondToReport((array) $report, $userRole);
+$canRespondToReport = new \App\Services\AccessService()->canRespondToReport((array) $report, $userRole);
 $canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE]) && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT]);
 
 // Ensure $csrfToken is available (set by index.php but may not be in scope)
 if (!isset($csrfToken)) {
-    $csrfToken = (new \App\Services\SessionService())->generateCsrfToken();
+    $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 }
 ?>
 
@@ -165,17 +165,17 @@ if (!isset($csrfToken)) {
                         ?>
                         <?php if ($isImageAttachment): ?>
                             <div class="mb-2">
-                                <a href="<?php echo (new \App\Services\HttpService())->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
+                                <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
                                    title="<?php echo $fmt->e($report['attachment_name']); ?> — Télécharger">
-                                    <img src="<?php echo (new \App\Services\HttpService())->url('report_attachment', ['uuid' => $report['uuid'], 'inline' => 1]); ?>"
+                                    <img src="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report['uuid'], 'inline' => 1]); ?>"
                                          alt="<?php echo $fmt->e($report['attachment_name']); ?>"
                                          class="attachment-image" loading="lazy">
                                 </a>
                             </div>
-                            <a href="<?php echo (new \App\Services\HttpService())->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
+                            <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
                                class="btn btn--outline btn--sm">&#11015; <?php echo $fmt->e($report['attachment_name']); ?></a>
                         <?php else: ?>
-                            <a href="<?php echo (new \App\Services\HttpService())->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
+                            <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
                                class="btn btn--outline btn--sm">&#128206; <?php echo $fmt->e($report['attachment_name']); ?></a>
                         <?php endif; ?>
                     </td>
@@ -222,13 +222,13 @@ if (!isset($csrfToken)) {
                         $isImage = !empty($resp['attachment_mime']) && in_array($resp['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
                         ?>
                         <?php if ($isImage): ?>
-                            <a href="<?php echo (new \App\Services\HttpService())->url('response_attachment', ['id' => $resp['id']]); ?>" title="<?php echo $fmt->e($resp['attachment_name']); ?>">
-                                <img src="<?php echo (new \App\Services\HttpService())->url('response_attachment', ['id' => $resp['id'], 'inline' => 1]); ?>"
+                            <a href="<?php echo new \App\Services\HttpService()->url('response_attachment', ['id' => $resp['id']]); ?>" title="<?php echo $fmt->e($resp['attachment_name']); ?>">
+                                <img src="<?php echo new \App\Services\HttpService()->url('response_attachment', ['id' => $resp['id'], 'inline' => 1]); ?>"
                                      alt="<?php echo $fmt->e($resp['attachment_name']); ?>"
                                      class="attachment-image" loading="lazy" style="max-height:120px;">
                             </a>
                         <?php endif; ?>
-                        <a href="<?php echo (new \App\Services\HttpService())->url('response_attachment', ['id' => $resp['id']]); ?>"
+                        <a href="<?php echo new \App\Services\HttpService()->url('response_attachment', ['id' => $resp['id']]); ?>"
                            class="btn btn--outline btn--sm"><?php echo $isImage ? '&#11015;' : '&#128206;'; ?> <?php echo $fmt->e($resp['attachment_name']); ?></a>
                     </td>
                 </tr>
@@ -242,22 +242,22 @@ if (!isset($csrfToken)) {
 
 <div class="form-actions">
     <?php if ($canEdit): ?>
-        <a href="<?php echo (new \App\Services\HttpService())->url('report_edit', ['uuid' => $report['uuid']]); ?>" class="btn btn--secondary">Modifier</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('report_edit', ['uuid' => $report['uuid']]); ?>" class="btn btn--secondary">Modifier</a>
     <?php endif; ?>
 
     <?php if ($canRespondToReport): ?>
-        <a href="<?php echo (new \App\Services\HttpService())->url('report_respond', ['uuid' => $report['uuid']]); ?>" class="btn btn--primary">Répondre</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('report_respond', ['uuid' => $report['uuid']]); ?>" class="btn btn--primary">Répondre</a>
     <?php endif; ?>
 
     <?php if ($canAbandon): ?>
-        <a href="<?php echo (new \App\Services\HttpService())->url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="btn btn--danger">Abandonner le signalement</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="btn btn--danger">Abandonner le signalement</a>
         <small class="help-text help-text--danger">(Le signalement sera marqué comme abandonné mais restera consultable)</small>
     <?php endif; ?>
 
     <?php if ($canReopen): ?>
-        <a href="<?php echo (new \App\Services\HttpService())->url('report_reopen', ['uuid' => $report['uuid']]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('report_reopen', ['uuid' => $report['uuid']]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
     <?php endif; ?>
 
-    <a href="<?php echo (new \App\Services\HttpService())->url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Imprimer ou enregistrer en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
-    <a href="<?php echo (new \App\Services\HttpService())->url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
+    <a href="<?php echo new \App\Services\HttpService()->url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Imprimer ou enregistrer en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
+    <a href="<?php echo new \App\Services\HttpService()->url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>

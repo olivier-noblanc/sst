@@ -1,4 +1,5 @@
 <?php
+
 /** Registry Card Renderer — HTML unifié pour les cartes de registre. */
 
 function getRegistryIcon(string $type): string

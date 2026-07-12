@@ -15,7 +15,7 @@ $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
 $noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
 $labelUnite = \App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR');
 ?>
-<?php echo (new \App\Services\AssetService())->cssLink('css/guide.css'); ?>
+<?php echo new \App\Services\AssetService()->cssLink('css/guide.css'); ?>
 
 <div class="guide">
     <div class="guide-header">
@@ -87,7 +87,7 @@ $labelUnite = \App\Services\ConfigService::getInstance()->get('app_label_unite',
             <ul class="guide-step__list">
                 <li><strong>Date de l'evenement</strong> — la date ou cela s'est passe</li>
                 <?php if (!$noSiteMode): ?>
-                <li><strong><?php echo (new \App\Services\FormattingService())->e($labelUnite); ?> de rattachement</strong> — votre unite de travail</li>
+                <li><strong><?php echo new \App\Services\FormattingService()->e($labelUnite); ?> de rattachement</strong> — votre unite de travail</li>
                 <?php endif; ?>
                 <li><strong>Objet</strong> — un resume court en quelques mots</li>
                 <li><strong>Description</strong> — expliquez ce qui s'est passe en detail</li>

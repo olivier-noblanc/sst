@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\FormattingService;
+
 /**
  * Report Print Helpers — Application SST DREETS BFC
  *
@@ -211,7 +213,7 @@ function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void
         $etatResp = !empty($resp['nouvel_etat'])
             ? (ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat']) : '—';
         $row = [
-            (new \App\Services\FormattingService())->formatDateTimeFR($resp['created_at']),
+            new FormattingService()->formatDateTimeFR($resp['created_at']),
             ($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? ''),
             $etatResp,
             $resp['reponse'] ?? '',

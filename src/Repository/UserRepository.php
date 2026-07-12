@@ -1,4 +1,5 @@
 <?php
+
 /** UserRepository — Couche d'accès aux données pour les utilisateurs. */
 
 namespace App\Repository;
@@ -229,13 +230,24 @@ class UserRepository
                 UPDATE reports
                 SET declarant_nom = 'Anonymisé', declarant_prenom = 'Utilisateur',
                     pour_compte_nom = CASE WHEN pour_compte_nom IS NOT NULL THEN 'Anonymisé' ELSE NULL END,
-                    pour_compte_prenom = CASE WHEN pour_compte_prenom IS NOT NULL THEN 'Utilisateur' ELSE NULL END
+                    pour_compte_prenom = CASE WHEN pour_compte_prenom IS NOT NULL THEN 'Utilisateur' ELSE NULL END,
+                    telephone_mobile = NULL
                 WHERE declarant_id = :id
             ");
             $stmt->execute([':id' => $id]);
 
             $stmt = $this->pdo->prepare('
                 UPDATE reports SET repondant_id = NULL WHERE repondant_id = :id AND repondant_id IS NOT NULL
+            ');
+            $stmt->execute([':id' => $id]);
+
+            $stmt = $this->pdo->prepare('
+                UPDATE report_responses SET user_id = NULL WHERE user_id = :id AND user_id IS NOT NULL
+            ');
+            $stmt->execute([':id' => $id]);
+
+            $stmt = $this->pdo->prepare('
+                UPDATE report_access_log SET user_id = NULL WHERE user_id = :id AND user_id IS NOT NULL
             ');
             $stmt->execute([':id' => $id]);
 
@@ -290,5 +302,8 @@ class UserRepository
         ];
     }
 
-    public function getPdo(): PDO { return $this->pdo; }
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
 }

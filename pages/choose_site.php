@@ -30,11 +30,11 @@ $config = \App\Services\ConfigService::getInstance();
 
 // In noSiteMode, there are no sites to choose — redirect home
 if ($config->isNoSiteMode()) {
-    (new \App\Services\SessionService())->setFlash('info', 'Aucun site n\'est configuré pour le moment. Vous pouvez utiliser l\'application sans rattachement.');
+    new \App\Services\SessionService()->setFlash('info', 'Aucun site n\'est configuré pour le moment. Vous pouvez utiliser l\'application sans rattachement.');
     $http->redirect($http->url('home'));
 }
 
-$user = (new \App\Services\SessionService())->getUserSession();
+$user = new \App\Services\SessionService()->getUserSession();
 $hasExistingSite = !empty($user['site_id']);
 $isWithinGracePeriod = false;
 $daysRemaining = 0;
@@ -44,6 +44,9 @@ if ($hasExistingSite) {
     $siteChosenAt = $user['site_chosen_at'] ?? null;
     if ($siteChosenAt) {
         $chosenTime = strtotime((string) $siteChosenAt);
+        if ($chosenTime === false) {
+            $chosenTime = 0;
+        }
         $daysSinceChoice = (time() - $chosenTime) / 86400;
         $isWithinGracePeriod = $daysSinceChoice <= 7;
         $daysRemaining = max(0, ceil(7 - $daysSinceChoice));
@@ -51,7 +54,7 @@ if ($hasExistingSite) {
 
     if (!$isWithinGracePeriod) {
         // Outside grace period — redirect home with message
-        (new \App\Services\SessionService())->setFlash('info', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
+        new \App\Services\SessionService()->setFlash('info', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
         $http->redirect($http->url('home'));
     }
 } else {
@@ -86,7 +89,7 @@ $labelUnite = $config->get('app_label_unite', 'UR');
     </p>
     <?php endif; ?>
 
-    <?php $flash = (new \App\Services\SessionService())->getFlash(); ?>
+    <?php $flash = new \App\Services\SessionService()->getFlash(); ?>
     <?php if ($flash): ?>
         <div class="alert alert--<?php echo $fmt->e($flash['type']); ?>" role="alert">
             <?php echo $fmt->e($flash['message']); ?>
@@ -94,7 +97,7 @@ $labelUnite = $config->get('app_label_unite', 'UR');
     <?php endif; ?>
 
     <form method="POST" action="<?php echo $http->url('choose_site'); ?>" id="chooseSiteForm">
-        <input type="hidden" name="csrf_token" value="<?php echo $fmt->e((new \App\Services\SessionService())->generateCsrfToken()); ?>">
+        <input type="hidden" name="csrf_token" value="<?php echo $fmt->e(new \App\Services\SessionService()->generateCsrfToken()); ?>">
         
         <div class="form-group">
             <label for="site_id">Votre site (<?php echo $fmt->e($labelUnite); ?>) <span class="required">*</span></label>

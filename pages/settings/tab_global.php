@@ -5,8 +5,8 @@
  * Variables attendues: $globalEmails, $csrfToken
  */
 ?>
-<form method="POST" action="<?php echo (new \App\Services\HttpService())->url('settings'); ?>" id="settingsForm">
-    <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
+<form method="POST" action="<?php echo new \App\Services\HttpService()->url('settings'); ?>" id="settingsForm">
+    <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e($csrfToken); ?>">
     <input type="hidden" name="tab" value="global">
 
     <div class="card">
@@ -20,13 +20,13 @@ foreach ($globalEmails as $ge) {
 } ?>
             <textarea id="global_emails" name="global_emails" rows="4" class="form-control"
                       aria-describedby="hint_global_emails"
-                      placeholder="Une adresse par ligne&#10;ex: direction@dreets.gouv.fr&#10;chsct@dreets.gouv.fr"><?php echo (new \App\Services\FormattingService())->e(implode("\n", $globalEmailList)); ?></textarea>
+                      placeholder="Une adresse par ligne&#10;ex: direction@dreets.gouv.fr&#10;chsct@dreets.gouv.fr"><?php echo new \App\Services\FormattingService()->e(implode("\n", $globalEmailList)); ?></textarea>
             <div class="form-hint" id="hint_global_emails">Une adresse e-mail par ligne. Laissez vide pour aucune notification globale.</div>
         </div>
     </div>
 
     <div class="form-actions">
         <button type="submit" class="btn btn--success">Enregistrer les modifications</button>
-        <a href="<?php echo (new \App\Services\HttpService())->url('settings'); ?>" class="btn btn--outline">Annuler</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('settings'); ?>" class="btn btn--outline">Annuler</a>
     </div>
 </form>

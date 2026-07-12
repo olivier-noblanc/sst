@@ -1,4 +1,5 @@
 <?php
+
 /** CryptoService — AES-256-CBC encryption/decryption for sensitive config values. */
 
 namespace App\Services;

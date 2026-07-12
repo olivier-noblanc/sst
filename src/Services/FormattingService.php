@@ -1,4 +1,5 @@
 <?php
+
 /** FormattingService — HTML escaping, date/time formatting, report references, badge CSS, text utilities. */
 
 namespace App\Services;

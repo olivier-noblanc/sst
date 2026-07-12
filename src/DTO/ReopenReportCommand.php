@@ -1,4 +1,5 @@
 <?php
+
 /** ReopenReportCommand — DTO pour la réouverture d'un signalement. */
 
 namespace App\DTO;

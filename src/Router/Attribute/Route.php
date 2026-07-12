@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Router\Attribute;
 
 use Attribute;

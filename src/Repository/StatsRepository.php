@@ -1,4 +1,5 @@
 <?php
+
 /** StatsRepository — Couche d'accès aux données pour les statistiques et exports. */
 
 namespace App\Repository;
@@ -252,5 +253,8 @@ class StatsRepository
         return ['by_nature_auteur' => $byNature, 'by_type_acte' => $byType];
     }
 
-    public function getPdo(): PDO { return $this->pdo; }
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
 }

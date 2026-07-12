@@ -1,4 +1,5 @@
 <?php
+
 /** UpdateUserCommand — DTO pour l'édition d'un utilisateur. */
 
 namespace App\DTO;

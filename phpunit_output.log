@@ -1,0 +1,6 @@
+PHPUnit: 803 tests, 1390 assertions, 1 failures
+
+1) ReportQueriesTest::testRespondToReportChangesEtat
+  Failed asserting that two strings are equal.
+  --- Expected
+[full output: ~/AppData\Local\rtk\tee\1783870235_phpunit.log]

@@ -14,8 +14,8 @@ $sites = \App\Repository\SiteRepository::instance()->findAll();
 $users = \App\Repository\UserRepository::instance()->findAll();
 
 // Get filter values from session (for sticky form after errors)
-$formErrors = (new \App\Services\SessionService())->getFormErrors();
-$formData = (new \App\Services\SessionService())->getFormData();
+$formErrors = new \App\Services\SessionService()->getFormErrors();
+$formData = new \App\Services\SessionService()->getFormData();
 
 $pageTitle = 'Export des données';
 
@@ -31,8 +31,8 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
         Sélectionnez les critères de filtrage pour exporter les données en format CSV (séparateur point-virgule, compatible Excel).
     </p>
 
-    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('export'); ?>" id="exportForm">
-        <input type="hidden" name="csrf_token" value="<?php echo (new \App\Services\FormattingService())->e($csrfToken); ?>">
+    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('export'); ?>" id="exportForm">
+        <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e($csrfToken); ?>">
 
         <div class="form-grid">
             <!-- Registre -->
@@ -56,12 +56,12 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
             <!-- Site -->
             <?php if (!$noSiteMode): ?>
             <div class="form-group">
-                <label for="site_id"><?php echo (new \App\Services\FormattingService())->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></label>
+                <label for="site_id"><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></label>
                 <div class="btn-group--inline items-center">
                     <select name="site_id" id="site_id">
                         <option value="" <?php echo empty($formData['site_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($sites as $site): ?>
-                        <option value="<?php echo (int) $site['id']; ?>" <?php echo ($formData['site_id'] ?? '') == $site['id'] ? 'selected' : ''; ?>><?php echo (new \App\Services\FormattingService())->e($site['nom']); ?></option>
+                        <option value="<?php echo (int) $site['id']; ?>" <?php echo ($formData['site_id'] ?? '') == $site['id'] ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($site['nom']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">
@@ -80,7 +80,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                     <select name="declarant_id" id="declarant_id">
                         <option value="" <?php echo empty($formData['declarant_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($users as $u): ?>
-                        <option value="<?php echo (int) $u['id']; ?>" <?php echo ($formData['declarant_id'] ?? '') == $u['id'] ? 'selected' : ''; ?>><?php echo (new \App\Services\FormattingService())->e($u['prenom'] . ' ' . $u['nom']); ?></option>
+                        <option value="<?php echo (int) $u['id']; ?>" <?php echo ($formData['declarant_id'] ?? '') == $u['id'] ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u['prenom'] . ' ' . $u['nom']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">
@@ -95,9 +95,9 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
             <div class="form-group">
                 <label>Période</label>
                 <div class="date-range">
-                    <input type="date" name="date_from" id="date_from" value="<?php echo (new \App\Services\FormattingService())->e($formData['date_from'] ?? ''); ?>" max="<?php echo (new \App\Services\FormattingService())->todayISO(); ?>" placeholder="Début" aria-describedby="hint_date_range" class="flex-1">
+                    <input type="date" name="date_from" id="date_from" value="<?php echo new \App\Services\FormattingService()->e($formData['date_from'] ?? ''); ?>" max="<?php echo new \App\Services\FormattingService()->todayISO(); ?>" placeholder="Début" aria-describedby="hint_date_range" class="flex-1">
                     <span>&agrave;</span>
-                    <input type="date" name="date_to" id="date_to" value="<?php echo (new \App\Services\FormattingService())->e($formData['date_to'] ?? ''); ?>" max="<?php echo (new \App\Services\FormattingService())->todayISO(); ?>" placeholder="Fin" aria-describedby="hint_date_range" class="flex-1">
+                    <input type="date" name="date_to" id="date_to" value="<?php echo new \App\Services\FormattingService()->e($formData['date_to'] ?? ''); ?>" max="<?php echo new \App\Services\FormattingService()->todayISO(); ?>" placeholder="Fin" aria-describedby="hint_date_range" class="flex-1">
                 </div>
                 <div class="form-hint" id="hint_date_range">Laissez vide pour aucune restriction de date</div>
             </div>
@@ -109,9 +109,9 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
             <div class="checkbox-group">
                 <?php foreach (ETAT_LABELS as $key => $label): ?>
                 <label class="label--checkbox">
-                    <input type="checkbox" name="etats[]" value="<?php echo (new \App\Services\FormattingService())->e($key); ?>"
+                    <input type="checkbox" name="etats[]" value="<?php echo new \App\Services\FormattingService()->e($key); ?>"
                            <?php echo (empty($formData['etats']) || in_array($key, $formData['etats'] ?? [])) ? 'checked' : ''; ?>>
-                    <span class="badge <?php echo (new \App\Services\FormattingService())->getEtatBadgeClass($key); ?> badge--sm"><?php echo (new \App\Services\FormattingService())->e($label); ?></span>
+                    <span class="badge <?php echo new \App\Services\FormattingService()->getEtatBadgeClass($key); ?> badge--sm"><?php echo new \App\Services\FormattingService()->e($label); ?></span>
                 </label>
                 <?php endforeach; ?>
             </div>
@@ -119,7 +119,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
 
         <div class="form-actions">
             <button type="submit" class="btn btn--primary">&#x1F4E5; Exporter en CSV</button>
-            <a href="<?php echo (new \App\Services\HttpService())->url('export'); ?>" class="btn btn--outline">Réinitialiser</a>
+            <a href="<?php echo new \App\Services\HttpService()->url('export'); ?>" class="btn btn--outline">Réinitialiser</a>
         </div>
     </form>
 </div>

@@ -29,7 +29,7 @@ if (empty($reponse)) {
     setFormData($_POST);
     redirect(url('report_respond', ['uuid' => $reportUuid]));
 }
-if (strlen($reponse) > 5000) {
+if (mb_strlen($reponse, 'UTF-8') > 5000) {
     setFlash('error', 'La réponse ne doit pas dépasser 5000 caractères.');
     setFormErrors(['reponse' => 'Maximum 5000 caractères.']);
     setFormData($_POST);
@@ -69,7 +69,7 @@ try {
     $service = getContainer()->get(ReportService::class);
     $result = $service->respond($reportUuid, $cmd, $userId);
 
-    if (is_array($result) && ($result['status'] ?? '') === 'true') {
+    if (is_array($result) && ($result['status'] ?? '') === 'ok') {
         auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report['reference'] . ' — état : ' . $nouvelEtat, null, 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat], $reportUuid);
 
         try {

@@ -13,10 +13,10 @@ $http = new \App\Services\HttpService();
 $config = \App\Services\ConfigService::getInstance();
 
 $pdo = getContainer()->get(\PDO::class);
-$user = (new \App\Services\SessionService())->getUserSession();
+$user = new \App\Services\SessionService()->getUserSession();
 $userSiteId = (int) $user['site_id'];
-$agentVisibility = (new \App\Services\AccessService())->getReportVisibility();
-$seeAllSites = (new \App\Services\AccessService())->canSeeAllSites();
+$agentVisibility = new \App\Services\AccessService()->getReportVisibility(null);
+$seeAllSites = new \App\Services\AccessService()->canSeeAllSites();
 $activeSiteCount = $config->countActiveSites();
 $multiSite = $activeSiteCount > 1;
 $noSiteMode = $config->isNoSiteMode();
@@ -121,7 +121,7 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 <?php echo renderRegistryCards($cards, 'compact'); ?>
 <?php endif; ?>
 
-<?php if ((new \App\Services\AccessService())->canSeeAllSites()): ?>
+<?php if (currentUserRole() === ROLE_SUPERVISEUR): ?>
 <div class="card mt-6">
     <h3 class="card__subtitle">Accès rapide superviseur</h3>
     <div class="quick-access">

@@ -64,6 +64,7 @@ function lazyCronAnonymize(PDO $pdo): void
                 declarant_prenom = 'Anonymé',
                 pour_compte_nom = NULL,
                 pour_compte_prenom = NULL,
+                telephone_mobile = NULL,
                 updated_at = datetime('now')
             WHERE uuid = :uuid
               AND etat IN ('" . ETAT_TRAITE . "', '" . ETAT_ABANDONNE . "')

@@ -1,4 +1,5 @@
 <?php
+
 /** NotificationRepository — Couche d'accès aux données pour les notifications email. */
 
 namespace App\Repository;
@@ -83,5 +84,8 @@ class NotificationRepository
         return array_column($stmt->fetchAll(), 'email');
     }
 
-    public function getPdo(): PDO { return $this->pdo; }
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
 }

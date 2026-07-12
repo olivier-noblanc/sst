@@ -1,4 +1,5 @@
 <?php
+
 /** CreateUserCommand — DTO pour la création d'un utilisateur. */
 
 namespace App\DTO;

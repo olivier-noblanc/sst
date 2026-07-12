@@ -1,4 +1,5 @@
 <?php
+
 /** SiteRepository — Couche d'accès aux données pour les sites (Unités Régionales). */
 
 namespace App\Repository;
@@ -128,5 +129,8 @@ class SiteRepository
         }
     }
 
-    public function getPdo(): PDO { return $this->pdo; }
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
 }

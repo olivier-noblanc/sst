@@ -1,4 +1,5 @@
 <?php
+
 /** EventDispatcher — Découple action métier / notifications. */
 
 namespace App\Event;

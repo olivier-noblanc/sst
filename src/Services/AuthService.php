@@ -1,4 +1,5 @@
 <?php
+
 /** AuthService — Couche métier pour l'authentification. */
 
 namespace App\Services;
@@ -188,7 +189,7 @@ class AuthService
 
         if (str_contains($authUser, '\\')) {
             $parts = explode('\\', $authUser);
-            return strtolower(trim(end($parts)));
+            return strtolower(trim(array_last($parts)));
         }
         if (str_contains($authUser, '@')) {
             $parts = explode('@', $authUser);

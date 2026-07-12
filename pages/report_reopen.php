@@ -15,27 +15,27 @@ $http = new \App\Services\HttpService();
 $config = \App\Services\ConfigService::getInstance();
 
 // Access control: must be supervisor or CHSCT (P0-3: declarant may NOT reopen)
-$user = (new \App\Services\SessionService())->getUserSession();
+$user = new \App\Services\SessionService()->getUserSession();
 $userRole = $user['role'] ?? 'agent';
 
 if (!in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
-    (new \App\Services\SessionService())->setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs et le CHSCT peuvent réouvrir un signalement.');
+    new \App\Services\SessionService()->setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs et le CHSCT peuvent réouvrir un signalement.');
     $http->redirect($http->url('report_view', ['uuid' => $uuid]));
 }
 
 // Check report is in a reopenable state
 if (!in_array($report['etat'], ['traite', 'abandonne'])) {
-    (new \App\Services\SessionService())->setFlash('error', 'Ce signalement ne peut pas être réouvert (état actuel : ' . $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
+    new \App\Services\SessionService()->setFlash('error', 'Ce signalement ne peut pas être réouvert (état actuel : ' . $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
     $http->redirect($http->url('report_view', ['uuid' => $uuid]));
 }
 
 $pageTitle = 'Réouvrir le signalement — ' . $report['reference'];
 $type = $report['type'];
-$csrfToken = (new \App\Services\SessionService())->generateCsrfToken();
+$csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 
 // Restore form data if redirected back with errors
-$formData = (new \App\Services\SessionService())->getFormData();
-$flash = (new \App\Services\SessionService())->getFlash();
+$formData = new \App\Services\SessionService()->getFormData();
+$flash = new \App\Services\SessionService()->getFlash();
 ?>
 
 <h1 class="page-title">Réouvrir le signalement</h1>

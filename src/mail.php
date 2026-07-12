@@ -75,7 +75,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
 
     // CRLF injection prevention: reject email addresses containing CR/LF
     if (str_contains($to, "\r") || str_contains($to, "\n") || str_contains($from, "\r") || str_contains($from, "\n")) {
-        error_log("[SST-MAIL] CRLF injection attempt blocked in email address");
+        error_log('[SST-MAIL] CRLF injection attempt blocked in email address');
         return false;
     }
 

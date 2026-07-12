@@ -1,4 +1,5 @@
 <?php
+
 /** RespondToReportCommand — DTO pour la réponse à un signalement. */
 
 namespace App\DTO;

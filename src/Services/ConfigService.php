@@ -1,4 +1,5 @@
 <?php
+
 /** ConfigService — Configuration read/write, cache management, version detection. */
 
 namespace App\Services;

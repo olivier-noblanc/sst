@@ -20,7 +20,7 @@ if (empty($token)) {
 $invite = \App\Repository\ReportRepository::instance()->getAgentInviteByToken($token);
 
 if (!$invite) {
-    echo '<div class="card card--spaced"><h1 class="page-title">Invitation déjà traitée</h1><p>Cette invitation a déjà été confirmée ou a expiré. Si vous venez de cliquer, votre rattachement est déjà actif.</p><a href="' . (new \App\Services\HttpService())->url('home') . '" class="btn btn--primary">Retour à l\'accueil</a></div>';
+    echo '<div class="card card--spaced"><h1 class="page-title">Invitation déjà traitée</h1><p>Cette invitation a déjà été confirmée ou a expiré. Si vous venez de cliquer, votre rattachement est déjà actif.</p><a href="' . new \App\Services\HttpService()->url('home') . '" class="btn btn--primary">Retour à l\'accueil</a></div>';
     return;
 }
 
@@ -37,31 +37,31 @@ $pageTitle = 'Confirmer mon rattachement';
 <h1 class="page-title">Confirmer mon rattachement</h1>
 
 <div class="card card--spaced card--narrow-center">
-    <p>Vous avez été rattaché(e) au signalement <strong><?php echo (new \App\Services\FormattingService())->e($report['reference']); ?></strong> par le déclarant.</p>
+    <p>Vous avez été rattaché(e) au signalement <strong><?php echo new \App\Services\FormattingService()->e($report['reference']); ?></strong> par le déclarant.</p>
 
     <table class="table table--compact table--spaced">
         <tr>
             <th>Référence</th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['reference']); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e($report['reference']); ?></td>
         </tr>
         <tr>
             <th>Registre</th>
-            <td><?php echo (new \App\Services\FormattingService())->e(REGISTRY_LABELS[$report['type']] ?? $report['type']); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e(REGISTRY_LABELS[$report['type']] ?? $report['type']); ?></td>
         </tr>
         <tr>
             <th>Objet</th>
-            <td><?php echo (new \App\Services\FormattingService())->e($report['objet']); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e($report['objet']); ?></td>
         </tr>
         <tr>
             <th>Date</th>
-            <td><?php echo (new \App\Services\FormattingService())->e((new \App\Services\FormattingService())->formatDateFR($report['date_evenement'])); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e(new \App\Services\FormattingService()->formatDateFR($report['date_evenement'])); ?></td>
         </tr>
     </table>
 
     <p>En confirmant, vous serez rattaché(e) à ce signalement et pourrez en suivre le traitement.</p>
 
-    <form method="POST" action="<?php echo (new \App\Services\HttpService())->url('agent_confirm'); ?>">
-        <input type="hidden" name="token" value="<?php echo (new \App\Services\FormattingService())->e($token); ?>">
+    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('agent_confirm'); ?>">
+        <input type="hidden" name="token" value="<?php echo new \App\Services\FormattingService()->e($token); ?>">
         <div class="form-actions form-actions--center">
             <button type="submit" class="btn btn--primary btn--lg">
                 ✅ Confirmer mon rattachement

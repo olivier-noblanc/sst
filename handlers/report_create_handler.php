@@ -31,8 +31,8 @@ if (!isNoSiteMode($pdo)) {
         redirect(url('report_create', ['type' => $type]));
     }
     $site = getSiteById($pdo, $siteId);
-    if (!$site) {
-        setFormErrors(['site_id' => 'Unité départementale invalide.']);
+    if (!$site || empty($site['is_active'])) {
+        setFormErrors(['site_id' => 'Unité invalide ou désactivée.']);
         setFormData($_POST);
         redirect(url('report_create', ['type' => $type]));
     }
@@ -53,7 +53,9 @@ if (!empty($linkedEmailsRaw)) {
     }
     $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
     foreach ($linkedEmailsList as $em) {
-        if (empty($em)) { continue; }
+        if (empty($em)) {
+            continue;
+        }
         if (!filter_var($em, FILTER_VALIDATE_EMAIL)) {
             setFormErrors(['linked_emails' => 'Adresse e-mail invalide : ' . e($em)]);
             setFormData($_POST);
@@ -111,7 +113,7 @@ try {
     redirect(url('report_create', ['type' => $type]));
 } catch (Exception $e) {
     error_log('[SST-DB] report_create failed: ' . $e->getMessage());
-    setFlash('error', 'Erreur lors de l\'enregistrement : ' . e($e->getMessage()));
+    setFlash('error', 'Une erreur interne est survenue. Veuillez réessayer ou contacter l\'administrateur.');
     setFormData($_POST);
     redirect(url('report_create', ['type' => $type]));
 }

@@ -1,4 +1,5 @@
 <?php
+
 /** BackupService — Wraps backup.php global functions into an injectable service. */
 
 namespace App\Services;

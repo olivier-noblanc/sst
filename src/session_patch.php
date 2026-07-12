@@ -9,5 +9,5 @@ use App\Services\SessionService;
  */
 function safeSessionRegenerate(): void
 {
-    (new SessionService())->safeSessionRegenerate();
+    new SessionService()->safeSessionRegenerate();
 }

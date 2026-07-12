@@ -1,4 +1,5 @@
 <?php
+
 /** Email Renderer — Template unifié pour les emails HTML. */
 
 function renderEmailBody(string $title, string $contentHtml, string $siteName = ''): string

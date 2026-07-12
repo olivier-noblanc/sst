@@ -68,13 +68,12 @@ if ($action === 'start') {
 
 // === STOP IMPERSONATION (restore real role) ===
 if ($action === 'stop') {
+    $impersonatedRole = $session->getImpersonatedRole() ?? 'inconnu';
     $realRole = $session->stopImpersonation();
     if ($realRole === null) {
         // Not impersonating — nothing to do
         redirect(url('home'));
     }
-
-    $impersonatedRole = $session->getImpersonatedRole() ?? 'inconnu';
 
     // Audit log
     $pdo = getDB();

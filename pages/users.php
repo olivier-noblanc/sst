@@ -42,8 +42,8 @@ if (!empty($search)) {
 $sites = \App\Repository\SiteRepository::instance()->findAll();
 
 // Form data and errors from session
-$formErrors = (new \App\Services\SessionService())->getFormErrors();
-$formData = (new \App\Services\SessionService())->getFormData();
+$formErrors = new \App\Services\SessionService()->getFormErrors();
+$formData = new \App\Services\SessionService()->getFormData();
 
 $pageTitle = 'Gestion des utilisateurs';
 ?>

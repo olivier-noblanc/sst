@@ -1,4 +1,5 @@
 <?php
+
 /** Service registration — wires up the DI Container. */
 
 use App\Container\Container;
@@ -47,7 +48,7 @@ function createContainer(): Container
     // ═══════════════════════════════════════════════════════════════════════════════
 
     $container->set(AccessService::class, fn() => new AccessService());
-    $container->set(ConfigService::class, function() {
+    $container->set(ConfigService::class, function () {
         $instance = new ConfigService();
         ConfigService::setInstance($instance);
         return $instance;

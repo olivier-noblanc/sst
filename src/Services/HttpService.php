@@ -1,4 +1,5 @@
 <?php
+
 /** HttpService — URL building, redirects, file downloads, header management, POST validation. */
 
 namespace App\Services;

@@ -1,4 +1,5 @@
 <?php
+
 /** AccessService — Report access control, visibility mode, and role-based checks. */
 
 namespace App\Services;
@@ -75,7 +76,7 @@ class AccessService
      */
     public function canSeeAllSites(?string $role = null): bool
     {
-        $role = $role ?? \currentUserRole();
+        $role ??= \currentUserRole();
         if (empty($role)) {
             return false;
         }
@@ -120,7 +121,7 @@ class AccessService
      */
     public function getReportVisibility(?string $type = null, ?string $role = null): string
     {
-        $role = $role ?? \currentUserRole();
+        $role ??= \currentUserRole();
         if (empty($role) || $role !== ROLE_AGENT) {
             return 'all';
         }

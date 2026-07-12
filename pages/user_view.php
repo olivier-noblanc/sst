@@ -17,15 +17,15 @@ $noSiteMode = $config->isNoSiteMode();
 $userId = (int) ($_GET['id'] ?? 0);
 
 if ($userId <= 0) {
-    (new \App\Services\SessionService())->setFlash('error', 'Utilisateur introuvable.');
-    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('users'));
+    new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
+    new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('users'));
 }
 
 $user = \App\Repository\UserRepository::instance()->findById($userId);
 
 if (!$user) {
-    (new \App\Services\SessionService())->setFlash('error', 'Utilisateur introuvable.');
-    (new \App\Services\HttpService())->redirect((new \App\Services\HttpService())->url('users'));
+    new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
+    new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('users'));
 }
 
 // Get user's report count

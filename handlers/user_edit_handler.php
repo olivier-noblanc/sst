@@ -37,7 +37,7 @@ if ($action === 'export_data') {
 
 if ($action === 'anonymize') {
     try {
-        $service->anonymize($userId);
+        $service->anonymize($userId, currentUserId());
         auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
         setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
     } catch (Throwable) {

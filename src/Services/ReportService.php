@@ -1,4 +1,5 @@
 <?php
+
 /** ReportService — Couche métier pour les signalements. */
 
 namespace App\Services;
@@ -114,17 +115,25 @@ class ReportService
         return $result;
     }
 
-    public function findById(string $uuid): ?array { return $this->repo->findById($uuid); }
+    public function findById(string $uuid): ?array
+    {
+        return $this->repo->findById($uuid);
+    }
 
     private function validateForCreation(CreateReportCommand $cmd): void
     {
         $errors = validateReportFields(
-            $cmd->dateEvenement, $cmd->objet, $cmd->description,
-            $cmd->lieu ?? '', $cmd->heureEvenement ?? ''
+            $cmd->dateEvenement,
+            $cmd->objet,
+            $cmd->description,
+            $cmd->lieu ?? '',
+            $cmd->heureEvenement ?? ''
         );
         if ($cmd->type === TYPE_RAMI) {
             $errors = array_merge($errors, validatePourCompte(
-                $cmd->pourCompteNom !== null, $cmd->pourCompteNom ?? '', $cmd->pourComptePrenom ?? ''
+                $cmd->pourCompteNom !== null,
+                $cmd->pourCompteNom ?? '',
+                $cmd->pourComptePrenom ?? ''
             ));
         }
         if (!empty($errors)) {

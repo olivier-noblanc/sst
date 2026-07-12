@@ -9,7 +9,7 @@
  * Uses fputcsv() for proper field enclosure (handles semicolons,
  * quotes, and newlines inside fields). Exports multi-response history.
  */
-
+use App\Repository\StatsRepository;
 use App\Repository\ReportRepository;
 
 $pdo = getDB();
@@ -50,7 +50,7 @@ if (!empty($_POST['etats']) && is_array($_POST['etats'])) {
 // Get data
 $reports = $reportRepo->getExportData($filters);
 $count = count($reports);
-$truncated = $count >= \App\Repository\StatsRepository::EXPORT_MAX_ROWS;
+$truncated = $count >= StatsRepository::EXPORT_MAX_ROWS;
 auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . $count . ' signalements' . ($truncated ? ' (tronqué)' : ''), null, null, ['filters' => $filters, 'count' => $count]);
 
 // Build CSV in memory using fputcsv (proper enclosure, no injection risk)
@@ -100,7 +100,7 @@ $headers = array_merge($headers, [
     'Date dernière réponse',
     'Historique réponses',
 ]);
-fputcsv($tmpFile, $headers, ';');
+fputcsv($tmpFile, $headers, ';', escape: '\\');
 
 // Bulk-fetch all responses for the reports being exported (avoids N+1 queries)
 $allResponses = [];
@@ -180,7 +180,7 @@ foreach ($reports as $row) {
         $csvEscape($historyText),
     ]);
 
-    fputcsv($tmpFile, $csvRow, ';');
+    fputcsv($tmpFile, $csvRow, ';', escape: '\\');
 }
 
 // Stream CSV directly to output (avoids loading entire file into memory)

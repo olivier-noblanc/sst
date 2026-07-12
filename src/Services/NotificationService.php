@@ -1,4 +1,5 @@
 <?php
+
 /**
  * NotificationService — Couche service pour les notifications e-mail.
  *

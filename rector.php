@@ -18,8 +18,9 @@ return RectorConfig::configure()
         __DIR__ . '/vendor',
         __DIR__ . '/tests',
     ])
-    ->withPhpVersion(PhpVersion::PHP_83)
+    ->withPhpVersion(PhpVersion::PHP_85)
     ->withSets([
         LevelSetList::UP_TO_PHP_83,
     ])
+    ->withPhpSets(php85: true)
     ->withImportNames();

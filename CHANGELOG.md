@@ -9,11 +9,12 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 - **1** 🔴 **helpers.php require manquant** — Ajout de `require_once` pour `registry_card_renderer.php` dans `src/helpers.php`. Le fichier existait mais n'était jamais chargé en production (les tests le voyaient car `tests/bootstrap.php` le chargeait manuellement). (`src/helpers.php`)
 
-### Prévention — Gate qualité + test structurel
+### Prévention — Gate qualité + tests structurels
 
 - **2** 🔴 **HelpersBootstrapTest** — Nouveau test qui vérifie que chaque fichier dans `src/helpers/` est requis par `src/helpers.php`. Empêche les fichiers orphelins d'arriver en prod. (`tests/unit/HelpersBootstrapTest.php`)
-- **3** 🟡 **update_sst.ps1 gate** — Ajout de la gate qualité au script de mise à jour : lint PHP (incremental, parallèle PS7+), PHPStan niveau 10, PHPUnit. Rollback automatique si la gate échoue. Hook pre-push inline. (`update_sst.ps1`)
-- **4** 🟡 **Nettoyage bootstrap tests** — Suppression du `require_once` manuel de `registry_card_renderer.php` dans `tests/bootstrap.php` (le fichier est maintenant chargé via `helpers.php`).
+- **3** 🔴 **RegistryCardRendererTest** — 20 tests pour `buildRegistryCards()`, `renderRegistryCards()`, `renderRegistryCard()`, `getRegistryIcon()`. Teste le pipeline complet build→render, le pluriel/singulier, l'escaping HTML, et la présence des clés requises. (`tests/unit/RegistryCardRendererTest.php`)
+- **4** 🟡 **update_sst.ps1 gate** — Ajout de la gate qualité au script de mise à jour : lint PHP (incremental, parallèle PS7+), PHPStan niveau 10, PHPUnit. Rollback automatique si la gate échoue. Hook pre-push inline. (`update_sst.ps1`)
+- **5** 🟡 **Nettoyage bootstrap tests** — Suppression du `require_once` manuel de `registry_card_renderer.php` dans `tests/bootstrap.php` (le fichier est maintenant chargé via `helpers.php`).
 
 ### Nettoyage — Code mort supprimé
 

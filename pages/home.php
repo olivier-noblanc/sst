@@ -64,22 +64,8 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 <?php if ($userRole === ROLE_AGENT): ?>
 <h1 class="home-welcome-heading">Bonjour, <?php echo $fmt->e($user['prenom']); ?></h1>
 <p class="home-welcome-subtitle">Que souhaitez-vous faire ?</p>
-
-<?php $cards = buildRegistryCards($rsstCount, $ramiCount, $dgiCount, $ramiEnabled, $dgiEnabled); ?>
-<?php echo renderRegistryCards($cards, 'large'); ?>
-<?php if ($rsstCount > 0 && hasRole(ROLE_AGENT)): ?>
-<?php $wordCloud = $fmt->buildWordCloud($pdo, TYPE_RSST); ?>
-<?php if (!empty($wordCloud)): ?>
-<div class="card mt-4">
-    <h3 class="card__subtitle">Nuage de mots — RSST</h3>
-    <p class="text-muted text-small mb-3">Mots les plus fréquents dans les signalements RSST.</p>
-    <?php echo $wordCloud; ?>
-</div>
-<?php endif; ?>
-<?php endif; ?>
 <?php else: ?>
 <h1 class="page-title page-title--compact">Accueil</h1>
-
 <?php if ($totalReports === 0 && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])): ?>
 <div class="welcome-banner" role="status">
     <div class="welcome-banner__content">
@@ -91,6 +77,7 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
         <a href="<?php echo $http->url('help'); ?>" class="welcome-banner__link">Consulter la documentation</a>
     </div>
 </div>
+<?php endif; ?>
 <?php endif; ?>
 
 <!-- Workflow legend — always visible for quick reference -->
@@ -118,20 +105,19 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 <?php endif; ?>
 
 <?php $cards = buildRegistryCards($rsstCount, $ramiCount, $dgiCount, $ramiEnabled, $dgiEnabled); ?>
+<?php if ($userRole === ROLE_AGENT): ?>
+<?php echo renderRegistryCards($cards, 'large'); ?>
+<?php else: ?>
 <?php echo renderRegistryCards($cards, 'compact'); ?>
 <?php endif; ?>
 
-<?php if (currentUserRole() === ROLE_SUPERVISEUR): ?>
-<div class="card mt-6">
-    <h3 class="card__subtitle">Accès rapide superviseur</h3>
-    <div class="quick-access">
-        <a href="<?php echo $http->url('synthesis'); ?>" class="btn btn--outline">&#x1F4CA; Synthèse</a>
-        <a href="<?php echo $http->url('statistics'); ?>" class="btn btn--outline">&#x1F4C8; Statistiques</a>
-        <a href="<?php echo $http->url('export'); ?>" class="btn btn--outline">&#x1F4E5; Export</a>
-        <?php if (hasRole(ROLE_SUPERVISEUR)): ?>
-        <a href="<?php echo $http->url('users'); ?>" class="btn btn--outline">&#x1F465; Utilisateurs</a>
-        <a href="<?php echo $http->url('settings'); ?>" class="btn btn--outline">&#x2699;&#xFE0F; Paramètres</a>
-        <?php endif; ?>
-    </div>
+<?php if ($rsstCount > 0): ?>
+<?php $wordCloud = $fmt->buildWordCloud($pdo, TYPE_RSST); ?>
+<?php if (!empty($wordCloud)): ?>
+<div class="card mt-4">
+    <h3 class="card__subtitle">Nuage de mots — RSST</h3>
+    <p class="text-muted text-small mb-3">Mots les plus fréquents dans les signalements RSST.</p>
+    <?php echo $wordCloud; ?>
 </div>
+<?php endif; ?>
 <?php endif; ?>

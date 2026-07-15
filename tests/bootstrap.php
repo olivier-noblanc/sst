@@ -97,7 +97,7 @@ function getDB(): PDO {
 
 // Load application source files (PSR-4 autoloader + procedural files)
 require_once __DIR__ . '/../src/autoload.php';
-require_once __DIR__ . '/../src/helpers/registry_card_renderer.php';
+// registry_card_renderer.php is now loaded via src/helpers.php (require_once chain)
 require_once __DIR__ . '/../src/mail/email_renderer.php';
 require_once __DIR__ . '/../src/validation_user.php';
 

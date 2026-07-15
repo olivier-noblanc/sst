@@ -16,3 +16,4 @@ require_once __DIR__ . '/helpers/access.php';
 require_once __DIR__ . '/helpers/assets.php';
 require_once __DIR__ . '/helpers/formatting.php';
 require_once __DIR__ . '/helpers/http.php';
+require_once __DIR__ . '/helpers/registry_card_renderer.php';

@@ -4753,12 +4753,6 @@ parameters:
 			path: src/helpers/registry_card_renderer.php
 
 		-
-			message: '#^Offset ''url'' might not exist on array\{url\?\: string, label\: string\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: src/helpers/rendering.php
-
-		-
 			message: '#^Binary operation "\." between ''Vous avez été…'' and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1
@@ -5375,24 +5369,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: templates/alert.php
-
-		-
-			message: '#^Cannot access offset ''reference'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: templates/confirm_dialog.php
-
-		-
-			message: '#^Cannot access offset ''uuid'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: templates/confirm_dialog.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: templates/confirm_dialog.php
 
 		-
 			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'

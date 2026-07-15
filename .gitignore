@@ -80,6 +80,8 @@ psalm-cache/
 phpstan-result.txt
 phpstan_output.txt
 coverage-report/
+data/infection-tmp/
+data/coverage/
 
 # Mimocode agent workspace
 .mimocode/

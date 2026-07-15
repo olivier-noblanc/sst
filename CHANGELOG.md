@@ -3,6 +3,25 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.39.0] — 2026-07-15
+
+### Correction — Fatal error buildRegistryCards()
+
+- **1** 🔴 **helpers.php require manquant** — Ajout de `require_once` pour `registry_card_renderer.php` dans `src/helpers.php`. Le fichier existait mais n'était jamais chargé en production (les tests le voyaient car `tests/bootstrap.php` le chargeait manuellement). (`src/helpers.php`)
+
+### Prévention — Gate qualité + test structurel
+
+- **2** 🔴 **HelpersBootstrapTest** — Nouveau test qui vérifie que chaque fichier dans `src/helpers/` est requis par `src/helpers.php`. Empêche les fichiers orphelins d'arriver en prod. (`tests/unit/HelpersBootstrapTest.php`)
+- **3** 🟡 **update_sst.ps1 gate** — Ajout de la gate qualité au script de mise à jour : lint PHP (incremental, parallèle PS7+), PHPStan niveau 10, PHPUnit. Rollback automatique si la gate échoue. Hook pre-push inline. (`update_sst.ps1`)
+- **4** 🟡 **Nettoyage bootstrap tests** — Suppression du `require_once` manuel de `registry_card_renderer.php` dans `tests/bootstrap.php` (le fichier est maintenant chargé via `helpers.php`).
+
+### Nettoyage — Code mort supprimé
+
+- **5** 🟡 **Fichiers orphelins** — Suppression de `src/helpers/rendering.php` (doublon de formatting.php), `src/helpers_bootstrap.php` (jamais requis), `templates/confirm_dialog.php` (remplacé par inline), `tools/_fix_repo.py` (chemin hardcodé autre dev), `fix_choose_site.py`, `fix_user_repo.py`, `diff.patch`.
+- **6** 🟡 **phpstan-baseline.neon** — Nettoyage des entries pour les fichiers supprimés.
+- **7** 🟡 **.gitignore** — Ajout de `data/infection-tmp/` (fichiers temporaires Infection PHP).
+
+
 ## [3.38.0] — 2026-07-12
 
 ### Corrections — Ultrareview 13 issues

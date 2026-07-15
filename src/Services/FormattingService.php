@@ -217,72 +217,72 @@ class FormattingService
     }
 
     /**
-     * Build a word cloud from report descriptions/objets for a given registry type.
+     * Build a word cloud from admin-configured words with randomized importance.
      *
-     * @param PDO $pdo Database connection
-     * @param string $type     Report type (rsst/rami/dgi)
+     * Words and weights are stored in config key 'word_cloud_words' as JSON:
+     * [{"word": "chute", "weight": 10}, {"word": "incendie", "weight": 8}, ...]
+     *
+     * Each page load randomizes weights by ±30% for a dynamic visual effect.
+     *
+     * @param PDO $pdo Database connection (unused, kept for API compatibility)
+     * @param string $type     Report type (unused, kept for API compatibility)
      * @param int    $maxWords Maximum number of words to display
      * @return string HTML word cloud, or empty string if no data
      */
     public function buildWordCloud(PDO $pdo, string $type, int $maxWords = 30): string
     {
-        $stopWords = [
-            'dans', 'pour', 'avec', 'plus', 'cette', 'tout', 'faire', 'être', 'avoir',
-            'nous', 'vous', 'ils', 'elle', 'elles', 'monter', 'comme', 'mais', 'aussi',
-            'bien', 'fait', 'leur', 'après', 'très', 'chez', 'entre', 'encore', 'avant',
-            'peut', 'depuis', 'sans', 'tous', 'toute', 'toutes', 'quel', 'quelle',
-            'autre', 'autres', 'deux', 'mêmes', 'même', 'ces', 'des', 'aux',
-            'quelque', 'quelques', 'chaque', 'dont', 'rien', 'toujours', 'souvent',
-            'quand', 'alors', 'ainsi', 'donc', 'car', 'notre', 'votre', 'moins',
-            'trop', 'peu', 'beaucoup', 'celui', 'ceux', 'celle', 'celles',
-            'signalement', 'signalements', 'agent', 'agents', 'superviseur',
-            'registre', 'état', 'date', 'création', 'refusée', 'acceptée',
-        ];
+        $configService = ConfigService::getInstance();
+        $wordsJson = $configService->get('word_cloud_words', '[]');
+        $words = json_decode($wordsJson, true) ?: [];
 
-        try {
-            $stmt = $pdo->prepare("SELECT objet, description FROM reports WHERE type = :type AND etat != 'abandonne'");
-            $stmt->execute([':type' => $type]);
-            $allText = '';
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $allText .= ' ' . ($row['objet'] ?? '') . ' ' . ($row['description'] ?? '');
-            }
-        } catch (Exception) {
+        if (empty($words)) {
             return '';
         }
 
-        if (empty(trim($allText))) {
+        // Randomize weights by ±30% for dynamic rendering
+        $randomized = [];
+        if (is_array($words)) {
+            foreach ($words as $entry) {
+                if (!is_array($entry)) {
+                    continue;
+                }
+                $word = (string) ($entry['word'] ?? '');
+                $baseWeight = (int) ($entry['weight'] ?? 10);
+                if ($word === '' || $baseWeight < 1) {
+                    continue;
+                }
+                $variation = (int) ($baseWeight * 0.3);
+                $randMin = -$variation;
+                $randMax = $variation;
+                $randomWeight = $baseWeight + mt_rand($randMin, $randMax) / 10.0;
+                $randomWeight = max(1.0, min(20.0, $randomWeight));
+                $randomized[] = ['word' => $word, 'weight' => $randomWeight];
+            }
+        }
+
+        if (empty($randomized)) {
             return '';
         }
 
-        $words = preg_split('/[^\p{L}]+/u', mb_strtolower($allText, 'UTF-8'), -1, PREG_SPLIT_NO_EMPTY);
-        $freq = [];
-        foreach ($words as $word) {
-            $word = trim($word);
-            if (mb_strlen($word, 'UTF-8') < 4) {
-                continue;
-            }
-            if (in_array($word, $stopWords)) {
-                continue;
-            }
-            $freq[$word] = ($freq[$word] ?? 0) + 1;
-        }
+        // Sort by randomized weight descending
+        usort($randomized, fn(array $a, array $b): int => (int) ($b['weight'] <=> $a['weight']));
 
-        if (empty($freq)) {
+        // Limit to maxWords
+        $randomized = array_slice($randomized, 0, $maxWords);
+
+        $weights = array_column($randomized, 'weight');
+        if (empty($weights)) {
             return '';
         }
+        $maxWeight = max($weights);
+        $minWeight = min($weights);
+        $range = max($maxWeight - $minWeight, 1.0);
 
-        arsort($freq);
-        $topWords = array_slice($freq, 0, $maxWords, true);
-
-        $maxFreq = max($topWords);
-        $minFreq = min($topWords);
-        $range = max($maxFreq - $minFreq, 1);
-
-        $html = '<div class="word-cloud" role="img" aria-label="Nuage de mots des signalements">';
-        foreach ($topWords as $word => $count) {
-            $ratio = ($count - $minFreq) / $range;
+        $html = '<div class="word-cloud" role="img" aria-label="Nuage de mots">';
+        foreach ($randomized as $entry) {
+            $ratio = ($entry['weight'] - $minWeight) / $range;
             $size = 0.7 + ($ratio * 1.3);
-            $html .= '<span class="word-cloud__word" style="font-size:' . number_format($size, 1) . 'rem;" title="' . $this->e($word) . ' (' . $count . ')">' . $this->e($word) . '</span> ';
+            $html .= '<span class="word-cloud__word" style="font-size:' . number_format($size, 1) . 'rem;">' . $this->e($entry['word']) . '</span> ';
         }
         $html .= '</div>';
         return $html;

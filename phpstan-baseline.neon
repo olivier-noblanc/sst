@@ -1,54 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Static property App\\Services\\ConfigService\:\:\$instance .+ does not accept mixed\.$#'
-			identifier: property.type
-			count: 1
-			path: src/Services/ConfigService.php
-
-		-
-			message: '#^Method App\\Services\\ConfigService\:\:getInstance\(\) should return App\\Services\\ConfigService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/ConfigService.php
-
-		-
-			message: '#^Function getAccessService\(\) should return App\\Services\\AccessService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Function getAssetService\(\) should return App\\Services\\AssetService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/assets.php
-
-		-
-			message: '#^Function getConfigService\(\) should return App\\Services\\ConfigService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/config.php
-
-		-
-			message: '#^Function getCryptoService\(\) should return App\\Services\\CryptoService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/crypto.php
-
-		-
-			message: '#^Function getFormattingService\(\) should return App\\Services\\FormattingService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/formatting.php
-
-		-
-			message: '#^Function getHttpService\(\) should return App\\Services\\HttpService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/http.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 1
@@ -339,7 +291,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 2
+			count: 1
 			path: handlers/report_abandon_handler.php
 
 		-
@@ -357,7 +309,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 3
+			count: 2
 			path: handlers/report_create_handler.php
 
 		-
@@ -379,21 +331,9 @@ parameters:
 			path: handlers/report_create_handler.php
 
 		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
 			count: 13
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Cannot access offset ''email'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
 			path: handlers/report_edit_handler.php
 
 		-
@@ -427,21 +367,9 @@ parameters:
 			path: handlers/report_reopen_handler.php
 
 		-
-			message: '#^Part \$registryLabel \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: handlers/report_reopen_handler.php
-
-		-
 			message: '#^Part \$report\[''reference''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
 			identifier: encapsedStringPart.nonString
 			count: 2
-			path: handlers/report_reopen_handler.php
-
-		-
-			message: '#^Variable \$registryLabel might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
 			path: handlers/report_reopen_handler.php
 
 		-
@@ -463,12 +391,6 @@ parameters:
 			path: handlers/report_respond_handler.php
 
 		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/report_respond_handler.php
-
-		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
 			count: 4
@@ -481,9 +403,15 @@ parameters:
 			path: handlers/report_respond_handler.php
 
 		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: handlers/settings_handler.php
+
+		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 9
+			count: 10
 			path: handlers/settings_handler.php
 
 		-
@@ -2047,6 +1975,12 @@ parameters:
 			path: pages/report_view.php
 
 		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: pages/report_view.php
+
+		-
 			message: '#^Offset ''id'' might not exist on array\<string, mixed\>\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
@@ -2055,12 +1989,6 @@ parameters:
 		-
 			message: '#^Offset ''role'' might not exist on array\<string, mixed\>\|null\.$#'
 			identifier: offsetAccess.notFound
-			count: 1
-			path: pages/report_view.php
-
-		-
-			message: '#^Parameter \#1 \$items of function renderBreadcrumb expects array\<int, array\{url\?\: string, label\: string\}\>, array\{array\{url\: string, label\: ''Accueil''\}, array\{url\: string, label\: string\}, array\{label\: mixed\}\} given\.$#'
-			identifier: argument.type
 			count: 1
 			path: pages/report_view.php
 
@@ -2104,12 +2032,6 @@ parameters:
 			message: '#^Possibly invalid array key type mixed\.$#'
 			identifier: offsetAccess.invalidOffset
 			count: 1
-			path: pages/report_view.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
 			path: pages/report_view.php
 
 		-
@@ -2725,48 +2647,6 @@ parameters:
 			path: public/index.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: src/App.php
-
-		-
-			message: '#^Function getDatabase not found\.$#'
-			identifier: function.notFound
-			count: 1
-			path: src/App.php
-
-		-
-			message: '#^Method SST\\App\:\:pdo\(\) should return PDO but returns PDO\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/App.php
-
-		-
-			message: '#^Property SST\\App\:\:\$config type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/App.php
-
-		-
-			message: '#^Static property SST\\App\:\:\$config \(array\|null\) is never assigned array so it can be removed from the property type\.$#'
-			identifier: property.unusedType
-			count: 1
-			path: src/App.php
-
-		-
-			message: '#^Static property SST\\App\:\:\$config is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: src/App.php
-
-		-
-			message: '#^Static property SST\\App\:\:\$pdo \(PDO\|null\) does not accept mixed\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/App.php
-
-		-
 			message: '#^Property App\\Container\\Container\:\:\$factories type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3031,18 +2911,6 @@ parameters:
 			path: src/Middleware/CsrfMiddleware.php
 
 		-
-			message: '#^Property App\\Middleware\\Pipeline\:\:\$middlewares type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Middleware/Pipeline.php
-
-		-
-			message: '#^Trying to invoke mixed but it''s not a callable\.$#'
-			identifier: callable.nonCallable
-			count: 1
-			path: src/Middleware/Pipeline.php
-
-		-
 			message: '#^Method App\\Middleware\\RoleMiddleware\:\:__construct\(\) has parameter \$roles with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3273,12 +3141,6 @@ parameters:
 		-
 			message: '#^Method App\\Repository\\ReportRepository\:\:getAgentInviteByToken\(\) should return array\|null but returns mixed\.$#'
 			identifier: return.type
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getAttachmentBlob\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: src/Repository/ReportRepository.php
 
@@ -3961,56 +3823,20 @@ parameters:
 			path: src/Services/CryptoService.php
 
 		-
-			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Services/FormattingService.php
-
-		-
-			message: '#^Binary operation "\." between '' '' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Services/FormattingService.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Services/FormattingService.php
-
-		-
-			message: '#^Cannot access offset ''description'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Services/FormattingService.php
-
-		-
-			message: '#^Cannot access offset ''objet'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
 			count: 1
 			path: src/Services/FormattingService.php
 
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 7
+			count: 8
 			path: src/Services/FormattingService.php
 
 		-
 			message: '#^Offset ''url'' might not exist on array\{url\?\: string, label\: mixed\}\.$#'
 			identifier: offsetAccess.notFound
-			count: 1
-			path: src/Services/FormattingService.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$arg1 of function max expects non\-empty\-array, array\<string, int\<1, max\>\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Services/FormattingService.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$arg1 of function min expects non\-empty\-array, array\<string, int\<1, max\>\> given\.$#'
-			identifier: argument.type
 			count: 1
 			path: src/Services/FormattingService.php
 
@@ -4411,19 +4237,13 @@ parameters:
 			path: src/auth.php
 
 		-
-			message: '#^Function getLastBackupFingerprint\(\) should return array\{mtime\: int, size\: int\}\|null but returns non\-empty\-array\.$#'
+			message: '#^Function getDbFingerprint\(\) should return array\{mtime\: int, size\: int\} but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: src/backup.php
 
 		-
-			message: '#^Function getDbFingerprint\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/backup.php
-
-		-
-			message: '#^Function getDbFingerprint\(\) should return array\{mtime\: int, size\: int\} but returns mixed\.$#'
+			message: '#^Function getLastBackupFingerprint\(\) should return array\{mtime\: int, size\: int\}\|null but returns non\-empty\-array\.$#'
 			identifier: return.type
 			count: 1
 			path: src/backup.php
@@ -4645,6 +4465,12 @@ parameters:
 			path: src/helpers/access.php
 
 		-
+			message: '#^Function getAccessService\(\) should return App\\Services\\AccessService but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/helpers/access.php
+
+		-
 			message: '#^Function logConfidentialReportAccess\(\) has parameter \$report with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -4669,6 +4495,18 @@ parameters:
 			path: src/helpers/access.php
 
 		-
+			message: '#^Function getAssetService\(\) should return App\\Services\\AssetService but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/helpers/assets.php
+
+		-
+			message: '#^Function getConfigService\(\) should return App\\Services\\ConfigService but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/helpers/config.php
+
+		-
 			message: '#^Function getEnabledRegistries\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -4681,6 +4519,18 @@ parameters:
 			path: src/helpers/config.php
 
 		-
+			message: '#^Function getCryptoService\(\) should return App\\Services\\CryptoService but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/helpers/crypto.php
+
+		-
+			message: '#^Function getFormattingService\(\) should return App\\Services\\FormattingService but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/helpers/formatting.php
+
+		-
 			message: '#^Function renderBreadcrumb\(\) has parameter \$items with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -4691,6 +4541,12 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/helpers/formatting.php
+
+		-
+			message: '#^Function getHttpService\(\) should return App\\Services\\HttpService but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/helpers/http.php
 
 		-
 			message: '#^Function url\(\) has parameter \$params with no value type specified in iterable type array\.$#'
@@ -5529,7 +5385,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
-			count: 6
+			count: 4
 			path: templates/report_card.php
 
 		-
@@ -5539,14 +5395,14 @@ parameters:
 			path: templates/report_card.php
 
 		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
 			count: 2
 			path: templates/report_card.php
 
 		-
-			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
-			identifier: argument.type
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
 			count: 2
 			path: templates/report_card.php
 

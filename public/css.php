@@ -102,16 +102,10 @@ if ($clientLastModified !== null && strtotime($clientLastModified) >= $fileMtime
 header('Content-Type: text/css; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
-// Cache-Control: long max-age with version busting
-// When ?v= is present (always, via cssLink()), the URL is immutable
-// until the version changes → safe to cache for 1 year
-$hasVersion = isset($_GET['v']) && $_GET['v'] !== '';
-if ($hasVersion) {
-    header('Cache-Control: public, max-age=31536000, immutable');
-} else {
-    // Fallback: short cache for unversioned requests (shouldn't happen)
-    header('Cache-Control: public, max-age=180');
-}
+// Cache-Control: no cache — PHP rebuilds CSS on every request
+// Version busting via ?v= still works for CDN/proxy, but browser always revalidates
+header('Cache-Control: no-cache, must-revalidate');
+header('Pragma: no-cache');
 
 header('ETag: ' . $etag);
 header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $fileMtime) . ' GMT');

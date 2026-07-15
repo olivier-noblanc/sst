@@ -43,7 +43,7 @@ foreach ($currentSettings as $setting) {
 // Active tab — whitelist validation to prevent LFI/path traversal
 $defaultTab = $noSiteMode ? 'global' : 'sites';
 $activeTab = $_GET['tab'] ?? $defaultTab;
-$allowedTabs = ['sites', 'global', 'smtp', 'manage_sites', 'app'];
+$allowedTabs = ['sites', 'global', 'smtp', 'manage_sites', 'app', 'wordcloud'];
 if (!in_array($activeTab, $allowedTabs)) {
     $activeTab = $defaultTab;
 }
@@ -81,6 +81,10 @@ $pageTitle = 'Paramètres';
     <a href="<?php echo $http->url('settings', ['tab' => 'app']); ?>"
        class="settings-tab <?php echo $activeTab === 'app' ? 'settings-tab--active' : ''; ?>">
         &#x2699;&#xFE0F; Paramètres de l'application
+    </a>
+    <a href="<?php echo $http->url('settings', ['tab' => 'wordcloud']); ?>"
+       class="settings-tab <?php echo $activeTab === 'wordcloud' ? 'settings-tab--active' : ''; ?>">
+        &#x1F4CA; Nuage de mots
     </a>
 
 </div>

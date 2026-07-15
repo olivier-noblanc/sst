@@ -119,6 +119,30 @@ try {
         handleSettingsManageSitesTab($pdo, $_POST);
     }
 
+    if ($tab === 'wordcloud') {
+        /** @var mixed $rawWords */
+        $rawWords = $_POST['words'] ?? [];
+        $cleanWords = [];
+        if (is_array($rawWords)) {
+            foreach ($rawWords as $entry) {
+                if (!is_array($entry)) {
+                    continue;
+                }
+                /** @var mixed $wordVal */
+                $wordVal = $entry['word'] ?? '';
+                /** @var mixed $weightVal */
+                $weightVal = $entry['weight'] ?? 10;
+                $word = trim((string) $wordVal);
+                $weight = (int) $weightVal;
+                if ($word !== '' && $weight >= 1 && $weight <= 20) {
+                    $cleanWords[] = ['word' => mb_strtolower($word, 'UTF-8'), 'weight' => $weight];
+                }
+            }
+        }
+        $json = json_encode($cleanWords, JSON_UNESCAPED_UNICODE);
+        $configService->set('word_cloud_words', is_string($json) ? $json : '[]');
+    }
+
     $pdo->commit();
 
     // Success message varies by tab
@@ -128,6 +152,7 @@ try {
         'smtp'          => 'Configuration SMTP enregistrée avec succès.',
         'app'           => 'Paramètres de l\'application enregistrés avec succès.',
         'manage_sites'  => 'Sites mis à jour avec succès.',
+        'wordcloud'     => 'Nuage de mots configuré avec succès.',
     ];
     auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . $tab, null, 'config', ['tab' => $tab]);
     setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');

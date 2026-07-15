@@ -692,6 +692,23 @@ try {
     Write-Status "!" "OPcache reset partiel : $_" "Yellow"
 }
 
+# --- Clear CSS caches ---
+Write-Section "Nettoyage des caches CSS"
+$cssCacheDir = Join-Path $AppDir "db\cache"
+if (Test-Path $cssCacheDir) {
+    $oldCssFiles = Get-ChildItem -Path $cssCacheDir -Filter "assets_css_*.css" -ErrorAction SilentlyContinue
+    foreach ($f in $oldCssFiles) {
+        Remove-Item -Path $f.FullName -Force -ErrorAction SilentlyContinue
+    }
+    if ($oldCssFiles.Count -gt 0) {
+        Write-Status "OK" "$($oldCssFiles.Count) fichier(s) de cache CSS supprimé(s)" "Green"
+    } else {
+        Write-Status "OK" "Aucun cache CSS a nettoyer" "Green"
+    }
+} else {
+    Write-Status "OK" "Repertoire de cache CSS inexistant (pas de nettoyage necessaire)" "Green"
+}
+
 # --- Nettoyage anciennes sauvegardes ---
 $backupsDir = Join-Path $AppDir "backups"
 if (Test-Path $backupsDir) {

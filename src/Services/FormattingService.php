@@ -20,7 +20,9 @@ class FormattingService
         if ($string === null || $string === '') {
             return '';
         }
-        return htmlspecialchars((string) $string, ENT_QUOTES, 'UTF-8');
+        /** @var string $str */
+        $str = $string;
+        return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -31,7 +33,8 @@ class FormattingService
         if (empty($date)) {
             return '—';
         }
-        $date = (string) $date;
+        /** @var string $date */
+        $date = $date;
         $dt = DateTime::createFromFormat('Y-m-d', $date);
         if ($dt === false) {
             $dt = DateTime::createFromFormat('Y-m-d H:i:s', $date);
@@ -47,7 +50,8 @@ class FormattingService
         if (empty($datetime)) {
             return '—';
         }
-        $datetime = (string) $datetime;
+        /** @var string $datetime */
+        $datetime = $datetime;
         $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime);
         if ($dt === false) {
             $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime);

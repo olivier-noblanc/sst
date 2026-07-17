@@ -15,10 +15,14 @@ $config = \App\Services\ConfigService::getInstance();
 $noSiteMode = $config->isNoSiteMode();
 
 // Active tab
-$activeTab = (string) ($_GET['tab'] ?? 'list');
+/** @var string */
+$tabGet = $_GET['tab'] ?? 'list';
+$activeTab = $tabGet;
 
 // Search filter
-$search = trim((string) ($_GET['q'] ?? ''));
+/** @var string */
+$qGet = $_GET['q'] ?? '';
+$search = trim($qGet);
 
 // Get all users
 $allUsers = \App\Repository\UserRepository::instance()->findAll(0, false); // include inactive
@@ -28,11 +32,17 @@ $allUsers = \App\Repository\UserRepository::instance()->findAll(0, false); // in
 if (!empty($search)) {
     $filtered = [];
     foreach ($allUsers as $u) {
-        if (stripos((string) ($u['nom'] ?? ''), $search) !== false
-            || stripos((string) ($u['prenom'] ?? ''), $search) !== false
-            || stripos((string) ($u['email'] ?? ''), $search) !== false
-            || stripos((string) ($u['username'] ?? ''), $search) !== false
-            || (!$noSiteMode && stripos((string) ($u['site_nom'] ?? ''), $search) !== false)) {
+        /** @var array<string, mixed> $u */
+        $uNom = (string) ($u['nom'] ?? '');
+        $uPrenom = (string) ($u['prenom'] ?? '');
+        $uEmail = (string) ($u['email'] ?? '');
+        $uUsername = (string) ($u['username'] ?? '');
+        $uSiteNom = (string) ($u['site_nom'] ?? '');
+        if (stripos($uNom, $search) !== false
+            || stripos($uPrenom, $search) !== false
+            || stripos($uEmail, $search) !== false
+            || stripos($uUsername, $search) !== false
+            || (!$noSiteMode && stripos($uSiteNom, $search) !== false)) {
             $filtered[] = $u;
         }
     }
@@ -109,27 +119,28 @@ $pageTitle = 'Gestion des utilisateurs';
                 <?php else: ?>
                 <?php foreach ($allUsers as $u): ?>
                 <?php /** @var array<string, mixed> $u */ ?>
-                <tr class="<?php echo !$u['is_active'] ? 'row--inactive' : ''; ?>">
-                    <td><?php echo $fmt->e((string) ($u['nom'] ?? '')); ?></td>
-                    <td><?php echo $fmt->e((string) ($u['prenom'] ?? '')); ?></td>
-                    <td><?php echo $fmt->e((string) ($u['email'] ?? '—')); ?></td>
-                    <td><span class="badge <?php echo $fmt->getRoleBadgeClass((string) ($u['role'] ?? '')); ?>"><?php echo $fmt->e(ROLE_LABELS[(string) ($u['role'] ?? '')] ?? (string) ($u['role'] ?? '')); ?></span></td>
-                    <?php if (!$noSiteMode): ?><td><?php echo $fmt->e((string) ($u['site_nom'] ?? '—')); ?></td><?php endif; ?>
+                <?php $uNom = (string) ($u['nom'] ?? ''); $uPrenom = (string) ($u['prenom'] ?? ''); $uEmail = (string) ($u['email'] ?? '—'); $uRole = (string) ($u['role'] ?? ''); $uSiteNom = (string) ($u['site_nom'] ?? '—'); $uIsActive = !empty($u['is_active']); $uId = (int) ($u['id'] ?? 0); ?>
+                <tr class="<?php echo !$uIsActive ? 'row--inactive' : ''; ?>">
+                    <td><?php echo $fmt->e($uNom); ?></td>
+                    <td><?php echo $fmt->e($uPrenom); ?></td>
+                    <td><?php echo $fmt->e($uEmail); ?></td>
+                    <td><span class="badge <?php echo $fmt->getRoleBadgeClass($uRole); ?>"><?php echo $fmt->e(ROLE_LABELS[$uRole] ?? $uRole); ?></span></td>
+                    <?php if (!$noSiteMode): ?><td><?php echo $fmt->e($uSiteNom); ?></td><?php endif; ?>
                     <td>
-                        <?php if ($u['is_active'] ?? false): ?>
+                        <?php if ($uIsActive): ?>
                             <span class="status-dot--active">&#x25CF; Actif</span>
                         <?php else: ?>
                             <span class="status-dot--inactive">&#x25CF; Inactif</span>
                         <?php endif; ?>
                     </td>
                     <td>
-                        <a href="<?php echo $http->url('user_view', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--outline">Voir</a>
-                        <?php if ($u['is_active'] ?? false): ?>
-                        <a href="<?php echo $http->url('user_edit', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--primary">Éditer</a>
+                        <a href="<?php echo $http->url('user_view', ['id' => $uId]); ?>" class="btn btn--sm btn--outline">Voir</a>
+                        <?php if ($uIsActive): ?>
+                        <a href="<?php echo $http->url('user_edit', ['id' => $uId]); ?>" class="btn btn--sm btn--primary">Éditer</a>
                         <?php else: ?>
                         <form method="POST" action="<?php echo $http->url('user_reactivate'); ?>" class="form--inline">
                             <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
-                            <input type="hidden" name="user_id" value="<?php echo (int) $u['id']; ?>">
+                            <input type="hidden" name="user_id" value="<?php echo $uId; ?>">
                             <button type="submit" class="btn btn--sm btn--success">Réactiver</button>
                         </form>
                         <?php endif; ?>

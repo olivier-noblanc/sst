@@ -25,17 +25,22 @@ class AccessService
             return ($report['consent_syndicat'] ?? 0) == 1;
         }
 
-        if ((int) $report['site_id'] !== (int) $user['site_id']) {
+        $reportSiteId = (int) ($report['site_id'] ?? 0);
+        $userSiteId = (int) ($user['site_id'] ?? 0);
+        if ($reportSiteId !== $userSiteId) {
             return false;
         }
 
         $visibility = $forcedVisibility ?? $this->getReportVisibilityMode($report['type'] ?? null);
+        $reportDeclarantId = (int) ($report['declarant_id'] ?? 0);
+        $userId = (int) ($user['id'] ?? 0);
 
-        if ($visibility === 'confidential' && (int) $report['declarant_id'] !== (int) $user['id']) {
+        if ($visibility === 'confidential' && $reportDeclarantId !== $userId) {
             return false;
         }
 
-        if ($visibility === 'agent_choice' && (int) $report['is_confidential'] === 1 && (int) $report['declarant_id'] !== (int) $user['id']) {
+        $isConfidential = (int) ($report['is_confidential'] ?? 0);
+        if ($visibility === 'agent_choice' && $isConfidential === 1 && $reportDeclarantId !== $userId) {
             return false;
         }
 
@@ -50,13 +55,16 @@ class AccessService
      */
     public function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
     {
-        if ((int) $report['is_confidential'] !== 1) {
+        $isConfidential = (int) ($report['is_confidential'] ?? 0);
+        if ($isConfidential !== 1) {
             return;
         }
         if (!in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
             return;
         }
-        if ((int) $report['declarant_id'] === (int) $user['id']) {
+        $reportDeclarantId = (int) ($report['declarant_id'] ?? 0);
+        $userId = (int) ($user['id'] ?? 0);
+        if ($reportDeclarantId === $userId) {
             return;
         }
         try {
@@ -66,7 +74,7 @@ class AccessService
             ');
             $stmt->execute([
                 ':report_uuid' => $report['uuid'],
-                ':user_id'     => (int) $user['id'],
+                ':user_id'     => $userId,
                 ':role'        => $user['role'],
             ]);
         } catch (Exception $e) {

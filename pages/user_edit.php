@@ -33,7 +33,10 @@ $sites = \App\Repository\SiteRepository::instance()->findAll();
 $formErrors = new \App\Services\SessionService()->getFormErrors();
 $formData = new \App\Services\SessionService()->getFormData();
 
-$pageTitle = 'Éditer l\'utilisateur — ' . $fmt->e((string) ($user['prenom'] ?? '') . ' ' . (string) ($user['nom'] ?? ''));
+/** @var array<string, mixed> $user */
+$userPrenom = (string) ($user['prenom'] ?? '');
+$userNom = (string) ($user['nom'] ?? '');
+$pageTitle = 'Éditer l\'utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNom);
 ?>
 
 <h1 class="page-title">Éditer l'utilisateur</h1>
@@ -42,7 +45,7 @@ $pageTitle = 'Éditer l\'utilisateur — ' . $fmt->e((string) ($user['prenom'] ?
 <div class="card">
     <form method="POST" action="<?php echo $http->url('user_edit', ['id' => $userId]); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
-        <input type="hidden" name="user_id" value="<?php echo $fmt->e((string) $userId); ?>">
+        <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
 
         <?php
         // Prepare variables for the shared template
@@ -65,7 +68,7 @@ require __DIR__ . '/../templates/user_form_fields.php';
             <div class="form-group">
                 <label class="checkbox-label">
                     <input type="checkbox" name="confirm_demotion" value="1" required>
-                    <span>Je confirme la rétrogradation de <strong><?php echo $fmt->e($user['prenom'] . ' ' . $user['nom']); ?></strong> de Superviseur à Agent</span>
+                    <span>Je confirme la rétrogradation de <strong><?php echo $fmt->e($userPrenom . ' ' . $userNom); ?></strong> de Superviseur à Agent</span>
                 </label>
             </div>
         </div>
@@ -108,7 +111,7 @@ require __DIR__ . '/../templates/user_form_fields.php';
         <p>Êtes-vous sûr de vouloir désactiver cet utilisateur ?</p>
         <form method="POST" action="<?php echo $http->url('user_delete'); ?>" class="btn-group">
             <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
-            <input type="hidden" name="user_id" value="<?php echo $fmt->e((string) $userId); ?>">
+            <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
             <button type="submit" class="btn btn--danger">Oui, désactiver</button>
             <a href="<?php echo $http->url('user_edit', ['id' => $userId]); ?>" class="btn btn--secondary">Annuler</a>
         </form>

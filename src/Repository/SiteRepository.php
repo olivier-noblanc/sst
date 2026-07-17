@@ -27,37 +27,39 @@ class SiteRepository
     public function findAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM sites ORDER BY code ASC');
-        return $stmt->fetchAll();
+        $rows = $stmt !== false ? $stmt->fetchAll() : [];
+        return is_array($rows) ? $rows : [];
     }
 
     public function findActive(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM sites WHERE is_active = 1 ORDER BY code ASC');
-        return $stmt->fetchAll();
+        $rows = $stmt !== false ? $stmt->fetchAll() : [];
+        return is_array($rows) ? $rows : [];
     }
 
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE id = :id');
         $stmt->execute([':id' => $id]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
     }
 
     public function findByCode(string $code): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE code = :code');
         $stmt->execute([':code' => $code]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
     }
 
     public function findByName(string $nom): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE nom = :nom');
         $stmt->execute([':nom' => $nom]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
     }
 
     public function create(string $code, string $nom, string $departement = ''): int

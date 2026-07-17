@@ -15,6 +15,7 @@ class UpdateUserCommand
         public readonly ?string $email,
     ) {}
 
+    /** @param array<string, string> $post */
     public static function fromPost(array $post): self
     {
         return new self(
@@ -27,6 +28,7 @@ class UpdateUserCommand
         );
     }
 
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [

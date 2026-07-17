@@ -60,7 +60,7 @@ $errors = $service->validate($_POST, $userId);
 $cmd = UpdateUserCommand::fromPost($_POST);
 
 // Guard: prevent demoting the last active superviseur
-if ((string) ($user['role'] ?? '') === ROLE_SUPERVISEUR && $cmd->role !== ROLE_SUPERVISEUR) {
+if (is_array($user) && (string) ($user['role'] ?? '') === ROLE_SUPERVISEUR && $cmd->role !== ROLE_SUPERVISEUR) {
     $demoteErrors = $service->canDemote($userId, $cmd->role, $user);
     $errors = array_merge($errors, $demoteErrors);
 

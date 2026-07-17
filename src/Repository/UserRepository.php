@@ -39,8 +39,8 @@ class UserRepository
     {
         $stmt = $this->pdo->prepare($this->baseQuery() . ' WHERE u.id = :id');
         $stmt->execute([':id' => $id]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
     }
 
     public function findByUsername(string $username): ?array
@@ -49,8 +49,8 @@ class UserRepository
             $this->baseQuery() . ' WHERE u.username = :username AND u.is_active = 1'
         );
         $stmt->execute([':username' => $username]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
     }
 
     public function findByUsernameOrAny(string $username): ?array
@@ -59,8 +59,8 @@ class UserRepository
             $this->baseQuery() . ' WHERE u.username = :username'
         );
         $stmt->execute([':username' => $username]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
     }
 
     public function findByRole(string $role): array
@@ -69,7 +69,8 @@ class UserRepository
             $this->baseQuery() . ' WHERE u.role = :role AND u.is_active = 1'
         );
         $stmt->execute([':role' => $role]);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return is_array($rows) ? $rows : [];
     }
 
     public function findAll(int $siteId = 0, bool $active = true): array
@@ -88,7 +89,8 @@ class UserRepository
         $sql .= ' ORDER BY u.nom, u.prenom';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return is_array($rows) ? $rows : [];
     }
 
     public function countActive(): int
@@ -288,6 +290,9 @@ class UserRepository
         ');
         $stmt->execute([':id' => $id]);
         $responses = $stmt->fetchAll();
+
+        $reports = is_array($reports) ? $reports : [];
+        $responses = is_array($responses) ? $responses : [];
 
         return [
             'user' => [

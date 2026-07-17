@@ -35,4 +35,21 @@ class ContainerTest extends TestCase
         $container->set('outer', fn($c) => $c->get('inner') . '_outer');
         $this->assertEquals('inner_value_outer', $container->get('outer'));
     }
+
+    public function testGetReturnsCorrectType(): void
+    {
+        $container = new Container();
+        $container->set(\stdClass::class, fn() => new \stdClass());
+        $result = $container->get(\stdClass::class);
+        $this->assertInstanceOf(\stdClass::class, $result);
+    }
+
+    public function testGetReturnsSameInstanceAcrossCalls(): void
+    {
+        $container = new Container();
+        $container->set(\stdClass::class, fn() => new \stdClass());
+        $a = $container->get(\stdClass::class);
+        $b = $container->get(\stdClass::class);
+        $this->assertSame($a, $b);
+    }
 }

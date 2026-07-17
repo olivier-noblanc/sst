@@ -12,6 +12,7 @@ class RespondToReportCommand
         public readonly array $attachment = [],
     ) {}
 
+    /** @param array<string, string> $post */
     public static function fromPost(array $post): self
     {
         return new self(

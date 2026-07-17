@@ -108,7 +108,8 @@ class ReportRepository
             WHERE r.uuid = :uuid
         ');
         $stmt->execute([':uuid' => $uuid]);
-        return $stmt->fetch() ?: null;
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
     }
 
     /**
@@ -172,7 +173,7 @@ class ReportRepository
             }
             if ($hasFts) {
                 $where .= ' AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)';
-                $ftsQuery = trim((string) preg_replace('/[^\p{L}\p{N}\s]/u', ' ', (string) $filters['q']));
+                $ftsQuery = trim((string) preg_replace('/[^\p{L}\p{N}\s]/u', ' ', is_string($filters['q']) ? $filters['q'] : ''));
                 if ($ftsQuery === '') {
                     $where = str_replace('AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)', 'AND (r.objet LIKE :q OR r.description LIKE :q2)', $where);
                     $params[':q'] = $params[':q2'] = '%' . $filters['q'] . '%';
@@ -193,14 +194,16 @@ class ReportRepository
         $params[':offset'] = ($page - 1) * $perPage;
         $stmt = $this->pdo->prepare($this->baseSelect() . " WHERE $where ORDER BY r.created_at DESC LIMIT :limit OFFSET :offset");
         $stmt->execute($params);
-        return ['reports' => $stmt->fetchAll(), 'total' => $total];
+        $rows = $stmt->fetchAll();
+        return ['reports' => is_array($rows) ? $rows : [], 'total' => $total];
     }
 
     public function findBySite(int $siteId): array
     {
         $stmt = $this->pdo->prepare($this->baseSelect() . ' WHERE r.site_id = :site_id ORDER BY r.created_at DESC');
         $stmt->execute([':site_id' => $siteId]);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return is_array($rows) ? $rows : [];
     }
 
     public function getAdjacentUuids(array $report): array
@@ -217,8 +220,8 @@ class ReportRepository
         ');
         $stmt->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
         $prev = $stmt->fetch();
-        if ($prev) {
-            $result['prev'] = $prev['uuid'];
+        if (is_array($prev) && isset($prev['uuid'])) {
+            $result['prev'] = (string) $prev['uuid'];
         }
 
         $stmt2 = $this->pdo->prepare('
@@ -228,8 +231,8 @@ class ReportRepository
         ');
         $stmt2->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
         $next = $stmt2->fetch();
-        if ($next) {
-            $result['next'] = $next['uuid'];
+        if (is_array($next) && isset($next['uuid'])) {
+            $result['next'] = (string) $next['uuid'];
         }
 
         return $result;
@@ -260,9 +263,11 @@ class ReportRepository
             ETAT_REOUVERT  => 0,
             'total'        => 0,
         ];
-        foreach ($stmt->fetchAll() as $row) {
-            $counts[$row['etat']] = (int) $row['count'];
-            $counts['total'] += (int) $row['count'];
+        $rows = $stmt->fetchAll();
+        foreach (is_array($rows) ? $rows : [] as $row) {
+            $etat = is_string($row['etat'] ?? null) ? $row['etat'] : '';
+            $counts[$etat] = (int) ($row['count'] ?? 0);
+            $counts['total'] += (int) ($row['count'] ?? 0);
         }
         return $counts;
     }
@@ -307,12 +312,13 @@ class ReportRepository
             ORDER BY rr.created_at ASC
         ');
         $stmt->execute([':report_uuid' => $reportUuid]);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return is_array($rows) ? $rows : [];
     }
 
     /**
      * @param list<string> $uuids
-     * @return array<string, list<array<string, mixed>>>
+     * @return array<string, list<array<mixed>>>
      */
     public function getResponsesForUuids(array $uuids): array
     {
@@ -330,8 +336,13 @@ class ReportRepository
         $stmt->execute($uuids);
         $result = [];
         while ($resp = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $uuid = (string) $resp['report_uuid'];
-            $result[$uuid][] = $resp;
+            if (!is_array($resp)) {
+                continue;
+            }
+            $uuidValue = $resp['report_uuid'] ?? null;
+            if (is_string($uuidValue) && $uuidValue !== '') {
+                $result[$uuidValue][] = $resp;
+            }
         }
         return $result;
     }
@@ -350,7 +361,8 @@ class ReportRepository
             ORDER BY u.nom, u.prenom
         ');
         $stmt->execute([$reportUuid]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return is_array($rows) ? $rows : [];
     }
 
     public function getPendingInvites(string $reportUuid): array
@@ -361,7 +373,8 @@ class ReportRepository
             ORDER BY created_at
         ');
         $stmt->execute([$reportUuid]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return is_array($rows) ? $rows : [];
     }
 
     public function getAgentInviteByToken(string $token): ?array
@@ -371,7 +384,7 @@ class ReportRepository
         ');
         $stmt->execute([$token]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row ?: null;
+        return is_array($row) ? $row : null;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -538,7 +551,7 @@ class ReportRepository
             $checkStmt = $this->pdo->prepare("SELECT etat FROM reports WHERE uuid = :uuid AND etat IN ('traite', 'abandonne')");
             $checkStmt->execute([':uuid' => $uuid]);
             $current = $checkStmt->fetch();
-            if (!$current) {
+            if (!is_array($current)) {
                 $this->pdo->rollBack();
                 return false;
             }
@@ -601,7 +614,7 @@ class ReportRepository
             $checkStmt->execute([':uuid' => $uuid]);
             $current = $checkStmt->fetch();
 
-            if ($current && $current['etat'] === ETAT_REOUVERT && !empty($current['reponse'])) {
+            if (is_array($current) && $current['etat'] === ETAT_REOUVERT && !empty($current['reponse'])) {
                 $archiveStmt = $this->pdo->prepare('
                     INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
                     VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)

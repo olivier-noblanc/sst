@@ -8,7 +8,10 @@ use RuntimeException;
 
 class Container
 {
+    /** @var array<string, callable(self): mixed> */
     private array $factories = [];
+
+    /** @var array<string, mixed> */
     private array $instances = [];
 
     public function set(string $id, callable $factory): void
@@ -16,6 +19,11 @@ class Container
         $this->factories[$id] = $factory;
     }
 
+    /**
+     * @template T
+     * @param class-string<T> $id
+     * @return T
+     */
     public function get(string $id): mixed
     {
         if (!isset($this->instances[$id])) {

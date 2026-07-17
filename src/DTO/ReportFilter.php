@@ -17,6 +17,10 @@ class ReportFilter
         public readonly bool $seeAllSites = true,
     ) {}
 
+    /**
+     * @param array<string, string> $get
+     * @param array<string, mixed> $user
+     */
     public static function fromGet(array $get, array $user): self
     {
         return new self(
@@ -27,6 +31,7 @@ class ReportFilter
         );
     }
 
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [

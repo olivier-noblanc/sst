@@ -25,8 +25,9 @@ try {
 
     $pdo = getDB();
     $user = $service->findById($userId);
-    auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $user['prenom'] . ' ' . $user['nom'], (int) $userId, 'user');
-    setFlash('success', 'Utilisateur ' . e($user['prenom'] . ' ' . $user['nom']) . ' désactivé avec succès.');
+    $label = is_array($user) ? $user['prenom'] . ' ' . $user['nom'] : '(id=' . $userId . ')';
+    auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $label, (int) $userId, 'user');
+    setFlash('success', 'Utilisateur ' . e($label) . ' désactivé avec succès.');
 } catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
 } catch (Throwable $e) {

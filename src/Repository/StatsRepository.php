@@ -51,7 +51,8 @@ class StatsRepository
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return is_array($rows) ? $rows : [];
     }
 
     public function getExportData(array $filters = []): array
@@ -114,7 +115,8 @@ class StatsRepository
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return is_array($rows) ? $rows : [];
     }
 
     public function getIndicateurs(string $year = '', int $siteId = 0): array
@@ -148,6 +150,14 @@ class StatsRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $result = $stmt->fetch();
+
+        if (!is_array($result)) {
+            return [
+                'total_reports' => 0, 'total_nouveau' => 0, 'total_en_cours' => 0,
+                'total_traite' => 0, 'total_abandonne' => 0,
+                'total_rsst' => 0, 'total_rami' => 0, 'total_dgi' => 0,
+            ];
+        }
 
         return [
             'total_reports'   => (int) ($result['total_reports'] ?? 0),
@@ -199,7 +209,8 @@ class StatsRepository
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        return is_array($rows) ? $rows : [];
     }
 
     public function countByRegistryAndSite(string $type, int $siteId): int
@@ -219,7 +230,8 @@ class StatsRepository
             FROM reports
             ORDER BY year DESC
         ");
-        return array_column($stmt->fetchAll(), 'year');
+        $rows = $stmt !== false ? $stmt->fetchAll() : [];
+        return array_column(is_array($rows) ? $rows : [], 'year');
     }
 
     public function getRamiStructuredStats(string $year = ''): array
@@ -250,7 +262,7 @@ class StatsRepository
         $stmt->execute($params);
         $byType = $stmt->fetchAll();
 
-        return ['by_nature_auteur' => $byNature, 'by_type_acte' => $byType];
+        return ['by_nature_auteur' => is_array($byNature) ? $byNature : [], 'by_type_acte' => is_array($byType) ? $byType : []];
     }
 
     public function getPdo(): PDO

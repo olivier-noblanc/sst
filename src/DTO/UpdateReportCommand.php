@@ -27,6 +27,7 @@ class UpdateReportCommand
         public readonly ?string $attachmentMime = null,
     ) {}
 
+    /** @param array<string, string> $post */
     public static function fromPost(array $post): self
     {
         $natureAuteur = trim($post['nature_auteur'] ?? '');
@@ -56,8 +57,10 @@ class UpdateReportCommand
      * Convert to snake_case array for DB.
      * Excludes attachment fields when null so updateReport() keeps existing attachment.
      */
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
+        /** @var array<string, mixed> */
         $data = get_object_vars($this);
         // Only include attachment fields if explicitly set (non-null)
         // This preserves existing attachment when no new file/upload is provided

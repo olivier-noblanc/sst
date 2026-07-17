@@ -31,7 +31,7 @@ class NotificationRepository
             LEFT JOIN sites s ON ns.site_id = s.id
             ORDER BY ns.type, s.code, ns.registry
         ');
-        return $stmt->fetchAll();
+        return $stmt !== false ? $stmt->fetchAll() : [];
     }
 
     public function save(?int $siteId, string $type, string $registry, string $email): int
@@ -81,7 +81,7 @@ class NotificationRepository
     public function findGlobalEmails(): array
     {
         $stmt = $this->pdo->query("SELECT email FROM notification_settings WHERE type = 'global'");
-        return array_column($stmt->fetchAll(), 'email');
+        return $stmt !== false ? array_column($stmt->fetchAll(), 'email') : [];
     }
 
     public function getPdo(): PDO

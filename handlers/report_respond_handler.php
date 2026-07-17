@@ -81,11 +81,11 @@ try {
 
         setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report['reference']) . '.');
     } else {
-        $status = is_array($result) ? ($result['status'] ?? '') : '';
+        $status = $result['status'] ?? '';
         if ($status === 'concurrent') {
             setFlash('error', 'Ce signalement a été modifié par un autre superviseur pendant votre saisie. Veuillez recommencer.');
         } else {
-            $errorMsg = is_array($result) ? ($result['message'] ?? 'Erreur inconnue') : 'Erreur inconnue';
+            $errorMsg = $result['message'] ?? 'Erreur inconnue';
             error_log('[SST-RESPOND] respondToReport failed: ' . $errorMsg . ' | user_id=' . $userId . ' report_uuid=' . $reportUuid);
             setFlash('error', 'Erreur lors de l\'enregistrement de la réponse : ' . e($errorMsg));
         }

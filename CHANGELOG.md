@@ -3,6 +3,19 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.40.0] — 2026-07-17
+
+### Refactoring — Nettoyage `mixed` PHPStan (3 phases)
+
+Réduction de la dette technique `mixed` sur le pipeline d'analyse statique. Le baseline PHPStan passe de **950 à 859 erreurs** (-91), 827 tests passent, PHPStan level 10 propre.
+
+- **1** 🔴 **Container `@template T`** — `Container::get()` utilise désormais un template PHPStan (`@template T` / `@return T`) avec `class-string<T>` pour inférer le type de retour. Les propriétés `$factories` et `$instances` sont typées. Tous les appels `$container->get(Foo::class)` retournent maintenant le bon type au lieu de `mixed`. (`src/Container/Container.php`)
+- **2** 🔴 **Repositories — guards `is_array()`** — Tous les `fetch()`, `fetchAll()`, et `query()` des 5 repositories (Report, User, Site, Notification, Stats) sont现在 protégés par des garde `is_array()` ou `is_array($stmt) !== false` avant utilisation. Élimine les erreurs `Cannot access offset on mixed`, `Cannot call method on mixed`, et `should return array but returns mixed`. (`src/Repository/*.php`)
+- **3** 🔴 **DTOs — typage `fromPost()`** — Les méthodes `fromPost()` et `fromGet()` de tous les DTOs (CreateReport, UpdateReport, CreateUser, UpdateUser, ReportFilter, RespondToReport) sont typées avec `@param array<string, string>`. Les `toArray()` ont un `@return array<string, mixed>`. (`src/DTO/*.php`)
+- **4** 🔴 **Bugs corrigés** — Garde `is_array($user)` ajoutée dans `user_delete_handler`, `user_reactivate_handler`, `user_edit_handler` (accès à `$user['prenom']`/`$user['nom']` sans vérifier null). `is_array()` redondant supprimé dans `report_respond_handler`. Casts `mixed→string` sécurisés avec `isset()` dans `ReportRepository::getAdjacentUuids()`, `countByState()`, `getResponsesForUuids()`. (`handlers/*.php`, `src/Repository/ReportRepository.php`)
+- **5** 🟡 **Baseline nettoyé** — Baseline régénéré : 950 → 859 erreurs. Les 91 erreurs éliminées étaient des vrais problèmes de typage masqués par `mixed`. (`phpstan-baseline.neon`)
+
+
 ## [3.39.0] — 2026-07-15
 
 ### Correction — Fatal error buildRegistryCards()

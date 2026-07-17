@@ -283,12 +283,6 @@ parameters:
 			path: handlers/login_handler.php
 
 		-
-			message: '#^Cannot call method abandon\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/report_abandon_handler.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 1
@@ -319,6 +313,12 @@ parameters:
 			path: handlers/report_create_handler.php
 
 		-
+			message: '#^Parameter \#1 \$post of static method App\\DTO\\CreateReportCommand\:\:fromPost\(\) expects array\<string, string\>, array\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: handlers/report_create_handler.php
+
+		-
 			message: '#^Parameter \#1 \$type of class App\\DTO\\CreateReportCommand constructor expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -338,6 +338,12 @@ parameters:
 
 		-
 			message: '#^Parameter \#1 \$objet of class App\\DTO\\UpdateReportCommand constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: handlers/report_edit_handler.php
+
+		-
+			message: '#^Parameter \#1 \$post of static method App\\DTO\\UpdateReportCommand\:\:fromPost\(\) expects array\<string, string\>, array\<mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: handlers/report_edit_handler.php
@@ -381,12 +387,6 @@ parameters:
 		-
 			message: '#^Cannot access offset ''tmp_name'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Cannot call method respond\(\) on mixed\.$#'
-			identifier: method.nonObject
 			count: 1
 			path: handlers/report_respond_handler.php
 
@@ -463,40 +463,10 @@ parameters:
 			path: handlers/smtp_test_handler.php
 
 		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/user_create_handler.php
-
-		-
-			message: '#^Cannot call method create\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_create_handler.php
-
-		-
-			message: '#^Cannot call method validate\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_create_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/user_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$errors of function setFormErrors expects array, mixed given\.$#'
+			message: '#^Parameter \#1 \$post of static method App\\DTO\\CreateUserCommand\:\:fromPost\(\) expects array\<string, string\>, array\<mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: handlers/user_create_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Utilisateur…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/user_delete_handler.php
 
 		-
 			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
@@ -507,30 +477,6 @@ parameters:
 		-
 			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 2
-			path: handlers/user_delete_handler.php
-
-		-
-			message: '#^Cannot access offset ''nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: handlers/user_delete_handler.php
-
-		-
-			message: '#^Cannot access offset ''prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: handlers/user_delete_handler.php
-
-		-
-			message: '#^Cannot call method deactivate\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_delete_handler.php
-
-		-
-			message: '#^Cannot call method findById\(\) on mixed\.$#'
-			identifier: method.nonObject
 			count: 1
 			path: handlers/user_delete_handler.php
 
@@ -539,48 +485,6 @@ parameters:
 			identifier: cast.int
 			count: 1
 			path: handlers/user_delete_handler.php
-
-		-
-			message: '#^Cannot access offset ''role'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Cannot call method anonymize\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Cannot call method canDemote\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Cannot call method exportData\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Cannot call method findById\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Cannot call method update\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Cannot call method validate\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_edit_handler.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
@@ -601,28 +505,10 @@ parameters:
 			path: handlers/user_edit_handler.php
 
 		-
-			message: '#^Parameter \#1 \$errors of function setFormErrors expects array, mixed given\.$#'
+			message: '#^Parameter \#1 \$post of static method App\\DTO\\UpdateUserCommand\:\:fromPost\(\) expects array\<string, string\>, array\<mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''Utilisateur…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/user_reactivate_handler.php
 
 		-
 			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
@@ -633,30 +519,6 @@ parameters:
 		-
 			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 2
-			path: handlers/user_reactivate_handler.php
-
-		-
-			message: '#^Cannot access offset ''nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: handlers/user_reactivate_handler.php
-
-		-
-			message: '#^Cannot access offset ''prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: handlers/user_reactivate_handler.php
-
-		-
-			message: '#^Cannot call method findById\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: handlers/user_reactivate_handler.php
-
-		-
-			message: '#^Cannot call method reactivate\(\) on mixed\.$#'
-			identifier: method.nonObject
 			count: 1
 			path: handlers/user_reactivate_handler.php
 
@@ -1177,12 +1039,6 @@ parameters:
 			path: pages/home.php
 
 		-
-			message: '#^Parameter \#1 \$pdo of method App\\Services\\FormattingService\:\:buildWordCloud\(\) expects PDO, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: pages/home.php
-
-		-
 			message: '#^Possibly invalid array key type mixed\.$#'
 			identifier: offsetAccess.invalidOffset
 			count: 1
@@ -1228,12 +1084,6 @@ parameters:
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
 			count: 2
-			path: pages/logs.php
-
-		-
-			message: '#^Parameter \#1 \$pdo of function getAuditLog expects PDO, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: pages/logs.php
 
 		-
@@ -1570,12 +1420,6 @@ parameters:
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
 			count: 2
-			path: pages/report_print.php
-
-		-
-			message: '#^Parameter \#1 \$pdo of method App\\Services\\AccessService\:\:logConfidentialReportAccess\(\) expects PDO, mixed given\.$#'
-			identifier: argument.type
-			count: 1
 			path: pages/report_print.php
 
 		-
@@ -2647,51 +2491,9 @@ parameters:
 			path: public/index.php
 
 		-
-			message: '#^Property App\\Container\\Container\:\:\$factories type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Container/Container.php
-
-		-
-			message: '#^Property App\\Container\\Container\:\:\$instances type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Container/Container.php
-
-		-
-			message: '#^Trying to invoke mixed but it''s not a callable\.$#'
-			identifier: callable.nonCallable
-			count: 1
-			path: src/Container/Container.php
-
-		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 2
-			path: src/DTO/CreateReportCommand.php
-
-		-
-			message: '#^Method App\\DTO\\CreateReportCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
-			path: src/DTO/CreateReportCommand.php
-
-		-
-			message: '#^Method App\\DTO\\CreateReportCommand\:\:fromPost\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/CreateReportCommand.php
-
-		-
-			message: '#^Method App\\DTO\\CreateReportCommand\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/CreateReportCommand.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 12
 			path: src/DTO/CreateReportCommand.php
 
 		-
@@ -2707,166 +2509,10 @@ parameters:
 			path: src/DTO/CreateReportCommand.php
 
 		-
-			message: '#^Parameter \$heureEvenement of class App\\DTO\\CreateReportCommand constructor expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DTO/CreateReportCommand.php
-
-		-
-			message: '#^Parameter \$type of class App\\DTO\\CreateReportCommand constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DTO/CreateReportCommand.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: src/DTO/CreateUserCommand.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 1
-			path: src/DTO/CreateUserCommand.php
-
-		-
-			message: '#^Method App\\DTO\\CreateUserCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/CreateUserCommand.php
-
-		-
-			message: '#^Method App\\DTO\\CreateUserCommand\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/CreateUserCommand.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 5
-			path: src/DTO/CreateUserCommand.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: src/DTO/ReportFilter.php
-
-		-
-			message: '#^Method App\\DTO\\ReportFilter\:\:fromGet\(\) has parameter \$get with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/ReportFilter.php
-
-		-
-			message: '#^Method App\\DTO\\ReportFilter\:\:fromGet\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/ReportFilter.php
-
-		-
-			message: '#^Method App\\DTO\\ReportFilter\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/ReportFilter.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DTO/ReportFilter.php
-
-		-
-			message: '#^Parameter \$etat of class App\\DTO\\ReportFilter constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DTO/ReportFilter.php
-
-		-
-			message: '#^Parameter \$type of class App\\DTO\\ReportFilter constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DTO/ReportFilter.php
-
-		-
 			message: '#^Method App\\DTO\\RespondToReportCommand\:\:__construct\(\) has parameter \$attachment with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/DTO/RespondToReportCommand.php
-
-		-
-			message: '#^Method App\\DTO\\RespondToReportCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/RespondToReportCommand.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DTO/RespondToReportCommand.php
-
-		-
-			message: '#^Parameter \$nouvelEtat of class App\\DTO\\RespondToReportCommand constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DTO/RespondToReportCommand.php
-
-		-
-			message: '#^Method App\\DTO\\UpdateReportCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/UpdateReportCommand.php
-
-		-
-			message: '#^Method App\\DTO\\UpdateReportCommand\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/UpdateReportCommand.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 12
-			path: src/DTO/UpdateReportCommand.php
-
-		-
-			message: '#^Parameter \$heureEvenement of class App\\DTO\\UpdateReportCommand constructor expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DTO/UpdateReportCommand.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: src/DTO/UpdateUserCommand.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 1
-			path: src/DTO/UpdateUserCommand.php
-
-		-
-			message: '#^Method App\\DTO\\UpdateUserCommand\:\:fromPost\(\) has parameter \$post with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/UpdateUserCommand.php
-
-		-
-			message: '#^Method App\\DTO\\UpdateUserCommand\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/UpdateUserCommand.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 5
-			path: src/DTO/UpdateUserCommand.php
 
 		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
@@ -2959,12 +2605,6 @@ parameters:
 			path: src/Query/QueryFilterBuilder.php
 
 		-
-			message: '#^Cannot call method fetchAll\(\) on PDOStatement\|false\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: src/Repository/NotificationRepository.php
-
-		-
 			message: '#^Method App\\Repository\\NotificationRepository\:\:findAll\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3051,31 +2691,7 @@ parameters:
 		-
 			message: '#^Cannot access offset ''etat'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 3
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''repondant_id'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''reponse'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''report_uuid'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''uuid'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
 			path: src/Repository/ReportRepository.php
 
 		-
@@ -3099,12 +2715,6 @@ parameters:
 		-
 			message: '#^Method App\\Repository\\ReportRepository\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:findById\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
 			count: 1
 			path: src/Repository/ReportRepository.php
 
@@ -3135,12 +2745,6 @@ parameters:
 		-
 			message: '#^Method App\\Repository\\ReportRepository\:\:getAgentInviteByToken\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getAgentInviteByToken\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
 			count: 1
 			path: src/Repository/ReportRepository.php
 
@@ -3177,12 +2781,6 @@ parameters:
 		-
 			message: '#^Method App\\Repository\\ReportRepository\:\:getResponses\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getResponsesForUuids\(\) should return array\<string, list\<array\<string, mixed\>\>\> but returns array\<string, non\-empty\-list\<mixed\>\>\.$#'
-			identifier: return.type
 			count: 1
 			path: src/Repository/ReportRepository.php
 
@@ -3271,18 +2869,6 @@ parameters:
 			path: src/Repository/ReportRepository.php
 
 		-
-			message: '#^Possibly invalid array key type mixed\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot call method fetchAll\(\) on PDOStatement\|false\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: src/Repository/SiteRepository.php
-
-		-
 			message: '#^Method App\\Repository\\SiteRepository\:\:findActive\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3301,20 +2887,8 @@ parameters:
 			path: src/Repository/SiteRepository.php
 
 		-
-			message: '#^Method App\\Repository\\SiteRepository\:\:findByCode\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Repository/SiteRepository.php
-
-		-
 			message: '#^Method App\\Repository\\SiteRepository\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/SiteRepository.php
-
-		-
-			message: '#^Method App\\Repository\\SiteRepository\:\:findById\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
 			count: 1
 			path: src/Repository/SiteRepository.php
 
@@ -3325,70 +2899,10 @@ parameters:
 			path: src/Repository/SiteRepository.php
 
 		-
-			message: '#^Method App\\Repository\\SiteRepository\:\:findByName\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Repository/SiteRepository.php
-
-		-
 			message: '#^Method App\\Repository\\SiteRepository\:\:instance\(\) should return App\\Repository\\SiteRepository but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: src/Repository/SiteRepository.php
-
-		-
-			message: '#^Cannot access offset ''total_abandonne'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Cannot access offset ''total_dgi'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Cannot access offset ''total_en_cours'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Cannot access offset ''total_nouveau'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Cannot access offset ''total_rami'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Cannot access offset ''total_reports'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Cannot access offset ''total_rsst'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Cannot access offset ''total_traite'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Cannot call method fetchAll\(\) on PDOStatement\|false\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Repository/StatsRepository.php
 
 		-
 			message: '#^Cannot cast mixed to int\.$#'
@@ -3469,12 +2983,6 @@ parameters:
 			path: src/Repository/UserRepository.php
 
 		-
-			message: '#^Method App\\Repository\\UserRepository\:\:findById\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
 			message: '#^Method App\\Repository\\UserRepository\:\:findByRole\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3487,20 +2995,8 @@ parameters:
 			path: src/Repository/UserRepository.php
 
 		-
-			message: '#^Method App\\Repository\\UserRepository\:\:findByUsername\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
 			message: '#^Method App\\Repository\\UserRepository\:\:findByUsernameOrAny\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Repository\\UserRepository\:\:findByUsernameOrAny\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
 			count: 1
 			path: src/Repository/UserRepository.php
 
@@ -4213,12 +3709,6 @@ parameters:
 			path: src/auth.php
 
 		-
-			message: '#^Function getAuthServiceInstance\(\) should return App\\Services\\AuthService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/auth.php
-
-		-
 			message: '#^Function getAuthenticatedUser\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -4465,12 +3955,6 @@ parameters:
 			path: src/helpers/access.php
 
 		-
-			message: '#^Function getAccessService\(\) should return App\\Services\\AccessService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/access.php
-
-		-
 			message: '#^Function logConfidentialReportAccess\(\) has parameter \$report with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -4495,18 +3979,6 @@ parameters:
 			path: src/helpers/access.php
 
 		-
-			message: '#^Function getAssetService\(\) should return App\\Services\\AssetService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/assets.php
-
-		-
-			message: '#^Function getConfigService\(\) should return App\\Services\\ConfigService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/config.php
-
-		-
 			message: '#^Function getEnabledRegistries\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -4519,18 +3991,6 @@ parameters:
 			path: src/helpers/config.php
 
 		-
-			message: '#^Function getCryptoService\(\) should return App\\Services\\CryptoService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/crypto.php
-
-		-
-			message: '#^Function getFormattingService\(\) should return App\\Services\\FormattingService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/formatting.php
-
-		-
 			message: '#^Function renderBreadcrumb\(\) has parameter \$items with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -4541,12 +4001,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/helpers/formatting.php
-
-		-
-			message: '#^Function getHttpService\(\) should return App\\Services\\HttpService but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/helpers/http.php
 
 		-
 			message: '#^Function url\(\) has parameter \$params with no value type specified in iterable type array\.$#'

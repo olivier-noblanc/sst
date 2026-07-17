@@ -32,6 +32,10 @@ class CreateReportCommand
         public readonly ?string $attachmentMime,
     ) {}
 
+    /**
+     * @param array<string, string> $post
+     * @param array<string, mixed> $user
+     */
     public static function fromPost(array $post, array $user): self
     {
         $pourCompte = isset($post['pour_compte']) && $post['pour_compte'] === '1';
@@ -71,8 +75,10 @@ class CreateReportCommand
         );
     }
 
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
+        /** @var array<string, mixed> */
         return get_object_vars($this);
     }
 }

@@ -136,6 +136,45 @@ function Invoke-QualityGate {
     $phpPath = if ($phpExe.Source) { $phpExe.Source } else { $phpExe }
     Write-Status "OK" "PHP : $phpPath" "Green"
 
+    # ── Vérifier les outils requis ──
+    $missing = @()
+
+    $phpstanShim = "$env:USERPROFILE\scoop\shims\phpstan"
+    if (-not (Get-Command $PhpStanBin -ErrorAction SilentlyContinue) -and -not (Test-Path $phpstanShim)) {
+        $missing += "PHPStan"
+    }
+
+    if (-not (Test-Path $PhpUnitPhar) -and -not (Get-Command phpunit -ErrorAction SilentlyContinue)) {
+        $missing += "PHPUnit"
+    }
+
+    $pythonPw = $false
+    $npxPw = $false
+    try { $pyV = & python -m playwright --version 2>&1; if ($LASTEXITCODE -eq 0 -and $pyV -match 'Version') { $pythonPw = $true } } catch {}
+    if (-not $pythonPw) {
+        try { $npxV = & npx playwright --version 2>&1; if ($LASTEXITCODE -eq 0 -and $npxV -match 'Version') { $npxPw = $true } } catch {}
+    }
+    if (-not $pythonPw -and -not $npxPw) {
+        $missing += "Playwright"
+    }
+
+    if ($missing.Count -gt 0) {
+        Write-Host ""
+        Write-Status "X" "OUTILS MANQUANTS — deploiement BLOQUE" "Red"
+        foreach ($m in $missing) {
+            switch ($m) {
+                "PHPStan"   { Write-Host "    Installer PHPStan : scoop install phpstan" -ForegroundColor Yellow }
+                "PHPUnit"   { Write-Host "    Installer PHPUnit : scoop install phpunit" -ForegroundColor Yellow }
+                "Playwright" { Write-Host "    Installer Playwright : pip install playwright && python -m playwright install firefox" -ForegroundColor Yellow }
+            }
+        }
+        Write-Host ""
+        return $false
+    }
+
+    Write-Status "OK" "PHPStan, PHPUnit, Playwright (Python: $pythonPw, npx: $npxPw)" "Green"
+    Write-Host ""
+
     $gateOk = $true
 
     # ── 1. Lint PHP (php -l) sur tous les .php hors vendor/tests ──
@@ -644,6 +683,43 @@ if [[ $SHOULD_GATE -eq 0 ]]; then exit 0; fi
 
 echo "[pre-push] Gate qualité en cours..."
 
+# ── Prérequis : vérifier que tous les outils sont installés ──
+MISSING=0
+
+if ! command -v php >/dev/null 2>&1; then
+    echo "[pre-push] ✗ PHP manquant."
+    echo "[pre-push]   Installer PHP : scoop install php"
+    MISSING=1
+fi
+
+if ! command -v phpstan >/dev/null 2>&1 && [[ ! -f "$USERPROFILE/scoop/shims/phpstan" ]]; then
+    echo "[pre-push] ✗ PHPStan manquant."
+    echo "[pre-push]   Installer PHPStan : scoop install phpstan"
+    MISSING=1
+fi
+
+if [[ ! -f "$PHPUNIT" ]] && ! command -v phpunit >/dev/null 2>&1; then
+    echo "[pre-push] ✗ PHPUnit manquant."
+    echo "[pre-push]   Installer PHPUnit : scoop install phpunit"
+    MISSING=1
+fi
+
+if ! command -v python >/dev/null 2>&1 || ! python -m playwright --version >/dev/null 2>&1; then
+    if ! command -v npx >/dev/null 2>&1 || ! npx playwright --version >/dev/null 2>&1; then
+        echo "[pre-push] ✗ Playwright manquant (ni Python ni npx)."
+        echo "[pre-push]   Installer Playwright : pip install playwright && playwright install firefox"
+        MISSING=1
+    fi
+fi
+
+if [[ $MISSING -eq 1 ]]; then
+    echo ""
+    echo "[pre-push] ✗ Outils manquants. Push bloqué."
+    echo "[pre-push] Installer les dépendances : scoop install php phpstan phpunit"
+    echo "[pre-push] Et : pip install playwright && python -m playwright install firefox"
+    exit 1
+fi
+
 # ── 1) Lint PHP (séquentiel — doit passer avant le parallèle) ──
 CHANGED=$(git diff --name-only --diff-filter=ACM HEAD~1 HEAD -- "*.php" 2>/dev/null)
 LINT_ERR=0
@@ -665,48 +741,30 @@ fi
 echo "[pre-push] ✓ Lint OK"
 
 # ── 2) PHPStan + PHPUnit + E2E en parallèle ──
-FAILED=0
 
 # PHPStan
 (
-    if command -v phpstan >/dev/null 2>&1; then
-        phpstan analyse --memory-limit=1G --no-progress >"$TMPDIR/phpstan.out" 2>&1
-        echo $? >"$TMPDIR/phpstan.rc"
-    elif [[ -f "$USERPROFILE/scoop/shims/phpstan" ]]; then
-        "$USERPROFILE/scoop/shims/phpstan" analyse --memory-limit=1G --no-progress >"$TMPDIR/phpstan.out" 2>&1
-        echo $? >"$TMPDIR/phpstan.rc"
-    else
-        echo "skip" >"$TMPDIR/phpstan.rc"
-    fi
+    phpstan analyse --memory-limit=1G --no-progress >"$TMPDIR/phpstan.out" 2>&1
+    echo $? >"$TMPDIR/phpstan.rc"
 ) &
 PID_PHPSTAN=$!
 
 # PHPUnit
 (
-    if [[ -f "$PHPUNIT" ]]; then
-        "$PHP_BIN" "$PHPUNIT" --no-coverage -q >"$TMPDIR/phpunit.out" 2>&1
-        echo $? >"$TMPDIR/phpunit.rc"
-    else
-        echo "skip" >"$TMPDIR/phpunit.rc"
-    fi
+    "$PHP_BIN" "$PHPUNIT" --no-coverage -q >"$TMPDIR/phpunit.out" 2>&1
+    echo $? >"$TMPDIR/phpunit.rc"
 ) &
 PID_PHPUNIT=$!
 
 # E2E Playwright (Firefox)
 (
-    E2E_BIN=""
+    cd "$REPO_ROOT"
     if command -v python >/dev/null 2>&1 && python -m playwright --version >/dev/null 2>&1; then
-        E2E_BIN="python -m playwright test --project=firefox -q"
-    elif command -v npx >/dev/null 2>&1 && npx playwright --version >/dev/null 2>&1; then
-        E2E_BIN="npx playwright test --project=firefox -q"
-    fi
-    if [[ -n "$E2E_BIN" ]]; then
-        cd "$REPO_ROOT"
-        eval "$E2E_BIN" >"$TMPDIR/e2e.out" 2>&1
-        echo $? >"$TMPDIR/e2e.rc"
+        python -m playwright test --project=firefox -q >"$TMPDIR/e2e.out" 2>&1
     else
-        echo "skip" >"$TMPDIR/e2e.rc"
+        npx playwright test --project=firefox -q >"$TMPDIR/e2e.out" 2>&1
     fi
+    echo $? >"$TMPDIR/e2e.rc"
 ) &
 PID_E2E=$!
 
@@ -717,10 +775,8 @@ wait $PID_PHPSTAN $PID_PHPUNIT $PID_E2E 2>/dev/null
 ALL_OK=1
 
 # PHPStan
-RC=$(cat "$TMPDIR/phpstan.rc" 2>/dev/null || echo "skip")
-if [[ "$RC" == "skip" ]]; then
-    echo "[pre-push] ! PHPStan absent — skip"
-elif [[ "$RC" == "0" ]]; then
+RC=$(cat "$TMPDIR/phpstan.rc" 2>/dev/null)
+if [[ "$RC" == "0" ]]; then
     echo "[pre-push] ✓ PHPStan OK"
 else
     echo "[pre-push] ✗ PHPStan échoué (code $RC)"
@@ -729,10 +785,8 @@ else
 fi
 
 # PHPUnit
-RC=$(cat "$TMPDIR/phpunit.rc" 2>/dev/null || echo "skip")
-if [[ "$RC" == "skip" ]]; then
-    echo "[pre-push] ! phpunit.phar absent — PHPUnit skip"
-elif [[ "$RC" == "0" ]]; then
+RC=$(cat "$TMPDIR/phpunit.rc" 2>/dev/null)
+if [[ "$RC" == "0" ]]; then
     echo "[pre-push] ✓ PHPUnit OK"
 else
     echo "[pre-push] ✗ PHPUnit échoué (code $RC)"
@@ -741,10 +795,8 @@ else
 fi
 
 # E2E
-RC=$(cat "$TMPDIR/e2e.rc" 2>/dev/null || echo "skip")
-if [[ "$RC" == "skip" ]]; then
-    echo "[pre-push] ! Playwright absent — E2E skip"
-elif [[ "$RC" == "0" ]]; then
+RC=$(cat "$TMPDIR/e2e.rc" 2>/dev/null)
+if [[ "$RC" == "0" ]]; then
     echo "[pre-push] ✓ E2E OK (Firefox)"
 else
     echo "[pre-push] ✗ E2E échoué (code $RC)"

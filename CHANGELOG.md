@@ -3,6 +3,29 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.41.0] — 2026-07-17
+
+### Pipeline qualité — Gate parallélisée + E2E Playwright Firefox
+
+- **1** 🔴 **Gate parallélisée** — PHPStan + PHPUnit + E2E s'exécutent en parallèle (Start-Job / background bash). Le lint PHP reste séquentiel. (`update_sst.ps1`)
+- **2** 🔴 **E2E Playwright Firefox** — 15 specs Playwright intégrés au gate + pre-push hook. Détection auto Python (préféré) ou npx. Config chromium → Firefox. (`playwright.config.js`)
+- **3** 🔴 **Gate fail-closed** — La gate plante si un outil manque (PHPStan/PHPUnit/Playwright) avec le message d'installation explicite. (`update_sst.ps1`)
+- **4** 🔴 **Fatal error `getSettings()`** — `NotificationRepository::getSettings()` remplacé par `findAll()`. (`pages/settings.php`)
+- **5** 🟡 **Word cloud tous profils** — Suppression du gate `if ($rsstCount > 0)`. Tests non-régression (8 tests). (`pages/home.php`, `tests/unit/WordCloudRegressionTest.php`)
+
+### Refactoring — Nettoyage `mixed` PHPStan (session complète)
+
+Baseline PHPStan : **950 → 669 erreurs** (-281, -29.6%). 857 tests, 1542 assertions.
+
+- **6** 🔴 **Container `@template T`** — `@template T` / `@param class-string<T>` / `@return T` sur `get()`. (`src/Container/Container.php`)
+- **7** 🔴 **Repositories guards** — `is_array()` sur tous les `fetch()`/`fetchAll()` des 5 repositories. (`src/Repository/*.php`)
+- **8** 🔴 **DTOs typés** — `@param array<string, string>` sur `fromPost()`/`fromGet()`. (`src/DTO/*.php`)
+- **9** 🔴 **Handlers `@var`** — `@var array<string, string> $_POST` sur 19 handlers. (`handlers/*.php`)
+- **10** 🟡 **Templates + Help + Pages `@var`** — Annotations scope sur ~20 fichiers. (`templates/*.php`, `pages/help/*.php`, `pages/*.php`)
+- **11** 🟡 **Services/Helpers annotations** — `missingType.iterableValue` sur ~40 fichiers. (`src/**/*.php`)
+- **12** 🟡 **Tests invariant** — 22 tests vérifiant les types de retour. (`tests/unit/RepositoryInvariantTest.php`)
+
+
 ## [3.40.0] — 2026-07-17
 
 ### Refactoring — Nettoyage `mixed` PHPStan (3 phases)
@@ -10,10 +33,10 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Réduction de la dette technique `mixed` sur le pipeline d'analyse statique. Le baseline PHPStan passe de **950 à 859 erreurs** (-91), 827 tests passent, PHPStan level 10 propre.
 
 - **1** 🔴 **Container `@template T`** — `Container::get()` utilise désormais un template PHPStan (`@template T` / `@return T`) avec `class-string<T>` pour inférer le type de retour. Les propriétés `$factories` et `$instances` sont typées. Tous les appels `$container->get(Foo::class)` retournent maintenant le bon type au lieu de `mixed`. (`src/Container/Container.php`)
-- **2** 🔴 **Repositories — guards `is_array()`** — Tous les `fetch()`, `fetchAll()`, et `query()` des 5 repositories (Report, User, Site, Notification, Stats) sont现在 protégés par des garde `is_array()` ou `is_array($stmt) !== false` avant utilisation. Élimine les erreurs `Cannot access offset on mixed`, `Cannot call method on mixed`, et `should return array but returns mixed`. (`src/Repository/*.php`)
-- **3** 🔴 **DTOs — typage `fromPost()`** — Les méthodes `fromPost()` et `fromGet()` de tous les DTOs (CreateReport, UpdateReport, CreateUser, UpdateUser, ReportFilter, RespondToReport) sont typées avec `@param array<string, string>`. Les `toArray()` ont un `@return array<string, mixed>`. (`src/DTO/*.php`)
-- **4** 🔴 **Bugs corrigés** — Garde `is_array($user)` ajoutée dans `user_delete_handler`, `user_reactivate_handler`, `user_edit_handler` (accès à `$user['prenom']`/`$user['nom']` sans vérifier null). `is_array()` redondant supprimé dans `report_respond_handler`. Casts `mixed→string` sécurisés avec `isset()` dans `ReportRepository::getAdjacentUuids()`, `countByState()`, `getResponsesForUuids()`. (`handlers/*.php`, `src/Repository/ReportRepository.php`)
-- **5** 🟡 **Baseline nettoyé** — Baseline régénéré : 950 → 859 erreurs. Les 91 erreurs éliminées étaient des vrais problèmes de typage masqués par `mixed`. (`phpstan-baseline.neon`)
+- **2** 🔴 **Repositories — guards `is_array()`** — Tous les `fetch()`, `fetchAll()`, et `query()` des 5 repositories (Report, User, Site, Notification, Stats) sont protégés par des garde `is_array()` ou `is_array($stmt) !== false` avant utilisation. (`src/Repository/*.php`)
+- **3** 🔴 **DTOs — typage `fromPost()`** — Les méthodes `fromPost()` et `fromGet()` de tous les DTOs sont typées avec `@param array<string, string>`. (`src/DTO/*.php`)
+- **4** 🔴 **Bugs corrigés** — Garde `is_array($user)` ajoutée dans 3 handlers. `is_array()` redondant supprimé. Casts `mixed→string` sécurisés. (`handlers/*.php`, `src/Repository/ReportRepository.php`)
+- **5** 🟡 **Baseline nettoyé** — 950 → 859 erreurs. (`phpstan-baseline.neon`)
 
 
 ## [3.39.0] — 2026-07-15

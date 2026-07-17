@@ -120,7 +120,7 @@ function Restore-LastBackup {
 # ============================================================
 
 function Invoke-QualityGate {
-    Write-Section "Gate qualite (lint + PHPStan + tests + e2e)"
+    Write-Section "Gate qualite (lint + [PHPStan | PHPUnit | E2E] parallele)"
 
     # Verifier que PHP est disponible
     $phpExe = Get-Command $PhpBin -ErrorAction SilentlyContinue
@@ -241,125 +241,152 @@ function Invoke-QualityGate {
         }
     }
 
-    # ── 2. PHPStan (shims scoop) ──
-    Write-Status ">" "Etape 2/4 : PHPStan (niveau 10)..." "Cyan"
-    $phpstanRan = $false
+    # ── 2-4. PHPStan + PHPUnit + E2E en parallèle ──
+    Write-Status ">" "Etapes 2-4 : PHPStan + PHPUnit + E2E (parallèle)..." "Cyan"
 
-    # Verifier les shims scoop d'abord, puis vendor/bin, puis PATH
-    $phpstanShim = "$env:USERPROFILE\scoop\shims\phpstan"
-    if (Get-Command $PhpStanBin -ErrorAction SilentlyContinue) {
-        $phpstanRan = $true
-        $output = & $PhpStanBin analyse --memory-limit=1G --no-progress 2>&1
-        $rc = $LASTEXITCODE
-    } elseif (Test-Path $phpstanShim) {
-        $phpstanRan = $true
-        $output = & $phpstanShim analyse --memory-limit=1G --no-progress 2>&1
-        $rc = $LASTEXITCODE
-    }
+    $tmpDir = Join-Path $env:TEMP "sst-gate-$(Get-Random)"
+    New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
 
-    if ($phpstanRan) {
-        $filteredOutput = $output | Where-Object {
-            $_ -notmatch 'session_start' -and
-            $_ -notmatch 'PHP Request Shutdown' -and
-            $_ -notmatch 'headers already sent'
+    # Lancer PHPStan en arrière-plan
+    $phpstanJob = Start-Job -ScriptBlock {
+        param($phpstanBin, $phpstanShim, $tmpDir)
+        $ran = $false
+        $output = $null
+        $rc = 1
+        if (Get-Command $phpstanBin -ErrorAction SilentlyContinue) {
+            $ran = $true
+            $output = & $phpstanBin analyse --memory-limit=1G --no-progress 2>&1
+            $rc = $LASTEXITCODE
+        } elseif (Test-Path $phpstanShim) {
+            $ran = $true
+            $output = & $phpstanShim analyse --memory-limit=1G --no-progress 2>&1
+            $rc = $LASTEXITCODE
         }
-        $filteredOutput | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-        if ($rc -eq 0) {
+        $output | Out-File "$tmpDir\phpstan.out"
+        Set-Content "$tmpDir\phpstan.rc" $rc
+        Set-Content "$tmpDir\phpstan.ran" $ran
+    } -ArgumentList $PhpStanBin, $phpstanShim, $tmpDir
+
+    # Lancer PHPUnit en arrière-plan
+    $phpunitJob = Start-Job -ScriptBlock {
+        param($phpPath, $phpUnitPhar, $tmpDir)
+        $ran = $false
+        $output = $null
+        $rc = 1
+        if (Test-Path $phpUnitPhar) {
+            $ran = $true
+            $output = & $phpPath $phpUnitPhar --no-coverage 2>&1
+            $rc = $LASTEXITCODE
+        } elseif (Get-Command phpunit -ErrorAction SilentlyContinue) {
+            $ran = $true
+            $output = & phpunit --no-coverage 2>&1
+            $rc = $LASTEXITCODE
+        }
+        $output | Out-File "$tmpDir\phpunit.out"
+        Set-Content "$tmpDir\phpunit.rc" $rc
+        Set-Content "$tmpDir\phpunit.ran" $ran
+    } -ArgumentList $phpPath, $PhpUnitPhar, $tmpDir
+
+    # Lancer E2E en arrière-plan
+    $e2eJob = Start-Job -ScriptBlock {
+        param($tmpDir)
+        $ran = $false
+        $output = $null
+        $rc = 1
+        $e2eCmd = $null
+        try {
+            $pyVersion = & python -m playwright --version 2>&1
+            if ($LASTEXITCODE -eq 0 -and $pyVersion -match 'Version') {
+                $e2eCmd = "python"
+            }
+        } catch {}
+        if (-not $e2eCmd) {
+            try {
+                $npxVersion = & npx playwright --version 2>&1
+                if ($LASTEXITCODE -eq 0 -and $npxVersion -match 'Version') {
+                    $e2eCmd = "npx"
+                }
+            } catch {}
+        }
+        if ($e2eCmd) {
+            $ran = $true
+            if ($e2eCmd -eq "python") {
+                $output = & python -m playwright test --project=firefox -q 2>&1
+            } else {
+                $output = & npx playwright test --project=firefox -q 2>&1
+            }
+            $rc = $LASTEXITCODE
+        }
+        $output | Out-File "$tmpDir\e2e.out"
+        Set-Content "$tmpDir\e2e.rc" $rc
+        Set-Content "$tmpDir\e2e.ran" $ran
+        Set-Content "$tmpDir\e2e.cmd" $(if ($e2eCmd) { $e2eCmd } else { "none" })
+    } -ArgumentList $tmpDir
+
+    # Attendre les 3 jobs
+    $phpstanJob, $phpunitJob, $e2eJob | Wait-Job | Out-Null
+
+    # ── Résultat PHPStan ──
+    $phpstanRan = (Get-Content "$tmpDir\phpstan.ran" -ErrorAction SilentlyContinue) -eq 'True'
+    $phpstanRc = if (Test-Path "$tmpDir\phpstan.rc") { [int](Get-Content "$tmpDir\phpstan.rc") } else { 1 }
+    if ($phpstanRan) {
+        $phpstanOut = Get-Content "$tmpDir\phpstan.out" -ErrorAction SilentlyContinue |
+            Where-Object { $_ -notmatch 'session_start|PHP Request Shutdown|headers already sent' }
+        $phpstanOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        if ($phpstanRc -eq 0) {
             Write-Status "OK" "PHPStan : OK (niveau 10, baseline autorisee)." "Green"
         } else {
-            Write-Status "X" "PHPStan : echec (code $rc)." "Red"
+            Write-Status "X" "PHPStan : echec (code $phpstanRc)." "Red"
             $gateOk = $false
         }
     } else {
         Write-Status "!" "PHPStan non trouve. Etape skippee." "Yellow"
     }
 
-    # ── 3. Tests PHPUnit ──
-    Write-Status ">" "Etape 3/4 : Tests PHPUnit..." "Cyan"
-    $phpunitRan = $false
-
-    if (Test-Path $PhpUnitPhar) {
-        $phpunitRan = $true
-        $output = & $phpPath $PhpUnitPhar --no-coverage 2>&1
-        $rc = $LASTEXITCODE
-    } elseif (Get-Command phpunit -ErrorAction SilentlyContinue) {
-        $phpunitRan = $true
-        $output = & phpunit --no-coverage 2>&1
-        $rc = $LASTEXITCODE
-    }
-
+    # ── Résultat PHPUnit ──
+    $phpunitRan = (Get-Content "$tmpDir\phpunit.ran" -ErrorAction SilentlyContinue) -eq 'True'
+    $phpunitRc = if (Test-Path "$tmpDir\phpunit.rc") { [int](Get-Content "$tmpDir\phpunit.rc") } else { 1 }
     if ($phpunitRan) {
-        # Filtrer les warnings FTS5 (bruit SQLite en mode in-memory)
-        $filteredOutput = $output | Where-Object { $_ -notmatch '\[SST-DB\]' }
-        $filteredOutput | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-        # Detecter le resultat
-        $lastLines = $output | Select-Object -Last 5
+        $phpunitOut = Get-Content "$tmpDir\phpunit.out" -ErrorAction SilentlyContinue |
+            Where-Object { $_ -notmatch '\[SST-DB\]' }
+        $phpunitOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        $lastLines = $phpunitOut | Select-Object -Last 5
         $failed = $false
         foreach ($line in $lastLines) {
             if ($line -match 'FAILURES|Tests:.*Errors:|Tests:.*Failures:' -and $line -notmatch 'OK \(') {
                 $failed = $true
             }
         }
-        if ($rc -eq 0 -and -not $failed) {
+        if ($phpunitRc -eq 0 -and -not $failed) {
             Write-Status "OK" "PHPUnit : OK." "Green"
         } else {
-            Write-Status "X" "PHPUnit : echec (code $rc)." "Red"
+            Write-Status "X" "PHPUnit : echec (code $phpunitRc)." "Red"
             $gateOk = $false
         }
     } else {
         Write-Status "!" "PHPUnit non trouve ($PhpUnitPhar). Etape skippee." "Yellow"
     }
 
-    # ── 4. E2E Playwright (Firefox) — détecte Python puis npx ──
-    Write-Status ">" "Etape 4/4 : E2E Playwright (Firefox)..." "Cyan"
-    $e2eRan = $false
-
-    # Préférer Python (plus rapide, pas besoin de node_modules)
-    $pythonPlaywright = $false
-    $npxPlaywright = $false
-    try {
-        $pyVersion = & python -m playwright --version 2>&1
-        if ($LASTEXITCODE -eq 0 -and $pyVersion -match 'Version') {
-            $pythonPlaywright = $true
-        }
-    } catch {}
-
-    if (-not $pythonPlaywright) {
-        try {
-            $npxVersion = & npx playwright --version 2>&1
-            if ($LASTEXITCODE -eq 0 -and $npxVersion -match 'Version') {
-                $npxPlaywright = $true
-            }
-        } catch {}
-    }
-
-    if ($pythonPlaywright) {
-        $e2eRan = $true
-        $output = & python -m playwright test --project=firefox -q 2>&1
-        $rc = $LASTEXITCODE
-        $filteredOutput = $output | Where-Object { $_ -notmatch '^\s*$' }
-        $filteredOutput | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-        if ($rc -eq 0) {
-            Write-Status "OK" "E2E Playwright (Python, Firefox) : OK." "Green"
+    # ── Résultat E2E ──
+    $e2eRan = (Get-Content "$tmpDir\e2e.ran" -ErrorAction SilentlyContinue) -eq 'True'
+    $e2eRc = if (Test-Path "$tmpDir\e2e.rc") { [int](Get-Content "$tmpDir\e2e.rc") } else { 1 }
+    $e2eCmd = Get-Content "$tmpDir\e2e.cmd" -ErrorAction SilentlyContinue
+    if ($e2eRan) {
+        $e2eOut = Get-Content "$tmpDir\e2e.out" -ErrorAction SilentlyContinue |
+            Where-Object { $_ -notmatch '^\s*$' }
+        $e2eOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        if ($e2eRc -eq 0) {
+            Write-Status "OK" "E2E Playwright ($e2eCmd, Firefox) : OK." "Green"
         } else {
-            Write-Status "X" "E2E Playwright : echec (code $rc)." "Red"
-            $gateOk = $false
-        }
-    } elseif ($npxPlaywright) {
-        $e2eRan = $true
-        $output = & npx playwright test --project=firefox -q 2>&1
-        $rc = $LASTEXITCODE
-        $filteredOutput = $output | Where-Object { $_ -notmatch '^\s*$' }
-        $filteredOutput | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-        if ($rc -eq 0) {
-            Write-Status "OK" "E2E Playwright (npx, Firefox) : OK." "Green"
-        } else {
-            Write-Status "X" "E2E Playwright : echec (code $rc)." "Red"
+            Write-Status "X" "E2E Playwright : echec (code $e2eRc)." "Red"
             $gateOk = $false
         }
     } else {
         Write-Status "!" "Playwright non trouve (ni Python ni npx). E2E skippee." "Yellow"
     }
+
+    # Nettoyage
+    Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
 
     # ── Resume ──
     Write-Host ""
@@ -598,11 +625,13 @@ if (-not (Test-Path $hookDir)) { New-Item -ItemType Directory -Path $hookDir -Fo
 $hookContent = @'
 #!/usr/bin/env bash
 # Gate qualité avant push — empêche de pusher du code cassé
-# Exécute : lint PHP + phpunit + e2e Playwright (Firefox)
+# Lint d'abord, puis PHPStan + PHPUnit + E2E en parallèle
 set -uo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 PHP_BIN="$(command -v php)"
 PHPUNIT="$USERPROFILE/scoop/shims/phpunit.phar"
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
 
 # Ne gate que les pushs vers main/master
 SHOULD_GATE=0
@@ -615,14 +644,13 @@ if [[ $SHOULD_GATE -eq 0 ]]; then exit 0; fi
 
 echo "[pre-push] Gate qualité en cours..."
 
-# 1) Lint PHP sur les fichiers modifiés
+# ── 1) Lint PHP (séquentiel — doit passer avant le parallèle) ──
 CHANGED=$(git diff --name-only --diff-filter=ACM HEAD~1 HEAD -- "*.php" 2>/dev/null)
 LINT_ERR=0
 if [[ -n "$CHANGED" ]]; then
     while IFS= read -r f; do
         FULL="$REPO_ROOT/$f"
         [[ -f "$FULL" ]] || continue
-        # Ignorer vendor/tests/backups
         [[ "$f" == vendor/* || "$f" == tests/* || "$f" == backups/* || "$f" == data/* ]] && continue
         if ! "$PHP_BIN" -d xdebug.mode=off -l "$FULL" >/dev/null 2>&1; then
             echo "[pre-push] ✗ Erreur syntaxe : $f"
@@ -630,57 +658,108 @@ if [[ -n "$CHANGED" ]]; then
         fi
     done <<< "$CHANGED"
 fi
-if [[ $LINT_ERR -ne 1 ]]; then
-    echo "[pre-push] ✓ Lint OK"
-fi
-
-# 2) PHPUnit
-if [[ -f "$PHPUNIT" ]]; then
-    if "$PHP_BIN" "$PHPUNIT" --no-coverage -q 2>/dev/null; then
-        echo "[pre-push] ✓ PHPUnit OK"
-    else
-        echo "[pre-push] ✗ PHPUnit échoué. Push bloqué."
-        echo "[pre-push] Pour bypasser : git push --no-verify"
-        exit 1
-    fi
-else
-    echo "[pre-push] ! phpunit.phar absent — PHPUnit skip"
-fi
-
 if [[ $LINT_ERR -eq 1 ]]; then
     echo "[pre-push] ✗ Lint échoué. Push bloqué."
+    exit 1
+fi
+echo "[pre-push] ✓ Lint OK"
+
+# ── 2) PHPStan + PHPUnit + E2E en parallèle ──
+FAILED=0
+
+# PHPStan
+(
+    if command -v phpstan >/dev/null 2>&1; then
+        phpstan analyse --memory-limit=1G --no-progress >"$TMPDIR/phpstan.out" 2>&1
+        echo $? >"$TMPDIR/phpstan.rc"
+    elif [[ -f "$USERPROFILE/scoop/shims/phpstan" ]]; then
+        "$USERPROFILE/scoop/shims/phpstan" analyse --memory-limit=1G --no-progress >"$TMPDIR/phpstan.out" 2>&1
+        echo $? >"$TMPDIR/phpstan.rc"
+    else
+        echo "skip" >"$TMPDIR/phpstan.rc"
+    fi
+) &
+PID_PHPSTAN=$!
+
+# PHPUnit
+(
+    if [[ -f "$PHPUNIT" ]]; then
+        "$PHP_BIN" "$PHPUNIT" --no-coverage -q >"$TMPDIR/phpunit.out" 2>&1
+        echo $? >"$TMPDIR/phpunit.rc"
+    else
+        echo "skip" >"$TMPDIR/phpunit.rc"
+    fi
+) &
+PID_PHPUNIT=$!
+
+# E2E Playwright (Firefox)
+(
+    E2E_BIN=""
+    if command -v python >/dev/null 2>&1 && python -m playwright --version >/dev/null 2>&1; then
+        E2E_BIN="python -m playwright test --project=firefox -q"
+    elif command -v npx >/dev/null 2>&1 && npx playwright --version >/dev/null 2>&1; then
+        E2E_BIN="npx playwright test --project=firefox -q"
+    fi
+    if [[ -n "$E2E_BIN" ]]; then
+        cd "$REPO_ROOT"
+        eval "$E2E_BIN" >"$TMPDIR/e2e.out" 2>&1
+        echo $? >"$TMPDIR/e2e.rc"
+    else
+        echo "skip" >"$TMPDIR/e2e.rc"
+    fi
+) &
+PID_E2E=$!
+
+# Attendre les 3 en parallèle
+wait $PID_PHPSTAN $PID_PHPUNIT $PID_E2E 2>/dev/null
+
+# ── 3) Résultats ──
+ALL_OK=1
+
+# PHPStan
+RC=$(cat "$TMPDIR/phpstan.rc" 2>/dev/null || echo "skip")
+if [[ "$RC" == "skip" ]]; then
+    echo "[pre-push] ! PHPStan absent — skip"
+elif [[ "$RC" == "0" ]]; then
+    echo "[pre-push] ✓ PHPStan OK"
+else
+    echo "[pre-push] ✗ PHPStan échoué (code $RC)"
+    cat "$TMPDIR/phpstan.out" 2>/dev/null | tail -5
+    ALL_OK=0
+fi
+
+# PHPUnit
+RC=$(cat "$TMPDIR/phpunit.rc" 2>/dev/null || echo "skip")
+if [[ "$RC" == "skip" ]]; then
+    echo "[pre-push] ! phpunit.phar absent — PHPUnit skip"
+elif [[ "$RC" == "0" ]]; then
+    echo "[pre-push] ✓ PHPUnit OK"
+else
+    echo "[pre-push] ✗ PHPUnit échoué (code $RC)"
+    cat "$TMPDIR/phpunit.out" 2>/dev/null | tail -5
+    ALL_OK=0
+fi
+
+# E2E
+RC=$(cat "$TMPDIR/e2e.rc" 2>/dev/null || echo "skip")
+if [[ "$RC" == "skip" ]]; then
+    echo "[pre-push] ! Playwright absent — E2E skip"
+elif [[ "$RC" == "0" ]]; then
+    echo "[pre-push] ✓ E2E OK (Firefox)"
+else
+    echo "[pre-push] ✗ E2E échoué (code $RC)"
+    cat "$TMPDIR/e2e.out" 2>/dev/null | tail -10
+    ALL_OK=0
+fi
+
+if [[ $ALL_OK -eq 1 ]]; then
+    echo "[pre-push] ✓ Gate qualité réussie."
+    exit 0
+else
+    echo "[pre-push] ✗ Gate échouée. Push bloqué."
     echo "[pre-push] Pour bypasser : git push --no-verify"
     exit 1
 fi
-
-# 3) E2E Playwright (Firefox) — détecte Python puis npx
-E2E_OK=1
-if command -v python >/dev/null 2>&1 && python -m playwright --version >/dev/null 2>&1; then
-    echo "[pre-push] > E2E Playwright (Python, Firefox)..."
-    cd "$REPO_ROOT" && python -m playwright test --project=firefox -q 2>/dev/null
-    if [[ $? -eq 0 ]]; then
-        echo "[pre-push] ✓ E2E OK (Python)"
-    else
-        echo "[pre-push] ✗ E2E échoué. Push bloqué."
-        echo "[pre-push] Pour bypasser : git push --no-verify"
-        exit 1
-    fi
-elif command -v npx >/dev/null 2>&1 && npx playwright --version >/dev/null 2>&1; then
-    echo "[pre-push] > E2E Playwright (npx, Firefox)..."
-    cd "$REPO_ROOT" && npx playwright test --project=firefox -q 2>/dev/null
-    if [[ $? -eq 0 ]]; then
-        echo "[pre-push] ✓ E2E OK (npx)"
-    else
-        echo "[pre-push] ✗ E2E échoué. Push bloqué."
-        echo "[pre-push] Pour bypasser : git push --no-verify"
-        exit 1
-    fi
-else
-    echo "[pre-push] ! Playwright absent (ni Python ni npx) — E2E skip"
-fi
-
-echo "[pre-push] ✓ Gate qualité réussie."
-exit 0
 '@
 Set-Content -Path $hookPath -Value $hookContent -Encoding UTF8
 Write-Status "OK" "Hook pre-push installe" "Green"

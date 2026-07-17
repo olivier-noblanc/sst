@@ -1,3 +1,8 @@
+<?php
+/** @var string $screenshotBase */
+/** @var bool $dgiEnabled */
+/** @var bool $ramiEnabled */
+?>
 <!-- 5. Cycle de vie d'un signalement -->
 <div id="cycle-vie" class="card card--spaced content-section">
     <h2>Cycle de vie d'un signalement</h2>

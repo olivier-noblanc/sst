@@ -1,3 +1,8 @@
+<?php
+/** @var bool $dgiEnabled */
+/** @var bool $ramiEnabled */
+/** @var string $labelUnite */
+?>
 <!-- 3. Confidentialité des signalements -->
 <div id="confidentialite" class="card card--spaced content-section">
     <h2>Confidentialité des signalements</h2>

@@ -11,12 +11,19 @@
  */
 function migrateColumns(PDO $pdo): void
 {
+    /** @param string $table @return list<array<string, mixed>> */
+    $pragma = static function (PDO $pdo, string $table): array {
+        $stmt = $pdo->query("PRAGMA table_info($table)");
+        $rows = $stmt !== false ? $stmt->fetchAll() : [];
+        return is_array($rows) ? $rows : [];
+    };
     // ── Add is_confidential column to reports ──────────────────────────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $stmt = $pdo->query('PRAGMA table_info(reports)');
+        $cols = $stmt !== false ? $stmt->fetchAll() : [];
         $hasConfidential = false;
-        foreach ($cols as $col) {
-            if ($col['name'] === 'is_confidential') {
+        foreach (is_array($cols) ? $cols : [] as $col) {
+            if (is_array($col) && ($col['name'] ?? '') === 'is_confidential') {
                 $hasConfidential = true;
                 break;
             }
@@ -35,9 +42,10 @@ function migrateColumns(PDO $pdo): void
     }
     // ── Make users.site_id nullable for existing databases ─────────────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(users)')->fetchAll();
-        foreach ($cols as $col) {
-            if ($col['name'] === 'site_id' && $col['notnull'] === 1) {
+        $stmt = $pdo->query('PRAGMA table_info(users)');
+        $cols = $stmt !== false ? $stmt->fetchAll() : [];
+        foreach (is_array($cols) ? $cols : [] as $col) {
+            if (is_array($col) && ($col['name'] ?? '') === 'site_id' && ($col['notnull'] ?? 0) === 1) {
                 $pdo->exec('CREATE TABLE users_new (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT NOT NULL UNIQUE,
@@ -62,10 +70,10 @@ function migrateColumns(PDO $pdo): void
     }
     // ── Add uuid column to reports (for non-guessable URLs) ────────────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $cols = $pragma($pdo, 'reports');
         $hasUuid = false;
         foreach ($cols as $col) {
-            if ($col['name'] === 'uuid') {
+            if (is_array($col) && ($col['name'] ?? '') === 'uuid') {
                 $hasUuid = true;
                 break;
             }
@@ -74,11 +82,14 @@ function migrateColumns(PDO $pdo): void
             $pdo->exec('ALTER TABLE reports ADD COLUMN uuid TEXT');
             // Backfill existing reports with UUIDs
             $stmt = $pdo->query('SELECT id FROM reports WHERE uuid IS NULL');
-            while ($row = $stmt->fetch()) {
-                $hex = bin2hex(random_bytes(16));
-                $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
-                $upd = $pdo->prepare('UPDATE reports SET uuid = :uuid WHERE id = :id');
-                $upd->execute([':uuid' => $uuid, ':id' => $row['id']]);
+            if ($stmt !== false) {
+                while ($row = $stmt->fetch()) {
+                    if (!is_array($row)) { continue; }
+                    $hex = bin2hex(random_bytes(16));
+                    $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+                    $upd = $pdo->prepare('UPDATE reports SET uuid = :uuid WHERE id = :id');
+                    $upd->execute([':uuid' => $uuid, ':id' => $row['id']]);
+                }
             }
             $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
         }
@@ -87,7 +98,7 @@ function migrateColumns(PDO $pdo): void
     }
     // ── Migrate report_responses: report_id → report_uuid ──────────────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(report_responses)')->fetchAll();
+        $cols = $pragma($pdo, 'report_responses');
         $hasReportUuid = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'report_uuid') {
@@ -117,14 +128,14 @@ function migrateColumns(PDO $pdo): void
     // Old generateUuid() used | 0x8 instead of (& 0x3F | 0x80),
     // producing UUIDs whose 4th group starts with c-f instead of 8-b.
     try {
-        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $cols = $pragma($pdo, 'reports');
         $hasId = false;
         $hasUuid = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'id') {
                 $hasId = true;
             }
-            if ($col['name'] === 'uuid') {
+            if (is_array($col) && ($col['name'] ?? '') === 'uuid') {
                 $hasUuid = true;
             }
         }
@@ -169,7 +180,7 @@ function migrateColumns(PDO $pdo): void
     }
     // ── Add attachment columns to reports ───────────────────────────────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $cols = $pragma($pdo, 'reports');
         $hasAttachment = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'attachment_blob') {
@@ -187,7 +198,7 @@ function migrateColumns(PDO $pdo): void
     }
     // ── Add RAMI structured fields: nature_auteur and type_acte ─────────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $cols = $pragma($pdo, 'reports');
         $hasNatureAuteur = false;
         $hasTypeActe = false;
         foreach ($cols as $col) {
@@ -211,7 +222,7 @@ function migrateColumns(PDO $pdo): void
     // Tracks when the agent first chose their site, enabling a 7-day grace period
     // for self-service site changes before requiring supervisor intervention.
     try {
-        $cols = $pdo->query('PRAGMA table_info(users)')->fetchAll();
+        $cols = $pragma($pdo, 'users');
         $hasSiteChosenAt = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'site_chosen_at') {
@@ -229,7 +240,7 @@ function migrateColumns(PDO $pdo): void
     }
     // ── Add consent_syndicat column to reports ─────────────────────────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $cols = $pragma($pdo, 'reports');
         $hasConsentSyndicat = false;
         foreach ($cols as $col) {
             if ($col['name'] === 'consent_syndicat') {
@@ -245,7 +256,7 @@ function migrateColumns(PDO $pdo): void
     }
     // ── Add pole, service_affectation, telephone_mobile, site_text ──────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(reports)')->fetchAll();
+        $cols = $pragma($pdo, 'reports');
         $existingCols = array_column($cols, 'name');
         $newCols = ['pole', 'service_affectation', 'telephone_mobile', 'site_text'];
         foreach ($newCols as $colName) {
@@ -258,7 +269,7 @@ function migrateColumns(PDO $pdo): void
     }
     // ── Add response attachment columns to report_responses ─────────────────
     try {
-        $cols = $pdo->query('PRAGMA table_info(report_responses)')->fetchAll();
+        $cols = $pragma($pdo, 'report_responses');
         $existingCols = array_column($cols, 'name');
         $newRespCols = ['attachment_blob', 'attachment_name', 'attachment_mime'];
         foreach ($newRespCols as $colName) {
@@ -273,7 +284,7 @@ function migrateColumns(PDO $pdo): void
     // Reports use uuid (TEXT) as primary key, not an integer id.
     // target_id is always 0 for report entries — target_uuid stores the actual UUID.
     try {
-        $cols = $pdo->query('PRAGMA table_info(audit_log)')->fetchAll();
+        $cols = $pragma($pdo, 'audit_log');
         $existingCols = array_column($cols, 'name');
         if (!in_array('target_uuid', $existingCols)) {
             $pdo->exec('ALTER TABLE audit_log ADD COLUMN target_uuid TEXT');

@@ -1,3 +1,10 @@
+<?php
+/** @var string $screenshotBase */
+/** @var bool $dgiEnabled */
+/** @var bool $ramiEnabled */
+/** @var int $registryCount */
+/** @var string $labelUnite */
+?>
 <!-- 6. Cas d'usage -->
 <div id="cas-usage" class="card card--spaced content-section">
     <h2>Cas d'usage</h2>

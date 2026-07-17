@@ -1,3 +1,11 @@
+<?php
+/** @var string $screenshotBase */
+/** @var bool $dgiEnabled */
+/** @var bool $ramiEnabled */
+/** @var int $registryCount */
+/** @var bool $hotlineEnabled */
+/** @var string $hotlineNumber */
+?>
 <!-- AIDE SIMPLIFIÉE — Agent (Monsieur Robert) -->
 <h1 class="page-title">Aide</h1>
 

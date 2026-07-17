@@ -1,3 +1,9 @@
+<?php
+/** @var string $screenshotBase */
+/** @var bool $dgiEnabled */
+/** @var bool $ramiEnabled */
+/** @var int $registryCount */
+?>
 <!-- 4. Les registres -->
 <div id="registres" class="card card--spaced content-section">
     <h2>Les <?php echo $registryCount; ?> registres</h2>

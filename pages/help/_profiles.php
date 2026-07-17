@@ -1,3 +1,9 @@
+<?php
+/** @var string $screenshotBase */
+/** @var bool $dgiEnabled */
+/** @var bool $ramiEnabled */
+/** @var int $registryCount */
+?>
 <!-- 1. Profils utilisateurs -->
 <div id="profils" class="card card--spaced content-section">
     <h2>Profils utilisateurs</h2>

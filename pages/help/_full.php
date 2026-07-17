@@ -1,3 +1,10 @@
+<?php
+/** @var bool $dgiEnabled */
+/** @var bool $ramiEnabled */
+/** @var int $registryCount */
+/** @var bool $hotlineEnabled */
+/** @var string $hotlineNumber */
+?>
 <!-- AIDE COMPLÈTE — Superviseur / CHSCT -->
 <h1 class="page-title">Documentation</h1>
 

@@ -48,7 +48,9 @@ function getDB(): PDO
         $schemaFile = __DIR__ . '/../schema.sql';
         if (file_exists($schemaFile)) {
             $sql = file_get_contents($schemaFile);
-            $pdo->exec($sql);
+            if (is_string($sql)) {
+                $pdo->exec($sql);
+            }
         }
 
         // Seed the sites table with default data

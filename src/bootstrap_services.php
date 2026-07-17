@@ -37,11 +37,11 @@ function createContainer(): Container
     // Repositories (require PDO)
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    $container->set(ReportRepository::class, fn($c) => new ReportRepository($c->get(PDO::class)));
-    $container->set(UserRepository::class, fn($c) => new UserRepository($c->get(PDO::class)));
-    $container->set(SiteRepository::class, fn($c) => new SiteRepository($c->get(PDO::class)));
-    $container->set(NotificationRepository::class, fn($c) => new NotificationRepository($c->get(PDO::class)));
-    $container->set(StatsRepository::class, fn($c) => new StatsRepository($c->get(PDO::class)));
+    $container->set(ReportRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new ReportRepository($pdo); });
+    $container->set(UserRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new UserRepository($pdo); });
+    $container->set(SiteRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new SiteRepository($pdo); });
+    $container->set(NotificationRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new NotificationRepository($pdo); });
+    $container->set(StatsRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new StatsRepository($pdo); });
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Services — standalone (no constructor dependencies)
@@ -65,18 +65,21 @@ function createContainer(): Container
     // Services — with dependencies
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    $container->set(ReportService::class, fn($c) => new ReportService(
-        $c->get(ReportRepository::class),
-        $c->get(EventDispatcher::class)
-    ));
-    $container->set(UserService::class, fn($c) => new UserService(
-        $c->get(UserRepository::class),
-        $c->get(EventDispatcher::class)
-    ));
-    $container->set(AuthService::class, fn($c) => new AuthService(
-        $c->get(UserRepository::class),
-        $c->get(EventDispatcher::class)
-    ));
+    $container->set(ReportService::class, function (Container $c) {
+        /** @var ReportRepository $repo */ $repo = $c->get(ReportRepository::class);
+        /** @var EventDispatcher $events */ $events = $c->get(EventDispatcher::class);
+        return new ReportService($repo, $events);
+    });
+    $container->set(UserService::class, function (Container $c) {
+        /** @var UserRepository $repo */ $repo = $c->get(UserRepository::class);
+        /** @var EventDispatcher $events */ $events = $c->get(EventDispatcher::class);
+        return new UserService($repo, $events);
+    });
+    $container->set(AuthService::class, function (Container $c) {
+        /** @var UserRepository $repo */ $repo = $c->get(UserRepository::class);
+        /** @var EventDispatcher $events */ $events = $c->get(EventDispatcher::class);
+        return new AuthService($repo, $events);
+    });
 
     return $container;
 }
@@ -85,6 +88,7 @@ function getContainer(): Container
 {
     static $container = null;
     if ($container === null) {
+        /** @var Container $container */
         $container = createContainer();
     }
     return $container;

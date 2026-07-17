@@ -8,6 +8,10 @@
  *   $isEdit     — Whether this is an edit form
  *   $report     — Existing report data for edit
  */
+/** @var bool $isEdit */
+/** @var array<string, mixed>|null $report */
+/** @var array<string, string> $formErrors */
+/** @var callable(string, string=): string $val */
 ?>
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">

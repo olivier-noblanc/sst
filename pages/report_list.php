@@ -5,6 +5,8 @@
  * Lists reports for a given registry with filters and pagination.
  * URL: index.php?page=report_list&type={rsst|rami|dgi}
  */
+/** @var array<string, string> $_GET */
+/** @var string $type */
 $type = (string) ($_GET['type'] ?? '');
 
 // Service instances (created once for the page)
@@ -29,7 +31,9 @@ if (!$config->isRegistryEnabled($type)) {
 $pageTitle = 'Liste des fiches du registre — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type));
 
 $pdo = getContainer()->get(\PDO::class);
+/** @var PDO $pdo */
 $user = $session->getUserSession();
+/** @var array{id: int, site_id: int, role: string} $user */
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $userRole = (string) ($user['role'] ?? '');
@@ -38,6 +42,7 @@ $seeAllSites = $access->canSeeAllSites();
 $noSiteMode = $config->isNoSiteMode();
 
 // Build filters from GET params
+/** @var array<string, mixed> $filters */
 $filters = [
     'etat'    => (string) ($_GET['etat'] ?? ''),
     'site_id' => (string) ($_GET['site'] ?? ''),
@@ -123,7 +128,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
             <select id="site" name="site">
                 <option value="">Tous</option>
                 <?php foreach ($allSites as $site): ?>
-                <?php /** @var array<string, mixed> $site */ ?>
+                <?php /** @var array{id: int, code: string, nom: string} $site */ ?>
                 <option value="<?php echo $fmt->e((string) ($site['id'] ?? '')); ?>" <?php echo ($filters['site_id'] ?? '') === (string) ($site['id'] ?? '') ? 'selected' : ''; ?>>
                     <?php echo $fmt->e((string) ($site['code'] ?? '') . ' — ' . (string) ($site['nom'] ?? '')); ?>
                 </option>

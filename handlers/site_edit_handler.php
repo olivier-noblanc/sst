@@ -6,6 +6,8 @@
 
 use App\Repository\SiteRepository;
 
+/** @var array<string, string> $_POST */
+
 $siteId = (int) ($_POST['site_id'] ?? 0);
 
 if ($siteId <= 0) {
@@ -16,6 +18,8 @@ if ($siteId <= 0) {
 /** @var SiteRepository $repo */
 $repo = getContainer()->get(SiteRepository::class);
 $site = $repo->findById($siteId);
+
+/** @var array<string, string> $site */
 
 if (!$site) {
     setFlash('error', 'Site introuvable.');

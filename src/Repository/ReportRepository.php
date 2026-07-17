@@ -50,6 +50,10 @@ class ReportRepository
             FROM reports r LEFT JOIN sites s ON r.site_id = s.id';
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
     private function toSnakeCase(array $data): array
     {
         $map = [
@@ -84,6 +88,7 @@ class ReportRepository
     // Read — Reports
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /** @return array<mixed, mixed>|null */
     public function findById(string $uuid): ?array
     {
         if (!isValidUuid($uuid)) {
@@ -131,6 +136,7 @@ class ReportRepository
         return $row !== false ? $row : null;
     }
 
+    /** @return array{reports: array<mixed, mixed>, total: int} */
     public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): array
     {
         $builder = new QueryFilterBuilder();
@@ -198,6 +204,7 @@ class ReportRepository
         return ['reports' => is_array($rows) ? $rows : [], 'total' => $total];
     }
 
+    /** @return array<mixed, mixed> */
     public function findBySite(int $siteId): array
     {
         $stmt = $this->pdo->prepare($this->baseSelect() . ' WHERE r.site_id = :site_id ORDER BY r.created_at DESC');
@@ -206,6 +213,10 @@ class ReportRepository
         return is_array($rows) ? $rows : [];
     }
 
+    /**
+     * @param array<string, mixed> $report
+     * @return array{prev: string|null, next: string|null}
+     */
     public function getAdjacentUuids(array $report): array
     {
         $type = $report['type'] ?? 'rsst';
@@ -242,6 +253,7 @@ class ReportRepository
     // Read — Counts
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /** @return array<string, int> */
     public function countByState(string $type, int $siteId = 0, bool $seeAllSites = true): array
     {
         $sql = "SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "'";
@@ -302,6 +314,7 @@ class ReportRepository
     // Read — Responses
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /** @return array<mixed, mixed> */
     public function getResponses(string $reportUuid): array
     {
         $stmt = $this->pdo->prepare('
@@ -351,6 +364,7 @@ class ReportRepository
     // Read — Linked agents
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /** @return array<int, array{id: int, nom: string, prenom: string, email: string}> */
     public function getLinkedAgents(string $reportUuid): array
     {
         $stmt = $this->pdo->prepare('
@@ -365,6 +379,7 @@ class ReportRepository
         return is_array($rows) ? $rows : [];
     }
 
+    /** @return array<mixed, mixed> */
     public function getPendingInvites(string $reportUuid): array
     {
         $stmt = $this->pdo->prepare('
@@ -377,6 +392,7 @@ class ReportRepository
         return is_array($rows) ? $rows : [];
     }
 
+    /** @return array<mixed, mixed>|null */
     public function getAgentInviteByToken(string $token): ?array
     {
         $stmt = $this->pdo->prepare('
@@ -601,11 +617,16 @@ class ReportRepository
         }
     }
 
+    /** @return array{status: string, message?: string} */
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array
     {
         return $this->respondToReport($uuid, $userId, $cmd->reponse, $cmd->nouvelEtat, $cmd->attachment);
     }
 
+    /**
+     * @param array<mixed, mixed> $attachment
+     * @return array{status: string, message?: string}
+     */
     public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, array $attachment = []): array
     {
         $this->pdo->beginTransaction();
@@ -675,6 +696,7 @@ class ReportRepository
     // Write — Linked agents
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /** @param list<int|string> $userIds */
     public function linkAgents(string $reportUuid, array $userIds): void
     {
         if (empty($userIds)) {
@@ -701,6 +723,7 @@ class ReportRepository
         $this->pdo->prepare($sql)->execute($params);
     }
 
+    /** @param list<int|string> $userIds */
     public function replaceLinkedAgents(string $reportUuid, array $userIds): void
     {
         $this->pdo->beginTransaction();
@@ -758,11 +781,16 @@ class ReportRepository
     // Statistics (delegated to StatsRepository for new code)
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /** @return array<string, int> */
     public function getStatistics(string $year = '', int $siteId = 0): array
     {
         return StatsRepository::instance()->getIndicateurs($year, $siteId);
     }
 
+    /**
+     * @param array<string, mixed> $filters
+     * @return array<mixed, mixed>
+     */
     public function getExportData(array $filters = []): array
     {
         return StatsRepository::instance()->getExportData($filters);

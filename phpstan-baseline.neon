@@ -1,534 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 8
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Offset ''email'' might not exist on array\<string, mixed\>\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Offset ''email'' might not exist on array\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Offset ''report_uuid'' might not exist on array\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: handlers/choose_site_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 7
-			path: handlers/choose_site_handler.php
-
-		-
-			message: '#^Offset ''code'' might not exist on array\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 3
-			path: handlers/choose_site_handler.php
-
-		-
-			message: '#^Offset ''nom'' might not exist on array\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 3
-			path: handlers/choose_site_handler.php
-
-		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 2
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''consent_syndicat'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''created_at'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''date_evenement'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''date_reponse'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''declarant_nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''declarant_prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''description'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''etat'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''heure_evenement'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''is_confidential'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''lieu'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''nature_auteur'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''objet'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''pole'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''pour_compte_nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''pour_compte_prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''reference'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''repondant_nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''repondant_prenom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''reponse'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''service_affectation'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''site_code'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''site_nom'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''site_text'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''telephone_mobile'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''type'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''type_acte'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot access offset ''uuid'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 15
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function strtoupper expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Parameter \#1 \$uuids of method App\\Repository\\ReportRepository\:\:getResponsesForUuids\(\) expects list\<string\>, non\-empty\-list given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 2
-			path: handlers/impersonate_handler.php
-
-		-
-			message: '#^Possibly invalid array key type string\|null\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
-			path: handlers/impersonate_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/login_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 5
-			path: handlers/login_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 9
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Part \$report\[''reference''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 1
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 6
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$post of static method App\\DTO\\CreateReportCommand\:\:fromPost\(\) expects array\<string, string\>, array\<mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#1 \$type of class App\\DTO\\CreateReportCommand constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Parameter \#8 \$targetUuid of function auditLog expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 13
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Parameter \#1 \$objet of class App\\DTO\\UpdateReportCommand constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Parameter \#1 \$post of static method App\\DTO\\UpdateReportCommand\:\:fromPost\(\) expects array\<string, string\>, array\<mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Parameter \#8 \$targetUuid of function auditLog expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: handlers/report_reopen_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 8
-			path: handlers/report_reopen_handler.php
-
-		-
-			message: '#^Parameter \#1 \$to of function sendMail expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/report_reopen_handler.php
-
-		-
-			message: '#^Part \$report\[''reference''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 2
-			path: handlers/report_reopen_handler.php
-
-		-
-			message: '#^Binary operation "\." between ''\[SST\-RESPOND\]…'' and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Cannot access offset ''tmp_name'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 4
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/settings_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 10
-			path: handlers/settings_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 12
-			path: handlers/settings_handler_app.php
-
-		-
-			message: '#^Function handleSettingsAppTab\(\) has parameter \$postData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: handlers/settings_handler_app.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: handlers/settings_handler_sites.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 4
-			path: handlers/settings_handler_sites.php
-
-		-
-			message: '#^Function handleSettingsManageSitesTab\(\) has parameter \$postData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: handlers/settings_handler_sites.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/site_edit_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 4
-			path: handlers/site_edit_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 1
-			path: handlers/smtp_test_handler.php
-
-		-
-			message: '#^Parameter \#1 \$post of static method App\\DTO\\CreateUserCommand\:\:fromPost\(\) expects array\<string, string\>, array\<mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/user_create_handler.php
-
-		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/user_delete_handler.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/user_delete_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/user_delete_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 2
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 3
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Parameter \#1 \$content of function sendFileDownload expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Parameter \#1 \$post of static method App\\DTO\\UpdateUserCommand\:\:fromPost\(\) expects array\<string, string\>, array\<mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/user_reactivate_handler.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: handlers/user_reactivate_handler.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: handlers/user_reactivate_handler.php
-
-		-
 			message: '#^Possibly invalid array key type string\|null\.$#'
 			identifier: offsetAccess.invalidOffset
 			count: 2
@@ -1471,7 +943,7 @@ parameters:
 			path: pages/report_print.php
 
 		-
-			message: '#^Parameter \#3 \$user of method App\\Services\\AccessService\:\:logConfidentialReportAccess\(\) expects array, array\|null given\.$#'
+			message: '#^Parameter \#3 \$user of method App\\Services\\AccessService\:\:logConfidentialReportAccess\(\) expects array\<string, mixed\>, array\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_print.php
@@ -1837,6 +1309,12 @@ parameters:
 			path: pages/report_view.php
 
 		-
+			message: '#^Parameter \#1 \$items of function renderBreadcrumb expects list\<array\{label\: string, url\?\: string\}\>, array\{array\{url\: string, label\: ''Accueil''\}, array\{url\: string, label\: string\}, array\{label\: mixed\}\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: pages/report_view.php
+
+		-
 			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1861,13 +1339,13 @@ parameters:
 			path: pages/report_view.php
 
 		-
-			message: '#^Parameter \#2 \$user of function canAccessReport expects array, array\<string, mixed\>\|null given\.$#'
+			message: '#^Parameter \#2 \$user of function canAccessReport expects array\<string, mixed\>, array\<string, mixed\>\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_view.php
 
 		-
-			message: '#^Parameter \#3 \$user of function logConfidentialReportAccess expects array, array\<string, mixed\>\|null given\.$#'
+			message: '#^Parameter \#3 \$user of function logConfidentialReportAccess expects array\<string, mixed\>, array\<string, mixed\>\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: pages/report_view.php
@@ -1933,20 +1411,8 @@ parameters:
 			path: pages/response_attachment.php
 
 		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: pages/settings.php
-
-		-
 			message: '#^Binary operation "\." between literal\-string&non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 1
-			path: pages/settings.php
-
-		-
-			message: '#^Call to an undefined method App\\Repository\\NotificationRepository\:\:getSettings\(\)\.$#'
-			identifier: method.notFound
 			count: 1
 			path: pages/settings.php
 
@@ -2149,42 +1615,6 @@ parameters:
 			path: pages/settings/tab_smtp.php
 
 		-
-			message: '#^Binary operation "\." between mixed and '' '' results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: pages/site_edit.php
-
-		-
-			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: pages/site_edit.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: pages/site_edit.php
-
-		-
-			message: '#^Offset ''code'' might not exist on array\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: pages/site_edit.php
-
-		-
-			message: '#^Offset ''nom'' might not exist on array\|null\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: pages/site_edit.php
-
-		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: pages/site_edit.php
-
-		-
 			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
 			identifier: foreach.nonIterable
 			count: 2
@@ -2353,7 +1783,7 @@ parameters:
 			path: pages/user_view.php
 
 		-
-			message: '#^Offset ''is_active'' might not exist on array\|null\.$#'
+			message: '#^Offset ''is_active'' might not exist on array\<mixed\>\|null\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: pages/user_view.php
@@ -2509,42 +1939,6 @@ parameters:
 			path: src/DTO/CreateReportCommand.php
 
 		-
-			message: '#^Method App\\DTO\\RespondToReportCommand\:\:__construct\(\) has parameter \$attachment with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DTO/RespondToReportCommand.php
-
-		-
-			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Event/EventDispatcher.php
-
-		-
-			message: '#^Cannot access an offset on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Event/EventDispatcher.php
-
-		-
-			message: '#^Method App\\Event\\EventDispatcher\:\:dispatch\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Event/EventDispatcher.php
-
-		-
-			message: '#^Property App\\Event\\EventDispatcher\:\:\$listeners type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Event/EventDispatcher.php
-
-		-
-			message: '#^Trying to invoke mixed but it''s not a callable\.$#'
-			identifier: callable.nonCallable
-			count: 1
-			path: src/Event/EventDispatcher.php
-
-		-
 			message: '#^Parameter \#1 \$url of function setIntendedUrl expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -2557,70 +1951,10 @@ parameters:
 			path: src/Middleware/CsrfMiddleware.php
 
 		-
-			message: '#^Method App\\Middleware\\RoleMiddleware\:\:__construct\(\) has parameter \$roles with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Middleware/RoleMiddleware.php
-
-		-
-			message: '#^Parameter \#1 \$roles of function hasAnyRole expects array\<int, string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Middleware/RoleMiddleware.php
-
-		-
 			message: '#^Parameter \#1 \$url of function setIntendedUrl expects string, mixed given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Middleware/require_auth.php
-
-		-
-			message: '#^Method App\\Query\\QueryFilterBuilder\:\:addIn\(\) has parameter \$values with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Query/QueryFilterBuilder.php
-
-		-
-			message: '#^Method App\\Query\\QueryFilterBuilder\:\:addRaw\(\) has parameter \$params with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Query/QueryFilterBuilder.php
-
-		-
-			message: '#^Method App\\Query\\QueryFilterBuilder\:\:build\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Query/QueryFilterBuilder.php
-
-		-
-			message: '#^Method App\\Query\\QueryFilterBuilder\:\:getParams\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Query/QueryFilterBuilder.php
-
-		-
-			message: '#^Property App\\Query\\QueryFilterBuilder\:\:\$params type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Query/QueryFilterBuilder.php
-
-		-
-			message: '#^Method App\\Repository\\NotificationRepository\:\:findAll\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/NotificationRepository.php
-
-		-
-			message: '#^Method App\\Repository\\NotificationRepository\:\:findGlobalEmails\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/NotificationRepository.php
-
-		-
-			message: '#^Method App\\Repository\\NotificationRepository\:\:findSiteEmails\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/NotificationRepository.php
 
 		-
 			message: '#^Method App\\Repository\\NotificationRepository\:\:instance\(\) should return App\\Repository\\NotificationRepository but returns mixed\.$#'
@@ -2641,48 +1975,6 @@ parameters:
 			path: src/Repository/ReportRepository.php
 
 		-
-			message: '#^Binary operation "\.\=" between mixed and '' AND \(r\.objet LIKE …'' results in an error\.$#'
-			identifier: assignOp.invalid
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Binary operation "\.\=" between mixed and '' AND r\.uuid IN …'' results in an error\.$#'
-			identifier: assignOp.invalid
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''\:limit'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''\:offset'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''\:q'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''\:q2'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Cannot access offset ''\:q_fts'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
 			message: '#^Cannot access offset ''count'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
@@ -2697,7 +1989,7 @@ parameters:
 		-
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
-			count: 10
+			count: 9
 			path: src/Repository/ReportRepository.php
 
 		-
@@ -2707,86 +1999,14 @@ parameters:
 			path: src/Repository/ReportRepository.php
 
 		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:countByState\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:findBySite\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:findPaginated\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getAdjacentUuids\(\) has parameter \$report with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getAdjacentUuids\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getAgentInviteByToken\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
 			message: '#^Method App\\Repository\\ReportRepository\:\:getAttachmentBlob\(\) should return array\{attachment_blob\: string\|null, attachment_name\: string\|null, attachment_mime\: string\|null\}\|null but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: src/Repository/ReportRepository.php
 
 		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getExportData\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getExportData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getLinkedAgents\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getPendingInvites\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getResponses\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:getStatistics\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Method App\\Repository\\ReportRepository\:\:getLinkedAgents\(\) should return array\<int, array\{id\: int, nom\: string, prenom\: string, email\: string\}\> but returns array\<mixed, mixed\>\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Repository/ReportRepository.php
 
@@ -2794,54 +2014,6 @@ parameters:
 			message: '#^Method App\\Repository\\ReportRepository\:\:instance\(\) should return App\\Repository\\ReportRepository but returns mixed\.$#'
 			identifier: return.type
 			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:linkAgents\(\) has parameter \$userIds with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:replaceLinkedAgents\(\) has parameter \$userIds with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:respond\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:respondToReport\(\) has parameter \$attachment with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:respondToReport\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:toSnakeCase\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\ReportRepository\:\:toSnakeCase\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Parameter \#1 \$params of method PDOStatement\:\:execute\(\) expects array\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
 			path: src/Repository/ReportRepository.php
 
 		-
@@ -2863,42 +2035,6 @@ parameters:
 			path: src/Repository/ReportRepository.php
 
 		-
-			message: '#^Part \$where \(mixed\) of encapsed string cannot be cast to string\.$#'
-			identifier: encapsedStringPart.nonString
-			count: 2
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Method App\\Repository\\SiteRepository\:\:findActive\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/SiteRepository.php
-
-		-
-			message: '#^Method App\\Repository\\SiteRepository\:\:findAll\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/SiteRepository.php
-
-		-
-			message: '#^Method App\\Repository\\SiteRepository\:\:findByCode\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/SiteRepository.php
-
-		-
-			message: '#^Method App\\Repository\\SiteRepository\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/SiteRepository.php
-
-		-
-			message: '#^Method App\\Repository\\SiteRepository\:\:findByName\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/SiteRepository.php
-
-		-
 			message: '#^Method App\\Repository\\SiteRepository\:\:instance\(\) should return App\\Repository\\SiteRepository but returns mixed\.$#'
 			identifier: return.type
 			count: 1
@@ -2911,226 +2047,16 @@ parameters:
 			path: src/Repository/StatsRepository.php
 
 		-
-			message: '#^Method App\\Repository\\StatsRepository\:\:getAvailableYears\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Method App\\Repository\\StatsRepository\:\:getBySite\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Method App\\Repository\\StatsRepository\:\:getExportData\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Method App\\Repository\\StatsRepository\:\:getExportData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Method App\\Repository\\StatsRepository\:\:getIndicateurs\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Method App\\Repository\\StatsRepository\:\:getRamiStructuredStats\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Method App\\Repository\\StatsRepository\:\:getSynthesis\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/StatsRepository.php
-
-		-
 			message: '#^Method App\\Repository\\StatsRepository\:\:instance\(\) should return App\\Repository\\StatsRepository but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: src/Repository/StatsRepository.php
 
 		-
-			message: '#^Method App\\Repository\\UserRepository\:\:create\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Repository\\UserRepository\:\:exportData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Repository\\UserRepository\:\:findAll\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Repository\\UserRepository\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Repository\\UserRepository\:\:findByRole\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Repository\\UserRepository\:\:findByUsername\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Repository\\UserRepository\:\:findByUsernameOrAny\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
 			message: '#^Method App\\Repository\\UserRepository\:\:instance\(\) should return App\\Repository\\UserRepository but returns mixed\.$#'
 			identifier: return.type
 			count: 1
 			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Repository\\UserRepository\:\:update\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Method App\\Router\\Attribute\\Route\:\:__construct\(\) has parameter \$methods with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Attribute/Route.php
-
-		-
-			message: '#^Cannot access offset ''handler'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Cannot access offset ''methods'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Cannot access offset ''name'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Cannot access offset ''path'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Cannot cast mixed to string\.$#'
-			identifier: cast.string
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Method App\\Router\\Router\:\:addRoute\(\) has parameter \$methods with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Method App\\Router\\Router\:\:getHandlerMap\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Method App\\Router\\Router\:\:getPageTitle\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Method App\\Router\\Router\:\:getRoutes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Method App\\Router\\Router\:\:getValidPages\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Method App\\Router\\Router\:\:match\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Method App\\Router\\Router\:\:setPostMiddleware\(\) has parameter \$middlewares with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_reverse expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Parameter \#2 \$haystack of function in_array expects array, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Property App\\Router\\Router\:\:\$pageTitles type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Property App\\Router\\Router\:\:\$postHandlers type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Property App\\Router\\Router\:\:\$postMiddlewares type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Property App\\Router\\Router\:\:\$routes type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Router/Router.php
-
-		-
-			message: '#^Trying to invoke mixed but it''s not a callable\.$#'
-			identifier: callable.nonCallable
-			count: 2
-			path: src/Router/Router.php
 
 		-
 			message: '#^Function getRouter\(\) should return App\\Router\\Router but returns mixed\.$#'
@@ -3151,30 +2077,6 @@ parameters:
 			path: src/Services/AccessService.php
 
 		-
-			message: '#^Method App\\Services\\AccessService\:\:canEditReport\(\) has parameter \$report with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AccessService.php
-
-		-
-			message: '#^Method App\\Services\\AccessService\:\:canRespondToReport\(\) has parameter \$report with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AccessService.php
-
-		-
-			message: '#^Method App\\Services\\AccessService\:\:logConfidentialReportAccess\(\) has parameter \$report with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AccessService.php
-
-		-
-			message: '#^Method App\\Services\\AccessService\:\:logConfidentialReportAccess\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AccessService.php
-
-		-
 			message: '#^Parameter \#1 \$type of method App\\Services\\AccessService\:\:getReportVisibilityMode\(\) expects string\|null, mixed given\.$#'
 			identifier: argument.type
 			count: 1
@@ -3187,44 +2089,8 @@ parameters:
 			path: src/Services/AssetService.php
 
 		-
-			message: '#^Method App\\Services\\AuthService\:\:autoProvision\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Method App\\Services\\AuthService\:\:checkAndPromote\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Method App\\Services\\AuthService\:\:checkAndPromote\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Method App\\Services\\AuthService\:\:findOrCreateUser\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Method App\\Services\\AuthService\:\:getAuthenticatedUser\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Method App\\Services\\AuthService\:\:mockLogin\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Method App\\Services\\AuthService\:\:parseSuperviseurUsernames\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Method App\\Services\\AuthService\:\:autoProvision\(\) should return array\<string, mixed\>\|null but returns array\<mixed\>\|null\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Services/AuthService.php
 
@@ -3253,10 +2119,10 @@ parameters:
 			path: src/Services/AuthService.php
 
 		-
-			message: '#^Method App\\Services\\BackupService\:\:getDbFingerprint\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Parameter \#1 \$user of method App\\Services\\AuthService\:\:checkAndPromote\(\) expects array\<string, mixed\>, array\<mixed\> given\.$#'
+			identifier: argument.type
 			count: 1
-			path: src/Services/BackupService.php
+			path: src/Services/AuthService.php
 
 		-
 			message: '#^Cannot call method fetchColumn\(\) on PDOStatement\|false\.$#'
@@ -3268,12 +2134,6 @@ parameters:
 			message: '#^Cannot cast mixed to string\.$#'
 			identifier: cast.string
 			count: 2
-			path: src/Services/ConfigService.php
-
-		-
-			message: '#^Method App\\Services\\ConfigService\:\:get\(\) should return string but returns mixed\.$#'
-			identifier: return.type
-			count: 1
 			path: src/Services/ConfigService.php
 
 		-
@@ -3297,12 +2157,6 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$path of function realpath expects string, mixed given\.$#'
 			identifier: argument.type
-			count: 1
-			path: src/Services/ConfigService.php
-
-		-
-			message: '#^Property App\\Services\\ConfigService\:\:\$cache type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: src/Services/ConfigService.php
 
@@ -3339,18 +2193,6 @@ parameters:
 		-
 			message: '#^Cannot access an offset on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Services/HttpService.php
-
-		-
-			message: '#^Method App\\Services\\HttpService\:\:validatePostRequest\(\) has parameter \$roles with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/HttpService.php
-
-		-
-			message: '#^Parameter \#1 \$roles of function hasAnyRole expects array\<int, string\>, array given\.$#'
-			identifier: argument.type
 			count: 1
 			path: src/Services/HttpService.php
 
@@ -3409,60 +2251,6 @@ parameters:
 			path: src/Services/NotificationService.php
 
 		-
-			message: '#^Method App\\Services\\ReportService\:\:create\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/ReportService.php
-
-		-
-			message: '#^Method App\\Services\\ReportService\:\:create\(\) should return array but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/ReportService.php
-
-		-
-			message: '#^Method App\\Services\\ReportService\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/ReportService.php
-
-		-
-			message: '#^Method App\\Services\\ReportService\:\:respond\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/ReportService.php
-
-		-
-			message: '#^Parameter \#1 \$type of class App\\DTO\\CreateReportCommand constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Services/ReportService.php
-
-		-
-			message: '#^Method App\\Services\\SessionManager\:\:getFlash\(\) should return array\{type\: string, message\: string\}\|null but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/SessionManager.php
-
-		-
-			message: '#^Method App\\Services\\SessionManager\:\:getFormData\(\) should return array\<string, mixed\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/SessionManager.php
-
-		-
-			message: '#^Method App\\Services\\SessionManager\:\:getFormErrors\(\) should return array\<string, string\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/SessionManager.php
-
-		-
-			message: '#^Method App\\Services\\SessionManager\:\:getUser\(\) should return array\<string, mixed\>\|null but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/SessionManager.php
-
-		-
 			message: '#^Cannot access offset ''role'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 2
@@ -3487,26 +2275,8 @@ parameters:
 			path: src/Services/SessionService.php
 
 		-
-			message: '#^Method App\\Services\\SessionService\:\:getFieldError\(\) has parameter \$errors with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
-			message: '#^Method App\\Services\\SessionService\:\:getFieldError\(\) should return string\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
 			message: '#^Method App\\Services\\SessionService\:\:getFlash\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
-			message: '#^Method App\\Services\\SessionService\:\:getFlash\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
 			count: 1
 			path: src/Services/SessionService.php
 
@@ -3517,20 +2287,8 @@ parameters:
 			path: src/Services/SessionService.php
 
 		-
-			message: '#^Method App\\Services\\SessionService\:\:getFormData\(\) should return array but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
 			message: '#^Method App\\Services\\SessionService\:\:getFormErrors\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
-			message: '#^Method App\\Services\\SessionService\:\:getFormErrors\(\) should return array but returns mixed\.$#'
-			identifier: return.type
 			count: 1
 			path: src/Services/SessionService.php
 
@@ -3559,30 +2317,6 @@ parameters:
 			path: src/Services/SessionService.php
 
 		-
-			message: '#^Method App\\Services\\SessionService\:\:getUserSession\(\) should return array\|null but returns mixed\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
-			message: '#^Method App\\Services\\SessionService\:\:setFormData\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
-			message: '#^Method App\\Services\\SessionService\:\:setFormErrors\(\) has parameter \$errors with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
-			message: '#^Method App\\Services\\SessionService\:\:setUserSession\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/SessionService.php
-
-		-
 			message: '#^Method App\\Services\\SessionService\:\:stopImpersonation\(\) should return string\|null but returns mixed\.$#'
 			identifier: return.type
 			count: 1
@@ -3599,72 +2333,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Services/SessionService.php
-
-		-
-			message: '#^Cannot cast mixed to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Method App\\Services\\UserService\:\:canDemote\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Method App\\Services\\UserService\:\:canDemote\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Method App\\Services\\UserService\:\:exportData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Method App\\Services\\UserService\:\:findAll\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Method App\\Services\\UserService\:\:findById\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Method App\\Services\\UserService\:\:findByUsername\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Method App\\Services\\UserService\:\:validate\(\) has parameter \$input with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Method App\\Services\\UserService\:\:validate\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 5
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Parameter \#2 \$array of function implode expects array\<string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Services/UserService.php
 
 		-
 			message: '#^Binary operation "\." between ''%%'' and mixed results in an error\.$#'
@@ -3689,42 +2357,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/audit.php
-
-		-
-			message: '#^Function checkAndPromoteUser\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/auth.php
-
-		-
-			message: '#^Function checkAndPromoteUser\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/auth.php
-
-		-
-			message: '#^Function findOrCreateUser\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/auth.php
-
-		-
-			message: '#^Function getAuthenticatedUser\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/auth.php
-
-		-
-			message: '#^Function mockLogin\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/auth.php
-
-		-
-			message: '#^Function parseSuperviseurUsernames\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/auth.php
 
 		-
 			message: '#^Function getDbFingerprint\(\) should return array\{mtime\: int, size\: int\} but returns mixed\.$#'
@@ -3931,122 +2563,14 @@ parameters:
 			path: src/error_notify.php
 
 		-
-			message: '#^Function canAccessReport\(\) has parameter \$report with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Function canAccessReport\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Function canEditReport\(\) has parameter \$report with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Function canRespondToReport\(\) has parameter \$report with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Function logConfidentialReportAccess\(\) has parameter \$report with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Function logConfidentialReportAccess\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Parameter \#1 \$report of method App\\Services\\AccessService\:\:canAccessReport\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Parameter \#2 \$user of method App\\Services\\AccessService\:\:canAccessReport\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/helpers/access.php
-
-		-
-			message: '#^Function getEnabledRegistries\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Function getEnabledRegistries\(\) should return list\<string\> but returns array\<string\>\.$#'
+			identifier: return.type
 			count: 1
 			path: src/helpers/config.php
-
-		-
-			message: '#^Function getRoleLabels\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/config.php
-
-		-
-			message: '#^Function renderBreadcrumb\(\) has parameter \$items with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/formatting.php
-
-		-
-			message: '#^Parameter \#1 \$items of method App\\Services\\FormattingService\:\:renderBreadcrumb\(\) expects array\<int, array\{url\?\: string, label\: mixed\}\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/helpers/formatting.php
-
-		-
-			message: '#^Function url\(\) has parameter \$params with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/http.php
-
-		-
-			message: '#^Function validatePostRequest\(\) has parameter \$roles with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/http.php
-
-		-
-			message: '#^Parameter \#2 \$params of method App\\Services\\HttpService\:\:url\(\) expects array\<string, mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/helpers/http.php
 
 		-
 			message: '#^Binary operation "\." between mixed and '' signalement'' results in an error\.$#'
 			identifier: binaryOp.invalid
-			count: 1
-			path: src/helpers/registry_card_renderer.php
-
-		-
-			message: '#^Function buildRegistryCards\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/registry_card_renderer.php
-
-		-
-			message: '#^Function renderRegistryCard\(\) has parameter \$card with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/registry_card_renderer.php
-
-		-
-			message: '#^Function renderRegistryCards\(\) has parameter \$cards with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/helpers/registry_card_renderer.php
-
-		-
-			message: '#^Parameter \#1 \$card of function renderRegistryCard expects array, mixed given\.$#'
-			identifier: argument.type
 			count: 1
 			path: src/helpers/registry_card_renderer.php
 
@@ -4267,62 +2791,56 @@ parameters:
 			path: src/migration_tables.php
 
 		-
-			message: '#^Function getGlobalNotificationEmails\(\) should return array\<int, string\> but returns array\.$#'
+			message: '#^Function getGlobalNotificationEmails\(\) should return array\<int, string\> but returns list\<mixed\>\.$#'
 			identifier: return.type
 			count: 1
 			path: src/queries/notification_queries.php
 
 		-
-			message: '#^Function getNotificationSettings\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
+			message: '#^Function getNotificationSettings\(\) should return array\<int, array\<string, mixed\>\> but returns array\<mixed\>\.$#'
 			identifier: return.type
 			count: 1
 			path: src/queries/notification_queries.php
 
 		-
-			message: '#^Function getSiteNotificationEmails\(\) should return array\<int, string\> but returns array\.$#'
+			message: '#^Function getSiteNotificationEmails\(\) should return array\<int, string\> but returns list\<mixed\>\.$#'
 			identifier: return.type
 			count: 1
 			path: src/queries/notification_queries.php
 
 		-
-			message: '#^Function getRamiStructuredStats\(\) should return array\{by_nature_auteur\: array\<int, mixed\>, by_type_acte\: array\<int, mixed\>\} but returns array\.$#'
+			message: '#^Function getRamiStructuredStats\(\) should return array\{by_nature_auteur\: array\<int, mixed\>, by_type_acte\: array\<int, mixed\>\} but returns array\{by_nature_auteur\: array\<mixed\>, by_type_acte\: array\<mixed\>\}\.$#'
 			identifier: return.type
 			count: 1
 			path: src/queries/rami_stats_queries.php
 
 		-
-			message: '#^Function getLinkedAgents\(\) should return array\<int, array\{id\: int, nom\: string, prenom\: string, email\: string\}\> but returns array\.$#'
-			identifier: return.type
+			message: '#^Parameter \#2 \$userIds of method App\\Repository\\ReportRepository\:\:linkAgents\(\) expects list\<int\|string\>, array\<int\> given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/queries/report_agent_queries.php
 
 		-
-			message: '#^Function countReportsByState\(\) should return array\<string, int\> but returns array\.$#'
+			message: '#^Parameter \#2 \$userIds of method App\\Repository\\ReportRepository\:\:replaceLinkedAgents\(\) expects list\<int\|string\>, array\<int\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/queries/report_agent_queries.php
+
+		-
+			message: '#^Function getReportResponses\(\) should return array\<int, array\<string, mixed\>\> but returns array\<mixed\>\.$#'
 			identifier: return.type
 			count: 1
 			path: src/queries/report_count_queries.php
 
 		-
-			message: '#^Function getAdjacentReportUuids\(\) should return array\{prev\: string\|null, next\: string\|null\} but returns array\.$#'
+			message: '#^Function getAgentInviteByToken\(\) should return array\<string, mixed\>\|null but returns array\<mixed\>\|null\.$#'
 			identifier: return.type
-			count: 1
-			path: src/queries/report_count_queries.php
-
-		-
-			message: '#^Function getReportResponses\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/report_count_queries.php
-
-		-
-			message: '#^Function getAgentInviteByToken\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: src/queries/report_invite_queries.php
 
 		-
-			message: '#^Function getPendingInvites\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Function getPendingInvites\(\) should return list\<array\{email\: string, created_at\: string\}\> but returns array\<mixed\>\.$#'
+			identifier: return.type
 			count: 1
 			path: src/queries/report_invite_queries.php
 
@@ -4333,26 +2851,20 @@ parameters:
 			path: src/queries/report_queries.php
 
 		-
-			message: '#^Function getReportByUuid\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/queries/report_queries.php
-
-		-
-			message: '#^Function getReportsByRegistry\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/queries/report_queries.php
-
-		-
-			message: '#^Function getReportsByRegistry\(\) should return array\{reports\: array, total\: int\} but returns array\.$#'
+			message: '#^Function getReportByUuid\(\) should return array\<string, mixed\>\|null but returns array\<mixed\>\|null\.$#'
 			identifier: return.type
 			count: 1
 			path: src/queries/report_queries.php
 
 		-
-			message: '#^Function getReportsBySite\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Function getReportsByRegistry\(\) should return array\{reports\: list\<array\<string, mixed\>\>, total\: int\} but returns array\{reports\: array\<mixed\>, total\: int\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/queries/report_queries.php
+
+		-
+			message: '#^Function getReportsBySite\(\) should return list\<array\<string, mixed\>\> but returns array\<mixed\>\.$#'
+			identifier: return.type
 			count: 1
 			path: src/queries/report_queries.php
 
@@ -4387,152 +2899,26 @@ parameters:
 			path: src/queries/report_response_queries.php
 
 		-
-			message: '#^Function respondToReport\(\) has parameter \$attachment with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/queries/report_response_queries.php
-
-		-
-			message: '#^Function respondToReport\(\) should return array\{status\: string, message\?\: string\} but returns array\.$#'
+			message: '#^Function getFlash\(\) should return array\{type\: string, message\: string\}\|null but returns array\|null\.$#'
 			identifier: return.type
-			count: 1
-			path: src/queries/report_response_queries.php
-
-		-
-			message: '#^Function getActiveSites\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/site_queries.php
-
-		-
-			message: '#^Function getAllSites\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/site_queries.php
-
-		-
-			message: '#^Function getSiteByCode\(\) should return array\<string, mixed\>\|null but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/site_queries.php
-
-		-
-			message: '#^Function getSiteById\(\) should return array\<string, mixed\>\|null but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/site_queries.php
-
-		-
-			message: '#^Function getSiteByName\(\) should return array\<string, mixed\>\|null but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/site_queries.php
-
-		-
-			message: '#^Function getAvailableYears\(\) should return array\<int, string\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/stats_queries.php
-
-		-
-			message: '#^Function getExportData\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/stats_queries.php
-
-		-
-			message: '#^Function getStatisticsIndicateurs\(\) should return array\<string, int\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/stats_queries.php
-
-		-
-			message: '#^Function getStatsBySite\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/stats_queries.php
-
-		-
-			message: '#^Function getSynthesisData\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/stats_queries.php
-
-		-
-			message: '#^Function exportUserData\(\) should return array\<string, mixed\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/user_gdpr_queries.php
-
-		-
-			message: '#^Function getAllUsers\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/user_queries.php
-
-		-
-			message: '#^Function getUserById\(\) should return array\<string, mixed\>\|null but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/user_queries.php
-
-		-
-			message: '#^Function getUserByUsername\(\) should return array\<string, mixed\>\|null but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/user_queries.php
-
-		-
-			message: '#^Function getUsersByRole\(\) should return array\<int, array\<string, mixed\>\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/queries/user_queries.php
-
-		-
-			message: '#^Function getFlash\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: src/session.php
 
 		-
-			message: '#^Function getUserSession\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Function getUserSession\(\) should return array\<string, mixed\>\|null but returns array\|null\.$#'
+			identifier: return.type
 			count: 1
 			path: src/session.php
 
 		-
-			message: '#^Function setUserSession\(\) has parameter \$user with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/session.php
-
-		-
-			message: '#^Function getFieldError\(\) has parameter \$errors with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Function getFormData\(\) should return array\<string, mixed\> but returns array\.$#'
+			identifier: return.type
 			count: 1
 			path: src/session_form.php
 
 		-
-			message: '#^Function getFormData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/session_form.php
-
-		-
-			message: '#^Function getFormErrors\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/session_form.php
-
-		-
-			message: '#^Function setFormData\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/session_form.php
-
-		-
-			message: '#^Function setFormErrors\(\) has parameter \$errors with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
+			message: '#^Function getFormErrors\(\) should return array\<string, string\> but returns array\.$#'
+			identifier: return.type
 			count: 1
 			path: src/session_form.php
 
@@ -4558,12 +2944,6 @@ parameters:
 			message: '#^Cannot cast mixed to int\.$#'
 			identifier: cast.int
 			count: 2
-			path: src/user_context.php
-
-		-
-			message: '#^Function currentUser\(\) should return array\<string, mixed\>\|null but returns array\|null\.$#'
-			identifier: return.type
-			count: 1
 			path: src/user_context.php
 
 		-
@@ -4633,7 +3013,7 @@ parameters:
 			path: src/validation.php
 
 		-
-			message: '#^Function fetchReportOrRedirect\(\) should return array\<string, mixed\> but returns array\|null\.$#'
+			message: '#^Function fetchReportOrRedirect\(\) should return array\<string, mixed\> but returns array\<string, mixed\>\|null\.$#'
 			identifier: return.type
 			count: 1
 			path: src/validation.php
@@ -4673,12 +3053,6 @@ parameters:
 			identifier: argument.type
 			count: 5
 			path: src/validation_user.php
-
-		-
-			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: templates/alert.php
 
 		-
 			message: '#^Parameter \#1 \$string of function e expects string\|null, mixed given\.$#'

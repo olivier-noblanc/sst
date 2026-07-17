@@ -6,6 +6,7 @@ namespace App\Event;
 
 class EventDispatcher
 {
+    /** @var array<string, list<callable>> */
     private array $listeners = [];
 
     public function addListener(string $event, callable $listener): void
@@ -13,6 +14,7 @@ class EventDispatcher
         $this->listeners[$event][] = $listener;
     }
 
+    /** @param array<string, mixed> $data */
     public function dispatch(string $event, array $data): void
     {
         foreach ($this->listeners[$event] ?? [] as $listener) {

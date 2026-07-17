@@ -23,6 +23,7 @@ class NotificationRepository
         return $instance;
     }
 
+    /** @return array<mixed, mixed> */
     public function findAll(): array
     {
         $stmt = $this->pdo->query('
@@ -71,6 +72,7 @@ class NotificationRepository
         return $stmt->rowCount();
     }
 
+    /** @return list<mixed> */
     public function findSiteEmails(int $siteId): array
     {
         $stmt = $this->pdo->prepare("SELECT email FROM notification_settings WHERE site_id = :site_id AND type = 'site'");
@@ -78,6 +80,7 @@ class NotificationRepository
         return array_column($stmt->fetchAll(), 'email');
     }
 
+    /** @return list<mixed> */
     public function findGlobalEmails(): array
     {
         $stmt = $this->pdo->query("SELECT email FROM notification_settings WHERE type = 'global'");

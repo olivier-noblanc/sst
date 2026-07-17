@@ -111,7 +111,6 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 <?php echo renderRegistryCards($cards, 'compact'); ?>
 <?php endif; ?>
 
-<?php if ($rsstCount > 0): ?>
 <?php $wordCloud = $fmt->buildWordCloud($pdo, TYPE_RSST); ?>
 <?php if (!empty($wordCloud)): ?>
 <div class="card mt-4">
@@ -119,5 +118,4 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
     <p class="text-muted text-small mb-3">Mots les plus fréquents dans les signalements RSST.</p>
     <?php echo $wordCloud; ?>
 </div>
-<?php endif; ?>
 <?php endif; ?>

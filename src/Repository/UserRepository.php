@@ -35,6 +35,7 @@ class UserRepository
                 LEFT JOIN sites s ON u.site_id = s.id';
     }
 
+    /** @return array<mixed, mixed>|null */
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare($this->baseQuery() . ' WHERE u.id = :id');
@@ -43,6 +44,7 @@ class UserRepository
         return is_array($row) ? $row : null;
     }
 
+    /** @return array<mixed, mixed>|null */
     public function findByUsername(string $username): ?array
     {
         $stmt = $this->pdo->prepare(
@@ -53,6 +55,7 @@ class UserRepository
         return is_array($row) ? $row : null;
     }
 
+    /** @return array<mixed, mixed>|null */
     public function findByUsernameOrAny(string $username): ?array
     {
         $stmt = $this->pdo->prepare(
@@ -63,6 +66,7 @@ class UserRepository
         return is_array($row) ? $row : null;
     }
 
+    /** @return array<mixed, mixed> */
     public function findByRole(string $role): array
     {
         $stmt = $this->pdo->prepare(
@@ -73,6 +77,7 @@ class UserRepository
         return is_array($rows) ? $rows : [];
     }
 
+    /** @return array<mixed, mixed> */
     public function findAll(int $siteId = 0, bool $active = true): array
     {
         $sql = $this->baseQuery() . ' WHERE 1=1';
@@ -128,6 +133,7 @@ class UserRepository
     // Writes
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /** @param array<string, mixed> $data */
     public function create(array $data): int
     {
         $stmt = $this->pdo->prepare('
@@ -145,6 +151,7 @@ class UserRepository
         return (int) $this->pdo->lastInsertId();
     }
 
+    /** @param array<string, mixed> $data */
     public function update(int $id, array $data): bool
     {
         $stmt = $this->pdo->prepare("
@@ -269,6 +276,7 @@ class UserRepository
         }
     }
 
+    /** @return array<string, mixed> */
     public function exportData(int $id): array
     {
         $user = $this->findById($id);

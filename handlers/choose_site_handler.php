@@ -9,7 +9,9 @@ use App\Repository\UserRepository;
 
 validatePostRequest(url('choose_site'));
 
-$siteId = (int) ($_POST['site_id'] ?? 0);
+/** @var string */
+$siteIdRaw = $_POST['site_id'] ?? '0';
+$siteId = (int) $siteIdRaw;
 
 if ($siteId <= 0) {
     setFlash('error', 'Veuillez sélectionner un site.');
@@ -24,13 +26,16 @@ $userRepo = getContainer()->get(UserRepository::class);
 
 $userId = currentUserId();
 $user = currentUser();
+/** @var array<string, mixed> $user */
 $hasExistingSite = !empty($user['site_id']);
 
 // Grace period check
 if ($hasExistingSite) {
     $siteChosenAt = $user['site_chosen_at'] ?? null;
     if ($siteChosenAt) {
-        $timestamp = strtotime((string) $siteChosenAt);
+        /** @var string */
+        $siteChosenAtStr = $siteChosenAt;
+        $timestamp = strtotime($siteChosenAtStr);
         if ($timestamp !== false) {
             $daysSinceChoice = (time() - $timestamp) / 86400;
         } else {
@@ -42,7 +47,9 @@ if ($hasExistingSite) {
             redirect(url('home'));
         }
     }
-    if ((int) ($user['site_id'] ?? 0) === $siteId) {
+    /** @var string */
+    $siteIdVal = $user['site_id'] ?? '0';
+    if ((int) $siteIdVal === $siteId) {
         session_write_close();
         redirect(url('home'));
     }
@@ -54,6 +61,7 @@ if (!$site || empty($site['is_active'])) {
     session_write_close();
     redirect(url('choose_site'));
 }
+/** @var array{code: string, nom: string} $site */
 
 $updated = $userRepo->updateSite($userId, $siteId);
 

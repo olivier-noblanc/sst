@@ -44,6 +44,9 @@ class AccessService
 
     /**
      * Log access to a confidential report by supervisor/CSA/CHSCT.
+     *
+     * @param array<string, mixed> $report
+     * @param array<string, mixed> $user
      */
     public function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
     {
@@ -154,6 +157,8 @@ class AccessService
 
     /**
      * Check if a user can edit a report (must be the declarant AND report must be editable).
+     *
+     * @param array<string, mixed> $report
      */
     public function canEditReport(array $report, int $userId): bool
     {
@@ -163,6 +168,8 @@ class AccessService
 
     /**
      * Check if a user can respond to a report (must be superviseur AND report must be editable).
+     *
+     * @param array<string, mixed> $report
      */
     public function canRespondToReport(array $report, string $role): bool
     {

@@ -24,6 +24,7 @@ class SiteRepository
         return $instance;
     }
 
+    /** @return array<mixed, mixed> */
     public function findAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM sites ORDER BY code ASC');
@@ -31,6 +32,7 @@ class SiteRepository
         return is_array($rows) ? $rows : [];
     }
 
+    /** @return array<mixed, mixed> */
     public function findActive(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM sites WHERE is_active = 1 ORDER BY code ASC');
@@ -38,6 +40,7 @@ class SiteRepository
         return is_array($rows) ? $rows : [];
     }
 
+    /** @return array<mixed, mixed>|null */
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE id = :id');
@@ -46,6 +49,7 @@ class SiteRepository
         return is_array($row) ? $row : null;
     }
 
+    /** @return array<mixed, mixed>|null */
     public function findByCode(string $code): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE code = :code');
@@ -54,6 +58,7 @@ class SiteRepository
         return is_array($row) ? $row : null;
     }
 
+    /** @return array<mixed, mixed>|null */
     public function findByName(string $nom): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE nom = :nom');

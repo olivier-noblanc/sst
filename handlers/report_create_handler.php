@@ -7,6 +7,8 @@
 use App\DTO\CreateReportCommand;
 use App\Services\ReportService;
 
+/** @var array<string, string> $_POST */
+
 validatePostRequest(url('home'));
 
 $type = (string) ($_POST['type'] ?? '');
@@ -21,6 +23,8 @@ if (!isRegistryEnabled($type)) {
 
 $pdo = getDB();
 $user = currentUser();
+
+/** @var array<string, string> $user */
 
 // Site validation (skipped in noSiteMode)
 $siteId = (int) ($_POST['site_id'] ?? 0);
@@ -76,15 +80,19 @@ try {
     $errors = [];
     $attachment = validateReportAttachment($errors);
     $cmd = CreateReportCommand::fromPost($_POST, $user ?? []);
-    $cmd = new CreateReportCommand(...array_merge($cmd->toArray(), [
+    /** @var array<string, string> $cmdData */
+    $cmdData = array_merge($cmd->toArray(), [
         'attachmentBlob' => $attachment['blob'],
         'attachmentName' => $attachment['name'],
         'attachmentMime' => $attachment['mime'],
-    ]));
+    ]);
+    $cmd = new CreateReportCommand(...$cmdData);
 
     /** @var ReportService $service */
     $service = getContainer()->get(ReportService::class);
     $report = $service->create($cmd);
+
+    /** @var array<string, string> $report */
 
     // Audit log
     auditLog(getDB(), 'report', 'create', 'Signalement créé : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference'], 'type' => $type, 'site_id' => $siteId], $report['uuid']);

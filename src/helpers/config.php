@@ -36,6 +36,9 @@ function isRegistryEnabled(string $type): bool
     return getConfigService()->isRegistryEnabled($type);
 }
 
+/**
+ * @return list<string>
+ */
 function getEnabledRegistries(): array
 {
     return getConfigService()->getEnabledRegistries();
@@ -46,6 +49,9 @@ function getRoleLabel(string $role): string
     return getConfigService()->getRoleLabel($role);
 }
 
+/**
+ * @return array<string, string>
+ */
 function getRoleLabels(): array
 {
     return getConfigService()->getRoleLabels();

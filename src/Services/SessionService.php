@@ -51,6 +51,7 @@ class SessionService
 
     /**
      * Store the full user data array in session.
+     * @param array<string, mixed> $user
      */
     public function setUserSession(array $user): void
     {
@@ -62,7 +63,9 @@ class SessionService
      */
     public function getUserSession(): ?array
     {
-        return $_SESSION['user'] ?? null;
+        /** @var array<string, mixed>|null */
+        $user = $_SESSION['user'] ?? null;
+        return $user;
     }
 
     /**
@@ -208,6 +211,7 @@ class SessionService
     public function getFlash(): ?array
     {
         if (isset($_SESSION['flash'])) {
+            /** @var array{type: string, message: string} $flash */
             $flash = $_SESSION['flash'];
             unset($_SESSION['flash']);
             return $flash;
@@ -221,6 +225,7 @@ class SessionService
 
     /**
      * Store form data in session for repopulation after validation error.
+     * @param array<string, mixed> $data
      */
     public function setFormData(array $data): void
     {
@@ -233,6 +238,7 @@ class SessionService
     public function getFormData(): array
     {
         if (isset($_SESSION['form_data'])) {
+            /** @var array<string, mixed> $data */
             $data = $_SESSION['form_data'];
             unset($_SESSION['form_data']);
             return $data;
@@ -242,6 +248,7 @@ class SessionService
 
     /**
      * Store form errors in session.
+     * @param array<string, string> $errors
      */
     public function setFormErrors(array $errors): void
     {
@@ -254,6 +261,7 @@ class SessionService
     public function getFormErrors(): array
     {
         if (isset($_SESSION['form_errors'])) {
+            /** @var array<string, string> $errors */
             $errors = $_SESSION['form_errors'];
             unset($_SESSION['form_errors']);
             return $errors;
@@ -263,6 +271,7 @@ class SessionService
 
     /**
      * Get a specific form error for a field.
+     * @param array<string, string|null> $errors
      */
     public function getFieldError(array $errors, string $field): ?string
     {

@@ -12,6 +12,9 @@ function getRegistryIcon(string $type): string
     };
 }
 
+/**
+ * @param array<string, mixed> $card
+ */
 function renderRegistryCard(array $card, string $extraClass = ''): string
 {
     $cssClass = 'registry-card registry-card--' . e($card['type']);
@@ -37,6 +40,9 @@ function renderRegistryCard(array $card, string $extraClass = ''): string
     return $html;
 }
 
+/**
+ * @param list<array<string, mixed>> $cards
+ */
 function renderRegistryCards(array $cards, string $layout = 'compact'): string
 {
     $gridClass = $layout === 'large' ? 'registry-cards registry-cards--large' : 'registry-cards';
@@ -49,6 +55,9 @@ function renderRegistryCards(array $cards, string $layout = 'compact'): string
     return $html;
 }
 
+/**
+ * @return list<array{type: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string}>
+ */
 function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool $ramiEnabled, bool $dgiEnabled): array
 {
     $cards = [];

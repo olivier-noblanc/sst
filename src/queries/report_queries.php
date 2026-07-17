@@ -119,7 +119,9 @@ function createReport(PDO $pdo, array $data): string
     }
 }
 
-/** Get a single report by UUID with site and respondent info. */
+/** Get a single report by UUID with site and respondent info.
+ * @return array<string, mixed>|null
+ */
 function getReportByUuid(PDO $pdo, string $uuid): ?array
 {
     return ReportRepository::instance()->findById($uuid);
@@ -128,7 +130,7 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array
 /**
  * Get reports by registry type with filtering and pagination.
  * @param array<string, mixed> $filters
- * @return array{reports: array, total: int}
+ * @return array{reports: list<array<string, mixed>>, total: int}
  */
 function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page = 1, int $perPage = 20): array
 {
@@ -145,7 +147,9 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
     return ReportRepository::instance()->findPaginated($filter, $page, $perPage);
 }
 
-/** Get reports by site. */
+/** Get reports by site.
+ * @return list<array<string, mixed>>
+ */
 function getReportsBySite(PDO $pdo, int $siteId): array
 {
     return ReportRepository::instance()->findBySite($siteId);

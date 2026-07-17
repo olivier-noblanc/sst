@@ -10,7 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     return;
 }
 
-$token = trim((string) ($_POST['token'] ?? ''));
+/** @var string */
+$tokenRaw = $_POST['token'] ?? '';
+$token = trim($tokenRaw);
 
 if (empty($token)) {
     setFlash('error', 'Lien de confirmation invalide.');
@@ -25,25 +27,28 @@ if (!$invite) {
     setFlash('error', 'Cette invitation a déjà été confirmée ou est invalide. Si vous venez de cliquer, votre rattachement est déjà actif.');
     redirect(url('home'));
 }
+/** @var array{email: string, report_uuid: string} $invite */
 
 $user = currentUser();
 if (!$user) {
     setFlash('error', 'Vous devez être connecté pour confirmer votre rattachement.');
     redirect(url('home'));
 }
+/** @var array{id: int|string, email: string} $user */
 
 if (strtolower((string) ($user['email'] ?? '')) !== strtolower((string) $invite['email'])) {
     setFlash('error', 'Cette invitation est destinée à ' . e((string) $invite['email']) . '. Vous êtes connecté(e) en tant que ' . e((string) ($user['email'] ?? 'inconnu')) . '.');
     redirect(url('home'));
 }
 
-$confirmed = $repo->confirmAgentInvite($token, (int) ($user['id'] ?? 0));
+$confirmed = $repo->confirmAgentInvite($token, (int) ((string) ($user['id'] ?? '0')));
 
 if ($confirmed) {
     $reportUuid = (string) $invite['report_uuid'];
     $report = $repo->findById($reportUuid);
-    $ref = $report ? (string) $report['reference'] : $reportUuid;
-    auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e((string) $user['email']) . ' confirmé rattachement au signalement ' . $ref, null, 'report', ['reference' => $ref, 'email' => $user['email'] ?? ''], $reportUuid);
+    /** @var array{reference?: string}|null $report */
+    $ref = $report ? (string) ($report['reference'] ?? '') : $reportUuid;
+    auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e($user['email'] ?? '') . ' confirmé rattachement au signalement ' . $ref, null, 'report', ['reference' => $ref, 'email' => $user['email'] ?? ''], $reportUuid);
     setFlash('success', 'Votre rattachement au signalement ' . e($ref) . ' est confirmé.');
     redirect(url('report_view', ['uuid' => $reportUuid]));
 } else {

@@ -9,6 +9,7 @@ use Exception;
 class ConfigService
 {
     private static ?self $instance = null;
+    /** @var array<string, string> */
     private array $cache = [];
     private bool $cacheCleared = false;
 

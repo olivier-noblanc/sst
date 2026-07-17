@@ -13,6 +13,8 @@ use App\Services\ConfigService;
 require_once __DIR__ . '/settings_handler_app.php';
 require_once __DIR__ . '/settings_handler_sites.php';
 
+/** @var array<string, string> $_POST */
+
 $pdo = getDB();
 $tab = (string) ($_POST['tab'] ?? 'sites');
 $notifRepo = NotificationRepository::instance();
@@ -26,6 +28,7 @@ try {
         $notifRepo->deleteByType('site');
 
         // Insert new site emails (textarea format: one email per line)
+        /** @var string|array<int|string, string> $siteEmails */
         $siteEmails = $_POST['site_emails'] ?? [];
         if (is_array($siteEmails)) {
             foreach ($siteEmails as $siteId => $emailText) {
@@ -128,9 +131,9 @@ try {
                 if (!is_array($entry)) {
                     continue;
                 }
-                /** @var mixed $wordVal */
+                /** @var string $wordVal */
                 $wordVal = $entry['word'] ?? '';
-                /** @var mixed $weightVal */
+                /** @var int $weightVal */
                 $weightVal = $entry['weight'] ?? 10;
                 $word = trim((string) $wordVal);
                 $weight = (int) $weightVal;

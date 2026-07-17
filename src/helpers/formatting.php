@@ -81,6 +81,9 @@ function nowTime(): string
     return getFormattingService()->nowTime();
 }
 
+/**
+ * @param list<array{label: string, url?: string}> $items
+ */
 function renderBreadcrumb(array $items): string
 {
     return getFormattingService()->renderBreadcrumb($items);

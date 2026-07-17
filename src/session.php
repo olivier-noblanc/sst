@@ -20,11 +20,17 @@ function isUserLoggedIn(): bool
     return (SessionService::getInstance())->isUserLoggedIn();
 }
 
+/**
+ * @param array<string, mixed> $user
+ */
 function setUserSession(array $user): void
 {
     (SessionService::getInstance())->setUserSession($user);
 }
 
+/**
+ * @return array<string, mixed>|null
+ */
 function getUserSession(): ?array
 {
     return (SessionService::getInstance())->getUserSession();
@@ -90,6 +96,9 @@ function setFlash(string $type, string $message): void
     (SessionService::getInstance())->setFlash($type, $message);
 }
 
+/**
+ * @return array{type: string, message: string}|null
+ */
 function getFlash(): ?array
 {
     return (SessionService::getInstance())->getFlash();

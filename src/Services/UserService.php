@@ -41,6 +41,7 @@ class UserService
         if (!$user) {
             throw new RuntimeException('Utilisateur introuvable.');
         }
+        /** @var array<string, mixed> $user */
 
         $demoteErrors = $this->canDemote($id, $cmd->role, $user);
         if (!empty($demoteErrors)) {
@@ -120,19 +121,34 @@ class UserService
     // Queries
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function findById(int $id): ?array
     {
-        return $this->repo->findById($id);
+        $result = $this->repo->findById($id);
+        /** @var array<string, mixed>|null $result */
+        return $result;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function findByUsername(string $username): ?array
     {
-        return $this->repo->findByUsername($username);
+        $result = $this->repo->findByUsername($username);
+        /** @var array<string, mixed>|null $result */
+        return $result;
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function findAll(int $siteId = 0, bool $active = true): array
     {
-        return $this->repo->findAll($siteId, $active);
+        $result = $this->repo->findAll($siteId, $active);
+        /** @var list<array<string, mixed>> $result */
+        return $result;
     }
 
     public function countActive(): int
@@ -144,33 +160,47 @@ class UserService
     // Validation
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /**
+     * @param array<string, mixed> $input
+     * @return array<string, string>
+     */
     public function validate(array $input, int $excludeId = 0): array
     {
         $errors = [];
 
-        $nom = trim($input['nom'] ?? '');
+        /** @var string */
+        $nomVal = $input['nom'] ?? '';
+        $nom = trim($nomVal);
         if (empty($nom)) {
             $errors['nom'] = 'Le nom est requis.';
         }
 
-        $prenom = trim($input['prenom'] ?? '');
+        /** @var string */
+        $prenomVal = $input['prenom'] ?? '';
+        $prenom = trim($prenomVal);
         if (empty($prenom)) {
             $errors['prenom'] = 'Le prénom est requis.';
         }
 
-        $username = trim($input['username'] ?? '');
+        /** @var string */
+        $usernameVal = $input['username'] ?? '';
+        $username = trim($usernameVal);
         if (empty($username)) {
             $errors['username'] = 'L\'identifiant est requis.';
         } elseif ($this->repo->existsByUsername($username, $excludeId)) {
             $errors['username'] = 'Cet identifiant est déjà utilisé';
         }
 
-        $role = trim($input['role'] ?? '');
+        /** @var string */
+        $roleVal = $input['role'] ?? '';
+        $role = trim($roleVal);
         if (!in_array($role, [ROLE_AGENT, ROLE_SUPERVISEUR, ROLE_CHSCT])) {
             $errors['role'] = 'Rôle invalide.';
         }
 
-        $siteId = (int) ($input['site_id'] ?? 0);
+        /** @var string */
+        $siteIdVal = $input['site_id'] ?? '0';
+        $siteId = (int) $siteIdVal;
         if (!isNoSiteMode($this->repo->getPdo()) && $siteId > 0) {
             $site = getSiteById($this->repo->getPdo(), $siteId);
             if (!$site) {
@@ -178,7 +208,9 @@ class UserService
             }
         }
 
-        $email = trim($input['email'] ?? '');
+        /** @var string */
+        $emailVal = $input['email'] ?? '';
+        $email = trim($emailVal);
         if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = 'Adresse email invalide.';
         }
@@ -198,6 +230,10 @@ class UserService
         return true;
     }
 
+    /**
+     * @param array<string, mixed> $user
+     * @return array<string, string>
+     */
     public function canDemote(int $id, string $newRole, array $user): array
     {
         $errors = [];
@@ -213,6 +249,9 @@ class UserService
     // GDPR
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    /**
+     * @return array<string, mixed>
+     */
     public function exportData(int $id): array
     {
         return $this->repo->exportData($id);

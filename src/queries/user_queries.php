@@ -34,7 +34,9 @@ function userSelectWithSite(): string
  */
 function getUserByUsername(PDO $pdo, string $username): ?array
 {
-    return UserRepository::instance()->findByUsername($username);
+    $result = UserRepository::instance()->findByUsername($username);
+    /** @var array<string, mixed>|null $result */
+    return $result;
 }
 
 /**
@@ -46,7 +48,9 @@ function getUserByUsername(PDO $pdo, string $username): ?array
  */
 function getUserById(PDO $pdo, int $id): ?array
 {
-    return UserRepository::instance()->findById($id);
+    $result = UserRepository::instance()->findById($id);
+    /** @var array<string, mixed>|null $result */
+    return $result;
 }
 
 /**
@@ -58,7 +62,9 @@ function getUserById(PDO $pdo, int $id): ?array
  */
 function getUsersByRole(PDO $pdo, string $role): array
 {
-    return UserRepository::instance()->findByRole($role);
+    $result = UserRepository::instance()->findByRole($role);
+    /** @var array<int, array<string, mixed>> $result */
+    return $result;
 }
 
 /**
@@ -71,5 +77,7 @@ function getUsersByRole(PDO $pdo, string $role): array
  */
 function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array
 {
-    return UserRepository::instance()->findAll($siteId, $active);
+    $result = UserRepository::instance()->findAll($siteId, $active);
+    /** @var array<int, array<string, mixed>> $result */
+    return $result;
 }

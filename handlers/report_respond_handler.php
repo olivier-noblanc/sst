@@ -8,6 +8,8 @@
 
 require_once __DIR__ . '/../src/bootstrap_services.php';
 
+/** @var array<string, string> $_POST */
+
 use App\DTO\RespondToReportCommand;
 use App\Services\ReportService;
 
@@ -38,6 +40,9 @@ if (mb_strlen($reponse, 'UTF-8') > 5000) {
 
 // Validate report state
 $report = fetchReportOrRedirect($reportUuid);
+
+/** @var array<string, string> $report */
+
 if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT])) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
     redirect(url('report_view', ['uuid' => $reportUuid]));
@@ -45,7 +50,7 @@ if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT])) {
 
 // Handle optional attachment
 $attachment = [];
-if (!empty($_FILES['response_attachment']['tmp_name'])) {
+if (isset($_FILES['response_attachment']) && is_array($_FILES['response_attachment']) && !empty($_FILES['response_attachment']['tmp_name'])) {
     $fakeErrors = [];
     $att = validateReportAttachment($fakeErrors, 'response_attachment');
     if (!empty($fakeErrors)) {

@@ -9,6 +9,8 @@
 
 require_once __DIR__ . '/../src/bootstrap_services.php';
 
+/** @var array<string, string> $_POST */
+
 use App\DTO\CreateUserCommand;
 use App\Services\UserService;
 

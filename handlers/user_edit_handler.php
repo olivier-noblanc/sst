@@ -9,12 +9,16 @@
 
 require_once __DIR__ . '/../src/bootstrap_services.php';
 
+/** @var array<string, string> $_POST */
+
 use App\DTO\UpdateUserCommand;
 use App\Services\UserService;
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 if ($userId <= 0) {
-    $userId = (int) ($_GET['id'] ?? 0);
+    /** @var string $getId */
+    $getId = $_GET['id'] ?? '0';
+    $userId = (int) $getId;
 }
 
 if ($userId <= 0) {
@@ -32,7 +36,9 @@ if ($action === 'export_data') {
     auditLog($pdo, 'gdpr', 'data_export', 'Export RGPD des données de l\'utilisateur ID ' . $userId, $userId, 'user');
     $filename = 'rgpd_export_user_' . $userId . '_' . date('Y-m-d') . '.json';
     $json = json_encode($userData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    sendFileDownload($json, $filename, 'application/json; charset=utf-8');
+    if (is_string($json)) {
+        sendFileDownload($json, $filename, 'application/json; charset=utf-8');
+    }
 }
 
 if ($action === 'anonymize') {
@@ -53,6 +59,8 @@ if (!$user) {
     setFlash('error', 'Utilisateur introuvable.');
     redirect(url('users'));
 }
+
+/** @var array<string, string> $user */
 
 // Validate
 $errors = $service->validate($_POST, $userId);

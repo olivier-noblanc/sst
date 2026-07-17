@@ -11,10 +11,11 @@
  * Handle the 'manage_sites' tab of settings.
  *
  * @param PDO   $pdo       Database connection
- * @param array $postData  The $_POST data
+ * @param array<string, mixed> $postData  The $_POST data
  */
 function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 {
+    /** @var array<string, string> $postData */
     $action = (string) ($postData['action'] ?? '');
 
     if ($action === 'add_site') {

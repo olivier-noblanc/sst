@@ -7,6 +7,8 @@
 use App\DTO\ReopenReportCommand;
 use App\Services\ReportService;
 
+/** @var array<string, string> $_POST */
+
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $motifReouverture = trim((string) ($_POST['motif_reouverture'] ?? ''));
 
@@ -17,6 +19,9 @@ if (mb_strlen($motifReouverture, 'UTF-8') < 10) {
 }
 
 $report = fetchReportOrRedirect($reportUuid);
+
+/** @var array<string, string> $report */
+
 $userId = currentUserId();
 
 try {
@@ -35,6 +40,7 @@ try {
             $registryLabel = REGISTRY_SHORT_LABELS[(string) ($report['type'] ?? '')] ?? strtoupper((string) ($report['type'] ?? ''));
             $declarant = getUserById($pdo, (int) ($report['declarant_id'] ?? 0));
             if ($declarant && !empty($declarant['email']) && (int) ($report['declarant_id'] ?? 0) !== $userId) {
+                /** @var array<string, string> $declarant */
                 $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
                 $body = '<html><body>';
                 $body .= '<h2>Votre signalement a été réouvert</h2>';
@@ -46,6 +52,7 @@ try {
             }
             $linkedAgents = getLinkedAgents($pdo, $reportUuid);
             foreach ($linkedAgents as $linkedAgent) {
+                /** @var array<string, string> $linkedAgent */
                 if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
                     $linkedSubject = "Signalement réouvert $registryLabel — {$report['reference']}";
                     $linkedBody = buildEmailBody(

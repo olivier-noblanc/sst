@@ -18,7 +18,9 @@ use App\Repository\SiteRepository;
  */
 function getAllSites(PDO $pdo): array
 {
-    return SiteRepository::instance()->findAll();
+    $result = SiteRepository::instance()->findAll();
+    /** @var array<int, array<string, mixed>> $result */
+    return $result;
 }
 
 /**
@@ -29,7 +31,9 @@ function getAllSites(PDO $pdo): array
  */
 function getActiveSites(PDO $pdo): array
 {
-    return SiteRepository::instance()->findActive();
+    $result = SiteRepository::instance()->findActive();
+    /** @var array<int, array<string, mixed>> $result */
+    return $result;
 }
 
 /**
@@ -41,7 +45,9 @@ function getActiveSites(PDO $pdo): array
  */
 function getSiteById(PDO $pdo, int $id): ?array
 {
-    return SiteRepository::instance()->findById($id);
+    $result = SiteRepository::instance()->findById($id);
+    /** @var array<string, mixed>|null $result */
+    return $result;
 }
 
 /**
@@ -53,7 +59,9 @@ function getSiteById(PDO $pdo, int $id): ?array
  */
 function getSiteByCode(PDO $pdo, string $code): ?array
 {
-    return SiteRepository::instance()->findByCode($code);
+    $result = SiteRepository::instance()->findByCode($code);
+    /** @var array<string, mixed>|null $result */
+    return $result;
 }
 
 /**
@@ -65,7 +73,9 @@ function getSiteByCode(PDO $pdo, string $code): ?array
  */
 function getSiteByName(PDO $pdo, string $nom): ?array
 {
-    return SiteRepository::instance()->findByName($nom);
+    $result = SiteRepository::instance()->findByName($nom);
+    /** @var array<string, mixed>|null $result */
+    return $result;
 }
 
 /**

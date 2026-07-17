@@ -9,6 +9,8 @@
 
 require_once __DIR__ . '/../src/bootstrap_services.php';
 
+/** @var array<string, string> $_POST */
+
 use App\Services\UserService;
 
 $userId = (int) ($_POST['user_id'] ?? 0);
@@ -25,6 +27,7 @@ try {
 
     $pdo = getDB();
     $user = $service->findById($userId);
+    /** @var array<string, string> $user */
     $label = is_array($user) ? $user['prenom'] . ' ' . $user['nom'] : '(id=' . $userId . ')';
     auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $label, (int) $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($label) . ' désactivé avec succès.');

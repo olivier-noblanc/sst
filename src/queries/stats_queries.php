@@ -22,7 +22,9 @@ use App\Repository\StatsRepository;
  */
 function getSynthesisData(PDO $pdo, string $year, int $siteId = 0): array
 {
-    return StatsRepository::instance()->getSynthesis($year, $siteId);
+    $result = StatsRepository::instance()->getSynthesis($year, $siteId);
+    /** @var array<int, array<string, mixed>> $result */
+    return $result;
 }
 
 /**
@@ -34,7 +36,9 @@ function getSynthesisData(PDO $pdo, string $year, int $siteId = 0): array
  */
 function getExportData(PDO $pdo, array $filters = []): array
 {
-    return StatsRepository::instance()->getExportData($filters);
+    $result = StatsRepository::instance()->getExportData($filters);
+    /** @var array<int, array<string, mixed>> $result */
+    return $result;
 }
 
 /**
@@ -60,7 +64,9 @@ function getStatisticsIndicateurs(PDO $pdo, string $year = '', int $siteId = 0):
  */
 function getStatsBySite(PDO $pdo, string $year = '', int $siteId = 0): array
 {
-    return StatsRepository::instance()->getBySite($year, $siteId);
+    $result = StatsRepository::instance()->getBySite($year, $siteId);
+    /** @var array<int, array<string, mixed>> $result */
+    return $result;
 }
 
 /**
@@ -84,5 +90,7 @@ function countReportsByRegistryAndSite(PDO $pdo, string $type, int $siteId): int
  */
 function getAvailableYears(PDO $pdo): array
 {
-    return StatsRepository::instance()->getAvailableYears();
+    $result = StatsRepository::instance()->getAvailableYears();
+    /** @var array<int, string> $result */
+    return $result;
 }

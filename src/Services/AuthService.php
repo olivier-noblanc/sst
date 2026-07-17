@@ -22,6 +22,7 @@ class AuthService
     /**
      * Get the currently authenticated user.
      * In PROD: reads IIS AUTH_USER. In DEV: returns null (login form).
+     * @return array<string, mixed>|null
      */
     public function getAuthenticatedUser(): ?array
     {
@@ -52,6 +53,7 @@ class AuthService
 
     /**
      * Find existing user or auto-create from Windows login.
+     * @return array<string, mixed>|null
      */
     public function findOrCreateUser(string $username): ?array
     {
@@ -70,6 +72,7 @@ class AuthService
 
     /**
      * Attempt mock login (DEV_MODE only).
+     * @return array<string, mixed>|null
      */
     public function mockLogin(string $username): ?array
     {
@@ -97,6 +100,7 @@ class AuthService
 
     /**
      * Auto-provision a new user from their Windows login.
+     * @return array<string, mixed>|null
      */
     public function autoProvision(string $username): ?array
     {
@@ -146,6 +150,8 @@ class AuthService
 
     /**
      * Check if existing user should be auto-promoted to superviseur.
+     * @param array<string, mixed> $user
+     * @return array<string, mixed>
      */
     public function checkAndPromote(array $user, string $username): array
     {
@@ -200,6 +206,7 @@ class AuthService
 
     /**
      * Parse comma-separated superviseur username list.
+     * @return list<string>
      */
     public static function parseSuperviseurUsernames(string $list): array
     {

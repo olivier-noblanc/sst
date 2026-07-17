@@ -16,6 +16,9 @@ function getHttpService(): HttpService
     return new HttpService();
 }
 
+/**
+ * @param array<string, mixed> $params
+ */
 function url(string $page, array $params = []): string
 {
     return getHttpService()->url($page, $params);
@@ -41,6 +44,9 @@ function sendFileDownload(string $content, string $filename, string $contentType
     getHttpService()->sendFileDownload($content, $filename, $contentType, $disposition);
 }
 
+/**
+ * @param list<string>|null $roles
+ */
 function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string $csrfToken = null): void
 {
     getHttpService()->validatePostRequest($fallbackUrl, $roles, $csrfToken);

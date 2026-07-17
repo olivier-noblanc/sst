@@ -7,13 +7,19 @@
 use App\DTO\UpdateReportCommand;
 use App\Services\ReportService;
 
+/** @var array<string, string> $_POST */
+
 validatePostRequest(url('home'));
 
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
 
+/** @var array<string, string> $report */
+
 $userId = currentUserId();
 $user = currentUser();
+
+/** @var array<string, string> $user */
 requireReportOwnership($report, $userId, $reportUuid, 'modifier');
 requireReportEditable($report, $reportUuid, 'modifié');
 
@@ -47,11 +53,13 @@ if (!empty($errors)) {
 }
 
 $cmd = UpdateReportCommand::fromPost($_POST);
-$cmd = new UpdateReportCommand(...array_merge($cmd->toArray(), [
+/** @var array<string, string> $cmdData */
+$cmdData = array_merge($cmd->toArray(), [
     'attachmentBlob' => $removeAttachment ? null : ($attachment['blob'] ?? null),
     'attachmentName' => $removeAttachment ? null : ($attachment['name'] ?? null),
     'attachmentMime' => $removeAttachment ? null : ($attachment['mime'] ?? null),
-]));
+]);
+$cmd = new UpdateReportCommand(...$cmdData);
 
 try {
     /** @var ReportService $service */

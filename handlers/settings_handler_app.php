@@ -11,10 +11,11 @@
  * Handle the 'app' tab of settings.
  *
  * @param PDO   $pdo       Database connection
- * @param array $postData  The $_POST data
+ * @param array<string, mixed> $postData  The $_POST data
  */
 function handleSettingsAppTab(PDO $pdo, array $postData): void
 {
+    /** @var array<string, string> $postData */
     // Update application settings
     // NOTE: app_version is NOT editable here — it is read from CHANGELOG.md by getAppVersion()
     $appNomOrganisation = trim((string) ($postData['app_nom_organisation'] ?? ''));

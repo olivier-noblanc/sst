@@ -8,6 +8,9 @@ use PDO;
 
 class BackupService
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function getDbFingerprint(): array
     {
         return \getDbFingerprint($this->pdo());

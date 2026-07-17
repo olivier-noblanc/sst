@@ -10,6 +10,8 @@
 
 require_once __DIR__ . '/../src/bootstrap_services.php';
 
+/** @var array<string, string> $_POST */
+
 use App\Services\AuthService;
 use App\Services\SessionManager;
 
@@ -30,6 +32,7 @@ $session = getContainer()->get(SessionManager::class);
 $user = $authService->mockLogin($username);
 
 if ($user) {
+    /** @var array<string, string> $user */
     safeSessionRegenerate();
 
     require_once __DIR__ . '/../src/cron.php';

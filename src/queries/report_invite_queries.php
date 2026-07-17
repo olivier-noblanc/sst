@@ -22,7 +22,7 @@ function createAgentInvite(PDO $pdo, string $reportUuid, string $email): string
 
 /**
  * Get an invitation by token.
- * @return array|null
+ * @return array<string, mixed>|null
  */
 function getAgentInviteByToken(PDO $pdo, string $token): ?array
 {
@@ -40,7 +40,7 @@ function confirmAgentInvite(PDO $pdo, string $token, int $userId): bool
 
 /**
  * Get pending (unconfirmed) invitations for a report.
- * @return array
+ * @return list<array{email: string, created_at: string}>
  */
 function getPendingInvites(PDO $pdo, string $reportUuid): array
 {

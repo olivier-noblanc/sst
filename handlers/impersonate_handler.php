@@ -17,6 +17,8 @@
 
 require_once __DIR__ . '/../src/bootstrap_services.php';
 
+/** @var array<string, string> $_POST */
+
 use App\Services\SessionManager;
 
 /** @var SessionManager $session */
@@ -77,6 +79,7 @@ if ($action === 'stop') {
 
     // Audit log
     $pdo = getDB();
+    /** @var string $realRole */
     auditLog($pdo, 'auth', 'impersonate_stop', 'Fin d\'incarnation du rôle ' . (ROLE_LABELS[$impersonatedRole] ?? $impersonatedRole) . ' — retour au rôle ' . (ROLE_LABELS[$realRole] ?? $realRole), null, 'user', [
         'real_role'  => $realRole,
         'impersonated_role' => $impersonatedRole,

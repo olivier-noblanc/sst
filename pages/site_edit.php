@@ -7,7 +7,9 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
-$siteId = (int) ($_GET['id'] ?? 0);
+/** @var string */
+$siteIdRaw = $_GET['id'] ?? '0';
+$siteId = (int) $siteIdRaw;
 
 if ($siteId <= 0) {
     new \App\Services\SessionService()->setFlash('error', 'Site introuvable.');
@@ -20,10 +22,15 @@ if (!$site) {
     new \App\Services\SessionService()->setFlash('error', 'Site introuvable.');
     new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('settings', ['tab' => 'manage_sites']));
 }
+/** @var array{code: string, nom: string, departement?: string} $site */
 
 // Form data and errors from session
 $formErrors = new \App\Services\SessionService()->getFormErrors();
 $formData = new \App\Services\SessionService()->getFormData();
+
+if (!isset($csrfToken)) {
+    $csrfToken = (new \App\Services\SessionService())->generateCsrfToken();
+}
 
 // Use formData if available, otherwise use site data
 $editCode = $formData['code'] ?? $site['code'];

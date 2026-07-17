@@ -22,7 +22,7 @@ $noSiteMode = $config->isNoSiteMode();
 $sites = \App\Repository\SiteRepository::instance()->findAll();
 
 // Get current notification settings
-$currentSettings = \App\Repository\NotificationRepository::instance()->getSettings();
+$currentSettings = \App\Repository\NotificationRepository::instance()->findAll();
 
 // Organize settings: by site and global
 $siteEmails = [];

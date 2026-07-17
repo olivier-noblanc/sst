@@ -12,6 +12,8 @@
 use App\Repository\StatsRepository;
 use App\Repository\ReportRepository;
 
+/** @var array<string, string> $_POST */
+
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
 $reportRepo = ReportRepository::instance();
@@ -105,12 +107,14 @@ fputcsv($tmpFile, $headers, ';', escape: '\\');
 // Bulk-fetch all responses for the reports being exported (avoids N+1 queries)
 $allResponses = [];
 if (!empty($reports)) {
+    /** @var list<string> $allUuids */
     $allUuids = array_column($reports, 'uuid');
     $allResponses = $reportRepo->getResponsesForUuids($allUuids);
 }
 
 // Data rows
 foreach ($reports as $row) {
+    /** @var array<string, string> $row */
     // Get response history for this report (from bulk-fetched data)
     $responses = $allResponses[(string) ($row['uuid'] ?? '')] ?? [];
     $responseCount = count($responses);
@@ -129,6 +133,7 @@ foreach ($reports as $row) {
     // Format: [Date] Répondant (État) : Réponse | [Date] ...
     $historyParts = [];
     foreach ($responses as $resp) {
+        /** @var array<string, string> $resp */
         $date = (string) ($resp['created_at'] ?? '');
         $respondent = trim((string) ($resp['prenom'] ?? '') . ' ' . (string) ($resp['nom'] ?? ''));
         $etat = ETAT_LABELS[(string) ($resp['nouvel_etat'] ?? '')] ?? (string) ($resp['nouvel_etat'] ?? '');
@@ -139,11 +144,12 @@ foreach ($reports as $row) {
 
     // CSV formula injection prevention: prefix cells starting with =+@-
     $csvEscape = function ($value): string {
-        $value = (string) $value;
-        if (preg_match('/^[=+\-@]/', $value)) {
-            return "'" . $value;
+        /** @var string $safe */
+        $safe = $value;
+        if (preg_match('/^[=+\-@]/', $safe)) {
+            return "'" . $safe;
         }
-        return $value;
+        return $safe;
     };
 
     $csvRow = [

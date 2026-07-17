@@ -6,6 +6,9 @@ namespace App\DTO;
 
 class RespondToReportCommand
 {
+    /**
+     * @param array<string, mixed> $attachment
+     */
     public function __construct(
         public readonly string $reponse,
         public readonly string $nouvelEtat,

@@ -20,12 +20,16 @@ class ReportService
         private readonly EventDispatcher $events
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
     public function create(CreateReportCommand $cmd): array
     {
         $this->validateForCreation($cmd);
         $cmd = $this->enforceVisibility($cmd);
         $uuid = $this->repo->create($cmd);
         $report = $this->repo->findById($uuid);
+        /** @var array<string, mixed> $report */
 
         $this->events->dispatch('report.created', [
             'report' => $report,
@@ -36,12 +40,16 @@ class ReportService
         return $report;
     }
 
+    /**
+     * @return array{status: string, message?: string}
+     */
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array
     {
         $report = $this->repo->findById($uuid);
         if (!$report) {
             throw new RuntimeException('Signalement introuvable.');
         }
+        /** @var array<string, mixed> $report */
         if (!canRespondToReport($report, currentUserRole())) {
             throw new RuntimeException('Accès refusé.');
         }
@@ -64,6 +72,7 @@ class ReportService
         if (!$report) {
             throw new RuntimeException('Signalement introuvable.');
         }
+        /** @var array<string, mixed> $report */
         if (!canEditReport($report, $userId)) {
             throw new RuntimeException('Accès refusé.');
         }
@@ -85,6 +94,7 @@ class ReportService
         if (!$report) {
             throw new RuntimeException('Signalement introuvable.');
         }
+        /** @var array<string, mixed> $report */
         if (!canEditReport($report, $userId)) {
             throw new RuntimeException('Accès refusé.');
         }
@@ -97,6 +107,7 @@ class ReportService
         if (!$report) {
             throw new RuntimeException('Signalement introuvable.');
         }
+        /** @var array<string, mixed> $report */
         if (!in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE])) {
             throw new RuntimeException('Ce signalement ne peut pas être réouvert.');
         }
@@ -115,9 +126,14 @@ class ReportService
         return $result;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function findById(string $uuid): ?array
     {
-        return $this->repo->findById($uuid);
+        $result = $this->repo->findById($uuid);
+        /** @var array<string, mixed>|null $result */
+        return $result;
     }
 
     private function validateForCreation(CreateReportCommand $cmd): void
@@ -145,10 +161,14 @@ class ReportService
     {
         $mode = getReportVisibilityMode($cmd->type);
         if ($mode === 'public') {
-            return new CreateReportCommand(...array_merge($cmd->toArray(), ['isConfidential' => 0]));
+            $data = array_merge($cmd->toArray(), ['isConfidential' => 0]);
+            /** @phpstan-var array{type: string, objet: string, description: string, dateEvenement: string, heureEvenement: string|null, lieu: string|null, declarantId: int, declarantNom: string, declarantPrenom: string, siteId: int, siteText: string|null, pole: string|null, serviceAffectation: string|null, telephoneMobile: string|null, isConfidential: int, consentSyndicat: int, natureAuteur: string|null, typeActe: string|null, pourCompteNom: string|null, pourComptePrenom: string|null, attachmentBlob: string|null, attachmentName: string|null, attachmentMime: string|null} $data */
+            return new CreateReportCommand(...$data);
         }
         if ($mode === 'confidential') {
-            return new CreateReportCommand(...array_merge($cmd->toArray(), ['isConfidential' => 1]));
+            $data = array_merge($cmd->toArray(), ['isConfidential' => 1]);
+            /** @phpstan-var array{type: string, objet: string, description: string, dateEvenement: string, heureEvenement: string|null, lieu: string|null, declarantId: int, declarantNom: string, declarantPrenom: string, siteId: int, siteText: string|null, pole: string|null, serviceAffectation: string|null, telephoneMobile: string|null, isConfidential: int, consentSyndicat: int, natureAuteur: string|null, typeActe: string|null, pourCompteNom: string|null, pourComptePrenom: string|null, attachmentBlob: string|null, attachmentName: string|null, attachmentMime: string|null} $data */
+            return new CreateReportCommand(...$data);
         }
         return $cmd;
     }

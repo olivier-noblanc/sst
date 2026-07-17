@@ -110,7 +110,7 @@ function abandonReport(PDO $pdo, string $uuid, int $userId): bool
  * @param int    $userId       The responding user's ID
  * @param string $reponse      Response text
  * @param string $nouvelEtat   New state ('en_cours' or 'traite')
- * @param array  $attachment   Optional attachment data ['blob', 'name', 'mime']
+ * @param array<string, mixed> $attachment   Optional attachment data ['blob', 'name', 'mime']
  * @return array{status: string, message?: string} Status result
  */
 function respondToReport(PDO $pdo, string $uuid, int $userId, string $reponse, string $nouvelEtat, array $attachment = []): array

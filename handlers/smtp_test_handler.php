@@ -16,6 +16,8 @@
 
 // ── Parameters ────────────────────────────────────────────────────────────────
 
+/** @var array<string, string> $_POST */
+
 $to = trim((string) ($_POST['smtp_test_to'] ?? ''));
 $host = trim(getConfig('smtp_host', ''));
 $from = trim(getConfig('smtp_from', ''));

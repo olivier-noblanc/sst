@@ -7,6 +7,7 @@ namespace App\Query;
 class QueryFilterBuilder
 {
     private string $where = '1=1';
+    /** @var array<string, mixed> */
     private array $params = [];
     private int $paramIndex = 0;
 
@@ -21,6 +22,7 @@ class QueryFilterBuilder
         return $this;
     }
 
+    /** @param list<mixed> $values */
     public function addIn(string $column, array $values): self
     {
         if (empty($values)) {
@@ -36,6 +38,7 @@ class QueryFilterBuilder
         return $this;
     }
 
+    /** @param array<string, mixed> $params */
     public function addRaw(string $sqlFragment, array $params = []): self
     {
         $this->where .= " AND $sqlFragment";
@@ -47,10 +50,12 @@ class QueryFilterBuilder
     {
         return $this->where;
     }
+    /** @return array<string, mixed> */
     public function getParams(): array
     {
         return $this->params;
     }
+    /** @return array{where: string, params: array<string, mixed>} */
     public function build(): array
     {
         return ['where' => $this->where, 'params' => $this->params];

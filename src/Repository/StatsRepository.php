@@ -25,6 +25,7 @@ class StatsRepository
         return $instance;
     }
 
+    /** @return array<mixed, mixed> */
     public function getSynthesis(string $year, int $siteId = 0): array
     {
         $sql = "
@@ -55,6 +56,10 @@ class StatsRepository
         return is_array($rows) ? $rows : [];
     }
 
+    /**
+     * @param array<string, mixed> $filters
+     * @return array<mixed, mixed>
+     */
     public function getExportData(array $filters = []): array
     {
         $sql = '
@@ -119,6 +124,7 @@ class StatsRepository
         return is_array($rows) ? $rows : [];
     }
 
+    /** @return array<string, int> */
     public function getIndicateurs(string $year = '', int $siteId = 0): array
     {
         $params = [];
@@ -171,6 +177,7 @@ class StatsRepository
         ];
     }
 
+    /** @return array<mixed, mixed> */
     public function getBySite(string $year = '', int $siteId = 0): array
     {
         $sql = "
@@ -223,6 +230,7 @@ class StatsRepository
         return (int) $stmt->fetchColumn();
     }
 
+    /** @return list<mixed> */
     public function getAvailableYears(): array
     {
         $stmt = $this->pdo->query("
@@ -234,6 +242,7 @@ class StatsRepository
         return array_column(is_array($rows) ? $rows : [], 'year');
     }
 
+    /** @return array{by_nature_auteur: array<mixed, mixed>, by_type_acte: array<mixed, mixed>} */
     public function getRamiStructuredStats(string $year = ''): array
     {
         $params = [];

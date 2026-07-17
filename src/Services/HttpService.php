@@ -98,6 +98,8 @@ class HttpService
 
     /**
      * Validate that the request is a POST with a valid CSRF token.
+     *
+     * @param list<string>|null $roles
      */
     public function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string $csrfToken = null): void
     {

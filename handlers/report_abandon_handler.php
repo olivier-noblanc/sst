@@ -8,10 +8,14 @@
 
 require_once __DIR__ . '/../src/bootstrap_services.php';
 
+/** @var array<string, string> $_POST */
+
 use App\Services\ReportService;
 
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
+
+/** @var array<string, string> $report */
 
 $user = currentUser();
 $userId = currentUserId();

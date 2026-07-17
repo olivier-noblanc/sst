@@ -15,7 +15,10 @@ $config = \App\Services\ConfigService::getInstance();
 $noSiteMode = $config->isNoSiteMode();
 
 // Get filter
-$year = trim((string) ($_GET['year'] ?? date('Y')));
+/** @var string $yearGet */
+$yearGet = $_GET['year'] ?? date('Y');
+/** @var string $year */
+$year = trim((string) $yearGet);
 
 // Get available years
 $availableYears = \App\Repository\StatsRepository::instance()->getAvailableYears();
@@ -28,15 +31,15 @@ if (empty($availableYears)) {
 $indicateurs = \App\Repository\StatsRepository::instance()->getIndicateurs($year);
 
 // Get stats by site
-/** @var array<int, array<string, mixed>> $statsBySite */
+/** @var list<array{code: string, rsst: int, rami: int, dgi: int, total: int}> $statsBySite */
 $statsBySite = \App\Repository\StatsRepository::instance()->getBySite($year);
 
 // Get RAMI structured stats
-/** @var array<string, mixed> $ramiStats */
+/** @var array{by_nature_auteur: list<array{nature_auteur: string, count: int}>, by_type_acte: list<array{type_acte: string, count: int}>} $ramiStats */
 $ramiStats = \App\Repository\StatsRepository::instance()->getRamiStructuredStats($year);
 
 // Build table data by site
-/** @var array<int, array<string, mixed>> $sites */
+/** @var list<array{id: int, code: string, nom: string}> $sites */
 $sites = \App\Repository\SiteRepository::instance()->findAll();
 $tableData = [];
 foreach ($sites as $site) {

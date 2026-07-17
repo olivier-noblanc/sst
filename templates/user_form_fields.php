@@ -17,6 +17,17 @@
  *   $editSiteId   — Pre-selected site_id value
  *   $usernameHint — Hint text for username field (optional, default: 'Identifiant de connexion Windows')
  */
+
+/** @var array<string, string> $formErrors */
+/** @var string $editNom */
+/** @var string $editPrenom */
+/** @var string $editEmail */
+/** @var string $editUsername */
+/** @var string $editRole */
+/** @var int|string $editSiteId */
+/** @var list<array{id: int|string, nom: string}> $sites */
+/** @var string $usernameHint */
+
 if (!isset($usernameHint)) {
     $usernameHint = 'Identifiant de connexion Windows (ex: jean.martin)';
 }

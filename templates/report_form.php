@@ -26,21 +26,28 @@ $noSiteMode = isNoSiteMode(getDB());
 /** @var string $action */
 /** @var string $csrfToken */
 /** @var list<array<string, mixed>> $sites */
+/** @var bool $isEdit */
+/** @var array<string, mixed>|null $report */
+/** @var array<string, string> $formErrors */
+/** @var array<string, mixed> $user */
 
 // Determine values: prefer form data (on validation error), then report data, then defaults
 /** @var array<string, mixed> $formData */
-$val = function(string $field, string $default = '') use ($formData, $report, $isEdit) {
+$val = function(string $field, string $default = '') use ($formData, $report, $isEdit): string {
     if (isset($formData[$field]) && $formData[$field] !== '') {
-        return $formData[$field];
+        /** @var string $v */
+        $v = $formData[$field];
+        return $v;
     }
     if ($isEdit && $report && isset($report[$field])) {
-        return $report[$field];
+        /** @var string $v */
+        $v = $report[$field];
+        return $v;
     }
     return $default;
 };
 
-/** @var string $registryLabel */
-$registryLabel = (string) (REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type));
+$registryLabel = (string) (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
 /** @var string $registryFullLabel */
 $registryFullLabel = (string) (REGISTRY_LABELS[$type] ?? $type);
 
@@ -79,7 +86,7 @@ $submitBtnClass = $isEdit
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <?php if ($isEdit): ?>
-            <input type="hidden" name="report_uuid" value="<?php echo e($report['uuid'] ?? ''); ?>">
+            <input type="hidden" name="report_uuid" value="<?php /** @var string $uuid */ $uuid = $report['uuid'] ?? ''; echo e($uuid); ?>">
         <?php endif; ?>
         <?php if (!empty($formErrors)): ?>
         <?php require __DIR__ . '/form_error_summary.php'; ?>
@@ -198,9 +205,9 @@ $submitBtnClass = $isEdit
                 <select id="site_id" name="site_id" required
                         <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : 'aria-describedby="hint_site_id"'; ?>>
                     <?php foreach ($sites as $site): ?>
-                        <option value="<?php echo e($site['id']); ?>"
-                            <?php echo ((int)$val('site_id', (string)$user['site_id']) === (int)$site['id']) ? 'selected' : ''; ?>>
-                            <?php echo e($site['code'] . ' — ' . $site['nom']); ?>
+                        <option value="<?php echo e($site['id'] ?? ''); ?>"
+                            <?php echo ((int)$val('site_id', (string)($user['site_id'] ?? '')) === (int)($site['id'] ?? 0)) ? 'selected' : ''; ?>>
+                            <?php echo e(($site['code'] ?? '') . ' — ' . ($site['nom'] ?? '')); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -219,7 +226,7 @@ $submitBtnClass = $isEdit
                        placeholder="Nom du site (optionnel)">
                 <datalist id="site_text_list">
                     <?php foreach ($sites as $site): ?>
-                        <option value="<?php echo e($site['nom']); ?>">
+                        <option value="<?php echo e($site['nom'] ?? ''); ?>">
                     <?php endforeach; ?>
                 </datalist>
                 <span class="form-hint">Nom du site en texte libre (optionnel).</span>
@@ -256,7 +263,7 @@ $submitBtnClass = $isEdit
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
-                           <?php echo ($val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat']))) ? 'checked' : ''; ?>>
+                           <?php echo ($val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat'] ?? ''))) ? 'checked' : ''; ?>>
                     J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la DREETS
                 </label>
             </div>
@@ -276,7 +283,7 @@ $submitBtnClass = $isEdit
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">
                 <?php echo $isEdit ? 'Enregistrer' : 'Envoyer le signalement'; ?>
             </button>
-            <a href="<?php echo $isEdit && $report ? url('report_view', ['uuid' => $report['uuid']]) : url('home'); ?>"
+            <a href="<?php echo $isEdit && $report ? url('report_view', ['uuid' => $report['uuid'] ?? '']) : url('home'); ?>"
                class="btn btn--secondary" title="Supprimer le formulaire et revenir à la page précédente">Annuler</a>
         </div>
     </form>

@@ -23,6 +23,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     if (!$report) {
         return;
     }
+    /** @var array<string, mixed> $report */
     $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
     $subject = "Nouveau signalement $registryLabel — {$report['reference']}";
     $body = '<html><body>';
@@ -43,6 +44,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     if ($type === TYPE_DGI && getConfig('app_dgi_notify_csa', '1') === '1') {
         $csaUsers = getUsersByRole($pdo, ROLE_CHSCT);
         foreach ($csaUsers as $csaUser) {
+            /** @var array<string, mixed> $csaUser */
             if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients)) {
                 $csaSubject = 'Signalement DGI — Notification ' . getRoleLabelShort('chsct') . " — {$report['reference']}";
                 $csaBody = '<html><body>';
@@ -71,17 +73,20 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     if (!$report) {
         return;
     }
+    /** @var array<string, mixed> $report */
     // Get declarant email
     $declarant = getUserById($pdo, (int) $report['declarant_id']);
     if (!$declarant || empty($declarant['email'])) {
         return;
     }
+    /** @var array{email: string, prenom: string, nom: string, [key: string]: mixed} $declarant */
     $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
     $subject = "Réponse à votre signalement $registryLabel — {$report['reference']}";
     $respondent = getUserById($pdo, $respondentId);
     if (!$respondent) {
         return;
     }
+    /** @var array{prenom: string, nom: string, email: string, [key: string]: mixed} $respondent */
     $body = '<html><body>';
     $body .= '<h2>Votre signalement a reçu une réponse</h2>';
     $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
@@ -121,6 +126,7 @@ function notifyPourCompte(PDO $pdo, string $reportUuid): void
     if (!$report || empty($report['pour_compte_nom'])) {
         return;
     }
+    /** @var array{reference: string, objet: string, declarant_prenom: string, declarant_nom: string, pour_compte_nom: string, pour_compte_prenom: string, [key: string]: mixed} $report */
     // Try to find the agent by name
     $stmt = $pdo->prepare('SELECT * FROM users WHERE nom = :nom AND prenom = :prenom AND is_active = 1 LIMIT 1');
     $stmt->execute([':nom' => $report['pour_compte_nom'], ':prenom' => $report['pour_compte_prenom']]);

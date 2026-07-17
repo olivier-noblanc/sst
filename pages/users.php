@@ -22,16 +22,17 @@ $search = trim((string) ($_GET['q'] ?? ''));
 
 // Get all users
 $allUsers = \App\Repository\UserRepository::instance()->findAll(0, false); // include inactive
+/** @var list<array<string, mixed>> $allUsers */
 
 // Filter by search
 if (!empty($search)) {
     $filtered = [];
     foreach ($allUsers as $u) {
-        if (stripos((string) $u['nom'], $search) !== false
-            || stripos((string) $u['prenom'], $search) !== false
-            || stripos((string) $u['email'], $search) !== false
-            || stripos((string) $u['username'], $search) !== false
-            || (!$noSiteMode && stripos((string) $u['site_nom'], $search) !== false)) {
+        if (stripos((string) ($u['nom'] ?? ''), $search) !== false
+            || stripos((string) ($u['prenom'] ?? ''), $search) !== false
+            || stripos((string) ($u['email'] ?? ''), $search) !== false
+            || stripos((string) ($u['username'] ?? ''), $search) !== false
+            || (!$noSiteMode && stripos((string) ($u['site_nom'] ?? ''), $search) !== false)) {
             $filtered[] = $u;
         }
     }
@@ -44,6 +45,7 @@ $sites = \App\Repository\SiteRepository::instance()->findAll();
 // Form data and errors from session
 $formErrors = new \App\Services\SessionService()->getFormErrors();
 $formData = new \App\Services\SessionService()->getFormData();
+/** @var string $csrfToken */
 
 $pageTitle = 'Gestion des utilisateurs';
 ?>
@@ -114,7 +116,7 @@ $pageTitle = 'Gestion des utilisateurs';
                     <td><span class="badge <?php echo $fmt->getRoleBadgeClass((string) ($u['role'] ?? '')); ?>"><?php echo $fmt->e(ROLE_LABELS[(string) ($u['role'] ?? '')] ?? (string) ($u['role'] ?? '')); ?></span></td>
                     <?php if (!$noSiteMode): ?><td><?php echo $fmt->e((string) ($u['site_nom'] ?? '—')); ?></td><?php endif; ?>
                     <td>
-                        <?php if ($u['is_active']): ?>
+                        <?php if ($u['is_active'] ?? false): ?>
                             <span class="status-dot--active">&#x25CF; Actif</span>
                         <?php else: ?>
                             <span class="status-dot--inactive">&#x25CF; Inactif</span>
@@ -122,7 +124,7 @@ $pageTitle = 'Gestion des utilisateurs';
                     </td>
                     <td>
                         <a href="<?php echo $http->url('user_view', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--outline">Voir</a>
-                        <?php if ($u['is_active']): ?>
+                        <?php if ($u['is_active'] ?? false): ?>
                         <a href="<?php echo $http->url('user_edit', ['id' => (int) $u['id']]); ?>" class="btn btn--sm btn--primary">Éditer</a>
                         <?php else: ?>
                         <form method="POST" action="<?php echo $http->url('user_reactivate'); ?>" class="form--inline">

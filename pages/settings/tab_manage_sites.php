@@ -4,6 +4,9 @@
  *
  * Variables attendues: $sites, $pdo, $csrfToken
  */
+/** @var PDO $pdo */
+/** @var list<array{id: int, code: string, nom: string, departement: string, is_active: int}> $sites */
+/** @var string $csrfToken */
 ?>
 <div class="card">
     <h3 class="card__title">&#x1F3E2; Gestion des sites (<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>)</h3>

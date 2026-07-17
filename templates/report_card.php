@@ -18,7 +18,36 @@ if (!isset($report) || !$report) {
 
 $fmt = new \App\Services\FormattingService();
 
-/** @var array<string, mixed> $report */
+/**
+ * @var array{
+ *   uuid: string,
+ *   type: string,
+ *   etat: string,
+ *   reference: string,
+ *   date_evenement: string,
+ *   heure_evenement: string|null,
+ *   lieu: string|null,
+ *   pole: string|null,
+ *   service_affectation: string|null,
+ *   telephone_mobile: string|null,
+ *   objet: string,
+ *   description: string,
+ *   declarant_id: int|string,
+ *   declarant_prenom: string,
+ *   declarant_nom: string,
+ *   site_nom: string|null,
+ *   site_code: string|null,
+ *   site_text: string|null,
+ *   pour_compte_prenom: string|null,
+ *   pour_compte_nom: string|null,
+ *   consent_syndicat: int|bool|null,
+ *   created_at: string,
+ *   attachment_name: string|null,
+ *   attachment_mime: string|null,
+ *   is_confidential: int|bool|null,
+ *   ...
+ * } $report
+ */
 $type = (string) ($report['type'] ?? TYPE_RSST);
 $cardClass = match($type) {
     'rsst' => 'card--rsst',
@@ -29,6 +58,7 @@ $cardClass = match($type) {
 
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
 $user = new \App\Services\SessionService()->getUserSession() ?? [];
+/** @var array{role: string, site_id: int|string, id: int|string} $user */
 $userRole = (string) ($user['role'] ?? ROLE_AGENT);
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
@@ -42,6 +72,10 @@ $canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE]) && in_arra
 if (!isset($csrfToken)) {
     $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 }
+
+/** @var list<array{prenom: string, nom: string}> $linkedAgents */
+/** @var list<array{email: string}> $pendingInvites */
+/** @var list<array{id: int|string, created_at: string, prenom: string|null, nom: string|null, nouvel_etat: string|null, reponse: string, attachment_name: string|null, attachment_mime: string|null}> $responses */
 ?>
 
 <div class="card <?php echo $cardClass; ?>">

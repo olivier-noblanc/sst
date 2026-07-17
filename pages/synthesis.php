@@ -15,8 +15,12 @@ $config = \App\Services\ConfigService::getInstance();
 $noSiteMode = $config->isNoSiteMode();
 
 // Get filter parameters
+/** @var string $year */
 $year = $_GET['year'] ?? date('Y');
-$siteId = (int) ($_GET['site'] ?? 0);
+/** @var string $siteGet */
+$siteGet = $_GET['site'] ?? '0';
+/** @var int $siteId */
+$siteId = (int) $siteGet;
 
 // Get available years
 $availableYears = \App\Repository\StatsRepository::instance()->getAvailableYears();
@@ -26,9 +30,11 @@ if (empty($availableYears)) {
 
 // Get sites for filter
 $sites = \App\Repository\SiteRepository::instance()->findAll();
+/** @var list<array{id: int, code: string, nom: string}> $sites */
 
 // Get synthesis data
 $synthesisData = \App\Repository\StatsRepository::instance()->getSynthesis($year, $siteId);
+/** @var list<array{site_id: int, type: string, nouveau: int, en_cours: int, traite: int, abandonne: int, total: int}> $synthesisData */
 
 // Organize data by site
 $siteData = [];

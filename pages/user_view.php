@@ -12,9 +12,11 @@ $fmt = new \App\Services\FormattingService();
 $http = new \App\Services\HttpService();
 $config = \App\Services\ConfigService::getInstance();
 
+/** @var PDO $pdo */
 $pdo = getDB();
 $noSiteMode = $config->isNoSiteMode();
 $userId = (int) ($_GET['id'] ?? 0);
+/** @var int $userId */
 
 if ($userId <= 0) {
     new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
@@ -27,6 +29,7 @@ if (!$user) {
     new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
     new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('users'));
 }
+/** @var array<string, mixed> $user */
 
 // Get user's report count
 $stmt = $pdo->prepare('SELECT COUNT(*) FROM reports WHERE declarant_id = :uid');
@@ -45,14 +48,14 @@ $pageTitle = 'Utilisateur — ' . $fmt->e((string) ($user['prenom'] ?? '') . ' '
             <h2 class="card__subtitle mb-1"><?php echo $fmt->e((string) ($user['prenom'] ?? '') . ' ' . (string) ($user['nom'] ?? '')); ?></h2>
             <div class="btn-group--inline items-center">
                 <span class="badge <?php echo $fmt->getRoleBadgeClass((string) ($user['role'] ?? '')); ?>"><?php echo $fmt->e(ROLE_LABELS[(string) ($user['role'] ?? '')] ?? (string) ($user['role'] ?? '')); ?></span>
-                <?php if ($user['is_active']): ?>
+                <?php if ($user['is_active'] ?? false): ?>
                     <span class="status-dot--active">&#x25CF; Actif</span>
                 <?php else: ?>
                     <span class="status-dot--inactive">&#x25CF; Inactif</span>
                 <?php endif; ?>
             </div>
         </div>
-        <a href="<?php echo $http->url('user_edit', ['id' => (int) $user['id']]); ?>" class="btn btn--primary">Éditer</a>
+        <a href="<?php echo $http->url('user_edit', ['id' => (int) ($user['id'] ?? 0)]); ?>" class="btn btn--primary">Éditer</a>
     </div>
 
     <table class="report-detail__table" aria-label="Informations utilisateur">
@@ -98,7 +101,7 @@ $pageTitle = 'Utilisateur — ' . $fmt->e((string) ($user['prenom'] ?? '') . ' '
 </div>
 
 <div class="form-actions">
-    <a href="<?php echo $http->url('user_edit', ['id' => (int) $user['id']]); ?>" class="btn btn--primary">Éditer</a>
+    <a href="<?php echo $http->url('user_edit', ['id' => (int) ($user['id'] ?? 0)]); ?>" class="btn btn--primary">Éditer</a>
     <a href="<?php echo $http->url('users'); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>
 
@@ -110,7 +113,8 @@ $pageTitle = 'Utilisateur — ' . $fmt->e((string) ($user['prenom'] ?? '') . ' '
         L'anonymisation remplace les données personnelles par des placeholders et désactive le compte. Les signalements sont conservés.
     </p>
     <div class="btn-group flex-wrap">
-        <form method="POST" action="<?php echo $http->url('user_edit', ['id' => (int) $user['id']]); ?>">
+        <?php /** @var string $csrfToken */ ?>
+        <form method="POST" action="<?php echo $http->url('user_edit', ['id' => (int) ($user['id'] ?? 0)]); ?>">
             <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
             <input type="hidden" name="action" value="export_data">
             <button type="submit" class="btn btn--outline text-small">&#x1F4E5; Exporter les données (droit d'accès)</button>
@@ -118,14 +122,14 @@ $pageTitle = 'Utilisateur — ' . $fmt->e((string) ($user['prenom'] ?? '') . ' '
         <?php if (($user['nom'] ?? '') !== 'Anonymisé'): ?>
         <?php if (isset($_GET['confirm_anonymize'])): ?>
         <span class="section-header--danger">&#x26A0;&#xFE0F; Anonymiser définitivement ?</span>
-        <form method="POST" action="<?php echo $http->url('user_edit', ['id' => (int) $user['id']]); ?>" class="form--inline">
+        <form method="POST" action="<?php echo $http->url('user_edit', ['id' => (int) ($user['id'] ?? 0)]); ?>" class="form--inline">
             <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
             <input type="hidden" name="action" value="anonymize">
             <button type="submit" class="btn btn--danger text-small">Oui, anonymiser</button>
         </form>
-        <a href="<?php echo $http->url('user_view', ['id' => (int) $user['id']]); ?>" class="btn btn--secondary text-small">Annuler</a>
+        <a href="<?php echo $http->url('user_view', ['id' => (int) ($user['id'] ?? 0)]); ?>" class="btn btn--secondary text-small">Annuler</a>
         <?php else: ?>
-        <a href="<?php echo $http->url('user_view', ['id' => (int) $user['id'], 'confirm_anonymize' => 1]); ?>" class="btn btn--danger text-small">&#x1F512; Anonymiser (droit d'effacement)</a>
+        <a href="<?php echo $http->url('user_view', ['id' => (int) ($user['id'] ?? 0), 'confirm_anonymize' => 1]); ?>" class="btn btn--danger text-small">&#x1F512; Anonymiser (droit d'effacement)</a>
         <?php endif; ?>
         <?php endif; ?>
     </div>

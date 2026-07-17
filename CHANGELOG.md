@@ -13,6 +13,14 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **4** 🔴 **Fatal error `getSettings()`** — `NotificationRepository::getSettings()` remplacé par `findAll()`. (`pages/settings.php`)
 - **5** 🟡 **Word cloud tous profils** — Suppression du gate `if ($rsstCount > 0)`. Tests non-régression (8 tests). (`pages/home.php`, `tests/unit/WordCloudRegressionTest.php`)
 
+### Refactoring — Cast int/string fixes (69 erreurs corrigées)
+
+- **6** 🔴 **user_view.php** — 24 erreurs cast → 0. Variables user typées extraites (`$userPrenom`, `$userNom`, etc.). (`pages/user_view.php`)
+- **7** 🔴 **users.php** — 17 erreurs cast → 0. `@var` intermédiaires pour `$_GET` + variables user dans foreach. (`pages/users.php`)
+- **8** 🟡 **user_edit.php** — 7 erreurs cast → 0. (`pages/user_edit.php`)
+- **9** 🟡 **AccessService.php** — 12 erreurs cast → 0. Variables intermédiaires pour `$report`/`$user` offsets. (`src/Services/AccessService.php`)
+- **10** 🟡 **FormattingService.php** — 9 erreurs cast → 0. `@var string` après null check. (`src/Services/FormattingService.php`)
+
 ### Refactoring — Nettoyage `mixed` PHPStan (session complète)
 
 Baseline PHPStan : **950 → 669 erreurs** (-281, -29.6%). 857 tests, 1542 assertions.

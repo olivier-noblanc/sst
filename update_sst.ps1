@@ -120,7 +120,7 @@ function Restore-LastBackup {
 # ============================================================
 
 function Invoke-QualityGate {
-    Write-Section "Gate qualite (lint + PHPStan + tests)"
+    Write-Section "Gate qualite (lint + PHPStan + tests + e2e)"
 
     # Verifier que PHP est disponible
     $phpExe = Get-Command $PhpBin -ErrorAction SilentlyContinue
@@ -142,7 +142,7 @@ function Invoke-QualityGate {
     if ($SkipLint) {
         Write-Status "!" "Lint PHP ignore (-SkipLint). DANGEREUX." "Yellow"
     } else {
-        Write-Status ">" "Etape 1/3 : Lint PHP (php -l, xdebug off)..." "Cyan"
+        Write-Status ">" "Etape 1/4 : Lint PHP (php -l, xdebug off)..." "Cyan"
 
         $phpFiles = Get-ChildItem -Path $AppDir -Recurse -File -Filter "*.php" -ErrorAction SilentlyContinue |
             Where-Object {
@@ -242,7 +242,7 @@ function Invoke-QualityGate {
     }
 
     # ── 2. PHPStan (shims scoop) ──
-    Write-Status ">" "Etape 2/3 : PHPStan (niveau 10)..." "Cyan"
+    Write-Status ">" "Etape 2/4 : PHPStan (niveau 10)..." "Cyan"
     $phpstanRan = $false
 
     # Verifier les shims scoop d'abord, puis vendor/bin, puis PATH
@@ -275,7 +275,7 @@ function Invoke-QualityGate {
     }
 
     # ── 3. Tests PHPUnit ──
-    Write-Status ">" "Etape 3/3 : Tests PHPUnit..." "Cyan"
+    Write-Status ">" "Etape 3/4 : Tests PHPUnit..." "Cyan"
     $phpunitRan = $false
 
     if (Test-Path $PhpUnitPhar) {
@@ -308,6 +308,57 @@ function Invoke-QualityGate {
         }
     } else {
         Write-Status "!" "PHPUnit non trouve ($PhpUnitPhar). Etape skippee." "Yellow"
+    }
+
+    # ── 4. E2E Playwright (Firefox) — détecte Python puis npx ──
+    Write-Status ">" "Etape 4/4 : E2E Playwright (Firefox)..." "Cyan"
+    $e2eRan = $false
+
+    # Préférer Python (plus rapide, pas besoin de node_modules)
+    $pythonPlaywright = $false
+    $npxPlaywright = $false
+    try {
+        $pyVersion = & python -m playwright --version 2>&1
+        if ($LASTEXITCODE -eq 0 -and $pyVersion -match 'Version') {
+            $pythonPlaywright = $true
+        }
+    } catch {}
+
+    if (-not $pythonPlaywright) {
+        try {
+            $npxVersion = & npx playwright --version 2>&1
+            if ($LASTEXITCODE -eq 0 -and $npxVersion -match 'Version') {
+                $npxPlaywright = $true
+            }
+        } catch {}
+    }
+
+    if ($pythonPlaywright) {
+        $e2eRan = $true
+        $output = & python -m playwright test --project=firefox -q 2>&1
+        $rc = $LASTEXITCODE
+        $filteredOutput = $output | Where-Object { $_ -notmatch '^\s*$' }
+        $filteredOutput | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        if ($rc -eq 0) {
+            Write-Status "OK" "E2E Playwright (Python, Firefox) : OK." "Green"
+        } else {
+            Write-Status "X" "E2E Playwright : echec (code $rc)." "Red"
+            $gateOk = $false
+        }
+    } elseif ($npxPlaywright) {
+        $e2eRan = $true
+        $output = & npx playwright test --project=firefox -q 2>&1
+        $rc = $LASTEXITCODE
+        $filteredOutput = $output | Where-Object { $_ -notmatch '^\s*$' }
+        $filteredOutput | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        if ($rc -eq 0) {
+            Write-Status "OK" "E2E Playwright (npx, Firefox) : OK." "Green"
+        } else {
+            Write-Status "X" "E2E Playwright : echec (code $rc)." "Red"
+            $gateOk = $false
+        }
+    } else {
+        Write-Status "!" "Playwright non trouve (ni Python ni npx). E2E skippee." "Yellow"
     }
 
     # ── Resume ──
@@ -547,7 +598,7 @@ if (-not (Test-Path $hookDir)) { New-Item -ItemType Directory -Path $hookDir -Fo
 $hookContent = @'
 #!/usr/bin/env bash
 # Gate qualité avant push — empêche de pusher du code cassé
-# Exécute : lint PHP + phpunit (pas de PHPStan — trop lent pour un hook)
+# Exécute : lint PHP + phpunit + e2e Playwright (Firefox)
 set -uo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 PHP_BIN="$(command -v php)"
@@ -586,20 +637,46 @@ fi
 # 2) PHPUnit
 if [[ -f "$PHPUNIT" ]]; then
     if "$PHP_BIN" "$PHPUNIT" --no-coverage -q 2>/dev/null; then
-        echo "[pre-push] ✓ Tests OK"
+        echo "[pre-push] ✓ PHPUnit OK"
     else
-        echo "[pre-push] ✗ Tests échoués. Push bloqué."
+        echo "[pre-push] ✗ PHPUnit échoué. Push bloqué."
         echo "[pre-push] Pour bypasser : git push --no-verify"
         exit 1
     fi
 else
-    echo "[pre-push] ! phpunit.phar absent — tests skip"
+    echo "[pre-push] ! phpunit.phar absent — PHPUnit skip"
 fi
 
 if [[ $LINT_ERR -eq 1 ]]; then
     echo "[pre-push] ✗ Lint échoué. Push bloqué."
     echo "[pre-push] Pour bypasser : git push --no-verify"
     exit 1
+fi
+
+# 3) E2E Playwright (Firefox) — détecte Python puis npx
+E2E_OK=1
+if command -v python >/dev/null 2>&1 && python -m playwright --version >/dev/null 2>&1; then
+    echo "[pre-push] > E2E Playwright (Python, Firefox)..."
+    cd "$REPO_ROOT" && python -m playwright test --project=firefox -q 2>/dev/null
+    if [[ $? -eq 0 ]]; then
+        echo "[pre-push] ✓ E2E OK (Python)"
+    else
+        echo "[pre-push] ✗ E2E échoué. Push bloqué."
+        echo "[pre-push] Pour bypasser : git push --no-verify"
+        exit 1
+    fi
+elif command -v npx >/dev/null 2>&1 && npx playwright --version >/dev/null 2>&1; then
+    echo "[pre-push] > E2E Playwright (npx, Firefox)..."
+    cd "$REPO_ROOT" && npx playwright test --project=firefox -q 2>/dev/null
+    if [[ $? -eq 0 ]]; then
+        echo "[pre-push] ✓ E2E OK (npx)"
+    else
+        echo "[pre-push] ✗ E2E échoué. Push bloqué."
+        echo "[pre-push] Pour bypasser : git push --no-verify"
+        exit 1
+    fi
+else
+    echo "[pre-push] ! Playwright absent (ni Python ni npx) — E2E skip"
 fi
 
 echo "[pre-push] ✓ Gate qualité réussie."

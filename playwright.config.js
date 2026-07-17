@@ -37,8 +37,8 @@ module.exports = defineConfig({
   },
   projects: [
     {
-      name: 'chromium',
-      use: { browserName: 'chromium' },
+      name: 'firefox',
+      use: { browserName: 'firefox' },
     },
   ],
   webServer: {

@@ -220,7 +220,7 @@ test.describe('Impersonate — Stop', () => {
 test.describe('Impersonate — Agent Cannot Impersonate', () => {
 
   test.beforeEach(async ({ page }) => {
-    await loginAs(page, 'jean.dupont');
+    await loginAs(page, 'agent.dev');
   });
 
   test('should NOT show impersonate dropdown for agent role', async ({ page }) => {

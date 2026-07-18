@@ -6,6 +6,7 @@
 /data/*.sqlite
 /data/*.log
 /data/backups/
+/data/sessions/
 
 # Environment
 .env
@@ -27,6 +28,8 @@ Thumbs.db
 # PHP
 composer.phar
 composer-setup.php
+php_server.log
+php_server_err.log
 
 # Binary / generated files
 *.pdf

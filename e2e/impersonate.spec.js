@@ -35,7 +35,7 @@ test.describe('Impersonate — Start', () => {
     // Menu should be visible with Agent and CHSCT options
     await expect(page.locator('.impersonate-menu')).toBeVisible();
     await expect(page.locator('.impersonate-menu button:has-text("Agent")')).toBeVisible();
-    await expect(page.locator('.impersonate-menu button:has-text("Membre CSA/CHSCT")')).toBeVisible();
+    await expect(page.locator('.impersonate-menu button:has-text("Membre FS/CSA")')).toBeVisible();
   });
 
   test('should impersonate Agent role successfully', async ({ page }) => {
@@ -58,7 +58,7 @@ test.describe('Impersonate — Start', () => {
 
     // Open impersonate menu and click CHSCT
     await page.locator('.impersonate-btn').click();
-    await page.locator('.impersonate-menu button:has-text("Membre CSA/CHSCT")').click();
+    await page.locator('.impersonate-menu button:has-text("Membre FS/CSA")').click();
 
     // Should display the impersonation banner
     await expect(page.locator('.impersonate-banner')).toBeVisible();

@@ -59,8 +59,8 @@ test.describe('Export Page', () => {
     await page.goto('/index.php?page=export');
     await page.waitForLoadState('networkidle');
 
-    // Submit the form
-    const submitBtn = page.locator('button[type="submit"], input[type="submit"]');
+    // Submit the form — scope to #exportForm to avoid clicking impersonate menu button
+    const submitBtn = page.locator('#exportForm button[type="submit"]');
     if (await submitBtn.count() > 0) {
       // Listen for download
       const downloadPromise = page.waitForEvent('download', { timeout: 10000 }).catch(() => null);

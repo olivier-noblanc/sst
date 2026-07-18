@@ -4,14 +4,7 @@
  * Tests sidebar navigation, page loading, and basic page content.
  */
 import { test, expect } from '@playwright/test';
-
-async function loginAs(page, username = 'admin.dev') {
-  await page.goto('/index.php?page=login');
-  await page.locator('#username').fill(username);
-  await page.locator('#password').fill('test');
-  await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
-}
+import { loginAs } from './helpers.js';
 
 test.describe('Sidebar Navigation (Superviseur)', () => {
 

@@ -4,16 +4,14 @@
  * Tests the full lifecycle: create → respond → reopen → abandon.
  */
 import { test, expect } from '@playwright/test';
+import { loginAs } from './helpers.js';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Report Abandon Flow', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Login as superviseur
-    await page.goto('/index.php?page=login');
-    await page.click('.login-quick-buttons button:first-child, .login-quick-buttons a:first-child');
-    await page.waitForLoadState('networkidle');
+    await loginAs(page);
   });
 
   test('should navigate to abandon page from report_view', async ({ page }) => {
@@ -65,9 +63,7 @@ test.describe('Report Abandon Flow', () => {
 test.describe('Report Reopen Flow', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/index.php?page=login');
-    await page.click('.login-quick-buttons button:first-child, .login-quick-buttons a:first-child');
-    await page.waitForLoadState('networkidle');
+    await loginAs(page);
   });
 
   test('should show reopen option for processed reports', async ({ page }) => {
@@ -93,9 +89,7 @@ test.describe('Report Reopen Flow', () => {
 test.describe('Report Create and View Cycle', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/index.php?page=login');
-    await page.click('.login-quick-buttons button:first-child, .login-quick-buttons a:first-child');
-    await page.waitForLoadState('networkidle');
+    await loginAs(page);
   });
 
   test('should create RSST report and view it', async ({ page }) => {
@@ -177,9 +171,7 @@ test.describe('Report Create and View Cycle', () => {
 test.describe('Report Search and Filter', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/index.php?page=login');
-    await page.click('.login-quick-buttons button:first-child, .login-quick-buttons a:first-child');
-    await page.waitForLoadState('networkidle');
+    await loginAs(page);
   });
 
   test('should search reports by keyword', async ({ page }) => {

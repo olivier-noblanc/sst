@@ -6,14 +6,7 @@
  * Access: superviseur only
  */
 import { test, expect } from '@playwright/test';
-
-async function loginAs(page, username = 'admin.dev') {
-  await page.goto('/index.php?page=login');
-  await page.locator('#username').fill(username);
-  await page.locator('#password').fill('test');
-  await page.locator('form button[type="submit"]').click();
-  await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
-}
+import { loginAs } from './helpers.js';
 
 test.describe('Settings Page — Tab Navigation', () => {
 

@@ -4,16 +4,14 @@
  * Tests that settings forms can be submitted and values persist.
  */
 import { test, expect } from '@playwright/test';
+import { loginAs } from './helpers.js';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Settings Save Operations', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Login as superviseur
-    await page.goto('/index.php?page=login');
-    await page.click('.login-quick-buttons button:first-child, .login-quick-buttons a:first-child');
-    await page.waitForLoadState('networkidle');
+    await loginAs(page);
   });
 
   test('should save global notification settings', async ({ page }) => {

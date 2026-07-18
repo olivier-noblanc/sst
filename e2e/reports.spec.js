@@ -5,17 +5,7 @@
  * create → list → view → edit → respond → abandon
  */
 import { test, expect } from '@playwright/test';
-
-/**
- * Helper: Login as a given user
- */
-async function loginAs(page, username = 'admin.dev') {
-  await page.goto('/index.php?page=login');
-  await page.locator('#username').fill(username);
-  await page.locator('#password').fill('test');
-  await page.locator('form button[type="submit"]').click();
-  await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
-}
+import { loginAs } from './helpers.js';
 
 /**
  * Helper: Create a report via the form and return the resulting page

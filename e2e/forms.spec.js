@@ -5,14 +5,7 @@
  * and various form interaction patterns.
  */
 import { test, expect } from '@playwright/test';
-
-async function loginAs(page, username = 'admin.dev') {
-  await page.goto('/index.php?page=login');
-  await page.locator('#username').fill(username);
-  await page.locator('#password').fill('test');
-  await page.locator('form button[type="submit"]').click();
-  await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
-}
+import { loginAs } from './helpers.js';
 
 test.describe('Report Form Validation', () => {
 
@@ -272,14 +265,14 @@ test.describe('Login Form Validation', () => {
     await expect(page).toHaveURL(/page=login/);
   });
 
-  test('should have visible input fields on login form', async ({ page }) => {
+  test('should have login forms with submit buttons', async ({ page }) => {
     await page.goto('/index.php?page=login');
 
-    const usernameInput = page.locator('#username');
-    const passwordInput = page.locator('#password');
-
-    await expect(usernameInput).toBeVisible();
-    await expect(passwordInput).toBeVisible();
+    // Login page now has 3 separate forms (Superviseur, Agent, CHSCT)
+    const forms = page.locator('form');
+    await expect(forms).toHaveCount(3);
+    await expect(page.locator('button:has-text("Superviseur")')).toBeVisible();
+    await expect(page.locator('button:has-text("Agent")')).toBeVisible();
   });
 
 });

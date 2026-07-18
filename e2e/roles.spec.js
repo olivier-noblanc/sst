@@ -5,14 +5,7 @@
  * only the pages and features they are authorized for.
  */
 import { test, expect } from '@playwright/test';
-
-async function loginAs(page, username = 'admin.dev') {
-  await page.goto('/index.php?page=login');
-  await page.locator('#username').fill(username);
-  await page.locator('#password').fill('test');
-  await page.locator('form button[type="submit"]').click();
-  await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
-}
+import { loginAs } from './helpers.js';
 
 test.describe('Agent Role Access', () => {
 
@@ -243,7 +236,7 @@ test.describe('Unauthenticated Access', () => {
   test('should allow access to login page without authentication', async ({ page }) => {
     await page.goto('/index.php?page=login');
     await expect(page).toHaveURL(/page=login/);
-    await expect(page.locator('#username')).toBeVisible();
+    await expect(page.locator('button:has-text("Superviseur")')).toBeVisible();
   });
 
 });

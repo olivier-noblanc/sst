@@ -71,7 +71,7 @@ $formData = $session->getFormData();
         </tr>
         <?php endif; ?>
         <tr>
-            <th><?php echo $type === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
+            <th><?php echo $registryType === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
             <td><?php echo $fmt->e($report['lieu'] ?? '—'); ?></td>
         </tr>
         <?php if (!empty($report['pole'])): ?>

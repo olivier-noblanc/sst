@@ -18,7 +18,7 @@ header('Cache-Control: no-cache');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 
 $pageTitle = 'Connexion';
 
@@ -58,7 +58,7 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
                 <p class="login-subtitle"><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?></p>
                 <p class="login-dev-badge">
                     <?php if (!empty($_SERVER['AUTH_USER'])): ?>
-                    🔒 Authentification Windows IIS
+                    Authentification Windows IIS
                     <?php else: ?>
                     Connexion
                     <?php endif; ?>
@@ -72,31 +72,34 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="<?php echo new \App\Services\HttpService()->url('login'); ?>" class="login-form" id="quick-login-form">
-                <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e(new \App\Services\SessionService()->generateCsrfToken()); ?>">
-                <input type="hidden" id="username" name="username" value="">
-                <input type="hidden" id="password" name="password" value="test">
-            </form>
-
             <p class="login-choose-profile">Choisissez votre profil</p>
             <p class="login-choose-hint">Cliquez sur votre profil. En cas de doute, choisissez Agent.</p>
             <div class="login-quick-buttons">
                 <div class="login-btn-wrapper">
-                    <button type="button" class="btn btn--primary login-btn--superviseur" onclick="document.getElementById('username').value='admin.dev';document.getElementById('quick-login-form').submit();">
-                        Superviseur
-                    </button>
+                    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('login'); ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e(new \App\Services\SessionService()->generateCsrfToken()); ?>">
+                        <input type="hidden" name="username" value="admin.dev">
+                        <input type="hidden" name="password" value="test">
+                        <button type="submit" class="btn btn--primary login-btn--superviseur">Superviseur</button>
+                    </form>
                     <span class="login-btn-desc">Gestion et suivi des signalements</span>
                 </div>
                 <div class="login-btn-wrapper">
-                    <button type="button" class="btn btn--primary login-btn--agent" onclick="document.getElementById('username').value='agent.dev';document.getElementById('quick-login-form').submit();">
-                        Agent
-                    </button>
+                    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('login'); ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e(new \App\Services\SessionService()->generateCsrfToken()); ?>">
+                        <input type="hidden" name="username" value="agent.dev">
+                        <input type="hidden" name="password" value="test">
+                        <button type="submit" class="btn btn--primary login-btn--agent">Agent</button>
+                    </form>
                     <span class="login-btn-desc">Signaler un événement</span>
                 </div>
                 <div class="login-btn-wrapper">
-                    <button type="button" class="btn btn--primary login-btn--chsct" onclick="document.getElementById('username').value='chsct.dev';document.getElementById('quick-login-form').submit();">
-                        <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabel('chsct')); ?>
-                    </button>
+                    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('login'); ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e(new \App\Services\SessionService()->generateCsrfToken()); ?>">
+                        <input type="hidden" name="username" value="chsct.dev">
+                        <input type="hidden" name="password" value="test">
+                        <button type="submit" class="btn btn--primary login-btn--chsct"><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabel('chsct')); ?></button>
+                    </form>
                     <span class="login-btn-desc">Consultation et synthèse</span>
                 </div>
             </div>

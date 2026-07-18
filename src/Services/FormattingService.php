@@ -228,12 +228,9 @@ class FormattingService
      *
      * Each page load randomizes weights by ±30% for a dynamic visual effect.
      *
-     * @param PDO $pdo Database connection (unused, kept for API compatibility)
-     * @param string $type     Report type (unused, kept for API compatibility)
-     * @param int    $maxWords Maximum number of words to display
      * @return string HTML word cloud, or empty string if no data
      */
-    public function buildWordCloud(PDO $pdo, string $type, int $maxWords = 30): string
+    public function buildWordCloud(): string
     {
         $configService = ConfigService::getInstance();
         $wordsJson = $configService->get('word_cloud_words', '[]');
@@ -260,7 +257,7 @@ class FormattingService
                 $randMax = $variation;
                 $randomWeight = $baseWeight + mt_rand($randMin, $randMax) / 10.0;
                 $randomWeight = max(1.0, min(20.0, $randomWeight));
-                $randomized[] = ['word' => $word, 'weight' => $randomWeight];
+                $randomized[] = ['w' => $word, 'p' => $randomWeight];
             }
         }
 
@@ -269,25 +266,17 @@ class FormattingService
         }
 
         // Sort by randomized weight descending
-        usort($randomized, fn(array $a, array $b): int => (int) ($b['weight'] <=> $a['weight']));
+        usort($randomized, fn(array $a, array $b): int => (int) ($b['p'] <=> $a['p']));
 
-        // Limit to maxWords
-        $randomized = array_slice($randomized, 0, $maxWords);
-
-        $weights = array_column($randomized, 'weight');
-        if (empty($weights)) {
-            return '';
-        }
-        $maxWeight = max($weights);
-        $minWeight = min($weights);
-        $range = max($maxWeight - $minWeight, 1.0);
-
-        $html = '<div class="word-cloud" role="img" aria-label="Nuage de mots">';
+        $json = htmlspecialchars(json_encode($randomized, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
+        $html = '<div class="word-cloud" role="img" aria-label="Nuage de mots" data-words="' . $json . '">';
+        $html .= '<p class="text-muted text-small mb-2">Nuage de mots — Mots les plus fréquents</p>';
+        $html .= '<noscript>';
         foreach ($randomized as $entry) {
-            $ratio = ($entry['weight'] - $minWeight) / $range;
-            $size = 0.7 + ($ratio * 1.3);
-            $html .= '<span class="word-cloud__word" style="font-size:' . number_format($size, 1) . 'rem;">' . $this->e($entry['word']) . '</span> ';
+            $size = 0.65 + ($entry['p'] * 0.05);
+            $html .= '<span class="word-cloud__word" style="font-size:' . number_format($size, 1) . 'rem;">' . $this->e($entry['w']) . '</span> ';
         }
+        $html .= '</noscript>';
         $html .= '</div>';
         return $html;
     }

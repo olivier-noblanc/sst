@@ -15,7 +15,7 @@ function getRegistryIcon(string $type): string
 /**
  * @param array<string, mixed> $card
  */
-function renderRegistryCard(array $card, string $extraClass = ''): string
+function renderRegistryCard(array $card, string $extraClass = '', string $extraContent = ''): string
 {
     $cssClass = 'registry-card registry-card--' . e($card['type']);
     if ($extraClass !== '') {
@@ -36,6 +36,9 @@ function renderRegistryCard(array $card, string $extraClass = ''): string
     $html .= '<a href="' . e($card['listUrl']) . '" class="registry-card__link">Voir les signalements</a>';
     $html .= '<div class="registry-card__stat">' . $countLabel . '</div>';
     $html .= '</div>';
+    if ($extraContent !== '') {
+        $html .= '<div class="registry-card__extra">' . $extraContent . '</div>';
+    }
     $html .= '</div>';
     return $html;
 }
@@ -43,13 +46,14 @@ function renderRegistryCard(array $card, string $extraClass = ''): string
 /**
  * @param list<array<string, mixed>> $cards
  */
-function renderRegistryCards(array $cards, string $layout = 'compact'): string
+function renderRegistryCards(array $cards, string $layout = 'compact', array $extraContentMap = []): string
 {
     $gridClass = $layout === 'large' ? 'registry-cards registry-cards--large' : 'registry-cards';
     $extraClass = $layout === 'large' ? 'home-action--large' : '';
     $html = '<div class="' . $gridClass . '">';
     foreach ($cards as $card) {
-        $html .= renderRegistryCard($card, $extraClass);
+        $extra = $extraContentMap[$card['type']] ?? '';
+        $html .= renderRegistryCard($card, $extraClass, $extra);
     }
     $html .= '</div>';
     return $html;

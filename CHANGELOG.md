@@ -66,7 +66,6 @@ Réduction de la dette technique `mixed` sur le pipeline d'analyse statique. Le 
 - **6** 🟡 **phpstan-baseline.neon** — Nettoyage des entries pour les fichiers supprimés.
 - **7** 🟡 **.gitignore** — Ajout de `data/infection-tmp/` (fichiers temporaires Infection PHP).
 
-
 ## [3.38.0] — 2026-07-12
 
 ### Corrections — Ultrareview 13 issues

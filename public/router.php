@@ -27,6 +27,38 @@ if ($uri === '/asset.php') {
     return true;
 }
 
+// CSS server: css.php?f=css/style.css&v=... (proper Content-Type + caching)
+if ($uri === '/css.php') {
+    require $publicPath . '/css.php';
+    return true;
+}
+
+// Static files: js/, css/, img/ — serve directly with correct Content-Type
+$staticDir = $publicPath . $uri;
+if (str_starts_with($uri, '/js/') || str_starts_with($uri, '/css/') || str_starts_with($uri, '/img/')) {
+    if (is_file($staticDir)) {
+        $ext = strtolower(pathinfo($staticDir, PATHINFO_EXTENSION));
+        $mimeMap = [
+            'js'  => 'application/javascript; charset=utf-8',
+            'css' => 'text/css; charset=utf-8',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'ico' => 'image/x-icon',
+            'woff2' => 'font/woff2',
+            'woff' => 'font/woff',
+        ];
+        $mime = $mimeMap[$ext] ?? 'application/octet-stream';
+        header('Content-Type: ' . $mime);
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-cache');
+        readfile($staticDir);
+        return true;
+    }
+}
+
 // === Enable Gzip compression for PHP output only ===
 if (extension_loaded('zlib')
     && !ini_get('zlib.output_compression')

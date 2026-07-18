@@ -134,7 +134,7 @@ class WordCloudRegressionTest extends TestCase
         // Word cloud rendering code must exist
         $this->assertStringContainsString('buildWordCloud', $fullContent, 'home.php must call buildWordCloud()');
         $this->assertStringContainsString('wordCloud', $fullContent, 'home.php must use $wordCloud variable');
-        $this->assertStringContainsString('Nuage de mots', $fullContent, 'home.php must display word cloud title');
+        $this->assertStringContainsString('extraContentMap', $fullContent, 'home.php must pass word cloud via extraContentMap');
     }
 
     /**

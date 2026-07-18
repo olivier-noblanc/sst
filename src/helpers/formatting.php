@@ -89,7 +89,7 @@ function renderBreadcrumb(array $items): string
     return getFormattingService()->renderBreadcrumb($items);
 }
 
-function buildWordCloud(PDO $pdo, string $type, int $maxWords = 30): string
+function buildWordCloud(): string
 {
-    return getFormattingService()->buildWordCloud($pdo, $type, $maxWords);
+    return getFormattingService()->buildWordCloud();
 }

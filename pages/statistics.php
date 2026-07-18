@@ -131,7 +131,7 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 <!-- Table: Reports by site and registry -->
 <?php if (!$noSiteMode): ?>
 <div class="card">
-    <h3 class="card__title">Nombre de signalements réparti par <?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?> et par registre</h3>
+    <h2 class="card__title">Nombre de signalements réparti par <?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?> et par registre</h2>
     <div class="table-wrapper">
         <table aria-label="Statistiques des signalements">
             <thead>
@@ -170,12 +170,12 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 <!-- RAMI: Répartition par nature de l'auteur et type d'acte -->
 <?php if ($ramiEnabled && (!empty($ramiStats['by_nature_auteur']) || !empty($ramiStats['by_type_acte']))): ?>
 <div class="card card--mt">
-    <h3 class="card__title">RAMI — Répartition par nature de l'auteur et type d'acte</h3>
+    <h2 class="card__title">RAMI — Répartition par nature de l'auteur et type d'acte</h2>
     <p class="text-muted text-small">Statistiques sur les signalements RAMI ayant renseigné les champs « Nature de l'auteur » et « Type d'acte ».</p>
     <div class="help-profiles-grid">
         <?php if (!empty($ramiStats['by_nature_auteur'])): ?>
         <div>
-            <h4>Nature de l'auteur</h4>
+            <h3>Nature de l'auteur</h3>
             <div class="table-wrapper">
                 <table aria-label="RAMI par nature de l'auteur">
                     <thead>
@@ -198,7 +198,7 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
         <?php endif; ?>
         <?php if (!empty($ramiStats['by_type_acte'])): ?>
         <div>
-            <h4>Type d'acte</h4>
+            <h3>Type d'acte</h3>
             <div class="table-wrapper">
                 <table aria-label="RAMI par type d'acte">
                     <thead>

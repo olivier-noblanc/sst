@@ -111,10 +111,10 @@ $auditActionLabels = [
 <!-- Tab: Erreurs PHP -->
 <div class="card card--flush-top">
     <div class="card__title-row">
-        <h3 class="card__subtitle">
+        <h2 class="card__subtitle">
             <?php echo $fmt->e(basename($logFile)); ?>
             <span class="text-muted text-small">(<?php echo number_format($logFileSize, 0, ',', ' '); ?> octets — <?php echo $logCount; ?> lignes<?php echo $logCount > $maxLines ? ', ' . $maxLines . ' dernières affichées' : ''; ?>)</span>
-        </h3>
+        </h2>
         <form method="POST" action="<?php echo $http->url('logs', ['tab' => 'errors']); ?>" class="form--inline">
             <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
             <input type="hidden" name="action" value="clear_logs">
@@ -154,10 +154,10 @@ $auditActionLabels = [
 <!-- Tab: Journal d'audit -->
 <div class="card card--flush-top">
     <div class="card__title-row">
-        <h3 class="card__subtitle">
+        <h2 class="card__subtitle">
             Journal d'audit
             <span class="text-muted text-small">(<?php echo number_format($auditTotal, 0, ',', ' '); ?> entrées)</span>
-        </h3>
+        </h2>
     </div>
 
     <!-- Filters -->

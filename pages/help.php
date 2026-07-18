@@ -15,6 +15,8 @@ $isAgent = ($userRole === 'agent');
 $ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
 $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
 $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
+$hotlineNumber = \App\Services\ConfigService::getInstance()->get('app_hotline_number', '');
+$hotlineEnabled = !empty($hotlineNumber);
 
 // Screenshot helper — must be defined BEFORE any HTML output
 function helpImg(string $name, string $alt, string $base): string

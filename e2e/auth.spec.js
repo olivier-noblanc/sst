@@ -28,13 +28,12 @@ test.describe('Login Page', () => {
     await expect(page.locator('.login-quick-buttons')).toContainText('Agent');
   });
 
-  test('should require username to login', async ({ page }) => {
-    // With quick-login buttons, clicking submit without selection stays on login
+  test('should login with dev credentials from any form', async ({ page }) => {
+    // Each form has hidden dev credentials — submitting any form logs in
     await page.goto('/index.php?page=login');
-    await page.locator('#quick-login-form').evaluate(form => form.submit());
-    // Should stay on login (empty username)
-    await page.waitForTimeout(1000);
-    await expect(page).toHaveURL(/page=login/);
+    await page.locator('form').first().evaluate(form => form.submit());
+    // Should redirect to home (dev credentials are pre-filled in hidden fields)
+    await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });
   });
 
   test('should login as superviseur successfully', async ({ page }) => {
@@ -67,8 +66,8 @@ test.describe('Login Page', () => {
   test('should auto-create agent account for unknown username', async ({ page }) => {
     await page.goto('/index.php?page=login');
     
-    // Get CSRF token from the form
-    const csrfToken = await page.locator('input[name="csrf_token"]').inputValue();
+    // Get CSRF token from the Agent form (second form)
+    const csrfToken = await page.locator('form').nth(1).locator('input[name="csrf_token"]').inputValue();
     
     // POST directly to create a new agent
     const response = await page.request.post('/index.php?page=login', {

@@ -362,8 +362,24 @@ function Invoke-QualityGate {
         Set-Content "$tmpDir\e2e.cmd" $(if ($e2eCmd) { $e2eCmd } else { "none" })
     } -ArgumentList $tmpDir
 
-    # Attendre les 3 jobs
-    $phpstanJob, $phpunitJob, $e2eJob | Wait-Job | Out-Null
+    # Lancer CSS checker en arrière-plan
+    $cssJob = Start-Job -ScriptBlock {
+        param($tmpDir)
+        $ran = $false
+        $output = $null
+        $rc = 1
+        try {
+            $ran = $true
+            $output = & php tools/check_css_classes.php 2>&1
+            $rc = $LASTEXITCODE
+        } catch {}
+        $output | Out-File "$tmpDir\css.out"
+        Set-Content "$tmpDir\css.rc" $rc
+        Set-Content "$tmpDir\css.ran" $ran
+    } -ArgumentList $tmpDir
+
+    # Attendre les 4 jobs
+    $phpstanJob, $phpunitJob, $e2eJob, $cssJob | Wait-Job | Out-Null
 
     # ── Résultat PHPStan ──
     $phpstanRan = (Get-Content "$tmpDir\phpstan.ran" -ErrorAction SilentlyContinue) -eq 'True'
@@ -373,7 +389,7 @@ function Invoke-QualityGate {
             Where-Object { $_ -notmatch 'session_start|PHP Request Shutdown|headers already sent' }
         $phpstanOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
         if ($phpstanRc -eq 0) {
-            Write-Status "OK" "PHPStan : OK (niveau 10, baseline autorisee)." "Green"
+            Write-Status "OK" "PHPStan : OK (niveau 8, baseline autorisee)." "Green"
         } else {
             Write-Status "X" "PHPStan : echec (code $phpstanRc)." "Red"
             $gateOk = $false
@@ -422,6 +438,23 @@ function Invoke-QualityGate {
         }
     } else {
         Write-Status "!" "Playwright non trouve (ni Python ni npx). E2E skippee." "Yellow"
+    }
+
+    # ── Résultat CSS checker ──
+    $cssRan = (Get-Content "$tmpDir\css.ran" -ErrorAction SilentlyContinue) -eq 'True'
+    $cssRc = if (Test-Path "$tmpDir\css.rc") { [int](Get-Content "$tmpDir\css.rc") } else { 1 }
+    if ($cssRan) {
+        $cssOut = Get-Content "$tmpDir\css.out" -ErrorAction SilentlyContinue |
+            Where-Object { $_ -notmatch '^$' }
+        $cssOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        if ($cssRc -eq 0) {
+            Write-Status "OK" "CSS checker : OK (classes alignees)." "Green"
+        } else {
+            Write-Status "X" "CSS checker : classes orphelines detectees." "Red"
+            $gateOk = $false
+        }
+    } else {
+        Write-Status "!" "CSS checker non trouve. Etape skippee." "Yellow"
     }
 
     # Nettoyage
@@ -768,8 +801,16 @@ PID_PHPUNIT=$!
 ) &
 PID_E2E=$!
 
-# Attendre les 3 en parallèle
-wait $PID_PHPSTAN $PID_PHPUNIT $PID_E2E 2>/dev/null
+# CSS checker
+(
+    cd "$REPO_ROOT"
+    php tools/check_css_classes.php >"$TMPDIR/css.out" 2>&1
+    echo $? >"$TMPDIR/css.rc"
+) &
+PID_CSS=$!
+
+# Attendre les 4 en parallèle
+wait $PID_PHPSTAN $PID_PHPUNIT $PID_E2E $PID_CSS 2>/dev/null
 
 # ── 3) Résultats ──
 ALL_OK=1
@@ -801,6 +842,16 @@ if [[ "$RC" == "0" ]]; then
 else
     echo "[pre-push] ✗ E2E échoué (code $RC)"
     cat "$TMPDIR/e2e.out" 2>/dev/null | tail -10
+    ALL_OK=0
+fi
+
+# CSS checker
+RC=$(cat "$TMPDIR/css.rc" 2>/dev/null)
+if [[ "$RC" == "0" ]]; then
+    echo "[pre-push] ✓ CSS checker OK"
+else
+    echo "[pre-push] ✗ CSS checker : classes orphelines"
+    cat "$TMPDIR/css.out" 2>/dev/null | tail -10
     ALL_OK=0
 fi
 

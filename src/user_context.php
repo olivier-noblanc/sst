@@ -50,7 +50,12 @@ function currentUserId(): int
 function currentUserUsername(): string
 {
     $user = getUserSession();
-    return $user ? ($user['username'] ?? '') : '';
+    if (!$user) {
+        return '';
+    }
+    /** @var string $username */
+    $username = $user['username'] ?? '';
+    return $username;
 }
 
 /**
@@ -64,7 +69,11 @@ function currentUserDisplayName(): string
     if (!$user) {
         return '';
     }
-    return trim(($user['prenom'] ?? '') . ' ' . ($user['nom'] ?? ''));
+    /** @var string $prenom */
+    $prenom = $user['prenom'] ?? '';
+    /** @var string $nom */
+    $nom = $user['nom'] ?? '';
+    return trim($prenom . ' ' . $nom);
 }
 
 // ─── Role ─────────────────────────────────────────────────────────────────────
@@ -77,7 +86,12 @@ function currentUserDisplayName(): string
 function currentUserRole(): string
 {
     $user = getUserSession();
-    return $user ? ($user['role'] ?? '') : '';
+    if (!$user) {
+        return '';
+    }
+    /** @var string $role */
+    $role = $user['role'] ?? '';
+    return $role;
 }
 
 /**
@@ -168,7 +182,12 @@ function currentUserSiteId(): int
 function currentUserSiteCode(): string
 {
     $user = getUserSession();
-    return $user ? ($user['site_code'] ?? '') : '';
+    if (!$user) {
+        return '';
+    }
+    /** @var string $siteCode */
+    $siteCode = $user['site_code'] ?? '';
+    return $siteCode;
 }
 
 /**
@@ -179,7 +198,12 @@ function currentUserSiteCode(): string
 function currentUserSiteName(): string
 {
     $user = getUserSession();
-    return $user ? ($user['site_nom'] ?? '') : '';
+    if (!$user) {
+        return '';
+    }
+    /** @var string $siteName */
+    $siteName = $user['site_nom'] ?? '';
+    return $siteName;
 }
 
 /**
@@ -241,9 +265,11 @@ function refreshCurrentUser(PDO $pdo): bool
         // Preserve impersonation state if active
         setUserSession($freshUser);
         if (isImpersonatingRole()) {
-            $impersonatedRole = getImpersonatedRole() ?? $freshUser['role'];
+            $impersonatedRole = getImpersonatedRole() ?? ($freshUser['role'] ?? '');
             // Direct session write needed here — this is inside the session layer
-            $_SESSION['user']['role'] = $impersonatedRole;
+            if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
+                $_SESSION['user']['role'] = $impersonatedRole;
+            }
         }
         return true;
     }

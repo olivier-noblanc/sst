@@ -7,6 +7,7 @@
  * URL: index.php?page=report_attachment&uuid={report_uuid}
  */
 
+/** @var string */
 $uuid = $_GET['uuid'] ?? '';
 
 if (!isValidUuid($uuid)) {
@@ -19,7 +20,7 @@ $stmt = $pdo->prepare('SELECT attachment_blob, attachment_name, attachment_mime 
 $stmt->execute([':uuid' => $uuid]);
 $row = $stmt->fetch();
 
-if (!$row || empty($row['attachment_blob'])) {
+if (!is_array($row) || empty($row['attachment_blob'])) {
     http_response_code(404);
     exit('Fichier introuvable.');
 }
@@ -47,7 +48,9 @@ if (!canAccessReport($report, $user)) {
 logConfidentialReportAccess($pdo, $report, $user);
 
 // Serve the file
+/** @var string */
 $mime = $row['attachment_mime'] ?? 'application/octet-stream';
+/** @var string */
 $name = $row['attachment_name'] ?? 'piece_jointe';
 
 // Check if inline mode is requested (for image preview in browser)
@@ -58,4 +61,6 @@ $inline = !empty($_GET['inline']);
 $isImage = in_array($mime, ['image/jpeg', 'image/png', 'image/gif']);
 $disposition = ($inline && $isImage) ? 'inline' : 'attachment';
 
-sendFileDownload($row['attachment_blob'], $name, $mime, $disposition);
+/** @var string */
+$blob = $row['attachment_blob'];
+sendFileDownload($blob, $name, $mime, $disposition);

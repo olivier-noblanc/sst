@@ -35,8 +35,9 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
     $attachmentName = null;
     $attachmentMime = null;
 
-    if (isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] !== UPLOAD_ERR_NO_FILE) {
-        $file = $_FILES[$fieldName];
+    /** @var array{error: int, name: string, tmp_name: string, size: int}|null $file */
+    $file = $_FILES[$fieldName] ?? null;
+    if ($file !== null && $file['error'] !== UPLOAD_ERR_NO_FILE) {
         if ($file['error'] !== UPLOAD_ERR_OK) {
             $errors['attachment'] = 'Erreur lors du téléchargement du fichier.';
         } elseif ($file['size'] > MAX_ATTACHMENT_SIZE) {
@@ -252,8 +253,10 @@ function requireReportOwnership(array $report, int $userId, string $uuid, string
  */
 function requireReportEditable(array $report, string $uuid, string $verb = 'modifié'): void
 {
-    if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS])) {
-        setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
+    /** @var string */
+    $etat = $report['etat'] ?? '';
+    if (!in_array($etat, [ETAT_NOUVEAU, ETAT_EN_COURS])) {
+        setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$etat] ?? $etat) . ').');
         redirect(url('report_view', ['uuid' => $uuid]));
     }
 }

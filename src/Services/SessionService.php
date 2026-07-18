@@ -60,10 +60,12 @@ class SessionService
 
     /**
      * Get the current user's full data array from session.
+     *
+     * @return array<string, mixed>|null
      */
     public function getUserSession(): ?array
     {
-        /** @var array<string, mixed>|null */
+        /** @var array<string, mixed>|null $user */
         $user = $_SESSION['user'] ?? null;
         return $user;
     }
@@ -93,7 +95,9 @@ class SessionService
      */
     public function getIntendedUrl(): ?string
     {
-        return $_SESSION['intended_url'] ?? null;
+        /** @var string|null $url */
+        $url = $_SESSION['intended_url'] ?? null;
+        return $url;
     }
 
     /**
@@ -101,6 +105,7 @@ class SessionService
      */
     public function clearIntendedUrl(): ?string
     {
+        /** @var string|null $url */
         $url = $_SESSION['intended_url'] ?? null;
         unset($_SESSION['intended_url']);
         return $url;
@@ -117,7 +122,9 @@ class SessionService
     {
         $_SESSION['real_role'] = $realRole;
         $_SESSION['impersonated_role'] = $targetRole;
-        $_SESSION['user']['role'] = $targetRole;
+        if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
+            $_SESSION['user']['role'] = $targetRole;
+        }
     }
 
     /**
@@ -128,8 +135,11 @@ class SessionService
         if (!isset($_SESSION['real_role'])) {
             return null;
         }
+        /** @var string $realRole */
         $realRole = $_SESSION['real_role'];
-        $_SESSION['user']['role'] = $realRole;
+        if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
+            $_SESSION['user']['role'] = $realRole;
+        }
         unset($_SESSION['real_role']);
         unset($_SESSION['impersonated_role']);
         return $realRole;
@@ -148,7 +158,9 @@ class SessionService
      */
     public function getImpersonatedRole(): ?string
     {
-        return $_SESSION['impersonated_role'] ?? null;
+        /** @var string|null $role */
+        $role = $_SESSION['impersonated_role'] ?? null;
+        return $role;
     }
 
     /**
@@ -156,7 +168,9 @@ class SessionService
      */
     public function getRealRole(): ?string
     {
-        return $_SESSION['real_role'] ?? null;
+        /** @var string|null $role */
+        $role = $_SESSION['real_role'] ?? null;
+        return $role;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -170,13 +184,13 @@ class SessionService
     {
         $this->startSession();
         $token = bin2hex(random_bytes(32));
-        if (!isset($_SESSION['csrf_tokens'])) {
-            $_SESSION['csrf_tokens'] = [];
+        /** @var array<string, int> $tokens */
+        $tokens = is_array($_SESSION['csrf_tokens'] ?? null) ? $_SESSION['csrf_tokens'] : [];
+        $tokens[$token] = time();
+        if (count($tokens) > 20) {
+            $tokens = array_slice($tokens, -20, null, true);
         }
-        $_SESSION['csrf_tokens'][$token] = time();
-        if (count($_SESSION['csrf_tokens']) > 20) {
-            $_SESSION['csrf_tokens'] = array_slice($_SESSION['csrf_tokens'], -20, null, true);
-        }
+        $_SESSION['csrf_tokens'] = $tokens;
         return $token;
     }
 
@@ -186,10 +200,13 @@ class SessionService
     public function validateCsrfToken(string $token): bool
     {
         $this->startSession();
-        if (empty($token) || !isset($_SESSION['csrf_tokens'][$token])) {
+        /** @var array<string, int> $tokens */
+        $tokens = is_array($_SESSION['csrf_tokens'] ?? null) ? $_SESSION['csrf_tokens'] : [];
+        if (empty($token) || !isset($tokens[$token])) {
             return false;
         }
-        unset($_SESSION['csrf_tokens'][$token]);
+        unset($tokens[$token]);
+        $_SESSION['csrf_tokens'] = $tokens;
         return true;
     }
 
@@ -207,6 +224,8 @@ class SessionService
 
     /**
      * Retrieve and clear the flash message from the session.
+     *
+     * @return array{type: string, message: string}|null
      */
     public function getFlash(): ?array
     {
@@ -234,6 +253,8 @@ class SessionService
 
     /**
      * Retrieve and clear stored form data.
+     *
+     * @return array<string, mixed>
      */
     public function getFormData(): array
     {
@@ -257,6 +278,8 @@ class SessionService
 
     /**
      * Retrieve and clear stored form errors.
+     *
+     * @return array<string, string>
      */
     public function getFormErrors(): array
     {

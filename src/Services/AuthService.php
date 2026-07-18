@@ -31,7 +31,8 @@ class AuthService
         }
 
         if (!DEV_MODE) {
-            $authUser = $_SERVER['AUTH_USER'] ?? '';
+            /** @var string $authUser */
+        $authUser = $_SERVER['AUTH_USER'] ?? '';
             if (empty($authUser)) {
                 return null;
             }
@@ -57,12 +58,14 @@ class AuthService
      */
     public function findOrCreateUser(string $username): ?array
     {
+        /** @var array<string, mixed>|null $user */
         $user = $this->repo->findByUsernameOrAny($username);
 
         if ($user) {
             if (!$user['is_active']) {
                 return null;
             }
+            /** @var array<string, mixed> $user */
             $user = $this->checkAndPromote($user, $username);
             return $user;
         }
@@ -122,6 +125,7 @@ class AuthService
             'site_id'  => null,
         ]);
 
+        /** @var array<string, mixed>|null $user */
         $user = $this->repo->findById($userId);
 
         $this->events->dispatch('user.provisioned', [
@@ -163,7 +167,8 @@ class AuthService
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users)) {
-                $this->repo->promoteToSuperviseur($user['id']);
+                $id = is_int($user['id']) ? $user['id'] : 0;
+                $this->repo->promoteToSuperviseur($id);
                 $user['role'] = ROLE_SUPERVISEUR;
                 error_log("SST App: Auto-promoted user '$username' to superviseur (config list rule)");
 
@@ -291,7 +296,9 @@ class AuthService
         }
 
         if (DEV_MODE) {
-            \setIntendedUrl($_SERVER['REQUEST_URI'] ?? '');
+            /** @var string $requestUri */
+            $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+            \setIntendedUrl($requestUri);
             \redirect(\url('login'));
         } else {
             http_response_code(500);
@@ -316,8 +323,9 @@ class AuthService
         \clearSession();
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
+            $sessionName = session_name() ?: '';
             setcookie(
-                session_name(),
+                $sessionName,
                 '',
                 ['expires' => time() - 42000, 'path' => $params['path'], 'domain' => $params['domain'], 'secure' => $params['secure'], 'httponly' => $params['httponly']]
             );

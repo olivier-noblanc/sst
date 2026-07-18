@@ -5,11 +5,17 @@
  * Displays a single report with all details, response history, and action buttons.
  * URL: index.php?page=report_view&uuid={report_uuid}
  */
+/** @var string */
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 // Access control: centralized via canAccessReport()
 $user = currentUser();
+if (!$user) {
+    setFlash('error', 'Accès refusé.');
+    redirect(url('home'));
+    exit;
+}
 
 if (!canAccessReport($report, $user)) {
     setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
@@ -31,7 +37,9 @@ if ($report['etat'] === ETAT_ABANDONNE && (int) $declarantIdRaw !== (int) $userI
     setFlash('warning', 'Ce signalement a été abandonné.');
 }
 
-$pageTitle = 'Signalement — ' . $report['reference'];
+/** @var string */
+$reference = $report['reference'] ?? '';
+$pageTitle = 'Signalement — ' . $reference;
 
 // Get response history
 $responses = getReportResponses($pdo, $uuid);
@@ -43,6 +51,7 @@ $linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents($r
 $pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites($reportUuid);
 
 // Breadcrumb data
+/** @var string */
 $reportType = $report['type'] ?? TYPE_RSST;
 $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
 ?>
@@ -50,7 +59,7 @@ $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType
 <?php echo renderBreadcrumb([
     ['url' => url('home'), 'label' => 'Accueil'],
     ['url' => url('report_list', ['type' => $reportType]), 'label' => $reportShortLabel],
-    ['label' => $report['reference']],
+    ['label' => $reference],
 ]); ?>
 
 <?php
@@ -64,7 +73,7 @@ if ($justCreated):
     <div class="confirmation-banner__content">
         <h2 class="confirmation-banner__title">Signalement bien enregistré !</h2>
         <p class="confirmation-banner__text">
-            Votre signalement <strong><?php echo e($report['reference']); ?></strong> a été enregistré dans le registre <?php echo e($reportShortLabel); ?>.
+            Votre signalement <strong><?php echo e($reference); ?></strong> a été enregistré dans le registre <?php echo e($reportShortLabel); ?>.
             Un superviseur va le prendre en charge.
         </p>
         <p class="confirmation-banner__text">

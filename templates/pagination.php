@@ -15,6 +15,10 @@ if (!isset($totalItems) || !isset($currentPage) || !isset($perPage) || !isset($b
     return;
 }
 
+/** @var int $totalItems */
+/** @var int $currentPage */
+/** @var int $perPage */
+/** @var string $baseUrl */
 $totalPages = (int) ceil($totalItems / $perPage);
 
 if ($totalPages <= 1) {

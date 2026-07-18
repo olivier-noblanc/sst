@@ -37,6 +37,7 @@ header_remove('Expires');
 header_remove('Pragma');
 
 // === Get requested file path ===
+/** @var string */
 $file = $_GET['f'] ?? '';
 
 // === Security: validate path ===
@@ -113,11 +114,12 @@ if (!file_exists($filePath) || !is_file($filePath)) {
 }
 
 // === ETag and conditional requests ===
-$fileMtime = filemtime($filePath);
-$fileSize = filesize($filePath);
+$fileMtime = (int) filemtime($filePath);
+$fileSize = (int) filesize($filePath);
 $etag = '"' . dechex($fileMtime) . '-' . dechex($fileSize) . '-' . dechex(crc32($file)) . '"';
 
 // Check If-None-Match (ETag)
+/** @var string|null */
 $clientEtag = $_SERVER['HTTP_IF_NONE_MATCH'] ?? null;
 if ($clientEtag !== null && trim($clientEtag, " \t\n\r\0\x0B\"") === trim($etag, '"')) {
     http_response_code(304);
@@ -126,6 +128,7 @@ if ($clientEtag !== null && trim($clientEtag, " \t\n\r\0\x0B\"") === trim($etag,
 }
 
 // Check If-Modified-Since
+/** @var string|null */
 $clientLastModified = $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? null;
 if ($clientLastModified !== null && strtotime($clientLastModified) >= $fileMtime) {
     http_response_code(304);

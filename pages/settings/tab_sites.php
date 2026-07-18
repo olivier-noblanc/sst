@@ -3,6 +3,10 @@
  * Settings Tab: Notifications par site
  *
  * Variables attendues: $sites, $siteEmails, $csrfToken
+ *
+ * @var string $csrfToken
+ * @var list<array{id: int, code: string, nom: string}> $sites
+ * @var array<int, list<array{id: int, email: string}>> $siteEmails
  */
 ?>
 <form method="POST" action="<?php echo new \App\Services\HttpService()->url('settings'); ?>" id="settingsForm">

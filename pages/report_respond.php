@@ -12,7 +12,9 @@ $fmt = new \App\Services\FormattingService();
 $http = new \App\Services\HttpService();
 $config = \App\Services\ConfigService::getInstance();
 $session = new \App\Services\SessionService();
+$csrfToken = $session->generateCsrfToken();
 
+/** @var string */
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
@@ -26,14 +28,21 @@ $noSiteMode = $config->isNoSiteMode();
 $responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 
 $pageTitle = 'Répondre au signalement — ' . $fmt->e($report['reference']);
+/** @var string */
 $registryType = $report['type'];
-/** @var string $registryTypeStr */
-$registryTypeStr = (string) $registryType;
+$registryTypeStr = $registryType;
 $registryLabel = REGISTRY_SHORT_LABELS[$registryTypeStr] ?? strtoupper($registryTypeStr);
 
 // Get form errors and data from session
 $formErrors = $session->getFormErrors();
 $formData = $session->getFormData();
+
+/** @var string */
+$prenomDeclarant = $report['declarant_prenom'] ?? '';
+/** @var string */
+$nomDeclarant = $report['declarant_nom'] ?? '';
+/** @var string */
+$etat = $report['etat'] ?? '';
 ?>
 
 <h1 class="page-title">Répondre au signalement — <span class="badge <?php echo $fmt->getRegistryBadgeClass($registryType); ?>"><?php echo $fmt->e($report['reference']); ?></span></h1>
@@ -64,7 +73,7 @@ $formData = $session->getFormData();
         </tr>
         <tr>
             <th>Déclarant</th>
-            <td><?php echo $fmt->e($report['declarant_prenom'] . ' ' . $report['declarant_nom']); ?></td>
+            <td><?php echo $fmt->e($prenomDeclarant . ' ' . $nomDeclarant); ?></td>
         </tr>
         <?php if (!$noSiteMode): ?>
         <tr>
@@ -98,7 +107,7 @@ $formData = $session->getFormData();
         </tr>
         <tr>
             <th>État actuel</th>
-            <td><span class="badge <?php echo $fmt->getEtatBadgeClass($report['etat']); ?>"><?php echo $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?></span></td>
+            <td><span class="badge <?php echo $fmt->getEtatBadgeClass($etat); ?>"><?php echo $fmt->e(ETAT_LABELS[$etat] ?? $etat); ?></span></td>
         </tr>
     </table>
 </div>
@@ -118,11 +127,16 @@ $formData = $session->getFormData();
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($responses as $resp): ?>
+                <?php foreach ($responses as $resp):
+                    if (!is_array($resp)) continue;
+                    /** @var string */ $prenom = $resp['prenom'] ?? '';
+                    /** @var string */ $nom = $resp['nom'] ?? '';
+                    /** @var string */ $nouvelEtat = $resp['nouvel_etat'] ?? '';
+                ?>
                 <tr>
                     <td><?php echo $fmt->e($fmt->formatDateTimeFR($resp['created_at'])); ?></td>
-                    <td><?php echo $fmt->e(($resp['prenom'] ?? '') . ' ' . ($resp['nom'] ?? '')); ?></td>
-                    <td><span class="badge <?php echo $fmt->getEtatBadgeClass($resp['nouvel_etat'] ?? ''); ?>"><?php echo $fmt->e(ETAT_LABELS[$resp['nouvel_etat']] ?? $resp['nouvel_etat'] ?? '—'); ?></span></td>
+                    <td><?php echo $fmt->e($prenom . ' ' . $nom); ?></td>
+                    <td><span class="badge <?php echo $fmt->getEtatBadgeClass($nouvelEtat); ?>"><?php echo $fmt->e(ETAT_LABELS[$nouvelEtat] ?? $nouvelEtat); ?></span></td>
                     <td><?php echo nl2br($fmt->e($resp['reponse'])); ?></td>
                 </tr>
                 <?php endforeach; ?>

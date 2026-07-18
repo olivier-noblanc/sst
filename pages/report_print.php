@@ -24,16 +24,24 @@ use App\Services\FormattingService;
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
+/** @var string $reportReference */
+$reportReference = $report['reference'] ?? '';
+/** @var string $reportType */
+$reportType = $report['type'] ?? 'rsst';
+/** @var string $reportEtat */
+$reportEtat = $report['etat'] ?? '';
+
 // Access control: centralized via canAccessReport()
 $user = SessionService::getInstance()->getUserSession();
 
-if (!new AccessService()->canAccessReport($report, $user)) {
+if ($user === null || !new AccessService()->canAccessReport($report, $user)) {
     SessionService::getInstance()->setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
     new HttpService()->redirect(new HttpService()->url('home'));
 }
 
 // Log confidential report access by supervisor/CHSCT
 $pdo = getContainer()->get(PDO::class);
+assert($user !== null);
 new AccessService()->logConfidentialReportAccess($pdo, $report, $user);
 
 // Fetch attachment blob separately (not loaded by findById for performance)
@@ -41,21 +49,28 @@ $attachmentData = ReportRepository::instance()->getAttachmentBlob($uuid);
 $report['attachment_blob'] = $attachmentData['attachment_blob'] ?? null;
 
 // Get response history
+/** @var list<array<string, mixed>> $responses */
 $responses = ReportRepository::instance()->getResponses($uuid);
 
-$type = $report['type'] ?? 'rsst';
+$type = $reportType;
 $registryLabel = REGISTRY_LABELS[$type] ?? strtoupper($type);
-$registryShortLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type);
-$etatLabel = ETAT_LABELS[$report['etat']] ?? $report['etat'];
+$registryShortLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+$etatLabel = ETAT_LABELS[$reportEtat] ?? $reportEtat;
 
 // --- Build PDF with FPDF ---
 require_once __DIR__ . '/../src/lib/fpdf/fpdf.php';
 require_once __DIR__ . '/report_print_helpers.php';
 
+/** @var array{int, int, int} $blueDark */
+/** @var array{int, int, int} $colorRsst */
+/** @var array{int, int, int} $colorNouveau */
+/** @var array<string, array{int, int, int}> $registryColors */
+/** @var array<string, array{int, int, int}> $etatColors */
+
 // Create PDF
 $pdf = new SSTPDF('P', 'mm', 'A4');
 $pdf->headerText = ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')
-    . ' — Signalement ' . $report['reference'];
+    . ' — Signalement ' . $reportReference;
 $pdf->footerOrgName = ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
 $pdf->AliasNbPages();
 $pdf->SetAutoPageBreak(true, 22);
@@ -69,7 +84,7 @@ $pdf->AddFont('DejaVu', 'B', 'DejaVuSans-Bold.json', $fontDir);
 $pdf->AddPage();
 
 // Set PDF metadata (pass UTF-8, FPDF handles conversion internally)
-$pdf->SetTitle('Signalement ' . $report['reference'], true);
+$pdf->SetTitle('Signalement ' . $reportReference, true);
 $pdf->SetAuthor(ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC'), true);
 
 // =====================================================================
@@ -82,14 +97,14 @@ $labelUnite = ConfigService::getInstance()->get('app_label_unite', 'UR');
 // --- Title ---
 $pdf->SetFont('DejaVu', 'B', 16);
 $pdf->SetTextColor($blueDark[0], $blueDark[1], $blueDark[2]);
-$pdf->Cell(0, 10, utf8ToCp1252('Signalement — ' . $report['reference']), 0, 1);
+$pdf->Cell(0, 10, utf8ToCp1252('Signalement — ' . $reportReference), 0, 1);
 $pdf->Ln(2);
 
 // --- Badges ---
 $regColor = $registryColors[$type] ?? $colorRsst;
 drawBadge($pdf, $registryShortLabel, $regColor);
 
-$etatColor = $etatColors[$report['etat']] ?? $colorNouveau;
+$etatColor = $etatColors[$reportEtat] ?? $colorNouveau;
 drawBadge($pdf, $etatLabel, $etatColor);
 
 if (!empty($report['is_confidential'])) {
@@ -98,14 +113,25 @@ if (!empty($report['is_confidential'])) {
 $pdf->Ln(8);
 
 // --- Fields ---
+/** @var string $reportDateEvenement */
+$reportDateEvenement = $report['date_evenement'] ?? '';
+/** @var string $reportHeureEvenement */
+$reportHeureEvenement = $report['heure_evenement'] ?? '—';
+/** @var string $reportLieu */
+$reportLieu = $report['lieu'] ?? '—';
+/** @var string $reportObjet */
+$reportObjet = $report['objet'] ?? '';
+/** @var int $reportConsentSyndicat */
+$reportConsentSyndicat = $report['consent_syndicat'] ?? 0;
+
 $fields = [
-    'Référence'             => $report['reference'],
+    'Référence'             => $reportReference,
     'Registre'              => $registryLabel,
-    'Date de l\'événement'  => new FormattingService()->formatDateFR($report['date_evenement']),
-    'Heure du dépôt'        => $report['heure_evenement'] ?? '—',
-    'Lieu'                  => $report['lieu'] ?? '—',
-    'Objet'                 => $report['objet'],
-    'Transmission aux ' . ConfigService::getInstance()->getRoleLabel('chsct') . 's' => ($report['consent_syndicat'] ?? 0) ? 'Acceptée' : 'Refusée',
+    'Date de l\'événement'  => new FormattingService()->formatDateFR($reportDateEvenement),
+    'Heure du dépôt'        => $reportHeureEvenement,
+    'Lieu'                  => $reportLieu,
+    'Objet'                 => $reportObjet,
+    'Transmission aux ' . ConfigService::getInstance()->getRoleLabel('chsct') . 's' => $reportConsentSyndicat ? 'Acceptée' : 'Refusée',
 ];
 
 foreach ($fields as $label => $value) {
@@ -113,32 +139,52 @@ foreach ($fields as $label => $value) {
 }
 
 // Description (multiline)
+/** @var string $reportDescription */
+$reportDescription = $report['description'] ?? '';
 $pdf->Ln(1);
-drawMultiField($pdf, 'Description', $report['description']);
+drawMultiField($pdf, 'Description', $reportDescription);
 
 // Remaining fields
+/** @var string $reportDeclarantPrenom */
+$reportDeclarantPrenom = $report['declarant_prenom'] ?? '';
+/** @var string $reportDeclarantNom */
+$reportDeclarantNom = $report['declarant_nom'] ?? '';
 $pdf->Ln(1);
-drawField($pdf, 'Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
+drawField($pdf, 'Déclarant', $reportDeclarantPrenom . ' ' . $reportDeclarantNom);
 if (!ConfigService::getInstance()->isNoSiteMode()) {
-    drawField($pdf, $labelUnite, ($report['site_nom'] ?? '—') . ' (' . ($report['site_code'] ?? '—') . ')');
+    /** @var string $reportSiteNom */
+    $reportSiteNom = $report['site_nom'] ?? '—';
+    /** @var string $reportSiteCode */
+    $reportSiteCode = $report['site_code'] ?? '—';
+    drawField($pdf, $labelUnite, $reportSiteNom . ' (' . $reportSiteCode . ')');
 }
 
 if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
+    /** @var string $reportPourComptePrenom */
+    $reportPourComptePrenom = $report['pour_compte_prenom'] ?? '';
+    /** @var string $reportPourCompteNom */
+    $reportPourCompteNom = $report['pour_compte_nom'] ?? '';
     drawField(
         $pdf,
         'Déclaré pour le compte de',
-        ($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']
+        $reportPourComptePrenom . ' ' . $reportPourCompteNom
     );
 }
 
-drawField($pdf, 'Date de création', new FormattingService()->formatDateTimeFR($report['created_at']));
+/** @var string $reportCreatedAt */
+$reportCreatedAt = $report['created_at'] ?? '';
+drawField($pdf, 'Date de création', new FormattingService()->formatDateTimeFR($reportCreatedAt));
 
 if (!empty($report['attachment_name'])) {
-    $isImage = !empty($report['attachment_mime']) && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
+    /** @var string $reportAttachmentName */
+    $reportAttachmentName = $report['attachment_name'] ?? '';
+    /** @var string $reportAttachmentMime */
+    $reportAttachmentMime = $report['attachment_mime'] ?? '';
+    $isImage = $reportAttachmentMime !== '' && in_array($reportAttachmentMime, ['image/jpeg', 'image/png', 'image/gif']);
     if ($isImage && !empty($report['attachment_blob'])) {
-        drawField($pdf, 'Pièce jointe', $report['attachment_name'] . ' (image embarquée ci-dessous)');
+        drawField($pdf, 'Pièce jointe', $reportAttachmentName . ' (image embarquée ci-dessous)');
     } else {
-        drawField($pdf, 'Pièce jointe', $report['attachment_name'] . ' (jointe au signalement)');
+        drawField($pdf, 'Pièce jointe', $reportAttachmentName . ' (jointe au signalement)');
     }
 }
 
@@ -178,6 +224,6 @@ new HttpService()->removeUnwantedHeaders();
 header('Cache-Control: no-cache');
 header('X-Content-Type-Options: nosniff');
 
-$filename = 'signalement-' . $report['reference'] . '.pdf';
+$filename = 'signalement-' . $reportReference . '.pdf';
 $pdf->Output('I', $filename, true);
 exit;

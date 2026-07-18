@@ -16,7 +16,7 @@
  * @param string $logFile     Path to the log file
  * @param int    $maxLines    Maximum number of lines to read from the end
  * @param string $errorFilter Category filter ('all' or a specific category key)
- * @return array{categorized:array,logCount:int,logFileSize:int,errorFilter:string,filteredLines:array}
+ * @return array{categorized: list<array{text: string, category: string, label: string}>, logCount: int, logFileSize: int, errorFilter: string, filteredLines: list<array{text: string, category: string, label: string}>}
  */
 function readErrorLog(string $logFile, int $maxLines, string $errorFilter = 'all'): array
 {
@@ -28,6 +28,9 @@ function readErrorLog(string $logFile, int $maxLines, string $errorFilter = 'all
         $fileSize = filesize($logFile);
         if ($fileSize > 0) {
             $fp = fopen($logFile, 'r');
+            if (!is_resource($fp)) {
+                $logLines = [];
+            } else {
             $collected = [];       // lines collected from the end
             $buffer = '';          // partial line at chunk boundary
             $position = $fileSize; // current seek position (start of next chunk)
@@ -87,6 +90,7 @@ function readErrorLog(string $logFile, int $maxLines, string $errorFilter = 'all
                 $entries[] = $currentEntry;
             }
             $logLines = $entries;
+            }
         }
     }
 
@@ -131,9 +135,9 @@ function readErrorLog(string $logFile, int $maxLines, string $errorFilter = 'all
 
     $filteredLines = $errorFilter === 'all'
         ? $categorized
-        : array_filter($categorized, fn($e) => $e['category'] === $errorFilter);
+        : array_values(array_filter($categorized, fn($e) => $e['category'] === $errorFilter));
 
-    $logFileSize = file_exists($logFile) ? filesize($logFile) : 0;
+    $logFileSize = file_exists($logFile) ? (int)filesize($logFile) : 0;
 
     return [
         'categorized'   => $categorized,

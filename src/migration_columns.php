@@ -85,6 +85,7 @@ function migrateColumns(PDO $pdo): void
             if ($stmt !== false) {
                 while ($row = $stmt->fetch()) {
                     if (!is_array($row)) { continue; }
+                    /** @var array{id: int} $row */
                     $hex = bin2hex(random_bytes(16));
                     $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
                     $upd = $pdo->prepare('UPDATE reports SET uuid = :uuid WHERE id = :id');
@@ -101,6 +102,7 @@ function migrateColumns(PDO $pdo): void
         $cols = $pragma($pdo, 'report_responses');
         $hasReportUuid = false;
         foreach ($cols as $col) {
+            /** @var array<string, mixed> $col */
             if ($col['name'] === 'report_uuid') {
                 $hasReportUuid = true;
                 break;
@@ -110,13 +112,17 @@ function migrateColumns(PDO $pdo): void
             $pdo->exec('ALTER TABLE report_responses ADD COLUMN report_uuid TEXT');
             // Backfill: map old report_id → report uuid
             $stmt = $pdo->query('SELECT rr.id, rr.report_id FROM report_responses rr WHERE rr.report_uuid IS NULL');
-            while ($row = $stmt->fetch()) {
-                $uuidStmt = $pdo->prepare('SELECT uuid FROM reports WHERE id = :id');
-                $uuidStmt->execute([':id' => $row['report_id']]);
-                $reportUuid = $uuidStmt->fetchColumn();
-                if ($reportUuid) {
-                    $upd = $pdo->prepare('UPDATE report_responses SET report_uuid = :uuid WHERE id = :id');
-                    $upd->execute([':uuid' => $reportUuid, ':id' => $row['id']]);
+            if ($stmt !== false) {
+                while ($row = $stmt->fetch()) {
+                    /** @var array{id: int, report_id: int}|false $row */
+                    if (!is_array($row)) { continue; }
+                    $uuidStmt = $pdo->prepare('SELECT uuid FROM reports WHERE id = :id');
+                    $uuidStmt->execute([':id' => $row['report_id']]);
+                    $reportUuid = $uuidStmt->fetchColumn();
+                    if ($reportUuid) {
+                        $upd = $pdo->prepare('UPDATE report_responses SET report_uuid = :uuid WHERE id = :id');
+                        $upd->execute([':uuid' => $reportUuid, ':id' => $row['id']]);
+                    }
                 }
             }
             $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
@@ -132,6 +138,7 @@ function migrateColumns(PDO $pdo): void
         $hasId = false;
         $hasUuid = false;
         foreach ($cols as $col) {
+            /** @var array<string, mixed> $col */
             if ($col['name'] === 'id') {
                 $hasId = true;
             }
@@ -144,11 +151,15 @@ function migrateColumns(PDO $pdo): void
         if ($hasUuid) {
             $idCol = $hasId ? 'id' : 'rowid';
             $stmt = $pdo->query("SELECT $idCol FROM reports WHERE uuid IS NULL");
-            while ($row = $stmt->fetch()) {
-                $hex = bin2hex(random_bytes(16));
-                $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
-                $upd = $pdo->prepare("UPDATE reports SET uuid = :uuid WHERE $idCol = :id");
-                $upd->execute([':uuid' => $uuid, ':id' => $row[$idCol]]);
+            if ($stmt !== false) {
+                while ($row = $stmt->fetch()) {
+                    /** @var array<string, int>|false $row */
+                    if (!is_array($row)) { continue; }
+                    $hex = bin2hex(random_bytes(16));
+                    $uuid = substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-4' . substr($hex, 13, 3) . '-' . dechex((hexdec(substr($hex, 16, 2)) & 0x3F) | 0x80) . substr($hex, 18, 2) . '-' . substr($hex, 20, 12);
+                    $upd = $pdo->prepare("UPDATE reports SET uuid = :uuid WHERE $idCol = :id");
+                    $upd->execute([':uuid' => $uuid, ':id' => $row[$idCol]]);
+                }
             }
         }
 
@@ -156,14 +167,18 @@ function migrateColumns(PDO $pdo): void
         if ($hasUuid) {
             $stmt = $pdo->query('SELECT uuid FROM reports WHERE uuid IS NOT NULL');
             $fixes = [];
-            while ($row = $stmt->fetch()) {
-                /** @var string */
-                $oldUuid = $row['uuid'] ?? '';
-                $variantNibble = strtolower($oldUuid[19]);
-                if (in_array($variantNibble, ['c', 'd', 'e', 'f'])) {
-                    $nibbleMap = ['c' => '8', 'd' => '9', 'e' => 'a', 'f' => 'b'];
-                    $newUuid = substr($oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr($oldUuid, 20);
-                    $fixes[] = ['old' => $oldUuid, 'new' => $newUuid];
+            if ($stmt !== false) {
+                while ($row = $stmt->fetch()) {
+                    /** @var array{uuid: string}|false $row */
+                    if (!is_array($row)) { continue; }
+                    /** @var string */
+                    $oldUuid = $row['uuid'] ?? '';
+                    $variantNibble = strtolower($oldUuid[19]);
+                    if (in_array($variantNibble, ['c', 'd', 'e', 'f'])) {
+                        $nibbleMap = ['c' => '8', 'd' => '9', 'e' => 'a', 'f' => 'b'];
+                        $newUuid = substr($oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr($oldUuid, 20);
+                        $fixes[] = ['old' => $oldUuid, 'new' => $newUuid];
+                    }
                 }
             }
             foreach ($fixes as $fix) {
@@ -184,6 +199,7 @@ function migrateColumns(PDO $pdo): void
         $cols = $pragma($pdo, 'reports');
         $hasAttachment = false;
         foreach ($cols as $col) {
+            /** @var array<string, mixed> $col */
             if ($col['name'] === 'attachment_blob') {
                 $hasAttachment = true;
                 break;
@@ -203,6 +219,7 @@ function migrateColumns(PDO $pdo): void
         $hasNatureAuteur = false;
         $hasTypeActe = false;
         foreach ($cols as $col) {
+            /** @var array<string, mixed> $col */
             if ($col['name'] === 'nature_auteur') {
                 $hasNatureAuteur = true;
             }
@@ -226,6 +243,7 @@ function migrateColumns(PDO $pdo): void
         $cols = $pragma($pdo, 'users');
         $hasSiteChosenAt = false;
         foreach ($cols as $col) {
+            /** @var array<string, mixed> $col */
             if ($col['name'] === 'site_chosen_at') {
                 $hasSiteChosenAt = true;
                 break;
@@ -244,6 +262,7 @@ function migrateColumns(PDO $pdo): void
         $cols = $pragma($pdo, 'reports');
         $hasConsentSyndicat = false;
         foreach ($cols as $col) {
+            /** @var array<string, mixed> $col */
             if ($col['name'] === 'consent_syndicat') {
                 $hasConsentSyndicat = true;
                 break;

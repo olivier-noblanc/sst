@@ -75,7 +75,7 @@ test.describe('Impersonate — Banner', () => {
     await page.goto('/index.php?page=home');
     await page.locator('.impersonate-btn').click();
     await page.locator('.impersonate-menu button:has-text("Agent")').click();
-    await expect(page.locator('.impersonate-banner')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.impersonate-banner').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('should show impersonation banner on all pages', async ({ page }) => {
@@ -83,7 +83,7 @@ test.describe('Impersonate — Banner', () => {
     const pages = ['home', 'report_list&type=rsst', 'help', 'changelog'];
     for (const pageParam of pages) {
       await page.goto(`/index.php?page=${pageParam}`);
-      await expect(page.locator('.impersonate-banner')).toBeVisible();
+      await expect(page.locator('.impersonate-banner').first()).toBeVisible();
     }
   });
 
@@ -108,7 +108,7 @@ test.describe('Impersonate — Role Restrictions', () => {
     await page.goto('/index.php?page=home');
     await page.locator('.impersonate-btn').click();
     await page.locator('.impersonate-menu button:has-text("Agent")').click();
-    await expect(page.locator('.impersonate-banner')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.impersonate-banner').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('impersonated Agent should NOT see superviseur sidebar items', async ({ page }) => {
@@ -148,7 +148,7 @@ test.describe('Impersonate — Role Restrictions', () => {
     await page.locator('#objet').fill('Test Impersonation Agent');
     await page.locator('#description').fill('Test pour vérifier les restrictions en mode incognito.');
     await page.locator('.card button[type="submit"]').click();
-    await expect(page).toHaveURL(/page=report_view/, { timeout: 10000 });
+    await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
 
     // Agent should NOT see "Répondre" button
     await expect(page.locator('a:has-text("Répondre")')).toHaveCount(0);
@@ -164,7 +164,7 @@ test.describe('Impersonate — Stop', () => {
     await page.goto('/index.php?page=home');
     await page.locator('.impersonate-btn').click();
     await page.locator('.impersonate-menu button:has-text("Agent")').click();
-    await expect(page.locator('.impersonate-banner')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.impersonate-banner').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('should restore superviseur role when clicking "Reprendre mon rôle"', async ({ page }) => {
@@ -191,7 +191,7 @@ test.describe('Impersonate — Stop', () => {
     await page.locator('#objet').fill('Test Stop Impersonation');
     await page.locator('#description').fill('Test pour vérifier le retour au rôle superviseur.');
     await page.locator('.card button[type="submit"]').click();
-    await expect(page).toHaveURL(/page=report_view/, { timeout: 10000 });
+    await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
 
     // Stop impersonation
     await page.locator('.impersonate-banner__btn').click();

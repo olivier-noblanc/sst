@@ -10,6 +10,7 @@
  * ETag + Last-Modified + 304 Not Modified responses.
  * Favicons are inlined as data: URIs (tiny, no extra HTTP request).
  */
+/** @var string $csrfToken */
 
 // === Cache-Control for dynamic pages ===
 // no-cache alone: browser must revalidate with server before using cached copy

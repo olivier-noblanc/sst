@@ -7,58 +7,16 @@ parameters:
 			path: pages/access_denied.php
 
 		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: pages/export.php
-
-		-
 			message: '#^Function a not found\.$#'
 			identifier: function.notFound
 			count: 1
 			path: pages/help/_agent.php
 
 		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: pages/logs.php
-
-		-
 			message: '#^Ternary operator condition is always false\.$#'
 			identifier: ternary.alwaysFalse
 			count: 2
 			path: pages/settings/tab_app.php
-
-		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: pages/settings/tab_app.php
-
-		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: pages/settings/tab_global.php
-
-		-
-			message: '#^Variable \$globalEmails might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: pages/settings/tab_global.php
-
-		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: pages/settings/tab_smtp.php
-
-		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: pages/user_edit.php
 
 		-
 			message: '#^Parameter \#1 \$string of function base64_encode expects string, string\|false given\.$#'
@@ -187,31 +145,7 @@ parameters:
 			path: src/validation.php
 
 		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: templates/header.php
-
-		-
 			message: '#^Possibly invalid array key type string\|null\.$#'
 			identifier: offsetAccess.invalidOffset
 			count: 1
 			path: templates/impersonate_banner.php
-
-		-
-			message: '#^Variable \$csrfToken might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: templates/impersonate_banner.php
-
-		-
-			message: '#^Variable \$isEdit might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: templates/report_form_linked_agents.php
-
-		-
-			message: '#^Variable \$report might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: templates/report_form_linked_agents.php

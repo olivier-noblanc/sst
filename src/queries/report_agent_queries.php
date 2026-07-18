@@ -27,7 +27,7 @@ function getLinkedAgents(PDO $pdo, string $reportUuid): array
  */
 function linkAgentsToReport(PDO $pdo, string $reportUuid, array $userIds): void
 {
-    ReportRepository::instance()->linkAgents($reportUuid, $userIds);
+    ReportRepository::instance()->linkAgents($reportUuid, array_values($userIds));
 }
 
 /**
@@ -36,5 +36,5 @@ function linkAgentsToReport(PDO $pdo, string $reportUuid, array $userIds): void
  */
 function replaceLinkedAgents(PDO $pdo, string $reportUuid, array $userIds): void
 {
-    ReportRepository::instance()->replaceLinkedAgents($reportUuid, $userIds);
+    ReportRepository::instance()->replaceLinkedAgents($reportUuid, array_values($userIds));
 }

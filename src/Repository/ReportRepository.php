@@ -136,7 +136,7 @@ class ReportRepository
         return $row !== false ? $row : null;
     }
 
-    /** @return array{reports: array<mixed, mixed>, total: int} */
+    /** @return array{reports: list<array<string, mixed>>, total: int} */
     public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): array
     {
         $builder = new QueryFilterBuilder();
@@ -205,15 +205,17 @@ class ReportRepository
         $stmt = $this->pdo->prepare($this->baseSelect() . " WHERE $where ORDER BY r.created_at DESC LIMIT :limit OFFSET :offset");
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
+        /** @var list<array<string, mixed>> $rows */
         return ['reports' => is_array($rows) ? $rows : [], 'total' => $total];
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<array<string, mixed>> */
     public function findBySite(int $siteId): array
     {
         $stmt = $this->pdo->prepare($this->baseSelect() . ' WHERE r.site_id = :site_id ORDER BY r.created_at DESC');
         $stmt->execute([':site_id' => $siteId]);
         $rows = $stmt->fetchAll();
+        /** @var list<array<string, mixed>> $rows */
         return is_array($rows) ? $rows : [];
     }
 
@@ -393,7 +395,7 @@ class ReportRepository
         return is_array($rows) ? $rows : [];
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<array{email: string, created_at: string}> */
     public function getPendingInvites(string $reportUuid): array
     {
         $stmt = $this->pdo->prepare('
@@ -403,6 +405,7 @@ class ReportRepository
         ');
         $stmt->execute([$reportUuid]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        /** @var list<array{email: string, created_at: string}> $rows */
         return is_array($rows) ? $rows : [];
     }
 

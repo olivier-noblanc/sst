@@ -80,7 +80,6 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     if (!$declarant || empty($declarant['email'])) {
         return;
     }
-    /** @var array{email: string, prenom: string, nom: string, [key: string]: mixed} $declarant */
     /** @var string */
     $reportType = $report['type'] ?? '';
     $registryLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
@@ -89,7 +88,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     if (!$respondent) {
         return;
     }
-    /** @var array{prenom: string, nom: string, email: string, [key: string]: mixed} $respondent */
+    /** @var array<string, mixed> $respondent */
     $body = '<html><body>';
     $body .= '<h2>Votre signalement a reçu une réponse</h2>';
     $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
@@ -129,7 +128,7 @@ function notifyPourCompte(PDO $pdo, string $reportUuid): void
     if (!$report || empty($report['pour_compte_nom'])) {
         return;
     }
-    /** @var array{reference: string, objet: string, declarant_prenom: string, declarant_nom: string, pour_compte_nom: string, pour_compte_prenom: string, [key: string]: mixed} $report */
+    /** @var array<string, mixed> $report */
     // Try to find the agent by name
     $stmt = $pdo->prepare('SELECT * FROM users WHERE nom = :nom AND prenom = :prenom AND is_active = 1 LIMIT 1');
     $stmt->execute([':nom' => $report['pour_compte_nom'], ':prenom' => $report['pour_compte_prenom']]);

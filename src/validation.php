@@ -51,6 +51,7 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
                     $attachmentBlob = file_get_contents($file['tmp_name']);
                     if ($attachmentBlob === false) {
                         $errors['attachment'] = 'Erreur lors de la lecture du fichier.';
+                        $attachmentBlob = null;
                     } else {
                         /** @var string */
                         $fileName = $file['name'] ?? '';
@@ -221,6 +222,7 @@ function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array
         setFlash('error', 'Signalement introuvable.');
         redirect($fallbackUrl);
     }
+    assert($report !== null);
     return $report;
 }
 

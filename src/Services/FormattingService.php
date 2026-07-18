@@ -212,7 +212,7 @@ class FormattingService
             if ($i === $last) {
                 $html .= '<span class="breadcrumb__current">' . $this->e($item['label']) . '</span>';
             } else {
-                $html .= '<a href="' . $this->e($item['url']) . '" class="breadcrumb__item">' . $this->e($item['label']) . '</a>';
+                $html .= '<a href="' . $this->e($item['url'] ?? '') . '" class="breadcrumb__item">' . $this->e($item['label']) . '</a>';
                 $html .= '<span class="breadcrumb__separator">/</span>';
             }
         }
@@ -268,7 +268,8 @@ class FormattingService
         // Sort by randomized weight descending
         usort($randomized, fn(array $a, array $b): int => (int) ($b['p'] <=> $a['p']));
 
-        $json = htmlspecialchars(json_encode($randomized, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8');
+        $jsonEncoded = json_encode($randomized, JSON_UNESCAPED_UNICODE);
+        $json = htmlspecialchars($jsonEncoded !== false ? $jsonEncoded : '[]', ENT_QUOTES, 'UTF-8');
         $html = '<div class="word-cloud" role="img" aria-label="Nuage de mots" data-words="' . $json . '">';
         $html .= '<p class="text-muted text-small mb-2">Nuage de mots — Mots les plus fréquents</p>';
         $html .= '<noscript>';

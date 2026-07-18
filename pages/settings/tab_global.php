@@ -4,7 +4,9 @@
  *
  * Variables attendues: $globalEmails, $csrfToken
  */
-?>
+
+/** @var string $csrfToken */
+/** @var list<array{type: string, email: string, is_active: int}> $globalEmails */?>
 <form method="POST" action="<?php echo new \App\Services\HttpService()->url('settings'); ?>" id="settingsForm">
     <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e($csrfToken); ?>">
     <input type="hidden" name="tab" value="global">

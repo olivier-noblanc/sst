@@ -5,6 +5,7 @@
  * CSV data export with filters.
  * Access: superviseur, chsct
  */
+/** @var string $csrfToken */
 requireRole([ROLE_SUPERVISEUR]);
 
 $noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();

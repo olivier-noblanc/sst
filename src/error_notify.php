@@ -120,7 +120,11 @@ function sstIsThrottled(string $errorKey): bool
         return false;
     }
 
-    $data = @json_decode(file_get_contents(ERROR_THROTTLE_FILE), true);
+    $raw = @file_get_contents(ERROR_THROTTLE_FILE);
+    if ($raw === false) {
+        return false;
+    }
+    $data = json_decode($raw, true);
     if (!is_array($data) || !isset($data[$errorKey])) {
         return false;
     }

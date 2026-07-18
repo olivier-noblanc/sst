@@ -34,7 +34,11 @@ function lazyCronAnonymize(PDO $pdo): void
     }
 
     // Calculate cutoff date
-    $cutoffDate = date('Y-m-d', strtotime("-{$retentionYears} years"));
+    $cutoffTs = strtotime("-{$retentionYears} years");
+    if ($cutoffTs === false) {
+        return;
+    }
+    $cutoffDate = date('Y-m-d', $cutoffTs);
 
     // Find eligible reports
     $sql = "SELECT uuid, reference, type, declarant_nom, declarant_prenom, date_evenement, etat

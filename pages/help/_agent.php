@@ -13,7 +13,7 @@
 <div class="help-contact-banner" role="complementary" aria-label="Hotline">
     <span class="help-contact-banner__icon" aria-hidden="true">📞</span>
     <div class="help-contact-banner__text">
-        <strong>Besoin d'aide ?</strong> Appelez la hotline au <strong class="help-hotline-number"><?php echo a($hotlineNumber); ?></strong><br>
+        <strong>Besoin d'aide ?</strong> Appelez la hotline au <strong class="help-hotline-number"><?php echo e($hotlineNumber); ?></strong><br>
         <small>Un conseiller vous répondra directement pour vous guider.</small>
     </div>
 </div>

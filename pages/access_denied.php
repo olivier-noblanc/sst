@@ -11,7 +11,7 @@ $pageTitle = 'Accès refusé';
 <?php if (new \App\Services\SessionService()->isImpersonatingRole()): ?>
 <div class="impersonate-banner" role="alert">
     <span class="impersonate-banner__text">
-        &#x1F3AD; Vous incarnez le rôle <strong><?php echo new \App\Services\FormattingService()->e(ROLE_LABELS[new \App\Services\SessionService()->getImpersonatedRole()] ?? new \App\Services\SessionService()->getImpersonatedRole()); ?></strong>
+        &#x1F3AD; Vous incarnez le rôle <strong><?php echo new \App\Services\FormattingService()->e(ROLE_LABELS[new \App\Services\SessionService()->getImpersonatedRole() ?? ''] ?? new \App\Services\SessionService()->getImpersonatedRole()); ?></strong>
         <span class="impersonate-banner__hint">— les pages réservées aux superviseurs ne sont pas accessibles dans ce mode.</span>
     </span>
     <form method="POST" action="<?php echo new \App\Services\HttpService()->url('impersonate'); ?>" class="impersonate-banner__form">
@@ -36,7 +36,7 @@ $pageTitle = 'Accès refusé';
     <?php endif; ?>
     <?php if (new \App\Services\SessionService()->isImpersonatingRole()): ?>
     <p class="text-muted text-small mt-2">
-        Vous incarnez actuellement le rôle <strong><?php echo new \App\Services\FormattingService()->e(ROLE_LABELS[new \App\Services\SessionService()->getImpersonatedRole()] ?? new \App\Services\SessionService()->getImpersonatedRole()); ?></strong>.
+        Vous incarnez actuellement le rôle <strong><?php echo new \App\Services\FormattingService()->e(ROLE_LABELS[new \App\Services\SessionService()->getImpersonatedRole() ?? ''] ?? new \App\Services\SessionService()->getImpersonatedRole()); ?></strong>.
         Reprenez votre rôle de superviseur pour accéder à cette page.
     </p>
     <?php endif; ?>

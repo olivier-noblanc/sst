@@ -45,6 +45,7 @@ function renderRegistryCard(array $card, string $extraClass = '', string $extraC
 
 /**
  * @param list<array<string, mixed>> $cards
+ * @param array<string, string> $extraContentMap
  */
 function renderRegistryCards(array $cards, string $layout = 'compact', array $extraContentMap = []): string
 {

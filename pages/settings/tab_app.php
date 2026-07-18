@@ -4,7 +4,8 @@
  *
  * Variables attendues: $csrfToken
  */
-?>
+
+/** @var string $csrfToken */?>
 <form method="POST" action="<?php echo new \App\Services\HttpService()->url('settings'); ?>">
     <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e($csrfToken); ?>">
     <input type="hidden" name="tab" value="app">
@@ -120,7 +121,7 @@
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_registry_rami_enabled" id="app_registry_rami_enabled" value="1"
                            class="toggle-switch__input"
-                           <?php echo \App\Services\ConfigService::getInstance()->get('app_registry_rami_enabled', REGISTRY_RAMI_ENABLED_DEFAULT ? '1' : '0') === '1' ? 'checked' : ''; ?>>
+                           <?php echo \App\Services\ConfigService::getInstance()->get('app_registry_rami_enabled', '0') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Activer le registre RAMI (Agressions, Menaces, Incivilités)</span>
                 </label>
@@ -129,7 +130,7 @@
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_registry_dgi_enabled" id="app_registry_dgi_enabled" value="1"
                            class="toggle-switch__input"
-                           <?php echo \App\Services\ConfigService::getInstance()->get('app_registry_dgi_enabled', REGISTRY_DGI_ENABLED_DEFAULT ? '1' : '0') === '1' ? 'checked' : ''; ?>>
+                           <?php echo \App\Services\ConfigService::getInstance()->get('app_registry_dgi_enabled', '0') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Activer le registre DGI (Danger Grave et Imminent)</span>
                 </label>

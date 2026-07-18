@@ -85,10 +85,10 @@ class ConfigService
             return true;
         }
         if ($type === TYPE_RAMI) {
-            return $this->get('app_registry_rami_enabled', REGISTRY_RAMI_ENABLED_DEFAULT ? '1' : '0') === '1';
+            return $this->get('app_registry_rami_enabled', '0') === '1';
         }
         if ($type === TYPE_DGI) {
-            return $this->get('app_registry_dgi_enabled', REGISTRY_DGI_ENABLED_DEFAULT ? '1' : '0') === '1';
+            return $this->get('app_registry_dgi_enabled', '0') === '1';
         }
         return false;
     }
@@ -157,6 +157,9 @@ class ConfigService
     {
         $pdo = \getDB();
         $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
+        if ($stmt === false) {
+            return false;
+        }
         return ($stmt->fetchColumn() ?: 0) > 0;
     }
 
@@ -170,7 +173,11 @@ class ConfigService
             $GLOBALS['_config_cache_cleared'] = false;
             $pdo = \getDB();
             $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
-            $cache = (($stmt->fetchColumn() ?: 0) === 0);
+            if ($stmt === false) {
+                $cache = true;
+            } else {
+                $cache = (($stmt->fetchColumn() ?: 0) === 0);
+            }
         }
         return $cache;
     }
@@ -182,6 +189,9 @@ class ConfigService
     {
         $pdo = \getDB();
         $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
+        if ($stmt === false) {
+            return 0;
+        }
         return (int) ($stmt->fetchColumn() ?: 0);
     }
 

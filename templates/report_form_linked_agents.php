@@ -9,6 +9,8 @@
  *   $formData  — Submitted form data for repopulation
  *   $formErrors — Array of field errors
  */
+/** @var bool $isEdit */
+/** @var array<string, mixed> $report */
 $declarantEmail = $user['email'] ?? '';
 /** @var string $declarantEmailStr */
 $declarantEmailStr = (string) $declarantEmail;

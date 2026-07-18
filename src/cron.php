@@ -96,7 +96,11 @@ function lazyCronCheckDelays(PDO $pdo): void
     }
 
     // Find overdue reports
-    $cutoffDate = date('Y-m-d H:i:s', strtotime("-{$alertDelayDays} days"));
+    $cutoffTs = strtotime("-{$alertDelayDays} days");
+    if ($cutoffTs === false) {
+        return;
+    }
+    $cutoffDate = date('Y-m-d H:i:s', $cutoffTs);
 
     $sql = "SELECT r.uuid, r.reference, r.type, r.objet, r.created_at,
                    r.site_id, s.code as site_code, s.nom as site_nom,

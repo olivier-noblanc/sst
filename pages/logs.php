@@ -5,6 +5,7 @@
  * Two tabs: Erreurs PHP (error log file) + Journal d'audit (database audit_log).
  * Access: superviseur only (admin tool)
  */
+/** @var string $csrfToken */
 requireRole([ROLE_SUPERVISEUR]);
 
 // Service instances (created once for the page)

@@ -5,6 +5,7 @@
  * Edit user profile/role.
  * Access: superviseur only
  */
+/** @var string $csrfToken */
 requireRole([ROLE_SUPERVISEUR]);
 
 // Service instances (created once for the page)

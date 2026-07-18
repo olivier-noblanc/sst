@@ -56,7 +56,11 @@ class AssetService
         ];
 
         $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
-        $data = base64_encode(file_get_contents($filePath));
+        $content = file_get_contents($filePath);
+        if ($content === false) {
+            return '';
+        }
+        $data = base64_encode($content);
 
         return 'data:' . $mime . ';base64,' . $data;
     }

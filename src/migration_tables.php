@@ -114,7 +114,11 @@ function migrateTables(PDO $pdo): void
         )');
         // Record baseline for existing databases that pre-date schema_version
         $stmt = $pdo->query('SELECT COUNT(*) FROM schema_version');
-        $count = (int) $stmt->fetchColumn();
+        if ($stmt === false) {
+            $count = 0;
+        } else {
+            $count = (int) $stmt->fetchColumn();
+        }
         if ($count === 0) {
             $pdo->exec("INSERT INTO schema_version (version, description) VALUES (1, 'Baseline — existing database before version tracking')");
         }

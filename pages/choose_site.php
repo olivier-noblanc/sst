@@ -35,6 +35,8 @@ if ($config->isNoSiteMode()) {
 }
 
 $user = new \App\Services\SessionService()->getUserSession();
+/** @var int */
+$userSiteId = $user['site_id'] ?? 0;
 $hasExistingSite = !empty($user['site_id']);
 $isWithinGracePeriod = false;
 $daysRemaining = 0;
@@ -43,7 +45,9 @@ $daysRemaining = 0;
 if ($hasExistingSite) {
     $siteChosenAt = $user['site_chosen_at'] ?? null;
     if ($siteChosenAt) {
-        $chosenTime = strtotime((string) $siteChosenAt);
+        /** @var string */
+        $siteChosenAtStr = $siteChosenAt;
+        $chosenTime = strtotime($siteChosenAtStr);
         if ($chosenTime === false) {
             $chosenTime = 0;
         }
@@ -104,8 +108,16 @@ $labelUnite = $config->get('app_label_unite', 'UR');
             <select id="site_id" name="site_id" required>
                 <option value="">— Sélectionnez votre <?php echo $fmt->e($labelUnite); ?> —</option>
                 <?php foreach ($sites as $site): ?>
-                <option value="<?php echo $fmt->e($site['id']); ?>" <?php echo $hasExistingSite && (int) $user['site_id'] === (int) $site['id'] ? '' : ''; ?>>
-                    <?php echo $fmt->e($site['code'] . ' — ' . $site['nom']); ?>
+                <?php
+                    /** @var int */
+                    $siteId = $site['id'] ?? 0;
+                    /** @var string */
+                    $siteCode = $site['code'] ?? '';
+                    /** @var string */
+                    $siteNom = $site['nom'] ?? '';
+                ?>
+                <option value="<?php echo $fmt->e((string) $siteId); ?>" <?php echo $hasExistingSite && $userSiteId === $siteId ? '' : ''; ?>>
+                    <?php echo $fmt->e($siteCode . ' — ' . $siteNom); ?>
                 </option>
                 <?php endforeach; ?>
             </select>

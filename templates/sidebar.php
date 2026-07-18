@@ -19,9 +19,11 @@ if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_G
     try {
         $pdo = getDB();
         $reportUuid = $_GET['uuid'] ?? '';
-        if (strlen((string) $reportUuid) === 36) {
+        /** @var string $reportUuidStr */
+        $reportUuidStr = (string) $reportUuid;
+        if (strlen($reportUuidStr) === 36) {
             $stmt = $pdo->prepare('SELECT type FROM reports WHERE uuid = :uuid');
-            $stmt->execute([':uuid' => $reportUuid]);
+            $stmt->execute([':uuid' => $reportUuidStr]);
             $row = $stmt->fetch();
             if ($row) {
                 $activeRegistryType = $row['type'];

@@ -17,12 +17,15 @@ $config = \App\Services\ConfigService::getInstance();
 
 // Access control: only the declarant
 $user = new \App\Services\SessionService()->getUserSession();
-$userId = (int) $user['id'];
+/** @var string */
+$userIdStr = $user['id'] ?? '0';
+$userId = (int) $userIdStr;
 
 requireReportOwnership($report, $userId, $uuid, 'abandonner');
 requireReportEditable($report, $uuid, 'abandonné');
 
 $pageTitle = 'Abandonner le signalement — ' . $report['reference'];
+/** @var string */
 $type = $report['type'];
 $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 
@@ -32,7 +35,7 @@ $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 
 <?php echo $fmt->renderBreadcrumb([
     ['url' => $http->url('home'), 'label' => 'Accueil'],
-    ['url' => $http->url('report_list', ['type' => $type]), 'label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)],
+    ['url' => $http->url('report_list', ['type' => $type]), 'label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)],
     ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
     ['label' => 'Abandonner'],
 ]); ?>

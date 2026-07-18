@@ -65,8 +65,22 @@ $pageNum = max(1, (int) ($_GET['p'] ?? 1));
 $perPage = ITEMS_PER_PAGE;
 
 // Fetch reports
+/** @var string */
+$filterSiteIdStr = $filters['site_id'] ?? '';
+$filterSiteId = (int) $filterSiteIdStr;
+/** @var string */
+$declarantIdRaw = $filters['declarant_id'] ?? '';
+$declarantIdFilter = !empty($declarantIdRaw) ? (int) $declarantIdRaw : null;
+/** @var string */
+$confidentialRaw = $filters['confidential_filter'] ?? '';
+$confidentialFilter = !empty($confidentialRaw) ? (int) $confidentialRaw : null;
+/** @var string */
+$forceSiteIdRaw = $filters['force_site_id'] ?? '';
+$forceSiteIdFilter = !empty($forceSiteIdRaw) ? (int) $forceSiteIdRaw : null;
+/** @var string|null */
+$filterSearch = $filters['q'] ?? null;
 /** @var array{reports: list<array<string, mixed>>, total: int} $result */
-$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: (int) ($filters['site_id'] ?? 0), declarantId: !empty($filters['declarant_id']) ? (int) $filters['declarant_id'] : null, confidentialFilter: !empty($filters['confidential_filter']) ? (int) $filters['confidential_filter'] : null, forceSiteId: !empty($filters['force_site_id']) ? (int) $filters['force_site_id'] : null, search: $filters['q'] ?? null, seeAllSites: $seeAllSites), $pageNum, $perPage);
+$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: $filterSiteId, declarantId: $declarantIdFilter, confidentialFilter: $confidentialFilter, forceSiteId: $forceSiteIdFilter, search: $filterSearch, seeAllSites: $seeAllSites), $pageNum, $perPage);
 $reports = $result['reports'];
 $totalItems = $result['total'];
 
@@ -182,14 +196,24 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         ?>
                     <tr>
                         <td data-label="Référence"><strong><?php echo $fmt->e($report['reference'] ?? ''); ?></strong></td>
-                        <td data-label="Date"><?php echo $fmt->e($fmt->formatDateFR((string) ($report['date_evenement'] ?? ''))); ?></td>
-                        <td data-label="Objet"><?php echo $fmt->e($fmt->truncate((string) ($report['objet'] ?? ''), 50)); ?></td>
+                        <?php
+                            /** @var string $reportDateEvenement */
+                            $reportDateEvenement = $report['date_evenement'] ?? '';
+                            /** @var string $reportObjet */
+                            $reportObjet = $report['objet'] ?? '';
+                            /** @var string $reportEtat */
+                            $reportEtat = $report['etat'] ?? '';
+                            /** @var string $reportUuid */
+                            $reportUuid = $report['uuid'] ?? '';
+                        ?>
+                        <td data-label="Date"><?php echo $fmt->e($fmt->formatDateFR($reportDateEvenement)); ?></td>
+                        <td data-label="Objet"><?php echo $fmt->e($fmt->truncate($reportObjet, 50)); ?></td>
                         <td data-label="Nom"><?php echo $fmt->e($report['declarant_nom'] ?? ''); ?></td>
                         <td data-label="Prénom"><?php echo $fmt->e($report['declarant_prenom'] ?? ''); ?></td>
                         <?php if (!$noSiteMode): ?><td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><?php echo $fmt->e($report['site_code'] ?? '—'); ?></td><?php endif; ?>
                         <td data-label="État">
-                            <span class="badge <?php echo $fmt->getEtatBadgeClass((string) ($report['etat'] ?? '')); ?>">
-                                <?php echo $fmt->e(ETAT_LABELS[(string) ($report['etat'] ?? '')] ?? (string) ($report['etat'] ?? '')); ?>
+                            <span class="badge <?php echo $fmt->getEtatBadgeClass($reportEtat); ?>">
+                                <?php echo $fmt->e(ETAT_LABELS[$reportEtat] ?? $reportEtat); ?>
                             </span>
                         </td>
                         <td data-label="Visibilité">
@@ -201,12 +225,12 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         </td>
                         <td data-label="Actions">
                             <div class="btn-group">
-                                <a href="<?php echo $http->url('report_view', ['uuid' => (string) ($report['uuid'] ?? '')]); ?>" class="btn btn--sm btn--outline">Voir</a>
+                                <a href="<?php echo $http->url('report_view', ['uuid' => $reportUuid]); ?>" class="btn btn--sm btn--outline">Voir</a>
                                 <?php if ($canEdit): ?>
-                                <a href="<?php echo $http->url('report_edit', ['uuid' => (string) ($report['uuid'] ?? '')]); ?>" class="btn btn--sm btn--secondary">Modifier</a>
+                                <a href="<?php echo $http->url('report_edit', ['uuid' => $reportUuid]); ?>" class="btn btn--sm btn--secondary">Modifier</a>
                                 <?php endif; ?>
                                 <?php if ($canRespond): ?>
-                                <a href="<?php echo $http->url('report_respond', ['uuid' => (string) ($report['uuid'] ?? '')]); ?>" class="btn btn--sm btn--primary">Répondre</a>
+                                <a href="<?php echo $http->url('report_respond', ['uuid' => $reportUuid]); ?>" class="btn btn--sm btn--primary">Répondre</a>
                                 <?php endif; ?>
                             </div>
                         </td>

@@ -21,7 +21,13 @@ $pdo = getDB();
 logConfidentialReportAccess($pdo, $report, $user);
 
 // If report is abandoned and user is not declarant nor supervisor/chsct
-if ($report['etat'] === ETAT_ABANDONNE && (int) $report['declarant_id'] !== (int) $user['id'] && !in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
+/** @var string */
+$declarantIdRaw = $report['declarant_id'] ?? '0';
+/** @var string */
+$userIdRaw = $user['id'] ?? '0';
+/** @var string */
+$userRole = $user['role'] ?? '';
+if ($report['etat'] === ETAT_ABANDONNE && (int) $declarantIdRaw !== (int) $userIdRaw && !in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
     setFlash('warning', 'Ce signalement a été abandonné.');
 }
 
@@ -31,8 +37,10 @@ $pageTitle = 'Signalement — ' . $report['reference'];
 $responses = getReportResponses($pdo, $uuid);
 
 // Get linked agents and pending invites (moved from template to avoid DB queries in presentation layer)
-$linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents((string) $report['uuid']);
-$pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites((string) $report['uuid']);
+/** @var string */
+$reportUuid = $report['uuid'] ?? '';
+$linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents($reportUuid);
+$pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites($reportUuid);
 
 // Breadcrumb data
 $reportType = $report['type'] ?? TYPE_RSST;

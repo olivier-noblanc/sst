@@ -73,14 +73,17 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     if (!$report) {
         return;
     }
-    /** @var array<string, mixed> $report */
     // Get declarant email
-    $declarant = getUserById($pdo, (int) $report['declarant_id']);
+    /** @var int */
+    $declarantId = $report['declarant_id'] ?? 0;
+    $declarant = getUserById($pdo, $declarantId);
     if (!$declarant || empty($declarant['email'])) {
         return;
     }
     /** @var array{email: string, prenom: string, nom: string, [key: string]: mixed} $declarant */
-    $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
+    /** @var string */
+    $reportType = $report['type'] ?? '';
+    $registryLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
     $subject = "Réponse à votre signalement $registryLabel — {$report['reference']}";
     $respondent = getUserById($pdo, $respondentId);
     if (!$respondent) {
@@ -161,7 +164,9 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
     $stmt = $pdo->prepare("SELECT DISTINCT email FROM notification_settings WHERE site_id = :site_id AND type = 'site'");
     $stmt->execute([':site_id' => $siteId]);
     foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $email) {
-        $lower = strtolower((string) $email);
+        /** @var string */
+        $emailStr = $email ?? '';
+        $lower = strtolower($emailStr);
         $seen[] = $lower;
         $emails[] = $email;
     }
@@ -169,7 +174,9 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
     $stmt = $pdo->prepare("SELECT DISTINCT email FROM notification_settings WHERE type = 'global'");
     $stmt->execute();
     foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $email) {
-        $lower = strtolower((string) $email);
+        /** @var string */
+        $emailStr = $email ?? '';
+        $lower = strtolower($emailStr);
         if (!in_array($lower, $seen)) {
             $seen[] = $lower;
             $emails[] = $email;

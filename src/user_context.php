@@ -37,7 +37,9 @@ function currentUser(): ?array
 function currentUserId(): int
 {
     $user = getUserSession();
-    return $user ? (int) ($user['id'] ?? 0) : 0;
+    /** @var int */
+    $id = $user['id'] ?? 0;
+    return $user ? $id : 0;
 }
 
 /**
@@ -153,7 +155,9 @@ function isImpersonating(): bool
 function currentUserSiteId(): int
 {
     $user = getUserSession();
-    return $user ? (int) ($user['site_id'] ?? 0) : 0;
+    /** @var int */
+    $siteId = $user['site_id'] ?? 0;
+    return $user ? $siteId : 0;
 }
 
 /**

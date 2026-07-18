@@ -66,7 +66,8 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array
         $errors['role'] = 'Rôle invalide.';
     }
 
-    $siteId = (int) ($input['site_id'] ?? 0);
+    /** @var int */
+    $siteId = $input['site_id'] ?? 0;
     // Skip site validation in noSiteMode (site dropdown is hidden)
     // site_id = 0 is allowed (user has no assigned site yet)
     if (!isNoSiteMode($pdo) && $siteId > 0) {
@@ -101,5 +102,7 @@ function isLastActiveSuperviseur(PDO $pdo): bool
 {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = '" . ROLE_SUPERVISEUR . "' AND is_active = 1");
     $stmt->execute();
-    return (int) $stmt->fetchColumn() === 1;
+    /** @var int */
+    $count = $stmt->fetchColumn() ?? 0;
+    return $count === 1;
 }

@@ -203,10 +203,14 @@ class ConfigService
         $candidatePaths[] = dirname(__DIR__, 2) . '/CHANGELOG.md';
         $candidatePaths[] = dirname(__DIR__) . '/CHANGELOG.md';
         if (!empty($_SERVER['DOCUMENT_ROOT'])) {
-            $candidatePaths[] = rtrim((string) $_SERVER['DOCUMENT_ROOT'], '/\\') . '/../CHANGELOG.md';
+            /** @var string */
+            $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+            $candidatePaths[] = rtrim($docRoot, '/\\') . '/../CHANGELOG.md';
         }
         if (!empty($_SERVER['SCRIPT_FILENAME'])) {
-            $candidatePaths[] = dirname((string) $_SERVER['SCRIPT_FILENAME'], 2) . '/CHANGELOG.md';
+            /** @var string */
+            $scriptFilename = $_SERVER['SCRIPT_FILENAME'] ?? '';
+            $candidatePaths[] = dirname($scriptFilename, 2) . '/CHANGELOG.md';
         }
 
         foreach ($candidatePaths as $path) {

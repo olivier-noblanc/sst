@@ -42,7 +42,9 @@ $filteredLines = $logResult['filteredLines'];
 // ============================================================
 $auditEntries = [];
 $auditTotal = 0;
-$auditPage = max(1, (int) ($_GET['p'] ?? 1));
+/** @var string */
+$pageStr = $_GET['p'] ?? '1';
+$auditPage = max(1, (int) $pageStr);
 $auditPerPage = 50;
 
 if ($activeTab === 'audit') {
@@ -53,10 +55,14 @@ if ($activeTab === 'audit') {
         $auditFilters['category'] = $_GET['category'];
     }
     if (!empty($_GET['user'])) {
-        $auditFilters['username'] = trim((string) $_GET['user']);
+        /** @var string */
+        $userFilterStr = $_GET['user'];
+        $auditFilters['username'] = trim($userFilterStr);
     }
     if (!empty($_GET['q'])) {
-        $auditFilters['q'] = trim((string) $_GET['q']);
+        /** @var string */
+        $qFilterStr = $_GET['q'];
+        $auditFilters['q'] = trim($qFilterStr);
     }
     if (!empty($_GET['date_from'])) {
         $auditFilters['date_from'] = $_GET['date_from'] . ' 00:00:00';

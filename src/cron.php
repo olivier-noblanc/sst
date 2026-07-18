@@ -119,7 +119,8 @@ function lazyCronCheckDelays(PDO $pdo): void
     // Group by site for notification
     $bySite = [];
     foreach ($overdueReports as $report) {
-        $siteId = (int) $report['site_id'];
+        /** @var int */
+        $siteId = $report['site_id'] ?? 0;
         if (!isset($bySite[$siteId])) {
             $bySite[$siteId] = [
                 'site_code' => $report['site_code'],

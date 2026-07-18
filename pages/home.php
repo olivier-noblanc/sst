@@ -12,12 +12,16 @@ $config = \App\Services\ConfigService::getInstance();
 
 $pdo = getContainer()->get(\PDO::class);
 $user = new \App\Services\SessionService()->getUserSession();
-$userSiteId = (int) $user['site_id'];
+/** @var string */
+$siteIdStr = $user['site_id'] ?? '0';
+$userSiteId = (int) $siteIdStr;
 $agentVisibility = new \App\Services\AccessService()->getReportVisibility(null);
 $seeAllSites = new \App\Services\AccessService()->canSeeAllSites();
 $noSiteMode = $config->isNoSiteMode();
 
-$userId = (int) $user['id'];
+/** @var string */
+$userIdStr = $user['id'] ?? '0';
+$userId = (int) $userIdStr;
 $rsstCount = 0;
 $ramiCount = 0;
 $dgiCount  = 0;

@@ -12,7 +12,9 @@ $report = fetchReportOrRedirect($uuid);
 
 // Access control: only the declarant can edit
 $user = currentUser();
-$userId = (int) $user['id'];
+/** @var string $userIdStr */
+$userIdStr = $user['id'] ?? '0';
+$userId = (int) $userIdStr;
 
 requireReportOwnership($report, $userId, $uuid, 'modifier');
 requireReportEditable($report, $uuid, 'modifié');

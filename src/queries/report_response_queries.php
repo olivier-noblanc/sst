@@ -40,6 +40,12 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool
         'telephone_mobile = :telephone_mobile',
         'site_text = :site_text',
     ];
+    /** @var int|string|null $isConfidentialRaw */
+    $isConfidentialRaw = $data['is_confidential'] ?? null;
+    $isConfidential = $isConfidentialRaw !== null ? (int) $isConfidentialRaw : 1;
+    /** @var int|string|null $consentSyndicatRaw */
+    $consentSyndicatRaw = $data['consent_syndicat'] ?? null;
+    $consentSyndicat = $consentSyndicatRaw !== null ? (int) $consentSyndicatRaw : 0;
     $params = [
         ':objet'             => $data['objet'],
         ':description'       => $data['description'],
@@ -50,8 +56,8 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool
         ':pour_compte_prenom' => $data['pour_compte_prenom'] ?? null,
         ':nature_auteur'     => $data['nature_auteur'] ?? null,
         ':type_acte'         => $data['type_acte'] ?? null,
-        ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
-        ':consent_syndicat'  => isset($data['consent_syndicat']) ? (int) $data['consent_syndicat'] : 0,
+        ':is_confidential'   => $isConfidential,
+        ':consent_syndicat'  => $consentSyndicat,
         ':pole'              => $data['pole'] ?? null,
         ':service_affectation' => $data['service_affectation'] ?? null,
         ':telephone_mobile'  => $data['telephone_mobile'] ?? null,

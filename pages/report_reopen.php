@@ -32,6 +32,8 @@ if (!in_array($report['etat'], ['traite', 'abandonne'])) {
 $pageTitle = 'Réouvrir le signalement — ' . $report['reference'];
 $type = $report['type'];
 $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
+/** @var string $typeStr */
+$typeStr = (string) $type;
 
 // Restore form data if redirected back with errors
 $formData = new \App\Services\SessionService()->getFormData();
@@ -42,7 +44,7 @@ $flash = new \App\Services\SessionService()->getFlash();
 
 <?php echo $fmt->renderBreadcrumb([
     ['url' => $http->url('home'), 'label' => 'Accueil'],
-    ['url' => $http->url('report_list', ['type' => $type]), 'label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)],
+    ['url' => $http->url('report_list', ['type' => $type]), 'label' => REGISTRY_SHORT_LABELS[$typeStr] ?? strtoupper($typeStr)],
     ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
     ['label' => 'Réouvrir'],
 ]); ?>

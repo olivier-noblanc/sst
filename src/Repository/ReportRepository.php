@@ -146,7 +146,9 @@ class ReportRepository
         }
         $filters = $filter->toArray();
         if (!empty($filters['confidential_filter'])) {
-            $cfId = (int) $filters['confidential_filter'];
+            /** @var int|string $cfIdRaw */
+            $cfIdRaw = $filters['confidential_filter'];
+            $cfId = (int) $cfIdRaw;
             $builder->addRaw('(r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)', [':cf_declarant_id' => $cfId]);
         }
         if (!empty($filters['own_only'])) {
@@ -159,7 +161,9 @@ class ReportRepository
             $builder->addEqual('r.site_id', $filters['site_id']);
         }
         if (!empty($filters['force_site_id'])) {
-            $builder->addEqual('r.site_id', (int) $filters['force_site_id']);
+            /** @var int|string $forceSiteIdRaw */
+            $forceSiteIdRaw = $filters['force_site_id'];
+            $builder->addEqual('r.site_id', (int) $forceSiteIdRaw);
         }
         if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) {
             $builder->addEqual('r.declarant_id', $filters['declarant_id']);
@@ -232,7 +236,9 @@ class ReportRepository
         $stmt->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
         $prev = $stmt->fetch();
         if (is_array($prev) && isset($prev['uuid'])) {
-            $result['prev'] = (string) $prev['uuid'];
+            /** @var string $prevUuid */
+            $prevUuid = $prev['uuid'];
+            $result['prev'] = $prevUuid;
         }
 
         $stmt2 = $this->pdo->prepare('
@@ -243,7 +249,9 @@ class ReportRepository
         $stmt2->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
         $next = $stmt2->fetch();
         if (is_array($next) && isset($next['uuid'])) {
-            $result['next'] = (string) $next['uuid'];
+            /** @var string $nextUuid */
+            $nextUuid = $next['uuid'];
+            $result['next'] = $nextUuid;
         }
 
         return $result;
@@ -276,10 +284,16 @@ class ReportRepository
             'total'        => 0,
         ];
         $rows = $stmt->fetchAll();
-        foreach (is_array($rows) ? $rows : [] as $row) {
+        if (!is_array($rows)) {
+            return $counts;
+        }
+        foreach ($rows as $row) {
+            /** @var array<string, mixed> $row */
             $etat = is_string($row['etat'] ?? null) ? $row['etat'] : '';
-            $counts[$etat] = (int) ($row['count'] ?? 0);
-            $counts['total'] += (int) ($row['count'] ?? 0);
+            /** @var int|string $countRaw */
+            $countRaw = $row['count'] ?? 0;
+            $counts[$etat] = (int) $countRaw;
+            $counts['total'] += (int) $countRaw;
         }
         return $counts;
     }
@@ -434,6 +448,12 @@ class ReportRepository
                     :attachment_blob, :attachment_name, :attachment_mime
                 )
             ");
+            /** @var int|string|null $isConfidentialRaw */
+            $isConfidentialRaw = $data['is_confidential'] ?? null;
+            $isConfidential = $isConfidentialRaw !== null ? (int) $isConfidentialRaw : 1;
+            /** @var int|string|null $consentSyndicatRaw */
+            $consentSyndicatRaw = $data['consent_syndicat'] ?? null;
+            $consentSyndicat = $consentSyndicatRaw !== null ? (int) $consentSyndicatRaw : 0;
             $stmt->execute([
                 ':uuid' => $uuid, ':reference' => $reference, ':type' => $data['type'],
                 ':objet' => $data['objet'], ':description' => $data['description'],
@@ -449,8 +469,8 @@ class ReportRepository
                 ':pole' => $data['pole'] ?? null,
                 ':service_affectation' => $data['service_affectation'] ?? null,
                 ':telephone_mobile' => $data['telephone_mobile'] ?? null,
-                ':is_confidential' => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
-                ':consent_syndicat' => isset($data['consent_syndicat']) ? (int) $data['consent_syndicat'] : 0,
+                ':is_confidential' => $isConfidential,
+                ':consent_syndicat' => $consentSyndicat,
                 ':attachment_blob' => $data['attachment_blob'] ?? null,
                 ':attachment_name' => $data['attachment_name'] ?? null,
                 ':attachment_mime' => $data['attachment_mime'] ?? null,
@@ -492,6 +512,12 @@ class ReportRepository
             'telephone_mobile = :telephone_mobile',
             'site_text = :site_text',
         ];
+        /** @var int|string|null $isConfidentialRaw */
+        $isConfidentialRaw = $data['is_confidential'] ?? null;
+        $isConfidential = $isConfidentialRaw !== null ? (int) $isConfidentialRaw : 1;
+        /** @var int|string|null $consentSyndicatRaw */
+        $consentSyndicatRaw = $data['consent_syndicat'] ?? null;
+        $consentSyndicat = $consentSyndicatRaw !== null ? (int) $consentSyndicatRaw : 0;
         $params = [
             ':objet'             => $data['objet'],
             ':description'       => $data['description'],
@@ -502,11 +528,11 @@ class ReportRepository
             ':pour_compte_prenom' => $data['pour_compte_prenom'] ?? null,
             ':nature_auteur'     => $data['nature_auteur'] ?? null,
             ':type_acte'         => $data['type_acte'] ?? null,
-            ':is_confidential'   => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
-            ':consent_syndicat'  => isset($data['consent_syndicat']) ? (int) $data['consent_syndicat'] : 0,
             ':pole'              => $data['pole'] ?? null,
             ':service_affectation' => $data['service_affectation'] ?? null,
             ':telephone_mobile'  => $data['telephone_mobile'] ?? null,
+            ':is_confidential'   => $isConfidential,
+            ':consent_syndicat'  => $consentSyndicat,
             ':site_text'         => $data['site_text'] ?? null,
         ];
         if (array_key_exists('attachment_blob', $data)) {
@@ -640,9 +666,12 @@ class ReportRepository
                     INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
                     VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
                 ');
+                /** @var int|string|null $repondantIdRaw */
+                $repondantIdRaw = $current['repondant_id'] ?? null;
+                $archiveUserId = $repondantIdRaw !== null ? (int) $repondantIdRaw : 0;
                 $archiveStmt->execute([
                     ':report_uuid' => $uuid,
-                    ':user_id'     => (int) $current['repondant_id'],
+                    ':user_id'     => $archiveUserId,
                     ':reponse'     => '[Réponse initiale archivée] ' . $current['reponse'],
                     ':nouvel_etat' => ETAT_TRAITE,
                 ]);

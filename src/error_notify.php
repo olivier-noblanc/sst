@@ -45,8 +45,11 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
     // Build email content
     $appName = defined('APP_NAME') ? APP_NAME : 'Application SST';
     $appVersion = function_exists('getAppVersion') ? getAppVersion() : 'inconnue';
+    /** @var string */
     $requestUri = $_SERVER['REQUEST_URI'] ?? 'CLI';
+    /** @var string */
     $httpMethod = $_SERVER['REQUEST_METHOD'] ?? '';
+    /** @var string */
     $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
     $timestamp = date('d/m/Y H:i:s');
 
@@ -60,14 +63,14 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
     $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">Message</td><td style="padding:4px 12px;">' . htmlspecialchars($message) . '</td></tr>';
     $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">Fichier</td><td style="padding:4px 12px; font-family:monospace; font-size:13px;">' . htmlspecialchars($file) . " (ligne $line)</td></tr>";
     $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">URL</td><td style="padding:4px 12px; font-family:monospace; font-size:13px;">' . htmlspecialchars($httpMethod . ' ' . $requestUri) . '</td></tr>';
-    $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">Adresse IP</td><td style="padding:4px 12px;">' . htmlspecialchars((string) $remoteAddr) . '</td></tr>';
+    $body .= '<tr><td style="padding:4px 12px; font-weight:bold; color:#555;">Adresse IP</td><td style="padding:4px 12px;">' . htmlspecialchars($remoteAddr) . '</td></tr>';
     $body .= "<tr><td style=\"padding:4px 12px; font-weight:bold; color:#555;\">Date/Heure</td><td style=\"padding:4px 12px;\">$timestamp</td></tr>";
     $body .= '</table>';
 
     $body .= '<hr style="margin:16px 0; border:none; border-top:1px solid #ddd;">';
     $body .= "<p style=\"font-size:12px; color:#888;\">Cet e-mail a été envoyé automatiquement par l'application SST car une erreur critique a été détectée. ";
     $body .= "Pour limiter le spam, une même erreur ne déclenche qu'un seul e-mail toutes les " . (ERROR_THROTTLE_SECONDS / 60) . ' minutes. ';
-    $body .= 'Consultez le <a href="' . htmlspecialchars((string) $requestUri) . "\">journal d'erreurs</a> dans l'interface pour voir toutes les entrées.</p>";
+    $body .= 'Consultez le <a href="' . htmlspecialchars($requestUri) . "\">journal d'erreurs</a> dans l'interface pour voir toutes les entrées.</p>";
     $body .= '</body></html>';
 
     // Send email (defer to mail module if available, otherwise use error_log)
@@ -122,7 +125,8 @@ function sstIsThrottled(string $errorKey): bool
         return false;
     }
 
-    $lastSent = (float) $data[$errorKey];
+    /** @var float */
+    $lastSent = $data[$errorKey] ?? 0.0;
     return (microtime(true) - $lastSent) < ERROR_THROTTLE_SECONDS;
 }
 
@@ -148,8 +152,10 @@ function sstMarkThrottled(string $errorKey): void
 
     // Clean up old entries (older than 1 hour) to prevent file bloat
     $cutoff = microtime(true) - 3600;
-    foreach ($data as $key => $timestamp) {
-        if ((float) $timestamp < $cutoff) {
+    foreach ($data as $key => $ts) {
+        /** @var float */
+        $tsVal = $ts ?? 0.0;
+        if ($tsVal < $cutoff) {
             unset($data[$key]);
         }
     }

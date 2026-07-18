@@ -11,7 +11,9 @@
 
     <?php foreach ($sites as $site): ?>
         <?php
-            $sId = (int) $site['id'];
+            /** @var string $siteIdStr */
+        $siteIdStr = $site['id'] ?? '0';
+        $sId = (int) $siteIdStr;
         $existingEmails = [];
         if (isset($siteEmails[$sId])) {
             foreach ($siteEmails[$sId] as $se) {

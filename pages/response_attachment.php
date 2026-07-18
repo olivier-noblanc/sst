@@ -7,7 +7,9 @@
  * URL: index.php?page=response_attachment&id={response_id}
  */
 
-$responseId = (int) ($_GET['id'] ?? 0);
+/** @var string $responseIdStr */
+$responseIdStr = $_GET['id'] ?? '0';
+$responseId = (int) $responseIdStr;
 
 if ($responseId <= 0) {
     http_response_code(404);

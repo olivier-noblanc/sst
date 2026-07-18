@@ -46,7 +46,8 @@ class NotificationService
             return;
         }
 
-        $siteId = (int) $report['site_id'];
+        /** @var int */
+        $siteId = $report['site_id'] ?? 0;
         $recipients = getNotificationRecipients($this->pdo, $siteId);
         if (empty($recipients)) {
             return;
@@ -54,7 +55,9 @@ class NotificationService
 
         require_once __DIR__ . '/../mail.php';
 
-        $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
+        /** @var string */
+        $type = $report['type'] ?? '';
+        $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
         $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
         $body = '<html><body>';
         $body .= '<h2>Signalement abandonné</h2>';
@@ -82,11 +85,15 @@ class NotificationService
 
         require_once __DIR__ . '/../mail.php';
 
-        $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
+        /** @var string */
+        $type = $report['type'] ?? '';
+        $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
 
         // Notify declarant
-        $declarant = getUserById($this->pdo, (int) $report['declarant_id']);
-        if ($declarant && !empty($declarant['email']) && (int) $report['declarant_id'] !== $userId) {
+        /** @var int */
+        $declarantId = $report['declarant_id'] ?? 0;
+        $declarant = getUserById($this->pdo, $declarantId);
+        if ($declarant && !empty($declarant['email']) && $declarantId !== $userId) {
             $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
             $body = '<html><body>';
             $body .= '<h2>Votre signalement a été réouvert</h2>';

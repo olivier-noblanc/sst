@@ -20,6 +20,7 @@ use App\Services\FormattingService;
  * and checked authentication. We do NOT need to re-require or re-start session.
  */
 
+/** @var string */
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
@@ -36,7 +37,7 @@ $pdo = getContainer()->get(PDO::class);
 new AccessService()->logConfidentialReportAccess($pdo, $report, $user);
 
 // Fetch attachment blob separately (not loaded by findById for performance)
-$attachmentData = ReportRepository::instance()->getAttachmentBlob((string) $uuid);
+$attachmentData = ReportRepository::instance()->getAttachmentBlob($uuid);
 $report['attachment_blob'] = $attachmentData['attachment_blob'] ?? null;
 
 // Get response history

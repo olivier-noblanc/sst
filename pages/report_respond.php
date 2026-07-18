@@ -27,7 +27,9 @@ $responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 
 $pageTitle = 'Répondre au signalement — ' . $fmt->e($report['reference']);
 $registryType = $report['type'];
-$registryLabel = REGISTRY_SHORT_LABELS[$registryType] ?? strtoupper((string) $registryType);
+/** @var string $registryTypeStr */
+$registryTypeStr = (string) $registryType;
+$registryLabel = REGISTRY_SHORT_LABELS[$registryTypeStr] ?? strtoupper($registryTypeStr);
 
 // Get form errors and data from session
 $formErrors = $session->getFormErrors();

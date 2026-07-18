@@ -81,6 +81,12 @@ function createReport(PDO $pdo, array $data): string
                 :attachment_blob, :attachment_name, :attachment_mime
             )
         ");
+        /** @var int|string|null $isConfidentialRaw */
+        $isConfidentialRaw = $data['is_confidential'] ?? null;
+        $isConfidential = $isConfidentialRaw !== null ? (int) $isConfidentialRaw : 1;
+        /** @var int|string|null $consentSyndicatRaw */
+        $consentSyndicatRaw = $data['consent_syndicat'] ?? null;
+        $consentSyndicat = $consentSyndicatRaw !== null ? (int) $consentSyndicatRaw : 0;
         $stmt->execute([
             ':uuid' => $uuid, ':reference' => $reference, ':type' => $data['type'],
             ':objet' => $data['objet'], ':description' => $data['description'],
@@ -96,8 +102,8 @@ function createReport(PDO $pdo, array $data): string
             ':pole' => $data['pole'] ?? null,
             ':service_affectation' => $data['service_affectation'] ?? null,
             ':telephone_mobile' => $data['telephone_mobile'] ?? null,
-            ':is_confidential' => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
-            ':consent_syndicat' => isset($data['consent_syndicat']) ? (int) $data['consent_syndicat'] : 0,
+            ':is_confidential' => $isConfidential,
+            ':consent_syndicat' => $consentSyndicat,
             ':attachment_blob' => $data['attachment_blob'] ?? null,
             ':attachment_name' => $data['attachment_name'] ?? null,
             ':attachment_mime' => $data['attachment_mime'] ?? null,
@@ -134,14 +140,30 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array
  */
 function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page = 1, int $perPage = 20): array
 {
+    /** @var int|string|null $siteIdRaw */
+    $siteIdRaw = $filters['site_id'] ?? null;
+    $siteId = $siteIdRaw !== null ? (int) $siteIdRaw : 0;
+    /** @var int|string|null $declarantIdRaw */
+    $declarantIdRaw = !empty($filters['declarant_id']) ? $filters['declarant_id'] : null;
+    $declarantId = $declarantIdRaw !== null ? (int) $declarantIdRaw : null;
+    /** @var int|string|null $confidentialFilterRaw */
+    $confidentialFilterRaw = !empty($filters['confidential_filter']) ? $filters['confidential_filter'] : null;
+    $confidentialFilter = $confidentialFilterRaw !== null ? (int) $confidentialFilterRaw : null;
+    /** @var int|string|null $forceSiteIdRaw */
+    $forceSiteIdRaw = !empty($filters['force_site_id']) ? $filters['force_site_id'] : null;
+    $forceSiteId = $forceSiteIdRaw !== null ? (int) $forceSiteIdRaw : null;
+    /** @var string $etat */
+    $etat = $filters['etat'] ?? '';
+    /** @var string|null $search */
+    $search = $filters['q'] ?? null;
     $filter = new ReportFilter(
         type: $type,
-        etat: $filters['etat'] ?? '',
-        siteId: (int) ($filters['site_id'] ?? 0),
-        declarantId: !empty($filters['declarant_id']) ? (int) $filters['declarant_id'] : null,
-        confidentialFilter: !empty($filters['confidential_filter']) ? (int) $filters['confidential_filter'] : null,
-        forceSiteId: !empty($filters['force_site_id']) ? (int) $filters['force_site_id'] : null,
-        search: $filters['q'] ?? null,
+        etat: $etat,
+        siteId: $siteId,
+        declarantId: $declarantId,
+        confidentialFilter: $confidentialFilter,
+        forceSiteId: $forceSiteId,
+        search: $search,
         seeAllSites: $seeAllSites,
     );
     return ReportRepository::instance()->findPaginated($filter, $page, $perPage);

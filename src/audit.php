@@ -79,7 +79,9 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
 
     if (!empty($filters['user_id'])) {
         $where .= ' AND user_id = :user_id';
-        $params[':user_id'] = (int) $filters['user_id'];
+        /** @var int */
+        $userId = $filters['user_id'] ?? 0;
+        $params[':user_id'] = $userId;
     }
 
     if (!empty($filters['date_from'])) {

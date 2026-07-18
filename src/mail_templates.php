@@ -56,13 +56,21 @@ function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string
     $body .= "<tr style='background:#f5f5f5;'><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Réf.</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Registre</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Objet</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Déclarant</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Créé le</th></tr>";
 
     foreach ($siteData['reports'] as $report) {
-        $registryLabel = REGISTRY_SHORT_LABELS[$report['type']] ?? strtoupper((string) $report['type']);
+        /** @var string */
+        $reportType = $report['type'] ?? '';
+        $registryLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
+        /** @var string */
+        $reference = $report['reference'] ?? '';
+        /** @var string */
+        $objet = $report['objet'] ?? '';
+        /** @var string */
+        $createdAt = $report['created_at'] ?? '';
         $body .= '<tr>';
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars((string) $report['reference']) . '</td>';
+        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($reference) . '</td>';
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($registryLabel) . '</td>';
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars((string) $report['objet']) . '</td>';
+        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($objet) . '</td>';
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . '</td>';
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars((string) $report['created_at']) . '</td>';
+        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($createdAt) . '</td>';
         $body .= '</tr>';
     }
 

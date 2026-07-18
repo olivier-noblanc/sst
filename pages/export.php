@@ -61,7 +61,8 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                     <select name="site_id" id="site_id">
                         <option value="" <?php echo empty($formData['site_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($sites as $site): ?>
-                        <option value="<?php echo (int) $site['id']; ?>" <?php echo ($formData['site_id'] ?? '') == $site['id'] ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($site['nom']); ?></option>
+                        <?php /** @var int */ $exportSiteId = $site['id'] ?? 0; ?>
+                        <option value="<?php echo $exportSiteId; ?>" <?php echo ($formData['site_id'] ?? '') == $site['id'] ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($site['nom']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">
@@ -80,7 +81,8 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                     <select name="declarant_id" id="declarant_id">
                         <option value="" <?php echo empty($formData['declarant_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($users as $u): ?>
-                        <option value="<?php echo (int) $u['id']; ?>" <?php echo ($formData['declarant_id'] ?? '') == $u['id'] ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u['prenom'] . ' ' . $u['nom']); ?></option>
+                        <?php /** @var int */ $exportUserId = $u['id'] ?? 0; ?>
+                        <option value="<?php echo $exportUserId; ?>" <?php echo ($formData['declarant_id'] ?? '') == $u['id'] ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u['prenom'] . ' ' . $u['nom']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">

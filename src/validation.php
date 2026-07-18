@@ -51,7 +51,9 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
                     if ($attachmentBlob === false) {
                         $errors['attachment'] = 'Erreur lors de la lecture du fichier.';
                     } else {
-                        $attachmentName = basename((string) $file['name']);
+                        /** @var string */
+                        $fileName = $file['name'] ?? '';
+                        $attachmentName = basename($fileName);
                         $attachmentMime = $mime;
                     }
                 }
@@ -232,7 +234,9 @@ function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array
  */
 function requireReportOwnership(array $report, int $userId, string $uuid, string $verb = 'modifier'): void
 {
-    if ((int) $report['declarant_id'] !== $userId) {
+    /** @var int */
+    $declarantId = $report['declarant_id'] ?? 0;
+    if ($declarantId !== $userId) {
         setFlash('error', 'Vous ne pouvez ' . $verb . ' que vos propres signalements.');
         redirect(url('report_view', ['uuid' => $uuid]));
     }

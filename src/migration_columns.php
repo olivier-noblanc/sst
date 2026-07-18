@@ -157,11 +157,12 @@ function migrateColumns(PDO $pdo): void
             $stmt = $pdo->query('SELECT uuid FROM reports WHERE uuid IS NOT NULL');
             $fixes = [];
             while ($row = $stmt->fetch()) {
-                $oldUuid = $row['uuid'];
-                $variantNibble = strtolower((string) $oldUuid[19]);
+                /** @var string */
+                $oldUuid = $row['uuid'] ?? '';
+                $variantNibble = strtolower($oldUuid[19]);
                 if (in_array($variantNibble, ['c', 'd', 'e', 'f'])) {
                     $nibbleMap = ['c' => '8', 'd' => '9', 'e' => 'a', 'f' => 'b'];
-                    $newUuid = substr((string) $oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr((string) $oldUuid, 20);
+                    $newUuid = substr($oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr($oldUuid, 20);
                     $fixes[] = ['old' => $oldUuid, 'new' => $newUuid];
                 }
             }

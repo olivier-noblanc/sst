@@ -12,6 +12,7 @@ use App\Repository\SiteRepository;
  * Form for creating a new RSST, RAMI, or DGI report.
  * URL: index.php?page=report_create&type={rsst|rami|dgi}
  */
+/** @var string */
 $type = $_GET['type'] ?? '';
 
 // Validate type
@@ -26,7 +27,7 @@ if (!ConfigService::getInstance()->isRegistryEnabled($type)) {
     new HttpService()->redirect(new HttpService()->url('home'));
 }
 
-$pageTitle = 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type));
+$pageTitle = 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
 
 $pdo = getContainer()->get(PDO::class);
 $user = SessionService::getInstance()->getUserSession();
@@ -37,7 +38,9 @@ if ($canSelectSite) {
     $sites = SiteRepository::instance()->findAll();
 } else {
     // Agent: only show their own site
-    $mySite = SiteRepository::instance()->findById((int) $user['site_id']);
+    /** @var string */
+    $mySiteIdStr = $user['site_id'] ?? '0';
+    $mySite = SiteRepository::instance()->findById((int) $mySiteIdStr);
     $sites = $mySite ? [$mySite] : [];
 }
 

@@ -47,7 +47,7 @@ $val = function(string $field, string $default = '') use ($formData, $report, $i
     return $default;
 };
 
-$registryLabel = (string) (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
+$registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
 /** @var string $registryFullLabel */
 $registryFullLabel = (string) (REGISTRY_LABELS[$type] ?? $type);
 
@@ -206,7 +206,15 @@ $submitBtnClass = $isEdit
                         <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : 'aria-describedby="hint_site_id"'; ?>>
                     <?php foreach ($sites as $site): ?>
                         <option value="<?php echo e($site['id'] ?? ''); ?>"
-                            <?php echo ((int)$val('site_id', (string)($user['site_id'] ?? '')) === (int)($site['id'] ?? 0)) ? 'selected' : ''; ?>>
+                            <?php
+                        /** @var string $siteIdVal */
+                        $siteIdVal = $user['site_id'] ?? '';
+                        /** @var string $siteIdFromForm */
+                        $siteIdFromForm = $val('site_id', $siteIdVal);
+                        /** @var string $siteIdRaw */
+                        $siteIdRaw = $site['id'] ?? '0';
+                        echo ((int)$siteIdFromForm === (int)$siteIdRaw) ? 'selected' : '';
+                        ?>>
                             <?php echo e(($site['code'] ?? '') . ' — ' . ($site['nom'] ?? '')); ?>
                         </option>
                     <?php endforeach; ?>

@@ -10,9 +10,11 @@
  *   $formErrors — Array of field errors
  */
 $declarantEmail = $user['email'] ?? '';
+/** @var string $declarantEmailStr */
+$declarantEmailStr = (string) $declarantEmail;
 $emailDomain = '';
-if ($declarantEmail && str_contains((string) $declarantEmail, '@')) {
-    $emailDomain = substr((string) $declarantEmail, strrpos((string) $declarantEmail, '@') + 1);
+if ($declarantEmailStr && str_contains($declarantEmailStr, '@')) {
+    $emailDomain = substr($declarantEmailStr, strrpos($declarantEmailStr, '@') + 1);
 }
 $linkedEmails = '';
 if ($isEdit && $report) {

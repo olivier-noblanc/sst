@@ -48,6 +48,13 @@ class CreateReportCommand
             $typeActe = $ramiFields['type_acte'];
         }
 
+        /** @var string $declarantNom */
+        $declarantNom = $user['nom'] ?? '';
+        /** @var string $declarantPrenom */
+        $declarantPrenom = $user['prenom'] ?? '';
+        /** @var string $declarantIdStr */
+        $declarantIdStr = $user['id'] ?? '0';
+
         return new self(
             type: $post['type'],
             objet: trim($post['objet'] ?? ''),
@@ -55,9 +62,9 @@ class CreateReportCommand
             dateEvenement: trim($post['date_evenement'] ?? ''),
             heureEvenement: $post['heure_evenement'] ?? null,
             lieu: trim($post['lieu'] ?? ''),
-            declarantId: (int) $user['id'],
-            declarantNom: $user['nom'],
-            declarantPrenom: $user['prenom'],
+            declarantId: (int) $declarantIdStr,
+            declarantNom: $declarantNom,
+            declarantPrenom: $declarantPrenom,
             siteId: (int) ($post['site_id'] ?? 0),
             siteText: trim($post['site_text'] ?? ''),
             pole: trim($post['pole'] ?? ''),

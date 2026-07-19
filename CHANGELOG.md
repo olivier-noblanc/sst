@@ -33,7 +33,7 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 - **16** 🔴 **PHPStan 548→0 erreurs** — `phpstan-strict-rules` (disallowedEmpty désactivé), `spaze/phpstan-disallowed-calls` (DateTime::createFromFormat, ini_set), `shipmonk/dead-code-detector` (installé, désactivé). (`phpstan.neon`, `phpstan-disallowed-calls.neon`)
 - **17** 🔴 **Infection mutation testing** — Configuré avec minMsi=85, minCoveredMsi=90. MSI actuel : 51%. (`infection.json`)
-- **18** 🔴 **GrumPHP pre-commit** — phpstan + phpunit + phpcsfixer en parallèle. (`grumphp.yml`)
+- **18** 🔴 **GrumPHP pre-commit** — GrumPHP v2.22.0 via phar. Hook pre-commit avec phpstan + phpunit + phpcsfixer en parallèle. (`tools/grumphp.phar`, `tools/grumphp.bat`, `.git/hooks/pre-commit`)
 - **19** 🔴 **phpcpd** — 1.96% duplication, 13 blocs. Fork maintained `phpcpd-next/phpcpd`. (`composer.json`)
 - **20** 🟡 **ConfigService bug** — `fetchColumn()` appelé 3× sur même résultat. Corrigé. (`src/Services/ConfigService.php`)
 - **21** 🟡 **Runner autoload** — `tests/bootstrap.php` charge `vendor/autoload.php`. `middleware_runner.php`/`handler_runner.php` avec `ob_start()` + `session_start()`. Smoke tests ajoutés. (`tests/bootstrap.php`, `tests/middleware_runner.php`, `tests/handler_runner.php`, `tests/unit/RunnerSmokeTest.php`)

@@ -29,7 +29,7 @@ try {
     $user = $service->findById($userId);
     /** @var array<string, string> $user */
     $label = is_array($user) ? $user['prenom'] . ' ' . $user['nom'] : '(id=' . $userId . ')';
-    auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $label, (int) $userId, 'user');
+    auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $label, $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($label) . ' réactivé avec succès.');
 } catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));

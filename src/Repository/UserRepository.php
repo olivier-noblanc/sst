@@ -238,8 +238,6 @@ class UserRepository
             $stmt = $this->pdo->prepare("
                 UPDATE reports
                 SET declarant_nom = 'Anonymisé', declarant_prenom = 'Utilisateur',
-                    pour_compte_nom = CASE WHEN pour_compte_nom IS NOT NULL THEN 'Anonymisé' ELSE NULL END,
-                    pour_compte_prenom = CASE WHEN pour_compte_prenom IS NOT NULL THEN 'Utilisateur' ELSE NULL END,
                     telephone_mobile = NULL
                 WHERE declarant_id = :id
             ");
@@ -280,7 +278,7 @@ class UserRepository
     public function exportData(int $id): array
     {
         $user = $this->findById($id);
-        if (!$user) {
+        if ($user === null) {
             return [];
         }
 

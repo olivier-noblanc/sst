@@ -74,7 +74,7 @@ class MailHelperDelayTest extends TestCase
         $this->assertStringContainsString('RSST', $body);
         $this->assertStringContainsString('Test objet', $body);
         $this->assertStringContainsString('Jean Martin', $body);
-        $this->assertStringContainsString('2025-01-15 10:00:00', $body);
+        $this->assertStringContainsString('15/01/2025 à 11:00', $body);
     }
 
     public function testBuildDelayAlertEmailWithMultipleReports(): void

@@ -42,7 +42,7 @@ class NotificationService
     public function notifyReportAbandon(string $reportUuid, int $userId): void
     {
         $report = getReportByUuid($this->pdo, $reportUuid);
-        if (!$report) {
+        if ($report === null) {
             return;
         }
 
@@ -79,7 +79,7 @@ class NotificationService
     public function notifyReportReopen(string $reportUuid, int $userId): void
     {
         $report = getReportByUuid($this->pdo, $reportUuid);
-        if (!$report) {
+        if ($report === null) {
             return;
         }
 
@@ -93,7 +93,7 @@ class NotificationService
         /** @var int */
         $declarantId = $report['declarant_id'] ?? 0;
         $declarant = getUserById($this->pdo, $declarantId);
-        if ($declarant && !empty($declarant['email']) && $declarantId !== $userId) {
+        if ($declarant !== null && !empty($declarant['email']) && $declarantId !== $userId) {
             $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
             $body = '<html><body>';
             $body .= '<h2>Votre signalement a été réouvert</h2>';

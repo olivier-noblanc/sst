@@ -17,7 +17,7 @@ $session = new \App\Services\SessionService();
 $access = new \App\Services\AccessService();
 
 // Validate type
-if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {
+if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI], true)) {
     $session->setFlash('error', 'Type de registre invalide.');
     $http->redirect($http->url('home'));
 }
@@ -40,6 +40,7 @@ $userRole = (string) ($user['role'] ?? '');
 $agentVisibility = $access->getReportVisibility($type);
 $seeAllSites = $access->canSeeAllSites();
 $noSiteMode = $config->isNoSiteMode();
+$chsctScope = $userRole === ROLE_CHSCT ? $access->getChsctReportScope() : null;
 
 // Build filters from GET params
 /** @var array<string, mixed> $filters */
@@ -80,7 +81,7 @@ $forceSiteIdFilter = !empty($forceSiteIdRaw) ? (int) $forceSiteIdRaw : null;
 /** @var string|null */
 $filterSearch = $filters['q'] ?? null;
 /** @var array{reports: list<array<string, mixed>>, total: int} $result */
-$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: $filterSiteId, declarantId: $declarantIdFilter, confidentialFilter: $confidentialFilter, forceSiteId: $forceSiteIdFilter, search: $filterSearch, seeAllSites: $seeAllSites), $pageNum, $perPage);
+$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: $filterSiteId, declarantId: $declarantIdFilter, confidentialFilter: $confidentialFilter, forceSiteId: $forceSiteIdFilter, search: $filterSearch, seeAllSites: $seeAllSites, chsctConsentOnly: $chsctScope === 'consent_only'), $pageNum, $perPage);
 $reports = $result['reports'];
 $totalItems = $result['total'];
 
@@ -110,7 +111,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
     <a href="<?php echo $http->url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 
-<?php if (in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])): ?>
+<?php if ($userRole === ROLE_SUPERVISEUR): ?>
 <p class="mb-3"><a href="<?php echo $http->url('export'); ?>" class="btn btn--sm btn--outline">&#x1F4E5; Exporter les signalements filtrés</a></p>
 <?php endif; ?>
 
@@ -129,10 +130,9 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
             <label for="etat">État</label>
             <select id="etat" name="etat">
                 <option value="">Tous</option>
-                <option value="nouveau" <?php echo $filters['etat'] === 'nouveau' ? 'selected' : ''; ?>>Nouveau</option>
-                <option value="en_cours" <?php echo $filters['etat'] === 'en_cours' ? 'selected' : ''; ?>>En cours</option>
-                <option value="traite" <?php echo $filters['etat'] === 'traite' ? 'selected' : ''; ?>>Traité</option>
-                <option value="abandonne" <?php echo $filters['etat'] === 'abandonne' ? 'selected' : ''; ?>>Abandonné</option>
+                <?php foreach (\App\Enum\ReportState::cases() as $state): ?>
+                <option value="<?php echo $fmt->e($state->value); ?>" <?php echo $filters['etat'] === $state->value ? 'selected' : ''; ?>><?php echo $fmt->e($state->label()); ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
 

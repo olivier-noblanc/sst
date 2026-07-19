@@ -63,7 +63,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                         <option value="" <?php echo empty($formData['site_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($sites as $site): ?>
                         <?php /** @var int */ $exportSiteId = $site['id'] ?? 0; ?>
-                        <option value="<?php echo $exportSiteId; ?>" <?php echo ($formData['site_id'] ?? '') == $site['id'] ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($site['nom']); ?></option>
+                        <option value="<?php echo $exportSiteId; ?>" <?php echo ($formData['site_id'] ?? '') === (string) ($site['id'] ?? '') ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($site['nom']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">
@@ -83,7 +83,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                         <option value="" <?php echo empty($formData['declarant_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($users as $u): ?>
                         <?php /** @var int */ $exportUserId = $u['id'] ?? 0; ?>
-                        <option value="<?php echo $exportUserId; ?>" <?php echo ($formData['declarant_id'] ?? '') == $u['id'] ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u['prenom'] . ' ' . $u['nom']); ?></option>
+                        <option value="<?php echo $exportUserId; ?>" <?php echo ($formData['declarant_id'] ?? '') === (string) ($u['id'] ?? '') ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u['prenom'] . ' ' . $u['nom']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">
@@ -113,7 +113,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                 <?php foreach (ETAT_LABELS as $key => $label): ?>
                 <label class="label--checkbox">
                     <input type="checkbox" name="etats[]" value="<?php echo new \App\Services\FormattingService()->e($key); ?>"
-                           <?php echo (empty($formData['etats']) || in_array($key, $formData['etats'] ?? [])) ? 'checked' : ''; ?>>
+                           <?php echo (empty($formData['etats']) || in_array($key, $formData['etats'] ?? [], true)) ? 'checked' : ''; ?>>
                     <span class="badge <?php echo new \App\Services\FormattingService()->getEtatBadgeClass($key); ?> badge--sm"><?php echo new \App\Services\FormattingService()->e($label); ?></span>
                 </label>
                 <?php endforeach; ?>

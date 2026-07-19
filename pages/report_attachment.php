@@ -27,14 +27,14 @@ if (!is_array($row) || empty($row['attachment_blob'])) {
 
 // Access control: centralized via canAccessReport()
 $user = currentUser();
-if (!$user) {
+if ($user === null) {
     http_response_code(403);
     exit('Accès refusé.');
 }
 
 // Get full report for access check
 $report = getReportByUuid($pdo, $uuid);
-if (!$report) {
+if ($report === null) {
     http_response_code(404);
     exit('Fichier introuvable.');
 }
@@ -58,7 +58,7 @@ $inline = !empty($_GET['inline']);
 
 // For images with inline=1, use Content-Disposition: inline (display in browser)
 // For PDFs or downloads without inline param, force download
-$isImage = in_array($mime, ['image/jpeg', 'image/png', 'image/gif']);
+$isImage = in_array($mime, ['image/jpeg', 'image/png', 'image/gif'], true);
 $disposition = ($inline && $isImage) ? 'inline' : 'attachment';
 
 /** @var string */

@@ -20,16 +20,18 @@ class FormattingHelperTest extends TestCase
 
     public function testFormatDateTimeFRWithFullDatetime(): void
     {
+        // 2025-06-15 14:30:00 UTC → 16:30:00 CEST (summer, +2h)
         $result = formatDateTimeFR('2025-06-15 14:30:00');
         $this->assertStringContainsString('15/06/2025', $result);
-        $this->assertStringContainsString('14:30', $result);
+        $this->assertStringContainsString('16:30', $result);
     }
 
     public function testFormatDateTimeFRWithISOFormat(): void
     {
+        // 2025-06-15T14:30:00 UTC → 16:30:00 CEST (summer, +2h)
         $result = formatDateTimeFR('2025-06-15T14:30:00');
         $this->assertStringContainsString('15/06/2025', $result);
-        $this->assertStringContainsString('14:30', $result);
+        $this->assertStringContainsString('16:30', $result);
     }
 
     public function testFormatDateTimeFRReturnsDashForEmpty(): void
@@ -61,9 +63,10 @@ class FormattingHelperTest extends TestCase
         $this->assertEquals('badge--dgi', getRegistryBadgeClass('dgi'));
     }
 
-    public function testGetRegistryBadgeClassUnknownReturnsEmpty(): void
+    public function testGetRegistryBadgeClassUnknownThrowsValueError(): void
     {
-        $this->assertEquals('', getRegistryBadgeClass('unknown'));
+        $this->expectException(ValueError::class);
+        getRegistryBadgeClass('unknown');
     }
 
     // ─── renderBreadcrumb ───────────────────────────────────────────────────

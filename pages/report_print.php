@@ -131,7 +131,7 @@ $fields = [
     'Heure du dépôt'        => $reportHeureEvenement,
     'Lieu'                  => $reportLieu,
     'Objet'                 => $reportObjet,
-    'Transmission aux ' . ConfigService::getInstance()->getRoleLabel('chsct') . 's' => $reportConsentSyndicat ? 'Acceptée' : 'Refusée',
+    'Transmission aux ' . ConfigService::getInstance()->getRoleLabel('chsct') . 's' => $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée',
 ];
 
 foreach ($fields as $label => $value) {
@@ -180,7 +180,7 @@ if (!empty($report['attachment_name'])) {
     $reportAttachmentName = $report['attachment_name'] ?? '';
     /** @var string $reportAttachmentMime */
     $reportAttachmentMime = $report['attachment_mime'] ?? '';
-    $isImage = $reportAttachmentMime !== '' && in_array($reportAttachmentMime, ['image/jpeg', 'image/png', 'image/gif']);
+    $isImage = $reportAttachmentMime !== '' && in_array($reportAttachmentMime, ['image/jpeg', 'image/png', 'image/gif'], true);
     if ($isImage && !empty($report['attachment_blob'])) {
         drawField($pdf, 'Pièce jointe', $reportAttachmentName . ' (image embarquée ci-dessous)');
     } else {

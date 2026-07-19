@@ -43,7 +43,7 @@ class AuthService
             }
 
             $user = $this->findOrCreateUser($username);
-            if ($user) {
+            if ($user !== null) {
                 \setUserSession($user);
                 return $user;
             }
@@ -61,8 +61,8 @@ class AuthService
         /** @var array<string, mixed>|null $user */
         $user = $this->repo->findByUsernameOrAny($username);
 
-        if ($user) {
-            if (!$user['is_active']) {
+        if ($user !== null) {
+            if ($user['is_active'] === false || $user['is_active'] === 0) {
                 return null;
             }
             /** @var array<string, mixed> $user */
@@ -89,7 +89,7 @@ class AuthService
         }
 
         $user = $this->findOrCreateUser($username);
-        if ($user) {
+        if ($user !== null) {
             \setUserSession($user);
             return $user;
         }
@@ -145,7 +145,7 @@ class AuthService
         $superviseurUsernames = \getConfig('app_superviseur_usernames', '');
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
-            if (in_array(strtolower($username), $users)) {
+            if (in_array(strtolower($username), $users, true)) {
                 return ROLE_SUPERVISEUR;
             }
         }
@@ -166,7 +166,7 @@ class AuthService
         $superviseurUsernames = \getConfig('app_superviseur_usernames', '');
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
-            if (in_array(strtolower($username), $users)) {
+            if (in_array(strtolower($username), $users, true)) {
                 $id = is_int($user['id']) ? $user['id'] : 0;
                 $this->repo->promoteToSuperviseur($id);
                 $user['role'] = ROLE_SUPERVISEUR;
@@ -233,7 +233,7 @@ class AuthService
         }
 
         $autoUser = $this->getAuthenticatedUser();
-        if ($autoUser) {
+        if ($autoUser !== null) {
             \setUserSession($autoUser);
             \safeSessionRegenerate();
 
@@ -321,9 +321,9 @@ class AuthService
     public function handleLogout(): void
     {
         \clearSession();
-        if (ini_get('session.use_cookies')) {
+        if (ini_get('session.use_cookies') !== false) {
             $params = session_get_cookie_params();
-            $sessionName = session_name() ?: '';
+            $sessionName = session_name() !== false ? session_name() : '';
             setcookie(
                 $sessionName,
                 '',

@@ -146,7 +146,7 @@ foreach ($reports as $row) {
     $csvEscape = function ($value): string {
         /** @var string $safe */
         $safe = $value;
-        if (preg_match('/^[=+\-@]/', $safe)) {
+        if (preg_match('/^[=+\-@]/', $safe) > 0) {
             return "'" . $safe;
         }
         return $safe;

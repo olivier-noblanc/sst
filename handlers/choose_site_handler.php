@@ -32,7 +32,7 @@ $hasExistingSite = !empty($user['site_id']);
 // Grace period check
 if ($hasExistingSite) {
     $siteChosenAt = $user['site_chosen_at'] ?? null;
-    if ($siteChosenAt) {
+    if ($siteChosenAt !== null) {
         /** @var string */
         $siteChosenAtStr = $siteChosenAt;
         $timestamp = strtotime($siteChosenAtStr);
@@ -56,7 +56,7 @@ if ($hasExistingSite) {
 }
 
 $site = $siteRepo->findById($siteId);
-if (!$site || empty($site['is_active'])) {
+if ($site === null || empty($site['is_active'])) {
     setFlash('error', 'Site invalide ou désactivé.');
     session_write_close();
     redirect(url('choose_site'));

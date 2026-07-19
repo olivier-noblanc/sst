@@ -6,9 +6,30 @@ namespace App\Services;
 
 use PDO;
 use Exception;
+use App\Repository\ReportRepository;
 
 class AccessService
 {
+    /**
+     * Normalize a raw config value into a valid CHSCT report scope.
+     */
+    public function normalizeChsctScope(string $value): string
+    {
+        if (in_array($value, ['consent_only', 'all'], true)) {
+            return $value;
+        }
+        return 'consent_only';
+    }
+
+    /**
+     * Get the CHSCT report scope from config: 'consent_only' or 'all'.
+     */
+    public function getChsctReportScope(): string
+    {
+        $value = \getConfig('app_chsct_report_scope', 'consent_only');
+        return $this->normalizeChsctScope($value);
+    }
+
     /**
      * Centralize access control for a report.
      * Combines role, site, visibility mode and confidentiality checks.
@@ -22,7 +43,10 @@ class AccessService
             return true;
         }
         if ($user['role'] === ROLE_CHSCT) {
-            return ($report['consent_syndicat'] ?? 0) == 1;
+            if ($this->getChsctReportScope() === 'all') {
+                return true;
+            }
+            return (int) ($report['consent_syndicat'] ?? 0) === 1;
         }
 
         $reportSiteId = (int) ($report['site_id'] ?? 0);
@@ -35,12 +59,17 @@ class AccessService
         $reportDeclarantId = (int) ($report['declarant_id'] ?? 0);
         $userId = (int) ($user['id'] ?? 0);
 
-        if ($visibility === 'confidential' && $reportDeclarantId !== $userId) {
+        // Linked agents have the same read access as the declarant
+        $isLinkedAgent = isset($report['uuid'])
+            ? ReportRepository::instance()->isLinkedAgent((string) $report['uuid'], $userId)
+            : false;
+
+        if ($visibility === \App\Enum\VisibilityMode::Confidential->value && $reportDeclarantId !== $userId && !$isLinkedAgent) {
             return false;
         }
 
         $isConfidential = (int) ($report['is_confidential'] ?? 0);
-        if ($visibility === 'agent_choice' && $isConfidential === 1 && $reportDeclarantId !== $userId) {
+        if ($visibility === \App\Enum\VisibilityMode::AgentChoice->value && $isConfidential === 1 && $reportDeclarantId !== $userId && !$isLinkedAgent) {
             return false;
         }
 
@@ -91,7 +120,7 @@ class AccessService
         if (empty($role)) {
             return false;
         }
-        return in_array($role, [ROLE_SUPERVISEUR, ROLE_CHSCT]);
+        return \App\Enum\UserRole::tryFrom($role)?->canSeeAllSites() ?? false;
     }
 
     /**
@@ -100,15 +129,13 @@ class AccessService
     public function normalizeVisibilityValue(string $value): string
     {
         if ($value === '0' || $value === 'site') {
-            return 'public';
+            return \App\Enum\VisibilityMode::Public->value;
         }
         if ($value === '1' || $value === 'own') {
-            return 'confidential';
+            return \App\Enum\VisibilityMode::Confidential->value;
         }
-        if (in_array($value, ['confidential', 'agent_choice', 'public'])) {
-            return $value;
-        }
-        return 'agent_choice';
+        $mode = \App\Enum\VisibilityMode::tryFrom($value);
+        return $mode !== null ? $mode->value : \App\Enum\VisibilityMode::AgentChoice->value;
     }
 
     /**
@@ -123,7 +150,7 @@ class AccessService
                 return $this->normalizeVisibilityValue($value);
             }
         }
-        $value = \getConfig('app_report_visibility', 'agent_choice');
+        $value = \getConfig('app_report_visibility', \App\Enum\VisibilityMode::AgentChoice->value);
         return $this->normalizeVisibilityValue($value);
     }
 
@@ -144,7 +171,7 @@ class AccessService
      */
     public function reportVisibilityIsConfidential(?string $type = null): bool
     {
-        return $this->getReportVisibilityMode($type) === 'confidential';
+        return $this->getReportVisibilityMode($type) === \App\Enum\VisibilityMode::Confidential->value;
     }
 
     /**
@@ -152,7 +179,7 @@ class AccessService
      */
     public function reportVisibilityIsAgentChoice(?string $type = null): bool
     {
-        return $this->getReportVisibilityMode($type) === 'agent_choice';
+        return $this->getReportVisibilityMode($type) === \App\Enum\VisibilityMode::AgentChoice->value;
     }
 
     /**
@@ -160,7 +187,7 @@ class AccessService
      */
     public function reportVisibilityIsPublic(?string $type = null): bool
     {
-        return $this->getReportVisibilityMode($type) === 'public';
+        return $this->getReportVisibilityMode($type) === \App\Enum\VisibilityMode::Public->value;
     }
 
     /**
@@ -171,7 +198,7 @@ class AccessService
     public function canEditReport(array $report, int $userId): bool
     {
         $isDeclarant = ((int) $report['declarant_id'] === $userId);
-        return $isDeclarant && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS]);
+        return $isDeclarant && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS], true);
     }
 
     /**
@@ -181,6 +208,6 @@ class AccessService
      */
     public function canRespondToReport(array $report, string $role): bool
     {
-        return in_array($role, [ROLE_SUPERVISEUR]) && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT]);
+        return in_array($role, [ROLE_SUPERVISEUR], true) && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT], true);
     }
 }

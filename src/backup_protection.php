@@ -13,9 +13,9 @@
  */
 function writeBackupProtection(): void
 {
-    // Apache — deny all
+    // Apache 2.4+ — deny all
     if (!file_exists(BACKUP_DIR . '/.htaccess')) {
-        file_put_contents(BACKUP_DIR . '/.htaccess', "Deny from all\n");
+        file_put_contents(BACKUP_DIR . '/.htaccess', "<RequireAll>\n    Require all denied\n</RequireAll>\n");
     }
 
     // IIS — deny all
@@ -62,7 +62,7 @@ function listBackups(): array
     }
 
     // Sort newest first
-    usort($backups, fn($a, $b) => $b['date'] - $a['date']);
+    usort($backups, fn($a, $b) => (int) $b['date'] - (int) $a['date']);
 
     return $backups;
 }

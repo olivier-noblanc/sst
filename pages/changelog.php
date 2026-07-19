@@ -39,7 +39,7 @@ if (!empty($_SERVER['SCRIPT_FILENAME'])) {
 
 foreach ($candidatePaths as $candidate) {
     $real = realpath($candidate);
-    if ($real && is_readable($real)) {
+    if ($real !== false && is_readable($real)) {
         $changelogPath = $real;
         break;
     }
@@ -56,7 +56,7 @@ if ($changelogExists) {
     } else {
         $parsedownPath = __DIR__ . '/../src/lib/Parsedown.php';
         $parsedownReal = realpath($parsedownPath);
-        if ($parsedownReal && is_readable($parsedownReal)) {
+        if ($parsedownReal !== false && is_readable($parsedownReal)) {
             require_once $parsedownReal;
             $parsedown = new Parsedown();
             $parsedown->setSafeMode(true);  // Strip raw HTML blocks — prevents XSS via Markdown
@@ -85,13 +85,13 @@ if ($changelogExists) {
             <summary>Chemins testés (mode dev)</summary>
             <ul>
                 <?php foreach ($candidatePaths as $p): ?>
-                <li><code><?php echo new \App\Services\FormattingService()->e($p); ?></code> — <?php echo is_readable(realpath($p) ?: $p) ? '✓ lisible' : '✗ introuvable/illisible'; ?></li>
+                <li><code><?php echo new \App\Services\FormattingService()->e($p); ?></code> — <?php $rp = realpath($p); echo is_readable($rp !== false ? $rp : $p) ? '✓ lisible' : '✗ introuvable/illisible'; ?></li>
                 <?php endforeach; ?>
             </ul>
         </details>
         <?php endif; ?>
     </div>
-<?php elseif ($parseError): ?>
+<?php elseif ($parseError !== ''): ?>
     <div class="alert alert--danger">
         <p>Erreur lors du rendu du changelog : <?php echo new \App\Services\FormattingService()->e($parseError); ?></p>
     </div>

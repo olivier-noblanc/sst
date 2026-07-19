@@ -18,13 +18,13 @@ $config = \App\Services\ConfigService::getInstance();
 $user = new \App\Services\SessionService()->getUserSession();
 $userRole = $user['role'] ?? 'agent';
 
-if (!in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
-    new \App\Services\SessionService()->setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs et le CHSCT peuvent réouvrir un signalement.');
+if (!in_array($userRole, [ROLE_SUPERVISEUR], true)) {
+    new \App\Services\SessionService()->setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs peuvent réouvrir un signalement.');
     $http->redirect($http->url('report_view', ['uuid' => $uuid]));
 }
 
 // Check report is in a reopenable state
-if (!in_array($report['etat'], ['traite', 'abandonne'])) {
+if (!in_array($report['etat'], ['traite', 'abandonne'], true)) {
     new \App\Services\SessionService()->setFlash('error', 'Ce signalement ne peut pas être réouvert (état actuel : ' . $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
     $http->redirect($http->url('report_view', ['uuid' => $uuid]));
 }
@@ -75,7 +75,7 @@ $flash = new \App\Services\SessionService()->getFlash();
     </table>
 </div>
 
-    <?php if ($flash): ?>
+    <?php if ($flash !== null): ?>
     <div class="alert alert--<?php echo $fmt->e($flash['type']); ?>" role="alert">
         <?php echo $fmt->e($flash['message']); ?>
     </div>

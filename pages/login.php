@@ -45,8 +45,8 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
     <?php echo new \App\Services\AssetService()->cssLink('css/style.css'); ?>
     <?php $faviconPng = new \App\Services\AssetService()->inlineDataUri('favicon.png'); ?>
     <?php $faviconIco = new \App\Services\AssetService()->inlineDataUri('favicon.ico'); ?>
-    <?php if ($faviconPng): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>
-    <?php if ($faviconIco): ?><link rel="icon" type="image/x-icon" href="<?php echo $faviconIco; ?>"><?php endif; ?>
+    <?php if ($faviconPng !== ''): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>
+    <?php if ($faviconIco !== ''): ?><link rel="icon" type="image/x-icon" href="<?php echo $faviconIco; ?>"><?php endif; ?>
 </head>
 <body class="login-body">
     <a href="#login-form" class="skip-link">Aller au formulaire de connexion</a>
@@ -66,7 +66,7 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
             </div>
 
             <?php $flash = new \App\Services\SessionService()->getFlash(); ?>
-            <?php if ($flash): ?>
+            <?php if ($flash !== null): ?>
                 <div class="alert alert--<?php echo new \App\Services\FormattingService()->e($flash['type']); ?>" role="alert">
                     <?php echo new \App\Services\FormattingService()->e($flash['message']); ?>
                 </div>

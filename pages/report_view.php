@@ -11,7 +11,7 @@ $report = fetchReportOrRedirect($uuid);
 
 // Access control: centralized via canAccessReport()
 $user = currentUser();
-if (!$user) {
+if ($user === null) {
     setFlash('error', 'Accès refusé.');
     redirect(url('home'));
     exit;
@@ -33,7 +33,7 @@ $declarantIdRaw = $report['declarant_id'] ?? '0';
 $userIdRaw = $user['id'] ?? '0';
 /** @var string */
 $userRole = $user['role'] ?? '';
-if ($report['etat'] === ETAT_ABANDONNE && (int) $declarantIdRaw !== (int) $userIdRaw && !in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
+if ($report['etat'] === ETAT_ABANDONNE && (int) $declarantIdRaw !== (int) $userIdRaw && !in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
     setFlash('warning', 'Ce signalement a été abandonné.');
 }
 

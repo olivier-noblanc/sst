@@ -25,29 +25,32 @@ $stmt = $pdo->prepare('
 $stmt->execute([':id' => $responseId]);
 $row = $stmt->fetch();
 
-if (!$row || empty($row['attachment_blob'])) {
+if ($row === false || empty($row['attachment_blob'])) {
     http_response_code(404);
     exit('Fichier introuvable.');
 }
 
 // Access control: check access to the parent report
 $user = currentUser();
-if (!$user) {
+if ($user === null) {
     http_response_code(403);
     exit('Accès refusé.');
 }
 
 $report = getReportByUuid($pdo, $row['report_uuid']);
-if (!$report || !canAccessReport($report, $user)) {
+if ($report === null || !canAccessReport($report, $user)) {
     http_response_code(403);
     exit('Accès refusé.');
 }
+
+// Log confidential report access by supervisor/CHSCT
+logConfidentialReportAccess($pdo, $report, $user);
 
 // Serve the file
 $mime = $row['attachment_mime'] ?? 'application/octet-stream';
 $name = $row['attachment_name'] ?? 'piece_jointe';
 $inline = !empty($_GET['inline']);
-$isImage = in_array($mime, ['image/jpeg', 'image/png', 'image/gif']);
+$isImage = in_array($mime, ['image/jpeg', 'image/png', 'image/gif'], true);
 $disposition = ($inline && $isImage) ? 'inline' : 'attachment';
 
 sendFileDownload($row['attachment_blob'], $name, $mime, $disposition);

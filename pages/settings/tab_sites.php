@@ -15,7 +15,6 @@
 
     <?php foreach ($sites as $site): ?>
         <?php
-            /** @var string $siteIdStr */
         $siteIdStr = $site['id'] ?? '0';
         $sId = (int) $siteIdStr;
         $existingEmails = [];

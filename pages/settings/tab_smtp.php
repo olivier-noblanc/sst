@@ -46,7 +46,7 @@
                 <label for="smtp_pass">Mot de passe SMTP</label>
                 <input type="password" id="smtp_pass" name="smtp_pass" class="form-control"
                        value=""
-                       placeholder="<?php echo \App\Services\ConfigService::getInstance()->get('smtp_pass') ? '•••••••• (laisser vide pour conserver)' : 'Non défini'; ?>">
+                       placeholder="<?php echo \App\Services\ConfigService::getInstance()->get('smtp_pass') !== '' ? '•••••••• (laisser vide pour conserver)' : 'Non défini'; ?>">
             </div>
         </div>
 

@@ -6,7 +6,7 @@
  * Call this template in the main layout after the sidebar.
  */
 $flash = getFlash();
-if ($flash):
+if ($flash !== null):
     $type = $flash['type'] ?? 'info';
     $message = $flash['message'] ?? '';
 ?>

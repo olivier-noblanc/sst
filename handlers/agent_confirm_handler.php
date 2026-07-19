@@ -23,14 +23,14 @@ if (empty($token)) {
 $repo = getContainer()->get(ReportRepository::class);
 $invite = $repo->getAgentInviteByToken($token);
 
-if (!$invite) {
+if ($invite === null) {
     setFlash('error', 'Cette invitation a déjà été confirmée ou est invalide. Si vous venez de cliquer, votre rattachement est déjà actif.');
     redirect(url('home'));
 }
 /** @var array{email: string, report_uuid: string} $invite */
 
 $user = currentUser();
-if (!$user) {
+if ($user === null) {
     setFlash('error', 'Vous devez être connecté pour confirmer votre rattachement.');
     redirect(url('home'));
 }
@@ -47,7 +47,7 @@ if ($confirmed) {
     $reportUuid = (string) $invite['report_uuid'];
     $report = $repo->findById($reportUuid);
     /** @var array{reference?: string}|null $report */
-    $ref = $report ? (string) ($report['reference'] ?? '') : $reportUuid;
+    $ref = $report !== null ? (string) ($report['reference'] ?? '') : $reportUuid;
     auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e($user['email'] ?? '') . ' confirmé rattachement au signalement ' . $ref, null, 'report', ['reference' => $ref, 'email' => $user['email'] ?? ''], $reportUuid);
     setFlash('success', 'Votre rattachement au signalement ' . e($ref) . ' est confirmé.');
     redirect(url('report_view', ['uuid' => $reportUuid]));

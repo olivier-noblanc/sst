@@ -31,7 +31,7 @@ function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 
         // Check for duplicate code
         $existing = getSiteByCode($pdo, $code);
-        if ($existing) {
+        if ($existing !== null) {
             $pdo->rollBack();
             setFlash('error', 'Un site avec ce code existe déjà.');
             redirect(url('settings', ['tab' => 'manage_sites']));

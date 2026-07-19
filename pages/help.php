@@ -8,7 +8,7 @@
  * Navigation par ancres — contenu toujours visible, rien de pliable.
  */
 $pageTitle = 'Documentation';
-$userRole = currentUserRole() ?: 'agent';
+$userRole = currentUserRole() !== '' ? currentUserRole() : 'agent';
 $labelUnite = new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR'));
 $screenshotBase = 'asset.php?f=screenshots';
 $isAgent = ($userRole === 'agent');

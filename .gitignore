@@ -59,6 +59,7 @@ appmap.log
 # Internal session notes
 CORRECTIONS.md
 PATCH-SESSION.txt
+SPEC.md
 
 # Manuels — pas de manuel en .md, les maquettes HTML suffisent (voir AGENTS.md)
 docs/MANUEL_AGENT.md

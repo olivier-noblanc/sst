@@ -15,11 +15,11 @@ $declarantEmail = $user['email'] ?? '';
 /** @var string $declarantEmailStr */
 $declarantEmailStr = (string) $declarantEmail;
 $emailDomain = '';
-if ($declarantEmailStr && str_contains($declarantEmailStr, '@')) {
-    $emailDomain = substr($declarantEmailStr, strrpos($declarantEmailStr, '@') + 1);
+if ($declarantEmailStr !== '' && str_contains($declarantEmailStr, '@')) {
+    $emailDomain = substr($declarantEmailStr, (int) strrpos($declarantEmailStr, '@') + 1);
 }
 $linkedEmails = '';
-if ($isEdit && $report) {
+if ($isEdit && $report !== null) {
     $existing = getLinkedAgents($pdo ?? getDB(), $report['uuid']);
     $linkedEmails = implode(', ', array_map(fn($a) => $a['email'], $existing));
 }

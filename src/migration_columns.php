@@ -119,7 +119,7 @@ function migrateColumns(PDO $pdo): void
                     $uuidStmt = $pdo->prepare('SELECT uuid FROM reports WHERE id = :id');
                     $uuidStmt->execute([':id' => $row['report_id']]);
                     $reportUuid = $uuidStmt->fetchColumn();
-                    if ($reportUuid) {
+                    if ($reportUuid !== false) {
                         $upd = $pdo->prepare('UPDATE report_responses SET report_uuid = :uuid WHERE id = :id');
                         $upd->execute([':uuid' => $reportUuid, ':id' => $row['id']]);
                     }
@@ -174,7 +174,7 @@ function migrateColumns(PDO $pdo): void
                     /** @var string */
                     $oldUuid = $row['uuid'] ?? '';
                     $variantNibble = strtolower($oldUuid[19]);
-                    if (in_array($variantNibble, ['c', 'd', 'e', 'f'])) {
+                    if (in_array($variantNibble, ['c', 'd', 'e', 'f'], true)) {
                         $nibbleMap = ['c' => '8', 'd' => '9', 'e' => 'a', 'f' => 'b'];
                         $newUuid = substr($oldUuid, 0, 19) . $nibbleMap[$variantNibble] . substr($oldUuid, 20);
                         $fixes[] = ['old' => $oldUuid, 'new' => $newUuid];
@@ -280,7 +280,7 @@ function migrateColumns(PDO $pdo): void
         $existingCols = array_column($cols, 'name');
         $newCols = ['pole', 'service_affectation', 'telephone_mobile', 'site_text'];
         foreach ($newCols as $colName) {
-            if (!in_array($colName, $existingCols)) {
+            if (!in_array($colName, $existingCols, true)) {
                 $pdo->exec("ALTER TABLE reports ADD COLUMN $colName TEXT");
             }
         }
@@ -293,7 +293,7 @@ function migrateColumns(PDO $pdo): void
         $existingCols = array_column($cols, 'name');
         $newRespCols = ['attachment_blob', 'attachment_name', 'attachment_mime'];
         foreach ($newRespCols as $colName) {
-            if (!in_array($colName, $existingCols)) {
+            if (!in_array($colName, $existingCols, true)) {
                 $pdo->exec("ALTER TABLE report_responses ADD COLUMN $colName " . ($colName === 'attachment_blob' ? 'BLOB' : 'TEXT'));
             }
         }
@@ -306,7 +306,7 @@ function migrateColumns(PDO $pdo): void
     try {
         $cols = $pragma($pdo, 'audit_log');
         $existingCols = array_column($cols, 'name');
-        if (!in_array('target_uuid', $existingCols)) {
+        if (!in_array('target_uuid', $existingCols, true)) {
             $pdo->exec('ALTER TABLE audit_log ADD COLUMN target_uuid TEXT');
             $pdo->exec('CREATE INDEX IF NOT EXISTS idx_audit_log_target_uuid ON audit_log(target_uuid)');
         }

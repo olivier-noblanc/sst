@@ -78,10 +78,10 @@ try {
                 // Domain validation: only allow emails from the declarant's domain
                 // Fail-closed: if we can't determine the domain, reject all invites
                 $declarantEmail = (string) ($user['email'] ?? '');
-                if ($declarantEmail && str_contains($declarantEmail, '@')) {
-                    $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
+                if ($declarantEmail !== '' && str_contains($declarantEmail, '@')) {
+                    $emailDomain = substr($declarantEmail, (int) strrpos($declarantEmail, '@') + 1);
                     $linkedEmailsList = array_filter($linkedEmailsList, function (string $em) use ($emailDomain): bool {
-                        $emDomain = substr($em, strrpos($em, '@') + 1);
+                        $emDomain = substr($em, (int) strrpos($em, '@') + 1);
                         return strtolower($emDomain) === strtolower($emailDomain);
                     });
                 } else {

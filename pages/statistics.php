@@ -94,7 +94,7 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
         <label for="year">Année</label>
         <select name="year" id="year">
             <?php foreach ($availableYears as $y): ?>
-            <option value="<?php echo $fmt->e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo $fmt->e($y); ?></option>
+            <option value="<?php echo $fmt->e($y); ?>" <?php echo $y === $year ? 'selected' : ''; ?>><?php echo $fmt->e($y); ?></option>
             <?php endforeach; ?>
         </select>
     </div>

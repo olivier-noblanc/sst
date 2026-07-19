@@ -45,7 +45,7 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
         } else {
             try {
                 $mime = getMimeType($file['tmp_name']);
-                if (!in_array($mime, ALLOWED_ATTACHMENT_MIMES)) {
+                if (!in_array($mime, ALLOWED_ATTACHMENT_MIMES, true)) {
                     $errors['attachment'] = 'Type de fichier non autorisé. Formats acceptés : JPG, PNG, GIF, PDF.';
                 } else {
                     $attachmentBlob = file_get_contents($file['tmp_name']);
@@ -81,12 +81,12 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
 function validateRamiFields(string $natureAuteur, string $typeActe): array
 {
     $allowedNatureAuteur = array_keys(RAMI_NATURE_AUTEUR_LABELS);
-    if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur)) {
+    if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur, true)) {
         $natureAuteur = '';
     }
 
     $allowedTypeActe = array_keys(RAMI_TYPE_ACTE_LABELS);
-    if (!empty($typeActe) && !in_array($typeActe, $allowedTypeActe)) {
+    if (!empty($typeActe) && !in_array($typeActe, $allowedTypeActe, true)) {
         $typeActe = '';
     }
 
@@ -136,7 +136,7 @@ function validateReportFields(string $dateEvenement, string $objet, string $desc
 
     if (empty($dateEvenement)) {
         $errors['date_evenement'] = 'La date de l\'événement est obligatoire.';
-    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateEvenement)) {
+    } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateEvenement) !== 1) {
         $errors['date_evenement'] = 'Format de date invalide.';
     } elseif ($dateEvenement > date('Y-m-d')) {
         $errors['date_evenement'] = 'La date ne peut pas être dans le futur.';
@@ -158,7 +158,7 @@ function validateReportFields(string $dateEvenement, string $objet, string $desc
         $errors['lieu'] = 'Le lieu ne doit pas dépasser ' . MAX_LIEU_LENGTH . ' caractères.';
     }
 
-    if (!empty($heureEvenement) && !preg_match('/^\d{2}:\d{2}$/', $heureEvenement)) {
+    if (!empty($heureEvenement) && preg_match('/^\d{2}:\d{2}$/', $heureEvenement) !== 1) {
         $errors['heure_evenement'] = 'Format d\'heure invalide (HH:MM attendu).';
     }
 
@@ -218,7 +218,7 @@ function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array
     }
     $pdo = getDB();
     $report = getReportByUuid($pdo, $uuid);
-    if (!$report) {
+    if ($report === null) {
         setFlash('error', 'Signalement introuvable.');
         redirect($fallbackUrl);
     }
@@ -257,7 +257,7 @@ function requireReportEditable(array $report, string $uuid, string $verb = 'modi
 {
     /** @var string */
     $etat = $report['etat'] ?? '';
-    if (!in_array($etat, [ETAT_NOUVEAU, ETAT_EN_COURS])) {
+    if (!in_array($etat, [ETAT_NOUVEAU, ETAT_EN_COURS], true)) {
         setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$etat] ?? $etat) . ').');
         redirect(url('report_view', ['uuid' => $uuid]));
     }

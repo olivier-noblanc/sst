@@ -33,7 +33,7 @@ define('SITE_NAME', 'DREETS Bourgogne-Franche-Comté');
 
 if (defined('APP_ENV_FORCE')) {
     define('APP_ENV', APP_ENV_FORCE);
-} elseif (getenv('APP_ENV')) {
+} elseif (getenv('APP_ENV') !== false) {
     define('APP_ENV', getenv('APP_ENV'));
 } else {
     // Auto-detect: if IIS provides AUTH_USER, we're in prod; otherwise dev
@@ -89,46 +89,43 @@ if (!defined('ALLOWED_ATTACHMENT_MIMES')) {
 //   2. Env var APP_SUPERVISEUR_USERNAMES (backup) — si la DB n'a pas de liste
 // La DB est prioritaire. Après la promotion initiale, vider la liste pour la sécurité.
 
-// Roles
-define('ROLE_AGENT', 'agent');
-define('ROLE_SUPERVISEUR', 'superviseur');
-define('ROLE_CHSCT', 'chsct');
+// Roles — aliases on UserRole enum for backward compatibility
+define('ROLE_AGENT', \App\Enum\UserRole::Agent->value);
+define('ROLE_SUPERVISEUR', \App\Enum\UserRole::Superviseur->value);
+define('ROLE_CHSCT', \App\Enum\UserRole::Chsct->value);
 
-// Report states (etats)
-define('ETAT_NOUVEAU', 'nouveau');
-define('ETAT_EN_COURS', 'en_cours');
-define('ETAT_TRAITE', 'traite');
-define('ETAT_ABANDONNE', 'abandonne');
-define('ETAT_REOUVERT', 'reouvert');
+// Report states (etats) — aliases on ReportState enum for backward compatibility
+define('ETAT_NOUVEAU', \App\Enum\ReportState::Nouveau->value);
+define('ETAT_EN_COURS', \App\Enum\ReportState::EnCours->value);
+define('ETAT_TRAITE', \App\Enum\ReportState::Traite->value);
+define('ETAT_ABANDONNE', \App\Enum\ReportState::Abandonne->value);
+define('ETAT_REOUVERT', \App\Enum\ReportState::Reouvert->value);
 
-// Registry types
-define('TYPE_RSST', 'rsst');
-define('TYPE_RAMI', 'rami');
-define('TYPE_DGI', 'dgi');
+// Registry types — aliases on ReportType enum for backward compatibility
+define('TYPE_RSST', \App\Enum\ReportType::Rsst->value);
+define('TYPE_RAMI', \App\Enum\ReportType::Rami->value);
+define('TYPE_DGI', \App\Enum\ReportType::Dgi->value);
 
-// Registry type labels
+// Registry type labels — derived from ReportType enum
 if (!defined('REGISTRY_LABELS')) {
-    define('REGISTRY_LABELS', [
-        'rsst' => 'Registre de Santé et de Sécurité au Travail',
-        'rami' => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
-        'dgi'  => 'Registre de signalement d\'un Danger Grave et Imminent',
-    ]);
+    define('REGISTRY_LABELS', array_combine(
+        array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
+        array_map(fn($c) => $c->label(), \App\Enum\ReportType::cases())
+    ));
 }
 
 if (!defined('REGISTRY_SHORT_LABELS')) {
-    define('REGISTRY_SHORT_LABELS', [
-        'rsst' => 'RSST',
-        'rami' => 'RAMI',
-        'dgi'  => 'DGI',
-    ]);
+    define('REGISTRY_SHORT_LABELS', array_combine(
+        array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
+        array_map(fn($c) => $c->shortLabel(), \App\Enum\ReportType::cases())
+    ));
 }
 
-// Role labels — defaults (overridden by DB config app_role_label_*)
-define('ROLE_LABELS_DEFAULT', [
-    'agent'       => 'Agent',
-    'superviseur' => 'Superviseur',
-    'chsct'       => 'Membre FS/CSA',
-]);
+// Role labels — defaults derived from UserRole enum (overridden by DB config app_role_label_*)
+define('ROLE_LABELS_DEFAULT', array_combine(
+    array_map(fn($c) => $c->value, \App\Enum\UserRole::cases()),
+    array_map(fn($c) => $c->defaultLabel(), \App\Enum\UserRole::cases())
+));
 // ROLE_LABELS is the runtime constant used throughout the application.
 // It mirrors ROLE_LABELS_DEFAULT; custom labels from DB are resolved
 // at display time via getRoleLabel() / getRoleLabels().
@@ -146,15 +143,12 @@ define('REPORT_VISIBILITY_MODES', [
     'public'       => 'Visibilité publique de tous les signalements',
 ]);
 
-// State labels
+// State labels — derived from ReportState enum
 if (!defined('ETAT_LABELS')) {
-    define('ETAT_LABELS', [
-        'nouveau'    => 'Nouveau',
-        'en_cours'   => 'En cours',
-        'traite'     => 'Traité',
-        'abandonne'  => 'Abandonné',
-        'reouvert'   => 'Réouvert',
-    ]);
+    define('ETAT_LABELS', array_combine(
+        array_map(fn($c) => $c->value, \App\Enum\ReportState::cases()),
+        array_map(fn($c) => $c->label(), \App\Enum\ReportState::cases())
+    ));
 }
 
 // Registry toggle defaults (overridden by DB config app_registry_*_enabled)

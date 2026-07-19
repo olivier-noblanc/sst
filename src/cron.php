@@ -100,7 +100,7 @@ function lazyCronCheckDelays(PDO $pdo): void
     if ($cutoffTs === false) {
         return;
     }
-    $cutoffDate = date('Y-m-d H:i:s', $cutoffTs);
+    $cutoffDate = gmdate('Y-m-d H:i:s', $cutoffTs);
 
     $sql = "SELECT r.uuid, r.reference, r.type, r.objet, r.created_at,
                    r.site_id, s.code as site_code, s.nom as site_nom,

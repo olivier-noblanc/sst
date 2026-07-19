@@ -46,7 +46,7 @@ foreach ($currentSettings as $setting) {
 $defaultTab = $noSiteMode ? 'global' : 'sites';
 $activeTab = $_GET['tab'] ?? $defaultTab;
 $allowedTabs = ['sites', 'global', 'smtp', 'manage_sites', 'app', 'wordcloud'];
-if (!in_array($activeTab, $allowedTabs)) {
+if (!in_array($activeTab, $allowedTabs, true)) {
     $activeTab = $defaultTab;
 }
 // Redirect 'sites' tab to 'global' in noSiteMode

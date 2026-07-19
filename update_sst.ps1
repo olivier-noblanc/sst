@@ -378,8 +378,29 @@ function Invoke-QualityGate {
         Set-Content "$tmpDir\css.ran" $ran
     } -ArgumentList $tmpDir
 
-    # Attendre les 4 jobs
-    $phpstanJob, $phpunitJob, $e2eJob, $cssJob | Wait-Job | Out-Null
+    # Lancer Infection (mutation testing) en arrière-plan
+    $infectionBin = "$env:USERPROFILE\scoop\shims\infection"
+    $infectionJob = Start-Job -ScriptBlock {
+        param($phpPath, $infectionBin, $tmpDir)
+        $ran = $false
+        $output = $null
+        $rc = 1
+        if (Test-Path $infectionBin) {
+            $ran = $true
+            $output = & $phpPath $infectionBin --show-mutations --no-progress --threads=4 2>&1
+            $rc = $LASTEXITCODE
+        } elseif (Test-Path "vendor/bin/infection") {
+            $ran = $true
+            $output = & $phpPath vendor/bin/infection --show-mutations --no-progress --threads=4 2>&1
+            $rc = $LASTEXITCODE
+        }
+        $output | Out-File "$tmpDir\infection.out"
+        Set-Content "$tmpDir\infection.rc" $rc
+        Set-Content "$tmpDir\infection.ran" $ran
+    } -ArgumentList $phpPath, $infectionBin, $tmpDir
+
+    # Attendre les 5 jobs
+    $phpstanJob, $phpunitJob, $e2eJob, $cssJob, $infectionJob | Wait-Job | Out-Null
 
     # ── Résultat PHPStan ──
     $phpstanRan = (Get-Content "$tmpDir\phpstan.ran" -ErrorAction SilentlyContinue) -eq 'True'
@@ -455,6 +476,23 @@ function Invoke-QualityGate {
         }
     } else {
         Write-Status "!" "CSS checker non trouve. Etape skippee." "Yellow"
+    }
+
+    # ── Résultat Infection ──
+    $infectionRan = (Get-Content "$tmpDir\infection.ran" -ErrorAction SilentlyContinue) -eq 'True'
+    $infectionRc = if (Test-Path "$tmpDir\infection.rc") { [int](Get-Content "$tmpDir\infection.rc") } else { 1 }
+    if ($infectionRan) {
+        $infectionOut = Get-Content "$tmpDir\infection.out" -ErrorAction SilentlyContinue |
+            Where-Object { $_ -notmatch '^\s*$' }
+        $infectionOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        if ($infectionRc -eq 0) {
+            Write-Status "OK" "Infection : OK (mutation score >= minMsi)." "Green"
+        } else {
+            Write-Status "X" "Infection : echec (code $infectionRc)." "Red"
+            $gateOk = $false
+        }
+    } else {
+        Write-Status "!" "Infection non trouve. Etape skippee." "Yellow"
     }
 
     # Nettoyage
@@ -809,8 +847,21 @@ PID_E2E=$!
 ) &
 PID_CSS=$!
 
-# Attendre les 4 en parallèle
-wait $PID_PHPSTAN $PID_PHPUNIT $PID_E2E $PID_CSS 2>/dev/null
+# Infection (mutation testing)
+(
+    cd "$REPO_ROOT"
+    if [[ -f "vendor/bin/infection" ]]; then
+        php vendor/bin/infection --show-mutations --no-progress --threads=4 >"$TMPDIR/infection.out" 2>&1
+    else
+        echo "Infection non trouve" >"$TMPDIR/infection.out"
+        echo 1 >"$TMPDIR/infection.rc"
+    fi
+    echo $? >"$TMPDIR/infection.rc"
+) &
+PID_INFECTION=$!
+
+# Attendre les 5 en parallèle
+wait $PID_PHPSTAN $PID_PHPUNIT $PID_E2E $PID_CSS $PID_INFECTION 2>/dev/null
 
 # ── 3) Résultats ──
 ALL_OK=1
@@ -852,6 +903,16 @@ if [[ "$RC" == "0" ]]; then
 else
     echo "[pre-push] ✗ CSS checker : classes orphelines"
     cat "$TMPDIR/css.out" 2>/dev/null | tail -10
+    ALL_OK=0
+fi
+
+# Infection
+RC=$(cat "$TMPDIR/infection.rc" 2>/dev/null)
+if [[ "$RC" == "0" ]]; then
+    echo "[pre-push] ✓ Infection OK (mutation score >= minMsi)"
+else
+    echo "[pre-push] ✗ Infection échoué (code $RC)"
+    cat "$TMPDIR/infection.out" 2>/dev/null | tail -10
     ALL_OK=0
 fi
 

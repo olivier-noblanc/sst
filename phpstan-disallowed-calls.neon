@@ -1,0 +1,18 @@
+parameters:
+    disallowedMethodCalls:
+        -
+            method: 'DateTime::createFromFormat()'
+            message: 'createFromFormat() sans fuseau explicite interprète la chaîne dans le fuseau PHP par défaut (Europe/Paris). Si la source est en UTC (created_at/updated_at SQLite), ça décale l''affichage de 1-2h — bug déjà rencontré et corrigé dans FormattingService::formatDateTimeFR(). Passer par FormattingService plutôt que d''appeler createFromFormat() directement.'
+            allowIn:
+                - src/Services/FormattingService.php
+
+    disallowedFunctionCalls:
+        -
+            function: 'ini_set()'
+            message: "ini_set('display_errors', ...) a déjà masqué une Fatal Error (autoload manquant dans middleware_runner.php), diagnostiquée à tort comme un bug de output buffering avant qu'on ne trouve la vraie cause. Si une suppression d'affichage d'erreurs est réellement nécessaire, ajouter le fichier ici explicitement plutôt que de l'écrire en silence dans le code."
+            allowIn:
+                - tests/middleware_runner.php
+                - tests/handler_runner.php
+                - src/config.php
+                - src/Services/SessionService.php
+                - public/index.php

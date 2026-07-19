@@ -25,6 +25,16 @@ class AccessHelperIntegrationTest extends TestCase
     {
         $this->pdo = getDB();
 
+        // Ensure report_agents table exists
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS report_agents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            report_uuid TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(report_uuid, user_id)
+        )");
+        $this->pdo->exec('DELETE FROM report_agents');
+
         // Clean up
         $this->pdo->exec('DELETE FROM report_access_log');
         $this->pdo->exec('DELETE FROM report_state_history');
@@ -219,6 +229,83 @@ class AccessHelperIntegrationTest extends TestCase
     {
         $report = $this->makeReport(['etat' => 'traite']);
         $this->assertFalse(canRespondToReport($report, 'superviseur'));
+    }
+
+    // ─── Linked agent access (report_agents) ───────────────────────────
+
+    public function testLinkedAgentCanAccessConfidentialReport(): void
+    {
+        // Create a report by agent2
+        $uuid = 'test-linked-agent-' . uniqid();
+        $this->pdo->prepare('
+            INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, lieu, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat)
+            VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :site_id, 1, 0, :etat)
+        ')->execute([
+            ':uuid' => $uuid, ':reference' => 'RSST-25-800', ':type' => 'rsst',
+            ':objet' => 'Test linked agent', ':description' => 'Test',
+            ':date_evenement' => '2025-01-15', ':lieu' => 'Bureau',
+            ':declarant_id' => $this->agentId2, ':declarant_nom' => 'Agent',
+            ':declarant_prenom' => 'Deux', ':site_id' => $this->siteId1, ':etat' => 'nouveau',
+        ]);
+
+        // Link agent1 to this report
+        $this->pdo->prepare('INSERT INTO report_agents (report_uuid, user_id) VALUES (:uuid, :user_id)')
+            ->execute([':uuid' => $uuid, ':user_id' => $this->agentId1]);
+
+        $report = $this->pdo->prepare('SELECT * FROM reports WHERE uuid = :uuid');
+        $report->execute([':uuid' => $uuid]);
+        $reportRow = $report->fetch();
+
+        $user = $this->makeUser(['id' => $this->agentId1]);
+        $this->assertTrue(canAccessReport($reportRow, $user, 'confidential'));
+    }
+
+    public function testLinkedAgentCanAccessAgentChoiceConfidentialReport(): void
+    {
+        $uuid = 'test-linked-agent-choice-' . uniqid();
+        $this->pdo->prepare('
+            INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, lieu, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat)
+            VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :site_id, 1, 0, :etat)
+        ')->execute([
+            ':uuid' => $uuid, ':reference' => 'RSST-25-801', ':type' => 'rsst',
+            ':objet' => 'Test linked agent choice', ':description' => 'Test',
+            ':date_evenement' => '2025-01-15', ':lieu' => 'Bureau',
+            ':declarant_id' => $this->agentId2, ':declarant_nom' => 'Agent',
+            ':declarant_prenom' => 'Deux', ':site_id' => $this->siteId1, ':etat' => 'nouveau',
+        ]);
+
+        $this->pdo->prepare('INSERT INTO report_agents (report_uuid, user_id) VALUES (:uuid, :user_id)')
+            ->execute([':uuid' => $uuid, ':user_id' => $this->agentId1]);
+
+        $report = $this->pdo->prepare('SELECT * FROM reports WHERE uuid = :uuid');
+        $report->execute([':uuid' => $uuid]);
+        $reportRow = $report->fetch();
+
+        $user = $this->makeUser(['id' => $this->agentId1]);
+        $this->assertTrue(canAccessReport($reportRow, $user, 'agent_choice'));
+    }
+
+    public function testNonLinkedAgentCannotAccessConfidentialReport(): void
+    {
+        $uuid = 'test-non-linked-' . uniqid();
+        $this->pdo->prepare('
+            INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, lieu, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat)
+            VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :site_id, 1, 0, :etat)
+        ')->execute([
+            ':uuid' => $uuid, ':reference' => 'RSST-25-802', ':type' => 'rsst',
+            ':objet' => 'Test non-linked', ':description' => 'Test',
+            ':date_evenement' => '2025-01-15', ':lieu' => 'Bureau',
+            ':declarant_id' => $this->agentId2, ':declarant_nom' => 'Agent',
+            ':declarant_prenom' => 'Deux', ':site_id' => $this->siteId1, ':etat' => 'nouveau',
+        ]);
+
+        // agent1 is NOT linked to this report
+        $report = $this->pdo->prepare('SELECT * FROM reports WHERE uuid = :uuid');
+        $report->execute([':uuid' => $uuid]);
+        $reportRow = $report->fetch();
+
+        $user = $this->makeUser(['id' => $this->agentId1]);
+        $this->assertFalse(canAccessReport($reportRow, $user, 'confidential'));
     }
 
     // ─── normalizeVisibilityValue ────────────────────────────────────────

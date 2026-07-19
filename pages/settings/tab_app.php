@@ -16,7 +16,7 @@
             <label>Version de l'application</label>
             <div class="form-control-readonly"><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getAppVersion()); ?></div>
             <small class="text-muted block mt-1" id="hint_app_version">
-                La version est lue automatiquement depuis le fichier CHANGELOG.md. 
+                La version est lue automatiquement depuis le fichier CHANGELOG.md.
                 Pour la modifier, mettez à jour la première entrée du changelog.
             </small>
         </div>
@@ -201,23 +201,18 @@
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
             <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voient toujours tous les signalements.</p>
 
-            <?php
-            $registries = [
-                'rsst' => ['label' => 'RSST — Registre de Santé et Sécurité au Travail', 'default' => 'public', 'legal' => 'Décret n° 82-453 art. 3-2 : registre consultable par tout agent. La transparence est recommandée.'],
-                'rami' => ['label' => 'RAMI — Registre des Agressions, Menaces et Incivilités', 'default' => '', 'legal' => 'Données sensibles (art. 9 RGPD) : le mode confidentiel ou choix de l\'agent est recommandé.'],
-                'dgi'  => ['label' => 'DGI — Danger Grave et Imminent', 'default' => '', 'legal' => 'Articles L4131-1 et D4132-1 du Code du travail : le formalisme du registre spécial peut justifier un mode restrictif.'],
-            ];
-foreach ($registries as $type => $info):
-    $configKey = 'app_report_visibility_' . $type;
+            <?php foreach (\App\Enum\ReportType::cases() as $type):
+    $configKey = 'app_report_visibility_' . $type->value;
     $currentValue = \App\Services\ConfigService::getInstance()->get($configKey, '');
-    // Fallback to global if per-registry key is empty
     if ($currentValue === '') {
         $currentValue = \App\Services\ConfigService::getInstance()->get('app_report_visibility', 'agent_choice');
     }
     $currentValue = normalizeVisibilityValue($currentValue);
+    $legend = $type->shortLabel() . ' — ' . $type->label();
+    $legalNote = $type->legalNote();
     ?>
-            <fieldset class="form-group visibility-radios" id="visibility-radios-<?php echo new \App\Services\FormattingService()->e($type); ?>">
-                <legend class="visibility-legend"><?php echo new \App\Services\FormattingService()->e($info['label']); ?></legend>
+            <fieldset class="form-group visibility-radios" id="visibility-radios-<?php echo new \App\Services\FormattingService()->e($type->value); ?>">
+                <legend class="visibility-legend"><?php echo new \App\Services\FormattingService()->e($legend); ?></legend>
                 <div class="visibility-radios">
                     <label class="visibility-radio-label">
                         <input type="radio" name="<?php echo new \App\Services\FormattingService()->e($configKey); ?>" value="confidential"
@@ -244,13 +239,13 @@ foreach ($registries as $type => $info):
                         </div>
                     </label>
                 </div>
-                <?php if ($type === 'rsst' && $currentValue !== 'public'): ?>
+                <?php if ($type === \App\Enum\ReportType::Rsst && $currentValue !== 'public'): ?>
                 <div class="info-panel agent-visibility-warning info-panel--warning">
                     &#x26A0;&#xFE0F; <strong>Avertissement réglementaire :</strong> Le décret n° 82-453 art. 3-2 prévoit que le RSST est tenu à la disposition de l'ensemble des agents. Un mode restrictif peut ne pas être conforme à cette obligation de transparence.
                 </div>
                 <?php endif; ?>
                 <div class="info-panel info-panel--info">
-                    &#x2139;&#xFE0F; <?php echo new \App\Services\FormattingService()->e($info['legal']); ?>
+                    &#x2139;&#xFE0F; <?php echo new \App\Services\FormattingService()->e($legalNote); ?>
                 </div>
             </fieldset>
             <?php endforeach; ?>
@@ -258,6 +253,39 @@ foreach ($registries as $type => $info):
             <div class="info-panel agent-visibility-warning">
                 &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voient tous les signalements, y compris les confidentiels.
             </div>
+        </div>
+
+        <div class="separator">
+            <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?></h4>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> peuvent consulter.</p>
+            <?php
+            $chsctScopeValue = \App\Services\ConfigService::getInstance()->get('app_chsct_report_scope', 'consent_only');
+            $chsctScopeValue = (new \App\Services\AccessService())->normalizeChsctScope($chsctScopeValue);
+            ?>
+            <fieldset class="form-group visibility-radios">
+                <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?></legend>
+                <div class="visibility-radios">
+                    <label class="visibility-radio-label">
+                        <input type="radio" name="app_chsct_report_scope" value="consent_only"
+                               <?php echo $chsctScopeValue === 'consent_only' ? 'checked' : ''; ?>>
+                        <div>
+                            <strong>Consentement uniquement</strong> <span class="text-muted text-small">(par défaut)</span>
+                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> ne voit que les signalements dont le déclarant a coché la case de consentement de transmission syndicale.</div>
+                        </div>
+                    </label>
+                    <label class="visibility-radio-label">
+                        <input type="radio" name="app_chsct_report_scope" value="all"
+                               <?php echo $chsctScopeValue === 'all' ? 'checked' : ''; ?>>
+                        <div>
+                            <strong>Tous les signalements</strong>
+                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voit l'intégralité des signalements de tous les sites, y compris les signalements confidentiels non consentis (nom, prénom, objet inclus).</div>
+                        </div>
+                    </label>
+                </div>
+                <div class="info-panel info-panel--warning">
+                    &#x26A0;&#xFE0F; <strong>Avertissement :</strong> Ce paramètre a été ajouté suite à un audit — la valeur par défaut reproduit le comportement actuellement en production. À valider avec le pilotage métier avant modification.
+                </div>
+            </fieldset>
         </div>
     </div>
 

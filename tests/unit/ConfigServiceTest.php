@@ -23,8 +23,10 @@ class ConfigServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = getDB();
+        $this->pdo->exec('PRAGMA foreign_keys = OFF');
         $this->pdo->exec('DELETE FROM config_app');
         $this->pdo->exec('DELETE FROM sites');
+        $this->pdo->exec('PRAGMA foreign_keys = ON');
         clearConfigCache();
 
         $this->service = new ConfigService();

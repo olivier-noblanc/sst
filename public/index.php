@@ -13,7 +13,7 @@
 // === Enable Gzip compression (PHP-level, server-independent) ===
 // Skip gzip on PHP built-in dev server — ob_gzhandler crashes it
 $useGzip = (extension_loaded('zlib')
-    && !ini_get('zlib.output_compression')
+    && ini_get('zlib.output_compression') === false
     && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
     && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
     && php_sapi_name() !== 'cli-server');
@@ -78,7 +78,7 @@ require_once __DIR__ . '/../src/Middleware/bootstrap.php';
 require_once __DIR__ . '/../src/auth_flow.php';
 
 // Load router (page rendering) and routes
-require_once __DIR__ . '/../src/router.php';
+require_once __DIR__ . '/../src/Router/Renderer.php';
 require_once __DIR__ . '/../src/Router/routes.php';
 
 // ═══════════════════════════════════════════════════════════════════════════════

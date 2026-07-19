@@ -37,7 +37,7 @@ require_once __DIR__ . '/auth_flow.php';
 require_once __DIR__ . '/user_context.php';
 require_once __DIR__ . '/validation.php';
 // database.php chargé par le caller (index.php ou tests/bootstrap.php)
-require_once __DIR__ . '/router.php';
+require_once __DIR__ . '/Router/Renderer.php';
 require_once __DIR__ . '/Router/routes.php';
 require_once __DIR__ . '/bootstrap_services.php';
 require_once __DIR__ . '/queries/user_queries.php';

@@ -138,7 +138,9 @@ function performBackupInternal(PDO $pdo, string $prefix = 'sst', bool $force = f
 
     // Path traversal check: ensure backup file stays within BACKUP_DIR
     $backupDir = defined('BACKUP_DIR') ? BACKUP_DIR : __DIR__ . '/../data/backups';
-    if (!str_starts_with(realpath(dirname($backupFile)) ?: dirname($backupFile), realpath($backupDir) ?: $backupDir)) {
+    $realBackupFile = realpath(dirname($backupFile));
+    $realBackupDir = realpath($backupDir);
+    if (!str_starts_with($realBackupFile !== false ? $realBackupFile : dirname($backupFile), $realBackupDir !== false ? $realBackupDir : $backupDir)) {
         error_log("SST: backup path traversal blocked - $backupFile");
         return false;
     }
@@ -211,7 +213,7 @@ function rotateBackups(): void
     }
 
     // Sort by modification time, oldest first
-    usort($files, fn($a, $b) => filemtime($a) - filemtime($b));
+    usort($files, fn($a, $b) => (int) filemtime($a) - (int) filemtime($b));
 
     // Delete the oldest files beyond the limit
     $toDelete = array_slice($files, 0, count($files) - BACKUP_MAX_FILES);

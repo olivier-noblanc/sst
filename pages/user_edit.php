@@ -22,7 +22,7 @@ if ($userId <= 0) {
 
 $user = \App\Repository\UserRepository::instance()->findById($userId);
 
-if (!$user) {
+if ($user === null) {
     new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
     new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('users'));
 }

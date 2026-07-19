@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS reports (
     uuid            TEXT PRIMARY KEY,                -- UUID v4 — non-guessable public identifier
     reference       TEXT NOT NULL UNIQUE,            -- e.g. "rsst-25-001"
-    type            TEXT NOT NULL,                   -- 'rsst'|'rami'|'dgi'
+    type            TEXT NOT NULL                    -- 'rsst'|'rami'|'dgi'
+                        CHECK (type IN ('rsst','rami','dgi')),
     objet           TEXT NOT NULL,                   -- Subject line, max 100 chars
     description     TEXT NOT NULL,                   -- Full description
     date_evenement  TEXT NOT NULL,                   -- Date of the event (ISO 8601 date)
@@ -72,7 +73,8 @@ CREATE TABLE IF NOT EXISTS reports (
     consent_syndicat INTEGER NOT NULL DEFAULT 0,   -- 1 = consentement syndicat donné, 0 = non
     is_confidential INTEGER NOT NULL DEFAULT 1,     -- 1 = confidentiel (défaut), 0 = public
     -- State management
-    etat            TEXT NOT NULL DEFAULT 'nouveau', -- 'nouveau'|'en_cours'|'traite'|'abandonne'
+    etat            TEXT NOT NULL DEFAULT 'nouveau'   -- 'nouveau'|'en_cours'|'traite'|'reouvert'|'abandonne'
+                        CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne')),
     -- Respondent (superviseur who handled the report)
     repondant_id    INTEGER,                         -- FK to users (nullable)
     date_reponse    TEXT,                            -- When supervisor responded

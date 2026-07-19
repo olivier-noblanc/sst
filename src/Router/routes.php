@@ -62,9 +62,9 @@ function createRouter(): Router
     // GET pages (with standard layout)
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    $layout = (fn(string $page): callable => function () use ($page) {
+    $layout = (fn(string $page): callable => function () use ($page, $router) {
         global $csrfToken;
-        renderPageWithLayout($page, $csrfToken ?? '');
+        renderPageWithLayout($router, $page, $csrfToken ?? '');
     });
 
     $router->addRoute('home', 'home', ['GET'], $layout('home'));

@@ -10,12 +10,12 @@ if (!isset($currentPage)) {
     $currentPage = $_GET['page'] ?? 'home';
 }
 
-$userRole = currentUserRole() ?: ROLE_AGENT;
+$userRole = currentUserRole() !== '' ? currentUserRole() : ROLE_AGENT;
 
 // Determine the active registry type for report subpages
 $activeRegistryType = $_GET['type'] ?? null;
 $reportSubpages = ['report_create', 'report_view', 'report_edit', 'report_abandon', 'report_respond'];
-if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_GET['uuid'])) {
+if ($activeRegistryType === null && in_array($currentPage, $reportSubpages, true) && isset($_GET['uuid'])) {
     try {
         $pdo = getDB();
         $reportUuid = $_GET['uuid'] ?? '';
@@ -25,7 +25,7 @@ if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_G
             $stmt = $pdo->prepare('SELECT type FROM reports WHERE uuid = :uuid');
             $stmt->execute([':uuid' => $reportUuidStr]);
             $row = $stmt->fetch();
-            if ($row) {
+            if ($row !== null) {
                 $activeRegistryType = $row['type'];
             }
         }
@@ -35,20 +35,23 @@ if (!$activeRegistryType && in_array($currentPage, $reportSubpages) && isset($_G
 }
 
 // Define menu items with role visibility
-// RAMI and DGI items will be conditionally added below based on toggles
 $menuItems = [
-    ['label' => 'Accueil',        'icon' => '&#127968;', 'page' => 'home',                'params' => [],                                  'roles' => ['agent','superviseur','chsct']],
-    ['label' => 'RSST',           'icon' => '&#128203;', 'page' => 'report_list',         'params' => ['type' => 'rsst'],                  'roles' => ['agent','superviseur','chsct']],
+    ['label' => 'Accueil', 'icon' => '&#127968;', 'page' => 'home', 'params' => [], 'roles' => ['agent','superviseur','chsct']],
 ];
 
-// Conditionally add RAMI if enabled
-if (isRegistryEnabled(TYPE_RAMI)) {
-    $menuItems[] = ['label' => 'RAMI', 'icon' => '&#9888;', 'page' => 'report_list', 'params' => ['type' => 'rami'], 'roles' => ['agent','superviseur','chsct']];
-}
-
-// Conditionally add DGI if enabled
-if (isRegistryEnabled(TYPE_DGI)) {
-    $menuItems[] = ['label' => 'DGI', 'icon' => '&#128308;', 'page' => 'report_list', 'params' => ['type' => 'dgi'], 'roles' => ['agent','superviseur','chsct']];
+// Add registry types from enum (RSST always enabled, others conditional)
+foreach (\App\Enum\ReportType::cases() as $type) {
+    $isEnabled = $type === \App\Enum\ReportType::Rsst || isRegistryEnabled($type->value);
+    if (!$isEnabled) {
+        continue;
+    }
+    $menuItems[] = [
+        'label'  => $type->shortLabel(),
+        'icon'   => $type->icon(),
+        'page'   => 'report_list',
+        'params' => ['type' => $type->value],
+        'roles'  => ['agent', 'superviseur', 'chsct'],
+    ];
 }
 
 $menuItems = array_merge($menuItems, [
@@ -66,7 +69,7 @@ $menuItems = array_merge($menuItems, [
 <nav class="sidebar" id="main-nav" role="navigation" aria-label="Menu principal">
     <ul class="sidebar__nav">
         <?php foreach ($menuItems as $item): ?>
-            <?php if (in_array($userRole, $item['roles'])): ?>
+            <?php if (in_array($userRole, $item['roles'], true)): ?>
                 <?php
                     $isActive = false;
                     $itemPage = $item['page'];
@@ -78,7 +81,7 @@ $menuItems = array_merge($menuItems, [
                         $isActive = $isActive && ($_GET['type'] === $itemType);
                     }
 
-                    if (!$isActive && in_array($currentPage, $reportSubpages) && $activeRegistryType && $itemType !== null) {
+                    if (!$isActive && in_array($currentPage, $reportSubpages, true) && $activeRegistryType !== null && $itemType !== null) {
                         $isActive = ($activeRegistryType === $itemType);
                     }
                 ?>

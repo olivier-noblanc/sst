@@ -2,6 +2,9 @@
 
 use App\Services\FormattingService;
 
+use App\Enum\ReportState;
+use App\Enum\ReportType;
+
 /**
  * Report Print Helpers — Application SST DREETS BFC
  *
@@ -10,18 +13,14 @@ use App\Services\FormattingService;
  */
 // --- Color definitions ---
 $blueDark = [26, 58, 92];       // #1a3a5c
-$colorRsst = [46, 92, 138];     // #2E5C8A
-$colorRami = [108, 108, 108];   // #6C6C6C
-$colorDgi = [178, 34, 34];      // #B22222
-$colorNouveau = [46, 92, 138];
-$colorEnCours = [230, 126, 34]; // #E67E22
-$colorTraite = [39, 174, 96];   // #27AE60
-$colorAbandonne = [149, 165, 166]; // #95A5A6
-$registryColors = ['rsst' => $colorRsst, 'rami' => $colorRami, 'dgi' => $colorDgi];
-$etatColors = [
-    'nouveau' => $colorNouveau, 'en_cours' => $colorEnCours,
-    'traite' => $colorTraite, 'abandonne' => $colorAbandonne,
-];
+$registryColors = array_combine(
+    array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
+    array_map(fn(ReportType $t) => $t->pdfColor(), ReportType::cases())
+);
+$etatColors = array_combine(
+    array_map(fn(ReportState $s) => $s->value, ReportState::cases()),
+    array_map(fn(ReportState $s) => $s->pdfColor(), ReportState::cases())
+);
 
 /** Convert UTF-8 string to cp1252 for FPDF TrueType font rendering. */
 function utf8ToCp1252(?string $s): string
@@ -290,7 +289,7 @@ function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void
         $maxLines = 1;
         $testLine = '';
         foreach (explode(' ', $responseText) as $word) {
-            $testLine .= ($testLine ? ' ' : '') . $word;
+            $testLine .= ($testLine !== '' ? ' ' : '') . $word;
             /** @var float $testWidth */
             $testWidth = $pdf->GetStringWidth($testLine);
             if ($testWidth > $responseColW) {

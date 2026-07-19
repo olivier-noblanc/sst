@@ -3,17 +3,6 @@
  * Handler test runner — executes a handler in a subprocess.
  *
  * Usage: php tests/handler_runner.php <config.json>
- *
- * The config JSON contains:
- *   - handler:   handler filename (e.g. "report_create_handler.php")
- *   - session:   $_SESSION data (must include 'user' and 'csrf_tokens')
- *   - post:      $_POST data (must include 'csrf_token')
- *   - server:    $_SERVER overrides (REQUEST_METHOD, etc.)
- *   - db_seed:   SQL statements to seed the test DB
- *   - assertions: associative array of label => SQL (results returned in output)
- *
- * Output: JSON with redirect URL, flash, form errors, and query results.
- * The handler will call exit() via redirect() — we capture results in a shutdown function.
  */
 
 if (($configPath = $argv[1] ?? '') === '' || !file_exists($configPath)) {
@@ -27,31 +16,12 @@ if (!$config) {
     exit(1);
 }
 
-// Suppress ALL output during bootstrap loading (constant redefinition warnings, etc.)
-// The callback discards all output — only our final JSON will be printed.
-ob_start(function (string $buffer): string {
-    return '';
-});
-
-// Suppress error reporting during bootstrap
-error_reporting(0);
-ini_set('display_errors', '0');
-
-// Start session BEFORE loading bootstrap (so session is ready when code needs it)
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Load the test bootstrap (defines constants, getDB(), loads all source files)
+// Load bootstrap (includes Composer autoloader)
 require_once __DIR__ . '/bootstrap.php';
 
-// Load middleware functions not included by bootstrap
+// Load middleware + audit
 require_once __DIR__ . '/../src/Middleware/require_role.php';
 require_once __DIR__ . '/../src/audit.php';
-
-// Restore error reporting for actual test code
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
 
 // Seed test data
 $pdo = getDB();
@@ -65,10 +35,17 @@ if (!empty($seedSql)) {
     }
 }
 
-// Set up session data (session is already started above)
-$_SESSION = $config['session'] ?? [];
+// Suppress errors only during handler execution
+error_reporting(0);
+ini_set('display_errors', '0');
 
-// Set up superglobals
+// Start session before setting $_SESSION data
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Set up environment
+$_SESSION = $config['session'] ?? [];
 $_POST = $config['post'] ?? [];
 $_GET = [];
 $_SERVER['REQUEST_METHOD'] = $config['server']['REQUEST_METHOD'] ?? 'POST';
@@ -77,15 +54,10 @@ $_SERVER['HTTP_HOST'] = 'localhost';
 $_SERVER['REQUEST_URI'] = '/';
 $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/../public/index.php';
 $_SERVER['DOCUMENT_ROOT'] = __DIR__ . '/../public';
-
-// Reset globals
 $GLOBALS['_PHP_REDIRECT'] = null;
 $GLOBALS['_PHP_COOKIES'] = [];
 
-// Register shutdown function to capture results BEFORE exit terminates
 register_shutdown_function(function () use ($config) {
-    error_reporting(0);
-
     $result = [
         'redirect'   => $GLOBALS['_PHP_REDIRECT'] ?? null,
         'flash'      => $_SESSION['flash'] ?? null,
@@ -94,7 +66,6 @@ register_shutdown_function(function () use ($config) {
         'report_created' => $_SESSION['report_created'] ?? null,
     ];
 
-    // Run assertion queries
     $pdo = getDB();
     $queries = $config['assertions'] ?? [];
     $results = [];
@@ -108,19 +79,17 @@ register_shutdown_function(function () use ($config) {
     }
     $result['queries'] = $results;
 
-    // Clean all output buffers (discard warnings), then print ONLY the JSON
     while (ob_get_level() > 0) {
         ob_end_clean();
     }
     echo json_encode($result);
 });
 
-// Run the handler
+// Start output buffer to capture handler output (e.g. CSV from export)
+ob_start();
+
 $handlerFile = __DIR__ . '/../handlers/' . $config['handler'];
 if (!file_exists($handlerFile)) {
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
     echo json_encode(['error' => 'Handler not found: ' . $config['handler']]);
     exit(1);
 }

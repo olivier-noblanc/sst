@@ -18,7 +18,7 @@ $activeTab = $_GET['tab'] ?? 'audit';
 // ============================================================
 // Tab 1: PHP Error Log
 // ============================================================
-$logFile = ini_get('error_log') ?: __DIR__ . '/../../data/php-error.log';
+$logFile = ini_get('error_log') !== false && ini_get('error_log') !== '' ? ini_get('error_log') : __DIR__ . '/../../data/php-error.log';
 $maxLines = 5000;
 
 // Handle clear action

@@ -39,7 +39,7 @@ class PageRenderingTest extends TestCase
         require_once __DIR__ . '/../../src/user_context.php';
         require_once __DIR__ . '/../../src/auth.php';
         require_once __DIR__ . '/../../src/Middleware/require_role.php';
-        require_once __DIR__ . '/../../src/router.php';
+        require_once __DIR__ . '/../../src/Router/Renderer.php';
         require_once __DIR__ . '/../../src/audit.php';
         require_once __DIR__ . '/../../src/Router/routes.php';
 
@@ -203,7 +203,7 @@ class PageRenderingTest extends TestCase
             // Capture rendered output
             ob_start();
             try {
-                renderPageWithLayout($page, 'test-csrf-token');
+                renderPageWithLayout(getRouter(), $page, 'test-csrf-token');
             } catch (\Throwable $e) {
                 ob_end_clean();
                 $this->fail("Page '$page' threw an exception: " . $e->getMessage());
@@ -222,7 +222,8 @@ class PageRenderingTest extends TestCase
             $this->assertStringContainsString('<title>', $output, "[$page] missing <title> tag");
 
             // 3. Title matches getPageTitle()
-            $expectedTitle = getPageTitle($page);
+            $router = getRouter();
+            $expectedTitle = $router->getPageTitle($page);
             $escapedTitle = e($expectedTitle);
             $this->assertStringContainsString(
                 $escapedTitle,
@@ -237,8 +238,9 @@ class PageRenderingTest extends TestCase
      */
     public function testGetPageTitleReturnsNonEmptyForAllValidPages(): void
     {
-        foreach (getValidPages() as $page) {
-            $title = getPageTitle($page);
+        $router = getRouter();
+        foreach ($router->getValidPages() as $page) {
+            $title = $router->getPageTitle($page);
             $this->assertNotEmpty($title, "getPageTitle('$page') returns empty string");
         }
     }
@@ -249,7 +251,8 @@ class PageRenderingTest extends TestCase
      */
     public function testGetValidPagesCount(): void
     {
-        $pages = getValidPages();
+        $router = getRouter();
+        $pages = $router->getValidPages();
         $this->assertGreaterThanOrEqual(25, count($pages), 'getValidPages() should contain at least 25 pages');
     }
 
@@ -261,10 +264,11 @@ class PageRenderingTest extends TestCase
     {
         $pagesDir = __DIR__ . '/../../pages';
         // These pages are handled by index.php or handlers, not by a page file
-        $exceptions = ['logout', 'impersonate'];
+        $exceptions = ['logout', 'impersonate', 'user_create', 'user_delete', 'user_reactivate', 'smtp_test'];
         $missing = [];
 
-        foreach (getValidPages() as $page) {
+        $router = getRouter();
+        foreach ($router->getValidPages() as $page) {
             if (in_array($page, $exceptions, true)) {
                 continue;
             }

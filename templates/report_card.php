@@ -64,9 +64,9 @@ $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $isDeclarant = ((int) $report['declarant_id'] === $userId);
 $canEdit = new \App\Services\AccessService()->canEditReport((array) $report, $userId);
-$canAbandon = $isDeclarant && !in_array($report['etat'], [ETAT_ABANDONNE, ETAT_TRAITE]);
+$canAbandon = $isDeclarant && !in_array($report['etat'], [ETAT_ABANDONNE, ETAT_TRAITE], true);
 $canRespondToReport = new \App\Services\AccessService()->canRespondToReport((array) $report, $userRole);
-$canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE]) && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT]);
+$canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE], true) && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT], true);
 
 // Ensure $csrfToken is available (set by index.php but may not be in scope)
 if (!isset($csrfToken)) {
@@ -183,7 +183,7 @@ if (!isset($csrfToken)) {
                 <?php if (isset($report['consent_syndicat'])): ?>
                 <tr>
                     <th>Transmission aux <?php echo $fmt->e(\App\Services\ConfigService::getInstance()->getRoleLabel('chsct')); ?>s</th>
-                    <td><?php echo $report['consent_syndicat'] ? '✅ Acceptée' : '❌ Refusée'; ?></td>
+                    <td><?php echo (bool) $report['consent_syndicat'] ? '✅ Acceptée' : '❌ Refusée'; ?></td>
                 </tr>
                 <?php endif; ?>
                 <tr>
@@ -195,7 +195,7 @@ if (!isset($csrfToken)) {
                     <th>Pièce jointe</th>
                     <td>
                         <?php
-                        $isImageAttachment = !empty($report['attachment_mime']) && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
+                        $isImageAttachment = !empty($report['attachment_mime']) && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif'], true);
                         ?>
                         <?php if ($isImageAttachment): ?>
                             <div class="mb-2">
@@ -253,7 +253,7 @@ if (!isset($csrfToken)) {
                 <tr>
                     <td colspan="4" style="padding-top:0;">
                         <?php
-                        $isImage = !empty($resp['attachment_mime']) && in_array($resp['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif']);
+                        $isImage = !empty($resp['attachment_mime']) && in_array($resp['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif'], true);
                         ?>
                         <?php if ($isImage): ?>
                             <a href="<?php echo new \App\Services\HttpService()->url('response_attachment', ['id' => $resp['id']]); ?>" title="<?php echo $fmt->e($resp['attachment_name']); ?>">

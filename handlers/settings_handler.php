@@ -28,16 +28,16 @@ try {
         $notifRepo->deleteByType('site');
 
         // Insert new site emails (textarea format: one email per line)
-        /** @var string|array<int|string, string> $siteEmails */
-        $siteEmails = $_POST['site_emails'] ?? [];
-        if (is_array($siteEmails)) {
+        /** @var array<string, string> $siteEmails */
+        $siteEmails = is_array($_POST['site_emails'] ?? null) ? $_POST['site_emails'] : [];
+        if (!empty($siteEmails)) {
             foreach ($siteEmails as $siteId => $emailText) {
                 $siteId = (int) $siteId;
                 // Parse textarea: split by newlines, trim, filter valid emails
-                $lines = preg_split('/[\r\n]+/', (string) $emailText) ?: [];
+                $lines = preg_split('/[\r\n]+/', (string) $emailText) !== false ? preg_split('/[\r\n]+/', (string) $emailText) : [];
                 foreach ($lines as $email) {
                     $email = trim($email);
-                    if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
                         $notifRepo->save($siteId, 'site', 'all', $email);
                     }
                 }
@@ -52,10 +52,10 @@ try {
         // Insert new global emails (textarea format: one email per line)
         $globalEmailsText = trim((string) ($_POST['global_emails'] ?? ''));
         if ($globalEmailsText !== '') {
-            $lines = preg_split('/[\r\n]+/', $globalEmailsText) ?: [];
+            $lines = preg_split('/[\r\n]+/', $globalEmailsText) !== false ? preg_split('/[\r\n]+/', $globalEmailsText) : [];
             foreach ($lines as $email) {
                 $email = trim($email);
-                if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
                     $notifRepo->save(null, 'global', 'all', $email);
                 }
             }
@@ -72,7 +72,7 @@ try {
         $smtpEncryption = trim((string) ($_POST['smtp_encryption'] ?? 'none'));
 
         // Validate encryption value
-        if (!in_array($smtpEncryption, ['none', 'tls', 'starttls'])) {
+        if (!in_array($smtpEncryption, ['none', 'tls', 'starttls'], true)) {
             $smtpEncryption = 'none';
         }
 
@@ -95,7 +95,7 @@ try {
         if (!empty($smtpHost)) {
             require_once __DIR__ . '/../src/mail.php';
             $testTo = $smtpFrom;
-            if (!empty($testTo) && filter_var($testTo, FILTER_VALIDATE_EMAIL)) {
+            if ($testTo !== '' && filter_var($testTo, FILTER_VALIDATE_EMAIL) !== false) {
                 $appName = getConfig('app_nom_organisation', 'DREETS BFC');
                 $testSubject = 'Test de connexion SMTP';
                 $testBody = '<html><body><h2>Test SMTP</h2><p>Ce message confirme que la connexion SMTP est fonctionnelle.</p></body></html>';
@@ -123,10 +123,10 @@ try {
     }
 
     if ($tab === 'wordcloud') {
-        /** @var mixed $rawWords */
-        $rawWords = $_POST['words'] ?? [];
+        /** @var array<int, mixed> $rawWords */
+        $rawWords = is_array($_POST['words'] ?? null) ? $_POST['words'] : [];
         $cleanWords = [];
-        if (is_array($rawWords)) {
+        if (!empty($rawWords)) {
             foreach ($rawWords as $entry) {
                 if (!is_array($entry)) {
                     continue;

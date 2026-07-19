@@ -166,6 +166,30 @@ class AccessServiceTest extends TestCase
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // normalizeChsctScope()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testNormalizeChsctScopeConsentOnly(): void
+    {
+        $this->assertEquals('consent_only', $this->service->normalizeChsctScope('consent_only'));
+    }
+
+    public function testNormalizeChsctScopeAll(): void
+    {
+        $this->assertEquals('all', $this->service->normalizeChsctScope('all'));
+    }
+
+    public function testNormalizeChsctScopeInvalidDefaultsToConsentOnly(): void
+    {
+        $this->assertEquals('consent_only', $this->service->normalizeChsctScope('bogus'));
+    }
+
+    public function testNormalizeChsctScopeEmptyDefaultsToConsentOnly(): void
+    {
+        $this->assertEquals('consent_only', $this->service->normalizeChsctScope(''));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // normalizeVisibilityValue()
     // ═══════════════════════════════════════════════════════════════════════════════
 

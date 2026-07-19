@@ -39,7 +39,7 @@ try {
             $pdo = getDB();
             $registryLabel = REGISTRY_SHORT_LABELS[(string) ($report['type'] ?? '')] ?? strtoupper((string) ($report['type'] ?? ''));
             $declarant = getUserById($pdo, (int) ($report['declarant_id'] ?? 0));
-            if ($declarant && !empty($declarant['email']) && (int) ($report['declarant_id'] ?? 0) !== $userId) {
+            if ($declarant !== null && !empty($declarant['email']) && (int) ($report['declarant_id'] ?? 0) !== $userId) {
                 /** @var array<string, string> $declarant */
                 $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
                 $body = '<html><body>';

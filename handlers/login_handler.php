@@ -31,7 +31,7 @@ $session = getContainer()->get(SessionManager::class);
 
 $user = $authService->mockLogin($username);
 
-if ($user) {
+if ($user !== null) {
     /** @var array<string, string> $user */
     safeSessionRegenerate();
 

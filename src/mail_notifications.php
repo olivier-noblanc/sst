@@ -20,7 +20,7 @@ require_once __DIR__ . '/mail_templates.php';
 function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId): void
 {
     $report = getReportByUuid($pdo, $reportUuid);
-    if (!$report) {
+    if ($report === null) {
         return;
     }
     /** @var array<string, mixed> $report */
@@ -45,7 +45,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         $csaUsers = getUsersByRole($pdo, ROLE_CHSCT);
         foreach ($csaUsers as $csaUser) {
             /** @var array<string, mixed> $csaUser */
-            if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients)) {
+            if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients, true)) {
                 $csaSubject = 'Signalement DGI — Notification ' . getRoleLabelShort('chsct') . " — {$report['reference']}";
                 $csaBody = '<html><body>';
                 $csaBody .= '<h2>Notification DGI — Article L4131-2 du Code du travail</h2>';
@@ -70,14 +70,14 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
 function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): void
 {
     $report = getReportByUuid($pdo, $reportUuid);
-    if (!$report) {
+    if ($report === null) {
         return;
     }
     // Get declarant email
     /** @var int */
     $declarantId = $report['declarant_id'] ?? 0;
     $declarant = getUserById($pdo, $declarantId);
-    if (!$declarant || empty($declarant['email'])) {
+    if ($declarant === null || empty($declarant['email'])) {
         return;
     }
     /** @var string */
@@ -85,7 +85,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     $registryLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
     $subject = "Réponse à votre signalement $registryLabel — {$report['reference']}";
     $respondent = getUserById($pdo, $respondentId);
-    if (!$respondent) {
+    if ($respondent === null) {
         return;
     }
     /** @var array<string, mixed> $respondent */
@@ -125,7 +125,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
 function notifyPourCompte(PDO $pdo, string $reportUuid): void
 {
     $report = getReportByUuid($pdo, $reportUuid);
-    if (!$report || empty($report['pour_compte_nom'])) {
+    if ($report === null || empty($report['pour_compte_nom'])) {
         return;
     }
     /** @var array<string, mixed> $report */
@@ -133,7 +133,7 @@ function notifyPourCompte(PDO $pdo, string $reportUuid): void
     $stmt = $pdo->prepare('SELECT * FROM users WHERE nom = :nom AND prenom = :prenom AND is_active = 1 LIMIT 1');
     $stmt->execute([':nom' => $report['pour_compte_nom'], ':prenom' => $report['pour_compte_prenom']]);
     $agent = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$agent || empty($agent['email'])) {
+    if ($agent === false || empty($agent['email'])) {
         return;
     }
     $subject = "Un signalement RAMI a été déposé pour vous — {$report['reference']}";
@@ -176,7 +176,7 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
         /** @var string */
         $emailStr = $email ?? '';
         $lower = strtolower($emailStr);
-        if (!in_array($lower, $seen)) {
+        if (!in_array($lower, $seen, true)) {
             $seen[] = $lower;
             $emails[] = $email;
         }
@@ -195,7 +195,7 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
 function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRole): void
 {
     $user = getUserById($pdo, $userId);
-    if (!$user || empty($user['email'])) {
+    if ($user === null || empty($user['email'])) {
         return;
     }
     $appName = getConfig('app_nom_organisation', 'DREETS BFC');
@@ -232,7 +232,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
 function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): void
 {
     $report = getReportByUuid($pdo, $reportUuid);
-    if (!$report) {
+    if ($report === null) {
         return;
     }
     foreach ($emails as $email) {

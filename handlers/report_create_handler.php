@@ -12,7 +12,7 @@ use App\Services\ReportService;
 validatePostRequest(url('home'));
 
 $type = (string) ($_POST['type'] ?? '');
-if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {
+if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI], true)) {
     setFlash('error', 'Type de registre invalide.');
     redirect(url('home'));
 }
@@ -35,7 +35,7 @@ if (!isNoSiteMode($pdo)) {
         redirect(url('report_create', ['type' => $type]));
     }
     $site = getSiteById($pdo, $siteId);
-    if (!$site || empty($site['is_active'])) {
+    if ($site === null || empty($site['is_active'])) {
         setFormErrors(['site_id' => 'Unité invalide ou désactivée.']);
         setFormData($_POST);
         redirect(url('report_create', ['type' => $type]));
@@ -52,21 +52,21 @@ $linkedEmailsRaw = trim((string) ($_POST['linked_emails'] ?? ''));
 if (!empty($linkedEmailsRaw)) {
     $declarantEmail = (string) ($user['email'] ?? '');
     $emailDomain = '';
-    if ($declarantEmail && str_contains($declarantEmail, '@')) {
-        $emailDomain = substr($declarantEmail, strrpos($declarantEmail, '@') + 1);
+    if ($declarantEmail !== '' && str_contains($declarantEmail, '@')) {
+        $emailDomain = substr($declarantEmail, (int) strrpos($declarantEmail, '@') + 1);
     }
     $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
     foreach ($linkedEmailsList as $em) {
         if (empty($em)) {
             continue;
         }
-        if (!filter_var($em, FILTER_VALIDATE_EMAIL)) {
+        if (filter_var($em, FILTER_VALIDATE_EMAIL) === false) {
             setFormErrors(['linked_emails' => 'Adresse e-mail invalide : ' . e($em)]);
             setFormData($_POST);
             redirect(url('report_create', ['type' => $type]));
         }
-        if ($emailDomain) {
-            $emDomain = substr($em, strrpos($em, '@') + 1);
+        if ($emailDomain !== '') {
+            $emDomain = substr($em, (int) strrpos($em, '@') + 1);
             if (strtolower($emDomain) !== strtolower($emailDomain)) {
                 setFormErrors(['linked_emails' => 'Seul le domaine @' . e($emailDomain) . ' est autorisé. Adresse refusée : ' . e($em)]);
                 setFormData($_POST);

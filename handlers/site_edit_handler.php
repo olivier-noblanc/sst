@@ -21,7 +21,7 @@ $site = $repo->findById($siteId);
 
 /** @var array<string, string> $site */
 
-if (!$site) {
+if ($site === null) {
     setFlash('error', 'Site introuvable.');
     redirect(url('settings', ['tab' => 'manage_sites']));
 }
@@ -37,7 +37,7 @@ if (empty($code)) {
 if (empty($nom)) {
     $errors['nom'] = 'Le nom est requis.';
 }
-if (!empty($code) && $code !== (string) ($site['code'] ?? '') && $repo->findByCode($code)) {
+if (!empty($code) && $code !== (string) ($site['code'] ?? '') && $repo->findByCode($code) !== null) {
     $errors['code'] = 'Un site avec ce code existe déjà.';
 }
 
@@ -50,7 +50,7 @@ if (!empty($errors)) {
 $success = $repo->update($siteId, $code, $nom, $departement);
 
 if ($success) {
-    auditLog(getDB(), 'site', 'edit', 'Site modifié : ' . $code . ' — ' . $nom, (int) $siteId, 'site');
+    auditLog(getDB(), 'site', 'edit', 'Site modifié : ' . $code . ' — ' . $nom, $siteId, 'site');
     setFlash('success', 'Site ' . e($code . ' — ' . $nom) . ' mis à jour avec succès.');
 } else {
     error_log('[SST-DB] site_edit failed for site_id=' . $siteId);

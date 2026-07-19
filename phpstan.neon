@@ -1,5 +1,6 @@
 includes:
     - phpstan-baseline.neon
+    - phpstan-disallowed-calls.neon
 
 parameters:
     level: 8
@@ -24,3 +25,13 @@ parameters:
     scanDirectories:
         - src/
         - handlers/
+
+    strictRules:
+        disallowedEmpty: false
+
+    shipmonkDeadCode:
+        detect:
+            deadMethods: false
+            deadProperties:
+                neverRead: false
+                neverWritten: false

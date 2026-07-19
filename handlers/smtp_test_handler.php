@@ -31,7 +31,7 @@ if (!in_array($encryption, ['none', 'tls', 'starttls'], true)) {
 
 // ── Validation ────────────────────────────────────────────────────────────────
 
-if (empty($to) || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+if (empty($to) || filter_var($to, FILTER_VALIDATE_EMAIL) === false) {
     setFlash('error', 'Adresse destinataire invalide.');
     redirect(url('settings', ['tab' => 'smtp']));
 }
@@ -41,7 +41,7 @@ if (empty($host)) {
     redirect(url('settings', ['tab' => 'smtp']));
 }
 
-if (empty($from) || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
+if (empty($from) || filter_var($from, FILTER_VALIDATE_EMAIL) === false) {
     setFlash('error', 'Adresse d\'expédition (smtp_from) invalide. Enregistrez d\'abord la configuration SMTP.');
     redirect(url('settings', ['tab' => 'smtp']));
 }

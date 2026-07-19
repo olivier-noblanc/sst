@@ -15,6 +15,7 @@ class ReportFilter
         public readonly ?int $forceSiteId = null,
         public readonly ?string $search = null,
         public readonly bool $seeAllSites = true,
+        public readonly bool $chsctConsentOnly = false,
     ) {}
 
     /**
@@ -27,7 +28,7 @@ class ReportFilter
             type: $get['type'] ?? '',
             etat: $get['etat'] ?? '',
             siteId: (int) ($get['site'] ?? 0),
-            search: trim($get['q'] ?? '') ?: null,
+            search: trim($get['q'] ?? '') !== '' ? trim($get['q'] ?? '') : null,
         );
     }
 
@@ -42,6 +43,7 @@ class ReportFilter
             'own_only' => null,
             'force_site_id' => $this->forceSiteId,
             'declarant_id' => $this->declarantId,
+            'chsct_consent_only' => $this->chsctConsentOnly,
         ];
     }
 }

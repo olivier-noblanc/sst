@@ -46,8 +46,8 @@ class UpdateReportCommand
             telephoneMobile: trim($post['telephone_mobile'] ?? ''),
             isConfidential: isset($post['is_confidential']) && $post['is_confidential'] === '1' ? 1 : 0,
             consentSyndicat: isset($post['consent_syndicat']) && $post['consent_syndicat'] === '1' ? 1 : 0,
-            natureAuteur: $natureAuteur ?: null,
-            typeActe: $typeActe ?: null,
+            natureAuteur: $natureAuteur !== '' ? $natureAuteur : null,
+            typeActe: $typeActe !== '' ? $typeActe : null,
             pourCompteNom: $pourCompte ? trim($post['pour_compte_nom'] ?? '') : null,
             pourComptePrenom: $pourCompte ? trim($post['pour_compte_prenom'] ?? '') : null,
         );

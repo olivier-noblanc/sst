@@ -19,14 +19,14 @@ if (empty($token)) {
 
 $invite = \App\Repository\ReportRepository::instance()->getAgentInviteByToken($token);
 
-if (!$invite) {
+if ($invite === null) {
     echo '<div class="card card--spaced"><h1 class="page-title">Invitation déjà traitée</h1><p>Cette invitation a déjà été confirmée ou a expiré. Si vous venez de cliquer, votre rattachement est déjà actif.</p><a href="' . new \App\Services\HttpService()->url('home') . '" class="btn btn--primary">Retour à l\'accueil</a></div>';
     return;
 }
 
 // Get report info
 $report = \App\Repository\ReportRepository::instance()->findById($invite['report_uuid']);
-if (!$report) {
+if ($report === null) {
     echo '<div class="card card--spaced"><h1 class="page-title">Signalement introuvable</h1><p>Le signalement associé à cette invitation n\'existe plus.</p></div>';
     return;
 }

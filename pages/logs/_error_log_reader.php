@@ -77,7 +77,7 @@ function readErrorLog(string $logFile, int $maxLines, string $errorFilter = 'all
             $entries = [];
             $currentEntry = '';
             foreach ($collected as $line) {
-                if (preg_match('/^\[?\d{2}-\w{3}-\d{4}/', $line)) {
+                if (preg_match('/^\[?\d{2}-\w{3}-\d{4}/', $line) === 1) {
                     if ($currentEntry !== '') {
                         $entries[] = $currentEntry;
                     }

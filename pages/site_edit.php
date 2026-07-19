@@ -18,7 +18,7 @@ if ($siteId <= 0) {
 
 $site = \App\Repository\SiteRepository::instance()->findById($siteId);
 
-if (!$site) {
+if ($site === null) {
     new \App\Services\SessionService()->setFlash('error', 'Site introuvable.');
     new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('settings', ['tab' => 'manage_sites']));
 }

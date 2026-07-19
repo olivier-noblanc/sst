@@ -47,11 +47,11 @@ class Router
     public function match(string $method, string $uri): ?array
     {
         foreach ($this->routes as $route) {
-            if (!in_array($method, $route['methods'])) {
+            if (!in_array($method, $route['methods'], true)) {
                 continue;
             }
             $pattern = preg_replace('#\{(\w+)\}#', '(?P<$1>[^/]+)', (string) $route['path']);
-            if (preg_match('#^' . $pattern . '$#', $uri, $matches)) {
+            if (preg_match('#^' . $pattern . '$#', $uri, $matches) === 1) {
                 return ['handler' => $route['handler'], 'params' => $matches, 'name' => $route['name']];
             }
         }
@@ -97,7 +97,7 @@ class Router
     public function dispatchGet(string $page): void
     {
         $match = $this->match('GET', $page);
-        if ($match) {
+        if ($match !== null) {
             ($match['handler'])();
         } else {
             redirect(url('home'));
@@ -121,7 +121,10 @@ class Router
     /** @return list<string> */
     public function getValidPages(): array
     {
-        return array_keys($this->pageTitles) + array_keys($this->postHandlers);
+        return array_values(array_unique(array_merge(
+            array_keys($this->pageTitles),
+            array_keys($this->postHandlers)
+        )));
     }
 
     /** @return array<string, string> */

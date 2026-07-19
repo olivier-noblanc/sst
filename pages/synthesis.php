@@ -34,18 +34,16 @@ $sites = \App\Repository\SiteRepository::instance()->findAll();
 
 // Get synthesis data
 $synthesisData = \App\Repository\StatsRepository::instance()->getSynthesis($year, $siteId);
-/** @var list<array{site_id: int, type: string, nouveau: int, en_cours: int, traite: int, abandonne: int, total: int}> $synthesisData */
+/** @var list<array{site_id: int, type: string, nouveau: int, en_cours: int, traite: int, abandonne: int, reouvert: int, total: int}> $synthesisData */
 
 // Organize data by site
 $siteData = [];
 foreach ($sites as $site) {
-    $siteData[$site['id']] = [
-        'code' => $site['code'],
-        'nom' => $site['nom'],
-        'rsst' => ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'total' => 0],
-        'rami' => ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'total' => 0],
-        'dgi'  => ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'total' => 0],
-    ];
+    $typeData = array_combine(
+        array_map(fn(\App\Enum\ReportType $t) => $t->value, \App\Enum\ReportType::cases()),
+        array_fill(0, count(\App\Enum\ReportType::cases()), ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'reouvert' => 0, 'total' => 0])
+    );
+    $siteData[$site['id']] = array_merge(['code' => $site['code'], 'nom' => $site['nom']], $typeData);
 }
 
 // Fill in the data
@@ -58,29 +56,29 @@ foreach ($synthesisData as $row) {
             'en_cours'  => (int) $row['en_cours'],
             'traite'    => (int) $row['traite'],
             'abandonne' => (int) $row['abandonne'],
+            'reouvert'  => (int) $row['reouvert'],
             'total'     => (int) $row['total'],
         ];
     }
 }
 
 // Calculate totals
-$totals = [
-    'rsst' => ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'total' => 0],
-    'rami' => ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'total' => 0],
-    'dgi'  => ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'total' => 0],
-];
+$totals = array_combine(
+    array_map(fn(\App\Enum\ReportType $t) => $t->value, \App\Enum\ReportType::cases()),
+    array_fill(0, count(\App\Enum\ReportType::cases()), ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'reouvert' => 0, 'total' => 0])
+);
 
 foreach ($siteData as $sId => $sd) {
-    foreach (['rsst', 'rami', 'dgi'] as $type) {
-        foreach (['nouveau', 'en_cours', 'traite', 'abandonne', 'total'] as $state) {
-            $totals[$type][$state] += $sd[$type][$state];
+    foreach (\App\Enum\ReportType::cases() as $type) {
+        foreach (['nouveau', 'en_cours', 'traite', 'abandonne', 'reouvert', 'total'] as $state) {
+            $totals[$type->value][$state] += $sd[$type->value][$state];
         }
     }
 }
 
 $grandTotal = 0;
-foreach (['rsst', 'rami', 'dgi'] as $type) {
-    $grandTotal += $totals[$type]['total'];
+foreach (\App\Enum\ReportType::cases() as $type) {
+    $grandTotal += $totals[$type->value]['total'];
 }
 
 $pageTitle = 'Synthèse des signalements';
@@ -108,7 +106,7 @@ $colSpan = count($activeTypes) * 4;
         <label for="year">Année</label>
         <select name="year" id="year">
             <?php foreach ($availableYears as $y): ?>
-            <option value="<?php echo $fmt->e($y); ?>" <?php echo $y == $year ? 'selected' : ''; ?>><?php echo $fmt->e($y); ?></option>
+            <option value="<?php echo $fmt->e($y); ?>" <?php echo $y === $year ? 'selected' : ''; ?>><?php echo $fmt->e($y); ?></option>
             <?php endforeach; ?>
         </select>
     </div>

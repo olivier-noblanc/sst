@@ -45,10 +45,10 @@ class HttpService
         if ($expires > 0) {
             $cookieStr .= '; expires=' . gmdate('D, d M Y H:i:s T', $expires);
         }
-        if ($path) {
+        if ($path !== '') {
             $cookieStr .= '; path=' . $path;
         }
-        if ($sameSite) {
+        if ($sameSite !== '') {
             $cookieStr .= '; SameSite=' . $sameSite;
         }
         if ($httpOnly) {

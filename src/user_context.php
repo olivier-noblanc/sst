@@ -39,7 +39,7 @@ function currentUserId(): int
     $user = getUserSession();
     /** @var int */
     $id = $user['id'] ?? 0;
-    return $user ? $id : 0;
+    return $user !== null ? $id : 0;
 }
 
 /**
@@ -50,7 +50,7 @@ function currentUserId(): int
 function currentUserUsername(): string
 {
     $user = getUserSession();
-    if (!$user) {
+    if ($user === null) {
         return '';
     }
     /** @var string $username */
@@ -66,7 +66,7 @@ function currentUserUsername(): string
 function currentUserDisplayName(): string
 {
     $user = currentUser();
-    if (!$user) {
+    if ($user === null) {
         return '';
     }
     /** @var string $prenom */
@@ -86,7 +86,7 @@ function currentUserDisplayName(): string
 function currentUserRole(): string
 {
     $user = getUserSession();
-    if (!$user) {
+    if ($user === null) {
         return '';
     }
     /** @var string $role */
@@ -171,7 +171,7 @@ function currentUserSiteId(): int
     $user = getUserSession();
     /** @var int */
     $siteId = $user['site_id'] ?? 0;
-    return $user ? $siteId : 0;
+    return $user !== null ? $siteId : 0;
 }
 
 /**
@@ -182,7 +182,7 @@ function currentUserSiteId(): int
 function currentUserSiteCode(): string
 {
     $user = getUserSession();
-    if (!$user) {
+    if ($user === null) {
         return '';
     }
     /** @var string $siteCode */
@@ -198,7 +198,7 @@ function currentUserSiteCode(): string
 function currentUserSiteName(): string
 {
     $user = getUserSession();
-    if (!$user) {
+    if ($user === null) {
         return '';
     }
     /** @var string $siteName */
@@ -226,7 +226,7 @@ function currentUserHasSite(): bool
  */
 function currentUserCanSeeAllSites(): bool
 {
-    return in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT]);
+    return in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT], true);
 }
 
 /**
@@ -240,7 +240,7 @@ function currentUserCanSeeAllSites(): bool
 function currentUserCanAccessReport(array $report, ?string $forcedVisibility = null): bool
 {
     $user = currentUser();
-    if (!$user) {
+    if ($user === null) {
         return false;
     }
     return canAccessReport($report, $user, $forcedVisibility);
@@ -261,7 +261,7 @@ function refreshCurrentUser(PDO $pdo): bool
     }
     require_once __DIR__ . '/queries/user_queries.php';
     $freshUser = getUserById($pdo, $id);
-    if ($freshUser) {
+    if ($freshUser !== null) {
         // Preserve impersonation state if active
         setUserSession($freshUser);
         if (isImpersonatingRole()) {

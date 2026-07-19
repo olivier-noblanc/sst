@@ -8,7 +8,7 @@
 use PHPUnit\Framework\TestCase;
 use App\Router\Router;
 
-require_once __DIR__ . '/../../src/router.php';
+require_once __DIR__ . '/../../src/Router/Renderer.php';
 require_once __DIR__ . '/../../src/Router/routes.php';
 
 class RouterPageTitleTest extends TestCase

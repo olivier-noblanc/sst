@@ -67,7 +67,7 @@ function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($registryLabel) . '</td>';
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($objet) . '</td>';
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . '</td>';
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($createdAt) . '</td>';
+        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars((new \App\Services\FormattingService())->formatDateTimeFR($createdAt)) . '</td>';
         $body .= '</tr>';
     }
 

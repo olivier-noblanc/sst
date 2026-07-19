@@ -38,7 +38,7 @@ class UserService
     public function update(int $id, UpdateUserCommand $cmd, int $currentUserId): bool
     {
         $user = $this->repo->findById($id);
-        if (!$user) {
+        if ($user === null) {
             throw new RuntimeException('Utilisateur introuvable.');
         }
         /** @var array<string, mixed> $user */
@@ -80,7 +80,7 @@ class UserService
         }
 
         $user = $this->repo->findById($id);
-        if (!$user) {
+        if ($user === null) {
             throw new RuntimeException('Utilisateur introuvable.');
         }
 
@@ -101,10 +101,10 @@ class UserService
     public function reactivate(int $id): bool
     {
         $user = $this->repo->findById($id);
-        if (!$user) {
+        if ($user === null) {
             throw new RuntimeException('Utilisateur introuvable.');
         }
-        if ($user['is_active']) {
+        if ((int) $user['is_active'] === 1) {
             throw new RuntimeException('Cet utilisateur est déjà actif.');
         }
         $result = $this->repo->reactivate($id);
@@ -194,7 +194,7 @@ class UserService
         /** @var string */
         $roleVal = $input['role'] ?? '';
         $role = trim($roleVal);
-        if (!in_array($role, [ROLE_AGENT, ROLE_SUPERVISEUR, ROLE_CHSCT])) {
+        if (\App\Enum\UserRole::tryFrom($role) === null) {
             $errors['role'] = 'Rôle invalide.';
         }
 
@@ -203,7 +203,7 @@ class UserService
         $siteId = (int) $siteIdVal;
         if (!isNoSiteMode($this->repo->getPdo()) && $siteId > 0) {
             $site = getSiteById($this->repo->getPdo(), $siteId);
-            if (!$site) {
+            if ($site === null) {
                 $errors['site_id'] = 'Site invalide.';
             }
         }
@@ -211,7 +211,7 @@ class UserService
         /** @var string */
         $emailVal = $input['email'] ?? '';
         $email = trim($emailVal);
-        if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             $errors['email'] = 'Adresse email invalide.';
         }
 
@@ -221,7 +221,7 @@ class UserService
     public function canDeactivate(int $id): bool
     {
         $user = $this->repo->findById($id);
-        if (!$user) {
+        if ($user === null) {
             return false;
         }
         if ($user['role'] === ROLE_SUPERVISEUR && $this->repo->countActiveSuperviseurs() <= 1) {
@@ -264,7 +264,7 @@ class UserService
         }
 
         $user = $this->repo->findById($id);
-        if (!$user) {
+        if ($user === null) {
             throw new RuntimeException('Utilisateur introuvable.');
         }
 

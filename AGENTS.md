@@ -37,9 +37,17 @@
 - Toute modification git doit se faire au niveau projet : `git config --local` ou variables d'environnement.
 
 ### Testing — Obligatoire avant chaque push
-- **TOUJOURS** lancer les tests (`php "$env:USERPROFILE\scoop\shims\phpunit.phar" --no-coverage`) avant un `git push`.
-- **TOUJOURS** vérifier que PHPStan passe (`phpstan analyse --memory-limit=1G`) avant de push.
+- **TOUJOURS** lancer les tests (`rtk phpunit --no-coverage`) avant un `git push`.
+- **TOUJOURS** vérifier que PHPStan passe (`rtk phpstan analyse --memory-limit=1G`) avant de push.
 - **Ne jamais pusher sans test préalable.**
+
+### TDD — Test-Driven Development obligatoire
+- **Toujours écrire les tests AVANT l'implémentation** (Red → Green → Refactor).
+- Ne jamais écrire l'implémentation en premier puis les tests après — c'est du test-after, pas du TDD.
+- Étape 1 : écrire le ou les tests qui décrivent le comportement attendu (ils échouent).
+- Étape 2 : implémenter le code minimal pour faire passer les tests.
+- Étape 3 : refactoriser si nécessaire, en vérifiant que les tests passent toujours.
+- Les tests sont le **spec**, pas un filet de sécurité rajouté après coup.
 
 ### Structure du dépôt
 - `docs/screenshots/` : captures HTML source + PNG annotés + CAPTURES.md

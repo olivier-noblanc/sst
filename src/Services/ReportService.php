@@ -46,7 +46,7 @@ class ReportService
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array
     {
         $report = $this->repo->findById($uuid);
-        if (!$report) {
+        if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
         /** @var array<string, mixed> $report */
@@ -69,7 +69,7 @@ class ReportService
     public function update(string $uuid, UpdateReportCommand $cmd, int $userId): bool
     {
         $report = $this->repo->findById($uuid);
-        if (!$report) {
+        if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
         /** @var array<string, mixed> $report */
@@ -91,7 +91,7 @@ class ReportService
     public function abandon(string $uuid, int $userId): bool
     {
         $report = $this->repo->findById($uuid);
-        if (!$report) {
+        if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
         /** @var array<string, mixed> $report */
@@ -104,14 +104,14 @@ class ReportService
     public function reopen(string $uuid, ReopenReportCommand $cmd, int $userId): bool
     {
         $report = $this->repo->findById($uuid);
-        if (!$report) {
+        if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
         /** @var array<string, mixed> $report */
-        if (!in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE])) {
+        if (!in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE], true)) {
             throw new RuntimeException('Ce signalement ne peut pas être réouvert.');
         }
-        if (!in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT])) {
+        if (!in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
             throw new RuntimeException('Accès refusé — seuls les superviseurs et le CHSCT peuvent réouvrir.');
         }
 

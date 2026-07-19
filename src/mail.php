@@ -25,7 +25,7 @@ require_once __DIR__ . '/mail_notifications.php';
 function sendMail(string $to, string $subject, string $body, string $from = ''): bool
 {
     $smtpHost = getConfig('smtp_host', '');
-    $smtpFrom = $from ?: getConfig('smtp_from', 'noreply@dreets-bfc.gouv.fr');
+    $smtpFrom = $from !== '' ? $from : getConfig('smtp_from', 'noreply@dreets-bfc.gouv.fr');
     $appName = str_replace(["\r", "\n"], '', getConfig('app_nom_organisation', 'DREETS BFC'));
 
     // Build email headers
@@ -86,7 +86,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     }
 
     $socket = @fsockopen($prefix . $host, $port, $errno, $errstr, 10);
-    if (!$socket) {
+    if ($socket === false) {
         error_log("[SST-MAIL] fsockopen failed: [$errno] $errstr");
         return false;
     }
@@ -118,7 +118,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
             fclose($socket);
             return false;
         }
-        if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+        if (stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT) !== true) {
             error_log('[SST-MAIL] stream_socket_enable_crypto failed');
             fclose($socket);
             return false;

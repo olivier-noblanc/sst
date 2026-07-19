@@ -94,7 +94,8 @@ class FormattingServiceTest extends TestCase
 
     public function testFormatDateTimeFRConvertsIsoToFrench(): void
     {
-        $this->assertEquals('15/03/2025 à 14:30', $this->service->formatDateTimeFR('2025-03-15 14:30:00'));
+        // 2025-03-15 14:30:00 UTC → 15:30:00 CET (winter, +1h)
+        $this->assertEquals('15/03/2025 à 15:30', $this->service->formatDateTimeFR('2025-03-15 14:30:00'));
     }
 
     public function testFormatDateTimeFRReturnsDashForEmpty(): void
@@ -109,7 +110,8 @@ class FormattingServiceTest extends TestCase
 
     public function testFormatDateTimeFRHandlesTFormat(): void
     {
-        $this->assertEquals('01/01/2025 à 00:00', $this->service->formatDateTimeFR('2025-01-01T00:00:00'));
+        // 2025-01-01T00:00:00 UTC → 01:00:00 CET (winter, +1h)
+        $this->assertEquals('01/01/2025 à 01:00', $this->service->formatDateTimeFR('2025-01-01T00:00:00'));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -150,9 +152,10 @@ class FormattingServiceTest extends TestCase
         $this->assertEquals('var(--dgi-color)', $this->service->getRegistryColor('dgi'));
     }
 
-    public function testGetRegistryColorDefaultReturnsPrimary(): void
+    public function testGetRegistryColorUnknownThrowsValueError(): void
     {
-        $this->assertEquals('var(--color-primary)', $this->service->getRegistryColor('unknown'));
+        $this->expectException(ValueError::class);
+        $this->service->getRegistryColor('unknown');
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -208,9 +211,10 @@ class FormattingServiceTest extends TestCase
         $this->assertEquals('badge--dgi', $this->service->getRegistryBadgeClass('dgi'));
     }
 
-    public function testGetRegistryBadgeClassUnknownReturnsEmpty(): void
+    public function testGetRegistryBadgeClassUnknownThrowsValueError(): void
     {
-        $this->assertEquals('', $this->service->getRegistryBadgeClass('unknown'));
+        $this->expectException(ValueError::class);
+        $this->service->getRegistryBadgeClass('unknown');
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

@@ -55,7 +55,7 @@ if ($action === 'anonymize') {
 
 // Verify user exists
 $user = $service->findById($userId);
-if (!$user) {
+if ($user === null) {
     setFlash('error', 'Utilisateur introuvable.');
     redirect(url('users'));
 }
@@ -91,7 +91,7 @@ try {
 
     $service->update($userId, $cmd, currentUserId());
 
-    auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, (int) $userId, 'user', ['role' => $cmd->role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
+    auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, $userId, 'user', ['role' => $cmd->role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
 
     if ($notifyRoleChange) {
         try {

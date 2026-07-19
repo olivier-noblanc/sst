@@ -29,7 +29,7 @@ try {
     $user = $service->findById($userId);
     /** @var array<string, string> $user */
     $label = is_array($user) ? $user['prenom'] . ' ' . $user['nom'] : '(id=' . $userId . ')';
-    auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $label, (int) $userId, 'user');
+    auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $label, $userId, 'user');
     setFlash('success', 'Utilisateur ' . e($label) . ' désactivé avec succès.');
 } catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));

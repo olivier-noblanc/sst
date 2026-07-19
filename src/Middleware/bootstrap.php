@@ -36,7 +36,7 @@ function checkSuperviseurPromotion(): void
     // Priority: DB setting (Settings UI) > environment variable
     $superviseurUsernames = getConfig('app_superviseur_usernames', '');
     if (empty($superviseurUsernames)) {
-        $superviseurUsernames = getenv('APP_SUPERVISEUR_USERNAMES') ?: '';
+        $superviseurUsernames = getenv('APP_SUPERVISEUR_USERNAMES') !== false && getenv('APP_SUPERVISEUR_USERNAMES') !== '' ? getenv('APP_SUPERVISEUR_USERNAMES') : '';
     }
     if (empty($superviseurUsernames)) {
         return;
@@ -45,7 +45,7 @@ function checkSuperviseurPromotion(): void
     $users = parseSuperviseurUsernames($superviseurUsernames);
     $currentUsername = strtolower(currentUserUsername());
 
-    if (!in_array($currentUsername, $users)) {
+    if (!in_array($currentUsername, $users, true)) {
         return;
     }
 

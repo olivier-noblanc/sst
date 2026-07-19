@@ -37,8 +37,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
     <?php echo cssLink('css/style.css'); ?>
     <?php $faviconPng = inlineDataUri('favicon.png'); ?>
     <?php $faviconIco = inlineDataUri('favicon.ico'); ?>
-    <?php if ($faviconPng): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>
-    <?php if ($faviconIco): ?><link rel="icon" type="image/x-icon" href="<?php echo $faviconIco; ?>"><?php endif; ?>
+    <?php if ($faviconPng !== ''): ?><link rel="icon" type="image/png" sizes="64x64" href="<?php echo $faviconPng; ?>"><?php endif; ?>
+    <?php if ($faviconIco !== ''): ?><link rel="icon" type="image/x-icon" href="<?php echo $faviconIco; ?>"><?php endif; ?>
 </head>
 <body>
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>
@@ -47,7 +47,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
         <div class="header__logo">
             <?php
             $logoDataUri = inlineDataUri('img/logo-dreets.png');
-            if ($logoDataUri): ?>
+            if ($logoDataUri !== ''): ?>
                 <img src="<?php echo $logoDataUri; ?>" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
             <?php else: ?>
                 <span class="header__logo-text"><?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?></span>

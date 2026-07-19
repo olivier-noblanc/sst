@@ -7,6 +7,9 @@
  * Bootstraps the DI Container for service access in tests.
  */
 
+// Ensure Composer autoloader is available (idempotent — safe if already loaded by phpunit)
+require_once __DIR__ . '/../vendor/autoload.php';
+
 // Define constants that config.php expects — only if not already defined.
 // This avoids "Constant already defined" warnings when helpers.php loads config.php.
 //
@@ -28,28 +31,23 @@ if (!defined('MAX_ATTACHMENT_SIZE')) define('MAX_ATTACHMENT_SIZE', 10485760);
 if (!defined('ALLOWED_ATTACHMENT_MIMES')) define('ALLOWED_ATTACHMENT_MIMES', [
     'image/jpeg', 'image/png', 'image/gif', 'application/pdf',
 ]);
-if (!defined('REGISTRY_TYPES')) define('REGISTRY_TYPES', ['rsst', 'rami', 'dgi']);
-if (!defined('REGISTRY_SHORT_LABELS')) define('REGISTRY_SHORT_LABELS', [
-    'rsst' => 'RSST',
-    'rami' => 'RAMI',
-    'dgi'  => 'DGI',
-]);
-if (!defined('REGISTRY_LABELS')) define('REGISTRY_LABELS', [
-    'rsst' => 'Registre de Santé et de Sécurité au Travail',
-    'rami' => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
-    'dgi'  => 'Registre de signalement d\'un Danger Grave et Imminent',
-]);
-if (!defined('ETAT_LABELS')) define('ETAT_LABELS', [
-    'nouveau'    => 'Nouveau',
-    'en_cours'   => 'En cours',
-    'traite'     => 'Traité',
-    'abandonne'  => 'Abandonné',
-]);
-if (!defined('ROLE_LABELS')) define('ROLE_LABELS', [
-    'agent'       => 'Agent',
-    'superviseur' => 'Superviseur',
-    'chsct'       => 'CSA/CHSCT',
-]);
+if (!defined('REGISTRY_TYPES')) define('REGISTRY_TYPES', array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()));
+if (!defined('REGISTRY_SHORT_LABELS')) define('REGISTRY_SHORT_LABELS', array_combine(
+    array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
+    array_map(fn($c) => $c->shortLabel(), \App\Enum\ReportType::cases())
+));
+if (!defined('REGISTRY_LABELS')) define('REGISTRY_LABELS', array_combine(
+    array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
+    array_map(fn($c) => $c->label(), \App\Enum\ReportType::cases())
+));
+if (!defined('ETAT_LABELS')) define('ETAT_LABELS', array_combine(
+    array_map(fn($c) => $c->value, \App\Enum\ReportState::cases()),
+    array_map(fn($c) => $c->label(), \App\Enum\ReportState::cases())
+));
+if (!defined('ROLE_LABELS')) define('ROLE_LABELS', array_combine(
+    array_map(fn($c) => $c->value, \App\Enum\UserRole::cases()),
+    array_map(fn($c) => $c->defaultLabel(), \App\Enum\UserRole::cases())
+));
 if (!defined('RAMI_NATURE_AUTEUR_LABELS')) define('RAMI_NATURE_AUTEUR_LABELS', [
     'usager'    => 'Usager',
     'collegue'  => 'Collègue',

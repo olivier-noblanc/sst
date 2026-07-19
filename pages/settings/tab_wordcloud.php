@@ -16,7 +16,7 @@ if (!isset($csrfToken)) {
 }
 $wordsJson = $configService->get('word_cloud_words', '[]');
 /** @var list<array{word: string, weight: int}> $words */
-$words = json_decode($wordsJson, true) ?: [];
+$words = json_decode($wordsJson, true) !== null ? json_decode($wordsJson, true) : [];
 ?>
 <form method="post" action="<?php echo $http->url('settings'); ?>">
     <input type="hidden" name="tab" value="wordcloud">

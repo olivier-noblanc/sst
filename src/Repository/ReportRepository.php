@@ -168,6 +168,9 @@ class ReportRepository
         if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) {
             $builder->addEqual('r.declarant_id', $filters['declarant_id']);
         }
+        if (!empty($filters['chsct_consent_only'])) {
+            $builder->addRaw('r.consent_syndicat = 1');
+        }
 
         ['where' => $where, 'params' => $params] = $builder->build();
 
@@ -789,7 +792,7 @@ class ReportRepository
     public function confirmAgentInvite(string $token, int $userId): bool
     {
         $invite = $this->getAgentInviteByToken($token);
-        if (!$invite) {
+        if ($invite === null) {
             return false;
         }
         $this->pdo->beginTransaction();
@@ -826,6 +829,18 @@ class ReportRepository
     public function getExportData(array $filters = []): array
     {
         return StatsRepository::instance()->getExportData($filters);
+    }
+
+    /**
+     * Check if a user is linked to a report via report_agents table.
+     */
+    public function isLinkedAgent(string $reportUuid, int $userId): bool
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT 1 FROM report_agents WHERE report_uuid = :uuid AND user_id = :user_id LIMIT 1
+        ');
+        $stmt->execute([':uuid' => $reportUuid, ':user_id' => $userId]);
+        return (bool) $stmt->fetch();
     }
 
     public function getPdo(): PDO

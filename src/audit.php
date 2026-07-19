@@ -33,7 +33,7 @@ function auditLog(PDO $pdo, string $category, string $action, string $details, ?
 {
     try {
         $userId = currentUserId();
-        $username = currentUserUsername() ?: 'system';
+        $username = currentUserUsername() !== '' ? currentUserUsername() : 'system';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
 
         $stmt = $pdo->prepare('

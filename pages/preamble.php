@@ -106,7 +106,7 @@ $pageTitle = 'Préambule';
         <li><strong>Responsable du traitement :</strong> <?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>.</li>
         <li><strong>Contact DPO :</strong> <?php
             $dpoContact = getConfig('app_dpo_contact', '');
-echo $dpoContact ? e($dpoContact) : '<em>à compléter dans Paramètres &rarr; Application &rarr; Contact DPO</em>';
+echo $dpoContact !== '' ? e($dpoContact) : '<em>à compléter dans Paramètres &rarr; Application &rarr; Contact DPO</em>';
 ?>.</li>
         <li><strong>Durée de conservation :</strong> les signalements sont conservés pendant la durée nécessaire au suivi et au traitement, puis archivés conformément à la réglementation. La durée de conservation est paramétrable par le superviseur après validation du DPO.</li>
         <li><strong>Personnes habilitées :</strong> seuls les superviseurs et les <?php echo e(getRoleLabel('chsct')); ?>s ont accès aux données en fonction de leur rôle et de leur site d'affectation.</li>

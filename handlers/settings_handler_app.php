@@ -56,7 +56,7 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
 
     // Admin email for error notifications
     $appAdminEmail = trim((string) ($postData['app_admin_email'] ?? ''));
-    if (!empty($appAdminEmail) && !filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL)) {
+    if ($appAdminEmail !== '' && filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL) === false) {
         $pdo->rollBack();
         setFlash('error', 'L\'adresse e-mail de l\'administrateur technique n\'est pas valide.');
         redirect(url('settings', ['tab' => 'app']));
@@ -96,7 +96,7 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
 
     // Report visibility setting (radio: confidential / agent_choice / public)
     $reportVisibility = (string) ($postData['app_report_visibility'] ?? 'agent_choice');
-    if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'])) {
+    if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'], true)) {
         $reportVisibility = 'agent_choice';
     }
     updateConfig($pdo, 'app_report_visibility', $reportVisibility);
@@ -106,7 +106,7 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     foreach ($registryTypes as $type) {
         $key = 'app_report_visibility_' . $type;
         $value = (string) ($postData[$key] ?? '');
-        if ($value !== '' && !in_array($value, ['confidential', 'agent_choice', 'public'])) {
+        if ($value !== '' && !in_array($value, ['confidential', 'agent_choice', 'public'], true)) {
             $value = '';
         }
         updateConfig($pdo, $key, $value);
@@ -115,6 +115,13 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     // Legacy keys: keep in sync for backward compatibility
     updateConfig($pdo, 'app_agent_visibility', $reportVisibility);
     updateConfig($pdo, 'app_agent_see_only_own', $reportVisibility === 'confidential' ? '1' : '0');
+
+    // CHSCT report scope (consent_only / all)
+    $chsctScope = (string) ($postData['app_chsct_report_scope'] ?? 'consent_only');
+    if (!in_array($chsctScope, ['consent_only', 'all'], true)) {
+        $chsctScope = 'consent_only';
+    }
+    updateConfig($pdo, 'app_chsct_report_scope', $chsctScope);
 
     // Clear the getConfig() static cache so new values are picked up immediately
     clearConfigCache();

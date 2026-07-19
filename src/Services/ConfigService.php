@@ -119,7 +119,7 @@ class ConfigService
         if ($dbValue !== '') {
             return $dbValue;
         }
-        return ROLE_LABELS_DEFAULT[$role] ?? ucfirst($role);
+        return \App\Enum\UserRole::tryFrom($role)?->defaultLabel() ?? ucfirst($role);
     }
 
     /**
@@ -128,11 +128,10 @@ class ConfigService
      */
     public function getRoleLabels(): array
     {
-        return [
-            'agent'       => $this->getRoleLabel('agent'),
-            'superviseur' => $this->getRoleLabel('superviseur'),
-            'chsct'       => $this->getRoleLabel('chsct'),
-        ];
+        return array_combine(
+            array_map(fn($c) => $c->value, \App\Enum\UserRole::cases()),
+            array_map(fn($c) => $this->getRoleLabel($c->value), \App\Enum\UserRole::cases())
+        );
     }
 
     /**
@@ -160,7 +159,8 @@ class ConfigService
         if ($stmt === false) {
             return false;
         }
-        return ($stmt->fetchColumn() ?: 0) > 0;
+        $count = (int) $stmt->fetchColumn();
+        return $count > 0;
     }
 
     /**
@@ -176,7 +176,7 @@ class ConfigService
             if ($stmt === false) {
                 $cache = true;
             } else {
-                $cache = (($stmt->fetchColumn() ?: 0) === 0);
+                $cache = ((int) $stmt->fetchColumn()) === 0;
             }
         }
         return $cache;
@@ -192,7 +192,7 @@ class ConfigService
         if ($stmt === false) {
             return 0;
         }
-        return (int) ($stmt->fetchColumn() ?: 0);
+        return (int) $stmt->fetchColumn();
     }
 
     /**
@@ -224,10 +224,10 @@ class ConfigService
         }
 
         foreach ($candidatePaths as $path) {
-            $path = realpath($path) ?: $path;
+            $path = realpath($path) !== false ? realpath($path) : $path;
             if (is_readable($path)) {
                 $content = file_get_contents($path);
-                if ($content && preg_match('/^##\s*\[(\d+\.\d+\.\d+)\]/m', $content, $m)) {
+                if (($content !== false && $content !== '') && preg_match('/^##\s*\[(\d+\.\d+\.\d+)\]/m', $content, $m) === 1) {
                     $cached = $m[1];
                     return $cached;
                 }

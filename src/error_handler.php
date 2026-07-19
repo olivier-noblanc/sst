@@ -25,7 +25,7 @@ require_once __DIR__ . '/error_notify.php';
 function sstErrorHandler(int $errno, string $errstr, string $errfile, int $errline): bool
 {
     // Respect @ error suppression operator
-    if (!(error_reporting() & $errno)) {
+    if ((error_reporting() & $errno) === 0) {
         return false;
     }
 
@@ -53,7 +53,7 @@ function sstErrorHandler(int $errno, string $errstr, string $errfile, int $errli
         E_ERROR, E_USER_ERROR, E_PARSE,
         E_CORE_ERROR, E_COMPILE_ERROR,
         E_RECOVERABLE_ERROR,
-    ]);
+    ], true);
 
     if ($shouldEmail) {
         sstNotifyAdminError($levelName, $errstr, $errfile, $errline, $errno);
@@ -78,7 +78,7 @@ function sstShutdownHandler(): void
 
     // Only handle truly fatal errors
     $fatalTypes = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_RECOVERABLE_ERROR];
-    if (!in_array($error['type'], $fatalTypes)) {
+    if (!in_array($error['type'], $fatalTypes, true)) {
         return;
     }
 

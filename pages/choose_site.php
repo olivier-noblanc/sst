@@ -44,7 +44,7 @@ $daysRemaining = 0;
 // Safety: if user already has a site, check grace period
 if ($hasExistingSite) {
     $siteChosenAt = $user['site_chosen_at'] ?? null;
-    if ($siteChosenAt) {
+    if ($siteChosenAt !== null) {
         /** @var string */
         $siteChosenAtStr = $siteChosenAt;
         $chosenTime = strtotime($siteChosenAtStr);
@@ -94,7 +94,7 @@ $labelUnite = $config->get('app_label_unite', 'UR');
     <?php endif; ?>
 
     <?php $flash = new \App\Services\SessionService()->getFlash(); ?>
-    <?php if ($flash): ?>
+    <?php if ($flash !== null): ?>
         <div class="alert alert--<?php echo $fmt->e($flash['type']); ?>" role="alert">
             <?php echo $fmt->e($flash['message']); ?>
         </div>

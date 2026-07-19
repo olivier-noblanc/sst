@@ -39,7 +39,7 @@ $val = function(string $field, string $default = '') use ($formData, $report, $i
         $v = $formData[$field];
         return $v;
     }
-    if ($isEdit && $report && isset($report[$field])) {
+    if ($isEdit && $report !== null && isset($report[$field])) {
         /** @var string $v */
         $v = $report[$field];
         return $v;
@@ -251,7 +251,11 @@ $submitBtnClass = $isEdit
                     Signalement confidentiel
                 </label>
                 <div class="confidential-toggle__details">
+                    <?php if ((new \App\Services\AccessService())->getChsctReportScope() === 'all'): ?>
                     <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                    <?php else: ?>
+                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous et les superviseurs. Les membres du <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez également la case de consentement ci-dessous. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                    <?php endif; ?>
                     <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                     <div class="confidential-warning">
                         &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
@@ -262,7 +266,11 @@ $submitBtnClass = $isEdit
             <input type="hidden" name="is_confidential" value="1">
             <div class="form-group form-grid__full">
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
+                <?php if ((new \App\Services\AccessService())->getChsctReportScope() === 'all'): ?>
                 <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>.</span>
+                <?php else: ?>
+                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous et les superviseurs. Les membres du <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez la case de consentement lors de la création.</span>
+                <?php endif; ?>
             </div>
             <?php elseif (reportVisibilityIsPublic()): ?>
             <input type="hidden" name="is_confidential" value="0">
@@ -271,7 +279,7 @@ $submitBtnClass = $isEdit
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
-                           <?php echo ($val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat'] ?? ''))) ? 'checked' : ''; ?>>
+                           <?php echo ((bool) $val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat'] ?? ''))) ? 'checked' : ''; ?>>
                     J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la DREETS
                 </label>
             </div>
@@ -291,7 +299,7 @@ $submitBtnClass = $isEdit
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">
                 <?php echo $isEdit ? 'Enregistrer' : 'Envoyer le signalement'; ?>
             </button>
-            <a href="<?php echo $isEdit && $report ? url('report_view', ['uuid' => $report['uuid'] ?? '']) : url('home'); ?>"
+            <a href="<?php echo $isEdit && $report !== null ? url('report_view', ['uuid' => $report['uuid'] ?? '']) : url('home'); ?>"
                class="btn btn--secondary" title="Supprimer le formulaire et revenir à la page précédente">Annuler</a>
         </div>
     </form>

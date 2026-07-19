@@ -44,6 +44,7 @@ class FormattingService
 
     /**
      * Format an ISO datetime to French format (d/m/Y à H:i).
+     * Assumes the input is in UTC (from SQLite datetime('now')) and converts to Europe/Paris.
      */
     public function formatDateTimeFR(mixed $datetime): string
     {
@@ -52,11 +53,15 @@ class FormattingService
         }
         /** @var string $datetime */
         $datetime = $datetime;
-        $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime);
+        $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime, new \DateTimeZone('UTC'));
         if ($dt === false) {
-            $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime);
+            $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime, new \DateTimeZone('UTC'));
         }
-        return $dt !== false ? $dt->format('d/m/Y \à H:i') : $this->e($datetime);
+        if ($dt !== false) {
+            $dt->setTimezone(new \DateTimeZone('Europe/Paris'));
+            return $dt->format('d/m/Y \à H:i');
+        }
+        return $this->e($datetime);
     }
 
     /**
@@ -102,11 +107,10 @@ class FormattingService
      */
     public function getRegistryColor(string $type): string
     {
-        return match ($type) {
-            'rsst' => 'var(--rsst-color)',
-            'rami' => 'var(--rami-color)',
-            'dgi'  => 'var(--dgi-color)',
-            default => 'var(--color-primary)',
+        return match (\App\Enum\ReportType::from($type)) {
+            \App\Enum\ReportType::Rsst => 'var(--rsst-color)',
+            \App\Enum\ReportType::Rami => 'var(--rami-color)',
+            \App\Enum\ReportType::Dgi  => 'var(--dgi-color)',
         };
     }
 
@@ -130,12 +134,7 @@ class FormattingService
      */
     public function getRegistryBadgeClass(mixed $type): string
     {
-        return match ((string) $type) {
-            'rsst' => 'badge--rsst',
-            'rami' => 'badge--rami',
-            'dgi'  => 'badge--dgi',
-            default => '',
-        };
+        return \App\Enum\ReportType::from((string) $type)->badgeClass();
     }
 
     /**
@@ -234,7 +233,7 @@ class FormattingService
     {
         $configService = ConfigService::getInstance();
         $wordsJson = $configService->get('word_cloud_words', '[]');
-        $words = json_decode($wordsJson, true) ?: [];
+        $words = json_decode($wordsJson, true) !== null ? json_decode($wordsJson, true) : [];
 
         if (empty($words)) {
             return '';
@@ -266,7 +265,7 @@ class FormattingService
         }
 
         // Sort by randomized weight descending
-        usort($randomized, fn(array $a, array $b): int => (int) ($b['p'] <=> $a['p']));
+        usort($randomized, fn(array $a, array $b): int => $b['p'] <=> $a['p']);
 
         $jsonEncoded = json_encode($randomized, JSON_UNESCAPED_UNICODE);
         $json = htmlspecialchars($jsonEncoded !== false ? $jsonEncoded : '[]', ENT_QUOTES, 'UTF-8');

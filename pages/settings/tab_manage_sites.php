@@ -56,7 +56,7 @@
             <?php
                 $userCount = countUsersBySite($pdo, (int) $site['id']);
                 $reportCount = countReportsBySite($pdo, (int) $site['id']);
-                $isActive = !isset($site['is_active']) || $site['is_active'] == 1;
+                $isActive = !isset($site['is_active']) || $site['is_active'] === 1 || $site['is_active'] === '1';
                 ?>
             <tr class="<?php echo !$isActive ? 'row--inactive' : ''; ?>">
                 <td><strong><?php echo new \App\Services\FormattingService()->e($site['code']); ?></strong></td>

@@ -16,7 +16,7 @@ use App\Repository\SiteRepository;
 $type = $_GET['type'] ?? '';
 
 // Validate type
-if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI])) {
+if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI], true)) {
     SessionService::getInstance()->setFlash('error', 'Type de registre invalide.');
     new HttpService()->redirect(new HttpService()->url('home'));
 }
@@ -41,7 +41,7 @@ if ($canSelectSite) {
     /** @var string */
     $mySiteIdStr = $user['site_id'] ?? '0';
     $mySite = SiteRepository::instance()->findById((int) $mySiteIdStr);
-    $sites = $mySite ? [$mySite] : [];
+    $sites = $mySite !== null ? [$mySite] : [];
 }
 
 $action = new HttpService()->url('report_create', ['type' => $type]);

@@ -62,7 +62,7 @@ echo "Délai d'alerte configuré : {$alertDelayDays} jour(s)\n";
 echo "Recherche des signalements en état « Nouveau » depuis plus de {$alertDelayDays} jour(s)...\n\n";
 
 // Find overdue reports
-$cutoffDate = date('Y-m-d H:i:s', strtotime("-{$alertDelayDays} days"));
+$cutoffDate = gmdate('Y-m-d H:i:s', strtotime("-{$alertDelayDays} days"));
 
 $sql = "SELECT r.uuid, r.reference, r.type, r.objet, r.created_at,
                r.site_id, s.code as site_code, s.nom as site_nom,

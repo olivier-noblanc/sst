@@ -3,6 +3,42 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.42.0] — 2026-07-19
+
+### Audit complet — 7 chantiers traités
+
+- **1** 🔴 **Fuseau horaire UTC/Paris** — `formatDateTimeFR()` convertit UTC→Europe/Paris. `cron.php`/`check_delays.php` utilisent `gmdate()`. `mail_templates.php` formate les dates. (`src/Services/FormattingService.php`, `src/cron.php`, `tools/check_delays.php`, `src/mail_templates.php`)
+- **2** 🔴 **État « reouvert » manquant** — `$etatColors` PDF dérivé de `ReportState::cases()`. Dropdown filtre `report_list.php` généré par `ReportState::cases()`. Synthesis.php utilise `ReportType::cases()` pour les boucles. (`pages/report_print_helpers.php`, `pages/report_list.php`, `pages/synthesis.php`, `src/Repository/StatsRepository.php`)
+- **3** 🔴 **Rôle CHSCT — accès réouverture** — `report_reopen.php` restreint à `ROLE_SUPERVISEUR` seul (cohérent avec middleware POST). (`pages/report_reopen.php`)
+- **4** 🔴 **Audit RGPD — log manquant** — `logConfidentialReportAccess()` ajouté à `response_attachment.php`. (`pages/response_attachment.php`)
+- **5** 🔴 **Fuite données CHSCT** — Nouvelle config `app_chsct_report_scope` (consent_only/all). Filtre SQL `consent_syndicat=1` pour CHSCT dans `findPaginated()`. Admin UI dans settings. (`src/Services/AccessService.php`, `src/DTO/ReportFilter.php`, `src/Repository/ReportRepository.php`, `pages/report_list.php`, `pages/settings/tab_app.php`, `handlers/settings_handler_app.php`)
+- **6** 🔴 **Agent rattaché — read access** — `canAccessReport()` vérifie `report_agents` via `ReportRepository::isLinkedAgent()`. (`src/Services/AccessService.php`, `src/Repository/ReportRepository.php`)
+- **7** 🔴 **Anonymisation RGPD** — `pour_compte_nom`/`pour_compte_prenom` préservés dans `UserRepository::anonymize()`. (`src/Repository/UserRepository.php`)
+- **8** 🔴 **.htaccess Apache 2.4** — `Deny from all` → `<RequireAll>Require all denied</RequireAll>`. (`src/backup_protection.php`)
+
+### Enums consolidés (phases 1-4)
+
+- **9** 🔴 **ReportState** — Enum avec `label()`, `badgeClass()`, `pdfColor()`. `ETAT_*` = alias. `ETAT_LABELS` dérivé de `cases()`. (`src/Enum/ReportState.php`)
+- **10** 🔴 **ReportType** — Enum avec `label()`, `shortLabel()`, `badgeClass()`, `pdfColor()`, `icon()`, `legalNote()`. `TYPE_*` = alias. (`src/Enum/ReportType.php`)
+- **11** 🔴 **UserRole** — Enum avec `defaultLabel()`, `canSeeAllSites()`. `ROLE_*` = alias. (`src/Enum/UserRole.php`)
+- **12** 🔴 **VisibilityMode** — Enum pour les 3 modes de visibilité. (`src/Enum/VisibilityMode.php`)
+- **13** 🟡 **ConfigService** — `getRoleLabel()` utilise `UserRole::tryFrom()`. `getRoleLabels()` dérivé de `cases()`. (`src/Services/ConfigService.php`)
+- **14** 🟡 **AccessService** — `canSeeAllSites()` utilise `UserRole::tryFrom()`. `normalizeVisibilityValue()` retourne `VisibilityMode`. (`src/Services/AccessService.php`)
+
+### Router cleanup
+
+- **15** 🔴 **Suppression src/router.php** — 5 fonctions mortes supprimées. `renderPageWithLayout()`/`renderStandalonePage()` migrées dans `src/Router/Renderer.php`. `Router::getValidPages()` corrigé (array_merge au lieu de +). (`src/Router/Renderer.php`, `src/Router/Router.php`, `src/Router/routes.php`, `src/autoload.php`, `public/index.php`)
+
+### Pipeline qualité — PHPStan strict + outils
+
+- **16** 🔴 **PHPStan 548→0 erreurs** — `phpstan-strict-rules` (disallowedEmpty désactivé), `spaze/phpstan-disallowed-calls` (DateTime::createFromFormat, ini_set), `shipmonk/dead-code-detector` (installé, désactivé). (`phpstan.neon`, `phpstan-disallowed-calls.neon`)
+- **17** 🔴 **Infection mutation testing** — Configuré avec minMsi=85, minCoveredMsi=90. MSI actuel : 51%. (`infection.json`)
+- **18** 🔴 **GrumPHP pre-commit** — phpstan + phpunit + phpcsfixer en parallèle. (`grumphp.yml`)
+- **19** 🔴 **phpcpd** — 1.96% duplication, 13 blocs. Fork maintained `phpcpd-next/phpcpd`. (`composer.json`)
+- **20** 🟡 **ConfigService bug** — `fetchColumn()` appelé 3× sur même résultat. Corrigé. (`src/Services/ConfigService.php`)
+- **21** 🟡 **Runner autoload** — `tests/bootstrap.php` charge `vendor/autoload.php`. `middleware_runner.php`/`handler_runner.php` avec `ob_start()` + `session_start()`. Smoke tests ajoutés. (`tests/bootstrap.php`, `tests/middleware_runner.php`, `tests/handler_runner.php`, `tests/unit/RunnerSmokeTest.php`)
+
+
 ## [3.41.0] — 2026-07-17
 
 ### Pipeline qualité — Gate parallélisée + E2E Playwright Firefox

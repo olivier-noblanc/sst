@@ -54,10 +54,11 @@ class RunnerSmokeTest extends TestCase
         $this->assertArrayHasKey('next_called', $result['decoded']);
     }
 
-    public function testMiddlewareRunnerHandlesRedirectMiddleware(): void
+    public function testMiddlewareRunnerHandlesRoleMiddleware(): void
     {
         $result = $this->runRunner('middleware_runner.php', [
-            'middleware' => 'AuthMiddleware',
+            'middleware' => 'RoleMiddleware',
+            'args' => [['agent', 'superviseur']],
             'session' => ['user' => ['id' => 1, 'role' => 'agent']],
             'server' => ['REQUEST_METHOD' => 'GET'],
         ]);

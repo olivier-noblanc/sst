@@ -45,23 +45,6 @@ class QueryFilterBuilderTest extends TestCase
         $this->assertEquals('1=1', $result['where']);
     }
 
-    public function testAddInAddsInClause(): void
-    {
-        $builder = new QueryFilterBuilder();
-        $builder->addIn('r.etat', ['nouveau', 'en_cours']);
-        $result = $builder->build();
-        $this->assertStringContainsString('IN', $result['where']);
-        $this->assertCount(2, $result['params']);
-    }
-
-    public function testAddInSkipsEmptyArray(): void
-    {
-        $builder = new QueryFilterBuilder();
-        $builder->addIn('r.etat', []);
-        $result = $builder->build();
-        $this->assertEquals('1=1', $result['where']);
-    }
-
     public function testMultipleConditionsAreAndComposed(): void
     {
         $builder = new QueryFilterBuilder();

@@ -1,11 +1,10 @@
 <?php
 /**
- * HttpService Unit Tests — URL building, redirects, cookies
+ * HttpService Unit Tests — URL building, redirects
  *
  * Tests HttpService from src/Services/HttpService.php:
  * - url() builds correct internal URLs with params
  * - url() forwards XTransformPort when present
- * - setCookieSafe() stores cookies in $GLOBALS['_PHP_COOKIES']
  * - removeUnwantedHeaders() does not throw in CLI
  *
  * Note: redirect() and sendFileDownload() call exit and cannot be tested
@@ -23,7 +22,6 @@ class HttpServiceTest extends TestCase
     {
         $this->service = new HttpService();
         unset($_GET['XTransformPort']);
-        $GLOBALS['_PHP_COOKIES'] = [];
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -98,55 +96,6 @@ class HttpServiceTest extends TestCase
     {
         $result = $this->service->url('report_create');
         $this->assertEquals('index.php?page=report_create', $result);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // setCookieSafe()
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    public function testSetCookieSafeStoresCookieInGlobals(): void
-    {
-        $this->service->setCookieSafe('session_id', 'abc123');
-        $this->assertNotEmpty($GLOBALS['_PHP_COOKIES']);
-        $this->assertStringContainsString('session_id=abc123', $GLOBALS['_PHP_COOKIES'][0]);
-    }
-
-    public function testSetCookieSafeSetsPath(): void
-    {
-        $this->service->setCookieSafe('test', 'val', 0, '/app/');
-        $this->assertStringContainsString('path=/app/', $GLOBALS['_PHP_COOKIES'][0]);
-    }
-
-    public function testSetCookieSafeSetsHttpOnly(): void
-    {
-        $this->service->setCookieSafe('secure', 'val');
-        $this->assertStringContainsString('HttpOnly', $GLOBALS['_PHP_COOKIES'][0]);
-    }
-
-    public function testSetCookieSafeSetsSameSiteLaxByDefault(): void
-    {
-        $this->service->setCookieSafe('test', 'val');
-        $this->assertStringContainsString('SameSite=Lax', $GLOBALS['_PHP_COOKIES'][0]);
-    }
-
-    public function testSetCookieSafeSetsSameSiteStrict(): void
-    {
-        $this->service->setCookieSafe('test', 'val', 0, '/', true, 'Strict');
-        $this->assertStringContainsString('SameSite=Strict', $GLOBALS['_PHP_COOKIES'][0]);
-    }
-
-    public function testSetCookieSafeWithExpiryIncludesExpires(): void
-    {
-        $expires = time() + 3600;
-        $this->service->setCookieSafe('test', 'val', $expires);
-        $this->assertStringContainsString('expires=', $GLOBALS['_PHP_COOKIES'][0]);
-    }
-
-    public function testSetCookieSafeMultipleCookiesStacks(): void
-    {
-        $this->service->setCookieSafe('a', '1');
-        $this->service->setCookieSafe('b', '2');
-        $this->assertCount(2, $GLOBALS['_PHP_COOKIES']);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

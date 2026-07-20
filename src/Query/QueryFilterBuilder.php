@@ -22,22 +22,6 @@ class QueryFilterBuilder
         return $this;
     }
 
-    /** @param list<mixed> $values */
-    public function addIn(string $column, array $values): self
-    {
-        if (empty($values)) {
-            return $this;
-        }
-        $placeholders = [];
-        foreach ($values as $value) {
-            $paramKey = ':qf_' . $this->paramIndex++;
-            $placeholders[] = $paramKey;
-            $this->params[$paramKey] = $value;
-        }
-        $this->where .= " AND $column IN (" . implode(', ', $placeholders) . ')';
-        return $this;
-    }
-
     /** @param array<string, mixed> $params */
     public function addRaw(string $sqlFragment, array $params = []): self
     {
@@ -46,15 +30,6 @@ class QueryFilterBuilder
         return $this;
     }
 
-    public function getWhere(): string
-    {
-        return $this->where;
-    }
-    /** @return array<string, mixed> */
-    public function getParams(): array
-    {
-        return $this->params;
-    }
     /** @return array{where: string, params: array<string, mixed>} */
     public function build(): array
     {

@@ -32,7 +32,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $AppDir = "C:\inetpub\sst"
-$ExpectedRemoteUrl = "https://codeberg.org/oliviernoblanc/sst.git"
+$ExpectedRemoteUrl = "https://github.com/olivier-noblanc/sst.git"
 
 # -- Outils PHP (shims scoop) --
 $PhpBin     = "php"
@@ -549,7 +549,7 @@ if (-not (Test-Path $AppDir)) {
 Set-Location $AppDir
 Write-Status "OK" "Git, PHP, dossier $AppDir" "Green"
 
-# --- Verifier / migrer le remote vers Codeberg ---
+# --- Verifier / migrer le remote vers GitHub ---
 Write-Section "Verification du depot distant"
 
 $savedPref = $ErrorActionPreference
@@ -565,12 +565,12 @@ if ($remoteExit -ne 0 -or -not $currentRemote) {
 
 $currentRemoteNormalized = $currentRemote -replace 'https://[^@]+@', 'https://'
 
-if ($currentRemoteNormalized -match 'github\.com') {
-    Write-Host "  Migration GitHub -> Codeberg..." -ForegroundColor Yellow
+if ($currentRemoteNormalized -match 'codeberg\.org') {
+    Write-Host "  Migration Codeberg -> GitHub..." -ForegroundColor Yellow
     $null = git remote set-url origin $ExpectedRemoteUrl 2>&1
-    Write-Status "OK" "Remote migre vers Codeberg" "Green"
-} elseif ($currentRemoteNormalized -match 'codeberg\.org') {
-    Write-Status "OK" "Remote : Codeberg" "Green"
+    Write-Status "OK" "Remote migre vers GitHub" "Green"
+} elseif ($currentRemoteNormalized -match 'github\.com') {
+    Write-Status "OK" "Remote : GitHub" "Green"
 } else {
     Write-Host "  Remote non reconnu, correction..." -ForegroundColor Yellow
     $null = git remote set-url origin $ExpectedRemoteUrl 2>&1
@@ -581,9 +581,9 @@ Write-Section "Telechargement des mises a jour"
 
 $token = $env:FORMULAIRE_TOKEN
 if ($token) {
-    $authRemoteUrl = "https://${token}@codeberg.org/oliviernoblanc/sst.git"
+    $authRemoteUrl = "https://${token}@github.com/olivier-noblanc/sst.git"
     $null = git remote set-url origin $authRemoteUrl 2>&1
-    Write-Status "OK" "Token Codeberg configure" "Green"
+    Write-Status "OK" "Token GitHub configure" "Green"
 } else {
     Write-Status "!" "Pas de token FORMULAIRE_TOKEN — si depot prive, le fetch echouera." "Yellow"
 }

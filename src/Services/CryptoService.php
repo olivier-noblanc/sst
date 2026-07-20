@@ -69,19 +69,4 @@ class CryptoService
         return $decrypted;
     }
 
-    /**
-     * Generate a random token (hex-encoded).
-     */
-    public function generateToken(int $length = 32): string
-    {
-        return bin2hex(random_bytes(max(1, $length)));
-    }
-
-    /**
-     * Hash a token with SHA-256 for secure storage.
-     */
-    public function hashToken(string $token): string
-    {
-        return hash('sha256', $token);
-    }
 }

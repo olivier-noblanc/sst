@@ -215,6 +215,23 @@ Migration automatique ajoutée dans `src/migration_columns.php` :
 
 ---
 
+## Priorité 18 — Supprimer l'onglet "Gestion des sites" (manage_sites)
+
+L'onglet `settings&tab=manage_sites` permettait la gestion CRUD des sites (création, édition, suppression). Cette page ne doit plus exister. Les sites sont gérés autrement (ou sont fixes).
+
+**Fichiers à supprimer/modifier** :
+- `pages/settings/tab_manage_sites.php` — page entière
+- `handlers/settings_handler.php` — fonction `handleSettingsManageSitesTab()` + bloc `manage_sites` dans le switch
+- `handlers/settings_handler_sites.php` — handler dédié sites (si orphelin)
+- `templates/` — tout template lié à la gestion sites si orphelin
+- `src/queries/site_queries.php` — vérifier quelles fonctions restent après suppression
+- Liens/boutons pointant vers `tab=manage_sites` dans les pages settings
+
+**Effort** : ~1-2h (grep exhaustif + suppressions)
+**Statut** : À faire
+
+---
+
 ## Notes techniques
 
 ### Pattern de fix strict boolean

@@ -28,14 +28,15 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
     $subject = "Nouveau signalement $registryLabel — {$report['reference']}";
     $reportUrl = getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]);
-    $body = renderEmailBody('Nouveau signalement enregistré',
-        renderEmailField('Référence', $report['reference'])
-        . renderEmailField('Registre', $registryLabel)
-        . renderEmailField('Objet', $report['objet'])
-        . renderEmailField('Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom'])
-        . renderEmailField('Date de l\'événement', formatDateFR($report['date_evenement']))
-        . renderEmailLink($reportUrl, 'Consulter le signalement')
-    );
+    $body = '<html><body>';
+    $body .= '<h2>Nouveau signalement enregistré</h2>';
+    $body .= renderEmailField('Référence', $report['reference']);
+    $body .= renderEmailField('Registre', $registryLabel);
+    $body .= renderEmailField('Objet', $report['objet']);
+    $body .= renderEmailField('Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
+    $body .= renderEmailField('Date de l\'événement', formatDateFR($report['date_evenement']));
+    $body .= renderEmailLink($reportUrl, 'Consulter le signalement');
+    $body .= '</body></html>';
     // Collect recipients: per-site + global
     $recipients = getNotificationRecipients($pdo, $siteId);
     foreach ($recipients as $email) {
@@ -48,13 +49,14 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
             /** @var array<string, mixed> $csaUser */
             if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients, true)) {
                 $csaSubject = 'Signalement DGI — Notification ' . getRoleLabelShort('chsct') . " — {$report['reference']}";
-                $csaBody = renderEmailBody('Notification DGI — Article L4131-2 du Code du travail',
-                    '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>'
-                    . renderEmailField('Référence', $report['reference'])
-                    . renderEmailField('Objet', $report['objet'])
-                    . renderEmailField('Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom'])
-                    . renderEmailLink($reportUrl, 'Consulter le signalement')
-                );
+                $csaBody = '<html><body>';
+                $csaBody .= '<h2>Notification DGI — Article L4131-2 du Code du travail</h2>';
+                $csaBody .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>';
+                $csaBody .= renderEmailField('Référence', $report['reference']);
+                $csaBody .= renderEmailField('Objet', $report['objet']);
+                $csaBody .= renderEmailField('Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
+                $csaBody .= renderEmailLink($reportUrl, 'Consulter le signalement');
+                $csaBody .= '</body></html>';
                 sendMail($csaUser['email'], $csaSubject, $csaBody);
             }
         }
@@ -90,12 +92,13 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     }
     /** @var array<string, mixed> $respondent */
     $reportUrl = getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]);
-    $body = renderEmailBody('Votre signalement a reçu une réponse',
-        renderEmailField('Référence', $report['reference'])
-        . renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom'])
-        . renderEmailField('Nouvel état', ETAT_LABELS[$report['etat']] ?? $report['etat'])
-        . renderEmailLink($reportUrl, 'Consulter la réponse')
-    );
+    $body = '<html><body>';
+    $body .= '<h2>Votre signalement a reçu une réponse</h2>';
+    $body .= renderEmailField('Référence', $report['reference']);
+    $body .= renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom']);
+    $body .= renderEmailField('Nouvel état', ETAT_LABELS[$report['etat']] ?? $report['etat']);
+    $body .= renderEmailLink($reportUrl, 'Consulter la réponse');
+    $body .= '</body></html>';
     sendMail($declarant['email'], $subject, $body);
 
     // Also notify linked/confirmed agents
@@ -104,13 +107,14 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
         if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== $declarant['email']) {
             $linkedSubject = "Réponse au signalement $registryLabel — {$report['reference']}";
             $linkedReportUrl = getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]);
-            $linkedBody = renderEmailBody('Réponse au signalement',
-                '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>'
-                . '<p>Le signalement <strong>' . e($report['reference']) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>'
-                . renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom'])
-                . renderEmailField('Nouvel état', ETAT_LABELS[$report['etat']] ?? $report['etat'])
-                . renderEmailLink($linkedReportUrl, 'Consulter la réponse')
-            );
+            $linkedBody = '<html><body>';
+            $linkedBody .= '<h2>Réponse au signalement</h2>';
+            $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>';
+            $linkedBody .= '<p>Le signalement <strong>' . e($report['reference']) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>';
+            $linkedBody .= renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom']);
+            $linkedBody .= renderEmailField('Nouvel état', ETAT_LABELS[$report['etat']] ?? $report['etat']);
+            $linkedBody .= renderEmailLink($linkedReportUrl, 'Consulter la réponse');
+            $linkedBody .= '</body></html>';
             sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
         }
     }
@@ -129,7 +133,7 @@ function notifyPourCompte(PDO $pdo, string $reportUuid): void
         return;
     }
     /** @var array<string, mixed> $report */
-    // Try to find the agent by name
+    // Try to find the agent by by name
     $stmt = $pdo->prepare('SELECT * FROM users WHERE nom = :nom AND prenom = :prenom AND is_active = 1 LIMIT 1');
     $stmt->execute([':nom' => $report['pour_compte_nom'], ':prenom' => $report['pour_compte_prenom']]);
     $agent = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -138,13 +142,14 @@ function notifyPourCompte(PDO $pdo, string $reportUuid): void
     }
     $subject = "Un signalement RAMI a été déposé pour vous — {$report['reference']}";
     $reportUrl = getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]);
-    $body = renderEmailBody('Un signalement a été déposé en votre nom',
-        renderEmailField('Référence', $report['reference'])
-        . renderEmailField('Registre', 'RAMI')
-        . renderEmailField('Objet', $report['objet'])
-        . renderEmailField('Déposé par', $report['declarant_prenom'] . ' ' . $report['declarant_nom'])
-        . renderEmailLink($reportUrl, 'Consulter le signalement')
-    );
+    $body = '<html><body>';
+    $body .= '<h2>Un signalement a été déposé en votre nom</h2>';
+    $body .= renderEmailField('Référence', $report['reference']);
+    $body .= renderEmailField('Registre', 'RAMI');
+    $body .= renderEmailField('Objet', $report['objet']);
+    $body .= renderEmailField('Déposé par', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
+    $body .= renderEmailLink($reportUrl, 'Consulter le signalement');
+    $body .= '</body></html>';
     sendMail($agent['email'], $subject, $body);
 }
 
@@ -202,21 +207,25 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     $oldLabel = ROLE_LABELS[$oldRole] ?? $oldRole;
     $newLabel = ROLE_LABELS[$newRole] ?? $newRole;
     $subject = "Changement de votre rôle dans $appName";
-    $contentHtml = '<p>Bonjour ' . htmlspecialchars($user['prenom'] . ' ' . $user['nom']) . ',</p>'
-        . "<p>Votre rôle dans l'application <strong>" . htmlspecialchars($appName) . '</strong> a été modifié par un administrateur :</p>'
-        . '<table style="border-collapse:collapse; font-family:sans-serif; font-size:14px; margin:16px 0;">'
-        . '<tr><td style="padding:6px 16px; color:#888;">Ancien rôle</td><td style="padding:6px 16px;">' . htmlspecialchars($oldLabel) . '</td></tr>'
-        . '<tr><td style="padding:6px 16px; color:#888;">Nouveau rôle</td><td style="padding:6px 16px;"><strong>' . htmlspecialchars($newLabel) . '</strong></td></tr>'
-        . '</table>';
+    $body = '<html><body>';
+    $body .= '<h2>Changement de rôle</h2>';
+    $body .= '<p>Bonjour ' . htmlspecialchars($user['prenom'] . ' ' . $user['nom']) . ',</p>';
+    $body .= "<p>Votre rôle dans l'application <strong>" . htmlspecialchars($appName) . '</strong> a été modifié par un administrateur :</p>';
+    $body .= '<table style="border-collapse:collapse; font-family:sans-serif; font-size:14px; margin:16px 0;">';
+    $body .= '<tr><td style="padding:6px 16px; color:#888;">Ancien rôle</td><td style="padding:6px 16px;">' . htmlspecialchars($oldLabel) . '</td></tr>';
+    $body .= '<tr><td style="padding:6px 16px; color:#888;">Nouveau rôle</td><td style="padding:6px 16px;"><strong>' . htmlspecialchars($newLabel) . '</strong></td></tr>';
+    $body .= '</table>';
     if ($newRole === ROLE_SUPERVISEUR) {
-        $contentHtml .= "<p>En tant que <strong>Superviseur</strong>, vous pouvez désormais : répondre aux signalements, gérer les utilisateurs, consulter la synthèse et les statistiques, exporter les données, et configurer les paramètres de l'application.</p>";
+        $body .= "<p>En tant que <strong>Superviseur</strong>, vous pouvez désormais : répondre aux signalements, gérer les utilisateurs, consulter la synthèse et les statistiques, exporter les données, et configurer les paramètres de l'application.</p>";
     } elseif ($newRole === ROLE_CHSCT) {
-        $contentHtml .= '<p>En tant que <strong>' . e(getRoleLabel('chsct')) . '</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>';
+        $body .= '<p>En tant que <strong>' . e(getRoleLabel('chsct')) . '</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>';
     } else {
-        $contentHtml .= "<p>En tant qu'<strong>Agent</strong>, vous pouvez créer des signalements et suivre leurs réponses.</p>";
+        $body .= "<p>En tant qu'<strong>Agent</strong>, vous pouvez créer des signalements et suivre leurs réponses.</p>";
     }
-    $contentHtml .= '<p>Si vous pensez que cette modification est une erreur, veuillez contacter votre administrateur.</p>';
-    $body = renderEmailBody('Changement de rôle', $contentHtml);
+    $body .= '<p>Si vous pensez que cette modification est une erreur, veuillez contacter votre administrateur.</p>';
+    $body .= '<hr style="margin:16px 0; border:none; border-top:1px solid #ddd;">';
+    $body .= "<p style=\"font-size:12px; color:#888;\">Cet e-mail a été envoyé automatiquement par l'application $appName. Ne pas répondre directement à ce message.</p>";
+    $body .= '</body></html>';
     sendMail($user['email'], $subject, $body);
 }
 
@@ -241,7 +250,8 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
         // Build confirmation link
         $confirmUrl = url('agent_confirm', ['token' => $token]);
         $subject = 'Vous avez été rattaché(e) au signalement ' . $report['reference'];
-        $body = renderEmailBody('Confirmation de rattachement',
+        $body = buildEmailBody(
+            'Confirmation de rattachement',
             '<p>Bonjour,</p>'
             . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report['reference']) . '</strong> par le déclarant.</p>'
             . renderEmailField('Objet', $report['objet'])

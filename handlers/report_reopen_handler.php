@@ -55,7 +55,7 @@ try {
                 /** @var array<string, string> $linkedAgent */
                 if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
                     $linkedSubject = "Signalement réouvert $registryLabel — {$report['reference']}";
-                    $linkedBody = buildEmailBody(
+                    $linkedBody = renderEmailBody(
                         'Signalement réouvert',
                         '<p>Bonjour ' . e((string) ($linkedAgent['prenom'] ?? '')) . ',</p>'
                         . '<p>Le signalement <strong>' . e((string) $report['reference']) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>'

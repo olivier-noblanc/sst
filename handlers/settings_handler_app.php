@@ -46,6 +46,13 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     updateConfig($pdo, 'app_label_unite', $appLabelUnite);
     updateConfig($pdo, 'app_superviseur_usernames', $appSuperviseurUsernames);
 
+    // Brand color (used in email templates)
+    $appBrandColor = trim((string) ($postData['app_brand_color'] ?? ''));
+    if ($appBrandColor === '' || preg_match('/^#[0-9a-fA-F]{6}$/', $appBrandColor) !== 1) {
+        $appBrandColor = '#1e40af';
+    }
+    updateConfig($pdo, 'app_brand_color', $appBrandColor);
+
     // Hotline number (displayed in help page)
     $appHotlineNumber = trim((string) ($postData['app_hotline_number'] ?? ''));
     updateConfig($pdo, 'app_hotline_number', $appHotlineNumber);

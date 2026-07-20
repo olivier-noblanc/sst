@@ -250,7 +250,7 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
         // Build confirmation link
         $confirmUrl = url('agent_confirm', ['token' => $token]);
         $subject = 'Vous avez été rattaché(e) au signalement ' . $report['reference'];
-        $body = buildEmailBody(
+        $body = renderEmailBody(
             'Confirmation de rattachement',
             '<p>Bonjour,</p>'
             . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report['reference']) . '</strong> par le déclarant.</p>'

@@ -1,15 +1,12 @@
 <?php
 
-/** Email Renderer — Template unifié pour les emails HTML. */
-
 /**
- * NON UTILISÉE INTENTIONNELLEMENT — ne pas supprimer sans discussion.
- * Le wrapper actif est buildEmailBody() (src/mail_templates.php), au style
- * différent (pas de police/max-width/couleur de marque). Les deux ont
- * coexisté ; celui-ci a été gardé pour renderEmailField/Button/Link
- * (branchés dans mail_notifications.php), mais fusionner les deux wrappers
- * est un choix de design visuel, pas un nettoyage — décision à part.
+ * Email Renderer — Template unifié pour les emails HTML.
+ *
+ * renderEmailBody() est le wrapper unique pour tous les emails.
+ * Les fragments (champs, boutons, liens) sont dans les fonctions ci-dessous.
  */
+
 function renderEmailBody(string $title, string $contentHtml, string $siteName = ''): string
 {
     $brandColor = getConfig('app_brand_color', '#1e40af');

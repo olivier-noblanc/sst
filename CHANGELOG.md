@@ -3,6 +3,41 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.43.0] — 2026-07-20
+
+### Dead code cleanup — 15 cibles supprimées
+
+- **1** 🔴 **Route.php** — Classe attribut `App\Router\Attribute\Route` supprimée (jamais référencée). (`src/Router/Attribute/Route.php`)
+- **2** 🔴 **AuthMiddleware** — Classe `App\Middleware\AuthMiddleware` supprimée (jamais instanciée en prod, auth = require_auth.php procédural). Tests nettoyés. (`src/Middleware/AuthMiddleware.php`, `tests/unit/AuthMiddlewareTest.php`)
+- **3** 🔴 **BackupService** — Service enregistré dans le container mais jamais récupéré. Supprimé + retiré de `bootstrap_services.php`. (`src/Services/BackupService.php`, `src/bootstrap_services.php`)
+- **4** 🔴 **AssetService::getIcon() + getCssClass()** — 2 méthodes + 3 helpers privés supprimés (aucun appelant en prod). Tests nettoyés. (`src/Services/AssetService.php`)
+- **5** 🔴 **CryptoService::generateToken() + hashToken()** — 2 méthodes supprimées (aucun appelant en prod). Tests nettoyés. (`src/Services/CryptoService.php`)
+- **6** 🔴 **HttpService::setCookieSafe() + helper** — Méthode et wrapper supprimés (aucun appelant en prod). Note : `flashAndRedirect()` conservée (wrapper factorisé utilisé ~100 fois). (`src/Services/HttpService.php`, `src/helpers/http.php`)
+- **7** 🔴 **QueryFilterBuilder::addIn() + getWhere() + getParams()** — 3 méthodes supprimées (aucun appelant en prod). Tests nettoyés. (`src/Query/QueryFilterBuilder.php`)
+- **8** 🔴 **ReportRepository::getStatistics() + findBySite()** — 2 méthodes supprimées (délégation à StatsRepository + aucun appelant). Tests nettoyés. (`src/Repository/ReportRepository.php`)
+- **9** 🔴 **notifyPourCompte()** — Fonction de notification supprimée (aucun appelant). (`src/mail_notifications.php`)
+- **10** 🔴 **enforceReportVisibility()** — Fonction de validation supprimée (remplacée par ReportService). Tests nettoyés. (`src/validation.php`)
+- **11** 🔴 **isLastActiveSuperviseur()** — Fonction guard supprimée (remplacée par UserService). Tests nettoyés. (`src/validation_user.php`)
+- **12** 🔴 **reportSelectWithSite() + getReportsBySite()** — 2 fonctions supprimées (aucun appelant, doublon de ReportRepository). Tests nettoyés. (`src/queries/report_queries.php`)
+
+### Migration — CHECK constraints
+
+- **13** 🔴 **CHECK constraints reports.type/etat** — Migration automatique dans `src/migration_columns.php` : vérification idempotente, contrôle d'intégrité, backup, table rebuild avec CHECK, recréation des index. (`src/migration_columns.php`)
+
+### Sécurité & isolation
+
+- **14** 🔴 **Isolation DB E2E** — `DB_PATH` lit désormais `SST_DB_PATH` env var (fallback = prod). Playwright utilise `%TEMP%\sst-e2e-test.db` au lieu de `data/sst.db`. (`src/config.php`, `playwright.config.js`)
+- **15** 🔴 **Token GitHub supprimé** — `package.json` nettoyé (PAT en clair). (`package.json`)
+
+### Fix critique
+
+- **16** 🔴 **Autoload order** — `public/index.php` charge maintenant `autoload.php` AVANT `config.php`, corrigeant le fatal error `Class 'App\Enum\UserRole' not found` en prod. (`public/index.php`)
+
+### Pipeline qualité
+
+- **17** 🔴 **Extensions PHPStan installées** — `phpstan/extension-installer`, `phpstan-strict-rules`, `spaze/phpstan-disallowed-calls`, `shipmonk/dead-code-detector`. (`composer.json`)
+
+
 ## [3.42.0] — 2026-07-19
 
 ### Audit complet — 7 chantiers traités

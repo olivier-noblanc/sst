@@ -15,7 +15,7 @@ Dernière mise à jour : 2026-07-20
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
 | Pre-commit hook | **hook .git** (PHPStan + PHPUnit) |
-| Dead code detector | **shipmonk** (non installé, config presente) |
+| Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs) |
 
 ### ⚠️ Pipeline qualité — État réel
@@ -91,21 +91,23 @@ Le script `tools/check_css_classes.php` est intégré au gate (`update_sst.ps1`)
 
 ---
 
-## Priorité 9 — Tests e2e (investigation en cours)
+## Priorité 9 — Tests e2e (bloqué, investigation terminée)
 
-Les 15 specs Playwright existent mais n'ont jamais été validées en local avec Firefox. Lancer les tests, identifier les failures, corriger.
+**Résultat** : 0/15 specs chargent — tous les tests échouent au chargement du module. Cause : incompatibilité ESM/CJS (`"type": "commonjs"` dans package.json vs syntaxe `import` ESM dans tous les fichiers e2e/). Possible incompatibilité Node.js v24 + Playwright 1.61.0.
 
-**Effort** : ~1-2h
-**Statut** : Subagent lancé en investigation-seulement (pas de modifications)
+**Fix recommandé** : Renommer `e2e/*.spec.js` → `e2e/*.spec.mjs` + `e2e/helpers.js` → `e2e/helpers.mjs`, ou ajouter `e2e/package.json` avec `"type": "module"`.
+
+**Effort** : ~1h (fix config) + validation
+**Statut** : Investigation terminée, pas de bug applicatif trouvé (les tests n'atteignent jamais l'app)
 
 ---
 
-## Priorité 10 — Nettoyage @var bricolage (en cours)
+## Priorité 10 — Nettoyage @var bricolage
 
 ~145 annotations @var dans le codebase. Celles ajoutées pour le level 10 sont inutiles au level 8. Passer en revue et ne garder que les @var utiles (templates injectés, résultats PDO, doc de type).
 
 **Effort** : ~2h (travail minutieux)
-**Statut** : Subagent lancé
+**Statut** : À faire (subagent annulé, non prioritaire)
 
 ---
 
@@ -159,16 +161,18 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 Le mutation score est à 51%, bien en dessous du seuil de 85%. Identifier les mutants survivants les plus critiques et ajouter des tests pour les tuer.
 
 **Effort** : ~4-8h
-**Statut** : En attente (à reprendre quand les outils P15 seront installés)
+**Statut** : En attente — ne pas lancer sans supervision (risque de tests qui tuent des mutants sans vérifier de vrai comportement)
 
 ---
 
-## Priorité 14 — Nettoyage queries orphelines (investigation en cours)
+## Priorité 14 — Nettoyage queries orphelines (investigation terminée)
 
 Les fichiers `src/queries/report_queries.php`, `src/queries/report_response_queries.php` etc. sont probablement orphelins (migrés vers les Repository classes). Vérifier et supprimer si inutilisés — éliminerait ~60% de la duplication détectée par phpcpd.
 
-**Effort** : ~1h
-**Statut** : Subagent lancé en investigation-seulement (pas de modifications)
+**Résultat investigation** : 5 fichiers entièrement orphelins (user_admin, user_gdpr, stats, rami_stats, notification). 6 fichiers partiellement orphelins. `createReport()` et `updateReport()` ont des doublons SQL avec ReportRepository — createReport est identique, updateReport a divergé (pas de transaction dans la version query). `updateReport()` a 0 appelant prod (dormant, pas actif).
+
+**Effort** : ~3-4h (migration tests + suppressions)
+**Statut** : Investigation terminée, prêt pour validation. Chantier de refactorisation, pas un nettoyage rapide.
 
 ---
 

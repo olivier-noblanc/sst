@@ -6,7 +6,6 @@
  * - validateReportFields()
  * - validateRamiFields()
  * - validatePourCompte()
- * - enforceReportVisibility()
  */
 
 use PHPUnit\Framework\TestCase;
@@ -207,27 +206,4 @@ class ValidationTest extends TestCase
         $this->assertArrayHasKey('pour_compte_prenom', $errors);
     }
 
-    // ─── enforceReportVisibility ────────────────────────────────────────────
-
-    public function testEnforceVisibilityPublicForcesPublic(): void
-    {
-        updateConfig($this->pdo, 'app_report_visibility', 'public');
-        clearConfigCache();
-        $this->assertEquals(0, enforceReportVisibility(1));
-    }
-
-    public function testEnforceVisibilityConfidentialForcesConfidential(): void
-    {
-        updateConfig($this->pdo, 'app_report_visibility', 'confidential');
-        clearConfigCache();
-        $this->assertEquals(1, enforceReportVisibility(0));
-    }
-
-    public function testEnforceVisibilityAgentChoiceKeepsSelection(): void
-    {
-        updateConfig($this->pdo, 'app_report_visibility', 'agent_choice');
-        clearConfigCache();
-        $this->assertEquals(0, enforceReportVisibility(0));
-        $this->assertEquals(1, enforceReportVisibility(1));
-    }
 }

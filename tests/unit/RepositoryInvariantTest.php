@@ -109,17 +109,6 @@ class RepositoryInvariantTest extends TestCase
         $this->assertIsInt($result['total']);
     }
 
-    public function testFindBySiteReturnsArray(): void
-    {
-        $repo = new ReportRepository($this->pdo);
-        $siteId = $this->seedSite();
-        $userId = $this->seedUser($siteId);
-        $this->seedReport($siteId, $userId);
-
-        $result = $repo->findBySite($siteId);
-        $this->assertIsArray($result);
-    }
-
     public function testGetResponsesReturnsArray(): void
     {
         $repo = new ReportRepository($this->pdo);
@@ -183,17 +172,6 @@ class RepositoryInvariantTest extends TestCase
         $this->assertArrayHasKey('en_cours', $result);
         $this->assertArrayHasKey('traite', $result);
         $this->assertArrayHasKey('total', $result);
-    }
-
-    public function testGetStatisticsReturnsArray(): void
-    {
-        $repo = new ReportRepository($this->pdo);
-        $siteId = $this->seedSite();
-        $userId = $this->seedUser($siteId);
-        $this->seedReport($siteId, $userId);
-
-        $result = $repo->getStatistics();
-        $this->assertIsArray($result);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

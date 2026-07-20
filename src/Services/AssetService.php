@@ -65,67 +65,6 @@ class AssetService
         return 'data:' . $mime . ';base64,' . $data;
     }
 
-    /**
-     * Get the icon HTML for an entity type.
-     */
-    public function getIcon(string $type): string
-    {
-        return match ($type) {
-            'report'  => '<span class="icon icon--report" aria-hidden="true">📋</span>',
-            'user'    => '<span class="icon icon--user" aria-hidden="true">👤</span>',
-            'site'    => '<span class="icon icon--site" aria-hidden="true">🏢</span>',
-            'config'  => '<span class="icon icon--config" aria-hidden="true">⚙️</span>',
-            'logout'  => '<span class="icon icon--logout" aria-hidden="true">🚪</span>',
-            'search'  => '<span class="icon icon--search" aria-hidden="true">🔍</span>',
-            default   => '',
-        };
-    }
-
-    /**
-     * Get CSS class for a visual state (used by badges, buttons, etc.).
-     */
-    public function getCssClass(string $context, string $value): string
-    {
-        return match ($context) {
-            'etat'     => $this->getEtatCssClass($value),
-            'registry' => $this->getRegistryCssClass($value),
-            'role'     => $this->getRoleCssClass($value),
-            default    => '',
-        };
-    }
-
-    private function getEtatCssClass(string $etat): string
-    {
-        return match ($etat) {
-            'nouveau'    => 'badge--nouveau',
-            'en_cours'   => 'badge--en-cours',
-            'traite'     => 'badge--traite',
-            'abandonne'  => 'badge--abandonne',
-            'reouvert'   => 'badge--reouvert',
-            default      => '',
-        };
-    }
-
-    private function getRegistryCssClass(string $type): string
-    {
-        return match ($type) {
-            'rsst'  => 'badge--rsst',
-            'rami'  => 'badge--rami',
-            'dgi'   => 'badge--dgi',
-            default => '',
-        };
-    }
-
-    private function getRoleCssClass(string $role): string
-    {
-        return match ($role) {
-            'agent'       => 'badge--agent',
-            'superviseur' => 'badge--superviseur',
-            'chsct'       => 'badge--chsct',
-            default       => '',
-        };
-    }
-
     private function getAppVersion(): string
     {
         $configService = new ConfigService();

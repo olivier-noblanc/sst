@@ -2,8 +2,8 @@
 /**
  * Mail Helper Unit Tests — Email Body
  *
- * Tests mail functions from src/mail.php:
- * - buildEmailBody()
+ * Tests mail functions from src/mail/email_renderer.php:
+ * - renderEmailBody()
  */
 
 use PHPUnit\Framework\TestCase;
@@ -29,59 +29,81 @@ class MailHelperBodyTest extends TestCase
         clearConfigCache();
     }
 
-    // ─── buildEmailBody ─────────────────────────────────────────────────────
+    // ─── renderEmailBody ─────────────────────────────────────────────────────
 
-    public function testBuildEmailBodyContainsHtmlTags(): void
+    public function testRenderEmailBodyContainsHtmlTags(): void
     {
-        $body = buildEmailBody('Test Title', '<p>Content</p>');
-        $this->assertStringStartsWith('<html><body>', $body);
+        $body = renderEmailBody('Test Title', '<p>Content</p>');
+        $this->assertStringStartsWith('<html><body', $body);
         $this->assertStringEndsWith('</body></html>', $body);
     }
 
-    public function testBuildEmailBodyContainsTitle(): void
+    public function testRenderEmailBodyContainsTitle(): void
     {
-        $body = buildEmailBody('Nouveau signalement', '<p>Content</p>');
-        $this->assertStringContainsString('<h2>Nouveau signalement</h2>', $body);
+        $body = renderEmailBody('Nouveau signalement', '<p>Content</p>');
+        $this->assertStringContainsString('<h2', $body);
+        $this->assertStringContainsString('Nouveau signalement</h2>', $body);
     }
 
-    public function testBuildEmailBodyContainsContent(): void
+    public function testRenderEmailBodyContainsContent(): void
     {
-        $body = buildEmailBody('Title', '<p>Some important content</p>');
+        $body = renderEmailBody('Title', '<p>Some important content</p>');
         $this->assertStringContainsString('<p>Some important content</p>', $body);
     }
 
-    public function testBuildEmailBodyContainsFooter(): void
+    public function testRenderEmailBodyContainsFooter(): void
     {
-        $body = buildEmailBody('Title', '<p>Content</p>');
+        $body = renderEmailBody('Title', '<p>Content</p>');
         $this->assertStringContainsString('Cet e-mail a été envoyé automatiquement', $body);
         $this->assertStringContainsString('Ne pas répondre directement à ce message', $body);
     }
 
-    public function testBuildEmailBodyWithCustomSiteName(): void
+    public function testRenderEmailBodyWithCustomSiteName(): void
     {
-        $body = buildEmailBody('Title', '<p>Content</p>', 'Mon Organisation');
+        $body = renderEmailBody('Title', '<p>Content</p>', 'Mon Organisation');
         $this->assertStringContainsString('Mon Organisation', $body);
     }
 
-    public function testBuildEmailBodyWithConfigSiteName(): void
+    public function testRenderEmailBodyWithConfigSiteName(): void
     {
         updateConfig($this->pdo, 'app_nom_organisation', 'Test Org');
         clearConfigCache();
 
-        $body = buildEmailBody('Title', '<p>Content</p>');
+        $body = renderEmailBody('Title', '<p>Content</p>');
         $this->assertStringContainsString('Test Org', $body);
     }
 
-    public function testBuildEmailBodyEscapesTitle(): void
+    public function testRenderEmailBodyEscapesTitle(): void
     {
-        $body = buildEmailBody('<script>alert(1)</script>', '<p>Content</p>');
+        $body = renderEmailBody('<script>alert(1)</script>', '<p>Content</p>');
         $this->assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt;', $body);
         $this->assertStringNotContainsString('<script>alert(1)</script>', $body);
     }
 
-    public function testBuildEmailBodyContainsHorizontalRule(): void
+    public function testRenderEmailBodyContainsHorizontalRule(): void
     {
-        $body = buildEmailBody('Title', '<p>Content</p>');
+        $body = renderEmailBody('Title', '<p>Content</p>');
         $this->assertStringContainsString('<hr', $body);
+    }
+
+    public function testRenderEmailBodyHasMaxWidth(): void
+    {
+        $body = renderEmailBody('Title', '<p>Content</p>');
+        $this->assertStringContainsString('max-width:600px', $body);
+    }
+
+    public function testRenderEmailBodyHasBrandColor(): void
+    {
+        updateConfig($this->pdo, 'app_brand_color', '#ff0000');
+        clearConfigCache();
+
+        $body = renderEmailBody('Title', '<p>Content</p>');
+        $this->assertStringContainsString('#ff0000', $body);
+    }
+
+    public function testRenderEmailBodyDefaultBrandColor(): void
+    {
+        $body = renderEmailBody('Title', '<p>Content</p>');
+        $this->assertStringContainsString('#1e40af', $body);
     }
 }

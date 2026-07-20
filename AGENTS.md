@@ -31,6 +31,7 @@
 - **Toujours vérifier** si un PHAR existe dans les shims scoop avant de tenter un `composer require` ou un téléchargement.
 - Les binaires sont directement dans le PATH grâce aux shims : `phpunit`, `phpstan`, `php-cs-fixer`, `rector`, `phparkitect`, `infection`.
 - `composer.json` ne contient que les dépendances runtime (pas les outils dev en PHAR).
+- **phive** est disponible dans le PATH pour installer des PHAR : `phive install <tool>`.
 
 ### Git — Interdctions
 - **JAMAIS** modifier `git config --global` — c'est un environnement partagé.
@@ -58,7 +59,7 @@
 - `pages/` : pages PHP rendues côté serveur
 - `handlers/` : handlers POST (création, édition, réponse, export)
 - `templates/` : composants réutilisables (header, footer, form, user_form_fields, breadcrumb, etc.)
-- `tests/` : tests unitaires PHPUnit (54 tests, 131 assertions)
+- `tests/` : tests unitaires PHPUnit (860 tests, 1804 assertions)
 - `nuclear-reset.php` : purge des signalements (CLI uniquement, guard php_sapi_name)
 
 ## Générer les captures d'écran

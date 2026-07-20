@@ -57,7 +57,7 @@ ini_set('log_errors', '1');
 ini_set('error_log', __DIR__ . '/../data/php-error.log');
 
 // Database
-define('DB_PATH', __DIR__ . '/../data/sst.db');
+define('DB_PATH', getenv('SST_DB_PATH') ?: (__DIR__ . '/../data/sst.db'));
 
 // Pagination
 define('ITEMS_PER_PAGE', 20);

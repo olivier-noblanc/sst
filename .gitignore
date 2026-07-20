@@ -87,6 +87,17 @@ coverage-report/
 data/infection-tmp/
 data/coverage/
 
+# PHPStan debug artifacts
+phpstan-*.neon
+phpstan_*.neon
+phpstan_*.txt
+phpstan_*.json
+src/phpstan_*.json
+
+# Dev/test scripts (not part of the app)
+tests/test_services_smoke.php
+tools/verify_container.php
+
 # Mimocode agent workspace
 .mimocode/
 

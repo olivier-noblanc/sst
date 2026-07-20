@@ -4,7 +4,6 @@
  *
  * Tests validation functions from src/validation.php and src/validation_user.php:
  * - validateUserFields()
- * - isLastActiveSuperviseur()
  */
 
 use PHPUnit\Framework\TestCase;
@@ -99,34 +98,4 @@ class ValidationUserTest extends TestCase
         $this->assertArrayHasKey('username', $errors);
     }
 
-    // ─── isLastActiveSuperviseur (DB-dependent) ─────────────────────────────
-
-    public function testIsLastActiveSuperviseurWhenNoSuperviseur(): void
-    {
-        $this->assertFalse(isLastActiveSuperviseur($this->pdo));
-    }
-
-    public function testIsLastActiveSuperviseurWhenOneSuperviseur(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-        createUser($this->pdo, [
-            'nom' => 'Admin', 'prenom' => 'Super', 'username' => 'admin.test',
-            'role' => 'superviseur', 'site_id' => $siteId, 'email' => '',
-        ]);
-        $this->assertTrue(isLastActiveSuperviseur($this->pdo));
-    }
-
-    public function testIsNotLastActiveSuperviseurWhenTwo(): void
-    {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-        createUser($this->pdo, [
-            'nom' => 'Admin1', 'prenom' => 'Super', 'username' => 'admin1.test',
-            'role' => 'superviseur', 'site_id' => $siteId, 'email' => '',
-        ]);
-        createUser($this->pdo, [
-            'nom' => 'Admin2', 'prenom' => 'Super', 'username' => 'admin2.test',
-            'role' => 'superviseur', 'site_id' => $siteId, 'email' => '',
-        ]);
-        $this->assertFalse(isLastActiveSuperviseur($this->pdo));
-    }
 }

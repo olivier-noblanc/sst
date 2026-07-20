@@ -85,24 +85,4 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array
     return $errors;
 }
 
-// ============================================================================
-// Superviseur Guards
-// ============================================================================
 
-/**
- * Check if a user is the last active superviseur in the system.
- *
- * Used to prevent demoting or deactivating the last superviseur,
- * which would lock everyone out of admin functions.
- *
- * @param PDO $pdo  Database connection
- * @return bool     True if there is only one active superviseur
- */
-function isLastActiveSuperviseur(PDO $pdo): bool
-{
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = '" . ROLE_SUPERVISEUR . "' AND is_active = 1");
-    $stmt->execute();
-    /** @var int */
-    $count = $stmt->fetchColumn() ?? 0;
-    return $count === 1;
-}

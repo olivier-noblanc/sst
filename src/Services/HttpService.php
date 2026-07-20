@@ -37,29 +37,6 @@ class HttpService
     }
 
     /**
-     * Set a cookie (works in both web and CLI/proxy mode).
-     */
-    public function setCookieSafe(string $name, string $value = '', int $expires = 0, string $path = '/', bool $httpOnly = true, string $sameSite = 'Lax'): void
-    {
-        $cookieStr = $name . '=' . urlencode($value);
-        if ($expires > 0) {
-            $cookieStr .= '; expires=' . gmdate('D, d M Y H:i:s T', $expires);
-        }
-        if ($path !== '') {
-            $cookieStr .= '; path=' . $path;
-        }
-        if ($sameSite !== '') {
-            $cookieStr .= '; SameSite=' . $sameSite;
-        }
-        if ($httpOnly) {
-            $cookieStr .= '; HttpOnly';
-        }
-
-        $GLOBALS['_PHP_COOKIES'][] = $cookieStr;
-        header('Set-Cookie: ' . $cookieStr);
-    }
-
-    /**
      * Remove unwanted HTTP headers and set security headers.
      */
     public function removeUnwantedHeaders(): void

@@ -29,11 +29,6 @@ function redirect(string $url): void
     getHttpService()->redirect($url);
 }
 
-function setCookieSafe(string $name, string $value = '', int $expires = 0, string $path = '/', bool $httpOnly = true, string $sameSite = 'Lax'): void
-{
-    getHttpService()->setCookieSafe($name, $value, $expires, $path, $httpOnly, $sameSite);
-}
-
 function removeUnwantedHeaders(): void
 {
     getHttpService()->removeUnwantedHeaders();

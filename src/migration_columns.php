@@ -313,4 +313,90 @@ function migrateColumns(PDO $pdo): void
     } catch (Exception $e) {
         error_log('Migration warning for audit_log.target_uuid: ' . $e->getMessage());
     }
+    // ── Remove legacy wordcloud config key ──────────────────────────────────
+    // app_wordcloud_words (plaintext format) was replaced by word_cloud_words (JSON).
+    try {
+        $stmt = $pdo->query("SELECT COUNT(*) FROM config_app WHERE cle = 'app_wordcloud_words'");
+        $count = $stmt !== false ? (int) $stmt->fetchColumn() : 0;
+        if ($count > 0) {
+            $pdo->exec("DELETE FROM config_app WHERE cle = 'app_wordcloud_words'");
+            error_log('[SST-MIGRATION] Removed legacy config key app_wordcloud_words.');
+        }
+    } catch (Exception $e) {
+        error_log('Migration warning for wordcloud cleanup: ' . $e->getMessage());
+    }
+    // ── Add CHECK constraints on reports.type and reports.etat ──────────────
+    // schema.sql already defines these for new installs; this migration
+    // applies them to existing databases via table rebuild (SQLite limitation:
+    // ALTER TABLE cannot add CHECK constraints).
+    // ALWAYS runs — no schema_version guard, no silent skip on violations.
+    try {
+        // 1. Verify no existing rows violate the constraints
+        $badTypes = $pdo->query("SELECT DISTINCT type FROM reports WHERE type NOT IN ('rsst','rami','dgi')");
+        $badTypeRows = ($badTypes !== false) ? $badTypes->fetchAll() : [];
+        if (!empty($badTypeRows)) {
+            $vals = array_column($badTypeRows, 'type');
+            error_log('[SST-MIGRATION] CHECK constraint FAILED: invalid type values found: ' . implode(', ', $vals));
+            throw new \RuntimeException('CHECK constraint violation: invalid type values: ' . implode(', ', $vals));
+        }
+        $badEtats = $pdo->query("SELECT DISTINCT etat FROM reports WHERE etat NOT IN ('nouveau','en_cours','traite','reouvert','abandonne')");
+        $badEtatRows = ($badEtats !== false) ? $badEtats->fetchAll() : [];
+        if (!empty($badEtatRows)) {
+            $vals = array_column($badEtatRows, 'etat');
+            error_log('[SST-MIGRATION] CHECK constraint FAILED: invalid etat values found: ' . implode(', ', $vals));
+            throw new \RuntimeException('CHECK constraint violation: invalid etat values: ' . implode(', ', $vals));
+        }
+        // 2. Backup before destructive migration
+        backupBeforeMigration($pdo);
+        // 3. Get current column list via PRAGMA
+        $colStmt = $pdo->query('PRAGMA table_info(reports)');
+        $columns = ($colStmt !== false) ? $colStmt->fetchAll() : [];
+        // Build column definitions for CREATE TABLE, preserving exact schema
+        $colDefs = [];
+        foreach ($columns as $col) {
+            if (!is_array($col)) { continue; }
+            /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
+            $def = $col['name'] . ' ' . $col['type'];
+            if ($col['pk']) {
+                $def .= ' PRIMARY KEY';
+            }
+            if ($col['notnull'] && !$col['pk']) {
+                $def .= ' NOT NULL';
+            }
+            if ($col['dflt_value'] !== null) {
+                $def .= ' DEFAULT ' . $col['dflt_value'];
+            }
+            $colDefs[] = $def;
+        }
+        // Add CHECK constraints
+        $colDefs[] = "CHECK (type IN ('rsst','rami','dgi'))";
+        $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
+        // Get foreign keys
+        $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
+        $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
+        $fkClauses = [];
+        foreach ($fks as $fk) {
+            if (!is_array($fk)) { continue; }
+            /** @var array{from: string, table: string, to: string} $fk */
+            $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
+        }
+        $allDefs = array_merge($colDefs, $fkClauses);
+        $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
+        $pdo->exec($createSql);
+        $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
+        $pdo->exec('DROP TABLE IF EXISTS reports');
+        $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
+        // Recreate indexes (SQLite drops them with the table)
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
+            $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+            error_log('[SST-MIGRATION] Applied CHECK constraints on reports.type and reports.etat.');
+    } catch (Exception $e) {
+        error_log('[SST-MIGRATION] CHECK constraint migration failed: ' . $e->getMessage());
+    }
 }

@@ -7,7 +7,7 @@
  * No external dependencies.
  *
  * Notification dispatch functions are in mail_notifications.php.
- * Email body builders are in mail_templates.php.
+ * Email body wrapper is renderEmailBody() in src/mail/email_renderer.php.
  */
 
 require_once __DIR__ . '/mail_notifications.php';

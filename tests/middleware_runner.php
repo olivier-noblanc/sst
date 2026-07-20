@@ -23,7 +23,7 @@ require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/../src/Middleware/require_role.php';
 require_once __DIR__ . '/../src/Middleware/CsrfMiddleware.php';
 require_once __DIR__ . '/../src/Middleware/RoleMiddleware.php';
-require_once __DIR__ . '/../src/Middleware/AuthMiddleware.php';
+
 
 // Suppress errors only during middleware execution (redirect/exit may trigger warnings)
 error_reporting(0);

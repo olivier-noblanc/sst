@@ -8,7 +8,7 @@ Plateforme des Registres en Santé et Sécurité au Travail
 
 ## Stack Technique
 
-- **Langage** : PHP 8.3 (vanilla, aucun framework)
+- **Langage** : PHP 8.5 (vanilla, aucun framework)
 - **Base de données** : SQLite via PDO
 - **Authentification** : IIS Windows Authentication (pas de LDAP — lecture de `$_SERVER['AUTH_USER']`)
 - **Dépendances PHP** : FPDF 1.9 (génération PDF, inclus sans Composer), Parsedown (inclus sans Composer)
@@ -35,7 +35,7 @@ Sur le serveur, exécuter en tant qu'administrateur :
 powershell -ExecutionPolicy Bypass -File C:\inetpub\sst\update_sst.ps1
 ```
 
-Le script effectue : `git pull` → vérification permissions → `iisreset`
+Le script effectue : `git pull` → vérification permissions → gate qualité (lint PHP + PHPStan + PHPUnit + CSS checker) → `composer dump-autoload`
 
 ## Comptes de test (DEV_MODE)
 
@@ -57,14 +57,14 @@ php -S localhost:8080 -t public/ public/router.php
 ## Tests
 
 ```bash
-# Suite de tests unitaires PHPUnit
-vendor/bin/phpunit
+# Suite de tests unitaires PHPUnit (PHAR via scoop)
+phpunit --no-coverage
 
 # Test spécifique PHPUnit
-vendor/bin/phpunit --filter HelpersTest
-vendor/bin/phpunit --filter SiteQueriesTest
+phpunit --filter HelpersTest
+phpunit --filter SiteQueriesTest
 
-# Suite de tests E2E Playwright (180 tests)
+# Suite de tests E2E Playwright (15 specs, Firefox)
 npx playwright test
 
 # Test E2E spécifique
@@ -80,8 +80,8 @@ php tools/anonymize_old_reports.php --dry-run
 
 | Suite | Tests | Fichiers | Portée |
 |-------|-------|----------|--------|
-| **PHPUnit** | 167 | 9 | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting |
-| **Playwright E2E** | 180 | 11 | Navigation, auth, formulaires, rôles, incarnation, onboarding, version |
+| **PHPUnit** | 860 (1804 assertions) | 25+ | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting, services, repositories |
+| **Playwright E2E** | ~207 cas (15 specs) | 15 | Navigation, auth, formulaires, rôles, incarnation, onboarding, version, export, settings |
 
 ## Visibilité des signalements — 3 modes (configurable par le superviseur)
 
@@ -105,20 +105,27 @@ C:\inetpub\sst\
 ├── src/             ← Logique métier
 │   ├── config.php   ← Configuration (APP_ENV, modes visibilité)
 │   ├── database.php ← Connexion SQLite + auto-migration
+│   ├── autoload.php ← Autoloader PSR-4 + chargeurs procéduraux
 │   ├── auth.php     ← Authentification (AUTH_USER / mock login)
 │   ├── helpers.php  ← Chargeur → src/helpers/*.php
 │   ├── helpers/     ← Modules utilitaires (access, formatting, http, config, crypto, assets)
-│   ├── queries/     ← Requêtes SQL préparées
+│   ├── Enum/        ← Enums PHP 8.1+ (ReportState, ReportType, UserRole, VisibilityMode)
+│   ├── Repository/  ← Couche d'accès données (Report, User, Site, Stats, Notification)
+│   ├── Services/    ← Services métier (Auth, Report, User, Config, Formatting, Crypto, Http, Asset, Session, Notification)
+│   ├── DTO/         ← Data Transfer Objects (CreateReport, UpdateReport, ReportFilter, etc.)
+│   ├── Router/      ← Routeur interne + templates
+│   ├── queries/     ← Fonctions procédurales (wrappers vers Repository)
 │   ├── middleware/   ← Contrôle d'accès + bootstrap
-│   ├── mail.php     ← Envoi SMTP + buildDelayAlertEmail()
+│   ├── mail/        ← Templates email + renderer
+│   ├── mail.php     ← Envoi SMTP
 │   ├── cron.php     ← Lazy cron (check_delays + anonymize)
 │   ├── audit.php    ← Journal d'audit
 │   └── lib/         ← Parsedown.php, fpdf/
 ├── pages/           ← Pages de l'application
 ├── handlers/        ← Traitements des formulaires POST
 ├── templates/       ← Templates réutilisables (header, sidebar, footer, user_form_fields...)
-├── tests/           ← Tests unitaires PHPUnit (167 tests)
-├── e2e/             ← Tests E2E Playwright (180 tests, 11 fichiers)
+├── tests/           ← Tests unitaires PHPUnit (860 tests, 1804 assertions)
+├── e2e/             ← Tests E2E Playwright (15 specs, ~207 cas)
 ├── tools/           ← Scripts CLI (capture_screenshots.py, check_delays, anonymize...)
 ├── docs/            ← Documentation et captures HTML source
 ├── data/            ← Base SQLite (auto-créée, git-ignorée)

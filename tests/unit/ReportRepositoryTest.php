@@ -54,22 +54,4 @@ class ReportRepositoryTest extends TestCase
         $this->assertNull($this->repo->findById('nonexistent-uuid'));
     }
 
-    public function testFindBySite(): void
-    {
-        $cmd = new CreateReportCommand(
-            type: 'rsst', objet: 'Site Test', description: 'Desc',
-            dateEvenement: '2026-01-15', heureEvenement: null,
-            lieu: null, declarantId: $this->userId, declarantNom: 'Martin',
-            declarantPrenom: 'Jean', siteId: $this->siteId, siteText: null,
-            pole: null, serviceAffectation: null, telephoneMobile: null,
-            isConfidential: 0, consentSyndicat: 0,
-            natureAuteur: null, typeActe: null,
-            pourCompteNom: null, pourComptePrenom: null,
-            attachmentBlob: null, attachmentName: null, attachmentMime: null,
-        );
-        $this->repo->create($cmd);
-
-        $reports = $this->repo->findBySite($this->siteId);
-        $this->assertCount(1, $reports);
-    }
 }

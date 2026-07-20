@@ -1,6 +1,11 @@
 <?php
 
-/** Email Renderer — Template unifié pour les emails HTML. */
+/**
+ * Email Renderer — Template unifié pour les emails HTML.
+ *
+ * renderEmailBody() est le wrapper unique pour tous les emails.
+ * Les fragments (champs, boutons, liens) sont dans les fonctions ci-dessous.
+ */
 
 function renderEmailBody(string $title, string $contentHtml, string $siteName = ''): string
 {

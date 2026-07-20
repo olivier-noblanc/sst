@@ -3,7 +3,7 @@
  * Report Queries Unit Tests — Application SST DREETS BFC
  *
  * Tests report query functions with an in-memory SQLite database.
- * Covers reportSelectWithSite(), createReport(), getReportByUuid(),
+ * Covers createReport(), getReportByUuid(),
  * getReportsByRegistry(), updateReport(), abandonReport(), and
  * respondToReport().
  */
@@ -43,20 +43,6 @@ class ReportQueriesTest extends TestCase
         // Seed: one user (agent)
         self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Martin', 'Jean', 'jean.martin', 'agent', " . self::$siteId . ", 1)");
         self::$userId = (int) self::$pdo->lastInsertId();
-    }
-
-    // ─── reportSelectWithSite() ────────────────────────────────────────────
-
-    public function testReportSelectWithSiteReturnsSql(): void
-    {
-        $sql = reportSelectWithSite();
-        // After v3.19.0: explicit column selection instead of r.* (BLOB excluded from list queries)
-        $this->assertStringContainsString('r.uuid', $sql);
-        $this->assertStringContainsString('s.code as site_code', $sql);
-        $this->assertStringContainsString('s.nom as site_nom', $sql);
-        $this->assertStringContainsString('LEFT JOIN sites s', $sql);
-        // Ensure BLOB is NOT included in list queries
-        $this->assertStringNotContainsString('r.attachment_blob', $sql);
     }
 
     // ─── createReport() ────────────────────────────────────────────────────

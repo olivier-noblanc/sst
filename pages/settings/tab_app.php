@@ -54,6 +54,19 @@
         </div>
 
         <div class="separator">
+            <h4 class="card__subtitle">&#x1F3A8; Identité visuelle</h4>
+            <p class="text-muted text-small mb-3">Couleur de marque utilisée dans les e-mails et les éléments graphiques.</p>
+            <div class="form-group">
+                <label for="app_brand_color">Couleur de marque</label>
+                <input type="color" id="app_brand_color" name="app_brand_color" class="form-control"
+                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_brand_color', '#1e40af')); ?>"
+                       style="width:80px; height:36px; padding:2px; cursor:pointer;">
+                <small class="text-muted block mt-1">
+                    Couleur utilisée pour les titres des e-mails et certains éléments d'interface. Défaut : #1e40af (bleu).
+                </small>
+            </div>
+        </div>
+        <div class="separator">
             <h4 class="card__subtitle">&#x1F4DE; Hotline d'aide</h4>
             <p class="text-muted text-small mb-3">Affiche un numéro de téléphone d'aide en haut de la page d'aide, visible par tous les utilisateurs. Laissez vide pour afficher le message par défaut (« Contactez votre administrateur au poste interne »).</p>
             <div class="form-group">

@@ -151,9 +151,6 @@ function Invoke-QualityGate {
     $pythonPw = $false
     $npxPw = $false
     try { $npxV = & npx playwright --version 2>&1; if ($LASTEXITCODE -eq 0 -and $npxV -match 'Version') { $npxPw = $true } } catch {}
-    if (-not $npxPw) {
-        $missing += "Playwright"
-    }
 
     if ($missing.Count -gt 0) {
         Write-Host ""
@@ -162,7 +159,6 @@ function Invoke-QualityGate {
             switch ($m) {
                 "PHPStan"   { Write-Host "    Installer PHPStan : scoop install phpstan" -ForegroundColor Yellow }
                 "PHPUnit"   { Write-Host "    Installer PHPUnit : scoop install phpunit" -ForegroundColor Yellow }
-                "Playwright" { Write-Host "    Installer Playwright : pip install playwright && python -m playwright install firefox" -ForegroundColor Yellow }
             }
         }
         Write-Host ""

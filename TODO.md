@@ -215,20 +215,45 @@ Migration automatique ajoutée dans `src/migration_columns.php` :
 
 ---
 
-## Priorité 18 — Supprimer l'onglet "Gestion des sites" (manage_sites)
+## Priorité 18 — Supprimer le concept "Sites" (Unités Régionales) du projet (non prioritaire)
 
-L'onglet `settings&tab=manage_sites` permettait la gestion CRUD des sites (création, édition, suppression). Cette page ne doit plus exister. Les sites sont gérés autrement (ou sont fixes).
+**Objectif** : Supprimer entièrement la notion de site/UR du projet. La table `sites`, les FK `site_id` dans `reports` et `users`, le sélecteur de site au login, le filtrage par site — tout disparaît. L'application devient mono-site (ou les sites ne sont plus gérés par l'app).
 
-**Fichiers à supprimer/modifier** :
-- `pages/settings/tab_manage_sites.php` — page entière
-- `handlers/settings_handler.php` — fonction `handleSettingsManageSitesTab()` + bloc `manage_sites` dans le switch
-- `handlers/settings_handler_sites.php` — handler dédié sites (si orphelin)
-- `templates/` — tout template lié à la gestion sites si orphelin
-- `src/queries/site_queries.php` — vérifier quelles fonctions restent après suppression
-- Liens/boutons pointant vers `tab=manage_sites` dans les pages settings
+### Impact estimé (grep préliminaire)
 
-**Effort** : ~1-2h (grep exhaustif + suppressions)
-**Statut** : À faire
+| Couche | Fichiers concernés | Détail |
+|--------|-------------------|--------|
+| **DB** | `schema.sql`, `src/database.php`, `src/migration_columns.php` | Table `sites`, FK `site_id` dans `reports`/`users`/`notification_settings` |
+| **Repository** | `SiteRepository.php`, `ReportRepository.php`, `UserRepository.php` | `findByCode()`, `findById()`, filtres par `site_id`, jointures `LEFT JOIN sites` |
+| **Queries** | `site_queries.php` (11 fonctions), `report_queries.php`, `user_queries.php` | Toutes les fonctions site + wrappers |
+| **Services** | `AccessService.php`, `ConfigService.php`, `UserService.php` | `canSeeAllSites()`, `isNoSiteMode()`, `getReportVisibility()` avec filtres site |
+| **DTO** | `ReportFilter.php`, `CreateUserCommand.php`, `CreateReportCommand.php` | Champs `siteId`, `forceSiteId`, `seeAllSites` |
+| **Handlers** | `settings_handler_sites.php`, `site_edit_handler.php`, `choose_site_handler.php`, `report_create_handler.php`, `user_create_handler.php`, `user_edit_handler.php` | CRUD sites + sélecteur site |
+| **Pages** | `choose_site.php`, `site_edit.php`, `tab_manage_sites.php`, `settings.php`, `report_list.php`, `users.php` | UI sites |
+| **Templates** | `report_card.php`, `report_form.php`, `user_form_fields.php` | Affichage site |
+| **Enums** | Aucun (sites n'est pas un enum) | — |
+| **Tests** | `SiteQueriesTest.php`, `RepositoryInvariantTest.php`, `ValidationUserTest.php`, etc. | Seed de sites dans setUp |
+
+### Sous-chantiers (ordre recommandé)
+
+1. **Schema DB** — Supprimer table `sites`, FK `site_id`, colonnes `site_text`, `site_code`, `site_nom`. Migration destructive.
+2. **Repository/DTO** — Supprimer `SiteRepository`, champs `siteId`/`seeAllSites`/`forceSiteId` des DTOs et filtres.
+3. **Queries** — Supprimer `site_queries.php` entièrement + wrappers dans `report_queries.php`/`user_queries.php`.
+4. **Handlers** — Supprimer `settings_handler_sites.php`, `site_edit_handler.php`, `choose_site_handler.php`. Nettoyer les handlers qui passent `site_id`.
+5. **Pages** — Supprimer `choose_site.php`, `site_edit.php`, `tab_manage_sites.php`. Nettoyer `settings.php`, `report_list.php`, `users.php`.
+6. **Access/Auth** — Simplifier `AccessService` (plus de filtres site), `ConfigService` (supprimer `isNoSiteMode`, `app_label_unite`), login (plus de redirect choose_site).
+7. **Templates** — Supprimer affichage site dans cards, forms, user forms.
+8. **Tests** — Migrer tous les seeds/ assertions qui utilisent `site_id`.
+
+### Risques
+
+- **Données** : La migration destructive supprime les sites existants. Backup obligatoire.
+- **Filtrage** : Le mode `agent_choice` et `confidential` utilisaient `site_id` pour filtrer les signalements. Sans sites, la visibilité devient simplement "par utilisateur" ou "globale".
+- **Notifications** : `notification_settings` a un FK `site_id` — les notifications par site disparaissent.
+- **Export** : Les exports filtraient par site — à simplifier.
+
+**Effort** : ~8-12h (chantier de refactorisation majeur, pas un nettoyage)
+**Statut** : À faire — nécessite un plan détaillé avant de commencer
 
 ---
 

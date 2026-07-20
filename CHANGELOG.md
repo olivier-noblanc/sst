@@ -3,6 +3,22 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.44.0] — 2026-07-20
+
+### Fix critique — JS servant
+
+- **1** 🔴 **js.php** — Création de `public/js.php` (même modèle que `css.php`) pour servir les fichiers JavaScript via PHP. IIS bloque l'accès direct au dossier `js/` via `hiddenSegments` dans `web.config`. Le wordcloud.js ne se chargeait jamais. (`public/js.php`, `templates/footer.php`)
+
+### Migration — CHECK constraints (sans skip)
+
+- **2** 🔴 **CHECK constraints sans guard** — La migration `reports.type/etat` ne skippe plus : aucune guard `schema_version`, échec loud sur violation de données (RuntimeException au lieu de return silencieux). (`src/migration_columns.php`)
+
+### Nettoyage
+
+- **3** 🟡 **TODO P18** — Suppression du concept Sites/UR ajoutée au TODO (non prioritaire, chantier majeur ~8-12h).
+- **4** 🟡 **Playwright** — E2E non-bloquant pour la gate de prod. Playwright retiré des prerequis obligatoires. (`update_sst.ps1`)
+
+
 ## [3.43.0] — 2026-07-20
 
 ### Dead code cleanup — 15 cibles supprimées

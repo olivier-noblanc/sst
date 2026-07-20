@@ -47,4 +47,7 @@ function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string 
     getHttpService()->validatePostRequest($fallbackUrl, $roles, $csrfToken);
 }
 
-
+function flashAndRedirect(string $type, string $message, string $url): void
+{
+    getHttpService()->flashAndRedirect($type, $message, $url);
+}

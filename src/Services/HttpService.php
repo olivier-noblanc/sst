@@ -98,4 +98,12 @@ class HttpService
         }
     }
 
+    /**
+     * Set a flash message and redirect in one call.
+     */
+    public function flashAndRedirect(string $type, string $message, string $url): void
+    {
+        \setFlash($type, $message);
+        $this->redirect($url);
+    }
 }

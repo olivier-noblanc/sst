@@ -212,16 +212,6 @@ class ReportRepository
         return ['reports' => is_array($rows) ? $rows : [], 'total' => $total];
     }
 
-    /** @return list<array<string, mixed>> */
-    public function findBySite(int $siteId): array
-    {
-        $stmt = $this->pdo->prepare($this->baseSelect() . ' WHERE r.site_id = :site_id ORDER BY r.created_at DESC');
-        $stmt->execute([':site_id' => $siteId]);
-        $rows = $stmt->fetchAll();
-        /** @var list<array<string, mixed>> $rows */
-        return is_array($rows) ? $rows : [];
-    }
-
     /**
      * @param array<string, mixed> $report
      * @return array{prev: string|null, next: string|null}
@@ -813,14 +803,8 @@ class ReportRepository
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // Statistics (delegated to StatsRepository for new code)
+    // Export (delegated to StatsRepository)
     // ═══════════════════════════════════════════════════════════════════════════════
-
-    /** @return array<string, int> */
-    public function getStatistics(string $year = '', int $siteId = 0): array
-    {
-        return StatsRepository::instance()->getIndicateurs($year, $siteId);
-    }
 
     /**
      * @param array<string, mixed> $filters
@@ -830,6 +814,10 @@ class ReportRepository
     {
         return StatsRepository::instance()->getExportData($filters);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Write — Linked agents
+    // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
      * Check if a user is linked to a report via report_agents table.

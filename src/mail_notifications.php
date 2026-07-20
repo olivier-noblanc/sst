@@ -121,39 +121,6 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
 }
 
 /**
- * Notify the agent on whose behalf a RAMI report was filed ("pour le compte de").
- *
- * @param PDO    $pdo        Database connection
- * @param string $reportUuid Report UUID
- */
-function notifyPourCompte(PDO $pdo, string $reportUuid): void
-{
-    $report = getReportByUuid($pdo, $reportUuid);
-    if ($report === null || empty($report['pour_compte_nom'])) {
-        return;
-    }
-    /** @var array<string, mixed> $report */
-    // Try to find the agent by by name
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE nom = :nom AND prenom = :prenom AND is_active = 1 LIMIT 1');
-    $stmt->execute([':nom' => $report['pour_compte_nom'], ':prenom' => $report['pour_compte_prenom']]);
-    $agent = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($agent === false || empty($agent['email'])) {
-        return;
-    }
-    $subject = "Un signalement RAMI a été déposé pour vous — {$report['reference']}";
-    $reportUrl = getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]);
-    $body = '<html><body>';
-    $body .= '<h2>Un signalement a été déposé en votre nom</h2>';
-    $body .= renderEmailField('Référence', $report['reference']);
-    $body .= renderEmailField('Registre', 'RAMI');
-    $body .= renderEmailField('Objet', $report['objet']);
-    $body .= renderEmailField('Déposé par', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
-    $body .= renderEmailLink($reportUrl, 'Consulter le signalement');
-    $body .= '</body></html>';
-    sendMail($agent['email'], $subject, $body);
-}
-
-/**
  * Get all notification recipients for a given site.
  *
  * @param PDO $pdo     Database connection

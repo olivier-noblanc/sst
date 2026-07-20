@@ -6,7 +6,7 @@
  * Shared validation logic extracted from handlers.
  * Eliminates duplication between report_create_handler and report_edit_handler.
  *
- * User validation functions (validateUserFields, isLastActiveSuperviseur)
+ * User validation functions (validateUserFields)
  * have been moved to src/validation_user.php.
  *
  * Before this file, the same validation code was copy-pasted across handlers
@@ -91,30 +91,6 @@ function validateRamiFields(string $natureAuteur, string $typeActe): array
     }
 
     return ['nature_auteur' => $natureAuteur, 'type_acte' => $typeActe];
-}
-
-/**
- * Enforce report visibility mode rules on the is_confidential field.
- *
- * - 'public' mode: force is_confidential to 0 (all reports are public)
- * - 'confidential' mode: force is_confidential to 1 (all reports are confidential)
- * - 'agent_choice' mode: keep the agent's selection
- *
- * Shared between report_create_handler and report_edit_handler.
- *
- * @param int $isConfidential  The agent's choice (0 or 1)
- * @return int  The enforced confidentiality value
- */
-function enforceReportVisibility(int $isConfidential): int
-{
-    if (reportVisibilityIsPublic()) {
-        return 0;
-    }
-    if (reportVisibilityIsConfidential()) {
-        return 1;
-    }
-    // agent_choice: keep the agent's selection
-    return $isConfidential;
 }
 
 /**

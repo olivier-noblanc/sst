@@ -17,23 +17,6 @@ require_once __DIR__ . '/report_response_queries.php';
 
 use App\Repository\ReportRepository;
 
-/** Base SELECT for report queries with site JOIN (excludes attachment_blob). */
-function reportSelectWithSite(): string
-{
-    return 'SELECT r.uuid, r.reference, r.type, r.objet, r.description,
-                r.date_evenement, r.heure_evenement, r.lieu,
-                r.declarant_id, r.declarant_nom, r.declarant_prenom,
-                r.pour_compte_de, r.pour_compte_nom, r.pour_compte_prenom,
-                r.nature_auteur, r.type_acte,
-                r.site_id, r.site_text, r.pole, r.service_affectation, r.telephone_mobile,
-                r.is_confidential, r.consent_syndicat, r.etat,
-                r.repondant_id, r.date_reponse, r.reponse,
-                r.attachment_name, r.attachment_mime,
-                r.created_at, r.updated_at,
-                s.code as site_code, s.nom as site_nom
-            FROM reports r LEFT JOIN sites s ON r.site_id = s.id';
-}
-
 /** Generate a UUID v4. */
 function generateUuid(): string
 {
@@ -167,12 +150,4 @@ function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userS
         seeAllSites: $seeAllSites,
     );
     return ReportRepository::instance()->findPaginated($filter, $page, $perPage);
-}
-
-/** Get reports by site.
- * @return list<array<string, mixed>>
- */
-function getReportsBySite(PDO $pdo, int $siteId): array
-{
-    return ReportRepository::instance()->findBySite($siteId);
 }

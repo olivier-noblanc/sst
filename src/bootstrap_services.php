@@ -13,7 +13,7 @@ use App\Services\UserService;
 use App\Services\AuthService;
 use App\Services\SessionManager;
 use App\Services\NotificationService;
-use App\Services\BackupService;
+
 use App\Services\AccessService;
 use App\Services\ConfigService;
 use App\Services\FormattingService;
@@ -59,7 +59,7 @@ function createContainer(): Container
     $container->set(AssetService::class, fn() => new AssetService());
     $container->set(SessionManager::class, fn() => new SessionManager());
     $container->set(NotificationService::class, fn() => new NotificationService());
-    $container->set(BackupService::class, fn() => new BackupService());
+
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Services — with dependencies

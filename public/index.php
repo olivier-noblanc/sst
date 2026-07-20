@@ -27,11 +27,9 @@ if ($useGzip) {
 // Bootstrap — load all core modules
 // ═══════════════════════════════════════════════════════════════════════════════
 
-require_once __DIR__ . '/../src/config.php';
-require_once __DIR__ . '/../src/error_handler.php';
-
-// PSR-4 autoloader — must be loaded before helpers (they use classes)
+// PSR-4 autoloader — must be loaded FIRST (registers spl_autoload, then chain-loads config.php)
 require_once __DIR__ . '/../src/autoload.php';
+require_once __DIR__ . '/../src/error_handler.php';
 
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/session.php';

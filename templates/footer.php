@@ -12,6 +12,6 @@
     </footer>
     <a href="#top" class="back-to-top" aria-label="Retour en haut" title="Retour en haut">&#x25B2;</a>
 </main><!-- end #main-content -->
-    <script src="js/wordcloud.js" defer></script>
+    <script src="js.php?f=js/wordcloud.js&amp;v=<?php echo e(getAppVersion()); ?>" defer></script>
 </body>
 </html>

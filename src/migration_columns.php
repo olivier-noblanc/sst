@@ -48,6 +48,7 @@ function migrateColumns(PDO $pdo): void
     // ── Make users.site_id nullable for existing databases ─────────────────
     $stmt = $pdo->query('PRAGMA table_info(users)');
     $cols = $stmt !== false ? $stmt->fetchAll() : [];
+    $stmt = null; // release the cursor before the DROP TABLE below needs an exclusive lock
     foreach (is_array($cols) ? $cols : [] as $col) {
         if (is_array($col) && ($col['name'] ?? '') === 'site_id' && ($col['notnull'] ?? 0) === 1) {
             $pdo->exec('CREATE TABLE users_new (
@@ -312,22 +313,22 @@ function migrateColumns(PDO $pdo): void
     // DROP TABLE below fail nondeterministically with "database table
     // is locked". Release them before we need an exclusive lock on
     // `reports`.
-    unset($stmt, $upd, $uuidStmt, $upd1, $upd2);
+    $stmt = null;
+    $upd = null;
+    $uuidStmt = null;
+    $upd1 = null;
+    $upd2 = null;
     // 1. Verify no existing rows violate the constraints
     $badTypes = $pdo->query("SELECT DISTINCT type FROM reports WHERE type NOT IN ('rsst','rami','dgi')");
     $badTypeRows = ($badTypes !== false) ? $badTypes->fetchAll() : [];
-    if ($badTypes !== false) {
-        $badTypes->closeCursor();
-    }
+    $badTypes = null;
     if (!empty($badTypeRows)) {
         $vals = array_column($badTypeRows, 'type');
         throw new \RuntimeException('CHECK constraint violation: invalid type values: ' . implode(', ', $vals));
     }
     $badEtats = $pdo->query("SELECT DISTINCT etat FROM reports WHERE etat NOT IN ('nouveau','en_cours','traite','reouvert','abandonne')");
     $badEtatRows = ($badEtats !== false) ? $badEtats->fetchAll() : [];
-    if ($badEtats !== false) {
-        $badEtats->closeCursor();
-    }
+    $badEtats = null;
     if (!empty($badEtatRows)) {
         $vals = array_column($badEtatRows, 'etat');
         throw new \RuntimeException('CHECK constraint violation: invalid etat values: ' . implode(', ', $vals));
@@ -337,9 +338,7 @@ function migrateColumns(PDO $pdo): void
     // 3. Get current column list via PRAGMA
     $colStmt = $pdo->query('PRAGMA table_info(reports)');
     $columns = ($colStmt !== false) ? $colStmt->fetchAll() : [];
-    if ($colStmt !== false) {
-        $colStmt->closeCursor();
-    }
+    $colStmt = null;
     // Build column definitions for CREATE TABLE, preserving exact schema
     $colDefs = [];
     foreach ($columns as $col) {
@@ -374,9 +373,7 @@ function migrateColumns(PDO $pdo): void
     // Get foreign keys
     $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
     $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
-    if ($fkStmt !== false) {
-        $fkStmt->closeCursor();
-    }
+    $fkStmt = null;
     $fkClauses = [];
     foreach ($fks as $fk) {
         if (!is_array($fk)) { continue; }

@@ -97,8 +97,8 @@ function migrateTables(PDO $pdo): void
         $count = 0;
     } else {
         $count = (int) $stmt->fetchColumn();
-        $stmt->closeCursor();
     }
+    $stmt = null;
     if ($count === 0) {
         $pdo->exec("INSERT INTO schema_version (version, description) VALUES (1, 'Baseline — existing database before version tracking')");
     }
@@ -106,9 +106,7 @@ function migrateTables(PDO $pdo): void
     // ── FTS5 full-text search index ────────────────────────────────────────
     $ftsCheck = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='reports_fts'");
     $ftsExists = ($ftsCheck !== false && $ftsCheck->fetch() !== false);
-    if ($ftsCheck !== false) {
-        $ftsCheck->closeCursor();
-    }
+    $ftsCheck = null;
     if (!$ftsExists) {
         $pdo->exec('CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid)');
         $pdo->exec('INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL');

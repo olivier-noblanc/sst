@@ -33,6 +33,15 @@ const xdebugFlag = isWindows ? '-d xdebug.mode=off' : '-d xdebug.mode=off';
 module.exports = defineConfig({
   testDir: './e2e',
   fullyParallel: false,          // PHP built-in server is single-threaded
+  // fullyParallel only serializes tests WITHIN a file — different spec
+  // files can still be dispatched to separate workers running at the
+  // same time. On a multi-core CI runner (GitHub Actions ubuntu-latest
+  // defaults to 2 workers), that meant several files hammering the same
+  // single-threaded PHP dev server AND the same shared SQLite database
+  // concurrently — timeouts, and tests seeing state left behind by an
+  // unrelated test running in another worker. Force strictly sequential
+  // execution across the whole suite.
+  workers: 1,
   retries: 1,
   timeout: 30000,
   expect: { timeout: 10000 },

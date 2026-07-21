@@ -42,7 +42,10 @@ test.describe('User Management', () => {
   });
 
   test('should display user creation form with role selector', async ({ page }) => {
-    await page.goto('/index.php?page=user_create');
+    // user_create is a POST-only handler (see src/Router/routes.php) — there
+    // is no standalone GET page for it. The form itself lives on the
+    // 'create' tab of the users page (see pages/users.php).
+    await page.goto('/index.php?page=users&tab=create');
     await page.waitForLoadState('networkidle');
 
     const content = await page.content();

@@ -69,16 +69,6 @@ $_SERVER['REQUEST_URI'] = '/';
 $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/../public/index.php';
 $_SERVER['DOCUMENT_ROOT'] = __DIR__ . '/../public';
 
-// Create in-memory SQLite database
-$pdo = new PDO('sqlite::memory:');
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-$pdo->exec('PRAGMA foreign_keys = ON');
-
-// Load schema
-$schema = file_get_contents(__DIR__ . '/../schema.sql');
-$pdo->exec($schema);
-
 // Override getDB() to return our test PDO
 function getDB(): PDO {
     static $db = null;
@@ -89,6 +79,18 @@ function getDB(): PDO {
         $db->exec('PRAGMA foreign_keys = ON');
         $schema = file_get_contents(__DIR__ . '/../schema.sql');
         $db->exec($schema);
+        // Run the same table-creation migration production runs on every connection
+        // (src/database.php getDB() -> migrateSchema() -> migrateTables()) — notably
+        // CREATE VIRTUAL TABLE reports_fts. Without this, schema.sql alone never
+        // creates reports_fts, and every FTS5 sync in ReportRepository silently
+        // fails (caught + error_log'd), leaving full-text search completely
+        // unexercised by the test suite.
+        // migrateColumns()/migrateIndexes()/migrateConfigKeys() are intentionally
+        // NOT run here: they depend on backupBeforeMigration() (file-based backup,
+        // meaningless for an in-memory DB) and on config seeding that individual
+        // tests already manage explicitly via config_app resets.
+        require_once __DIR__ . '/../src/migration_tables.php';
+        migrateTables($db);
     }
     return $db;
 }

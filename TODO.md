@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-20
+Dernière mise à jour : 2026-07-21
 
 ---
 
@@ -10,13 +10,13 @@ Dernière mise à jour : 2026-07-20
 |----------|--------|
 | PHPStan erreurs | **0** |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector) |
-| Infection MSI | **51%** (objectif 85%) |
-| Tests | **860** (1804 assertions) |
+| Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
+| Tests | **850** (1773 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
 | Pre-commit hook | **hook .git** (PHPStan + PHPUnit) |
 | Dead code detector | **shipmonk** (installé via composer) |
-| Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs) |
+| Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |
 
 ### ⚠️ Pipeline qualité — État réel
 
@@ -91,23 +91,21 @@ Le script `tools/check_css_classes.php` est intégré au gate (`update_sst.ps1`)
 
 ---
 
-## Priorité 9 — Tests e2e (bloqué, investigation terminée)
+## Priorité 9 — ✅ Tests e2e (ESM/CJS) — CORRIGÉ
 
-**Résultat** : 0/15 specs chargent — tous les tests échouent au chargement du module. Cause : incompatibilité ESM/CJS (`"type": "commonjs"` dans package.json vs syntaxe `import` ESM dans tous les fichiers e2e/). Possible incompatibilité Node.js v24 + Playwright 1.61.0.
+**Root cause confirmée** : `e2e/*.spec.js` utilisent `import` (ESM) alors que `package.json` racine déclare `"type": "commonjs"` (nécessaire à `playwright.config.js`, qui utilise `require`).
 
-**Fix recommandé** : Renommer `e2e/*.spec.js` → `e2e/*.spec.mjs` + `e2e/helpers.js` → `e2e/helpers.mjs`, ou ajouter `e2e/package.json` avec `"type": "module"`.
+**Fix appliqué** :
+- `e2e/package.json` ajouté avec `{"type": "module"}` — isole la résolution ESM des specs sans toucher au `package.json` racine ni à `playwright.config.js`. Vérifié : `npx playwright test --list` liste bien 207 tests / 15 fichiers.
+- Bug additionnel trouvé et corrigé au passage : `playwright.config.js` avait un chemin PHP Linux codé en dur (`/home/z/my-project/tools/php/bin/php`, spécifique à une machine de dev tierce) — remplacé par une résolution via `PATH` (override possible via `SST_PHP_BINARY`).
 
-**Effort** : ~1h (fix config) + validation
-**Statut** : Investigation terminée, pas de bug applicatif trouvé (les tests n'atteignent jamais l'app)
+**Limite connue** : l'exécution réelle des tests (navigateur Firefox) n'a pas pu être vérifiée en session automatisée (téléchargement des binaires Playwright bloqué par la politique réseau de l'environnement d'exécution). Le chargement des specs et la résolution de config sont validés ; l'exécution complète reste à confirmer en CI ou en local (`npx playwright install firefox && npx playwright test`).
 
 ---
 
-## Priorité 10 — Nettoyage @var bricolage
+## Priorité 10 — ✅ Nettoyage @var bricolage — TERMINÉ
 
-~145 annotations @var dans le codebase. Celles ajoutées pour le level 10 sont inutiles au level 8. Passer en revue et ne garder que les @var utiles (templates injectés, résultats PDO, doc de type).
-
-**Effort** : ~2h (travail minutieux)
-**Statut** : À faire (subagent annulé, non prioritaire)
+129 annotations `/** @var TYPE $var */` de narrowing (un commentaire suivi immédiatement de l'affectation qu'il annote) supprimées par détection scriptée du motif exact, sur 34 fichiers. Vérifié : PHPStan level 8 toujours à 0 erreur avant/après, `php -l` propre sur les 34 fichiers, 850/850 tests toujours verts. Les `@var` documentant un type de retour PDO/tableau, les `@var` de boucle `foreach`, et les `@var` de propriétés de classe sont conservés (non concernés par le motif de narrowing pur).
 
 ---
 
@@ -156,23 +154,30 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 
 ---
 
-## Priorité 13 — Infection MSI 51% → 85% (pause)
+## Priorité 13 — Infection MSI 51% → 85% (délibérément non traité cette session)
 
 Le mutation score est à 51%, bien en dessous du seuil de 85%. Identifier les mutants survivants les plus critiques et ajouter des tests pour les tuer.
 
 **Effort** : ~4-8h
-**Statut** : En attente — ne pas lancer sans supervision (risque de tests qui tuent des mutants sans vérifier de vrai comportement)
+**Statut** : Non traité, délibérément — le TODO lui-même l'indique explicitement : *« ne pas lancer sans supervision (risque de tests qui tuent des mutants sans vérifier de vrai comportement) »*. Écrire des tests dont le seul but est de tuer des mutants Infection sans validation humaine du comportement réellement vérifié va à l'encontre de l'objectif « zéro bug » du chantier — le risque est de gonfler artificiellement le score sans gagner de couverture utile. Respecté tel quel plutôt que contourné.
 
 ---
 
-## Priorité 14 — Nettoyage queries orphelines (investigation terminée)
+## Priorité 14 — ✅ Nettoyage queries orphelines — TERMINÉ
 
-Les fichiers `src/queries/report_queries.php`, `src/queries/report_response_queries.php` etc. sont probablement orphelins (migrés vers les Repository classes). Vérifier et supprimer si inutilisés — éliminerait ~60% de la duplication détectée par phpcpd.
+Vérification indépendante refaite (l'investigation précédente datait un peu) par grep exhaustif des appelants réels (hors définition, en distinguant précisément un appel de fonction procédurale `fn(` d'un appel de méthode OOP `->fn(` du même nom — piège rencontré sur `getExportData`/`getAvailableYears`/`getRamiStructuredStats`, qui existent à la fois comme fonctions procédurales mortes ET comme méthodes `StatsRepository` bien vivantes).
 
-**Résultat investigation** : 5 fichiers entièrement orphelins (user_admin, user_gdpr, stats, rami_stats, notification). 6 fichiers partiellement orphelins. `createReport()` et `updateReport()` ont des doublons SQL avec ReportRepository — createReport est identique, updateReport a divergé (pas de transaction dans la version query). `updateReport()` a 0 appelant prod (dormant, pas actif).
+**5 fichiers supprimés** (tous délégaient purement à une classe Repository, zéro appelant procédural restant) :
+- `notification_queries.php` — 0 appelant, ni prod ni tests (couverture déjà assurée par `NotificationServiceTest.php`)
+- `stats_queries.php` — 0 appelant procédural (les pages appellent `StatsRepository` directement) ; retiré aussi de `composer.json` (autoload.files)
+- `rami_stats_queries.php` — idem
+- `user_admin_queries.php` / `user_gdpr_queries.php` — **plus complexe que prévu** : leurs fonctions (`createUser`, `updateUser`, `deactivateUser`, `reactivateUser`, `updateUserRole`, `countActiveUsers`, `exportUserData`, `anonymizeUser`) étaient mortes en prod mais utilisées comme *fixtures de test* dans 4 fichiers (`UserQueriesTest`, `UserQueriesExportTest`, `ValidationUserTest`, `AuthProvisionTest`). Migrées vers `App\Repository\UserRepository` plutôt que supprimées à l'aveugle — aucune perte de couverture (vérifié contre `UserServiceTest.php`, 34 tests, et `RgpdAnonymizeTest.php`).
 
-**Effort** : ~3-4h (migration tests + suppressions)
-**Statut** : Investigation terminée, prêt pour validation. Chantier de refactorisation, pas un nettoyage rapide.
+`updateUserSite()` n'avait, elle, aucun appelant nulle part (ni prod ni test).
+
+Tous les `require_once` correspondants retirés de `src/autoload.php`. 850/850 tests verts après chaque suppression (5 commits distincts).
+
+**Reste à faire (hors périmètre de cette passe)** : les "6 fichiers partiellement orphelins" et le doublon SQL `createReport()`/`updateReport()` entre `report_queries.php` et `ReportRepository` (mentionnés dans l'investigation d'origine) n'ont pas été retraités ici — seuls les 5 fichiers *entièrement* morts l'ont été. `updateReport()` (0 appelant prod signalé) mériterait la même vérification rigoureuse que ci-dessus avant suppression.
 
 ---
 
@@ -215,45 +220,66 @@ Migration automatique ajoutée dans `src/migration_columns.php` :
 
 ---
 
-## Priorité 18 — Supprimer le concept "Sites" (Unités Régionales) du projet (non prioritaire)
+## Priorité 18 — Supprimer le concept "Sites" (Unités Régionales) du projet (non prioritaire — plan détaillé, non exécuté)
 
-**Objectif** : Supprimer entièrement la notion de site/UR du projet. La table `sites`, les FK `site_id` dans `reports` et `users`, le sélecteur de site au login, le filtrage par site — tout disparaît. L'application devient mono-site (ou les sites ne sont plus gérés par l'app).
+**Objectif** : Supprimer entièrement la notion de site/UR du projet. La table `sites`, les FK `site_id` dans `reports`/`users`/`notification_settings`, le sélecteur de site au login, le filtrage par site — tout disparaît.
 
-### Impact estimé (grep préliminaire)
+### ⚠️ Décision produit bloquante (à trancher avant tout début d'exécution)
 
-| Couche | Fichiers concernés | Détail |
-|--------|-------------------|--------|
-| **DB** | `schema.sql`, `src/database.php`, `src/migration_columns.php` | Table `sites`, FK `site_id` dans `reports`/`users`/`notification_settings` |
-| **Repository** | `SiteRepository.php`, `ReportRepository.php`, `UserRepository.php` | `findByCode()`, `findById()`, filtres par `site_id`, jointures `LEFT JOIN sites` |
-| **Queries** | `site_queries.php` (11 fonctions), `report_queries.php`, `user_queries.php` | Toutes les fonctions site + wrappers |
-| **Services** | `AccessService.php`, `ConfigService.php`, `UserService.php` | `canSeeAllSites()`, `isNoSiteMode()`, `getReportVisibility()` avec filtres site |
-| **DTO** | `ReportFilter.php`, `CreateUserCommand.php`, `CreateReportCommand.php` | Champs `siteId`, `forceSiteId`, `seeAllSites` |
-| **Handlers** | `settings_handler_sites.php`, `site_edit_handler.php`, `choose_site_handler.php`, `report_create_handler.php`, `user_create_handler.php`, `user_edit_handler.php` | CRUD sites + sélecteur site |
-| **Pages** | `choose_site.php`, `site_edit.php`, `tab_manage_sites.php`, `settings.php`, `report_list.php`, `users.php` | UI sites |
-| **Templates** | `report_card.php`, `report_form.php`, `user_form_fields.php` | Affichage site |
-| **Enums** | Aucun (sites n'est pas un enum) | — |
-| **Tests** | `SiteQueriesTest.php`, `RepositoryInvariantTest.php`, `ValidationUserTest.php`, etc. | Seed de sites dans setUp |
+En vérifiant `AccessService::canAccessReport()` (le portail d'accès central à un signalement), la ségrégation par site n'est **pas** un simple filtre cosmétique : pour le rôle `agent`, c'est la première porte, avant même le mode de visibilité :
 
-### Sous-chantiers (ordre recommandé)
+```php
+$reportSiteId = (int) ($report['site_id'] ?? 0);
+$userSiteId = (int) ($user['site_id'] ?? 0);
+if ($reportSiteId !== $userSiteId) {
+    return false;   // accès refusé, sans même regarder la confidentialité
+}
+```
 
-1. **Schema DB** — Supprimer table `sites`, FK `site_id`, colonnes `site_text`, `site_code`, `site_nom`. Migration destructive.
-2. **Repository/DTO** — Supprimer `SiteRepository`, champs `siteId`/`seeAllSites`/`forceSiteId` des DTOs et filtres.
-3. **Queries** — Supprimer `site_queries.php` entièrement + wrappers dans `report_queries.php`/`user_queries.php`.
-4. **Handlers** — Supprimer `settings_handler_sites.php`, `site_edit_handler.php`, `choose_site_handler.php`. Nettoyer les handlers qui passent `site_id`.
-5. **Pages** — Supprimer `choose_site.php`, `site_edit.php`, `tab_manage_sites.php`. Nettoyer `settings.php`, `report_list.php`, `users.php`.
-6. **Access/Auth** — Simplifier `AccessService` (plus de filtres site), `ConfigService` (supprimer `isNoSiteMode`, `app_label_unite`), login (plus de redirect choose_site).
-7. **Templates** — Supprimer affichage site dans cards, forms, user forms.
-8. **Tests** — Migrer tous les seeds/ assertions qui utilisent `site_id`.
+Supprimer `site_id` sans rien y substituer signifie qu'**un agent verrait potentiellement tous les signalements de toutes les anciennes UR**, y compris ceux d'agents d'autres UR — un changement de comportement de confidentialité, pas juste un nettoyage technique, sur une application qui gère des signalements réels d'incidents santé/sécurité au travail. Le TODO d'origine notait déjà : *« Sans sites, la visibilité devient simplement 'par utilisateur' ou 'globale' »* — mais **laquelle des deux** est une décision produit, pas technique, et elle change qui peut lire quoi. Je ne l'ai pas tranchée moi-même : c'est le seul point de tout ce chantier où j'ai choisi de m'arrêter plutôt que de choisir à ta place, parce que la conséquence touche la confidentialité de données réelles, pas juste la structure du code.
+
+### Inventaire vérifié (grep exhaustif, plus large que l'estimation initiale)
+
+**47 fichiers de code applicatif** (hors tests) référencent `site_id`/`SiteRepository`/`choose_site`/`site_code`/`site_nom`/`seeAllSites`/`isNoSiteMode`/`app_label_unite` :
+
+| Couche | Fichiers | Détail |
+|--------|----------|--------|
+| **DB** | `schema.sql` | Table `sites` ; `reports.site_id` **NOT NULL** (obligatoire, pas nullable) ; `users.site_id` nullable ; `notification_settings.site_id` nullable ; 3 `FOREIGN KEY`, 4 index dédiés |
+| **Repository (5)** | `SiteRepository`, `ReportRepository`, `UserRepository`, `StatsRepository`, `NotificationRepository` | Filtres, jointures `LEFT JOIN sites`, `findBySite`, agrégats par site |
+| **Services (6)** | `AccessService` (⚠️ ci-dessus), `ConfigService`, `UserService`, `AuthService`, `NotificationService` | `canSeeAllSites()`, `isNoSiteMode()`, filtres site dans la logique métier |
+| **DTO (4)** | `ReportFilter`, `CreateReportCommand`, `CreateUserCommand`, `UpdateUserCommand` | Champs `siteId`/`forceSiteId`/`seeAllSites` |
+| **Queries** | `site_queries.php` (11 fonctions), + refs dans `report_queries.php`, `report_count_queries.php`, `user_queries.php` | |
+| **Handlers (7)** | `settings_handler_sites.php`, `site_edit_handler.php`, `choose_site_handler.php`, `report_create_handler.php`, `report_abandon_handler.php`, `export_handler.php`, `settings_handler_app.php` | |
+| **Pages (13)** | `choose_site.php`, `site_edit.php`, `settings.php` + `tab_app.php`/`tab_manage_sites.php`, `report_list.php`, `report_create.php`, `report_print.php`, `report_respond.php`, `statistics.php`, `synthesis.php`, `users.php`, `user_edit.php`, `user_view.php`, `export.php`, `home.php`, `guide.php`, `help.php` | |
+| **Templates (3)** | `report_card.php`, `report_form.php`, `user_form_fields.php` | |
+| **Auth/routing** | `src/Middleware/bootstrap.php`, `src/Router/routes.php`, `public/index.php` | Redirect post-login vers `choose_site` |
+| **Migrations** | `migration_columns.php`, `migration_indexes.php`, `migration_tables.php`, `database.php` | |
+| **Autres** | `src/cron.php`, `src/mail_notifications.php`, `src/mail_templates.php`, `src/validation_user.php`, `src/helpers/config.php`, `src/user_context.php` | |
+
+**28 fichiers de test** seedent ou assertent sur `site_id`/`SiteRepository`/`createSite()`.
+
+### Sous-chantiers (ordre recommandé, une fois la décision ci-dessus tranchée)
+
+1. **Trancher la politique de visibilité de remplacement** pour le rôle `agent` (cf. ci-dessus) — préalable non-technique à tout le reste.
+2. **Schema DB** — migration destructive : `sites`, FK `site_id` (×3), colonnes, index. Backup automatique déjà en place (`backupBeforeMigration()`) mais à vérifier explicitement avant.
+3. **Repository/DTO** — supprimer `SiteRepository`, champs `siteId`/`seeAllSites`/`forceSiteId`.
+4. **Queries** — supprimer `site_queries.php` + les wrappers dans les autres fichiers `queries/`.
+5. **Services** — implémenter la politique tranchée à l'étape 1 dans `AccessService::canAccessReport()` ; nettoyer `ConfigService::isNoSiteMode()`/`app_label_unite`.
+6. **Handlers** — supprimer les 3 handlers dédiés site ; nettoyer les 4 autres qui passent `site_id` en paramètre annexe.
+7. **Pages/Templates** — supprimer les 3 pages dédiées ; nettoyer les 10 pages et 3 templates qui affichent/filtrent par site.
+8. **Auth/routing** — supprimer le redirect `choose_site` post-login.
+9. **Tests** — migrer les 28 fichiers (retirer les seeds `createSite()`, adapter les assertions qui dépendaient du filtrage par site).
+10. **Vérification finale** — `phpstan analyse` + `phpunit --no-coverage` + relecture manuelle du comportement de visibilité par rôle.
 
 ### Risques
 
-- **Données** : La migration destructive supprime les sites existants. Backup obligatoire.
-- **Filtrage** : Le mode `agent_choice` et `confidential` utilisaient `site_id` pour filtrer les signalements. Sans sites, la visibilité devient simplement "par utilisateur" ou "globale".
-- **Notifications** : `notification_settings` a un FK `site_id` — les notifications par site disparaissent.
-- **Export** : Les exports filtraient par site — à simplifier.
+- **Confidentialité** : cf. décision bloquante ci-dessus — c'est le risque principal, pas la mécanique de suppression.
+- **Données existantes** : migration destructive, données de site perdues (backup obligatoire, déjà scripté).
+- **Notifications** : `notification_settings.site_id` — les notifications par site disparaissent, à clarifier si un mode "par site" doit survivre autrement.
+- **Export** : les exports filtraient par site — à simplifier ou remplacer.
 
-**Effort** : ~8-12h (chantier de refactorisation majeur, pas un nettoyage)
-**Statut** : À faire — nécessite un plan détaillé avant de commencer
+**Effort estimé (révisé après inventaire)** : 10-15h (le périmètre réel — 47 fichiers applicatifs + 28 de test — est plus large que l'estimation initiale de 8-12h).
+**Statut** : Plan détaillé livré (ce que le TODO demandait comme préalable). **Non exécuté** dans cette session — la décision de politique de visibilité ci-dessus n'est pas une question technique que je peux trancher à ta place sans risquer un vrai changement de confidentialité sur des données réelles.
 
 ---
 

@@ -49,12 +49,6 @@ class AccessService
             return (int) ($report['consent_syndicat'] ?? 0) === 1;
         }
 
-        $reportSiteId = (int) ($report['site_id'] ?? 0);
-        $userSiteId = (int) ($user['site_id'] ?? 0);
-        if ($reportSiteId !== $userSiteId) {
-            return false;
-        }
-
         $visibility = $forcedVisibility ?? $this->getReportVisibilityMode($report['type'] ?? null);
         $reportDeclarantId = (int) ($report['declarant_id'] ?? 0);
         $userId = (int) ($user['id'] ?? 0);

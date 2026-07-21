@@ -146,20 +146,20 @@ class AccessHelperIntegrationTest extends TestCase
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
-    // ─── Agent access — other site ───────────────────────────────────────
+    // ─── Agent access — site is no longer a filter ────────────────────────
 
-    public function testAgentCannotAccessReportFromOtherSite(): void
+    public function testAgentCanAccessReportFromOtherSite(): void
     {
         $user = $this->makeUser(['id' => $this->agentId1, 'site_id' => $this->siteId1]);
         $report = $this->makeReport(['site_id' => $this->siteId2, 'declarant_id' => 999]);
-        $this->assertFalse(canAccessReport($report, $user, 'public'));
+        $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
-    public function testAgentCannotAccessOtherSiteReportEvenIfNotConfidential(): void
+    public function testAgentCanAccessOtherSiteReportWhenNotConfidential(): void
     {
         $user = $this->makeUser(['id' => $this->agentId1, 'site_id' => $this->siteId1]);
         $report = $this->makeReport(['site_id' => $this->siteId2, 'is_confidential' => 0, 'declarant_id' => 999]);
-        $this->assertFalse(canAccessReport($report, $user, 'public'));
+        $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
     // ─── Agent choice mode ───────────────────────────────────────────────

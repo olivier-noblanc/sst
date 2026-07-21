@@ -149,11 +149,11 @@ class AccessHelperTest extends TestCase
         $this->assertFalse(canAccessReport($report, $user, 'confidential'));
     }
 
-    public function testAgentCannotAccessOtherSiteReport(): void
+    public function testAgentCanAccessOtherSiteReport(): void
     {
         $report = ['site_id' => '1', 'declarant_id' => '99', 'is_confidential' => '0', 'type' => 'rsst'];
         $user = ['id' => 5, 'site_id' => 2, 'role' => 'agent'];
-        $this->assertFalse(canAccessReport($report, $user, 'public'));
+        $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCannotAccessOtherConfidentialReport(): void
@@ -208,11 +208,11 @@ class AccessHelperTest extends TestCase
         $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
-    public function testAgentCannotAccessDifferentSiteEvenInPublicMode(): void
+    public function testAgentCanAccessDifferentSiteInPublicMode(): void
     {
         $report = ['site_id' => '2', 'declarant_id' => '99', 'is_confidential' => '0', 'type' => 'rsst'];
         $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
-        $this->assertFalse(canAccessReport($report, $user, 'public'));
+        $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCanAccessOwnConfidentialInConfidentialMode(): void

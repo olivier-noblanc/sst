@@ -53,11 +53,11 @@ class AccessServiceTest extends TestCase
         $this->assertTrue($this->service->canAccessReport($report, $user, 'public'));
     }
 
-    public function testAgentCannotAccessReportOnDifferentSite(): void
+    public function testAgentCanAccessReportRegardlessOfSite(): void
     {
         $report = ['site_id' => 1, 'declarant_id' => 2, 'type' => 'rsst'];
         $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 2];
-        $this->assertFalse($this->service->canAccessReport($report, $user, 'public'));
+        $this->assertTrue($this->service->canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCannotAccessConfidentialReportTheyDidNotDeclare(): void

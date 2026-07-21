@@ -37,6 +37,7 @@ function migrateConfigKeys(PDO $pdo): void
         'last_lazy_cron_anonymize' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron anonymize. Ne pas modifier manuellement.', 0],
         'app_report_preamble' => ['Pour toute inscription d\'un fait, vous devez être objectif et factuel. Ne pas mentionner de noms de personnes. Vous pouvez joindre un document ou une photo.', 'text', 'app', 'Texte d\'information affiché en haut du formulaire de signalement (zone readonly). Modifiable via l\'administration.', 1],
         'app_rsst_description' => ['Risques liés aux locaux, équipements, ergonomie, conditions environnementales', 'text', 'app', 'Description du registre RSST affichée sur la page d\'accueil. Modifiable via l\'administration.', 1],
+        'app_report_create_label' => ['Signaler un événement', 'text', 'app', 'Libellé du bouton et du titre de la page de création de signalement (page d\'accueil, liste des signalements, formulaire, titre d\'onglet). Modifiable via l\'administration.', 1],
     ];
 
     foreach ($newKeys as $cle => $data) {

@@ -200,6 +200,15 @@
                 </small>
             </div>
             <div class="form-group">
+                <label for="app_report_create_label">Libellé "Signaler un événement"</label>
+                <input type="text" id="app_report_create_label" name="app_report_create_label" class="form-control"
+                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_report_create_label', 'Signaler un événement')); ?>"
+                       placeholder="Signaler un événement" required>
+                <small class="text-muted block mt-1">
+                    Libellé du bouton et du titre affichés sur la page d'accueil, la liste des signalements, le formulaire de création et l'onglet du navigateur.
+                </small>
+            </div>
+            <div class="form-group">
                 <label for="app_rsst_description">Description du registre RSST (page d'accueil)</label>
                 <input type="text" id="app_rsst_description" name="app_rsst_description" class="form-control"
                        value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_rsst_description', '')); ?>"

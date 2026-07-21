@@ -182,7 +182,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         <div class="empty-state__icon">&#128203;</div>
                         <div class="empty-state__title">Aucun signalement trouvé</div>
                         <div class="empty-state__cta">
-                            <a href="<?php echo $http->url('report_create', ['type' => $type]); ?>" class="btn btn--primary btn--sm">+ Signaler un événement</a>
+                            <a href="<?php echo $http->url('report_create', ['type' => $type]); ?>" class="btn btn--primary btn--sm">+ <?php echo e(getConfig('app_report_create_label', 'Signaler un événement')); ?></a>
                         </div>
                     </td>
                 </tr>

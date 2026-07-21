@@ -69,6 +69,12 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     $appRsstDescription = trim((string) ($postData['app_rsst_description'] ?? ''));
     updateConfig($pdo, 'app_rsst_description', $appRsstDescription);
 
+    // Report creation label (button/heading/tab title across several pages)
+    // — never save blank: an empty label would leave the primary action
+    // button with no visible text anywhere it's used.
+    $appReportCreateLabel = trim((string) ($postData['app_report_create_label'] ?? ''));
+    updateConfig($pdo, 'app_report_create_label', $appReportCreateLabel !== '' ? $appReportCreateLabel : 'Signaler un événement');
+
     // Admin email for error notifications
     $appAdminEmail = trim((string) ($postData['app_admin_email'] ?? ''));
     if ($appAdminEmail !== '' && filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL) === false) {

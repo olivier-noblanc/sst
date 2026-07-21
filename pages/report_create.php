@@ -27,8 +27,6 @@ if (!ConfigService::getInstance()->isRegistryEnabled($type)) {
     new HttpService()->redirect(new HttpService()->url('home'));
 }
 
-$pageTitle = 'Signaler un événement — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type));
-
 $pdo = getContainer()->get(PDO::class);
 $user = SessionService::getInstance()->getUserSession();
 

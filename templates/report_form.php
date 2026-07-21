@@ -68,7 +68,7 @@ $submitBtnClass = $isEdit
         ['label' => $isEdit ? 'Modifier' : 'Nouveau signalement'],
     ]); ?>
     <h2 class="mb-4">
-        <?php echo $isEdit ? 'Modifier le signalement' : 'Signaler un événement'; ?> — <?php echo e($registryFullLabel); ?>
+        <?php echo $isEdit ? 'Modifier le signalement' : e(getConfig('app_report_create_label', 'Signaler un événement')); ?> — <?php echo e($registryFullLabel); ?>
     </h2>
     <?php
     $preamble = getConfig('app_report_preamble', '');

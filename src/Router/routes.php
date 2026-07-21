@@ -118,7 +118,7 @@ function createRouter(): Router
     $router->setPageTitle('guide', 'Guide rapide — Comment signaler');
     $router->setPageTitle('changelog', 'Historique des modifications');
     $router->setPageTitle('choose_site', 'Choisir mon site');
-    $router->setPageTitle('report_create', 'Signaler un événement');
+    $router->setPageTitle('report_create', getConfig('app_report_create_label', 'Signaler un événement'));
     $router->setPageTitle('report_list', 'Liste des fiches');
     $router->setPageTitle('report_view', 'Signalement');
     $router->setPageTitle('report_edit', 'Modifier le signalement');

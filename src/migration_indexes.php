@@ -6,6 +6,10 @@
  * Ensures all required indexes exist. Uses CREATE INDEX IF NOT EXISTS
  * so it is safe to run on every request without side effects.
  *
+ * Deliberately not wrapped in try/catch: CREATE INDEX IF NOT EXISTS is
+ * idempotent and should always succeed. A failure here is a code bug,
+ * not a condition to silently degrade from — let it throw.
+ *
  * @param PDO $pdo
  */
 function migrateIndexes(PDO $pdo): void
@@ -38,10 +42,6 @@ function migrateIndexes(PDO $pdo): void
     ];
 
     foreach ($indexes as $sql) {
-        try {
-            $pdo->exec($sql);
-        } catch (Exception $e) {
-            error_log('Index migration warning: ' . $e->getMessage());
-        }
+        $pdo->exec($sql);
     }
 }

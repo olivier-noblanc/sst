@@ -150,19 +150,16 @@ function performBackupInternal(PDO $pdo, string $prefix = 'sst', bool $force = f
         $backupFile = BACKUP_DIR . '/' . $prefix . '_' . $timestamp . '_' . random_int(100, 999) . '.db';
     }
 
-    try {
-        // Flush WAL before VACUUM INTO to ensure backup captures all pending writes
-        try {
-            $pdo->exec('PRAGMA wal_checkpoint(PASSIVE)');
-        } catch (Exception $e) {
-            // Non-critical: proceed with backup even if checkpoint fails
-            error_log('[SST-BACKUP] WAL checkpoint before backup failed: ' . $e->getMessage());
-        }
-        $pdo->exec("VACUUM INTO '" . str_replace("'", "''", $backupFile) . "'");
-    } catch (Exception $e) {
-        error_log('[SST-BACKUP] VACUUM INTO failed: ' . $e->getMessage());
-        return false;
-    }
+    // Flush WAL before VACUUM INTO to ensure backup captures all pending writes.
+    // Neither call is wrapped here: a failure means the backup did not happen,
+    // which the caller needs to know rather than have masked. performBackup()'s
+    // own caller (src/database.php) already decides, deliberately, not to let a
+    // failed backup block a normal page load; backupBeforeMigration()'s caller
+    // (the CHECK-constraint rebuild in migration_columns.php) deliberately does
+    // NOT catch it — proceeding with a destructive table rebuild without a
+    // successful pre-migration backup would be worse than stopping.
+    $pdo->exec('PRAGMA wal_checkpoint(PASSIVE)');
+    $pdo->exec("VACUUM INTO '" . str_replace("'", "''", $backupFile) . "'");
 
     if (!file_exists($backupFile) || filesize($backupFile) === 0) {
         error_log('[SST-BACKUP] Backup file missing or empty: ' . $backupFile);

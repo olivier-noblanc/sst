@@ -119,23 +119,23 @@ function migrateConfigKeys(PDO $pdo): void
  */
 function migrateEncryptSmtpPass(PDO $pdo): void
 {
-    try {
-        $stmt = $pdo->prepare("SELECT valeur FROM config_app WHERE cle = 'smtp_pass'");
-        $stmt->execute();
-        $value = $stmt->fetchColumn();
+    $stmt = $pdo->prepare("SELECT valeur FROM config_app WHERE cle = 'smtp_pass'");
+    $stmt->execute();
+    $value = $stmt->fetchColumn();
 
-        // Only encrypt if there's a non-empty value that is not already encrypted
-        if ($value !== false && $value !== '' && !str_starts_with((string) $value, 'enc:')) {
-            $encrypted = encryptConfigValue((string) $value);
-            if (str_starts_with($encrypted, 'enc:')) {
-                $upd = $pdo->prepare("UPDATE config_app SET valeur = :valeur, updated_at = datetime('now') WHERE cle = 'smtp_pass'");
-                $upd->execute([':valeur' => $encrypted]);
-                error_log('[SST-MIGRATION] smtp_pass automatically encrypted (plaintext → enc: prefix).');
-            } else {
-                error_log('[SST-MIGRATION] smtp_pass encryption failed — SST_SECRET_KEY may be missing. Password remains in plaintext until the key is configured.');
-            }
+    // Only encrypt if there's a non-empty value that is not already encrypted
+    if ($value !== false && $value !== '' && !str_starts_with((string) $value, 'enc:')) {
+        $encrypted = encryptConfigValue((string) $value);
+        if (str_starts_with($encrypted, 'enc:')) {
+            $upd = $pdo->prepare("UPDATE config_app SET valeur = :valeur, updated_at = datetime('now') WHERE cle = 'smtp_pass'");
+            $upd->execute([':valeur' => $encrypted]);
+            error_log('[SST-MIGRATION] smtp_pass automatically encrypted (plaintext → enc: prefix).');
+        } else {
+            // Not a bug — this is the expected outcome when SST_SECRET_KEY isn't
+            // configured yet. Leaving the password in plaintext (rather than
+            // throwing) keeps SMTP working until an admin sets the key; the
+            // clear log line makes the degraded state visible either way.
+            error_log('[SST-MIGRATION] smtp_pass encryption failed — SST_SECRET_KEY may be missing. Password remains in plaintext until the key is configured.');
         }
-    } catch (Exception $e) {
-        error_log('[SST-MIGRATION] smtp_pass encryption migration warning: ' . $e->getMessage());
     }
 }

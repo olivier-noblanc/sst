@@ -148,24 +148,44 @@ function Invoke-QualityGate {
         $missing += "PHPUnit"
     }
 
-    $pythonPw = $false
     $npxPw = $false
     try { $npxV = & npx playwright --version 2>&1; if ($LASTEXITCODE -eq 0 -and $npxV -match 'Version') { $npxPw = $true } } catch {}
+    if (-not $npxPw) {
+        $missing += "Playwright"
+    }
+
+    # msedge is Windows-only — required for the E2E project that exercises
+    # real Windows Integrated Authentication against IIS (channel: 'msedge'
+    # launches the actual system Edge, not a Playwright-managed browser, so
+    # there is nothing to "install" beyond Edge itself being present).
+    $msedgePw = $false
+    if ($npxPw -and $IsWindows) {
+        $edgePaths = @(
+            "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
+            "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+        )
+        $msedgePw = ($edgePaths | Where-Object { Test-Path $_ }).Count -gt 0
+        if (-not $msedgePw) {
+            $missing += "msedge"
+        }
+    }
 
     if ($missing.Count -gt 0) {
         Write-Host ""
         Write-Status "X" "OUTILS MANQUANTS — deploiement BLOQUE" "Red"
         foreach ($m in $missing) {
             switch ($m) {
-                "PHPStan"   { Write-Host "    Installer PHPStan : scoop install phpstan" -ForegroundColor Yellow }
-                "PHPUnit"   { Write-Host "    Installer PHPUnit : scoop install phpunit" -ForegroundColor Yellow }
+                "PHPStan"    { Write-Host "    Installer PHPStan : scoop install phpstan" -ForegroundColor Yellow }
+                "PHPUnit"    { Write-Host "    Installer PHPUnit : scoop install phpunit" -ForegroundColor Yellow }
+                "Playwright" { Write-Host "    Installer Playwright : npm install -D @playwright/test && npx playwright install firefox" -ForegroundColor Yellow }
+                "msedge"     { Write-Host "    Microsoft Edge introuvable — normalement preinstalle sur Windows. Reinstaller ou reparer via winget: winget install Microsoft.Edge" -ForegroundColor Yellow }
             }
         }
         Write-Host ""
         return $false
     }
 
-    Write-Status "OK" "PHPStan, PHPUnit, Playwright (npx: $npxPw)" "Green"
+    Write-Status "OK" "PHPStan, PHPUnit, Playwright (firefox + msedge)" "Green"
     Write-Host ""
 
     $gateOk = $true
@@ -319,7 +339,8 @@ function Invoke-QualityGate {
         Set-Content "$tmpDir\phpunit.ran" $ran
     } -ArgumentList $phpPath, $PhpUnitPhar, $tmpDir
 
-    # Lancer E2E en arrière-plan
+    # Lancer E2E en arrière-plan — firefox + msedge (msedge = vrai Edge
+    # systeme, requis pour l'authentification Windows integree contre IIS)
     $e2eJob = Start-Job -ScriptBlock {
         param($tmpDir)
         $ran = $false
@@ -334,7 +355,7 @@ function Invoke-QualityGate {
         } catch {}
         if ($e2eCmd) {
             $ran = $true
-            $output = & npx playwright test --project=firefox -q 2>&1
+            $output = & npx playwright test --project=firefox --project=msedge -q 2>&1
             $rc = $LASTEXITCODE
         }
         $output | Out-File "$tmpDir\e2e.out"
@@ -433,12 +454,14 @@ function Invoke-QualityGate {
             Where-Object { $_ -notmatch '^\s*$' }
         $e2eOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
         if ($e2eRc -eq 0) {
-            Write-Status "OK" "E2E Playwright ($e2eCmd, Firefox) : OK." "Green"
+            Write-Status "OK" "E2E Playwright ($e2eCmd, firefox + msedge) : OK." "Green"
         } else {
-            Write-Status "!" "E2E Playwright : echec (code $e2eRc) — non bloquant pour le deploiement." "Yellow"
+            Write-Status "X" "E2E Playwright : echec (code $e2eRc)." "Red"
+            $gateOk = $false
         }
     } else {
-        Write-Status "!" "Playwright non trouve (npx). E2E skippee." "Yellow"
+        Write-Status "X" "Playwright non trouve (npx). E2E non executee." "Red"
+        $gateOk = $false
     }
 
     # ── Résultat CSS checker ──
@@ -805,10 +828,11 @@ PID_PHPSTAN=$!
 ) &
 PID_PHPUNIT=$!
 
-# E2E Playwright (Firefox)
+# E2E Playwright (firefox + msedge — msedge = vrai Edge systeme, requis
+# pour l'authentification Windows integree contre IIS)
 (
     cd "$REPO_ROOT"
-    npx playwright test --project=firefox -q >"$TMPDIR/e2e.out" 2>&1
+    npx playwright test --project=firefox --project=msedge -q >"$TMPDIR/e2e.out" 2>&1
     echo $? >"$TMPDIR/e2e.rc"
 ) &
 PID_E2E=$!
@@ -863,7 +887,7 @@ fi
 # E2E
 RC=$(cat "$TMPDIR/e2e.rc" 2>/dev/null)
 if [[ "$RC" == "0" ]]; then
-    echo "[pre-push] ✓ E2E OK (Firefox)"
+    echo "[pre-push] ✓ E2E OK (firefox + msedge)"
 else
     echo "[pre-push] ✗ E2E échoué (code $RC)"
     cat "$TMPDIR/e2e.out" 2>/dev/null | tail -10

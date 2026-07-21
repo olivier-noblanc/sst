@@ -50,6 +50,18 @@ module.exports = defineConfig({
       name: 'firefox',
       use: { browserName: 'firefox' },
     },
+    {
+      // channel: 'msedge' launches the real, system-installed Microsoft Edge
+      // (not Playwright's bundled Chromium) — required for Windows Integrated
+      // Authentication (NTLM/Kerberos) SSO against IIS to work automatically,
+      // since that relies on the OS credential cache that only a genuine,
+      // domain-aware Edge process picks up. Only meaningful when run on the
+      // actual Windows/IIS machine, against a domain-joined session — not
+      // reproducible in this sandbox. See update_sst.ps1 for how this project
+      // is invoked in the quality gate.
+      name: 'msedge',
+      use: { browserName: 'chromium', channel: 'msedge' },
+    },
   ],
   webServer: {
     command: `${dbPathPrefix} ${devModePrefix} ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,

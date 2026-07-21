@@ -2,18 +2,21 @@
 /**
  * User Queries Unit Tests — Export, Anonymize, Count, Site Helpers
  *
- * Tests the user_queries.php functions:
- * - countActiveUsers()
- * - exportUserData()
- * - anonymizeUser()
- * - userSelectWithSite()
+ * Tests:
+ * - App\Repository\UserRepository::countActive() / exportData() / anonymize()
+ *   (formerly the countActiveUsers()/exportUserData()/anonymizeUser() wrappers
+ *   in src/queries/user_admin_queries.php and user_gdpr_queries.php, removed
+ *   as dead code — no callers outside test fixtures)
+ * - userSelectWithSite() (still live, in src/queries/user_queries.php)
  */
 
+use App\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
 
 class UserQueriesExportTest extends TestCase
 {
     private PDO $pdo;
+    private UserRepository $users;
 
     protected function setUp(): void
     {
@@ -30,30 +33,32 @@ class UserQueriesExportTest extends TestCase
         // Seed sites
         $this->pdo->exec("INSERT INTO sites (id, code, nom, departement, is_active) VALUES (1, 'UR21', 'UR Côte-d''Or', 'Côte-d''Or', 1)");
         $this->pdo->exec("INSERT INTO sites (id, code, nom, departement, is_active) VALUES (2, 'UR25', 'UR Doubs', 'Doubs', 1)");
+
+        $this->users = UserRepository::instance();
     }
 
-    // ─── countActiveUsers() ────────────────────────────────────────────────────
+    // ─── countActive() ─────────────────────────────────────────────────────────
 
     public function testCountActiveUsers(): void
     {
-        $this->assertEquals(0, countActiveUsers($this->pdo));
-        createUser($this->pdo, ['username' => 'u1', 'nom' => 'U1', 'prenom' => 'Test', 'role' => 'agent', 'site_id' => 1]);
-        $this->assertEquals(1, countActiveUsers($this->pdo));
-        $id = createUser($this->pdo, ['username' => 'u2', 'nom' => 'U2', 'prenom' => 'Test', 'role' => 'agent', 'site_id' => 1]);
-        $this->assertEquals(2, countActiveUsers($this->pdo));
-        deactivateUser($this->pdo, $id);
-        $this->assertEquals(1, countActiveUsers($this->pdo));
+        $this->assertEquals(0, $this->users->countActive());
+        $this->users->create(['username' => 'u1', 'nom' => 'U1', 'prenom' => 'Test', 'role' => 'agent', 'site_id' => 1]);
+        $this->assertEquals(1, $this->users->countActive());
+        $id = $this->users->create(['username' => 'u2', 'nom' => 'U2', 'prenom' => 'Test', 'role' => 'agent', 'site_id' => 1]);
+        $this->assertEquals(2, $this->users->countActive());
+        $this->users->deactivate($id);
+        $this->assertEquals(1, $this->users->countActive());
     }
 
-    // ─── exportUserData() (GDPR) ──────────────────────────────────────────────
+    // ─── exportData() (GDPR) ───────────────────────────────────────────────────
 
     public function testExportUserDataReturnsFullProfile(): void
     {
-        $id = createUser($this->pdo, [
+        $id = $this->users->create([
             'username' => 'export.test', 'nom' => 'Export', 'prenom' => 'Test',
             'email' => 'export@test.fr', 'role' => 'agent', 'site_id' => 1,
         ]);
-        $data = exportUserData($this->pdo, $id);
+        $data = $this->users->exportData($id);
         $this->assertArrayHasKey('user', $data);
         $this->assertEquals('export.test', $data['user']['username']);
         $this->assertArrayHasKey('reports', $data);
@@ -61,15 +66,15 @@ class UserQueriesExportTest extends TestCase
         $this->assertEquals(0, $data['reports_count']);
     }
 
-    // ─── anonymizeUser() (GDPR) ───────────────────────────────────────────────
+    // ─── anonymize() (GDPR) ────────────────────────────────────────────────────
 
     public function testAnonymizeUserRemovesPersonalData(): void
     {
-        $id = createUser($this->pdo, [
+        $id = $this->users->create([
             'username' => 'anon.test', 'nom' => 'Sensitive', 'prenom' => 'Data',
             'email' => 'sensitive@test.fr', 'role' => 'agent', 'site_id' => 1,
         ]);
-        $result = anonymizeUser($this->pdo, $id);
+        $result = $this->users->anonymize($id);
         $this->assertTrue($result);
         $user = getUserById($this->pdo, $id);
         $this->assertEquals('Anonymisé', $user['nom']);
@@ -91,7 +96,7 @@ class UserQueriesExportTest extends TestCase
 
     public function testUserWithoutSiteReturnsNullSiteFields(): void
     {
-        $id = createUser($this->pdo, [
+        $id = $this->users->create([
             'username' => 'no.site', 'nom' => 'NoSite', 'prenom' => 'User',
             'role' => 'agent', 'site_id' => null,
         ]);

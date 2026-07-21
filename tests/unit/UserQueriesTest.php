@@ -2,17 +2,25 @@
 /**
  * User Queries Unit Tests — CRUD Operations
  *
- * Tests the user_queries.php functions against an in-memory SQLite database:
- * - createUser(), getUserById(), getUserByUsername()
- * - getAllUsers(), updateUser()
- * - deactivateUser(), reactivateUser(), updateUserRole()
+ * Tests the user_queries.php read functions — getUserById(), getUserByUsername(),
+ * getAllUsers() — against an in-memory SQLite database.
+ *
+ * Write operations (create, update, deactivate, reactivate, role change) go
+ * through App\Repository\UserRepository directly: the procedural wrappers
+ * (createUser(), updateUser(), deactivateUser(), reactivateUser(),
+ * updateUserRole() in src/queries/user_admin_queries.php) were removed as
+ * dead code — they had no callers outside this test file and its siblings,
+ * and UserRepository/UserService already carry equivalent coverage in
+ * UserServiceTest.php.
  */
 
+use App\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
 
 class UserQueriesTest extends TestCase
 {
     private PDO $pdo;
+    private UserRepository $users;
 
     protected function setUp(): void
     {
@@ -29,13 +37,15 @@ class UserQueriesTest extends TestCase
         // Seed sites
         $this->pdo->exec("INSERT INTO sites (id, code, nom, departement, is_active) VALUES (1, 'UR21', 'UR Côte-d''Or', 'Côte-d''Or', 1)");
         $this->pdo->exec("INSERT INTO sites (id, code, nom, departement, is_active) VALUES (2, 'UR25', 'UR Doubs', 'Doubs', 1)");
+
+        $this->users = UserRepository::instance();
     }
 
-    // ─── createUser() ──────────────────────────────────────────────────────────
+    // ─── create() ──────────────────────────────────────────────────────────────
 
     public function testCreateUserReturnsIntId(): void
     {
-        $id = createUser($this->pdo, [
+        $id = $this->users->create([
             'username' => 'jean.martin', 'nom' => 'Martin', 'prenom' => 'Jean',
             'email' => 'jean.martin@dreets.gouv.fr', 'role' => 'agent', 'site_id' => 1,
         ]);
@@ -45,7 +55,7 @@ class UserQueriesTest extends TestCase
 
     public function testCreateUserWithMinimalData(): void
     {
-        $id = createUser($this->pdo, [
+        $id = $this->users->create([
             'username' => 'min.user', 'nom' => 'User', 'prenom' => 'Min',
             'role' => 'agent', 'site_id' => 1,
         ]);
@@ -58,7 +68,7 @@ class UserQueriesTest extends TestCase
 
     public function testGetUserByIdReturnsUserWithSiteInfo(): void
     {
-        $id = createUser($this->pdo, [
+        $id = $this->users->create([
             'username' => 'jean.martin', 'nom' => 'Martin', 'prenom' => 'Jean',
             'email' => 'jean.martin@dreets.gouv.fr', 'role' => 'agent', 'site_id' => 1,
         ]);
@@ -83,7 +93,7 @@ class UserQueriesTest extends TestCase
 
     public function testGetUserByUsernameReturnsUser(): void
     {
-        createUser($this->pdo, [
+        $this->users->create([
             'username' => 'sophie.dupont', 'nom' => 'Dupont', 'prenom' => 'Sophie',
             'role' => 'superviseur', 'site_id' => 2,
         ]);
@@ -96,11 +106,11 @@ class UserQueriesTest extends TestCase
 
     public function testGetUserByUsernameReturnsNullForDeactivated(): void
     {
-        $id = createUser($this->pdo, [
+        $id = $this->users->create([
             'username' => 'inactive.user', 'nom' => 'Inactive', 'prenom' => 'User',
             'role' => 'agent', 'site_id' => 1,
         ]);
-        deactivateUser($this->pdo, $id);
+        $this->users->deactivate($id);
         $user = getUserByUsername($this->pdo, 'inactive.user');
         $this->assertNull($user);
     }
@@ -115,16 +125,16 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersReturnsAllActive(): void
     {
-        createUser($this->pdo, ['username' => 'user1', 'nom' => 'Un', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        createUser($this->pdo, ['username' => 'user2', 'nom' => 'Deux', 'prenom' => 'User', 'role' => 'superviseur', 'site_id' => 2]);
+        $this->users->create(['username' => 'user1', 'nom' => 'Un', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $this->users->create(['username' => 'user2', 'nom' => 'Deux', 'prenom' => 'User', 'role' => 'superviseur', 'site_id' => 2]);
         $users = getAllUsers($this->pdo);
         $this->assertCount(2, $users);
     }
 
     public function testGetAllUsersFiltersBySite(): void
     {
-        createUser($this->pdo, ['username' => 'user1', 'nom' => 'Un', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        createUser($this->pdo, ['username' => 'user2', 'nom' => 'Deux', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 2]);
+        $this->users->create(['username' => 'user1', 'nom' => 'Un', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $this->users->create(['username' => 'user2', 'nom' => 'Deux', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 2]);
         $users = getAllUsers($this->pdo, 1);
         $this->assertCount(1, $users);
         $this->assertEquals('user1', $users[0]['username']);
@@ -132,9 +142,9 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersExcludesInactive(): void
     {
-        $id = createUser($this->pdo, ['username' => 'active', 'nom' => 'Active', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        createUser($this->pdo, ['username' => 'inactive', 'nom' => 'Inactive', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        deactivateUser($this->pdo, $id);
+        $id = $this->users->create(['username' => 'active', 'nom' => 'Active', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $this->users->create(['username' => 'inactive', 'nom' => 'Inactive', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $this->users->deactivate($id);
         $users = getAllUsers($this->pdo, 0, true);
         $this->assertCount(1, $users);
         $this->assertEquals('inactive', $users[0]['username']);
@@ -142,18 +152,18 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersIncludesInactiveWhenAsked(): void
     {
-        $id = createUser($this->pdo, ['username' => 'active', 'nom' => 'Active', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        deactivateUser($this->pdo, $id);
+        $id = $this->users->create(['username' => 'active', 'nom' => 'Active', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $this->users->deactivate($id);
         $users = getAllUsers($this->pdo, 0, false);
         $this->assertCount(1, $users);
     }
 
-    // ─── updateUser() ──────────────────────────────────────────────────────────
+    // ─── update() ──────────────────────────────────────────────────────────────
 
     public function testUpdateUserChangesFields(): void
     {
-        $id = createUser($this->pdo, ['username' => 'edit.me', 'nom' => 'Old', 'prenom' => 'Name', 'role' => 'agent', 'site_id' => 1]);
-        $result = updateUser($this->pdo, $id, [
+        $id = $this->users->create(['username' => 'edit.me', 'nom' => 'Old', 'prenom' => 'Name', 'role' => 'agent', 'site_id' => 1]);
+        $result = $this->users->update($id, [
             'nom' => 'New', 'prenom' => 'Name', 'email' => 'new@test.fr',
             'username' => 'edit.me', 'role' => 'superviseur', 'site_id' => 2,
         ]);
@@ -164,12 +174,12 @@ class UserQueriesTest extends TestCase
         $this->assertEquals('UR25', $user['site_code']);
     }
 
-    // ─── deactivateUser() / reactivateUser() ──────────────────────────────────
+    // ─── deactivate() / reactivate() ────────────────────────────────────────────
 
     public function testDeactivateUserSetsInactive(): void
     {
-        $id = createUser($this->pdo, ['username' => 'deac', 'nom' => 'Deac', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        $result = deactivateUser($this->pdo, $id);
+        $id = $this->users->create(['username' => 'deac', 'nom' => 'Deac', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $result = $this->users->deactivate($id);
         $this->assertTrue($result);
         $user = getUserById($this->pdo, $id);
         $this->assertEquals(0, (int) $user['is_active']);
@@ -177,19 +187,19 @@ class UserQueriesTest extends TestCase
 
     public function testReactivateUserSetsActive(): void
     {
-        $id = createUser($this->pdo, ['username' => 'react', 'nom' => 'React', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        deactivateUser($this->pdo, $id);
-        reactivateUser($this->pdo, $id);
+        $id = $this->users->create(['username' => 'react', 'nom' => 'React', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $this->users->deactivate($id);
+        $this->users->reactivate($id);
         $user = getUserById($this->pdo, $id);
         $this->assertEquals(1, (int) $user['is_active']);
     }
 
-    // ─── updateUserRole() ──────────────────────────────────────────────────────
+    // ─── updateRole() ────────────────────────────────────────────────────────────
 
     public function testUpdateUserRole(): void
     {
-        $id = createUser($this->pdo, ['username' => 'promo', 'nom' => 'Promo', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        $result = updateUserRole($this->pdo, $id, 'superviseur');
+        $id = $this->users->create(['username' => 'promo', 'nom' => 'Promo', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $result = $this->users->updateRole($id, 'superviseur');
         $this->assertTrue($result);
         $user = getUserById($this->pdo, $id);
         $this->assertEquals('superviseur', $user['role']);

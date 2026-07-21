@@ -87,7 +87,7 @@ class ValidationUserTest extends TestCase
     public function testValidateUserFieldsDuplicateUsername(): void
     {
         $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-        createUser($this->pdo, [
+        \App\Repository\UserRepository::instance()->create([
             'nom' => 'Existing', 'prenom' => 'User', 'username' => 'existing.user',
             'role' => 'agent', 'site_id' => $siteId, 'email' => '',
         ]);

@@ -124,7 +124,7 @@ class AuthProvisionTest extends TestCase
     public function testCheckAndPromoteUpdatesDatabase(): void
     {
         $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
-        $userId = createUser($this->pdo, [
+        $userId = \App\Repository\UserRepository::instance()->create([
             'nom' => 'Martin', 'prenom' => 'Jean', 'username' => 'jean.martin',
             'role' => 'agent', 'site_id' => $siteId, 'email' => '',
         ]);

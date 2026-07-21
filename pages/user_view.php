@@ -12,7 +12,6 @@ $fmt = new \App\Services\FormattingService();
 $http = new \App\Services\HttpService();
 $config = \App\Services\ConfigService::getInstance();
 
-/** @var PDO $pdo */
 $pdo = getDB();
 $noSiteMode = $config->isNoSiteMode();
 $userId = (int) ($_GET['id'] ?? 0);

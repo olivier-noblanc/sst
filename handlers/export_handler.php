@@ -107,7 +107,6 @@ fputcsv($tmpFile, $headers, ';', escape: '\\');
 // Bulk-fetch all responses for the reports being exported (avoids N+1 queries)
 $allResponses = [];
 if (!empty($reports)) {
-    /** @var list<string> $allUuids */
     $allUuids = array_column($reports, 'uuid');
     $allResponses = $reportRepo->getResponsesForUuids($allUuids);
 }
@@ -144,7 +143,6 @@ foreach ($reports as $row) {
 
     // CSV formula injection prevention: prefix cells starting with =+@-
     $csvEscape = function ($value): string {
-        /** @var string $safe */
         $safe = $value;
         if (preg_match('/^[=+\-@]/', $safe) > 0) {
             return "'" . $safe;

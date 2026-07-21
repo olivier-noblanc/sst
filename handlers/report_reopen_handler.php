@@ -26,7 +26,6 @@ $userId = currentUserId();
 
 try {
     $cmd = new ReopenReportCommand(motif: $motifReouverture);
-    /** @var ReportService $service */
     $service = getContainer()->get(ReportService::class);
     $result = $service->reopen($reportUuid, $cmd, $userId);
 

@@ -24,11 +24,8 @@ use App\Services\FormattingService;
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
-/** @var string $reportReference */
 $reportReference = $report['reference'] ?? '';
-/** @var string $reportType */
 $reportType = $report['type'] ?? 'rsst';
-/** @var string $reportEtat */
 $reportEtat = $report['etat'] ?? '';
 
 // Access control: centralized via canAccessReport()
@@ -113,15 +110,10 @@ if (!empty($report['is_confidential'])) {
 $pdf->Ln(8);
 
 // --- Fields ---
-/** @var string $reportDateEvenement */
 $reportDateEvenement = $report['date_evenement'] ?? '';
-/** @var string $reportHeureEvenement */
 $reportHeureEvenement = $report['heure_evenement'] ?? '—';
-/** @var string $reportLieu */
 $reportLieu = $report['lieu'] ?? '—';
-/** @var string $reportObjet */
 $reportObjet = $report['objet'] ?? '';
-/** @var int $reportConsentSyndicat */
 $reportConsentSyndicat = $report['consent_syndicat'] ?? 0;
 
 $fields = [
@@ -139,30 +131,23 @@ foreach ($fields as $label => $value) {
 }
 
 // Description (multiline)
-/** @var string $reportDescription */
 $reportDescription = $report['description'] ?? '';
 $pdf->Ln(1);
 drawMultiField($pdf, 'Description', $reportDescription);
 
 // Remaining fields
-/** @var string $reportDeclarantPrenom */
 $reportDeclarantPrenom = $report['declarant_prenom'] ?? '';
-/** @var string $reportDeclarantNom */
 $reportDeclarantNom = $report['declarant_nom'] ?? '';
 $pdf->Ln(1);
 drawField($pdf, 'Déclarant', $reportDeclarantPrenom . ' ' . $reportDeclarantNom);
 if (!ConfigService::getInstance()->isNoSiteMode()) {
-    /** @var string $reportSiteNom */
     $reportSiteNom = $report['site_nom'] ?? '—';
-    /** @var string $reportSiteCode */
     $reportSiteCode = $report['site_code'] ?? '—';
     drawField($pdf, $labelUnite, $reportSiteNom . ' (' . $reportSiteCode . ')');
 }
 
 if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
-    /** @var string $reportPourComptePrenom */
     $reportPourComptePrenom = $report['pour_compte_prenom'] ?? '';
-    /** @var string $reportPourCompteNom */
     $reportPourCompteNom = $report['pour_compte_nom'] ?? '';
     drawField(
         $pdf,
@@ -171,14 +156,11 @@ if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
     );
 }
 
-/** @var string $reportCreatedAt */
 $reportCreatedAt = $report['created_at'] ?? '';
 drawField($pdf, 'Date de création', new FormattingService()->formatDateTimeFR($reportCreatedAt));
 
 if (!empty($report['attachment_name'])) {
-    /** @var string $reportAttachmentName */
     $reportAttachmentName = $report['attachment_name'] ?? '';
-    /** @var string $reportAttachmentMime */
     $reportAttachmentMime = $report['attachment_mime'] ?? '';
     $isImage = $reportAttachmentMime !== '' && in_array($reportAttachmentMime, ['image/jpeg', 'image/png', 'image/gif'], true);
     if ($isImage && !empty($report['attachment_blob'])) {

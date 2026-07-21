@@ -48,11 +48,8 @@ class CreateReportCommand
             $typeActe = $ramiFields['type_acte'];
         }
 
-        /** @var string $declarantNom */
         $declarantNom = $user['nom'] ?? '';
-        /** @var string $declarantPrenom */
         $declarantPrenom = $user['prenom'] ?? '';
-        /** @var string $declarantIdStr */
         $declarantIdStr = $user['id'] ?? '0';
 
         return new self(

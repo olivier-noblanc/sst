@@ -95,7 +95,6 @@ class SessionService
      */
     public function getIntendedUrl(): ?string
     {
-        /** @var string|null $url */
         $url = $_SESSION['intended_url'] ?? null;
         return $url;
     }
@@ -105,7 +104,6 @@ class SessionService
      */
     public function clearIntendedUrl(): ?string
     {
-        /** @var string|null $url */
         $url = $_SESSION['intended_url'] ?? null;
         unset($_SESSION['intended_url']);
         return $url;
@@ -135,7 +133,6 @@ class SessionService
         if (!isset($_SESSION['real_role'])) {
             return null;
         }
-        /** @var string $realRole */
         $realRole = $_SESSION['real_role'];
         if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
             $_SESSION['user']['role'] = $realRole;
@@ -158,7 +155,6 @@ class SessionService
      */
     public function getImpersonatedRole(): ?string
     {
-        /** @var string|null $role */
         $role = $_SESSION['impersonated_role'] ?? null;
         return $role;
     }
@@ -168,7 +164,6 @@ class SessionService
      */
     public function getRealRole(): ?string
     {
-        /** @var string|null $role */
         $role = $_SESSION['real_role'] ?? null;
         return $role;
     }

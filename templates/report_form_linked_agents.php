@@ -12,7 +12,6 @@
 /** @var bool $isEdit */
 /** @var array<string, mixed> $report */
 $declarantEmail = $user['email'] ?? '';
-/** @var string $declarantEmailStr */
 $declarantEmailStr = (string) $declarantEmail;
 $emailDomain = '';
 if ($declarantEmailStr !== '' && str_contains($declarantEmailStr, '@')) {

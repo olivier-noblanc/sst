@@ -12,7 +12,6 @@ $report = fetchReportOrRedirect($uuid);
 
 // Access control: only the declarant can edit
 $user = currentUser();
-/** @var string $userIdStr */
 $userIdStr = $user['id'] ?? '0';
 $userId = (int) $userIdStr;
 

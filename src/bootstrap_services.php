@@ -88,7 +88,6 @@ function getContainer(): Container
 {
     static $container = null;
     if ($container === null) {
-        /** @var Container $container */
         $container = createContainer();
     }
     return $container;

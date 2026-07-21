@@ -64,10 +64,8 @@ function createReport(PDO $pdo, array $data): string
                 :attachment_blob, :attachment_name, :attachment_mime
             )
         ");
-        /** @var int|string|null $isConfidentialRaw */
         $isConfidentialRaw = $data['is_confidential'] ?? null;
         $isConfidential = $isConfidentialRaw !== null ? (int) $isConfidentialRaw : 1;
-        /** @var int|string|null $consentSyndicatRaw */
         $consentSyndicatRaw = $data['consent_syndicat'] ?? null;
         $consentSyndicat = $consentSyndicatRaw !== null ? (int) $consentSyndicatRaw : 0;
         $stmt->execute([
@@ -123,21 +121,15 @@ function getReportByUuid(PDO $pdo, string $uuid): ?array
  */
 function getReportsByRegistry(PDO $pdo, string $type, array $filters, int $userSiteId, bool $seeAllSites, int $page = 1, int $perPage = 20): array
 {
-    /** @var int|string|null $siteIdRaw */
     $siteIdRaw = $filters['site_id'] ?? null;
     $siteId = $siteIdRaw !== null ? (int) $siteIdRaw : 0;
-    /** @var int|string|null $declarantIdRaw */
     $declarantIdRaw = !empty($filters['declarant_id']) ? $filters['declarant_id'] : null;
     $declarantId = $declarantIdRaw !== null ? (int) $declarantIdRaw : null;
-    /** @var int|string|null $confidentialFilterRaw */
     $confidentialFilterRaw = !empty($filters['confidential_filter']) ? $filters['confidential_filter'] : null;
     $confidentialFilter = $confidentialFilterRaw !== null ? (int) $confidentialFilterRaw : null;
-    /** @var int|string|null $forceSiteIdRaw */
     $forceSiteIdRaw = !empty($filters['force_site_id']) ? $filters['force_site_id'] : null;
     $forceSiteId = $forceSiteIdRaw !== null ? (int) $forceSiteIdRaw : null;
-    /** @var string $etat */
     $etat = $filters['etat'] ?? '';
-    /** @var string|null $search */
     $search = $filters['q'] ?? null;
     $filter = new ReportFilter(
         type: $type,

@@ -131,9 +131,7 @@ try {
                 if (!is_array($entry)) {
                     continue;
                 }
-                /** @var string $wordVal */
                 $wordVal = $entry['word'] ?? '';
-                /** @var int $weightVal */
                 $weightVal = $entry['weight'] ?? 10;
                 $word = trim((string) $wordVal);
                 $weight = (int) $weightVal;

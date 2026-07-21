@@ -19,7 +19,6 @@ if (empty($token)) {
     redirect(url('home'));
 }
 
-/** @var ReportRepository $repo */
 $repo = getContainer()->get(ReportRepository::class);
 $invite = $repo->getAgentInviteByToken($token);
 

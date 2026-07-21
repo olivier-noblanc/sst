@@ -16,7 +16,6 @@ use App\Services\UserService;
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 if ($userId <= 0) {
-    /** @var string $getId */
     $getId = $_GET['id'] ?? '0';
     $userId = (int) $getId;
 }

@@ -40,13 +40,11 @@ class SSTPDF extends FPDF
 
     public function getLeftMargin(): float
     {
-        /** @var float $margin */
         $margin = $this->lMargin;
         return $margin;
     }
     public function getRightMargin(): float
     {
-        /** @var float $margin */
         $margin = $this->rMargin;
         return $margin;
     }
@@ -59,9 +57,7 @@ class SSTPDF extends FPDF
             $this->SetTextColor(102, 102, 102);
             $this->Cell(0, 6, utf8ToCp1252($this->headerText), 0, 1, 'L');
             $this->SetDrawColor(204, 204, 204);
-            /** @var float $w */
             $w = $this->w;
-            /** @var float $r */
             $r = $this->rMargin;
             $this->Line($this->lMargin, $this->GetY(), $w - $r, $this->GetY());
             $this->Ln(4);
@@ -74,14 +70,11 @@ class SSTPDF extends FPDF
         $this->SetY(-18);
         $this->SetFont('DejaVu', '', 7);
         $this->SetDrawColor(204, 204, 204);
-        /** @var float $w */
         $w = $this->w;
-        /** @var float $r */
         $r = $this->rMargin;
         $this->Line($this->lMargin, $this->GetY(), $w - $r, $this->GetY());
         $this->Ln(2);
         $this->SetTextColor(153, 153, 153);
-        /** @var int|string $pageNo */
         $pageNo = $this->PageNo();
         $this->Cell(0, 8, utf8ToCp1252(
             'Page ' . (string) $pageNo . ' / {nb} — Généré le ' . date('d/m/Y H:i')
@@ -100,14 +93,12 @@ function drawBadge(SSTPDF $pdf, string $text, array $bgColor, ?float $x = null, 
     }
     $pdf->SetFont('DejaVu', 'B', 8);
     $textCp = utf8ToCp1252($text);
-    /** @var float $strWidth */
     $strWidth = $pdf->GetStringWidth($textCp);
     $badgeW = ($w > 0) ? $w : $strWidth + 6;
     $pdf->SetFillColor($bgColor[0], $bgColor[1], $bgColor[2]);
     $pdf->SetTextColor(255, 255, 255);
     $pdf->Cell($badgeW, 6, $textCp, 0, 0, 'C', true);
     $pdf->SetTextColor(34, 34, 34);
-    /** @var float $curX */
     $curX = $pdf->GetX();
     $pdf->SetX($curX + 2);
 }
@@ -121,9 +112,7 @@ function drawField(SSTPDF $pdf, string $label, string $value, float $labelW = 55
     $pdf->SetFont('DejaVu', '', 10);
     $pdf->SetTextColor(34, 34, 34);
     $valueCp = utf8ToCp1252($value);
-    /** @var float $pageW */
     $pageW = $pdf->GetPageWidth();
-    /** @var float $curX */
     $curX = $pdf->GetX();
     $availableW = $pageW - $pdf->getRightMargin() - $curX;
     if ($pdf->GetStringWidth($valueCp) <= $availableW) {
@@ -141,9 +130,7 @@ function drawMultiField(SSTPDF $pdf, string $label, string $value, float $labelW
     $pdf->Cell($labelW, 6, utf8ToCp1252($label), 0, 0);
     $pdf->SetFont('DejaVu', '', 10);
     $pdf->SetTextColor(34, 34, 34);
-    /** @var float $pageW */
     $pageW = $pdf->GetPageWidth();
-    /** @var float $curX */
     $curX = $pdf->GetX();
     $availableW = $pageW - $pdf->getRightMargin() - $curX;
     $pdf->MultiCell($availableW, 6, utf8ToCp1252($value), 0, 'L');
@@ -159,10 +146,8 @@ function drawSectionTitle(SSTPDF $pdf, string $title, array $color): void
     $pdf->SetFont('DejaVu', 'B', 12);
     $pdf->SetTextColor($color[0], $color[1], $color[2]);
     $pdf->Cell(0, 7, utf8ToCp1252($title), 0, 1);
-    /** @var float $y */
     $y = $pdf->GetY();
     $pdf->SetDrawColor(204, 204, 204);
-    /** @var float $pageW */
     $pageW = $pdf->GetPageWidth();
     $pdf->Line($pdf->getLeftMargin(), $y, $pageW - $pdf->getRightMargin(), $y);
     $pdf->Ln(3);
@@ -173,7 +158,6 @@ function drawHR(SSTPDF $pdf): void
 {
     $pdf->Ln(4);
     $pdf->SetDrawColor(204, 204, 204);
-    /** @var float $pageW */
     $pageW = $pdf->GetPageWidth();
     $pdf->Line($pdf->getLeftMargin(), $pdf->GetY(), $pageW - $pdf->getRightMargin(), $pdf->GetY());
     $pdf->Ln(4);
@@ -186,7 +170,6 @@ function drawHR(SSTPDF $pdf): void
  */
 function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
 {
-    /** @var string $attachmentMime */
     $attachmentMime = $report['attachment_mime'] ?? '';
     if (empty($report['attachment_blob']) || $attachmentMime === ''
         || !in_array($attachmentMime, ['image/jpeg', 'image/png', 'image/gif'], true)) {
@@ -196,11 +179,9 @@ function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
         $typeStr = match ($attachmentMime) {
             'image/jpeg' => 'jpg', 'image/png' => 'png', default => 'gif',
         };
-        /** @var string $attachmentBlob */
         $attachmentBlob = $report['attachment_blob'];
         $dataUri = 'data://' . $attachmentMime . ';base64,' . base64_encode($attachmentBlob);
         $imageInfo = @getimagesize($dataUri);
-        /** @var float $pageW */
         $pageW = $pdf->GetPageWidth();
         $pageWidth = $pageW - $pdf->getLeftMargin() - $pdf->getRightMargin();
         $maxImgH = 120.0;
@@ -216,16 +197,13 @@ function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
             $displayWidth = min($pageWidth, 180.0);
             $displayHeight = 80.0;
         }
-        /** @var float $curY */
         $curY = $pdf->GetY();
-        /** @var float $pageH */
         $pageH = $pdf->GetPageHeight();
         if ($curY + $displayHeight + 6 > $pageH - 22) {
             $pdf->AddPage();
         }
         drawSectionTitle($pdf, 'Image jointe', $blueDark);
         $x = $pdf->getLeftMargin();
-        /** @var float $y */
         $y = $pdf->GetY();
         $pdf->SetFillColor(248, 248, 248);
         $pdf->Rect($x, $y, $displayWidth + 4, $displayHeight + 4, 'F');
@@ -265,15 +243,10 @@ function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void
     $drawHeader();
     $pdf->SetFont('DejaVu', '', 8);
     foreach ($responses as $resp) {
-        /** @var string $createdResp */
         $createdResp = $resp['created_at'] ?? '';
-        /** @var string $prenomResp */
         $prenomResp = $resp['prenom'] ?? '';
-        /** @var string $nomResp */
         $nomResp = $resp['nom'] ?? '';
-        /** @var string $nouvelEtat */
         $nouvelEtat = $resp['nouvel_etat'] ?? '';
-        /** @var string $reponseResp */
         $reponseResp = $resp['reponse'] ?? '';
         $etatResp = $nouvelEtat !== ''
             ? (ETAT_LABELS[$nouvelEtat] ?? $nouvelEtat) : '—';
@@ -290,7 +263,6 @@ function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void
         $testLine = '';
         foreach (explode(' ', $responseText) as $word) {
             $testLine .= ($testLine !== '' ? ' ' : '') . $word;
-            /** @var float $testWidth */
             $testWidth = $pdf->GetStringWidth($testLine);
             if ($testWidth > $responseColW) {
                 $maxLines++;
@@ -298,9 +270,7 @@ function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void
             }
         }
         $currentRowH = max($maxLines * 5 + 2, $rowH);
-        /** @var float $curY */
         $curY = $pdf->GetY();
-        /** @var float $pageH */
         $pageH = $pdf->GetPageHeight();
         if ($curY + $currentRowH > $pageH - 25) {
             $pdf->AddPage();
@@ -308,9 +278,7 @@ function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void
             $pdf->SetFont('DejaVu', '', 8);
         }
 
-        /** @var float $x */
         $x = $pdf->GetX();
-        /** @var float $y */
         $y = $pdf->GetY();
         $pdf->SetFillColor(255, 255, 255);
         for ($i = 0; $i < 4; $i++) {

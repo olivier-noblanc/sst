@@ -7,7 +7,6 @@
  * URL: index.php?page=response_attachment&id={response_id}
  */
 
-/** @var string $responseIdStr */
 $responseIdStr = $_GET['id'] ?? '0';
 $responseId = (int) $responseIdStr;
 

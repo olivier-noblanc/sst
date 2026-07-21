@@ -15,7 +15,6 @@ if ($siteId <= 0) {
     redirect(url('settings', ['tab' => 'manage_sites']));
 }
 
-/** @var SiteRepository $repo */
 $repo = getContainer()->get(SiteRepository::class);
 $site = $repo->findById($siteId);
 

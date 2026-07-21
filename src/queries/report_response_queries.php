@@ -40,10 +40,8 @@ function updateReport(PDO $pdo, string $uuid, array $data, int $userId): bool
         'telephone_mobile = :telephone_mobile',
         'site_text = :site_text',
     ];
-    /** @var int|string|null $isConfidentialRaw */
     $isConfidentialRaw = $data['is_confidential'] ?? null;
     $isConfidential = $isConfidentialRaw !== null ? (int) $isConfidentialRaw : 1;
-    /** @var int|string|null $consentSyndicatRaw */
     $consentSyndicatRaw = $data['consent_syndicat'] ?? null;
     $consentSyndicat = $consentSyndicatRaw !== null ? (int) $consentSyndicatRaw : 0;
     $params = [

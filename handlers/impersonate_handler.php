@@ -21,7 +21,6 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 use App\Services\SessionManager;
 
-/** @var SessionManager $session */
 $session = getContainer()->get(SessionManager::class);
 
 // Must be authenticated

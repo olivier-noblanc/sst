@@ -32,7 +32,6 @@ if (!in_array($report['etat'], ['traite', 'abandonne'], true)) {
 $pageTitle = 'Réouvrir le signalement — ' . $report['reference'];
 $type = $report['type'];
 $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
-/** @var string $typeStr */
 $typeStr = (string) $type;
 
 // Restore form data if redirected back with errors

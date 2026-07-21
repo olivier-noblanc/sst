@@ -24,9 +24,7 @@ if (empty($username)) {
     redirect(url('login'));
 }
 
-/** @var AuthService $authService */
 $authService = getContainer()->get(AuthService::class);
-/** @var SessionManager $session */
 $session = getContainer()->get(SessionManager::class);
 
 $user = $authService->mockLogin($username);

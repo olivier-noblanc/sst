@@ -6,7 +6,6 @@
  * URL: index.php?page=report_list&type={rsst|rami|dgi}
  */
 /** @var array<string, string> $_GET */
-/** @var string $type */
 $type = (string) ($_GET['type'] ?? '');
 
 // Service instances (created once for the page)
@@ -197,13 +196,9 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                     <tr>
                         <td data-label="Référence"><strong><?php echo $fmt->e($report['reference'] ?? ''); ?></strong></td>
                         <?php
-                            /** @var string $reportDateEvenement */
                             $reportDateEvenement = $report['date_evenement'] ?? '';
-                            /** @var string $reportObjet */
                             $reportObjet = $report['objet'] ?? '';
-                            /** @var string $reportEtat */
                             $reportEtat = $report['etat'] ?? '';
-                            /** @var string $reportUuid */
                             $reportUuid = $report['uuid'] ?? '';
                         ?>
                         <td data-label="Date"><?php echo $fmt->e($fmt->formatDateFR($reportDateEvenement)); ?></td>

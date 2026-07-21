@@ -58,7 +58,6 @@ if (!file_exists($filePath) || !is_file($filePath)) {
     exit;
 }
 
-/** @var string|false $content */
 $content = file_get_contents($filePath);
 if ($content === false) {
     http_response_code(500);

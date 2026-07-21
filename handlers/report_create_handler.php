@@ -88,7 +88,6 @@ try {
     ]);
     $cmd = new CreateReportCommand(...$cmdData);
 
-    /** @var ReportService $service */
     $service = getContainer()->get(ReportService::class);
     $report = $service->create($cmd);
 

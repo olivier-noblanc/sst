@@ -62,7 +62,6 @@ $cmdData = array_merge($cmd->toArray(), [
 $cmd = new UpdateReportCommand(...$cmdData);
 
 try {
-    /** @var ReportService $service */
     $service = getContainer()->get(ReportService::class);
     $updated = $service->update($reportUuid, $cmd, $userId);
 

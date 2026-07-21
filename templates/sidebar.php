@@ -19,7 +19,6 @@ if ($activeRegistryType === null && in_array($currentPage, $reportSubpages, true
     try {
         $pdo = getDB();
         $reportUuid = $_GET['uuid'] ?? '';
-        /** @var string $reportUuidStr */
         $reportUuidStr = (string) $reportUuid;
         if (strlen($reportUuidStr) === 36) {
             $stmt = $pdo->prepare('SELECT type FROM reports WHERE uuid = :uuid');

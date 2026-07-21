@@ -15,11 +15,8 @@ $config = \App\Services\ConfigService::getInstance();
 $noSiteMode = $config->isNoSiteMode();
 
 // Get filter parameters
-/** @var string $year */
 $year = $_GET['year'] ?? date('Y');
-/** @var string $siteGet */
 $siteGet = $_GET['site'] ?? '0';
-/** @var int $siteId */
 $siteId = (int) $siteGet;
 
 // Get available years

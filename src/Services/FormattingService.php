@@ -20,7 +20,6 @@ class FormattingService
         if ($string === null || $string === '') {
             return '';
         }
-        /** @var string $str */
         $str = $string;
         return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
     }
@@ -33,7 +32,6 @@ class FormattingService
         if (empty($date)) {
             return '—';
         }
-        /** @var string $date */
         $date = $date;
         $dt = DateTime::createFromFormat('Y-m-d', $date);
         if ($dt === false) {
@@ -51,7 +49,6 @@ class FormattingService
         if (empty($datetime)) {
             return '—';
         }
-        /** @var string $datetime */
         $datetime = $datetime;
         $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime, new \DateTimeZone('UTC'));
         if ($dt === false) {

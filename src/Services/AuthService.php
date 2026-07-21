@@ -31,7 +31,6 @@ class AuthService
         }
 
         if (!DEV_MODE) {
-            /** @var string $authUser */
         $authUser = $_SERVER['AUTH_USER'] ?? '';
             if (empty($authUser)) {
                 return null;
@@ -296,7 +295,6 @@ class AuthService
         }
 
         if (DEV_MODE) {
-            /** @var string $requestUri */
             $requestUri = $_SERVER['REQUEST_URI'] ?? '';
             \setIntendedUrl($requestUri);
             \redirect(\url('login'));

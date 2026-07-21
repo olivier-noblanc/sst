@@ -35,12 +35,10 @@ $noSiteMode = isNoSiteMode(getDB());
 /** @var array<string, mixed> $formData */
 $val = function(string $field, string $default = '') use ($formData, $report, $isEdit): string {
     if (isset($formData[$field]) && $formData[$field] !== '') {
-        /** @var string $v */
         $v = $formData[$field];
         return $v;
     }
     if ($isEdit && $report !== null && isset($report[$field])) {
-        /** @var string $v */
         $v = $report[$field];
         return $v;
     }
@@ -48,7 +46,6 @@ $val = function(string $field, string $default = '') use ($formData, $report, $i
 };
 
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
-/** @var string $registryFullLabel */
 $registryFullLabel = (string) (REGISTRY_LABELS[$type] ?? $type);
 
 // Determine card accent class
@@ -207,11 +204,8 @@ $submitBtnClass = $isEdit
                     <?php foreach ($sites as $site): ?>
                         <option value="<?php echo e($site['id'] ?? ''); ?>"
                             <?php
-                        /** @var string $siteIdVal */
                         $siteIdVal = $user['site_id'] ?? '';
-                        /** @var string $siteIdFromForm */
                         $siteIdFromForm = $val('site_id', $siteIdVal);
-                        /** @var string $siteIdRaw */
                         $siteIdRaw = $site['id'] ?? '0';
                         echo ((int)$siteIdFromForm === (int)$siteIdRaw) ? 'selected' : '';
                         ?>>

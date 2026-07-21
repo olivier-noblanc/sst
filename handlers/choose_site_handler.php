@@ -19,9 +19,7 @@ if ($siteId <= 0) {
     redirect(url('choose_site'));
 }
 
-/** @var SiteRepository $siteRepo */
 $siteRepo = getContainer()->get(SiteRepository::class);
-/** @var UserRepository $userRepo */
 $userRepo = getContainer()->get(UserRepository::class);
 
 $userId = currentUserId();

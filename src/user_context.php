@@ -53,7 +53,6 @@ function currentUserUsername(): string
     if ($user === null) {
         return '';
     }
-    /** @var string $username */
     $username = $user['username'] ?? '';
     return $username;
 }
@@ -69,9 +68,7 @@ function currentUserDisplayName(): string
     if ($user === null) {
         return '';
     }
-    /** @var string $prenom */
     $prenom = $user['prenom'] ?? '';
-    /** @var string $nom */
     $nom = $user['nom'] ?? '';
     return trim($prenom . ' ' . $nom);
 }
@@ -89,7 +86,6 @@ function currentUserRole(): string
     if ($user === null) {
         return '';
     }
-    /** @var string $role */
     $role = $user['role'] ?? '';
     return $role;
 }
@@ -185,7 +181,6 @@ function currentUserSiteCode(): string
     if ($user === null) {
         return '';
     }
-    /** @var string $siteCode */
     $siteCode = $user['site_code'] ?? '';
     return $siteCode;
 }
@@ -201,7 +196,6 @@ function currentUserSiteName(): string
     if ($user === null) {
         return '';
     }
-    /** @var string $siteName */
     $siteName = $user['site_nom'] ?? '';
     return $siteName;
 }

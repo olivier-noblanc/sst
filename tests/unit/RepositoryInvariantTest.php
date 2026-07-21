@@ -315,6 +315,37 @@ class RepositoryInvariantTest extends TestCase
         $this->assertIsArray($result);
     }
 
+    // The above only checks the return SHAPE — it would still pass even if
+    // the year boundary filter (:year_start/:year_next in the SQL) were
+    // completely broken, e.g. mixing years together or matching nothing.
+    // This creates one report backdated to 2024 and one dated 2026, and
+    // checks that querying year 2026 counts only the 2026 report — not 0,
+    // not 2, not both years merged.
+    public function testGetSynthesisFiltersByYear(): void
+    {
+        $repo = new StatsRepository($this->pdo);
+        $siteId = $this->seedSite();
+        $userId = $this->seedUser($siteId);
+
+        $uuid2024 = $this->seedReport($siteId, $userId);
+        $this->pdo->prepare("UPDATE reports SET created_at = '2024-06-15 10:00:00' WHERE uuid = ?")->execute([$uuid2024]);
+
+        $uuid2026 = $this->seedReport($siteId, $userId);
+        $this->pdo->prepare("UPDATE reports SET created_at = '2026-06-15 10:00:00' WHERE uuid = ?")->execute([$uuid2026]);
+
+        $rows2026 = $repo->getSynthesis('2026', $siteId);
+        $total2026 = array_sum(array_column($rows2026, 'total'));
+        $this->assertEquals(1, $total2026, 'getSynthesis(2026) should count only the report dated in 2026, not the one from 2024.');
+
+        $rows2024 = $repo->getSynthesis('2024', $siteId);
+        $total2024 = array_sum(array_column($rows2024, 'total'));
+        $this->assertEquals(1, $total2024, 'getSynthesis(2024) should count only the report dated in 2024.');
+
+        $rows2025 = $repo->getSynthesis('2025', $siteId);
+        $total2025 = array_sum(array_column($rows2025, 'total'));
+        $this->assertEquals(0, $total2025, 'getSynthesis(2025) should count neither report — year boundary is exclusive/correct.');
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // Container
     // ═══════════════════════════════════════════════════════════════════════════════

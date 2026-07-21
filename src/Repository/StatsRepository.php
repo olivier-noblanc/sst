@@ -36,7 +36,7 @@ class StatsRepository
                 SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,
                 SUM(CASE WHEN r.etat = 'abandonne' THEN 1 ELSE 0 END) as abandonne,
                 SUM(CASE WHEN r.etat = 'reouvert' THEN 1 ELSE 0 END) as reouvert,
-                COUNT(*) as total
+                COUNT(r.uuid) as total
             FROM sites s
             LEFT JOIN reports r ON r.site_id = s.id
                 AND r.created_at >= :year_start AND r.created_at < :year_next

@@ -84,6 +84,17 @@ class HttpService
             $this->redirect($fallbackUrl);
         }
 
+        // PHP silently empties $_POST and $_FILES (no error, nothing to catch)
+        // when the request body exceeds php.ini's post_max_size — this looks
+        // identical to an empty form submission or a CSRF failure downstream,
+        // which is confusing and gives no actionable signal. Detect it here
+        // via CONTENT_LENGTH (still populated even though $_POST is empty)
+        // and surface a specific message instead.
+        if (empty($_POST) && empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+            \setFlash('error', 'Le fichier joint est trop volumineux pour être envoyé. Réduisez sa taille et réessayez.');
+            $this->redirect($fallbackUrl);
+        }
+
         $token = $csrfToken ?? ($_POST['csrf_token'] ?? '');
         if (!\validateCsrfToken($token)) {
             \setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');

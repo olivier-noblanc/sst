@@ -18,5 +18,10 @@
  */
 function migrateTables(PDO $pdo): void
 {
-    // Nothing pending — see docblock above for how to add the next one.
+    // ── Sessions table (SQLite-backed session handler) ──────────────────────
+    $pdo->exec("CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        data TEXT NOT NULL DEFAULT '',
+        last_accessed INTEGER NOT NULL DEFAULT 0
+    )");
 }

@@ -235,4 +235,23 @@ class SessionServiceTest extends TestCase
         $b = SessionService::getInstance();
         $this->assertSame($a, $b);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // startSession() — legacy cookie cleanup
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testStartSessionClearsLegacyPhpSessionCookie(): void
+    {
+        if (session_status() !== PHP_SESSION_NONE) {
+            session_write_close();
+        }
+
+        $_COOKIE['PHPSESSID'] = 'legacy-session-id';
+
+        $service = new SessionService();
+        $service->startSession();
+
+        $this->assertSame('SST_SESSION', session_name());
+        $this->assertArrayNotHasKey('PHPSESSID', $_COOKIE);
+    }
 }

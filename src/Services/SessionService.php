@@ -21,9 +21,14 @@ class SessionService
 
     /**
      * Start the PHP session with secure settings.
+     *
+     * Clears any legacy PHPSESSID cookie to prevent session fragmentation
+     * when the canonical session name is SST_SESSION.
      */
     public function startSession(): void
     {
+        $this->clearLegacySessionCookie('PHPSESSID');
+
         if (session_status() === PHP_SESSION_NONE) {
             ini_set('session.use_strict_mode', '1');
             ini_set('session.use_only_cookies', '1');
@@ -35,6 +40,41 @@ class SessionService
             session_name('SST_SESSION');
             session_start();
         }
+    }
+
+    /**
+     * Remove a legacy session cookie that conflicts with the canonical session name.
+     *
+     * @param string $legacyName The old session cookie name to clear (e.g. 'PHPSESSID')
+     */
+    private function clearLegacySessionCookie(string $legacyName): void
+    {
+        if (session_status() !== PHP_SESSION_NONE) {
+            return;
+        }
+        if (!isset($_COOKIE[$legacyName])) {
+            return;
+        }
+
+        unset($_COOKIE[$legacyName]);
+
+        if (headers_sent()) {
+            return;
+        }
+
+        $params = session_get_cookie_params();
+        setcookie(
+            $legacyName,
+            '',
+            [
+                'expires'  => time() - 3600,
+                'path'     => $params['path'],
+                'domain'   => $params['domain'],
+                'secure'   => $params['secure'],
+                'httponly'  => $params['httponly'],
+                'samesite' => $params['samesite'],
+            ]
+        );
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

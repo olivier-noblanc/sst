@@ -79,9 +79,20 @@ function checkUserSiteAssignment(): void
         return;
     }
 
+    $pdo = getDB();
+
+    // No sites configured at all — choose_site itself redirects to home in
+    // this case (see pages/choose_site.php), so redirecting there again
+    // for every site-less user is an infinite home <-> choose_site loop.
+    // This was the actual cause behind report_create (and every other
+    // site-gated page) being unreachable for any user without a site_id
+    // once the app runs with zero active sites.
+    if (isNoSiteMode($pdo)) {
+        return;
+    }
+
     // Re-check from DB — the handler might have updated the DB
     // but the session didn't persist (edge case on some IIS configs)
-    $pdo = getDB();
     $refreshed = refreshCurrentUser($pdo);
 
     if ($refreshed && !empty(currentUser()['site_id'])) {

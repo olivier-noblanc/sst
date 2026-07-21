@@ -46,7 +46,7 @@ class SessionService
             error_log('[SST-SESSION] SQLite session handler registered, session_name=' . session_name());
 
             session_start();
-            error_log('[SST-SESSION] session_start() done, session_id=' . substr(session_id(), 0, 8) . '..., status=' . session_status());
+            error_log('[SST-SESSION] session_start() done, session_id=' . substr((string) session_id(), 0, 8) . '..., status=' . session_status());
         }
     }
 

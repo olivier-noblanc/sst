@@ -9,7 +9,11 @@ use App\Services\ReportService;
 
 /** @var array<string, string> $_POST */
 
-validatePostRequest(url('home'));
+// CSRF already validated by the router's CsrfMiddleware (applied to every
+// POST handler in src/Router/routes.php). Calling validatePostRequest()
+// here too consumed the same one-time-use token twice — the middleware's
+// check succeeded and deleted it, then this second check failed on the
+// already-deleted token, silently redirecting home on every submission.
 
 $type = (string) ($_POST['type'] ?? '');
 if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI], true)) {

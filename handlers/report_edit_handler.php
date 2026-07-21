@@ -9,7 +9,9 @@ use App\Services\ReportService;
 
 /** @var array<string, string> $_POST */
 
-validatePostRequest(url('home'));
+// CSRF already validated by the router's CsrfMiddleware (applied to every
+// POST handler in src/Router/routes.php) — see report_create_handler.php
+// for the full explanation of the double-consumption bug this caused.
 
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);

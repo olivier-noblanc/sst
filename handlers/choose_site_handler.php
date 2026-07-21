@@ -7,7 +7,10 @@
 use App\Repository\SiteRepository;
 use App\Repository\UserRepository;
 
-validatePostRequest(url('choose_site'));
+// CSRF already validated by public/index.php before this handler is
+// required (see the choose_site special-case block) — same
+// double-consumption bug as report_create_handler.php, see there for
+// the full explanation.
 
 /** @var string */
 $siteIdRaw = $_POST['site_id'] ?? '0';

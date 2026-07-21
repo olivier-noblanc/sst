@@ -81,6 +81,7 @@ class HttpService
     public function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string $csrfToken = null): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            error_log('[SST-HTTP] validatePostRequest: non-POST request reached a POST-only handler (method=' . $_SERVER['REQUEST_METHOD'] . ', fallback=' . $fallbackUrl . ')');
             $this->redirect($fallbackUrl);
         }
 
@@ -91,7 +92,7 @@ class HttpService
         // via CONTENT_LENGTH (still populated even though $_POST is empty)
         // and surface a specific message instead.
         if (empty($_POST) && empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
-            error_log('[SST-SECURITY] validatePostRequest: POST empty but CONTENT_LENGTH=' . ($_SERVER['CONTENT_LENGTH'] ?? '0'));
+            error_log('[SST-HTTP] validatePostRequest: POST body silently truncated by PHP (content_length=' . ($_SERVER['CONTENT_LENGTH'] ?? '?') . ', post_max_size=' . ini_get('post_max_size') . ')');
             \setFlash('error', 'Le fichier joint est trop volumineux pour être envoyé. Réduisez sa taille et réessayez.');
             $this->redirect($fallbackUrl);
         }
@@ -100,13 +101,14 @@ class HttpService
         if (!\validateCsrfToken($token)) {
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
             $caller = $trace[1]['file'] ?? ($trace[0]['file'] ?? 'unknown');
-            error_log('[SST-SECURITY] validatePostRequest: CSRF FAILED — token=' . substr($token, 0, 8) . '... called from ' . $caller);
+            error_log('[SST-HTTP] validatePostRequest: CSRF token rejected (token_present=' . ($token !== '' ? 'yes' : 'no') . ', fallback=' . $fallbackUrl . ', called_from=' . $caller . ', post_keys=' . implode(',', array_keys($_POST)) . ')');
             \setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
             $this->redirect($fallbackUrl);
         }
 
         if ($roles !== null && !empty($roles)) {
             if (!\hasAnyRole($roles)) {
+                error_log('[SST-HTTP] validatePostRequest: role check failed (required=' . implode(',', $roles) . ')');
                 \setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
                 $this->redirect($this->url('home'));
             }

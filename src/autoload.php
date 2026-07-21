@@ -46,4 +46,3 @@ require_once __DIR__ . '/queries/site_queries.php';
 require_once __DIR__ . '/queries/report_agent_queries.php';
 require_once __DIR__ . '/queries/report_invite_queries.php';
 require_once __DIR__ . '/queries/report_count_queries.php';
-require_once __DIR__ . '/queries/report_response_queries.php';

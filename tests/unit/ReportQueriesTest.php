@@ -3,23 +3,33 @@
  * Report Queries Unit Tests — Application SST DREETS BFC
  *
  * Tests report query functions with an in-memory SQLite database.
- * Covers createReport(), getReportByUuid(),
- * getReportsByRegistry(), updateReport(), abandonReport(), and
- * respondToReport().
+ * Covers getReportByUuid() and isValidUuid() (still live, in
+ * src/queries/report_queries.php).
+ *
+ * Write operations (create, update, abandon, respond) and
+ * countByState() go through App\Repository\ReportRepository directly:
+ * the procedural wrappers (createReport(), getReportsByRegistry() in
+ * report_queries.php; updateReport(), abandonReport(),
+ * respondToReport() in report_response_queries.php, now deleted;
+ * countReportsByState() in report_count_queries.php) had no callers
+ * outside this test file — createReport()/updateReport() even
+ * diverged from ReportRepository (no transaction wrapping).
  */
 
+use App\DTO\CreateReportCommand;
+use App\DTO\UpdateReportCommand;
+use App\Repository\ReportRepository;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../../src/queries/report_queries.php';
-require_once __DIR__ . '/../../src/queries/report_count_queries.php';
-require_once __DIR__ . '/../../src/queries/report_response_queries.php';
 
 class ReportQueriesTest extends TestCase
 {
     private static PDO $pdo;
     private static int $siteId;
     private static int $userId;
+    private static ReportRepository $reports;
 
     public static function setUpBeforeClass(): void
     {
@@ -43,47 +53,45 @@ class ReportQueriesTest extends TestCase
         // Seed: one user (agent)
         self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Martin', 'Jean', 'jean.martin', 'agent', " . self::$siteId . ", 1)");
         self::$userId = (int) self::$pdo->lastInsertId();
+
+        self::$reports = ReportRepository::instance();
     }
 
-    // ─── createReport() ────────────────────────────────────────────────────
+    /** @param array<string, mixed> $overrides */
+    private static function makeCreateCommand(array $overrides = []): CreateReportCommand
+    {
+        $defaults = [
+            'type' => 'rsst', 'objet' => 'Test', 'description' => 'Desc',
+            'dateEvenement' => '2025-03-15', 'heureEvenement' => null, 'lieu' => null,
+            'declarantId' => self::$userId, 'declarantNom' => 'Martin', 'declarantPrenom' => 'Jean',
+            'siteId' => self::$siteId, 'siteText' => null, 'pole' => null,
+            'serviceAffectation' => null, 'telephoneMobile' => null,
+            'isConfidential' => 0, 'consentSyndicat' => 0,
+            'natureAuteur' => null, 'typeActe' => null,
+            'pourCompteNom' => null, 'pourComptePrenom' => null,
+            'attachmentBlob' => null, 'attachmentName' => null, 'attachmentMime' => null,
+        ];
+        $data = array_merge($defaults, $overrides);
+        return new CreateReportCommand(...$data);
+    }
+
+    // ─── create() ──────────────────────────────────────────────────────────
 
     public function testCreateReportReturnsUuid(): void
     {
-        $data = [
-            'type'              => 'rsst',
-            'objet'             => 'Test signalement RSST',
-            'description'       => 'Description du signalement de test',
-            'date_evenement'    => '2025-03-15',
-            'heure_evenement'   => '14:30',
-            'lieu'              => 'Bureau 201',
-            'declarant_id'      => self::$userId,
-            'declarant_nom'     => 'Martin',
-            'declarant_prenom'  => 'Jean',
-            'site_id'           => self::$siteId,
-            'is_confidential'   => 0,
-            'attachment_blob'   => null,
-            'attachment_name'   => null,
-            'attachment_mime'   => null,
-        ];
-
-        $uuid = createReport(self::$pdo, $data);
+        $uuid = self::$reports->create(self::makeCreateCommand([
+            'objet' => 'Test signalement RSST', 'description' => 'Description du signalement de test',
+            'heureEvenement' => '14:30', 'lieu' => 'Bureau 201',
+        ]));
         $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $uuid);
     }
 
     public function testCreateReportGeneratesReference(): void
     {
-        $data = [
-            'type'              => 'rami',
-            'objet'             => 'Test RAMI',
-            'description'       => 'Description RAMI test',
-            'date_evenement'    => '2025-06-01',
-            'declarant_id'      => self::$userId,
-            'declarant_nom'     => 'Martin',
-            'declarant_prenom'  => 'Jean',
-            'site_id'           => self::$siteId,
-        ];
-
-        $uuid = createReport(self::$pdo, $data);
+        $uuid = self::$reports->create(self::makeCreateCommand([
+            'type' => 'rami', 'objet' => 'Test RAMI', 'description' => 'Description RAMI test',
+            'dateEvenement' => '2025-06-01',
+        ]));
         $report = getReportByUuid(self::$pdo, $uuid);
         $this->assertNotNull($report);
         $this->assertMatchesRegularExpression('/^rami-\d{2}-\d{3}$/', $report['reference']);
@@ -103,36 +111,22 @@ class ReportQueriesTest extends TestCase
         $this->assertNull(getReportByUuid(self::$pdo, '00000000-0000-0000-0000-000000000000'));
     }
 
-    // ─── updateReport() ────────────────────────────────────────────────────
+    // ─── update() ──────────────────────────────────────────────────────────
 
     public function testUpdateReportModifiesFields(): void
     {
-        $data = [
-            'type'              => 'dgi',
-            'objet'             => 'DGI original',
-            'description'       => 'Description originale',
-            'date_evenement'    => '2025-01-10',
-            'declarant_id'      => self::$userId,
-            'declarant_nom'     => 'Martin',
-            'declarant_prenom'  => 'Jean',
-            'site_id'           => self::$siteId,
-        ];
-        $uuid = createReport(self::$pdo, $data);
+        $uuid = self::$reports->create(self::makeCreateCommand([
+            'type' => 'dgi', 'objet' => 'DGI original', 'description' => 'Description originale',
+            'dateEvenement' => '2025-01-10',
+        ]));
 
-        $updateData = [
-            'objet'           => 'DGI modifié',
-            'description'     => 'Description modifiée',
-            'date_evenement'  => '2025-01-11',
-            'heure_evenement' => null,
-            'lieu'            => null,
-            'pour_compte_nom' => null,
-            'pour_compte_prenom' => null,
-            'nature_auteur'   => null,
-            'type_acte'       => null,
-            'is_confidential' => 1,
-        ];
-
-        $result = updateReport(self::$pdo, $uuid, $updateData, self::$userId);
+        $updateCmd = new UpdateReportCommand(
+            objet: 'DGI modifié', description: 'Description modifiée',
+            dateEvenement: '2025-01-11', heureEvenement: null, lieu: null,
+            siteText: null, pole: null, serviceAffectation: null, telephoneMobile: null,
+            isConfidential: 1, consentSyndicat: 0,
+        );
+        $result = self::$reports->update($uuid, $updateCmd, self::$userId);
         $this->assertTrue($result);
 
         $report = getReportByUuid(self::$pdo, $uuid);
@@ -141,50 +135,34 @@ class ReportQueriesTest extends TestCase
         $this->assertEquals(1, (int) $report['is_confidential']);
     }
 
-    // ─── abandonReport() ──────────────────────────────────────────────────
+    // ─── abandon() ─────────────────────────────────────────────────────────
 
     public function testAbandonReportChangesEtat(): void
     {
-        $data = [
-            'type'              => 'rsst',
-            'objet'             => 'To abandon',
-            'description'       => 'Will be abandoned',
-            'date_evenement'    => '2025-02-01',
-            'declarant_id'      => self::$userId,
-            'declarant_nom'     => 'Martin',
-            'declarant_prenom'  => 'Jean',
-            'site_id'           => self::$siteId,
-        ];
-        $uuid = createReport(self::$pdo, $data);
+        $uuid = self::$reports->create(self::makeCreateCommand([
+            'objet' => 'To abandon', 'description' => 'Will be abandoned', 'dateEvenement' => '2025-02-01',
+        ]));
 
-        $result = abandonReport(self::$pdo, $uuid, self::$userId);
+        $result = self::$reports->abandon($uuid, self::$userId);
         $this->assertTrue($result);
 
         $report = getReportByUuid(self::$pdo, $uuid);
         $this->assertEquals('abandonne', $report['etat']);
     }
 
-    // ─── respondToReport() ────────────────────────────────────────────────
+    // ─── respondToReport() ─────────────────────────────────────────────────
 
     public function testRespondToReportChangesEtat(): void
     {
-        $data = [
-            'type'              => 'rsst',
-            'objet'             => 'To respond',
-            'description'       => 'Will get response',
-            'date_evenement'    => '2025-04-01',
-            'declarant_id'      => self::$userId,
-            'declarant_nom'     => 'Martin',
-            'declarant_prenom'  => 'Jean',
-            'site_id'           => self::$siteId,
-        ];
-        $uuid = createReport(self::$pdo, $data);
+        $uuid = self::$reports->create(self::makeCreateCommand([
+            'objet' => 'To respond', 'description' => 'Will get response', 'dateEvenement' => '2025-04-01',
+        ]));
 
         // Add a superviseur user for responding
         self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Sup', 'Anne', 'anne.sup', 'superviseur', " . self::$siteId . ", 1)");
         $supId = (int) self::$pdo->lastInsertId();
 
-        $result = respondToReport(self::$pdo, $uuid, $supId, 'Prise en charge du signalement.', 'en_cours');
+        $result = self::$reports->respondToReport($uuid, $supId, 'Prise en charge du signalement.', 'en_cours');
         $this->assertEquals('ok', $result['status']);
 
         $report = getReportByUuid(self::$pdo, $uuid);
@@ -192,7 +170,7 @@ class ReportQueriesTest extends TestCase
         $this->assertEquals('Prise en charge du signalement.', $report['reponse']);
     }
 
-    // ─── isValidUuid() ────────────────────────────────────────────────────
+    // ─── isValidUuid() ─────────────────────────────────────────────────────
 
     public function testIsValidUuid(): void
     {
@@ -201,11 +179,11 @@ class ReportQueriesTest extends TestCase
         $this->assertFalse(isValidUuid(''));
     }
 
-    // ─── countReportsByState() ────────────────────────────────────────────
+    // ─── countByState() ────────────────────────────────────────────────────
 
     public function testCountReportsByState(): void
     {
-        $counts = countReportsByState(self::$pdo, 'rsst', self::$siteId, true);
+        $counts = self::$reports->countByState('rsst', self::$siteId, true);
         $this->assertArrayHasKey('nouveau', $counts);
         $this->assertArrayHasKey('en_cours', $counts);
         $this->assertArrayHasKey('traite', $counts);

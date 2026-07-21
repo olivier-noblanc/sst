@@ -1,5 +1,13 @@
 <?php
 
+// === Force session name BEFORE any session_start() (including auto_start) ===
+// If session.auto_start is enabled in php.ini, PHP starts a session with
+// the default PHPSESSID name before our code runs. Setting the name early
+// ensures all sessions use our custom SST_SESSION name.
+if (session_status() === PHP_SESSION_NONE && session_name() === 'PHPSESSID') {
+    session_name('SST_SESSION');
+}
+
 /**
  * Router / Entry Point — Application SST DREETS BFC
  *

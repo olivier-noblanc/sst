@@ -66,6 +66,8 @@ $errors = $service->validate($_POST, $userId);
 
 $cmd = UpdateUserCommand::fromPost($_POST);
 
+error_log('[SST-DEBUG] user_edit POST: user_id=' . $userId . ' role=' . $cmd->role . ' site_id=' . $cmd->siteId . ' nom=' . $cmd->nom . ' prenom=' . $cmd->prenom . ' errors=' . json_encode($errors));
+
 // Guard: prevent demoting the last active superviseur
 if (is_array($user) && (string) ($user['role'] ?? '') === ROLE_SUPERVISEUR && $cmd->role !== ROLE_SUPERVISEUR) {
     $demoteErrors = $service->canDemote($userId, $cmd->role, $user);
@@ -77,6 +79,7 @@ if (is_array($user) && (string) ($user['role'] ?? '') === ROLE_SUPERVISEUR && $c
 }
 
 if (!empty($errors)) {
+    error_log('[SST-DEBUG] user_edit VALIDATION ERRORS: ' . json_encode($errors));
     setFormErrors($errors);
     setFormData($_POST);
     redirect(url('user_edit', ['id' => $userId]));
@@ -89,6 +92,8 @@ try {
     $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
 
     $service->update($userId, $cmd, currentUserId());
+
+    error_log('[SST-DEBUG] user_edit UPDATE SUCCESS for user_id=' . $userId . ' role=' . $cmd->role);
 
     auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, $userId, 'user', ['role' => $cmd->role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
 
@@ -110,6 +115,7 @@ try {
     setFlash('success', $successMsg);
 } catch (Throwable $e) {
     error_log('[SST-DB] user_edit failed: ' . $e->getMessage());
+    error_log('[SST-DEBUG] user_edit UPDATE FAILED for user_id=' . $userId . ' error=' . $e->getMessage());
     setFlash('error', 'Erreur lors de la mise à jour de l\'utilisateur : ' . e($e->getMessage()));
 }
 

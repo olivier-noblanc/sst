@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS reports (
     nature_auteur   TEXT,                            -- RAMI only: 'usager'|'collegue'|'hierarchie'|'tiers' (nullable)
     type_acte       TEXT,                            -- RAMI only: 'verbal'|'physique'|'moral'|'sexiste'|'autre' (nullable)
     -- Assignment
-    site_id         INTEGER NOT NULL,                -- FK to sites (UR where event occurred, always set)
+    site_id         INTEGER,                         -- FK to sites (UR où l'événement a eu lieu). NULL si mode sans site (isNoSiteMode()).
     site_text       TEXT,                            -- Free-text site name (autocomplete from history)
     -- Declarant additional info
     pole            TEXT,                            -- Pôle d'affectation

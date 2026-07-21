@@ -54,4 +54,31 @@ class ReportRepositoryTest extends TestCase
         $this->assertNull($this->repo->findById('nonexistent-uuid'));
     }
 
+    // site_id = 0 is the UI/form sentinel for "no site" (no-site mode: the
+    // report form submits an empty hidden field, CreateReportCommand turns
+    // that into 0). Regression test for the bug where every report creation
+    // failed with a FOREIGN KEY constraint violation whenever site_id came
+    // through as 0 — the app's core feature (submitting a report) was
+    // completely broken on any install running in no-site mode.
+    public function testCreateWithSiteIdZeroSucceeds(): void
+    {
+        $cmd = new CreateReportCommand(
+            type: 'rsst', objet: 'Sans site', description: 'Desc',
+            dateEvenement: '2026-01-15', heureEvenement: null,
+            lieu: null, declarantId: $this->userId, declarantNom: 'Martin',
+            declarantPrenom: 'Jean', siteId: 0, siteText: null,
+            pole: null, serviceAffectation: null, telephoneMobile: null,
+            isConfidential: 1, consentSyndicat: 0,
+            natureAuteur: null, typeActe: null,
+            pourCompteNom: null, pourComptePrenom: null,
+            attachmentBlob: null, attachmentName: null, attachmentMime: null,
+        );
+        $uuid = $this->repo->create($cmd);
+        $this->assertNotEmpty($uuid);
+
+        $report = $this->repo->findById($uuid);
+        $this->assertNotNull($report);
+        $this->assertNull($report['site_id']);
+    }
+
 }

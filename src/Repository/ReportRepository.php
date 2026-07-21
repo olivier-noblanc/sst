@@ -453,7 +453,11 @@ class ReportRepository
                 ':pour_compte_nom' => $data['pour_compte_nom'] ?? null,
                 ':pour_compte_prenom' => $data['pour_compte_prenom'] ?? null,
                 ':nature_auteur' => $data['nature_auteur'] ?? null, ':type_acte' => $data['type_acte'] ?? null,
-                ':site_id' => $data['site_id'],
+                // site_id = 0 is the UI/form sentinel for "no site" (hidden field
+                // forced empty in no-site-mode, or the explicit "— Aucun —" option
+                // elsewhere) — 0 is never a real site id, and the FOREIGN KEY on
+                // site_id rejects it. Must bind NULL (nullable column, see schema.sql).
+                ':site_id' => !empty($data['site_id']) ? $data['site_id'] : null,
                 ':site_text' => $data['site_text'] ?? null,
                 ':pole' => $data['pole'] ?? null,
                 ':service_affectation' => $data['service_affectation'] ?? null,

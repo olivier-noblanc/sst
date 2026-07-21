@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.44.2] — 2026-07-21
+
+### Fix — Tests E2E : RAMI/DGI conditionnels + quick-access supprimé
+
+- **1** 🔴 **reports.spec.js** — Tests cartes accueil : RSST seul (RAMI/DGI conditionnels via `app_registry_*_enabled`). Création RAMI/DGI, champs spécifiques et liste DGI : guards `if (page.url().includes('page=home')) return`. (`e2e/reports.spec.js`)
+- **2** 🔴 **roles.spec.js** — Sidebar + pages accessibles : RSST seul. suppression des 2 tests `quick-access` (section supprimée, doublon sidebar). (`e2e/roles.spec.js`)
+- **3** 🔴 **navigation-flows.spec.js** — Navigation registres, breadcrumb, session persistence : RSST seul. (`e2e/navigation-flows.spec.js`)
+- **4** 🔴 **report-flows.spec.js** — Création RAMI : guard ajouté. (`e2e/report-flows.spec.js`)
+- **5** 🔴 **settings.spec.js** — Radios visibilité : RSST seul. (`e2e/settings.spec.js`)
+
+
 ## [3.44.1] — 2026-07-21
 
 ### Fix — Fiche signalement : checkbox confidentielle masquée si mode confidentiel par type

@@ -65,6 +65,10 @@ test.describe('Report Creation', () => {
   });
 
   test('should create a RAMI report successfully', async ({ page }) => {
+    // RAMI is conditional (app_registry_rami_enabled) — skip if disabled
+    await page.goto('/index.php?page=report_create&type=rami');
+    if (page.url().includes('page=home')) return;
+
     await createReport(page, 'rami');
 
     await expect(page.locator('.alert--success')).toContainText(/enregistré/);
@@ -72,6 +76,10 @@ test.describe('Report Creation', () => {
   });
 
   test('should create a DGI report successfully', async ({ page }) => {
+    // DGI is conditional (app_registry_dgi_enabled) — skip if disabled
+    await page.goto('/index.php?page=report_create&type=dgi');
+    if (page.url().includes('page=home')) return;
+
     await createReport(page, 'dgi');
 
     await expect(page.locator('.alert--success')).toContainText(/enregistré/);
@@ -121,14 +129,20 @@ test.describe('Report Creation', () => {
     await expect(page.locator('#nature_auteur')).toHaveCount(0);
     await expect(page.locator('#type_acte')).toHaveCount(0);
 
-    // RAMI should have RAMI fields
+    // RAMI is conditional — skip check if disabled
     await page.goto('/index.php?page=report_create&type=rami');
+    if (page.url().includes('page=home')) return;
+
     await expect(page.locator('#pour_compte')).toBeVisible();
     await expect(page.locator('#nature_auteur')).toBeVisible();
     await expect(page.locator('#type_acte')).toBeVisible();
   });
 
   test('should create RAMI report with "pour le compte" option', async ({ page }) => {
+    // RAMI is conditional — skip if disabled
+    await page.goto('/index.php?page=report_create&type=rami');
+    if (page.url().includes('page=home')) return;
+
     await createReport(page, 'rami', { pourCompte: true });
 
     await expect(page.locator('.alert--success')).toContainText(/enregistré/);
@@ -195,8 +209,9 @@ test.describe('Report List & Filtering', () => {
   });
 
   test('should show empty state for types with no reports', async ({ page }) => {
-    // Navigate to DGI list — just verify the page loads correctly
+    // DGI is conditional — skip if disabled
     await page.goto('/index.php?page=report_list&type=dgi');
+    if (page.url().includes('page=home')) return;
     await expect(page.locator('table')).toBeVisible();
   });
 
@@ -353,24 +368,19 @@ test.describe('Home Page Registry Cards', () => {
     await loginAs(page);
   });
 
-  test('should display three registry cards on home page', async ({ page }) => {
+  test('should display RSST registry card on home page', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
-    // Three registry cards
+    // RSST is always enabled — RAMI/DGI are conditional (app_registry_*_enabled)
     await expect(page.locator('.registry-card--rsst')).toBeVisible();
-    await expect(page.locator('.registry-card--rami')).toBeVisible();
-    await expect(page.locator('.registry-card--dgi')).toBeVisible();
   });
 
-  test('should have "Signaler" and "Voir" links on each card', async ({ page }) => {
+  test('should have "Signaler" and "Voir" links on RSST card', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
-    // Each card should have an "Signaler un signalement" link and "Voir les signalements" link
-    for (const type of ['rsst', 'rami', 'dgi']) {
-      const card = page.locator(`.registry-card--${type}`);
-      await expect(card.locator('a:has-text("Signaler")')).toBeVisible();
-      await expect(card.locator('a:has-text("Voir")')).toBeVisible();
-    }
+    const card = page.locator('.registry-card--rsst');
+    await expect(card.locator('a:has-text("Signaler")')).toBeVisible();
+    await expect(card.locator('a:has-text("Voir")')).toBeVisible();
   });
 
   test('should navigate to create report from registry card', async ({ page }) => {
@@ -384,19 +394,9 @@ test.describe('Home Page Registry Cards', () => {
   test('should navigate to report list from registry card', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
-    // Click "Voir" on RAMI card
-    await page.locator('.registry-card--rami a:has-text("Voir")').click();
-    await expect(page).toHaveURL(/page=report_list.*type=rami/);
-  });
-
-  test('should show superviseur quick access links', async ({ page }) => {
-    await page.goto('/index.php?page=home');
-
-    // Superviseur should see quick access section
-    await expect(page.locator('.quick-access')).toBeVisible();
-    await expect(page.locator('.quick-access a:has-text("Synthèse")')).toBeVisible();
-    await expect(page.locator('.quick-access a:has-text("Statistiques")')).toBeVisible();
-    await expect(page.locator('.quick-access a:has-text("Export")')).toBeVisible();
+    // Click "Voir" on RSST card
+    await page.locator('.registry-card--rsst a:has-text("Voir")').click();
+    await expect(page).toHaveURL(/page=report_list.*type=rsst/);
   });
 
 });

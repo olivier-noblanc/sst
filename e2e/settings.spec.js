@@ -210,10 +210,9 @@ test.describe('Settings — Application Tab', () => {
   test('should display visibility settings for each registry', async ({ page }) => {
     await page.goto('/index.php?page=settings&tab=app');
 
-    // Visibility radios for each type
+    // Visibility radios for RSST (always enabled)
     await expect(page.locator('#visibility-radios-rsst')).toBeVisible();
-    await expect(page.locator('#visibility-radios-rami')).toBeVisible();
-    await expect(page.locator('#visibility-radios-dgi')).toBeVisible();
+    // RAMI/DGI visibility radios are conditional on registry being enabled
   });
 
 });

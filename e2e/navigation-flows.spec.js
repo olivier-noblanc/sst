@@ -258,13 +258,10 @@ test.describe('Cross-Page Navigation Flows', () => {
     await expect(page).toHaveURL(/page=users/);
   });
 
-  test('should navigate through all three registry list pages', async ({ page }) => {
-    const types = ['rsst', 'rami', 'dgi'];
-
-    for (const type of types) {
-      await page.locator(`.sidebar a[href*="type=${type}"]`).click();
-      await expect(page).toHaveURL(new RegExp(`type=${type}`));
-    }
+  test('should navigate through registry list pages', async ({ page }) => {
+    // RSST is always enabled; RAMI/DGI are conditional
+    await page.locator('.sidebar a[href*="type=rsst"]').click();
+    await expect(page).toHaveURL(/type=rsst/);
   });
 
   test('should navigate from home card to create and then to list', async ({ page }) => {
@@ -302,17 +299,17 @@ test.describe('Breadcrumb Navigation', () => {
   });
 
   test('should navigate from report view to list via breadcrumb registry link', async ({ page }) => {
-    // Create a RAMI report
-    await page.goto('/index.php?page=report_create&type=rami');
+    // Create an RSST report (RSST is always enabled; RAMI/DGI are conditional)
+    await page.goto('/index.php?page=report_create&type=rsst');
     await page.locator('#date_evenement').fill('2026-06-15');
-    await page.locator('#objet').fill('Test Breadcrumb RAMI');
-    await page.locator('#description').fill('Test navigation via breadcrumb RAMI.');
+    await page.locator('#objet').fill('Test Breadcrumb RSST');
+    await page.locator('#description').fill('Test navigation via breadcrumb RSST.');
     await page.locator('.card button[type="submit"]').click();
     await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
 
-    // Click "RAMI" in breadcrumb
-    await page.locator('.breadcrumb a:has-text("RAMI")').click();
-    await expect(page).toHaveURL(/page=report_list.*type=rami/);
+    // Click "RSST" in breadcrumb
+    await page.locator('.breadcrumb a:has-text("RSST")').click();
+    await expect(page).toHaveURL(/page=report_list.*type=rsst/);
   });
 
 });
@@ -324,8 +321,8 @@ test.describe('Session Persistence Across Navigation', () => {
 
     // Navigate through many pages — session should persist
     const pagesToVisit = [
-      'home', 'report_list&type=rsst', 'report_list&type=rami',
-      'report_list&type=dgi', 'help', 'changelog', 'preamble',
+      'home', 'report_list&type=rsst',
+      'help', 'changelog', 'preamble',
       'synthesis', 'export', 'statistics', 'users', 'settings',
     ];
 

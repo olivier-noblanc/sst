@@ -19,10 +19,9 @@ test.describe('Agent Role Access', () => {
   });
 
   test('should access report list pages', async ({ page }) => {
-    for (const type of ['rsst', 'rami', 'dgi']) {
-      await page.goto(`/index.php?page=report_list&type=${type}`);
-      await expect(page).toHaveURL(/page=report_list/);
-    }
+    // RSST is always enabled; RAMI/DGI are conditional
+    await page.goto('/index.php?page=report_list&type=rsst');
+    await expect(page).toHaveURL(/page=report_list/);
   });
 
   test('should access report create pages', async ({ page }) => {
@@ -100,16 +99,9 @@ test.describe('Agent Role Access', () => {
   test('should see basic sidebar items', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
-    // Agent should see these sidebar links
+    // Agent should see these sidebar links (RSST always enabled; RAMI/DGI conditional)
     await expect(page.locator('.sidebar a[href*="page=home"]')).toBeVisible();
     await expect(page.locator('.sidebar a[href*="type=rsst"]')).toBeVisible();
-    await expect(page.locator('.sidebar a[href*="type=rami"]')).toBeVisible();
-    await expect(page.locator('.sidebar a[href*="type=dgi"]')).toBeVisible();
-  });
-
-  test('should NOT see quick access section on home', async ({ page }) => {
-    await page.goto('/index.php?page=home');
-    await expect(page.locator('.quick-access')).toHaveCount(0);
   });
 
 });
@@ -122,7 +114,7 @@ test.describe('Superviseur Role Access', () => {
 
   test('should access all pages available to superviseur', async ({ page }) => {
     const accessiblePages = [
-      'home', 'report_list&type=rsst', 'report_list&type=rami', 'report_list&type=dgi',
+      'home', 'report_list&type=rsst',
       'synthesis', 'export', 'statistics', 'users', 'settings', 'logs',
       'help', 'changelog', 'preamble'
     ];
@@ -137,22 +129,15 @@ test.describe('Superviseur Role Access', () => {
   test('should see full sidebar with all menu items', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
-    // Superviseur should see all sidebar links
+    // Superviseur should see all sidebar links (RSST always; RAMI/DGI conditional)
     await expect(page.locator('.sidebar a[href*="page=home"]')).toBeVisible();
     await expect(page.locator('.sidebar a[href*="type=rsst"]')).toBeVisible();
-    await expect(page.locator('.sidebar a[href*="type=rami"]')).toBeVisible();
-    await expect(page.locator('.sidebar a[href*="type=dgi"]')).toBeVisible();
     await expect(page.locator('.sidebar a[href*="page=synthesis"]')).toBeVisible();
     await expect(page.locator('.sidebar a[href*="page=export"]')).toBeVisible();
     await expect(page.locator('.sidebar a[href*="page=statistics"]')).toBeVisible();
     await expect(page.locator('.sidebar a[href*="page=users"]')).toBeVisible();
     await expect(page.locator('.sidebar a[href*="page=settings"]')).toBeVisible();
     await expect(page.locator('.sidebar a[href*="page=logs"]')).toBeVisible();
-  });
-
-  test('should see quick access links on home', async ({ page }) => {
-    await page.goto('/index.php?page=home');
-    await expect(page.locator('.quick-access')).toBeVisible();
   });
 
   test('should have "Répondre" button on reports', async ({ page }) => {

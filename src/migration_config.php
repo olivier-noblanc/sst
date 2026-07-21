@@ -35,7 +35,7 @@ function migrateConfigKeys(PDO $pdo): void
         'app_alert_delay_days' => ['0', 'number', 'app', 'Délai d\'alerte en jours pour les signalements restés à l\'état « Nouveau ». 0 = désactivé. Si > 0, un e-mail est envoyé aux superviseurs du site lorsqu\'un signalement dépasse ce délai (via lazy cron au login).', 1],
         'last_lazy_cron_check_delays' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron check_delays. Ne pas modifier manuellement.', 0],
         'last_lazy_cron_anonymize' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron anonymize. Ne pas modifier manuellement.', 0],
-        'app_report_preamble' => ['Pour toute inscription d\'un fait, vous devez êtreobjectif et factuel. Ne pas mentionner de noms de personnes. Vous pouvez joindre un document ou une photo.', 'text', 'app', 'Texte d\'information affiché en haut du formulaire de signalement (zone readonly). Modifiable via l\'administration.', 1],
+        'app_report_preamble' => ['Pour toute inscription d\'un fait, vous devez être objectif et factuel. Ne pas mentionner de noms de personnes. Vous pouvez joindre un document ou une photo.', 'text', 'app', 'Texte d\'information affiché en haut du formulaire de signalement (zone readonly). Modifiable via l\'administration.', 1],
         'app_rsst_description' => ['Risques liés aux locaux, équipements, ergonomie, conditions environnementales', 'text', 'app', 'Description du registre RSST affichée sur la page d\'accueil. Modifiable via l\'administration.', 1],
     ];
 

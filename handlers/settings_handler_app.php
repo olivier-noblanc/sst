@@ -61,6 +61,14 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     $appDpoContact = trim((string) ($postData['app_dpo_contact'] ?? ''));
     updateConfig($pdo, 'app_dpo_contact', $appDpoContact);
 
+    // Report preamble (displayed in report form)
+    $appReportPreamble = trim((string) ($postData['app_report_preamble'] ?? ''));
+    updateConfig($pdo, 'app_report_preamble', $appReportPreamble);
+
+    // RSST registry description (displayed on home page)
+    $appRsstDescription = trim((string) ($postData['app_rsst_description'] ?? ''));
+    updateConfig($pdo, 'app_rsst_description', $appRsstDescription);
+
     // Admin email for error notifications
     $appAdminEmail = trim((string) ($postData['app_admin_email'] ?? ''));
     if ($appAdminEmail !== '' && filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL) === false) {

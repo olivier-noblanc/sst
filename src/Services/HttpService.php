@@ -28,9 +28,23 @@ class HttpService
 
     /**
      * HTTP redirect and exit.
+     *
+     * Appends `result=<flash type>` to the redirect URL whenever a flash
+     * message was just set (setFlash() before this call) — purely a debug
+     * aid: inert for routing/behavior (nothing reads this query param),
+     * but makes success vs failure visible directly in the Location
+     * header — from curl -v, browser devtools, or server access logs —
+     * without needing to inspect the rendered page or session content.
+     * Without it, two very different outcomes (e.g. settings saved vs.
+     * rejected by validation) can redirect to the exact same URL, making
+     * them indistinguishable from the outside.
      */
     public function redirect(string $url): void
     {
+        if (isset($_SESSION['flash']['type']) && is_string($_SESSION['flash']['type'])) {
+            $separator = str_contains($url, '?') ? '&' : '?';
+            $url .= $separator . 'result=' . rawurlencode($_SESSION['flash']['type']);
+        }
         $GLOBALS['_PHP_REDIRECT'] = $url;
         header('Location: ' . $url);
         exit;

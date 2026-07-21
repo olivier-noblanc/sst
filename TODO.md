@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-21
+Dernière mise à jour : 2026-07-21 (soir)
 
 ---
 
@@ -11,10 +11,10 @@ Dernière mise à jour : 2026-07-21
 | PHPStan erreurs | **0** |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
-| Tests | **850** (1773 assertions) |
+| Tests | **870** (1828 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
-| Pre-commit hook | **hook .git** (PHPStan + PHPUnit) |
+| CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
 | Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |
 
@@ -193,7 +193,7 @@ GrumPHP + hook pre-commit déjà en place (tools/grumphp.phar).
 
 ---
 
-## Priorité 16 — ✅ CHECK constraints reports.type/etat — TERMINÉ
+## Priorité 16 — ✅ CHECK constraints reports.type/etat — TERMINÉ (corrigé, ne fonctionnait pas)
 
 Migration automatique ajoutée dans `src/migration_columns.php` :
 - Vérification idempotente via `schema_version`
@@ -201,6 +201,8 @@ Migration automatique ajoutée dans `src/migration_columns.php` :
 - Backup avant migration destructrice (`backupBeforeMigration()`)
 - Table rebuild avec CHECK constraints + recréation des index
 - Enregistrement dans `schema_version` après succès
+
+**Correction du soir** : cette migration était marquée "terminée" mais échouait en réalité systématiquement en production (`syntax error near "("`) — `DEFAULT datetime('now')` doit être `DEFAULT (datetime('now'))` en SQLite, et `PRAGMA table_info()` renvoie la valeur sans les parenthèses. La contrainte CHECK n'avait donc **jamais** été réellement appliquée. Trouvé en creusant le bug de soumission de signalement (voir plus bas), corrigé, et vérifié : la contrainte rejette bien maintenant un type invalide. Un deuxième bug trouvé au passage sur le même chantier : des `PDOStatement` restaient vivants jusqu'à la fin de la fonction (portée PHP par fonction, pas par bloc), provoquant un verrou SQLite sur le `DROP TABLE` — cause probable des erreurs `WAL checkpoint`/`VACUUM INTO ... locked` observées en prod.
 
 ---
 
@@ -210,13 +212,6 @@ Les tests E2E écrivaient dans la vraie base `data/sst.db`. Fix :
 - `src/config.php` : `DB_PATH` lit `SST_DB_PATH` env var (fallback = prod)
 - `playwright.config.js` : webServer positionne `SST_DB_PATH` vers `%TEMP%\sst-e2e-test.db`
 - `package.json` : nettoyé (token GitHub supprimé, URL pointe vers Codeberg)
-
-Migration automatique ajoutée dans `src/migration_columns.php` :
-- Vérification idempotente via `schema_version`
-- Contrôle d'intégrité avant reconstruction (error_log si violation)
-- Backup avant migration destructrice (`backupBeforeMigration()`)
-- Table rebuild avec CHECK constraints + recréation des index
-- Enregistrement dans `schema_version` après succès
 
 ---
 
@@ -280,6 +275,34 @@ Supprimer `site_id` sans rien y substituer signifie qu'**un agent verrait potent
 
 **Effort estimé (révisé après inventaire)** : 10-15h (le périmètre réel — 47 fichiers applicatifs + 28 de test — est plus large que l'estimation initiale de 8-12h).
 **Statut** : Plan détaillé livré (ce que le TODO demandait comme préalable). **Non exécuté** dans cette session — la décision de politique de visibilité ci-dessus n'est pas une question technique que je peux trancher à ta place sans risquer un vrai changement de confidentialité sur des données réelles.
+
+---
+
+## Priorité 19 — ✅ Chasse aux bugs de production + infrastructure CI/E2E — TERMINÉ
+
+Suite au signalement « je ne peux pas soumettre de signalement / changer un rôle utilisateur ». Plusieurs bugs distincts et sérieux trouvés et corrigés, chacun vérifié avec un vrai serveur PHP + curl (pas seulement des tests unitaires) :
+
+**Bugs critiques (bloquaient des fonctions cœur de l'appli)**
+- `UserRepository::create()/update()` et `ReportRepository::create()` : `site_id = 0` (sentinelle UI « aucun site ») violait la contrainte `FOREIGN KEY`/`NOT NULL` — **toute création de signalement échouait** dès que l'appli tournait en mode sans site (0 site actif). `reports.site_id` passé `NOT NULL` → nullable (migration ajoutée).
+- `checkUserSiteAssignment()` (`src/Middleware/bootstrap.php`) : ne vérifiait jamais `isNoSiteMode()` → boucle de redirection infinie `home ↔ choose_site` pour tout utilisateur sans site en mode sans site. Bloquait toutes les pages nécessitant un site assigné.
+- Double consommation du token CSRF (trouvé grâce à Mimo) : `routes.php` applique `CsrfMiddleware` à tous les handlers POST via une boucle, mais `report_create`/`report_edit`/`choose_site` avaient **en plus** leur propre `validatePostRequest()` interne — le token à usage unique était validé (et supprimé) deux fois, la deuxième échouant systématiquement. Handlers internes retirés, le middleware routeur suffit.
+- `post_max_size` PHP (8M par défaut) plus bas que la limite annoncée par l'appli (10 Mo) : une pièce jointe volumineuse faisait vider silencieusement `$_POST`/`$_FILES` par PHP. `.user.ini` ajouté (12M/10M) + détection explicite avec message clair.
+- Test `logConfidentialReportAccess` avec une assertion mathématiquement toujours vraie (`assertGreaterThanOrEqual(0, COUNT(*))`) masquant un vrai échec d'insertion (FK sur des fixtures inventées).
+
+**Politique « crash hard, jamais silencieux » (AGENTS.md)**
+Tous les `try/catch` qui avalaient une erreur et continuaient (migrations, e-mails de notification, handlers POST) retirés — remplacés soit par une propagation franche, soit par un `finally` qui garde le nettoyage (rollback) sans avaler l'exception. Seuls conservés : les `catch` sur des refus métier volontaires et bien messagés (`RuntimeException`/`InvalidArgumentException` — validation, règles métier), qui ne sont pas des bugs cachés.
+
+**Nouveau : `HttpService::redirect()` ajoute automatiquement `result=<type du flash>`** à l'URL de redirection — pure aide au debug (inerte techniquement), pour ne plus avoir deux résultats très différents (succès/échec) indiscernables depuis l'extérieur quand ils redirigent vers la même URL.
+
+**Nouvelle fonctionnalité** : libellé « Signaler un événement » personnalisable via l'admin (`app_report_create_label`), câblé dans le titre d'onglet, le H1 du formulaire et le bouton de liste vide.
+
+**CI/CD**
+- `.github/workflows/ci.yml` (nouveau) : lint + PHPStan + PHPUnit + E2E Firefox sur chaque push/PR. Ne couvre pas le projet `msedge` (authentification Windows — un runner GitHub Actions n'est pas joint au domaine AD).
+- `update_sst.ps1` : Playwright/npx et msedge ajoutés aux outils obligatoires (bloquants), E2E lance désormais `firefox + msedge`, un échec E2E bloque le déploiement (était « non bloquant » avant).
+- `tests/router_runner.php` + `RouterCsrfIntegrationTest.php` (nouveau) : dispatche une vraie requête via `Router::dispatchPost()`, contrairement à `handler_runner.php` qui appelle le handler directement et ratait structurellement le bug de double CSRF (le middleware routeur n'est jamais exercé).
+- E2E : RAMI/DGI traités comme conditionnels (`app_registry_*_enabled`, défaut désactivé) dans les specs qui supposaient les trois registres toujours actifs (fix Mimo) ; `workers` forcé à 1 uniquement en CI (`process.env.CI`, pas par détection CPU/OS — le runner GitHub Actions a plusieurs cœurs, une détection CPU aurait annulé le fix côté CI) pour éviter la contention SQLite entre fichiers de test exécutés en parallèle contre le même serveur PHP mono-thread.
+
+**Reste ouvert** : le run CI complet (~20 min) n'a pas encore été attendu jusqu'au bout pour confirmer que les correctifs E2E (RAMI/DGI + workers) résolvent bien les ~36 tests signalés par Mimo (onboarding, report flows, roles, settings, user management). À revérifier.
 
 ---
 

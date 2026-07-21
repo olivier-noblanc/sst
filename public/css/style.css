@@ -1756,6 +1756,8 @@ tr:hover td {
     border-radius: var(--border-radius);
     margin-bottom: 16px;
     font-size: 14px;
+    position: relative;
+    z-index: 9999;
 }
 
 .alert--success { background: var(--color-success-bg); color: var(--color-success-text); border: 1px solid var(--color-success-border); }

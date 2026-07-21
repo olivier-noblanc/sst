@@ -51,10 +51,10 @@
 - Les tests sont le **spec**, pas un filet de sécurité rajouté après coup.
 
 ### Erreurs — Crash hard, jamais silencieux
-- **Ne JAMAIS catcher silencieusement les erreurs critiques** (migrations DB, contraintes FK, integrité données).
-- Préférer un `RuntimeException` qui crash l'app plutôt qu'un `try/catch` qui log et continue.
+- **Ne JAMAIS catcher silencieusement les erreurs, critiques ou non** (migrations DB, contraintes FK, intégrité données, handlers POST, tout le reste).
+- Préférer un `RuntimeException` (ou laisser l'exception d'origine remonter) qui crash l'app plutôt qu'un `try/catch` qui log et continue.
 - Un crash silencieux est **impossible à détecter en prod** — le bug passe inaperçu et les données se dégradent.
-- Exception : les handlers POST peuvent catcher pour afficher un message flash utilisateur, mais l'erreur doit être loguée et visible.
+- Aucune exception à cette règle, y compris pour les handlers POST.
 
 ### Structure du dépôt
 - `docs/screenshots/` : captures HTML source + PNG annotés + CAPTURES.md

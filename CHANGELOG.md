@@ -3,6 +3,13 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.44.1] — 2026-07-21
+
+### Fix — Fiche signalement : checkbox confidentielle masquée si mode confidentiel par type
+
+- **1** 🟢 **report_form.php** — Passage du paramètre `$type` aux helpers `reportVisibilityIsAgentChoice()`, `reportVisibilityIsConfidential()` et `reportVisibilityIsPublic()` dans le formulaire de signalement. La config de visibilité par type (`app_report_visibility_rsst`) est désormais respectée : si réglée sur `confidential`, la case « Signalement confidentiel » n'est plus affichée et le signalement est confidentiel d'office. (`templates/report_form.php`)
+
+
 ## [3.44.0] — 2026-07-20
 
 ### Fix critique — JS servant

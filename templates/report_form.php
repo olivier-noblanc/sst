@@ -236,7 +236,7 @@ $submitBtnClass = $isEdit
             <?php elseif (!$isEdit && $noSiteMode): ?>
             <input type="hidden" name="site_id" value="">
             <?php endif; ?>
-            <?php if (reportVisibilityIsAgentChoice()): ?>
+            <?php if (reportVisibilityIsAgentChoice($type)): ?>
             <div class="form-group form-grid__full confidential-toggle" id="confidential-toggle">
                 <label class="label--checkbox">
                     <input type="checkbox" name="is_confidential" id="is_confidential" value="1"
@@ -256,7 +256,7 @@ $submitBtnClass = $isEdit
                     </div>
                 </div>
             </div>
-            <?php elseif (reportVisibilityIsConfidential()): ?>
+            <?php elseif (reportVisibilityIsConfidential($type)): ?>
             <input type="hidden" name="is_confidential" value="1">
             <div class="form-group form-grid__full">
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
@@ -266,7 +266,7 @@ $submitBtnClass = $isEdit
                 <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous et les superviseurs. Les membres du <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez la case de consentement lors de la création.</span>
                 <?php endif; ?>
             </div>
-            <?php elseif (reportVisibilityIsPublic()): ?>
+            <?php elseif (reportVisibilityIsPublic($type)): ?>
             <input type="hidden" name="is_confidential" value="0">
             <?php endif; ?>
             <!-- Consent: transmission to union representatives -->

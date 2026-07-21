@@ -91,12 +91,16 @@ class HttpService
         // via CONTENT_LENGTH (still populated even though $_POST is empty)
         // and surface a specific message instead.
         if (empty($_POST) && empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+            error_log('[SST-SECURITY] validatePostRequest: POST empty but CONTENT_LENGTH=' . ($_SERVER['CONTENT_LENGTH'] ?? '0'));
             \setFlash('error', 'Le fichier joint est trop volumineux pour être envoyé. Réduisez sa taille et réessayez.');
             $this->redirect($fallbackUrl);
         }
 
         $token = $csrfToken ?? ($_POST['csrf_token'] ?? '');
         if (!\validateCsrfToken($token)) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+            $caller = $trace[1]['file'] ?? ($trace[0]['file'] ?? 'unknown');
+            error_log('[SST-SECURITY] validatePostRequest: CSRF FAILED — token=' . substr($token, 0, 8) . '... called from ' . $caller);
             \setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
             $this->redirect($fallbackUrl);
         }

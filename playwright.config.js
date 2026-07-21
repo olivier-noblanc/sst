@@ -24,6 +24,20 @@ const dbPathPrefix = isWindows
 // Disable Xdebug for E2E tests (causes timeouts)
 const xdebugFlag = isWindows ? '-d xdebug.mode=off' : '-d xdebug.mode=off';
 
+// Force strictly sequential test files only in CI (process.env.CI, the
+// de-facto standard env var set by GitHub Actions and virtually every CI
+// provider — also Playwright's own documented convention for this exact
+// setting). That's deliberately NOT based on CPU count: the GitHub Actions
+// Linux runner this project's workflow uses actually has several cores, not
+// one — a CPU-count check would have also undone this fix there. In CI,
+// several spec files running in separate workers, all hammering the single-
+// threaded PHP dev server and the same shared SQLite database at once,
+// caused timeouts and cross-test state leakage. On a real dev/test/prod
+// machine (which is what CI is NOT), leave Playwright's own default worker
+// count — don't force everyone down to 1 worker for a problem that's
+// specific to the ephemeral CI runner.
+const inCi = !!process.env.CI;
+
 /**
  * Playwright configuration for SST application E2E tests.
  * 
@@ -34,14 +48,12 @@ module.exports = defineConfig({
   testDir: './e2e',
   fullyParallel: false,          // PHP built-in server is single-threaded
   // fullyParallel only serializes tests WITHIN a file — different spec
-  // files can still be dispatched to separate workers running at the
-  // same time. On a multi-core CI runner (GitHub Actions ubuntu-latest
-  // defaults to 2 workers), that meant several files hammering the same
-  // single-threaded PHP dev server AND the same shared SQLite database
-  // concurrently — timeouts, and tests seeing state left behind by an
-  // unrelated test running in another worker. Force strictly sequential
-  // execution across the whole suite.
-  workers: 1,
+  // files can still be dispatched to separate workers running at the same
+  // time. Safe in practice on a real dev/test/prod machine; in CI (see
+  // inCi above), several files hammering the same single-threaded PHP dev
+  // server AND the same shared SQLite database concurrently caused
+  // timeouts and tests seeing state left behind by another worker.
+  workers: inCi ? 1 : undefined,
   retries: 1,
   timeout: 30000,
   expect: { timeout: 10000 },

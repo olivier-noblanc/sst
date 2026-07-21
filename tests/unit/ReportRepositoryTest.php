@@ -81,4 +81,74 @@ class ReportRepositoryTest extends TestCase
         $this->assertNull($report['site_id']);
     }
 
+    // findPaginated() had no test exercising more than page 1 with a
+    // generous perPage — the offset math ($page - 1) * $perPage was
+    // effectively unverified. This creates 5 reports and checks that
+    // paging through with perPage=2 returns every report exactly once,
+    // across 3 pages, with the last page correctly short (1 report) and
+    // no page ever including a UUID seen on an earlier page. Doesn't
+    // depend on exact ordering (SQLite timestamp ties aren't guaranteed
+    // ordering) — only on the union/overlap of what each page returns.
+    public function testFindPaginatedOffsetIsCorrect(): void
+    {
+        $filter = new \App\DTO\ReportFilter(type: 'rsst');
+        $createdUuids = [];
+        for ($i = 0; $i < 5; $i++) {
+            $createdUuids[] = $this->repo->create($this->makeCommand("Pagination $i"));
+        }
+
+        $seenUuids = [];
+        $totalFromEachPage = [];
+        foreach ([1, 2, 3] as $page) {
+            $result = $this->repo->findPaginated($filter, $page, 2);
+            $totalFromEachPage[] = $result['total'];
+            foreach ($result['reports'] as $report) {
+                $this->assertNotContains(
+                    $report['uuid'],
+                    $seenUuids,
+                    "Page $page returned uuid {$report['uuid']} already seen on an earlier page — offset math is wrong."
+                );
+                $seenUuids[] = $report['uuid'];
+            }
+        }
+
+        $this->assertEquals([5, 5, 5], $totalFromEachPage, 'total should stay 5 regardless of which page is requested');
+        $this->assertCount(5, $seenUuids, 'paging through with perPage=2 across 3 pages should surface all 5 reports exactly once');
+        sort($createdUuids);
+        sort($seenUuids);
+        $this->assertEquals($createdUuids, $seenUuids);
+    }
+
+    public function testFindPaginatedDefaultPageIsOne(): void
+    {
+        // Confirms the $page = 1 default actually behaves like an explicit
+        // page 1, not page 0 or page 2 (both would silently skip/duplicate
+        // rows via a wrong offset).
+        $uuid = $this->repo->create($this->makeCommand('Default page test'));
+        $filter = new \App\DTO\ReportFilter(type: 'rsst');
+
+        $default = $this->repo->findPaginated($filter, perPage: 20);
+        $explicitPage1 = $this->repo->findPaginated($filter, 1, 20);
+
+        $this->assertEquals($explicitPage1['reports'], $default['reports']);
+        $this->assertContains($uuid, array_column($default['reports'], 'uuid'));
+    }
+
+    /** @param array<string, mixed> $overrides */
+    private function makeCommand(string $objet, array $overrides = []): CreateReportCommand
+    {
+        $defaults = [
+            'type' => 'rsst', 'objet' => $objet, 'description' => 'Desc',
+            'dateEvenement' => '2026-01-15', 'heureEvenement' => null,
+            'lieu' => null, 'declarantId' => $this->userId, 'declarantNom' => 'Martin',
+            'declarantPrenom' => 'Jean', 'siteId' => $this->siteId, 'siteText' => null,
+            'pole' => null, 'serviceAffectation' => null, 'telephoneMobile' => null,
+            'isConfidential' => 1, 'consentSyndicat' => 0,
+            'natureAuteur' => null, 'typeActe' => null,
+            'pourCompteNom' => null, 'pourComptePrenom' => null,
+            'attachmentBlob' => null, 'attachmentName' => null, 'attachmentMime' => null,
+        ];
+        return new CreateReportCommand(...array_merge($defaults, $overrides));
+    }
+
 }

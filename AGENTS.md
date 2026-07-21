@@ -50,6 +50,12 @@
 - Étape 3 : refactoriser si nécessaire, en vérifiant que les tests passent toujours.
 - Les tests sont le **spec**, pas un filet de sécurité rajouté après coup.
 
+### Erreurs — Crash hard, jamais silencieux
+- **Ne JAMAIS catcher silencieusement les erreurs critiques** (migrations DB, contraintes FK, integrité données).
+- Préférer un `RuntimeException` qui crash l'app plutôt qu'un `try/catch` qui log et continue.
+- Un crash silencieux est **impossible à détecter en prod** — le bug passe inaperçu et les données se dégradent.
+- Exception : les handlers POST peuvent catcher pour afficher un message flash utilisateur, mais l'erreur doit être loguée et visible.
+
 ### Structure du dépôt
 - `docs/screenshots/` : captures HTML source + PNG annotés + CAPTURES.md
 - `tools/` : scripts CLI manuels (capture_screenshots.py, annotate_screenshots.py, anonymize_old_reports.php, check_delays.php, backup_sst_db.ps1)
@@ -59,7 +65,7 @@
 - `pages/` : pages PHP rendues côté serveur
 - `handlers/` : handlers POST (création, édition, réponse, export)
 - `templates/` : composants réutilisables (header, footer, form, user_form_fields, breadcrumb, etc.)
-- `tests/` : tests unitaires PHPUnit (860 tests, 1804 assertions)
+- `tests/` : tests unitaires PHPUnit (852 tests, 1790 assertions)
 - `nuclear-reset.php` : purge des signalements (CLI uniquement, guard php_sapi_name)
 
 ## Générer les captures d'écran

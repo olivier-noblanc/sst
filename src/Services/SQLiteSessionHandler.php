@@ -31,27 +31,33 @@ class SQLiteSessionHandler implements \SessionHandlerInterface
 
     public function read(string $sessionId): string|false
     {
+        error_log('[SST-SESSION] read() called for session: ' . substr($sessionId, 0, 8) . '...');
         $stmt = $this->pdo->prepare('SELECT data FROM sessions WHERE id = :id');
         $stmt->execute([':id' => $sessionId]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ($row === false) {
+            error_log('[SST-SESSION] read() → no data found (empty session)');
             return '';
         }
+        error_log('[SST-SESSION] read() → ' . strlen($row['data'] ?? '') . ' bytes');
         return $row['data'] ?? '';
     }
 
     public function write(string $sessionId, string $data): bool
     {
+        error_log('[SST-SESSION] write() called for session: ' . substr($sessionId, 0, 8) . '... data=' . strlen($data) . ' bytes');
         $stmt = $this->pdo->prepare('
             INSERT INTO sessions (id, data, last_accessed)
             VALUES (:id, :data, :now)
             ON CONFLICT(id) DO UPDATE SET data = :data, last_accessed = :now
         ');
-        return $stmt->execute([
+        $result = $stmt->execute([
             ':id'   => $sessionId,
             ':data' => $data,
             ':now'  => time(),
         ]);
+        error_log('[SST-SESSION] write() → ' . ($result ? 'OK' : 'FAILED'));
+        return $result;
     }
 
     public function destroy(string $sessionId): bool

@@ -33,7 +33,7 @@ function renderRegistryCard(array $card, string $extraClass = '', string $extraC
     $html .= '</div>';
     $html .= '<div>';
     $html .= '<a href="' . e($card['btnUrl']) . '" class="registry-card__btn">' . e($card['btnLabel']) . '</a>';
-    $html .= '<a href="' . e($card['listUrl']) . '" class="registry-card__link">Voir les signalements</a>';
+    $html .= '<a href="' . e($card['listUrl']) . '" class="registry-card__link">' . e($card['listLabel']) . '</a>';
     $html .= '<div class="registry-card__stat">' . $countLabel . '</div>';
     $html .= '</div>';
     if ($extraContent !== '') {
@@ -61,16 +61,31 @@ function renderRegistryCards(array $cards, string $layout = 'compact', array $ex
 }
 
 /**
- * @return list<array{type: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string}>
+ * @return list<array{type: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
  */
 function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool $ramiEnabled, bool $dgiEnabled): array
 {
+    // "Voir mes signalements" only when this user's effective visibility for
+    // that registry type is 'confidential' — the one mode where the report
+    // list is actually filtered to their own reports only (own_only, see
+    // pages/report_list.php). getReportVisibility() (not
+    // reportVisibilityIsConfidential(), which ignores role and just reads
+    // the raw config) already returns 'all' for superviseur/chsct
+    // regardless of the agent-facing config, so they always get "Voir les
+    // signalements". 'agent_choice' and 'public' both show a wider set for
+    // agents too (linked/non-confidential reports, or everyone at the
+    // site) — "Voir les signalements" stays accurate for those.
+    $listLabel = static fn (string $type): string => \getReportVisibility($type) === \App\Enum\VisibilityMode::Confidential->value
+        ? 'Voir mes signalements'
+        : 'Voir les signalements';
+
     $cards = [];
     $cards[] = [
         'type' => 'rsst', 'title' => 'Registre de Santé et de Sécurité au Travail',
         'subtitle' => 'RSST', 'desc' => getConfig('app_rsst_description', 'Risques liés aux locaux, équipements, ergonomie, conditions environnementales'),
         'count' => $rsstCount, 'btnLabel' => 'Déposer un signalement',
         'btnUrl' => url('report_create', ['type' => TYPE_RSST]), 'listUrl' => url('report_list', ['type' => TYPE_RSST]),
+        'listLabel' => $listLabel(TYPE_RSST),
     ];
     if ($ramiEnabled) {
         $cards[] = [
@@ -78,6 +93,7 @@ function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool 
             'subtitle' => 'RAMI', 'desc' => 'Agressions physiques ou verbales, menaces, incivilités, harcèlement',
             'count' => $ramiCount, 'btnLabel' => 'Signaler une agression',
             'btnUrl' => url('report_create', ['type' => TYPE_RAMI]), 'listUrl' => url('report_list', ['type' => TYPE_RAMI]),
+            'listLabel' => $listLabel(TYPE_RAMI),
         ];
     }
     if ($dgiEnabled) {
@@ -86,6 +102,7 @@ function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool 
             'subtitle' => 'DGI', 'desc' => 'Danger nécessitant une action immédiate, droit de retrait',
             'count' => $dgiCount, 'btnLabel' => 'Signaler un danger urgent',
             'btnUrl' => url('report_create', ['type' => TYPE_DGI]), 'listUrl' => url('report_list', ['type' => TYPE_DGI]),
+            'listLabel' => $listLabel(TYPE_DGI),
         ];
     }
     return $cards;

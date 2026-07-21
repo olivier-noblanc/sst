@@ -12,6 +12,14 @@ use PHPUnit\Framework\TestCase;
 
 class RegistryCardRendererTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        unset($_SESSION['user']);
+        $configService = \App\Services\ConfigService::getInstance();
+        $configService->set('app_report_visibility_rsst', 'public');
+        $configService->clearCache();
+    }
+
     // ─── getRegistryIcon() ──────────────────────────────────────────────────
 
     public function testGetRegistryIconRsst(): void
@@ -41,7 +49,7 @@ class RegistryCardRendererTest extends TestCase
         $card = [
             'type' => 'rsst', 'title' => 'Registre RSST', 'subtitle' => 'RSST',
             'desc' => 'Description test', 'count' => 5,
-            'btnLabel' => 'Déposer', 'btnUrl' => '/create', 'listUrl' => '/list',
+            'btnLabel' => 'Déposer', 'btnUrl' => '/create', 'listUrl' => '/list', 'listLabel' => 'Voir les signalements',
         ];
 
         $html = renderRegistryCard($card);
@@ -60,7 +68,7 @@ class RegistryCardRendererTest extends TestCase
         $card = [
             'type' => 'rami', 'title' => 'Test', 'subtitle' => 'T',
             'desc' => 'Desc', 'count' => 1,
-            'btnLabel' => 'Btn', 'btnUrl' => '/a', 'listUrl' => '/b',
+            'btnLabel' => 'Btn', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements',
         ];
 
         $html = renderRegistryCard($card);
@@ -76,7 +84,7 @@ class RegistryCardRendererTest extends TestCase
         $card = [
             'type' => 'dgi', 'title' => 'T', 'subtitle' => 'S',
             'desc' => 'D', 'count' => 0,
-            'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b',
+            'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements',
         ];
 
         $html = renderRegistryCard($card, 'home-action--large');
@@ -89,7 +97,7 @@ class RegistryCardRendererTest extends TestCase
         $card = [
             'type' => 'rsst', 'title' => '<script>alert(1)</script>', 'subtitle' => 'S',
             'desc' => 'D', 'count' => 0,
-            'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b',
+            'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements',
         ];
 
         $html = renderRegistryCard($card);
@@ -103,7 +111,7 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardsCompact(): void
     {
         $cards = [
-            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b'],
+            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements'],
         ];
 
         $html = renderRegistryCards($cards, 'compact');
@@ -116,7 +124,7 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardsLarge(): void
     {
         $cards = [
-            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b'],
+            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements'],
         ];
 
         $html = renderRegistryCards($cards, 'large');
@@ -128,8 +136,8 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardsMultiple(): void
     {
         $cards = [
-            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b'],
-            ['type' => 'rami', 'title' => 'RAMI', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b'],
+            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements'],
+            ['type' => 'rami', 'title' => 'RAMI', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements'],
         ];
 
         $html = renderRegistryCards($cards);
@@ -168,6 +176,46 @@ class RegistryCardRendererTest extends TestCase
         $this->assertSame('dgi', $cards[2]['type']);
     }
 
+    // ─── listLabel ("Voir mes signalements" vs "Voir les signalements") ────
+
+    public function testListLabelIsMineForAgentInConfidentialMode(): void
+    {
+        $configService = \App\Services\ConfigService::getInstance();
+        $configService->set('app_report_visibility_rsst', 'confidential');
+        $configService->clearCache();
+        $_SESSION['user'] = ['role' => ROLE_AGENT];
+
+        $cards = buildRegistryCards(1, 0, 0, false, false);
+
+        $this->assertSame('Voir mes signalements', $cards[0]['listLabel'], 'An agent restricted to their own reports (confidential mode) must see "Voir mes signalements", not "Voir les signalements".');
+    }
+
+    public function testListLabelIsAllForAgentInPublicMode(): void
+    {
+        $configService = \App\Services\ConfigService::getInstance();
+        $configService->set('app_report_visibility_rsst', 'public');
+        $configService->clearCache();
+        $_SESSION['user'] = ['role' => ROLE_AGENT];
+
+        $cards = buildRegistryCards(1, 0, 0, false, false);
+
+        $this->assertSame('Voir les signalements', $cards[0]['listLabel']);
+    }
+
+    public function testListLabelIsAllForSuperviseurEvenInConfidentialMode(): void
+    {
+        // A superviseur sees every report regardless of the agent-facing
+        // visibility config — the label must reflect what THIS user sees.
+        $configService = \App\Services\ConfigService::getInstance();
+        $configService->set('app_report_visibility_rsst', 'confidential');
+        $configService->clearCache();
+        $_SESSION['user'] = ['role' => ROLE_SUPERVISEUR];
+
+        $cards = buildRegistryCards(1, 0, 0, false, false);
+
+        $this->assertSame('Voir les signalements', $cards[0]['listLabel']);
+    }
+
     public function testBuildRegistryCardsRamiOnly(): void
     {
         $cards = buildRegistryCards(0, 5, 0, true, false);
@@ -198,7 +246,7 @@ class RegistryCardRendererTest extends TestCase
     public function testBuildRegistryCardsHasRequiredKeys(): void
     {
         $cards = buildRegistryCards(0, 0, 0, true, true);
-        $requiredKeys = ['type', 'title', 'subtitle', 'desc', 'count', 'btnLabel', 'btnUrl', 'listUrl'];
+        $requiredKeys = ['type', 'title', 'subtitle', 'desc', 'count', 'btnLabel', 'btnUrl', 'listUrl', 'listLabel'];
 
         foreach ($cards as $card) {
             foreach ($requiredKeys as $key) {

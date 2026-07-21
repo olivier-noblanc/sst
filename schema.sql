@@ -224,7 +224,16 @@ CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id);
 CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at);
 CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat);
 CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id);
+CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat);
+CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat);
+CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement);
 CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential);
+
+-- Full-text search index (uuid/objet/description), synced manually on write.
+-- content=reports / content_rowid=rowid: external-content table, no data
+-- duplication — the FTS index just points back to the reports rows.
+CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid);
+
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
@@ -269,6 +278,19 @@ CREATE TABLE IF NOT EXISTS report_state_history (
 
 CREATE INDEX IF NOT EXISTS idx_state_history_report ON report_state_history(report_uuid);
 CREATE INDEX IF NOT EXISTS idx_state_history_created ON report_state_history(created_at);
+
+-- Agents linked to a report (many-to-many)
+CREATE TABLE IF NOT EXISTS report_agents (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_uuid TEXT NOT NULL,
+    user_id     INTEGER NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE(report_uuid, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_report_agents_uuid ON report_agents(report_uuid);
+CREATE INDEX IF NOT EXISTS idx_report_agents_user ON report_agents(user_id);
 
 -- Agent link invitations (pending confirmation)
 CREATE TABLE IF NOT EXISTS report_agent_invites (

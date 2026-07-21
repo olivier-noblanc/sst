@@ -34,27 +34,23 @@ try {
         auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference'] ?? ''], $reportUuid);
 
         // Notify supervisors of the site
-        try {
-            require_once __DIR__ . '/../src/mail.php';
-            $siteId = (int) ($report['site_id'] ?? 0);
-            $recipients = getNotificationRecipients($pdo, $siteId);
-            if (!empty($recipients)) {
-                $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
-                $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
-                $body = '<html><body>';
-                $body .= '<h2>Signalement abandonné</h2>';
-                $body .= '<p><strong>Référence :</strong> ' . e((string) $report['reference']) . '</p>';
-                $body .= "<p><strong>Registre :</strong> $registryLabel</p>";
-                $body .= '<p><strong>Objet :</strong> ' . e((string) $report['objet']) . '</p>';
-                $body .= '<p><strong>Déclarant :</strong> ' . e((string) $report['declarant_prenom'] . ' ' . (string) $report['declarant_nom']) . '</p>';
-                $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
-                $body .= '</body></html>';
-                foreach ($recipients as $email) {
-                    sendMail($email, $subject, $body);
-                }
+        require_once __DIR__ . '/../src/mail.php';
+        $siteId = (int) ($report['site_id'] ?? 0);
+        $recipients = getNotificationRecipients($pdo, $siteId);
+        if (!empty($recipients)) {
+            $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+            $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
+            $body = '<html><body>';
+            $body .= '<h2>Signalement abandonné</h2>';
+            $body .= '<p><strong>Référence :</strong> ' . e((string) $report['reference']) . '</p>';
+            $body .= "<p><strong>Registre :</strong> $registryLabel</p>";
+            $body .= '<p><strong>Objet :</strong> ' . e((string) $report['objet']) . '</p>';
+            $body .= '<p><strong>Déclarant :</strong> ' . e((string) $report['declarant_prenom'] . ' ' . (string) $report['declarant_nom']) . '</p>';
+            $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+            $body .= '</body></html>';
+            foreach ($recipients as $email) {
+                sendMail($email, $subject, $body);
             }
-        } catch (Throwable $mailEx) {
-            error_log('[SST-MAIL] Abandon notification error: ' . $mailEx->getMessage());
         }
 
         setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' abandonné.');

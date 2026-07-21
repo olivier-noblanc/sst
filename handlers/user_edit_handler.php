@@ -41,14 +41,9 @@ if ($action === 'export_data') {
 }
 
 if ($action === 'anonymize') {
-    try {
-        $service->anonymize($userId, currentUserId());
-        auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
-        setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
-    } catch (Throwable) {
-        error_log('[SST-DB] anonymizeUser failed for user_id=' . $userId);
-        setFlash('error', 'Erreur lors de l\'anonymisation de l\'utilisateur. (user_id=' . $userId . ')');
-    }
+    $service->anonymize($userId, currentUserId());
+    auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
+    setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
     redirect(url('user_view', ['id' => $userId]));
 }
 
@@ -83,34 +78,25 @@ if (!empty($errors)) {
 }
 
 // Update user
-try {
-    $oldRole = (string) ($user['role'] ?? '');
-    $roleChanged = ($cmd->role !== $oldRole);
-    $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
+$oldRole = (string) ($user['role'] ?? '');
+$roleChanged = ($cmd->role !== $oldRole);
+$notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
 
-    $service->update($userId, $cmd, currentUserId());
+$service->update($userId, $cmd, currentUserId());
 
-    auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, $userId, 'user', ['role' => $cmd->role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
+auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, $userId, 'user', ['role' => $cmd->role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
 
-    if ($notifyRoleChange) {
-        try {
-            require_once __DIR__ . '/../src/mail.php';
-            notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
-        } catch (Throwable $mailEx) {
-            error_log('[SST-MAIL] Role change notification error: ' . $mailEx->getMessage());
-        }
-    }
-
-    $successMsg = 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' mis à jour avec succès.';
-    if ($notifyRoleChange) {
-        $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($cmd->email) . '.';
-    } elseif ($roleChanged && empty($cmd->email)) {
-        $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\'a été envoyé (adresse manquante).';
-    }
-    setFlash('success', $successMsg);
-} catch (Throwable $e) {
-    error_log('[SST-DB] user_edit failed: ' . $e->getMessage());
-    setFlash('error', 'Erreur lors de la mise à jour de l\'utilisateur : ' . e($e->getMessage()));
+if ($notifyRoleChange) {
+    require_once __DIR__ . '/../src/mail.php';
+    notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
 }
+
+$successMsg = 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' mis à jour avec succès.';
+if ($notifyRoleChange) {
+    $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($cmd->email) . '.';
+} elseif ($roleChanged && empty($cmd->email)) {
+    $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\'a été envoyé (adresse manquante).';
+}
+setFlash('success', $successMsg);
 
 redirect(url('users'));

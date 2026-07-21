@@ -33,39 +33,35 @@ try {
         auditLog(getDB(), 'report', 'reopen', 'Signalement réouvert : ' . (string) $report['reference'] . ' — Motif : ' . $motifReouverture, null, 'report', ['reference' => $report['reference'], 'motif' => $motifReouverture], $reportUuid);
 
         // Notify declarant + linked agents (non-blocking)
-        try {
-            require_once __DIR__ . '/../src/mail.php';
-            $pdo = getDB();
-            $registryLabel = REGISTRY_SHORT_LABELS[(string) ($report['type'] ?? '')] ?? strtoupper((string) ($report['type'] ?? ''));
-            $declarant = getUserById($pdo, (int) ($report['declarant_id'] ?? 0));
-            if ($declarant !== null && !empty($declarant['email']) && (int) ($report['declarant_id'] ?? 0) !== $userId) {
-                /** @var array<string, string> $declarant */
-                $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
-                $body = '<html><body>';
-                $body .= '<h2>Votre signalement a été réouvert</h2>';
-                $body .= '<p><strong>Référence :</strong> ' . e((string) $report['reference']) . '</p>';
-                $body .= '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>';
-                $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
-                $body .= '</body></html>';
-                sendMail($declarant['email'], $subject, $body);
+        require_once __DIR__ . '/../src/mail.php';
+        $pdo = getDB();
+        $registryLabel = REGISTRY_SHORT_LABELS[(string) ($report['type'] ?? '')] ?? strtoupper((string) ($report['type'] ?? ''));
+        $declarant = getUserById($pdo, (int) ($report['declarant_id'] ?? 0));
+        if ($declarant !== null && !empty($declarant['email']) && (int) ($report['declarant_id'] ?? 0) !== $userId) {
+            /** @var array<string, string> $declarant */
+            $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
+            $body = '<html><body>';
+            $body .= '<h2>Votre signalement a été réouvert</h2>';
+            $body .= '<p><strong>Référence :</strong> ' . e((string) $report['reference']) . '</p>';
+            $body .= '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>';
+            $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+            $body .= '</body></html>';
+            sendMail($declarant['email'], $subject, $body);
+        }
+        $linkedAgents = getLinkedAgents($pdo, $reportUuid);
+        foreach ($linkedAgents as $linkedAgent) {
+            /** @var array<string, string> $linkedAgent */
+            if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
+                $linkedSubject = "Signalement réouvert $registryLabel — {$report['reference']}";
+                $linkedBody = renderEmailBody(
+                    'Signalement réouvert',
+                    '<p>Bonjour ' . e((string) ($linkedAgent['prenom'] ?? '')) . ',</p>'
+                    . '<p>Le signalement <strong>' . e((string) $report['reference']) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>'
+                    . '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>'
+                    . '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
+                );
+                sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
             }
-            $linkedAgents = getLinkedAgents($pdo, $reportUuid);
-            foreach ($linkedAgents as $linkedAgent) {
-                /** @var array<string, string> $linkedAgent */
-                if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
-                    $linkedSubject = "Signalement réouvert $registryLabel — {$report['reference']}";
-                    $linkedBody = renderEmailBody(
-                        'Signalement réouvert',
-                        '<p>Bonjour ' . e((string) ($linkedAgent['prenom'] ?? '')) . ',</p>'
-                        . '<p>Le signalement <strong>' . e((string) $report['reference']) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>'
-                        . '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>'
-                        . '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
-                    );
-                    sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
-                }
-            }
-        } catch (Throwable $mailEx) {
-            error_log('[SST-MAIL] Reopen notification error: ' . $mailEx->getMessage());
         }
 
         setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' réouvert avec succès.');
@@ -75,9 +71,6 @@ try {
 } catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
     redirect(url('report_view', ['uuid' => $reportUuid]));
-} catch (Exception $e) {
-    error_log('[SST-REOPEN] Transaction failed: ' . $e->getMessage());
-    setFlash('error', 'Erreur lors de la réouverture du signalement. Veuillez réessayer.');
 }
 
 redirect(url('report_view', ['uuid' => $reportUuid]));

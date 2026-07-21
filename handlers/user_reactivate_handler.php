@@ -33,9 +33,6 @@ try {
     setFlash('success', 'Utilisateur ' . e($label) . ' réactivé avec succès.');
 } catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
-} catch (Throwable $e) {
-    error_log('[SST-DB] user_reactivate failed: ' . $e->getMessage());
-    setFlash('error', 'Erreur lors de la réactivation de l\'utilisateur. (user_id=' . $userId . ')');
 }
 
 redirect(url('users'));

@@ -69,33 +69,29 @@ try {
         // Send invite emails for newly linked agents (non-blocking)
         $linkedEmailsRaw = trim((string) ($_POST['linked_emails'] ?? ''));
         if (!empty($linkedEmailsRaw)) {
-            try {
-                $pdo = getDB();
-                $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
-                $linkedEmailsList = array_filter($linkedEmailsList, fn($e) => filter_var((string) $e, FILTER_VALIDATE_EMAIL) !== false);
+            $pdo = getDB();
+            $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
+            $linkedEmailsList = array_filter($linkedEmailsList, fn($e) => filter_var((string) $e, FILTER_VALIDATE_EMAIL) !== false);
 
-                // Domain validation: only allow emails from the declarant's domain
-                // Fail-closed: if we can't determine the domain, reject all invites
-                $declarantEmail = (string) ($user['email'] ?? '');
-                if ($declarantEmail !== '' && str_contains($declarantEmail, '@')) {
-                    $emailDomain = substr($declarantEmail, (int) strrpos($declarantEmail, '@') + 1);
-                    $linkedEmailsList = array_filter($linkedEmailsList, function (string $em) use ($emailDomain): bool {
-                        $emDomain = substr($em, (int) strrpos($em, '@') + 1);
-                        return strtolower($emDomain) === strtolower($emailDomain);
-                    });
-                } else {
-                    $linkedEmailsList = [];
-                }
+            // Domain validation: only allow emails from the declarant's domain
+            // Fail-closed: if we can't determine the domain, reject all invites
+            $declarantEmail = (string) ($user['email'] ?? '');
+            if ($declarantEmail !== '' && str_contains($declarantEmail, '@')) {
+                $emailDomain = substr($declarantEmail, (int) strrpos($declarantEmail, '@') + 1);
+                $linkedEmailsList = array_filter($linkedEmailsList, function (string $em) use ($emailDomain): bool {
+                    $emDomain = substr($em, (int) strrpos($em, '@') + 1);
+                    return strtolower($emDomain) === strtolower($emailDomain);
+                });
+            } else {
+                $linkedEmailsList = [];
+            }
 
-                $existingLinked = getLinkedAgents($pdo, $reportUuid);
-                $existingEmails = array_column($existingLinked, 'email');
-                $newEmails = array_diff($linkedEmailsList, $existingEmails);
-                if (!empty($newEmails)) {
-                    require_once __DIR__ . '/../src/mail.php';
-                    sendAgentInviteEmails($pdo, $reportUuid, $newEmails);
-                }
-            } catch (Throwable $mailEx) {
-                error_log('[SST-MAIL] Agent invite error: ' . $mailEx->getMessage());
+            $existingLinked = getLinkedAgents($pdo, $reportUuid);
+            $existingEmails = array_column($existingLinked, 'email');
+            $newEmails = array_diff($linkedEmailsList, $existingEmails);
+            if (!empty($newEmails)) {
+                require_once __DIR__ . '/../src/mail.php';
+                sendAgentInviteEmails($pdo, $reportUuid, $newEmails);
             }
         }
 
@@ -107,11 +103,6 @@ try {
     }
 } catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
-    setFormData($_POST);
-    redirect(url('report_edit', ['uuid' => $reportUuid]));
-} catch (Exception $e) {
-    error_log('[SST-EDIT] Unexpected error: ' . $e->getMessage());
-    setFlash('error', 'Une erreur inattendue est survenue.');
     setFormData($_POST);
     redirect(url('report_edit', ['uuid' => $reportUuid]));
 }

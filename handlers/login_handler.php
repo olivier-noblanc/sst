@@ -34,11 +34,7 @@ if ($user !== null) {
     safeSessionRegenerate();
 
     require_once __DIR__ . '/../src/cron.php';
-    try {
-        runLazyCron(getDB());
-    } catch (Exception $e) {
-        error_log('[SST-CRON] Lazy cron failed on dev login: ' . $e->getMessage());
-    }
+    runLazyCron(getDB());
 
     $intendedUrl = (string) ($session->clearIntendedUrl() ?? url('home'));
     auditLog(getDB(), 'auth', 'login', 'Connexion : ' . (string) $user['prenom'] . ' ' . (string) $user['nom'], (int) $user['id'], 'user', ['username' => $user['username']]);

@@ -157,10 +157,10 @@ try {
     ];
     auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . $tab, null, 'config', ['tab' => $tab]);
     setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');
-} catch (Exception $e) {
-    $pdo->rollBack();
-    error_log('[SST-DB] settings failed: ' . $e->getMessage());
-    setFlash('error', 'Erreur lors de l\'enregistrement des paramètres : ' . e($e->getMessage()));
+} finally {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
 }
 
 redirect(url('settings', ['tab' => $tab]));

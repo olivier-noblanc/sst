@@ -77,12 +77,8 @@ try {
     if (is_array($result) && ($result['status'] ?? '') === 'ok') {
         auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report['reference'] . ' — état : ' . $nouvelEtat, null, 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat], $reportUuid);
 
-        try {
-            require_once __DIR__ . '/../src/mail.php';
-            notifyReportResponse($pdo, $reportUuid, $userId);
-        } catch (Throwable $mailEx) {
-            error_log('[SST-MAIL] Notification error: ' . $mailEx->getMessage());
-        }
+        require_once __DIR__ . '/../src/mail.php';
+        notifyReportResponse($pdo, $reportUuid, $userId);
 
         setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report['reference']) . '.');
     } else {
@@ -98,10 +94,6 @@ try {
 } catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
     setFormData($_POST);
-    redirect(url('report_respond', ['uuid' => $reportUuid]));
-} catch (Exception $e) {
-    error_log('[SST-RESPOND] Unexpected error: ' . $e->getMessage());
-    setFlash('error', 'Une erreur inattendue est survenue.');
     redirect(url('report_respond', ['uuid' => $reportUuid]));
 }
 

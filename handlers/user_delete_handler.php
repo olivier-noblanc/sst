@@ -33,9 +33,6 @@ try {
     setFlash('success', 'Utilisateur ' . e($label) . ' désactivé avec succès.');
 } catch (RuntimeException $e) {
     setFlash('error', e($e->getMessage()));
-} catch (Throwable $e) {
-    error_log('[SST-DB] user_delete failed: ' . $e->getMessage());
-    setFlash('error', 'Erreur lors de la désactivation de l\'utilisateur. Veuillez contacter un administrateur.');
 }
 
 redirect(url('users'));

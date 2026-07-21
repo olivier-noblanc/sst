@@ -98,15 +98,11 @@ try {
 
     // Send linked agent invite emails (non-blocking)
     if (!empty($linkedEmailsRaw)) {
-        try {
-            require_once __DIR__ . '/../src/mail.php';
-            $linkedEmails = array_map(trim(...), explode(',', $linkedEmailsRaw));
-            $linkedEmails = array_filter($linkedEmails, fn($e) => filter_var((string) $e, FILTER_VALIDATE_EMAIL) !== false);
-            if (!empty($linkedEmails)) {
-                sendAgentInviteEmails($pdo, (string) $report['uuid'], $linkedEmails);
-            }
-        } catch (Throwable $mailEx) {
-            error_log('[SST-MAIL] Agent invite error: ' . $mailEx->getMessage());
+        require_once __DIR__ . '/../src/mail.php';
+        $linkedEmails = array_map(trim(...), explode(',', $linkedEmailsRaw));
+        $linkedEmails = array_filter($linkedEmails, fn($e) => filter_var((string) $e, FILTER_VALIDATE_EMAIL) !== false);
+        if (!empty($linkedEmails)) {
+            sendAgentInviteEmails($pdo, (string) $report['uuid'], $linkedEmails);
         }
     }
 
@@ -116,11 +112,6 @@ try {
 
 } catch (InvalidArgumentException $e) {
     setFormErrors(['general' => $e->getMessage()]);
-    setFormData($_POST);
-    redirect(url('report_create', ['type' => $type]));
-} catch (Exception $e) {
-    error_log('[SST-DB] report_create failed: ' . $e->getMessage());
-    setFlash('error', 'Une erreur interne est survenue. Veuillez réessayer ou contacter l\'administrateur.');
     setFormData($_POST);
     redirect(url('report_create', ['type' => $type]));
 }

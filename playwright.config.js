@@ -4,7 +4,9 @@ const path = require('path');
 
 // Cross-platform: detect OS and build appropriate PHP command
 const isWindows = process.platform === 'win32';
-const phpBinary = isWindows ? 'php' : '/home/z/my-project/tools/php/bin/php';
+// PHP binary resolved via PATH (portable across machines/CI runners).
+// Override with the SST_PHP_BINARY env var if a specific build must be targeted.
+const phpBinary = process.env.SST_PHP_BINARY || 'php';
 const sessionPath = isWindows ? path.join(__dirname, 'data', 'sessions') : '/tmp/php_sessions';
 const routerPath = path.join(__dirname, 'public', 'router.php').replace(/\\/g, '/');
 

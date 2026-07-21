@@ -1,0 +1,85 @@
+name: CI
+
+# Filet de sécurité en amont du gate local (update_sst.ps1). Couvre ce
+# qui est reproductible sur un runner cloud : lint, PHPStan, PHPUnit,
+# et Playwright avec Firefox (mode DEV_MODE / mock login).
+#
+# NE couvre PAS le projet Playwright "msedge" (authentification Windows
+# intégrée contre IIS) : un runner GitHub Actions est une VM éphémère
+# non jointe au domaine AD, sans ticket Kerberos ni cache d'identifiants
+# NTLM — le SSO Windows ne peut pas fonctionner ici, quel que soit le
+# navigateur installé. Ce cas reste uniquement testable par le gate
+# local (update_sst.ps1) sur la vraie machine Windows/IIS.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint + PHPStan + PHPUnit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: none
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Lint (php -l)
+        run: |
+          set -e
+          find src pages handlers templates tools public -name '*.php' -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: PHPStan
+        run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      - name: PHPUnit
+        run: php vendor/bin/phpunit --no-coverage
+
+  e2e:
+    name: E2E (Playwright, Firefox)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: none
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: npm install
+        run: npm install
+
+      - name: Install Playwright (Firefox only)
+        run: npx playwright install --with-deps firefox
+
+      - name: Run E2E tests
+        run: npx playwright test --project=firefox
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

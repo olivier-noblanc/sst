@@ -66,18 +66,3 @@ function getUsersByRole(PDO $pdo, string $role): array
     /** @var array<int, array<string, mixed>> $result */
     return $result;
 }
-
-/**
- * Get all active users, optionally filtered by site.
- *
- * @param PDO    $pdo     Database connection
- * @param int    $siteId  Optional site filter (0 = all)
- * @param bool   $active  Whether to include only active users
- * @return array<int, array<string, mixed>>
- */
-function getAllUsers(PDO $pdo, int $siteId = 0, bool $active = true): array
-{
-    $result = UserRepository::instance()->findAll($siteId, $active);
-    /** @var array<int, array<string, mixed>> $result */
-    return $result;
-}

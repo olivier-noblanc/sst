@@ -146,7 +146,11 @@ class UserRepository
             ':prenom'   => $data['prenom'],
             ':email'    => $data['email'] ?? null,
             ':role'     => $data['role'] ?? ROLE_AGENT,
-            ':site_id'  => $data['site_id'],
+            // site_id = 0 is the UI/form sentinel for "no site" ("— Aucun —" option,
+            // and the hidden field forced empty in no-site-mode) — 0 is never a real
+            // site id (SQLite autoincrement starts at 1), and the FOREIGN KEY on
+            // site_id rejects it. Must bind NULL, which the FK accepts (nullable column).
+            ':site_id'  => !empty($data['site_id']) ? $data['site_id'] : null,
         ]);
         return (int) $this->pdo->lastInsertId();
     }
@@ -167,7 +171,12 @@ class UserRepository
             ':email'    => !empty($data['email']) ? $data['email'] : null,
             ':username' => $data['username'],
             ':role'     => $data['role'],
-            ':site_id'  => $data['site_id'],
+            // Same NULL-vs-0 fix as create() above — this is the exact bug that made
+            // any edit (role change or otherwise) fail with a FOREIGN KEY constraint
+            // violation whenever site_id came through as 0 (no-site-mode, or the
+            // explicit "— Aucun —" option), silently reported as a generic error and
+            // leaving the role (and every other field) unchanged.
+            ':site_id'  => !empty($data['site_id']) ? $data['site_id'] : null,
             ':id'       => $id,
         ]);
         return $stmt->rowCount() > 0;

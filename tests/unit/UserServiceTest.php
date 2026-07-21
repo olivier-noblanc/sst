@@ -132,6 +132,57 @@ class UserServiceTest extends TestCase
         $this->assertEquals('Updated', $user['nom']);
     }
 
+    // site_id = 0 is the UI sentinel for "no site" ("— Aucun —" option, and the
+    // hidden field forced empty in no-site-mode). It must never be bound as a
+    // literal 0 into the FK column — regression test for the bug where any
+    // update (role change or otherwise) failed with a FOREIGN KEY constraint
+    // violation whenever site_id came through as 0, silently leaving the user
+    // unchanged.
+    public function testUpdateWithSiteIdZeroSucceeds(): void
+    {
+        $cmd = new CreateUserCommand(
+            username: 'svc.nosite',
+            nom: 'Original',
+            prenom: 'User',
+            role: ROLE_AGENT,
+            siteId: $this->siteId,
+            email: null,
+        );
+        $userId = $this->service->create($cmd);
+
+        $updateCmd = new UpdateUserCommand(
+            username: 'svc.nosite',
+            nom: 'Original',
+            prenom: 'User',
+            role: ROLE_CHSCT,
+            siteId: 0,
+            email: null,
+        );
+        $result = $this->service->update($userId, $updateCmd, 999999);
+        $this->assertTrue($result);
+
+        $user = $this->service->findById($userId);
+        $this->assertEquals(ROLE_CHSCT, $user['role']);
+        $this->assertNull($user['site_id']);
+    }
+
+    public function testCreateWithSiteIdZeroSucceeds(): void
+    {
+        $cmd = new CreateUserCommand(
+            username: 'svc.createnosite',
+            nom: 'New',
+            prenom: 'User',
+            role: ROLE_AGENT,
+            siteId: 0,
+            email: null,
+        );
+        $userId = $this->service->create($cmd);
+        $this->assertGreaterThan(0, $userId);
+
+        $user = $this->service->findById($userId);
+        $this->assertNull($user['site_id']);
+    }
+
     public function testUpdateNonExistentUserThrows(): void
     {
         $updateCmd = new UpdateUserCommand(

@@ -145,6 +145,9 @@ if (!ConfigService::getInstance()->isNoSiteMode()) {
     $reportSiteCode = $report['site_code'] ?? '—';
     drawField($pdf, $labelUnite, $reportSiteNom . ' (' . $reportSiteCode . ')');
 }
+if (!empty($report['site_text'])) {
+    drawField($pdf, 'Site', $report['site_text']);
+}
 
 if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
     $reportPourComptePrenom = $report['pour_compte_prenom'] ?? '';

@@ -218,6 +218,9 @@ $submitBtnClass = $isEdit
                     <span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span>
                 <?php endif; ?>
             </div>
+            <?php elseif (!$isEdit && $noSiteMode): ?>
+            <input type="hidden" name="site_id" value="">
+            <?php endif; ?>
             <div class="form-group">
                 <label for="site_text">Site</label>
                 <input type="text" id="site_text" name="site_text"
@@ -233,9 +236,6 @@ $submitBtnClass = $isEdit
                 </datalist>
                 <span class="form-hint">Nom du site en texte libre (optionnel).</span>
             </div>
-            <?php elseif (!$isEdit && $noSiteMode): ?>
-            <input type="hidden" name="site_id" value="">
-            <?php endif; ?>
             <?php if (reportVisibilityIsAgentChoice($type)): ?>
             <div class="form-group form-grid__full confidential-toggle" id="confidential-toggle">
                 <label class="label--checkbox">

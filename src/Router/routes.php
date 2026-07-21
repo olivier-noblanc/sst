@@ -137,6 +137,9 @@ function createRouter(): Router
     $router->setPageTitle('user_create', 'Créer un utilisateur');
     $router->setPageTitle('logs', 'Journal');
     $router->setPageTitle('logout', 'Déconnexion');
+    $router->setPageTitle('report_print', 'Impression');
+    $router->setPageTitle('report_attachment', 'Pièce jointe');
+    $router->setPageTitle('response_attachment', 'Pièce jointe');
 
     return $router;
 }

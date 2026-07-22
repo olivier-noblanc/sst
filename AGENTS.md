@@ -65,7 +65,7 @@
 - `pages/` : pages PHP rendues côté serveur
 - `handlers/` : handlers POST (création, édition, réponse, export)
 - `templates/` : composants réutilisables (header, footer, form, user_form_fields, breadcrumb, etc.)
-- `tests/` : tests unitaires PHPUnit (852 tests, 1790 assertions)
+- `tests/` : tests unitaires PHPUnit (896 tests, 1874 assertions)
 - `nuclear-reset.php` : purge des signalements (CLI uniquement, guard php_sapi_name)
 
 ## Générer les captures d'écran

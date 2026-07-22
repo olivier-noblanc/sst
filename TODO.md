@@ -14,7 +14,7 @@ Dernière mise à jour : 2026-07-22
 | Tests | **896** (1874 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
-| CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
+| CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + PHPArkitect + Rector + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
 | Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |
 
@@ -22,7 +22,7 @@ Dernière mise à jour : 2026-07-22
 
 | Composant | Config dans neon | Installé dans vendor/ |
 |-----------|------------------|----------------------|
-| GrumPHP | Non (pas de grumphp.yml) | PHAR dans tools/ |
+| GrumPHP | **Oui** (`grumphp.yml`) | PHAR dans tools/ |
 | shipmonk/dead-code-detector | Oui (shipmonkDeadCode) | ✅ Oui |
 | phpstan/phpstan-strict-rules | Oui (strictRules) | ✅ Oui |
 | spaze/phpstan-disallowed-calls | Oui (phpstan-disallowed-calls.neon) | ✅ Oui |

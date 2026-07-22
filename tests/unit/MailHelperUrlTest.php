@@ -92,4 +92,38 @@ class MailHelperUrlTest extends TestCase
 
         $this->assertEquals('https://example.com', getBaseUrl());
     }
+
+    // ─── absoluteUrl() ──────────────────────────────────────────────────────
+
+    public function testAbsoluteUrlCombinesBaseAndPath(): void
+    {
+        // Real bug this guards against: sendAgentInviteEmails() built its
+        // confirmation link with a bare url() call, forgetting the host
+        // entirely — the recipient received a link like
+        // "index.php?page=agent_confirm&token=..." with no scheme or
+        // domain, meaningless in an email client (there's no "current
+        // page" to resolve a relative URL against). absoluteUrl() exists
+        // specifically so a caller can't make that mistake again.
+        \App\Services\ConfigService::getInstance()->set('app_base_url', 'https://sst.dreets-bfc.gouv.fr');
+        \App\Services\ConfigService::getInstance()->clearCache();
+
+        $result = absoluteUrl('agent_confirm', ['token' => 'abc123']);
+
+        $this->assertEquals('https://sst.dreets-bfc.gouv.fr/index.php?page=agent_confirm&token=abc123', $result);
+
+        \App\Services\ConfigService::getInstance()->set('app_base_url', '');
+        \App\Services\ConfigService::getInstance()->clearCache();
+    }
+
+    public function testAbsoluteUrlNeverReturnsARelativePath(): void
+    {
+        \App\Services\ConfigService::getInstance()->set('app_base_url', '');
+        \App\Services\ConfigService::getInstance()->clearCache();
+        $_SERVER['HTTPS'] = 'on';
+        $_SERVER['HTTP_HOST'] = 'example.com';
+
+        $result = absoluteUrl('report_view', ['uuid' => 'xyz']);
+
+        $this->assertStringStartsWith('https://example.com/', $result);
+    }
 }

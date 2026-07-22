@@ -44,7 +44,7 @@ try {
             $body .= '<h2>Votre signalement a été réouvert</h2>';
             $body .= '<p><strong>Référence :</strong> ' . e((string) $report['reference']) . '</p>';
             $body .= '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>';
-            $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+            $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
             sendMail($declarant['email'], $subject, $body);
         }
@@ -58,7 +58,7 @@ try {
                     '<p>Bonjour ' . e((string) ($linkedAgent['prenom'] ?? '')) . ',</p>'
                     . '<p>Le signalement <strong>' . e((string) $report['reference']) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>'
                     . '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>'
-                    . '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
+                    . '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
                 );
                 sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
             }

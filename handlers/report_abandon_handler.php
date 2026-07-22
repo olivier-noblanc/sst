@@ -46,7 +46,7 @@ try {
             $body .= "<p><strong>Registre :</strong> $registryLabel</p>";
             $body .= '<p><strong>Objet :</strong> ' . e((string) $report['objet']) . '</p>';
             $body .= '<p><strong>Déclarant :</strong> ' . e((string) $report['declarant_prenom'] . ' ' . (string) $report['declarant_nom']) . '</p>';
-            $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+            $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
             foreach ($recipients as $email) {
                 sendMail($email, $subject, $body);

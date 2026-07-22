@@ -65,7 +65,7 @@ class NotificationService
         $body .= "<p><strong>Registre :</strong> $registryLabel</p>";
         $body .= '<p><strong>Objet :</strong> ' . e($report['objet']) . '</p>';
         $body .= '<p><strong>Déclarant :</strong> ' . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . '</p>';
-        $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+        $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
         $body .= '</body></html>';
 
         foreach ($recipients as $email) {
@@ -98,7 +98,7 @@ class NotificationService
             $body = '<html><body>';
             $body .= '<h2>Votre signalement a été réouvert</h2>';
             $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
-            $body .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+            $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
             sendMail($declarant['email'], $subject, $body);
         }
@@ -112,7 +112,7 @@ class NotificationService
                 $linkedBody .= '<h2>Signalement réouvert</h2>';
                 $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>';
                 $linkedBody .= '<p>Le signalement <strong>' . e($report['reference']) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>';
-                $linkedBody .= '<p><a href="' . getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
+                $linkedBody .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
                 $linkedBody .= '</body></html>';
                 sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
             }

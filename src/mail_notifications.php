@@ -27,7 +27,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     /** @var array<string, mixed> $report */
     $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
     $subject = "Nouveau signalement $registryLabel — {$report['reference']}";
-    $reportUrl = getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]);
+    $reportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
     $body = '<html><body>';
     $body .= '<h2>Nouveau signalement enregistré</h2>';
     $body .= renderEmailField('Référence', $report['reference']);
@@ -91,7 +91,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
         return;
     }
     /** @var array<string, mixed> $respondent */
-    $reportUrl = getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]);
+    $reportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
     $body = '<html><body>';
     $body .= '<h2>Votre signalement a reçu une réponse</h2>';
     $body .= renderEmailField('Référence', $report['reference']);
@@ -106,7 +106,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     foreach ($linkedAgents as $linkedAgent) {
         if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== $declarant['email']) {
             $linkedSubject = "Réponse au signalement $registryLabel — {$report['reference']}";
-            $linkedReportUrl = getBaseUrl() . '/' . url('report_view', ['uuid' => $reportUuid]);
+            $linkedReportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
             $linkedBody = '<html><body>';
             $linkedBody .= '<h2>Réponse au signalement</h2>';
             $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>';
@@ -215,7 +215,7 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
         // Create invite token
         $token = createAgentInvite($pdo, $reportUuid, $email);
         // Build confirmation link
-        $confirmUrl = url('agent_confirm', ['token' => $token]);
+        $confirmUrl = absoluteUrl('agent_confirm', ['token' => $token]);
         $subject = 'Vous avez été rattaché(e) au signalement ' . $report['reference'];
         $body = renderEmailBody(
             'Confirmation de rattachement',
@@ -249,4 +249,19 @@ function getBaseUrl(): string
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     return "$protocol://$host";
+}
+
+/**
+ * Build an absolute URL (with scheme + host) for use in an email — url()
+ * alone returns a path relative to the current page ("index.php?..."),
+ * which has no meaning in an email client (there's no "current page" to
+ * resolve it against). Prefer this over combining getBaseUrl() and url()
+ * by hand at each call site — that pattern already caused a real bug once
+ * (sendAgentInviteEmails() built a plain url() with no host at all).
+ *
+ * @param array<string, mixed> $params
+ */
+function absoluteUrl(string $page, array $params = []): string
+{
+    return getBaseUrl() . '/' . url($page, $params);
 }

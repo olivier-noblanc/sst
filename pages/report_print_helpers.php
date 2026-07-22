@@ -102,12 +102,33 @@ function drawBadge(SSTPDF $pdf, string $text, array $bgColor, ?float $x = null, 
     $pdf->SetX($curX + 2);
 }
 
+/**
+ * Compute the label column width to use for a field row: the fixed
+ * $labelW normally, or the label's actual rendered width (+2mm margin)
+ * when that's wider — Cell() doesn't wrap or clip on its own, a label
+ * wider than the column just overflows visually into whatever is drawn
+ * right after it. Requires the intended font to already be set on $pdf
+ * (label font is bold, see drawField/drawMultiField) since string width
+ * depends on it.
+ */
+function effectiveLabelWidth(SSTPDF $pdf, string $labelCp, float $labelW): float
+{
+    return max($labelW, $pdf->GetStringWidth($labelCp) + 2);
+}
+
 /** Draw a field row (label: value). */
 function drawField(SSTPDF $pdf, string $label, string $value, float $labelW = 55): void
 {
     $pdf->SetFont('DejaVu', 'B', 10);
     $pdf->SetTextColor(85, 85, 85);
-    $pdf->Cell($labelW, 6, utf8ToCp1252($label), 0, 0);
+    $labelCp = utf8ToCp1252($label);
+    // The fixed label width assumes short, static French labels ("Objet",
+    // "Lieu", "Déclarant"...). That breaks for real with the default
+    // config: "Transmission aux Membre FS/CSAs" (role label is
+    // admin-configurable, see ConfigService::getRoleLabel()) is already
+    // wider than 55mm out of the box, well before any unusually long
+    // custom label. See effectiveLabelWidth().
+    $pdf->Cell(effectiveLabelWidth($pdf, $labelCp, $labelW), 6, $labelCp, 0, 0);
     $pdf->SetFont('DejaVu', '', 10);
     $pdf->SetTextColor(34, 34, 34);
     $valueCp = utf8ToCp1252($value);
@@ -126,7 +147,8 @@ function drawMultiField(SSTPDF $pdf, string $label, string $value, float $labelW
 {
     $pdf->SetFont('DejaVu', 'B', 10);
     $pdf->SetTextColor(85, 85, 85);
-    $pdf->Cell($labelW, 6, utf8ToCp1252($label), 0, 0);
+    $labelCp = utf8ToCp1252($label);
+    $pdf->Cell(effectiveLabelWidth($pdf, $labelCp, $labelW), 6, $labelCp, 0, 0);
     $pdf->SetFont('DejaVu', '', 10);
     $pdf->SetTextColor(34, 34, 34);
     $pageW = $pdf->GetPageWidth();

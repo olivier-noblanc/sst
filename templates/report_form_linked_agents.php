@@ -27,7 +27,7 @@ if (isset($formData['linked_emails'])) {
 }
 ?>
         <div class="form-group form-grid__full">
-            <label for="linked_emails">Rattacher des collègues au signalement</label>
+            <label for="linked_emails"><?php echo e(getConfig('app_linked_agents_label', 'Rattacher des collègues au signalement')); ?></label>
             <input type="text" id="linked_emails" name="linked_emails"
                    class="form-control"
                    value="<?php echo e($linkedEmails); ?>"

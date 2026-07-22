@@ -3,6 +3,16 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.44.4] — 2026-07-21
+
+### Amélioration — Libellé « Rattacher des collègues » modifiable via admin
+
+- **1** 🔴 **migration_config.php** — Clé `app_linked_agents_label` ajoutée (défaut : « Rattacher des collègues au signalement »).
+- **2** 🔴 **tab_app.php** — Champ texte ajouté dans l'onglet Paramètres de l'application.
+- **3** 🔴 **settings_handler_app.php** — Sauvegarde + fallback si vide.
+- **4** 🔴 **report_form_linked_agents.php** — Label rendu dynamique via `getConfig()`.
+- **5** 🔴 **ConfigServiceTest.php** — 3 tests ajoutés (défaut, personnalisé, fallback vide).
+
 ## [3.44.3] — 2026-07-21
 
 ### Fix — Formulaire signalement : champs Pôle et Téléphone obligatoires

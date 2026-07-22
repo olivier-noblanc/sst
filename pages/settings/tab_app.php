@@ -209,6 +209,15 @@
                 </small>
             </div>
             <div class="form-group">
+                <label for="app_linked_agents_label">Libellé "Rattacher des collègues"</label>
+                <input type="text" id="app_linked_agents_label" name="app_linked_agents_label" class="form-control"
+                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_linked_agents_label', 'Rattacher des collègues au signalement')); ?>"
+                       placeholder="Rattacher des collègues au signalement" required>
+                <small class="text-muted block mt-1">
+                    Libellé du champ de rattachement d'agents sur le formulaire de signalement.
+                </small>
+            </div>
+            <div class="form-group">
                 <label for="app_rsst_description">Description du registre RSST (page d'accueil)</label>
                 <input type="text" id="app_rsst_description" name="app_rsst_description" class="form-control"
                        value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_rsst_description', '')); ?>"

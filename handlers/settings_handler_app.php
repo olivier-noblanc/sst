@@ -75,6 +75,10 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     $appReportCreateLabel = trim((string) ($postData['app_report_create_label'] ?? ''));
     updateConfig($pdo, 'app_report_create_label', $appReportCreateLabel !== '' ? $appReportCreateLabel : 'Signaler un événement');
 
+    // Linked agents label (form field label)
+    $appLinkedAgentsLabel = trim((string) ($postData['app_linked_agents_label'] ?? ''));
+    updateConfig($pdo, 'app_linked_agents_label', $appLinkedAgentsLabel !== '' ? $appLinkedAgentsLabel : 'Rattacher des collègues au signalement');
+
     // Admin email for error notifications
     $appAdminEmail = trim((string) ($postData['app_admin_email'] ?? ''));
     if ($appAdminEmail !== '' && filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL) === false) {

@@ -304,4 +304,32 @@ class ConfigServiceTest extends TestCase
         $b = ConfigService::getInstance();
         $this->assertSame($a, $b);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // app_linked_agents_label (personnalisation admin)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testLinkedAgentsLabelDefaultsWithExpectedValue(): void
+    {
+        // When no value is set in DB, getConfig should return the fallback.
+        $result = $this->service->get('app_linked_agents_label', 'Rattacher des collègues au signalement');
+        $this->assertEquals('Rattacher des collègues au signalement', $result);
+    }
+
+    public function testLinkedAgentsLabelAcceptsCustomValue(): void
+    {
+        $this->service->set('app_linked_agents_label', 'Associer des collègues');
+        $this->service->clearCache();
+        $result = $this->service->get('app_linked_agents_label');
+        $this->assertEquals('Associer des collègues', $result);
+    }
+
+    public function testLinkedAgentsLabelFallbackWhenEmptyString(): void
+    {
+        $this->service->set('app_linked_agents_label', '');
+        $this->service->clearCache();
+        // Handler should never save blank, but if it does, the template fallback applies.
+        $result = $this->service->get('app_linked_agents_label', 'Rattacher des collègues au signalement');
+        $this->assertEquals('Rattacher des collègues au signalement', $result);
+    }
 }

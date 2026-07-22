@@ -9,10 +9,11 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 - **1** 🟢 **report_card.php** — Texte d'aide abandon passé au présent (« est marqué » / « reste consultable »).
 - **2** 🔴 **ConfigService.php** — `get()` traite les chaînes vides comme « pas de valeur » et retourne le fallback.
-- **3** 🔴 **router_runner.php** — Erreurs PHP redirigées vers stderr (`display_errors = 'stderr'`) au lieu d'être supprimées.
+- **3** 🔴 **router_runner.php** — `error_reporting(E_ALL)` + `display_errors = 'stderr'` (erreurs visibles en stderr, JSON propre en stdout). Les erreurs du test runner sont affichées, pas supprimées.
 - **4** 🔴 **RouterCsrfIntegrationTest.php** — Retiré le `2>/dev/null` (syntaxe Unix incompatible Windows). 876 tests OK, 0 échec.
 - **5** 🔴 **ConfigServiceTest.php** — 6 tests edge cases ajoutés (fallback vide, null brut, whitespace, overwrite, valeur valide). 882 tests, 1851 assertions.
 - **6** 🔴 **nuclear-reset.php** / **seed.php** / **ConfigService.php** — 12 erreurs PHPStan corrigées (PDOStatement|false, realpath|false). Scope PHPStan élargi (`nuclear-reset.php`, `seed.php`). GrumPHP passe en entier.
+- **7** 🔴 **agent_confirm.php** — Champ `csrf_token` ajouté au formulaire de confirmation (manquant depuis toujours — chaque soumission échouait en "Erreur de sécurité"). 2 tests unitaires de non-régression ajoutés. 896 tests, 1874 assertions.
 
 ## [3.44.4] — 2026-07-21
 

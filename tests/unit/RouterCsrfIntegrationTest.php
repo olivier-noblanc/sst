@@ -137,6 +137,55 @@ class RouterCsrfIntegrationTest extends TestCase
         $this->assertEquals('Objet modifie', $result['queries']['objet_after'], 'Edit was not saved — same double CSRF-consumption bug class as report_create.');
     }
 
+    // ─── agent_confirm ──────────────────────────────────────────────────
+
+    public function testAgentConfirmSucceedsWithValidCsrfAndToken(): void
+    {
+        $reportUuid = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+        $token = bin2hex(random_bytes(32));
+        $seed = $this->baseSeed() . "\n"
+            . "INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('$reportUuid', 'rsst-26-001', 'rsst', 'Test', 'Desc', '2026-01-01', 1, 'Martin', 'Jean', NULL, 'nouveau');\n"
+            . "INSERT INTO report_agent_invites (token, email, report_uuid, created_at) "
+            . "VALUES ('$token', 'jean.martin@dreets.gouv.fr', '$reportUuid', datetime('now'));";
+
+        $result = $this->runRouter([
+            'page' => 'agent_confirm',
+            'session' => $this->agentSession(),
+            'post' => [
+                'csrf_token' => 'validtoken123',
+                'token' => $token,
+            ],
+            'db_seed' => $seed,
+            'assertions' => ['invite_confirmed' => "SELECT confirmed FROM report_agent_invites WHERE token = '$token'"],
+        ]);
+
+        $this->assertEquals(1, $result['queries']['invite_confirmed'], 'Invite should be confirmed after submission.');
+        $this->assertEquals('success', $result['flash']['type'] ?? null);
+    }
+
+    public function testAgentConfirmRejectsMissingCsrfToken(): void
+    {
+        $reportUuid = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+        $token = bin2hex(random_bytes(32));
+        $seed = $this->baseSeed() . "\n"
+            . "INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('$reportUuid', 'rsst-26-002', 'rsst', 'Test2', 'Desc2', '2026-01-02', 1, 'Martin', 'Jean', NULL, 'nouveau');\n"
+            . "INSERT INTO report_agent_invites (token, email, report_uuid, created_at) "
+            . "VALUES ('$token', 'jean.martin@dreets.gouv.fr', '$reportUuid', datetime('now'));";
+
+        $result = $this->runRouter([
+            'page' => 'agent_confirm',
+            'session' => $this->agentSession(),
+            'post' => [
+                'token' => $token,
+            ],
+            'db_seed' => $seed,
+            'assertions' => ['invite_confirmed' => "SELECT confirmed FROM report_agent_invites WHERE token = '$token'"],
+        ]);
+
+        $this->assertEquals(0, $result['queries']['invite_confirmed'], 'Invite must NOT be confirmed when CSRF is missing.');
+        $this->assertEquals('error', $result['flash']['type'] ?? null);
+    }
+
     // choose_site is NOT covered here: it's handled by a special case in
     // public/index.php (bypasses Router::dispatchPost entirely, see the
     // `if ($page === 'choose_site')` block there), so this router-based

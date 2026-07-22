@@ -119,10 +119,10 @@ $submitBtnClass = $isEdit
                 <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo $type === 'dgi' ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
             </div>
             <div class="form-group">
-                <label for="pole">Pôle</label>
+                <label for="pole">Pôle <span class="required">*</span></label>
                 <input type="text" id="pole" name="pole"
                        value="<?php echo e($val('pole')); ?>"
-                       maxlength="200"
+                       maxlength="200" required
                        autocomplete="off"
                        placeholder="Ex : Pôle Administratif">
             </div>
@@ -135,10 +135,10 @@ $submitBtnClass = $isEdit
                        placeholder="Ex : Service juridique">
             </div>
             <div class="form-group">
-                <label for="telephone_mobile">Numéro de téléphone mobile</label>
+                <label for="telephone_mobile">Numéro de téléphone mobile <span class="required">*</span></label>
                 <input type="tel" id="telephone_mobile" name="telephone_mobile"
                        value="<?php echo e($val('telephone_mobile')); ?>"
-                       maxlength="20"
+                       maxlength="20" required
                        autocomplete="off"
                        placeholder="Ex : 06 12 34 56 78">
             </div>

@@ -3,6 +3,12 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.44.3] — 2026-07-21
+
+### Fix — Formulaire signalement : champs Pôle et Téléphone obligatoires
+
+- **1** 🔴 **report_form.php** — Champs « Pôle » et « Numéro de téléphone mobile » marqués `required` (HTML5) avec indicateur `*` dans le label, comme les autres champs obligatoires du formulaire.
+
 ## [3.44.2] — 2026-07-21
 
 ### Fix — Tests E2E : RAMI/DGI conditionnels + quick-access supprimé

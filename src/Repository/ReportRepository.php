@@ -759,22 +759,6 @@ class ReportRepository
         $this->pdo->prepare($sql)->execute($params);
     }
 
-    /** @param list<int|string> $userIds */
-    public function replaceLinkedAgents(string $reportUuid, array $userIds): void
-    {
-        $this->pdo->beginTransaction();
-        try {
-            $this->pdo->prepare('DELETE FROM report_agents WHERE report_uuid = ?')->execute([$reportUuid]);
-            $this->linkAgents($reportUuid, $userIds);
-            $this->pdo->commit();
-        } catch (Exception $e) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
-            throw $e;
-        }
-    }
-
     // ═══════════════════════════════════════════════════════════════════════════════
     // Write — Agent invites
     // ═══════════════════════════════════════════════════════════════════════════════

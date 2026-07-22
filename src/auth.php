@@ -49,17 +49,3 @@ function parseSuperviseurUsernames(string $list): array
 {
     return AuthService::parseSuperviseurUsernames($list);
 }
-
-function determineProvisionRole(PDO $pdo, string $username): string
-{
-    return getAuthServiceInstance()->determineRole($username);
-}
-
-/**
- * @param array<string, mixed> $user
- * @return array<string, mixed>
- */
-function checkAndPromoteUser(PDO $pdo, array $user, string $username): array
-{
-    return getAuthServiceInstance()->checkAndPromote($user, $username);
-}

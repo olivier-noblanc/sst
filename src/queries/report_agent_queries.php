@@ -5,7 +5,9 @@
  *
  * getLinkedAgents() is still called from production (report display).
  * linkAgentsToReport() and replaceLinkedAgents() were removed as dead
- * code: no callers anywhere, prod or tests.
+ * code: no callers anywhere, prod or tests (the underlying
+ * ReportRepository::replaceLinkedAgents() method was later found
+ * equally orphaned once its only caller was gone, and removed too).
  *
  * All functions delegate to App\Repository\ReportRepository.
  */

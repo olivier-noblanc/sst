@@ -14,8 +14,7 @@
  * Usage:
  *   $id   = currentUserId();        // int (0 if not logged in)
  *   $role = currentUserRole();       // string ('' if not logged in)
- *   $site = currentUserSiteId();     // int (0 if none)
- *   if (isSuperviseur()) { ... }
+ *   if (isAgent()) { ... }
  *   if (canAccessReport($report)) { ... }
  */
 // ─── Identity ─────────────────────────────────────────────────────────────────
@@ -91,32 +90,6 @@ function currentUserRole(): string
 }
 
 /**
- * Get the current user's real role (ignoring impersonation).
- *
- * @return string  Real role or '' if not logged in
- */
-function currentUserRealRole(): string
-{
-    $realRole = getRealRole();
-    if ($realRole !== null) {
-        return $realRole;
-    }
-    return currentUserRole();
-}
-
-/**
- * Check if the current user has a specific role.
- * This is an alias for hasRole() that is more readable in context.
- *
- * @param string $role  The role to check
- * @return bool
- */
-function isRole(string $role): bool
-{
-    return currentUserRole() === $role;
-}
-
-/**
  * Check if the current user is an agent.
  *
  * @return bool
@@ -126,80 +99,7 @@ function isAgent(): bool
     return currentUserRole() === ROLE_AGENT;
 }
 
-/**
- * Check if the current user is a superviseur.
- *
- * @return bool
- */
-function isSuperviseur(): bool
-{
-    return currentUserRole() === ROLE_SUPERVISEUR;
-}
-
-/**
- * Check if the current user is CHSCT/CSA.
- *
- * @return bool
- */
-function isChsct(): bool
-{
-    return currentUserRole() === ROLE_CHSCT;
-}
-
-/**
- * Check if the current user is currently impersonating another role.
- *
- * @return bool
- */
-function isImpersonating(): bool
-{
-    return isImpersonatingRole();
-}
-
 // ─── Site ─────────────────────────────────────────────────────────────────────
-/**
- * Get the current user's site ID.
- *
- * @return int  Site ID (0 if not assigned)
- */
-function currentUserSiteId(): int
-{
-    $user = getUserSession();
-    /** @var int */
-    $siteId = $user['site_id'] ?? 0;
-    return $user !== null ? $siteId : 0;
-}
-
-/**
- * Get the current user's site code (e.g. "UD21").
- *
- * @return string  Site code ('' if not assigned)
- */
-function currentUserSiteCode(): string
-{
-    $user = getUserSession();
-    if ($user === null) {
-        return '';
-    }
-    $siteCode = $user['site_code'] ?? '';
-    return $siteCode;
-}
-
-/**
- * Get the current user's site name (e.g. "Unité Départementale Côte-d'Or").
- *
- * @return string  Site name ('' if not assigned)
- */
-function currentUserSiteName(): string
-{
-    $user = getUserSession();
-    if ($user === null) {
-        return '';
-    }
-    $siteName = $user['site_nom'] ?? '';
-    return $siteName;
-}
-
 /**
  * Check if the current user has a site assigned.
  *
@@ -212,33 +112,6 @@ function currentUserHasSite(): bool
 }
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
-/**
- * Check if the current user can see all sites (superviseur or chsct).
- * Alias for canSeeAllSites() that uses the UserContext pattern.
- *
- * @return bool
- */
-function currentUserCanSeeAllSites(): bool
-{
-    return in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT], true);
-}
-
-/**
- * Check if the current user can access a specific report.
- * Delegates to the existing canAccessReport() in helpers.php.
- *
- * @param array<string, mixed> $report           Report data from DB
- * @param string|null $forcedVisibility  Override visibility mode (for tests)
- * @return bool
- */
-function currentUserCanAccessReport(array $report, ?string $forcedVisibility = null): bool
-{
-    $user = currentUser();
-    if ($user === null) {
-        return false;
-    }
-    return canAccessReport($report, $user, $forcedVisibility);
-}
 
 /**
  * Refresh the current user's session data from the database.

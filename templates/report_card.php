@@ -285,7 +285,7 @@ if (!isset($csrfToken)) {
 
     <?php if ($canAbandon): ?>
         <a href="<?php echo new \App\Services\HttpService()->url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="btn btn--danger">Abandonner le signalement</a>
-        <small class="help-text help-text--danger">(Le signalement sera marqué comme abandonné mais restera consultable)</small>
+        <small class="help-text help-text--danger">(Le signalement est marqué comme abandonné mais reste consultable)</small>
     <?php endif; ?>
 
     <?php if ($canReopen): ?>

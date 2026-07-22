@@ -57,7 +57,13 @@ module.exports = defineConfig({
   retries: 1,
   timeout: 30000,
   expect: { timeout: 10000 },
-  reporter: [['list'], ['html', { open: 'never' }]],
+  // 'github' adds inline failure annotations on the commit/PR — visible via
+  // GET /repos/.../check-runs/{id}/annotations without downloading the full
+  // HTML report artifact (which can run tens of MB and isn't reachable from
+  // every environment that might need to diagnose a CI failure).
+  reporter: process.env.CI
+    ? [['list'], ['github'], ['html', { open: 'never' }]]
+    : [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'http://127.0.0.1:8850',
     headless: true,

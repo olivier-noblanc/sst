@@ -154,12 +154,18 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 
 ---
 
-## Priorité 13 — Infection MSI 51% → 85% (délibérément non traité cette session)
+## Priorité 13 — Infection MSI — 🟡 EN COURS (avancé ce soir, avec supervision)
 
-Le mutation score est à 51%, bien en dessous du seuil de 85%. Identifier les mutants survivants les plus critiques et ajouter des tests pour les tuer.
+Baseline réelle mesurée ce soir (pcov compilé pour l'occasion) : **2318 mutants, MSI 48,5%**.
 
-**Effort** : ~4-8h
-**Statut** : Non traité, délibérément — le TODO lui-même l'indique explicitement : *« ne pas lancer sans supervision (risque de tests qui tuent des mutants sans vérifier de vrai comportement) »*. Écrire des tests dont le seul but est de tuer des mutants Infection sans validation humaine du comportement réellement vérifié va à l'encontre de l'objectif « zéro bug » du chantier — le risque est de gonfler artificiellement le score sans gagner de couverture utile. Respecté tel quel plutôt que contourné.
+**Fait ce soir** :
+- `infection.json` : exclusion de `src/lib` (Parsedown, FPDF — librairies tierces, déjà exclues de PHPStan). Gain honnête sans écrire un test : nouveau total 1957 mutants, **MSI recalculé ~57,4%**.
+- `ReportRepository::findPaginated()` : couverture réelle de la pagination ajoutée (offset, page par défaut) — le test précédent ne dépassait jamais la page 1. Vérifié en mutant le code à la main : le mutant sur `($page - 1) * $perPage` est bien tué ; le mutant sur la valeur par défaut `$page = 1 → 0` reste un mutant **équivalent** (SQLite traite un OFFSET négatif comme 0 — indétectable par nature, pas un trou de couverture).
+- `StatsRepository::getSynthesis()` : **vrai bug trouvé et corrigé**. `COUNT(*)` comptait la ligne fantôme produite par le `LEFT JOIN` quand aucun signalement ne correspond — un site sans signalement sur l'année affichait `total: 1` au lieu de `0`. Corrigé (`COUNT(r.uuid)`). Sans impact visible actuel (le seul appelant, `pages/synthesis.php`, filtrait déjà cette ligne par accident) mais un vrai bug de contrat sur la méthode.
+
+**Reste réellement à faire** : ~530 mutants à tuer pour atteindre 85%, sur `Repository/StatsRepository.php` (le reste), les enums `ReportState`/`ReportType`, `ConfigService`, `FormattingService`, les DTO `CreateReportCommand`/`UpdateReportCommand`, `SQLiteSessionHandler`. Beaucoup ressemblent au motif déjà écarté ce soir (plomberie `instance()`/DI, sans valeur à tester) — le ratio "mutant creusé → vrai bug trouvé" observé ce soir est d'environ 1 sur 2 quand on filtre le bruit, mais rien ne garantit qu'il tienne sur le reste.
+
+**Effort restant** : plusieurs heures, à reprendre avec du temps dédié plutôt qu'en fin de session — pour continuer à trouver de vrais trous plutôt que de gonfler le chiffre.
 
 ---
 

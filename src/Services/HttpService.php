@@ -23,7 +23,13 @@ class HttpService
         foreach ($params as $key => $value) {
             $queryParams[$key] = $value;
         }
-        return 'index.php?' . http_build_query($queryParams);
+        // Explicit separator: http_build_query() otherwise falls back to
+        // the server's php.ini arg_separator.output setting, which some
+        // PHP configurations set to "&amp;" (an old "HTML-safe by default"
+        // convention) — producing literal "&amp;" text in every URL this
+        // app generates, not just emails, and breaking every link with more
+        // than one query parameter. Don't depend on server configuration.
+        return 'index.php?' . http_build_query($queryParams, '', '&');
     }
 
     /**

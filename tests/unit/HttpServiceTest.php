@@ -49,6 +49,21 @@ class HttpServiceTest extends TestCase
         $this->assertStringContainsString('type=rsst', $result);
     }
 
+    public function testUrlUsesLiteralAmpersandSeparator(): void
+    {
+        // Real-world bug: http_build_query() falls back to the server's
+        // php.ini arg_separator.output setting when no separator is passed
+        // explicitly — some PHP configurations set that to "&amp;" (an old
+        // "HTML-safe by default" convention), producing literal "&amp;"
+        // text in every generated URL rather than "&". A link like that is
+        // broken: the second parameter becomes part of the first
+        // parameter's value instead of a separate one. url() must not
+        // depend on that server setting.
+        $result = $this->service->url('search', ['q' => 'test', 'type' => 'rsst']);
+        $this->assertStringNotContainsString('&amp;', $result);
+        $this->assertStringContainsString('q=test&type=rsst', $result);
+    }
+
     public function testUrlWithEmptyParamsArray(): void
     {
         $result = $this->service->url('settings', []);

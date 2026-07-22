@@ -102,7 +102,9 @@ if (!empty($filters['site_id'])) {
 if (!empty($filters['q'])) {
     $baseUrlParams['q'] = $filters['q'];
 }
-$baseUrl = 'index.php?' . http_build_query($baseUrlParams);
+// Same reasoning as HttpService::url() — don't depend on the server's
+// php.ini arg_separator.output setting.
+$baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
 ?>
 
 <h1 class="page-title">

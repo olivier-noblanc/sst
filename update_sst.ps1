@@ -380,6 +380,22 @@ function Invoke-QualityGate {
         Set-Content "$tmpDir\css.ran" $ran
     } -ArgumentList $tmpDir
 
+    # Lancer PHPArkitect (regles d'architecture) en arrière-plan
+    $arkitectJob = Start-Job -ScriptBlock {
+        param($tmpDir)
+        $ran = $false
+        $output = $null
+        $rc = 1
+        if (Test-Path "vendor/bin/phparkitect") {
+            $ran = $true
+            $output = & php vendor/bin/phparkitect check --config=phparkitect.php 2>&1
+            $rc = $LASTEXITCODE
+        }
+        $output | Out-File "$tmpDir\arkitect.out"
+        Set-Content "$tmpDir\arkitect.rc" $rc
+        Set-Content "$tmpDir\arkitect.ran" $ran
+    } -ArgumentList $tmpDir
+
     # Lancer Infection (mutation testing) en arrière-plan
     $infectionBin = "$env:USERPROFILE\scoop\shims\infection"
     $infectionPathCmd = Get-Command infection -ErrorAction SilentlyContinue
@@ -412,8 +428,26 @@ function Invoke-QualityGate {
         Set-Content "$tmpDir\infection.ran" $ran
     } -ArgumentList $phpPath, $infectionBin, $infectionPathCmd.Source, $tmpDir
 
-    # Attendre les 5 jobs
-    $phpstanJob, $phpunitJob, $e2eJob, $cssJob, $infectionJob | Wait-Job | Out-Null
+    # Lancer Rector en arrière-plan — dry-run uniquement (suggestions de
+    # modernisation du code, pas des bugs — informatif, jamais bloquant,
+    # meme traitement qu'Infection)
+    $rectorJob = Start-Job -ScriptBlock {
+        param($tmpDir)
+        $ran = $false
+        $output = $null
+        $rc = 1
+        if (Test-Path "vendor/bin/rector") {
+            $ran = $true
+            $output = & php vendor/bin/rector process --dry-run --no-progress-bar 2>&1
+            $rc = $LASTEXITCODE
+        }
+        $output | Out-File "$tmpDir\rector.out"
+        Set-Content "$tmpDir\rector.rc" $rc
+        Set-Content "$tmpDir\rector.ran" $ran
+    } -ArgumentList $tmpDir
+
+    # Attendre les 7 jobs
+    $phpstanJob, $phpunitJob, $e2eJob, $cssJob, $infectionJob, $arkitectJob, $rectorJob | Wait-Job | Out-Null
 
     # ── Résultat PHPStan ──
     $phpstanRan = (Get-Content "$tmpDir\phpstan.ran" -ErrorAction SilentlyContinue) -eq 'True'
@@ -507,6 +541,40 @@ function Invoke-QualityGate {
         }
     } else {
         Write-Status "!" "Infection non trouve. Etape skippee." "Yellow"
+    }
+
+    # ── Résultat PHPArkitect ──
+    $arkitectRan = (Get-Content "$tmpDir\arkitect.ran" -ErrorAction SilentlyContinue) -eq 'True'
+    $arkitectRc = if (Test-Path "$tmpDir\arkitect.rc") { [int](Get-Content "$tmpDir\arkitect.rc") } else { 1 }
+    if ($arkitectRan) {
+        $arkitectOut = Get-Content "$tmpDir\arkitect.out" -ErrorAction SilentlyContinue |
+            Where-Object { $_ -notmatch '^\s*$' }
+        $arkitectOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        if ($arkitectRc -eq 0) {
+            Write-Status "OK" "PHPArkitect : OK (regles d'architecture respectees)." "Green"
+        } else {
+            Write-Status "X" "PHPArkitect : violation(s) d'architecture detectee(s)." "Red"
+            $gateOk = $false
+        }
+    } else {
+        Write-Status "!" "PHPArkitect non trouve. Etape skippee." "Yellow"
+    }
+
+    # ── Résultat Rector (informatif — suggestions de modernisation du code,
+    #    jamais bloquant : ce ne sont pas des bugs) ──
+    $rectorRan = (Get-Content "$tmpDir\rector.ran" -ErrorAction SilentlyContinue) -eq 'True'
+    $rectorRc = if (Test-Path "$tmpDir\rector.rc") { [int](Get-Content "$tmpDir\rector.rc") } else { 1 }
+    if ($rectorRan) {
+        if ($rectorRc -eq 0) {
+            Write-Status "OK" "Rector : rien a moderniser." "Green"
+        } else {
+            $rectorOut = Get-Content "$tmpDir\rector.out" -ErrorAction SilentlyContinue
+            $filesLine = $rectorOut | Select-String -Pattern '^\s*\[OK\]\s+\d+\s+files? would have been changed' | Select-Object -First 1
+            $summary = if ($filesLine) { $filesLine.ToString().Trim() } else { "voir data/rector.out" }
+            Write-Status "!" "Rector : suggestions disponibles — $summary (non bloquant)." "Yellow"
+        }
+    } else {
+        Write-Status "!" "Rector non trouve. Etape skippee." "Yellow"
     }
 
     # Nettoyage
@@ -874,8 +942,34 @@ PID_CSS=$!
 ) &
 PID_INFECTION=$!
 
-# Attendre les 5 en parallèle
-wait $PID_PHPSTAN $PID_PHPUNIT $PID_E2E $PID_CSS $PID_INFECTION 2>/dev/null
+# PHPArkitect (regles d'architecture)
+(
+    cd "$REPO_ROOT"
+    if [[ -f "vendor/bin/phparkitect" ]]; then
+        php vendor/bin/phparkitect check --config=phparkitect.php >"$TMPDIR/arkitect.out" 2>&1
+        echo $? >"$TMPDIR/arkitect.rc"
+    else
+        echo "PHPArkitect non trouve" >"$TMPDIR/arkitect.out"
+        echo 1 >"$TMPDIR/arkitect.rc"
+    fi
+) &
+PID_ARKITECT=$!
+
+# Rector (informatif — suggestions de modernisation, jamais bloquant)
+(
+    cd "$REPO_ROOT"
+    if [[ -f "vendor/bin/rector" ]]; then
+        php vendor/bin/rector process --dry-run --no-progress-bar >"$TMPDIR/rector.out" 2>&1
+        echo $? >"$TMPDIR/rector.rc"
+    else
+        echo "Rector non trouve" >"$TMPDIR/rector.out"
+        echo 1 >"$TMPDIR/rector.rc"
+    fi
+) &
+PID_RECTOR=$!
+
+# Attendre les 7 en parallèle
+wait $PID_PHPSTAN $PID_PHPUNIT $PID_E2E $PID_CSS $PID_INFECTION $PID_ARKITECT $PID_RECTOR 2>/dev/null
 
 # ── 3) Résultats ──
 ALL_OK=1
@@ -928,6 +1022,24 @@ else
     echo "[pre-push] ✗ Infection échoué (code $RC)"
     cat "$TMPDIR/infection.out" 2>/dev/null | tail -10
     ALL_OK=0
+fi
+
+# PHPArkitect
+RC=$(cat "$TMPDIR/arkitect.rc" 2>/dev/null)
+if [[ "$RC" == "0" ]]; then
+    echo "[pre-push] ✓ PHPArkitect OK (règles d'architecture respectées)"
+else
+    echo "[pre-push] ✗ PHPArkitect : violation(s) d'architecture détectée(s)"
+    cat "$TMPDIR/arkitect.out" 2>/dev/null | tail -20
+    ALL_OK=0
+fi
+
+# Rector (informatif — jamais bloquant, ce ne sont pas des bugs)
+RC=$(cat "$TMPDIR/rector.rc" 2>/dev/null)
+if [[ "$RC" == "0" ]]; then
+    echo "[pre-push] ✓ Rector : rien à moderniser"
+else
+    echo "[pre-push] ⚠ Rector : suggestions de modernisation disponibles (non bloquant, voir $TMPDIR/rector.out)"
 fi
 
 if [[ $ALL_OK -eq 1 ]]; then

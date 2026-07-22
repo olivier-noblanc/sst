@@ -20,6 +20,10 @@ test.describe('Report Abandon Flow', () => {
     await page.fill('#date_evenement', '2026-01-15');
     await page.fill('#objet', 'Test abandon flow');
     await page.fill('#description', 'Description pour test abandon');
+    const siteSelect1 = page.locator('#site_id');
+    if (await siteSelect1.isVisible()) {
+      await siteSelect1.selectOption({ index: 0 });
+    }
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
@@ -43,6 +47,10 @@ test.describe('Report Abandon Flow', () => {
     await page.fill('#date_evenement', '2026-01-15');
     await page.fill('#objet', 'Test abandon confirmation');
     await page.fill('#description', 'Description test');
+    const siteSelect2 = page.locator('#site_id');
+    if (await siteSelect2.isVisible()) {
+      await siteSelect2.selectOption({ index: 0 });
+    }
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
@@ -99,6 +107,10 @@ test.describe('Report Create and View Cycle', () => {
     await page.fill('#date_evenement', '2026-07-10');
     await page.fill('#objet', 'E2E Test RSST Report');
     await page.fill('#description', 'This is a test report created by E2E tests');
+    const siteSelect3 = page.locator('#site_id');
+    if (await siteSelect3.isVisible()) {
+      await siteSelect3.selectOption({ index: 0 });
+    }
 
     // Submit
     await page.click('button[type="submit"], input[type="submit"]');
@@ -146,6 +158,10 @@ test.describe('Report Create and View Cycle', () => {
     await page.fill('#date_evenement', '2026-07-10');
     await page.fill('#objet', 'Report to edit');
     await page.fill('#description', 'Original description');
+    const siteSelect4 = page.locator('#site_id');
+    if (await siteSelect4.isVisible()) {
+      await siteSelect4.selectOption({ index: 0 });
+    }
     await page.click('button[type="submit"], input[type="submit"]');
     await page.waitForLoadState('networkidle');
 

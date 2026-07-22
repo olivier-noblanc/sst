@@ -22,7 +22,10 @@ test.describe('Settings Page — Tab Navigation', () => {
     await expect(page.locator('.tab-bar a:has-text("Notifications par site")')).toBeVisible();
     await expect(page.locator('.tab-bar a:has-text("Notifications globales")')).toBeVisible();
     await expect(page.locator('.tab-bar a:has-text("Configuration SMTP")')).toBeVisible();
-    await expect(page.locator('.tab-bar a:has-text("Gestion des sites")')).toBeVisible();
+    // The label is dynamic — "Gestion des {app_label_unite}s", "URs" by
+    // default, not literally "sites" (see pages/settings.php) — match the
+    // stable prefix instead of assuming a specific unit label.
+    await expect(page.locator('.tab-bar a:has-text("Gestion des")')).toBeVisible();
     await expect(page.locator('.tab-bar a:has-text("Paramètres de l\'application")')).toBeVisible();
   });
 
@@ -53,7 +56,8 @@ test.describe('Settings Page — Tab Navigation', () => {
   test('should switch to site management tab', async ({ page }) => {
     await page.goto('/index.php?page=settings');
 
-    await page.locator('.tab-bar a:has-text("Gestion des sites")').click();
+    // "Gestion des {app_label_unite}s" — dynamic, "URs" by default
+    await page.locator('.tab-bar a:has-text("Gestion des")').click();
     await expect(page).toHaveURL(/tab=manage_sites/);
   });
 

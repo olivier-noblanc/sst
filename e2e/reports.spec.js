@@ -375,19 +375,23 @@ test.describe('Home Page Registry Cards', () => {
     await expect(page.locator('.registry-card--rsst')).toBeVisible();
   });
 
-  test('should have "Signaler" and "Voir" links on RSST card', async ({ page }) => {
+  test('should have create and list links on RSST card', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
+    // RSST's create button says "Déposer un signalement" (see
+    // buildRegistryCards() in registry_card_renderer.php) — only RAMI/DGI
+    // use "Signaler ...". Match on href instead of exact wording.
     const card = page.locator('.registry-card--rsst');
-    await expect(card.locator('a:has-text("Signaler")')).toBeVisible();
+    await expect(card.locator('a[href*="page=report_create"]')).toBeVisible();
     await expect(card.locator('a:has-text("Voir")')).toBeVisible();
   });
 
   test('should navigate to create report from registry card', async ({ page }) => {
     await page.goto('/index.php?page=home');
 
-    // Click "Signaler" on RSST card
-    await page.locator('.registry-card--rsst a:has-text("Signaler")').click();
+    // Click the RSST card's create button (labelled "Déposer un
+    // signalement", not "Signaler" — see comment above)
+    await page.locator('.registry-card--rsst a[href*="page=report_create"]').click();
     await expect(page).toHaveURL(/page=report_create.*type=rsst/);
   });
 

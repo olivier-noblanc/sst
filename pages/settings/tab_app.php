@@ -218,6 +218,15 @@
                 </small>
             </div>
             <div class="form-group">
+                <label for="app_base_url">URL publique de l'application</label>
+                <input type="url" id="app_base_url" name="app_base_url" class="form-control"
+                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_base_url', '')); ?>"
+                       placeholder="https://sst.dreets-bfc.gouv.fr">
+                <small class="text-muted block mt-1">
+                    Utilisée pour les liens dans les e-mails (ex : "Consulter le signalement"). Laisser vide pour détecter automatiquement l'adresse depuis la requête — à renseigner si les liens reçus par e-mail sont incorrects (ex : envoi depuis une tâche planifiée sans requête HTTP, ou serveur derrière un proxy).
+                </small>
+            </div>
+            <div class="form-group">
                 <label for="app_rsst_description">Description du registre RSST (page d'accueil)</label>
                 <input type="text" id="app_rsst_description" name="app_rsst_description" class="form-control"
                        value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_rsst_description', '')); ?>"

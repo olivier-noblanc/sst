@@ -237,6 +237,15 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
  */
 function getBaseUrl(): string
 {
+    // Explicit config takes priority — $_SERVER['HTTP_HOST'] isn't reliable
+    // in every context email gets sent from (missing entirely outside a
+    // real HTTP request, or reflecting an internal hostname behind a
+    // reverse proxy) and falls back to 'localhost', producing a link that
+    // only resolves on the server itself — broken for every recipient.
+    $configured = trim(getConfig('app_base_url', ''));
+    if ($configured !== '') {
+        return rtrim($configured, '/');
+    }
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     return "$protocol://$host";

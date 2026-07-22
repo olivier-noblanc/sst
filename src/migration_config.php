@@ -38,6 +38,7 @@ function migrateConfigKeys(PDO $pdo): void
         'app_report_preamble' => ['Pour toute inscription d\'un fait, vous devez être objectif et factuel. Ne pas mentionner de noms de personnes. Vous pouvez joindre un document ou une photo.', 'text', 'app', 'Texte d\'information affiché en haut du formulaire de signalement (zone readonly). Modifiable via l\'administration.', 1],
         'app_rsst_description' => ['Risques liés aux locaux, équipements, ergonomie, conditions environnementales', 'text', 'app', 'Description du registre RSST affichée sur la page d\'accueil. Modifiable via l\'administration.', 1],
         'app_report_create_label' => ['Signaler un événement', 'text', 'app', 'Libellé du bouton et du titre de la page de création de signalement (page d\'accueil, liste des signalements, formulaire, titre d\'onglet). Modifiable via l\'administration.', 1],
+        'app_base_url' => ['', 'text', 'app', 'URL publique de l\'application (ex : https://sst.dreets-bfc.gouv.fr), utilisée pour les liens dans les e-mails. Laisser vide pour détecter automatiquement depuis la requête — à renseigner si les liens dans les e-mails sont incorrects (ex : envoi depuis une tâche planifiée, ou serveur derrière un proxy).', 1],
         'app_linked_agents_label' => ['Rattacher des collègues au signalement', 'text', 'app', 'Libellé du champ de rattachement d\'agents sur le formulaire de signalement. Modifiable via l\'administration.', 1],
     ];
 

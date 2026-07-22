@@ -79,6 +79,16 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     $appLinkedAgentsLabel = trim((string) ($postData['app_linked_agents_label'] ?? ''));
     updateConfig($pdo, 'app_linked_agents_label', $appLinkedAgentsLabel !== '' ? $appLinkedAgentsLabel : 'Rattacher des collègues au signalement');
 
+    // Public base URL for email links — empty is a valid choice (means
+    // "auto-detect from the request"), unlike the labels above.
+    $appBaseUrl = rtrim(trim((string) ($postData['app_base_url'] ?? '')), '/');
+    if ($appBaseUrl !== '' && filter_var($appBaseUrl, FILTER_VALIDATE_URL) === false) {
+        $pdo->rollBack();
+        setFlash('error', 'L\'URL publique de l\'application n\'est pas valide (ex : https://sst.dreets-bfc.gouv.fr).');
+        redirect(url('settings', ['tab' => 'app']));
+    }
+    updateConfig($pdo, 'app_base_url', $appBaseUrl);
+
     // Admin email for error notifications
     $appAdminEmail = trim((string) ($postData['app_admin_email'] ?? ''));
     if ($appAdminEmail !== '' && filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL) === false) {

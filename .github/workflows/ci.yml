@@ -2,7 +2,7 @@ name: CI
 
 # Filet de sécurité en amont du gate local (update_sst.ps1). Couvre ce
 # qui est reproductible sur un runner cloud : lint, PHPStan, PHPUnit,
-# et Playwright avec Firefox (mode DEV_MODE / mock login).
+# PHPArkitect, Rector, et Playwright avec Firefox (mode DEV_MODE / mock login).
 #
 # NE couvre PAS le projet Playwright "msedge" (authentification Windows
 # intégrée contre IIS) : un runner GitHub Actions est une VM éphémère
@@ -19,7 +19,7 @@ on:
 
 jobs:
   quality:
-    name: Lint + PHPStan + PHPUnit
+    name: Lint + PHPStan + PHPUnit + PHPArkitect + Rector
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +45,12 @@ jobs:
 
       - name: PHPUnit
         run: php vendor/bin/phpunit --no-coverage
+
+      - name: PHPArkitect
+        run: php vendor/bin/phparkitect check --config=phparkitect.php
+
+      - name: Rector (dry-run)
+        run: php vendor/bin/rector process --dry-run --no-progress-bar --config=rector.php
 
   e2e:
     name: E2E (Playwright, Firefox)

@@ -49,7 +49,9 @@ function migrateColumns(PDO $pdo): void
     if ($siteIdIsNotNull) {
         $colDefs = [];
         foreach ($columns as $col) {
-            if (!is_array($col)) { continue; }
+            if (!is_array($col)) {
+                continue;
+            }
             /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
             $def = $col['name'] . ' ' . $col['type'];
             if ($col['pk']) {
@@ -74,7 +76,9 @@ function migrateColumns(PDO $pdo): void
         $fkStmt = null;
         $fkClauses = [];
         foreach ($fks as $fk) {
-            if (!is_array($fk)) { continue; }
+            if (!is_array($fk)) {
+                continue;
+            }
             /** @var array{from: string, table: string, to: string} $fk */
             $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
         }

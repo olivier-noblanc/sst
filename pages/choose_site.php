@@ -115,7 +115,7 @@ $labelUnite = $config->get('app_label_unite', 'UR');
                     $siteCode = $site['code'] ?? '';
                     /** @var string */
                     $siteNom = $site['nom'] ?? '';
-                ?>
+                    ?>
                 <option value="<?php echo $fmt->e((string) $siteId); ?>" <?php echo $hasExistingSite && $userSiteId === $siteId ? '' : ''; ?>>
                     <?php echo $fmt->e($siteCode . ' — ' . $siteNom); ?>
                 </option>

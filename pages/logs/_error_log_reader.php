@@ -31,65 +31,65 @@ function readErrorLog(string $logFile, int $maxLines, string $errorFilter = 'all
             if (!is_resource($fp)) {
                 $logLines = [];
             } else {
-            $collected = [];       // lines collected from the end
-            $buffer = '';          // partial line at chunk boundary
-            $position = $fileSize; // current seek position (start of next chunk)
+                $collected = [];       // lines collected from the end
+                $buffer = '';          // partial line at chunk boundary
+                $position = $fileSize; // current seek position (start of next chunk)
 
-            while ($position > 0 && count($collected) < $maxLines) {
-                // How much to read in this chunk
-                $readLen = min($chunkSize, $position);
-                $position -= $readLen;
-                fseek($fp, $position);
-                $chunk = fread($fp, $readLen);
+                while ($position > 0 && count($collected) < $maxLines) {
+                    // How much to read in this chunk
+                    $readLen = min($chunkSize, $position);
+                    $position -= $readLen;
+                    fseek($fp, $position);
+                    $chunk = fread($fp, $readLen);
 
-                // Prepend chunk to buffer, then split into lines
-                $buffer = $chunk . $buffer;
-                $lines = explode("\n", $buffer);
+                    // Prepend chunk to buffer, then split into lines
+                    $buffer = $chunk . $buffer;
+                    $lines = explode("\n", $buffer);
 
-                // The first element is a partial line (unless we're at position 0)
-                if ($position > 0) {
-                    $buffer = array_shift($lines); // keep partial for next iteration
-                } else {
-                    $buffer = ''; // we've read from the very start
-                }
+                    // The first element is a partial line (unless we're at position 0)
+                    if ($position > 0) {
+                        $buffer = array_shift($lines); // keep partial for next iteration
+                    } else {
+                        $buffer = ''; // we've read from the very start
+                    }
 
-                // Collect lines from the end (they come in reverse order from our iteration)
-                foreach ($lines as $line) {
-                    $trimmed = trim($line);
-                    if ($trimmed !== '') {
-                        $collected[] = $trimmed;
-                        if (count($collected) >= $maxLines) {
-                            break;
+                    // Collect lines from the end (they come in reverse order from our iteration)
+                    foreach ($lines as $line) {
+                        $trimmed = trim($line);
+                        if ($trimmed !== '') {
+                            $collected[] = $trimmed;
+                            if (count($collected) >= $maxLines) {
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            // Handle any remaining partial line
-            if ($buffer !== '' && trim($buffer) !== '' && count($collected) < $maxLines) {
-                $collected[] = trim($buffer);
-            }
-            fclose($fp);
-
-            // $collected is in reverse chronological order (newest first)
-            $logCount = count($collected);
-
-            // Group multi-line entries (stack traces belong to the previous entry)
-            $entries = [];
-            $currentEntry = '';
-            foreach ($collected as $line) {
-                if (preg_match('/^\[?\d{2}-\w{3}-\d{4}/', $line) === 1) {
-                    if ($currentEntry !== '') {
-                        $entries[] = $currentEntry;
-                    }
-                    $currentEntry = $line;
-                } else {
-                    $currentEntry .= "\n" . $line;
+                // Handle any remaining partial line
+                if ($buffer !== '' && trim($buffer) !== '' && count($collected) < $maxLines) {
+                    $collected[] = trim($buffer);
                 }
-            }
-            if ($currentEntry !== '') {
-                $entries[] = $currentEntry;
-            }
-            $logLines = $entries;
+                fclose($fp);
+
+                // $collected is in reverse chronological order (newest first)
+                $logCount = count($collected);
+
+                // Group multi-line entries (stack traces belong to the previous entry)
+                $entries = [];
+                $currentEntry = '';
+                foreach ($collected as $line) {
+                    if (preg_match('/^\[?\d{2}-\w{3}-\d{4}/', $line) === 1) {
+                        if ($currentEntry !== '') {
+                            $entries[] = $currentEntry;
+                        }
+                        $currentEntry = $line;
+                    } else {
+                        $currentEntry .= "\n" . $line;
+                    }
+                }
+                if ($currentEntry !== '') {
+                    $entries[] = $currentEntry;
+                }
+                $logLines = $entries;
             }
         }
     }
@@ -137,7 +137,7 @@ function readErrorLog(string $logFile, int $maxLines, string $errorFilter = 'all
         ? $categorized
         : array_values(array_filter($categorized, fn($e) => $e['category'] === $errorFilter));
 
-    $logFileSize = file_exists($logFile) ? (int)filesize($logFile) : 0;
+    $logFileSize = file_exists($logFile) ? (int) filesize($logFile) : 0;
 
     return [
         'categorized'   => $categorized,

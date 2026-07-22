@@ -28,17 +28,29 @@ $dgiCount  = 0;
 
 if ($agentVisibility === 'confidential') {
     $rsstCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_RSST, $userId);
-    if ($config->isRegistryEnabled(TYPE_RAMI)) $ramiCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_RAMI, $userId);
-    if ($config->isRegistryEnabled(TYPE_DGI)) $dgiCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_DGI, $userId);
+    if ($config->isRegistryEnabled(TYPE_RAMI)) {
+        $ramiCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_RAMI, $userId);
+    }
+    if ($config->isRegistryEnabled(TYPE_DGI)) {
+        $dgiCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_DGI, $userId);
+    }
 } elseif ($agentVisibility === 'agent_choice') {
     $rsstCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RSST, $userSiteId, $userId, true);
-    if ($config->isRegistryEnabled(TYPE_RAMI)) $ramiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RAMI, $userSiteId, $userId, true);
-    if ($config->isRegistryEnabled(TYPE_DGI)) $dgiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_DGI, $userSiteId, $userId, true);
+    if ($config->isRegistryEnabled(TYPE_RAMI)) {
+        $ramiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RAMI, $userSiteId, $userId, true);
+    }
+    if ($config->isRegistryEnabled(TYPE_DGI)) {
+        $dgiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_DGI, $userSiteId, $userId, true);
+    }
 } else {
     $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
     $rsstCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RSST, $siteIdFilter);
-    if ($config->isRegistryEnabled(TYPE_RAMI)) $ramiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RAMI, $siteIdFilter);
-    if ($config->isRegistryEnabled(TYPE_DGI)) $dgiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_DGI, $siteIdFilter);
+    if ($config->isRegistryEnabled(TYPE_RAMI)) {
+        $ramiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RAMI, $siteIdFilter);
+    }
+    if ($config->isRegistryEnabled(TYPE_DGI)) {
+        $dgiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_DGI, $siteIdFilter);
+    }
 }
 
 $totalReports = $rsstCount + $ramiCount + $dgiCount;

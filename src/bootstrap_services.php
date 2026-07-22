@@ -13,7 +13,6 @@ use App\Services\UserService;
 use App\Services\AuthService;
 use App\Services\SessionManager;
 use App\Services\NotificationService;
-
 use App\Services\AccessService;
 use App\Services\ConfigService;
 use App\Services\FormattingService;
@@ -37,11 +36,21 @@ function createContainer(): Container
     // Repositories (require PDO)
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    $container->set(ReportRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new ReportRepository($pdo); });
-    $container->set(UserRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new UserRepository($pdo); });
-    $container->set(SiteRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new SiteRepository($pdo); });
-    $container->set(NotificationRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new NotificationRepository($pdo); });
-    $container->set(StatsRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class); return new StatsRepository($pdo); });
+    $container->set(ReportRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new ReportRepository($pdo);
+    });
+    $container->set(UserRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new UserRepository($pdo);
+    });
+    $container->set(SiteRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new SiteRepository($pdo);
+    });
+    $container->set(NotificationRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new NotificationRepository($pdo);
+    });
+    $container->set(StatsRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new StatsRepository($pdo);
+    });
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Services — standalone (no constructor dependencies)

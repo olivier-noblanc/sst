@@ -1,7 +1,6 @@
 <?php
 
 use App\Services\FormattingService;
-
 use App\Enum\ReportState;
 use App\Enum\ReportType;
 

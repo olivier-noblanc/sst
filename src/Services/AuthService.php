@@ -31,7 +31,7 @@ class AuthService
         }
 
         if (!DEV_MODE) {
-        $authUser = $_SERVER['AUTH_USER'] ?? '';
+            $authUser = $_SERVER['AUTH_USER'] ?? '';
             if (empty($authUser)) {
                 return null;
             }

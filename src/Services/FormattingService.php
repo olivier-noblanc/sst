@@ -8,7 +8,6 @@ use DateTime;
 use PDO;
 use RuntimeException;
 use finfo;
-use Exception;
 
 class FormattingService
 {

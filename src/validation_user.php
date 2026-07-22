@@ -84,5 +84,3 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array
 
     return $errors;
 }
-
-

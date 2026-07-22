@@ -233,15 +233,15 @@
             <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voient toujours tous les signalements.</p>
 
             <?php foreach (\App\Enum\ReportType::cases() as $type):
-    $configKey = 'app_report_visibility_' . $type->value;
-    $currentValue = \App\Services\ConfigService::getInstance()->get($configKey, '');
-    if ($currentValue === '') {
-        $currentValue = \App\Services\ConfigService::getInstance()->get('app_report_visibility', 'agent_choice');
-    }
-    $currentValue = normalizeVisibilityValue($currentValue);
-    $legend = $type->shortLabel() . ' — ' . $type->label();
-    $legalNote = $type->legalNote();
-    ?>
+                $configKey = 'app_report_visibility_' . $type->value;
+                $currentValue = \App\Services\ConfigService::getInstance()->get($configKey, '');
+                if ($currentValue === '') {
+                    $currentValue = \App\Services\ConfigService::getInstance()->get('app_report_visibility', 'agent_choice');
+                }
+                $currentValue = normalizeVisibilityValue($currentValue);
+                $legend = $type->shortLabel() . ' — ' . $type->label();
+                $legalNote = $type->legalNote();
+                ?>
             <fieldset class="form-group visibility-radios" id="visibility-radios-<?php echo new \App\Services\FormattingService()->e($type->value); ?>">
                 <legend class="visibility-legend"><?php echo new \App\Services\FormattingService()->e($legend); ?></legend>
                 <div class="visibility-radios">
@@ -290,9 +290,9 @@
             <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?></h4>
             <p class="text-muted text-small mb-3">Détermine quels signalements les membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> peuvent consulter.</p>
             <?php
-            $chsctScopeValue = \App\Services\ConfigService::getInstance()->get('app_chsct_report_scope', 'consent_only');
-            $chsctScopeValue = (new \App\Services\AccessService())->normalizeChsctScope($chsctScopeValue);
-            ?>
+                        $chsctScopeValue = \App\Services\ConfigService::getInstance()->get('app_chsct_report_scope', 'consent_only');
+$chsctScopeValue = (new \App\Services\AccessService())->normalizeChsctScope($chsctScopeValue);
+?>
             <fieldset class="form-group visibility-radios">
                 <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?></legend>
                 <div class="visibility-radios">

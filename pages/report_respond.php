@@ -128,11 +128,13 @@ $etat = $report['etat'] ?? '';
             </thead>
             <tbody>
                 <?php foreach ($responses as $resp):
-                    if (!is_array($resp)) continue;
+                    if (!is_array($resp)) {
+                        continue;
+                    }
                     /** @var string */ $prenom = $resp['prenom'] ?? '';
                     /** @var string */ $nom = $resp['nom'] ?? '';
                     /** @var string */ $nouvelEtat = $resp['nouvel_etat'] ?? '';
-                ?>
+                    ?>
                 <tr>
                     <td><?php echo $fmt->e($fmt->formatDateTimeFR($resp['created_at'])); ?></td>
                     <td><?php echo $fmt->e($prenom . ' ' . $nom); ?></td>

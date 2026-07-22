@@ -119,7 +119,13 @@ $pageTitle = 'Gestion des utilisateurs';
                 <?php else: ?>
                 <?php foreach ($allUsers as $u): ?>
                 <?php /** @var array<string, mixed> $u */ ?>
-                <?php $uNom = (string) ($u['nom'] ?? ''); $uPrenom = (string) ($u['prenom'] ?? ''); $uEmail = (string) ($u['email'] ?? '—'); $uRole = (string) ($u['role'] ?? ''); $uSiteNom = (string) ($u['site_nom'] ?? '—'); $uIsActive = !empty($u['is_active']); $uId = (int) ($u['id'] ?? 0); ?>
+                <?php $uNom = (string) ($u['nom'] ?? '');
+                    $uPrenom = (string) ($u['prenom'] ?? '');
+                    $uEmail = (string) ($u['email'] ?? '—');
+                    $uRole = (string) ($u['role'] ?? '');
+                    $uSiteNom = (string) ($u['site_nom'] ?? '—');
+                    $uIsActive = !empty($u['is_active']);
+                    $uId = (int) ($u['id'] ?? 0); ?>
                 <tr class="<?php echo !$uIsActive ? 'row--inactive' : ''; ?>">
                     <td><?php echo $fmt->e($uNom); ?></td>
                     <td><?php echo $fmt->e($uPrenom); ?></td>

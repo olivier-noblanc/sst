@@ -75,7 +75,7 @@ function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool 
     // signalements". 'agent_choice' and 'public' both show a wider set for
     // agents too (linked/non-confidential reports, or everyone at the
     // site) — "Voir les signalements" stays accurate for those.
-    $listLabel = static fn (string $type): string => \getReportVisibility($type) === \App\Enum\VisibilityMode::Confidential->value
+    $listLabel = static fn(string $type): string => \getReportVisibility($type) === \App\Enum\VisibilityMode::Confidential->value
         ? 'Voir mes signalements'
         : 'Voir les signalements';
 

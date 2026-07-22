@@ -85,7 +85,8 @@ if ($changelogExists) {
             <summary>Chemins testés (mode dev)</summary>
             <ul>
                 <?php foreach ($candidatePaths as $p): ?>
-                <li><code><?php echo new \App\Services\FormattingService()->e($p); ?></code> — <?php $rp = realpath($p); echo is_readable($rp !== false ? $rp : $p) ? '✓ lisible' : '✗ introuvable/illisible'; ?></li>
+                <li><code><?php echo new \App\Services\FormattingService()->e($p); ?></code> — <?php $rp = realpath($p);
+                    echo is_readable($rp !== false ? $rp : $p) ? '✓ lisible' : '✗ introuvable/illisible'; ?></li>
                 <?php endforeach; ?>
             </ul>
         </details>

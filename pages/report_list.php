@@ -197,9 +197,9 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams);
                         <td data-label="Référence"><strong><?php echo $fmt->e($report['reference'] ?? ''); ?></strong></td>
                         <?php
                             $reportDateEvenement = $report['date_evenement'] ?? '';
-                            $reportObjet = $report['objet'] ?? '';
-                            $reportEtat = $report['etat'] ?? '';
-                            $reportUuid = $report['uuid'] ?? '';
+                        $reportObjet = $report['objet'] ?? '';
+                        $reportEtat = $report['etat'] ?? '';
+                        $reportUuid = $report['uuid'] ?? '';
                         ?>
                         <td data-label="Date"><?php echo $fmt->e($fmt->formatDateFR($reportDateEvenement)); ?></td>
                         <td data-label="Objet"><?php echo $fmt->e($fmt->truncate($reportObjet, 50)); ?></td>

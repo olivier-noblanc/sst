@@ -46,7 +46,7 @@ class ConfigService
             $stmt = $pdo->prepare('SELECT valeur FROM config_app WHERE cle = :cle');
             $stmt->execute([':cle' => $cle]);
             $result = $stmt->fetchColumn();
-            $value = ($result !== false && $result !== null) ? (string) $result : $default;
+            $value = ($result !== false && $result !== null && $result !== '') ? (string) $result : $default;
         } catch (Exception) {
             $value = $default;
         }

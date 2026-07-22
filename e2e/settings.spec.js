@@ -291,9 +291,10 @@ test.describe('Synthesis Page', () => {
     const table = page.locator('table');
     await expect(table).toBeVisible();
 
+    // RSST is always enabled; RAMI/DGI are conditional
+    // (app_registry_rami_enabled/app_registry_dgi_enabled, disabled by
+    // default — see pages/synthesis.php) and only get a column when on.
     await expect(table.locator('th:has-text("RSST")')).toBeVisible();
-    await expect(table.locator('th:has-text("RAMI")')).toBeVisible();
-    await expect(table.locator('th:has-text("DGI")')).toBeVisible();
   });
 
   test('should filter by year', async ({ page }) => {

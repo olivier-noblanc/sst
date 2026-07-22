@@ -39,8 +39,12 @@ export async function loginAs(page, username = 'admin.dev') {
     if (page.url().includes('page=choose_site')) {
       const siteSelect = page.locator('#site_id');
       if (await siteSelect.isVisible()) {
+        // index 0 is the empty placeholder ("— Sélectionnez votre UR —",
+        // value=""), not a real site — see pages/choose_site.php. The
+        // first real site is index 1, same convention already used in
+        // onboarding.spec.js.
         const chooseCsrf = await page.locator('input[name="csrf_token"]').first().inputValue();
-        await siteSelect.selectOption({ index: 0 });
+        await siteSelect.selectOption({ index: 1 });
         await page.request.post('/index.php?page=choose_site', {
           form: { csrf_token: chooseCsrf, site_id: await siteSelect.inputValue() },
         });

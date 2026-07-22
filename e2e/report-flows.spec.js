@@ -24,7 +24,7 @@ test.describe('Report Abandon Flow', () => {
     if (await siteSelect1.isVisible()) {
       await siteSelect1.selectOption({ index: 0 });
     }
-    await page.click('button[type="submit"], input[type="submit"]');
+    await page.click('.card button[type="submit"], .card input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
     // Should be on report_view
@@ -51,7 +51,7 @@ test.describe('Report Abandon Flow', () => {
     if (await siteSelect2.isVisible()) {
       await siteSelect2.selectOption({ index: 0 });
     }
-    await page.click('button[type="submit"], input[type="submit"]');
+    await page.click('.card button[type="submit"], .card input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
     const abandonLink = page.locator('a[href*="report_abandon"], a:has-text("Abandonner")');
@@ -113,7 +113,7 @@ test.describe('Report Create and View Cycle', () => {
     }
 
     // Submit
-    await page.click('button[type="submit"], input[type="submit"]');
+    await page.click('.card button[type="submit"], .card input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
     // Should redirect to report_view with success flash
@@ -145,7 +145,7 @@ test.describe('Report Create and View Cycle', () => {
     }
 
     // Submit
-    await page.click('button[type="submit"], input[type="submit"]');
+    await page.click('.card button[type="submit"], .card input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
     const content = await page.content();
@@ -162,7 +162,7 @@ test.describe('Report Create and View Cycle', () => {
     if (await siteSelect4.isVisible()) {
       await siteSelect4.selectOption({ index: 0 });
     }
-    await page.click('button[type="submit"], input[type="submit"]');
+    await page.click('.card button[type="submit"], .card input[type="submit"]');
     await page.waitForLoadState('networkidle');
 
     // Navigate to edit
@@ -176,7 +176,7 @@ test.describe('Report Create and View Cycle', () => {
       if (await descField.count() > 0) {
         await descField.clear();
         await descField.fill('Updated description from E2E test');
-        await page.click('button[type="submit"], input[type="submit"]');
+        await page.click('.card button[type="submit"], .card input[type="submit"]');
         await page.waitForLoadState('networkidle');
 
         const content = await page.content();

@@ -31,7 +31,7 @@ test.describe('Settings Save Operations', () => {
       await textarea.first().fill('test@dreets.gouv.fr\n' + originalValue);
 
       // Submit
-      const submitBtn = page.locator('button[type="submit"], input[type="submit"]');
+      const submitBtn = page.locator('.card button[type="submit"], .card input[type="submit"]');
       if (await submitBtn.count() > 0) {
         await submitBtn.first().click();
         await page.waitForLoadState('networkidle');

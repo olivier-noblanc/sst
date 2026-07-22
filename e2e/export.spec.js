@@ -51,7 +51,7 @@ test.describe('Export Page', () => {
     await page.goto('/index.php?page=export');
     await page.waitForLoadState('networkidle');
 
-    const submitBtn = page.locator('button[type="submit"], input[type="submit"]');
+    const submitBtn = page.locator('.card button[type="submit"], .card input[type="submit"]');
     expect(await submitBtn.count()).toBeGreaterThan(0);
   });
 

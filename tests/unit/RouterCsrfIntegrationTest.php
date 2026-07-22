@@ -30,7 +30,7 @@ class RouterCsrfIntegrationTest extends TestCase
         file_put_contents($configPath, json_encode($config));
 
         $cmd = 'php ' . escapeshellarg(__DIR__ . '/../router_runner.php') . ' ' . escapeshellarg($configPath);
-        exec($cmd . ' 2>/dev/null', $output, $exitCode);
+        exec($cmd, $output, $exitCode);
 
         unlink($configPath);
 

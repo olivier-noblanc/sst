@@ -10,14 +10,12 @@
 
 namespace App\Services;
 
-class SQLiteSessionHandler implements \SessionHandlerInterface
-{
-    private \PDO $pdo;
+use SessionHandlerInterface;
+use PDO;
 
-    public function __construct(\PDO $pdo)
-    {
-        $this->pdo = $pdo;
-    }
+class SQLiteSessionHandler implements SessionHandlerInterface
+{
+    public function __construct(private readonly PDO $pdo) {}
 
     public function open(string $savePath, string $sessionName): bool
     {
@@ -33,7 +31,7 @@ class SQLiteSessionHandler implements \SessionHandlerInterface
     {
         $stmt = $this->pdo->prepare('SELECT data FROM sessions WHERE id = :id');
         $stmt->execute([':id' => $sessionId]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row === false) {
             return '';
         }

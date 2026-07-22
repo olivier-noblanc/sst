@@ -300,7 +300,7 @@
             <p class="text-muted text-small mb-3">Détermine quels signalements les membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> peuvent consulter.</p>
             <?php
                         $chsctScopeValue = \App\Services\ConfigService::getInstance()->get('app_chsct_report_scope', 'consent_only');
-$chsctScopeValue = (new \App\Services\AccessService())->normalizeChsctScope($chsctScopeValue);
+$chsctScopeValue = new \App\Services\AccessService()->normalizeChsctScope($chsctScopeValue);
 ?>
             <fieldset class="form-group visibility-radios">
                 <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?></legend>

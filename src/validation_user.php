@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\UserRole;
+
 /**
  * User Validation Functions — Application SST DREETS BFC
  *
@@ -11,11 +13,9 @@
  * Before this split, the same validation code was copy-pasted across handlers
  * (~40 lines duplicated between create/edit user).
  */
-
 // ============================================================================
 // User Validation
 // ============================================================================
-
 /**
  * Validate common user fields (nom, prenom, username, role, site_id, email).
  *
@@ -62,7 +62,7 @@ function validateUserFields(PDO $pdo, array $input, int $excludeId = 0): array
     }
 
     $role = trim($input['role'] ?? '');
-    if (\App\Enum\UserRole::tryFrom($role) === null) {
+    if (UserRole::tryFrom($role) === null) {
         $errors['role'] = 'Rôle invalide.';
     }
 

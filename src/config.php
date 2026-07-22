@@ -1,5 +1,9 @@
 <?php
 
+use App\Enum\UserRole;
+use App\Enum\ReportState;
+use App\Enum\ReportType;
+
 /**
  * Configuration — Application SST DREETS BFC
  *
@@ -90,41 +94,41 @@ if (!defined('ALLOWED_ATTACHMENT_MIMES')) {
 // La DB est prioritaire. Après la promotion initiale, vider la liste pour la sécurité.
 
 // Roles — aliases on UserRole enum for backward compatibility
-define('ROLE_AGENT', \App\Enum\UserRole::Agent->value);
-define('ROLE_SUPERVISEUR', \App\Enum\UserRole::Superviseur->value);
-define('ROLE_CHSCT', \App\Enum\UserRole::Chsct->value);
+define('ROLE_AGENT', UserRole::Agent->value);
+define('ROLE_SUPERVISEUR', UserRole::Superviseur->value);
+define('ROLE_CHSCT', UserRole::Chsct->value);
 
 // Report states (etats) — aliases on ReportState enum for backward compatibility
-define('ETAT_NOUVEAU', \App\Enum\ReportState::Nouveau->value);
-define('ETAT_EN_COURS', \App\Enum\ReportState::EnCours->value);
-define('ETAT_TRAITE', \App\Enum\ReportState::Traite->value);
-define('ETAT_ABANDONNE', \App\Enum\ReportState::Abandonne->value);
-define('ETAT_REOUVERT', \App\Enum\ReportState::Reouvert->value);
+define('ETAT_NOUVEAU', ReportState::Nouveau->value);
+define('ETAT_EN_COURS', ReportState::EnCours->value);
+define('ETAT_TRAITE', ReportState::Traite->value);
+define('ETAT_ABANDONNE', ReportState::Abandonne->value);
+define('ETAT_REOUVERT', ReportState::Reouvert->value);
 
 // Registry types — aliases on ReportType enum for backward compatibility
-define('TYPE_RSST', \App\Enum\ReportType::Rsst->value);
-define('TYPE_RAMI', \App\Enum\ReportType::Rami->value);
-define('TYPE_DGI', \App\Enum\ReportType::Dgi->value);
+define('TYPE_RSST', ReportType::Rsst->value);
+define('TYPE_RAMI', ReportType::Rami->value);
+define('TYPE_DGI', ReportType::Dgi->value);
 
 // Registry type labels — derived from ReportType enum
 if (!defined('REGISTRY_LABELS')) {
     define('REGISTRY_LABELS', array_combine(
-        array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
-        array_map(fn($c) => $c->label(), \App\Enum\ReportType::cases())
+        array_map(fn($c) => $c->value, ReportType::cases()),
+        array_map(fn($c) => $c->label(), ReportType::cases())
     ));
 }
 
 if (!defined('REGISTRY_SHORT_LABELS')) {
     define('REGISTRY_SHORT_LABELS', array_combine(
-        array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
-        array_map(fn($c) => $c->shortLabel(), \App\Enum\ReportType::cases())
+        array_map(fn($c) => $c->value, ReportType::cases()),
+        array_map(fn($c) => $c->shortLabel(), ReportType::cases())
     ));
 }
 
 // Role labels — defaults derived from UserRole enum (overridden by DB config app_role_label_*)
 define('ROLE_LABELS_DEFAULT', array_combine(
-    array_map(fn($c) => $c->value, \App\Enum\UserRole::cases()),
-    array_map(fn($c) => $c->defaultLabel(), \App\Enum\UserRole::cases())
+    array_map(fn($c) => $c->value, UserRole::cases()),
+    array_map(fn($c) => $c->defaultLabel(), UserRole::cases())
 ));
 // ROLE_LABELS is the runtime constant used throughout the application.
 // It mirrors ROLE_LABELS_DEFAULT; custom labels from DB are resolved
@@ -146,8 +150,8 @@ define('REPORT_VISIBILITY_MODES', [
 // State labels — derived from ReportState enum
 if (!defined('ETAT_LABELS')) {
     define('ETAT_LABELS', array_combine(
-        array_map(fn($c) => $c->value, \App\Enum\ReportState::cases()),
-        array_map(fn($c) => $c->label(), \App\Enum\ReportState::cases())
+        array_map(fn($c) => $c->value, ReportState::cases()),
+        array_map(fn($c) => $c->label(), ReportState::cases())
     ));
 }
 

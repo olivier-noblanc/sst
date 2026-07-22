@@ -245,7 +245,7 @@ $submitBtnClass = $isEdit
                     Signalement confidentiel
                 </label>
                 <div class="confidential-toggle__details">
-                    <?php if ((new \App\Services\AccessService())->getChsctReportScope() === 'all'): ?>
+                    <?php if (new \App\Services\AccessService()->getChsctReportScope() === 'all'): ?>
                     <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
                     <?php else: ?>
                     <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous et les superviseurs. Les membres de la <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez également la case de consentement ci-dessous. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
@@ -260,7 +260,7 @@ $submitBtnClass = $isEdit
             <input type="hidden" name="is_confidential" value="1">
             <div class="form-group form-grid__full">
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
-                <?php if ((new \App\Services\AccessService())->getChsctReportScope() === 'all'): ?>
+                <?php if (new \App\Services\AccessService()->getChsctReportScope() === 'all'): ?>
                 <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>.</span>
                 <?php else: ?>
                 <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous et les superviseurs. Les membres de la <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez la case de consentement lors de la création.</span>

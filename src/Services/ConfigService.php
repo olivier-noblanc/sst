@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\Enum\UserRole;
 use Exception;
 
 class ConfigService
@@ -119,7 +120,7 @@ class ConfigService
         if ($dbValue !== '') {
             return $dbValue;
         }
-        return \App\Enum\UserRole::tryFrom($role)?->defaultLabel() ?? ucfirst($role);
+        return UserRole::tryFrom($role)?->defaultLabel() ?? ucfirst($role);
     }
 
     /**
@@ -129,8 +130,8 @@ class ConfigService
     public function getRoleLabels(): array
     {
         return array_combine(
-            array_map(fn($c) => $c->value, \App\Enum\UserRole::cases()),
-            array_map(fn($c) => $this->getRoleLabel($c->value), \App\Enum\UserRole::cases())
+            array_map(fn($c) => $c->value, UserRole::cases()),
+            array_map(fn($c) => $this->getRoleLabel($c->value), UserRole::cases())
         );
     }
 

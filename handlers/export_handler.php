@@ -144,7 +144,7 @@ foreach ($reports as $row) {
     // CSV formula injection prevention: prefix cells starting with =+@-
     $csvEscape = function ($value): string {
         $safe = $value;
-        if (preg_match('/^[=+\-@]/', $safe) > 0) {
+        if (preg_match('/^[=+\-@]/', (string) $safe) > 0) {
             return "'" . $safe;
         }
         return $safe;

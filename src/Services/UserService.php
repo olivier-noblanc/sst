@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\Enum\UserRole;
 use RuntimeException;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
@@ -194,7 +195,7 @@ class UserService
         /** @var string */
         $roleVal = $input['role'] ?? '';
         $role = trim($roleVal);
-        if (\App\Enum\UserRole::tryFrom($role) === null) {
+        if (UserRole::tryFrom($role) === null) {
             $errors['role'] = 'Rôle invalide.';
         }
 

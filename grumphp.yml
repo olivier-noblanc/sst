@@ -9,3 +9,8 @@ parameters:
         phpcsfixer:
             config: .php-cs-fixer.dist.php
             allow_risky: true
+        phparkitect:
+            config: phparkitect.php
+        rector:
+            config: rector.php
+            triggered_by: ['php']

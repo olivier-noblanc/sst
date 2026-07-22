@@ -201,7 +201,7 @@ function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
             'image/jpeg' => 'jpg', 'image/png' => 'png', default => 'gif',
         };
         $attachmentBlob = $report['attachment_blob'];
-        $dataUri = 'data://' . $attachmentMime . ';base64,' . base64_encode($attachmentBlob);
+        $dataUri = 'data://' . $attachmentMime . ';base64,' . base64_encode((string) $attachmentBlob);
         $imageInfo = @getimagesize($dataUri);
         $pageW = $pdf->GetPageWidth();
         $pageWidth = $pageW - $pdf->getLeftMargin() - $pdf->getRightMargin();

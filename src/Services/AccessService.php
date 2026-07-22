@@ -4,6 +4,8 @@
 
 namespace App\Services;
 
+use App\Enum\VisibilityMode;
+use App\Enum\UserRole;
 use PDO;
 use Exception;
 use App\Repository\ReportRepository;
@@ -58,12 +60,12 @@ class AccessService
             ? ReportRepository::instance()->isLinkedAgent((string) $report['uuid'], $userId)
             : false;
 
-        if ($visibility === \App\Enum\VisibilityMode::Confidential->value && $reportDeclarantId !== $userId && !$isLinkedAgent) {
+        if ($visibility === VisibilityMode::Confidential->value && $reportDeclarantId !== $userId && !$isLinkedAgent) {
             return false;
         }
 
         $isConfidential = (int) ($report['is_confidential'] ?? 0);
-        if ($visibility === \App\Enum\VisibilityMode::AgentChoice->value && $isConfidential === 1 && $reportDeclarantId !== $userId && !$isLinkedAgent) {
+        if ($visibility === VisibilityMode::AgentChoice->value && $isConfidential === 1 && $reportDeclarantId !== $userId && !$isLinkedAgent) {
             return false;
         }
 
@@ -114,7 +116,7 @@ class AccessService
         if (empty($role)) {
             return false;
         }
-        return \App\Enum\UserRole::tryFrom($role)?->canSeeAllSites() ?? false;
+        return UserRole::tryFrom($role)?->canSeeAllSites() ?? false;
     }
 
     /**
@@ -123,13 +125,13 @@ class AccessService
     public function normalizeVisibilityValue(string $value): string
     {
         if ($value === '0' || $value === 'site') {
-            return \App\Enum\VisibilityMode::Public->value;
+            return VisibilityMode::Public->value;
         }
         if ($value === '1' || $value === 'own') {
-            return \App\Enum\VisibilityMode::Confidential->value;
+            return VisibilityMode::Confidential->value;
         }
-        $mode = \App\Enum\VisibilityMode::tryFrom($value);
-        return $mode !== null ? $mode->value : \App\Enum\VisibilityMode::AgentChoice->value;
+        $mode = VisibilityMode::tryFrom($value);
+        return $mode !== null ? $mode->value : VisibilityMode::AgentChoice->value;
     }
 
     /**
@@ -144,7 +146,7 @@ class AccessService
                 return $this->normalizeVisibilityValue($value);
             }
         }
-        $value = \getConfig('app_report_visibility', \App\Enum\VisibilityMode::AgentChoice->value);
+        $value = \getConfig('app_report_visibility', VisibilityMode::AgentChoice->value);
         return $this->normalizeVisibilityValue($value);
     }
 
@@ -165,7 +167,7 @@ class AccessService
      */
     public function reportVisibilityIsConfidential(?string $type = null): bool
     {
-        return $this->getReportVisibilityMode($type) === \App\Enum\VisibilityMode::Confidential->value;
+        return $this->getReportVisibilityMode($type) === VisibilityMode::Confidential->value;
     }
 
     /**
@@ -173,7 +175,7 @@ class AccessService
      */
     public function reportVisibilityIsAgentChoice(?string $type = null): bool
     {
-        return $this->getReportVisibilityMode($type) === \App\Enum\VisibilityMode::AgentChoice->value;
+        return $this->getReportVisibilityMode($type) === VisibilityMode::AgentChoice->value;
     }
 
     /**
@@ -181,7 +183,7 @@ class AccessService
      */
     public function reportVisibilityIsPublic(?string $type = null): bool
     {
-        return $this->getReportVisibilityMode($type) === \App\Enum\VisibilityMode::Public->value;
+        return $this->getReportVisibilityMode($type) === VisibilityMode::Public->value;
     }
 
     /**

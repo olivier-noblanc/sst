@@ -4,6 +4,8 @@
 
 namespace App\Services;
 
+use DateTimeZone;
+use App\Enum\ReportType;
 use DateTime;
 use PDO;
 use RuntimeException;
@@ -20,7 +22,7 @@ class FormattingService
             return '';
         }
         $str = $string;
-        return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+        return htmlspecialchars((string) $str, ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -49,12 +51,12 @@ class FormattingService
             return '—';
         }
         $datetime = $datetime;
-        $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime, new \DateTimeZone('UTC'));
+        $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime, new DateTimeZone('UTC'));
         if ($dt === false) {
-            $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime, new \DateTimeZone('UTC'));
+            $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime, new DateTimeZone('UTC'));
         }
         if ($dt !== false) {
-            $dt->setTimezone(new \DateTimeZone('Europe/Paris'));
+            $dt->setTimezone(new DateTimeZone('Europe/Paris'));
             return $dt->format('d/m/Y \à H:i');
         }
         return $this->e($datetime);
@@ -103,10 +105,10 @@ class FormattingService
      */
     public function getRegistryColor(string $type): string
     {
-        return match (\App\Enum\ReportType::from($type)) {
-            \App\Enum\ReportType::Rsst => 'var(--rsst-color)',
-            \App\Enum\ReportType::Rami => 'var(--rami-color)',
-            \App\Enum\ReportType::Dgi  => 'var(--dgi-color)',
+        return match (ReportType::from($type)) {
+            ReportType::Rsst => 'var(--rsst-color)',
+            ReportType::Rami => 'var(--rami-color)',
+            ReportType::Dgi  => 'var(--dgi-color)',
         };
     }
 
@@ -130,7 +132,7 @@ class FormattingService
      */
     public function getRegistryBadgeClass(mixed $type): string
     {
-        return \App\Enum\ReportType::from((string) $type)->badgeClass();
+        return ReportType::from((string) $type)->badgeClass();
     }
 
     /**
@@ -229,7 +231,7 @@ class FormattingService
     {
         $configService = ConfigService::getInstance();
         $wordsJson = $configService->get('word_cloud_words', '[]');
-        $words = json_decode($wordsJson, true) !== null ? json_decode($wordsJson, true) : [];
+        $words = json_decode($wordsJson, true) ?? [];
 
         if (empty($words)) {
             return '';

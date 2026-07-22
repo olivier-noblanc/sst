@@ -29,7 +29,7 @@ $formErrors = new \App\Services\SessionService()->getFormErrors();
 $formData = new \App\Services\SessionService()->getFormData();
 
 if (!isset($csrfToken)) {
-    $csrfToken = (new \App\Services\SessionService())->generateCsrfToken();
+    $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 }
 
 // Use formData if available, otherwise use site data

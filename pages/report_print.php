@@ -50,8 +50,8 @@ $report['attachment_blob'] = $attachmentData['attachment_blob'] ?? null;
 $responses = ReportRepository::instance()->getResponses($uuid);
 
 $type = $reportType;
-$registryLabel = REGISTRY_LABELS[$type] ?? strtoupper($type);
-$registryShortLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+$registryLabel = REGISTRY_LABELS[$type] ?? strtoupper((string) $type);
+$registryShortLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type);
 $etatLabel = ETAT_LABELS[$reportEtat] ?? $reportEtat;
 
 // --- Build PDF with FPDF ---

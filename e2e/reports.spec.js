@@ -23,6 +23,9 @@ async function createReport(page, type = 'rsst', options = {}) {
   await page.locator('#date_evenement').fill('2026-06-15');
   await page.locator('#objet').fill(objet);
   await page.locator('#description').fill(description);
+  // pole/telephone_mobile became required fields (see templates/report_form.php)
+  await page.locator('#pole').fill('Pôle Test E2E');
+  await page.locator('#telephone_mobile').fill('0601020304');
 
   // Handle site dropdown (only visible for superviseur/chsct on create)
   const siteSelect = page.locator('#site_id');

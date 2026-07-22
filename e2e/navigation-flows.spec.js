@@ -26,6 +26,8 @@ test.describe('Full Report Lifecycle Navigation', () => {
     await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Navigation Flux Complet');
     await page.locator('#description').fill('Test de navigation complète à travers le cycle de vie d\'un signalement.');
+    await page.locator('#pole').fill('Pôle Test E2E');
+    await page.locator('#telephone_mobile').fill('0601020304');
     const siteSelect = page.locator('#site_id');
     if (await siteSelect.isVisible()) {
       await siteSelect.selectOption({ index: 0 });
@@ -144,6 +146,8 @@ test.describe('Browser Back/Forward Navigation', () => {
     await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Back Navigation');
     await page.locator('#description').fill('Test de navigation avec le bouton retour du navigateur.');
+    await page.locator('#pole').fill('Pôle Test E2E');
+    await page.locator('#telephone_mobile').fill('0601020304');
     const siteSelect = page.locator('#site_id');
     if (await siteSelect.isVisible()) {
       await siteSelect.selectOption({ index: 0 });
@@ -294,6 +298,8 @@ test.describe('Breadcrumb Navigation', () => {
     await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Breadcrumb Accueil');
     await page.locator('#description').fill('Test navigation via breadcrumb.');
+    await page.locator('#pole').fill('Pôle Test E2E');
+    await page.locator('#telephone_mobile').fill('0601020304');
     await page.locator('.card button[type="submit"]').click();
     await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
 
@@ -308,6 +314,8 @@ test.describe('Breadcrumb Navigation', () => {
     await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Breadcrumb RSST');
     await page.locator('#description').fill('Test navigation via breadcrumb RSST.');
+    await page.locator('#pole').fill('Pôle Test E2E');
+    await page.locator('#telephone_mobile').fill('0601020304');
     await page.locator('.card button[type="submit"]').click();
     await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
 

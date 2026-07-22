@@ -20,6 +20,8 @@ test.describe('Report Abandon Flow', () => {
     await page.fill('#date_evenement', '2026-01-15');
     await page.fill('#objet', 'Test abandon flow');
     await page.fill('#description', 'Description pour test abandon');
+    await page.fill('#pole', 'Pôle Test E2E');
+    await page.fill('#telephone_mobile', '0601020304');
     const siteSelect1 = page.locator('#site_id');
     if (await siteSelect1.isVisible()) {
       await siteSelect1.selectOption({ index: 0 });
@@ -47,6 +49,8 @@ test.describe('Report Abandon Flow', () => {
     await page.fill('#date_evenement', '2026-01-15');
     await page.fill('#objet', 'Test abandon confirmation');
     await page.fill('#description', 'Description test');
+    await page.fill('#pole', 'Pôle Test E2E');
+    await page.fill('#telephone_mobile', '0601020304');
     const siteSelect2 = page.locator('#site_id');
     if (await siteSelect2.isVisible()) {
       await siteSelect2.selectOption({ index: 0 });
@@ -107,6 +111,8 @@ test.describe('Report Create and View Cycle', () => {
     await page.fill('#date_evenement', '2026-07-10');
     await page.fill('#objet', 'E2E Test RSST Report');
     await page.fill('#description', 'This is a test report created by E2E tests');
+    await page.fill('#pole', 'Pôle Test E2E');
+    await page.fill('#telephone_mobile', '0601020304');
     const siteSelect3 = page.locator('#site_id');
     if (await siteSelect3.isVisible()) {
       await siteSelect3.selectOption({ index: 0 });
@@ -133,6 +139,8 @@ test.describe('Report Create and View Cycle', () => {
     await page.fill('#date_evenement', '2026-07-10');
     await page.fill('#objet', 'E2E Test RAMI Report');
     await page.fill('#description', 'RAMI test report');
+    await page.fill('#pole', 'Pôle Test E2E');
+    await page.fill('#telephone_mobile', '0601020304');
 
     // Check pour_compte checkbox
     const pourCompteCheckbox = page.locator('#pour_compte, input[name="pour_compte"]');
@@ -158,6 +166,8 @@ test.describe('Report Create and View Cycle', () => {
     await page.fill('#date_evenement', '2026-07-10');
     await page.fill('#objet', 'Report to edit');
     await page.fill('#description', 'Original description');
+    await page.fill('#pole', 'Pôle Test E2E');
+    await page.fill('#telephone_mobile', '0601020304');
     const siteSelect4 = page.locator('#site_id');
     if (await siteSelect4.isVisible()) {
       await siteSelect4.selectOption({ index: 0 });

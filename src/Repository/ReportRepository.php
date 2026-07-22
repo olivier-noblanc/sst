@@ -84,6 +84,29 @@ class ReportRepository
         return $result;
     }
 
+    /**
+     * Keep the FTS5 search index in sync with a report's uuid/objet/description.
+     * DELETE-then-INSERT works identically for both a brand new report
+     * (the DELETE is a harmless no-op — nothing to remove yet) and an
+     * existing one being updated, so create() and update() share this
+     * instead of each keeping their own near-identical copy.
+     *
+     * Deliberately resilient (logs and continues rather than throwing):
+     * the report itself is already saved at this point — losing keyword
+     * search for one report is a much smaller problem than rolling back
+     * an otherwise-successful save because of a secondary search index.
+     */
+    private function syncFts5Index(string $uuid, string $objet, string $description): void
+    {
+        try {
+            $this->pdo->prepare('DELETE FROM reports_fts WHERE uuid = :uuid')->execute([':uuid' => $uuid]);
+            $this->pdo->prepare('INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)')
+                ->execute([':uuid' => $uuid, ':objet' => $objet, ':description' => $description]);
+        } catch (Exception $ftsE) {
+            error_log('[SST-DB] FTS5 sync warning for uuid=' . $uuid . ': ' . $ftsE->getMessage());
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // Read — Reports
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -469,12 +492,12 @@ class ReportRepository
                 ':attachment_mime' => $data['attachment_mime'] ?? null,
             ]);
 
-            try {
-                $this->pdo->prepare('INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)')
-                    ->execute([':uuid' => $uuid, ':objet' => $data['objet'], ':description' => $data['description']]);
-            } catch (Exception $ftsE) {
-                error_log('[SST-DB] FTS5 insert warning: ' . $ftsE->getMessage());
-            }
+            // Same DELETE-then-INSERT for both create and update: a DELETE
+            // on a uuid that doesn't exist yet (create's case) is a
+            // harmless no-op, so one shared method covers both instead of
+            // create() only INSERTing and update() duplicating a near
+            // identical INSERT after its own DELETE.
+            $this->syncFts5Index($uuid, $data['objet'], $data['description']);
 
             $this->pdo->commit();
             return $uuid;
@@ -548,13 +571,7 @@ class ReportRepository
             $updated = $stmt->rowCount() > 0;
 
             if ($updated) {
-                try {
-                    $this->pdo->prepare('DELETE FROM reports_fts WHERE uuid = :uuid')->execute([':uuid' => $uuid]);
-                    $this->pdo->prepare('INSERT INTO reports_fts(uuid, objet, description) VALUES (:uuid, :objet, :description)')
-                        ->execute([':uuid' => $uuid, ':objet' => $data['objet'], ':description' => $data['description']]);
-                } catch (Exception $ftsE) {
-                    error_log('[SST-DB] FTS5 update warning: ' . $ftsE->getMessage());
-                }
+                $this->syncFts5Index($uuid, $data['objet'], $data['description']);
             }
 
             $this->pdo->commit();

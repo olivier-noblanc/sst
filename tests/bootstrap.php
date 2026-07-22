@@ -99,7 +99,6 @@ function getDB(): PDO {
 require_once __DIR__ . '/../src/autoload.php';
 // registry_card_renderer.php is now loaded via src/helpers.php (require_once chain)
 require_once __DIR__ . '/../src/mail/email_renderer.php';
-require_once __DIR__ . '/../src/validation_user.php';
 
 // Bootstrap the DI Container for tests
 $testContainer = getContainer();

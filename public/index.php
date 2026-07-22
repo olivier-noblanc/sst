@@ -75,7 +75,6 @@ set_error_handler('sstErrorHandler');
 register_shutdown_function('sstShutdownHandler');
 
 // Validation user (pas dans autoload)
-require_once __DIR__ . '/../src/validation_user.php';
 
 // Load bootstrap middleware (superviseur promotion, site check)
 require_once __DIR__ . '/../src/Middleware/bootstrap.php';

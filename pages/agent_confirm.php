@@ -32,6 +32,7 @@ if ($report === null) {
 }
 
 $pageTitle = 'Confirmer mon rattachement';
+/** @var string $csrfToken */
 ?>
 
 <h1 class="page-title">Confirmer mon rattachement</h1>

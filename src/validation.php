@@ -6,14 +6,10 @@
  * Shared validation logic extracted from handlers.
  * Eliminates duplication between report_create_handler and report_edit_handler.
  *
- * User validation functions (validateUserFields)
- * have been moved to src/validation_user.php.
- *
  * Before this file, the same validation code was copy-pasted across handlers
  * (~100 lines duplicated between create/edit report).
  */
 
-require_once __DIR__ . '/validation_user.php';
 
 // ============================================================================
 // Report Validation

@@ -198,4 +198,41 @@ class RouterCsrfIntegrationTest extends TestCase
     // separate harness that runs through public/index.php's own dispatch
     // logic rather than the router — not built here; noted as a gap
     // rather than covered with an assertion that can't actually fail.
+
+    // ─── agent_confirm ──────────────────────────────────────────────────────
+
+    public function testAgentConfirmSucceedsThroughRealRouter(): void
+    {
+        // pages/agent_confirm.php's confirmation form never had a
+        // csrf_token field at all (unlike every other form in the app) —
+        // every submission failed the router's standard CsrfMiddleware
+        // check with a generic "Erreur de sécurité", 100% reproducibly,
+        // for every single agent trying to confirm a report link. Likely
+        // never worked since this feature was built.
+        $reportUuid = 'report-uuid-1';
+        $seed = "INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (1, 'jean.martin', 'Martin', 'Jean', 'agent', NULL, 1, 'agent.invite@example.com');\n"
+            . "INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('$reportUuid', 'rsst-26-001', 'rsst', 'Objet test', 'Desc test', '2026-01-01', 1, 'Martin', 'Jean', NULL, 'nouveau');\n"
+            . "INSERT INTO report_agent_invites (report_uuid, email, token, confirmed) VALUES ('$reportUuid', 'agent.invite@example.com', 'test-invite-token-abc123', 0);";
+
+        $result = $this->runRouter([
+            'page' => 'agent_confirm',
+            'session' => [
+                'user' => ['id' => 1, 'nom' => 'Martin', 'prenom' => 'Jean', 'username' => 'jean.martin', 'role' => 'agent', 'site_id' => null, 'email' => 'agent.invite@example.com', 'is_active' => 1],
+                'csrf_tokens' => ['validtoken123' => time()],
+            ],
+            'post' => [
+                'csrf_token' => 'validtoken123',
+                'token' => 'test-invite-token-abc123',
+            ],
+            'db_seed' => $seed,
+            'assertions' => [
+                'invite_confirmed' => "SELECT confirmed FROM report_agent_invites WHERE token = 'test-invite-token-abc123'",
+                'agent_link_count' => "SELECT COUNT(*) FROM report_agents WHERE report_uuid = '$reportUuid'",
+            ],
+        ]);
+
+        $this->assertEquals('success', $result['flash']['type'] ?? null, 'Confirmation should succeed — if this is "error" with a generic security message, the csrf_token field is missing from the form again.');
+        $this->assertEquals(1, $result['queries']['invite_confirmed']);
+        $this->assertEquals(1, $result['queries']['agent_link_count']);
+    }
 }

@@ -35,10 +35,18 @@ require __DIR__ . '/seed/_notifications.php';
 // ================================================================
 // FINAL SUMMARY
 // ================================================================
-$totalUsers = $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-$totalReports = $pdo->query('SELECT COUNT(*) FROM reports')->fetchColumn();
-$totalSites = $pdo->query('SELECT COUNT(*) FROM sites')->fetchColumn();
-$totalResponses = $pdo->query('SELECT COUNT(*) FROM report_responses')->fetchColumn();
+$stmt = $pdo->query('SELECT COUNT(*) FROM users');
+assert($stmt !== false);
+$totalUsers = $stmt->fetchColumn();
+$stmt = $pdo->query('SELECT COUNT(*) FROM reports');
+assert($stmt !== false);
+$totalReports = $stmt->fetchColumn();
+$stmt = $pdo->query('SELECT COUNT(*) FROM sites');
+assert($stmt !== false);
+$totalSites = $stmt->fetchColumn();
+$stmt = $pdo->query('SELECT COUNT(*) FROM report_responses');
+assert($stmt !== false);
+$totalResponses = $stmt->fetchColumn();
 
 echo "\n=== Seed Complete ===\n";
 echo "Sites: $totalSites\n";

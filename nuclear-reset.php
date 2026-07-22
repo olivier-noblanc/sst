@@ -55,14 +55,26 @@ try {
     $pdo->exec('PRAGMA busy_timeout = 30000;');
 
     // Count what will be deleted
-    $reportCount = (int) $pdo->query('SELECT COUNT(*) FROM reports')->fetchColumn();
-    $responseCount = (int) $pdo->query('SELECT COUNT(*) FROM report_responses')->fetchColumn();
-    $sequenceCount = (int) $pdo->query('SELECT COUNT(*) FROM report_sequence')->fetchColumn();
-    $auditCount = (int) $pdo->query('SELECT COUNT(*) FROM audit_log')->fetchColumn();
+    $stmt = $pdo->query('SELECT COUNT(*) FROM reports');
+    assert($stmt !== false);
+    $reportCount = (int) $stmt->fetchColumn();
+    $stmt = $pdo->query('SELECT COUNT(*) FROM report_responses');
+    assert($stmt !== false);
+    $responseCount = (int) $stmt->fetchColumn();
+    $stmt = $pdo->query('SELECT COUNT(*) FROM report_sequence');
+    assert($stmt !== false);
+    $sequenceCount = (int) $stmt->fetchColumn();
+    $stmt = $pdo->query('SELECT COUNT(*) FROM audit_log');
+    assert($stmt !== false);
+    $auditCount = (int) $stmt->fetchColumn();
 
     // Count what will be kept
-    $userCount = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-    $siteCount = (int) $pdo->query('SELECT COUNT(*) FROM sites')->fetchColumn();
+    $stmt = $pdo->query('SELECT COUNT(*) FROM users');
+    assert($stmt !== false);
+    $userCount = (int) $stmt->fetchColumn();
+    $stmt = $pdo->query('SELECT COUNT(*) FROM sites');
+    assert($stmt !== false);
+    $siteCount = (int) $stmt->fetchColumn();
 
     echo "SERONT SUPPRIMÉS :\n";
     echo "  • Signalements (reports)          : $reportCount\n";
@@ -84,7 +96,7 @@ try {
 
     // Confirmation
     echo "⚠️  Tapez OUI pour confirmer la suppression : ";
-    $input = trim(fgets(STDIN));
+    $input = trim((string) fgets(STDIN));
 
     if ($input !== 'OUI') {
         echo "\n Annulé.\n";

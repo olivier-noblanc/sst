@@ -13,6 +13,8 @@ parameters:
         - tools/
         - seed/
         - public/
+        - nuclear-reset.php
+        - seed.php
     excludePaths:
         - vendor/
         - src/lib/

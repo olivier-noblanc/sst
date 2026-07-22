@@ -224,7 +224,8 @@ class ConfigService
         }
 
         foreach ($candidatePaths as $path) {
-            $path = realpath($path) !== false ? realpath($path) : $path;
+            $resolved = realpath($path);
+            $path = $resolved !== false ? $resolved : $path;
             if (is_readable($path)) {
                 $content = file_get_contents($path);
                 if (($content !== false && $content !== '') && preg_match('/^##\s*\[(\d+\.\d+\.\d+)\]/m', $content, $m) === 1) {

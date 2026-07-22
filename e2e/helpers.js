@@ -30,6 +30,23 @@ export async function loginAs(page, username = 'admin.dev') {
       form: { username, password: 'test', csrf_token: csrfToken },
     });
     await page.goto('/index.php?page=home');
+
+    // In a multi-site environment (active sites configured — the case in
+    // CI, unlike a production install running in no-site mode), a
+    // newly-provisioned user with no site lands on choose_site instead of
+    // home. Complete that flow here so every subsequent page.goto() in the
+    // calling test doesn't get redirected to choose_site again and again.
+    if (page.url().includes('page=choose_site')) {
+      const siteSelect = page.locator('#site_id');
+      if (await siteSelect.isVisible()) {
+        const chooseCsrf = await page.locator('input[name="csrf_token"]').first().inputValue();
+        await siteSelect.selectOption({ index: 0 });
+        await page.request.post('/index.php?page=choose_site', {
+          form: { csrf_token: chooseCsrf, site_id: await siteSelect.inputValue() },
+        });
+        await page.goto('/index.php?page=home');
+      }
+    }
   }
 
   await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });

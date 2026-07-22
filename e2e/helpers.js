@@ -19,11 +19,17 @@ export async function loginAs(page, username = 'admin.dev') {
     const formIndex = username === 'agent.dev' ? 1 : username === 'chsct.dev' ? 2 : 0;
     await page.locator('form').nth(formIndex).evaluate(form => form.submit());
   } else {
-    // Non-dev users: POST directly
+    // Non-dev users: POST directly. page.request shares cookies with page's
+    // browser context, so the session is set correctly — but page.request
+    // is a background API call, it does NOT navigate `page` itself. Without
+    // an explicit page.goto() afterwards, `page` stays on ?page=login and
+    // the toHaveURL assertion below would just time out waiting for a
+    // navigation that was never going to happen.
     const csrfToken = await page.locator('form').first().locator('input[name="csrf_token"]').inputValue();
     await page.request.post('/index.php?page=login', {
       form: { username, password: 'test', csrf_token: csrfToken },
     });
+    await page.goto('/index.php?page=home');
   }
 
   await expect(page).toHaveURL(/page=(home|choose_site)/, { timeout: 10000 });

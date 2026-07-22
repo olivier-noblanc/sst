@@ -17,10 +17,16 @@ async function loginWithCustom(page, username, password = 'test') {
   await page.goto('/index.php?page=login');
   const csrfToken = await page.locator('form').first().locator('input[name="csrf_token"]').inputValue();
 
-  // POST directly with custom credentials
+  // POST directly with custom credentials. page.request shares cookies with
+  // page's browser context (the session is set correctly), but it's a
+  // background API call — it does NOT navigate `page` itself. Every caller
+  // here immediately asserts on page's URL, so without this goto() they'd
+  // all just time out waiting for a navigation that never happens; `page`
+  // would still be sitting on ?page=login.
   await page.request.post('/index.php?page=login', {
     form: { username, password, csrf_token: csrfToken },
   });
+  await page.goto('/index.php?page=home');
 }
 
 test.describe('New User Onboarding', () => {

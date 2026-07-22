@@ -265,9 +265,13 @@ test.describe('Cross-Page Navigation Flows', () => {
   });
 
   test('should navigate from home card to create and then to list', async ({ page }) => {
-    // Click "Signaler" on RSST card
+    // Click the RSST card's create button. Its label is "Déposer un
+    // signalement" specifically (see buildRegistryCards() in
+    // registry_card_renderer.php) — RAMI/DGI use "Signaler ...", RSST
+    // doesn't. Match on the href instead of the label text so this stays
+    // correct regardless of the exact wording used for any given registry.
     await page.goto('/index.php?page=home');
-    await page.locator('.registry-card--rsst a:has-text("Signaler")').click();
+    await page.locator('.registry-card--rsst a[href*="page=report_create"]').click();
     await expect(page).toHaveURL(/page=report_create.*type=rsst/);
 
     // Go back, then click "Voir"

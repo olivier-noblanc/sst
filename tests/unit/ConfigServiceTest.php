@@ -332,4 +332,65 @@ class ConfigServiceTest extends TestCase
         $result = $this->service->get('app_linked_agents_label', 'Rattacher des collègues au signalement');
         $this->assertEquals('Rattacher des collègues au signalement', $result);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Empty / null / whitespace fallback edge cases
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testGetReturnsFallbackForEmptyStringStoredDirectly(): void
+    {
+        // Insert empty string directly into DB, bypassing set()
+        $this->pdo->exec("INSERT INTO config_app (cle, valeur) VALUES ('raw_empty', '')");
+        $this->service->clearCache();
+        $result = $this->service->get('raw_empty', 'my_fallback');
+        $this->assertEquals('my_fallback', $result);
+    }
+
+    public function testGetReturnsFallbackForNullStoredDirectly(): void
+    {
+        $this->pdo->exec("INSERT INTO config_app (cle, valeur) VALUES ('raw_null', NULL)");
+        $this->service->clearCache();
+        $result = $this->service->get('raw_null', 'null_fallback');
+        $this->assertEquals('null_fallback', $result);
+    }
+
+    public function testGetReturnsEmptyStringDefaultWhenEmptyStoredAndNoFallback(): void
+    {
+        $this->service->set('empty_no_default', '');
+        $this->service->clearCache();
+        // No fallback provided — should return '' (the default of get())
+        $result = $this->service->get('empty_no_default');
+        $this->assertEquals('', $result);
+    }
+
+    public function testGetReturnsWhitespaceValueWhenStored(): void
+    {
+        // Whitespace is NOT treated as empty — it's a valid non-empty value
+        $this->service->set('whitespace_key', '   ');
+        $this->service->clearCache();
+        $result = $this->service->get('whitespace_key', 'fallback');
+        $this->assertEquals('   ', $result);
+    }
+
+    public function testGetReturnsValueAfterOverwriteWithEmpty(): void
+    {
+        // Set a value, then overwrite with empty — fallback should apply
+        $this->service->set('overwrite_key', 'original');
+        $this->service->clearCache();
+        $result = $this->service->get('overwrite_key', 'default');
+        $this->assertEquals('original', $result);
+
+        $this->service->set('overwrite_key', '');
+        $this->service->clearCache();
+        $result = $this->service->get('overwrite_key', 'default');
+        $this->assertEquals('default', $result);
+    }
+
+    public function testGetReturnsNonEmptyStringCorrectly(): void
+    {
+        $this->service->set('valid_key', 'valid_value');
+        $this->service->clearCache();
+        $result = $this->service->get('valid_key', 'fallback');
+        $this->assertEquals('valid_value', $result);
+    }
 }

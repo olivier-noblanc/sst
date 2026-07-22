@@ -80,7 +80,7 @@ php tools/anonymize_old_reports.php --dry-run
 
 | Suite | Tests | Fichiers | Portée |
 |-------|-------|----------|--------|
-| **PHPUnit** | 876 (1844 assertions) | 25+ | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting, services, repositories |
+| **PHPUnit** | 882 (1851 assertions) | 25+ | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting, services, repositories |
 | **Playwright E2E** | ~207 cas (15 specs) | 15 | Navigation, auth, formulaires, rôles, incarnation, onboarding, version, export, settings |
 
 ## Visibilité des signalements — 3 modes (configurable par le superviseur)

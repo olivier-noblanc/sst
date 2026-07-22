@@ -11,6 +11,7 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **2** 🔴 **ConfigService.php** — `get()` traite les chaînes vides comme « pas de valeur » et retourne le fallback.
 - **3** 🔴 **router_runner.php** — Erreurs PHP redirigées vers stderr (`display_errors = 'stderr'`) au lieu d'être supprimées.
 - **4** 🔴 **RouterCsrfIntegrationTest.php** — Retiré le `2>/dev/null` (syntaxe Unix incompatible Windows). 876 tests OK, 0 échec.
+- **5** 🔴 **ConfigServiceTest.php** — 6 tests edge cases ajoutés (fallback vide, null brut, whitespace, overwrite, valeur valide). 882 tests, 1851 assertions.
 
 ## [3.44.4] — 2026-07-21
 

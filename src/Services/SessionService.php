@@ -43,10 +43,8 @@ class SessionService
             // (IIS worker process cannot write to session.save_path)
             $pdo = \getDB();
             session_set_save_handler(new SQLiteSessionHandler($pdo), true);
-            error_log('[SST-SESSION] SQLite session handler registered, session_name=' . session_name());
 
             session_start();
-            error_log('[SST-SESSION] session_start() done, session_id=' . substr((string) session_id(), 0, 8) . '..., status=' . session_status());
         }
     }
 

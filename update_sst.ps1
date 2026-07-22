@@ -382,8 +382,9 @@ function Invoke-QualityGate {
 
     # Lancer Infection (mutation testing) en arrière-plan
     $infectionBin = "$env:USERPROFILE\scoop\shims\infection"
+    $infectionPathCmd = Get-Command infection -ErrorAction SilentlyContinue
     $infectionJob = Start-Job -ScriptBlock {
-        param($phpPath, $infectionBin, $tmpDir)
+        param($phpPath, $infectionBin, $infectionPathSource, $tmpDir)
         $ran = $false
         $output = $null
         $rc = 1
@@ -395,11 +396,21 @@ function Invoke-QualityGate {
             $ran = $true
             $output = & $phpPath vendor/bin/infection --show-mutations --no-progress --threads=4 2>&1
             $rc = $LASTEXITCODE
+        } elseif ($infectionPathSource) {
+            # Installe ailleurs sur le PATH (ni scoop, ni vendor/bin local) —
+            # ex: composer global, chocolatey, install manuelle. Get-Command
+            # a deja resolu vers un executable Windows valide (.bat/.cmd/.exe
+            # selon le mode d'installation) — l'invoquer directement plutot
+            # que de supposer qu'il faut le passer a php en argument (ce qui
+            # ne marcherait que pour un .phar/script brut, pas un wrapper).
+            $ran = $true
+            $output = & $infectionPathSource --show-mutations --no-progress --threads=4 2>&1
+            $rc = $LASTEXITCODE
         }
         $output | Out-File "$tmpDir\infection.out"
         Set-Content "$tmpDir\infection.rc" $rc
         Set-Content "$tmpDir\infection.ran" $ran
-    } -ArgumentList $phpPath, $infectionBin, $tmpDir
+    } -ArgumentList $phpPath, $infectionBin, $infectionPathCmd.Source, $tmpDir
 
     # Attendre les 5 jobs
     $phpstanJob, $phpunitJob, $e2eJob, $cssJob, $infectionJob | Wait-Job | Out-Null
@@ -850,11 +861,16 @@ PID_CSS=$!
     cd "$REPO_ROOT"
     if [[ -f "vendor/bin/infection" ]]; then
         php vendor/bin/infection --show-mutations --no-progress --threads=4 >"$TMPDIR/infection.out" 2>&1
+        echo $? >"$TMPDIR/infection.rc"
+    elif command -v infection >/dev/null 2>&1; then
+        # Installe ailleurs sur le PATH (ni vendor/bin local) — command -v
+        # a deja resolu vers un executable valide, l'invoquer directement.
+        infection --show-mutations --no-progress --threads=4 >"$TMPDIR/infection.out" 2>&1
+        echo $? >"$TMPDIR/infection.rc"
     else
         echo "Infection non trouve" >"$TMPDIR/infection.out"
         echo 1 >"$TMPDIR/infection.rc"
     fi
-    echo $? >"$TMPDIR/infection.rc"
 ) &
 PID_INFECTION=$!
 

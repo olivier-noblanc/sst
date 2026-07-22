@@ -147,6 +147,8 @@ test.describe('Impersonate — Role Restrictions', () => {
     await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Impersonation Agent');
     await page.locator('#description').fill('Test pour vérifier les restrictions en mode incognito.');
+    await page.locator('#pole').fill('Pôle Test E2E');
+    await page.locator('#telephone_mobile').fill('0601020304');
     await page.locator('.card button[type="submit"]').click();
     await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
 
@@ -190,6 +192,8 @@ test.describe('Impersonate — Stop', () => {
     await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Stop Impersonation');
     await page.locator('#description').fill('Test pour vérifier le retour au rôle superviseur.');
+    await page.locator('#pole').fill('Pôle Test E2E');
+    await page.locator('#telephone_mobile').fill('0601020304');
     await page.locator('.card button[type="submit"]').click();
     await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
 

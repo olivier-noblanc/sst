@@ -146,6 +146,8 @@ test.describe('Superviseur Role Access', () => {
     await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Réponse Superviseur');
     await page.locator('#description').fill('Test pour vérifier que le superviseur peut répondre.');
+    await page.locator('#pole').fill('Pôle Test E2E');
+    await page.locator('#telephone_mobile').fill('0601020304');
     const siteSelect = page.locator('#site_id');
     if (await siteSelect.isVisible()) {
       await siteSelect.selectOption({ index: 0 });

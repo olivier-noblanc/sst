@@ -4,6 +4,7 @@
  *
  * Tests mail functions from src/mail.php:
  * - getBaseUrl()
+ * - absoluteUrl()
  */
 
 use PHPUnit\Framework\TestCase;
@@ -13,6 +14,17 @@ require_once __DIR__ . '/../../src/mail.php';
 
 class MailHelperUrlTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        // PHPUnit's own CLI invocation sets $_SERVER['SCRIPT_NAME'] to
+        // something like 'vendor/bin/phpunit' — nothing to do with a real
+        // web deployment path. Reset to a root-deployment default before
+        // each test so getBaseUrl()'s subfolder detection doesn't leak
+        // PHPUnit's own script path into the result; tests for the
+        // subfolder case override this explicitly.
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+    }
+
     // ─── getBaseUrl ─────────────────────────────────────────────────────────
 
     public function testGetBaseUrlWithHttp(): void
@@ -48,6 +60,45 @@ class MailHelperUrlTest extends TestCase
         $_SERVER['HTTPS'] = '';
         unset($_SERVER['HTTP_HOST']);
         $this->assertEquals('http://localhost', getBaseUrl());
+    }
+
+    // ─── subfolder deployment (SCRIPT_NAME) ─────────────────────────────────
+
+    public function testGetBaseUrlIncludesSubfolderWhenDeployedInOne(): void
+    {
+        // Real-world bug this guards against: IIS commonly mounts the app
+        // as an "application" under a site rather than at the domain root
+        // (e.g. https://server/sst/index.php). url() always returns a path
+        // relative to index.php, which works for in-app navigation (the
+        // browser resolves it against the page it's already on) but not
+        // for an email link, which needs the full path. Without this, a
+        // recipient got a link to "https://server/index.php" — silently
+        // missing the "/sst" segment, landing on a 404 or the wrong app.
+        $_SERVER['HTTPS'] = 'on';
+        $_SERVER['HTTP_HOST'] = 'server.dreets-bfc.gouv.fr';
+        $_SERVER['SCRIPT_NAME'] = '/sst/index.php';
+
+        $this->assertEquals('https://server.dreets-bfc.gouv.fr/sst', getBaseUrl());
+    }
+
+    public function testGetBaseUrlNoSubfolderAtDomainRoot(): void
+    {
+        $_SERVER['HTTPS'] = 'on';
+        $_SERVER['HTTP_HOST'] = 'example.com';
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+
+        $this->assertEquals('https://example.com', getBaseUrl());
+    }
+
+    public function testAbsoluteUrlIncludesSubfolder(): void
+    {
+        $_SERVER['HTTPS'] = 'on';
+        $_SERVER['HTTP_HOST'] = 'server.dreets-bfc.gouv.fr';
+        $_SERVER['SCRIPT_NAME'] = '/sst/index.php';
+
+        $result = absoluteUrl('report_view', ['uuid' => 'xyz']);
+
+        $this->assertEquals('https://server.dreets-bfc.gouv.fr/sst/index.php?page=report_view&uuid=xyz', $result);
     }
 
     // ─── app_base_url config override ──────────────────────────────────────

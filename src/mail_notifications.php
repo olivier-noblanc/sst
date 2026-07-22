@@ -248,7 +248,19 @@ function getBaseUrl(): string
     }
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    return "$protocol://$host";
+    // The app doesn't have to be deployed at the domain root — IIS commonly
+    // mounts it as an "application" under a site, e.g.
+    // https://server/sst/index.php. url() always returns a path relative
+    // to index.php ("index.php?page=..."), which works fine for in-app
+    // navigation (the browser resolves it against whatever URL it's
+    // already on) but not for an email, which needs the full path
+    // including that subfolder. SCRIPT_NAME carries it (e.g.
+    // "/sst/index.php"); PHP's dirname() returns "/" for a root
+    // deployment ("/index.php") — normalize that to '' so this doesn't
+    // produce a trailing-slash-only segment.
+    $scriptDir = \dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php');
+    $subfolder = ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') ? '' : $scriptDir;
+    return "$protocol://$host$subfolder";
 }
 
 /**

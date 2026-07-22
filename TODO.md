@@ -8,7 +8,7 @@ Dernière mise à jour : 2026-07-22
 
 | Métrique | Valeur |
 |----------|--------|
-| PHPStan erreurs | **0** |
+| PHPStan erreurs | **0** (173 fichiers analysés) |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
 | Tests | **882** (1851 assertions) |

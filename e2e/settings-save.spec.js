@@ -74,8 +74,9 @@ test.describe('Settings Save Operations', () => {
     await page.goto('/index.php?page=settings');
     await page.waitForLoadState('networkidle');
 
-    // Check for tab navigation
-    const tabs = page.locator('.tabs a, .nav-tabs a, [role="tab"], .settings-tabs a');
+    // The real markup uses .tab-bar (see pages/settings.php) — none of
+    // .tabs/.nav-tabs/.settings-tabs ever matched anything here.
+    const tabs = page.locator('.tab-bar a');
     const tabCount = await tabs.count();
     expect(tabCount).toBeGreaterThanOrEqual(3); // At least sites, global, smtp
   });

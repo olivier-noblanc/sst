@@ -37,6 +37,18 @@ class SessionService
             if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
                 ini_set('session.cookie_secure', '1');
             }
+            // Force garbage collection settings explicitly — don't rely on
+            // the server's php.ini. Debian/Ubuntu-packaged PHP sets
+            // gc_probability=0 by default (cleanup handled by an external
+            // cron job instead, see /etc/cron.d/php*) — this app runs on
+            // Windows/IIS with no such cron, so if the deployed php.ini
+            // ever mirrors that convention (or is otherwise misconfigured),
+            // SQLiteSessionHandler::gc() would simply never run and the
+            // sessions table would grow forever, silently, with no
+            // application-level signal that anything is wrong.
+            ini_set('session.gc_probability', '1');
+            ini_set('session.gc_divisor', '100');
+            ini_set('session.gc_maxlifetime', (string) (60 * 60 * 24)); // 24h
             session_name('SST_SESSION');
 
             // Use SQLite session handler instead of file-based sessions

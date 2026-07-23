@@ -18,12 +18,15 @@
  *                        (remplace le cron recommandé dans check_delays.php)
  *   2. anonymize      — Anonymisation RGPD des signalements anciens
  *                        (remplace l'exécution manuelle de anonymize_old_reports.php)
+ *   3. cleanup        — Purge des invitations agent expirées
+ *                        (report_agent_invites, jamais nettoyée auparavant)
  *
  * Les outils CLI (tools/check_delays.php, tools/anonymize_old_reports.php)
  * restent disponibles pour les dry-run et l'exécution manuelle.
  */
 
 require_once __DIR__ . '/cron_anonymize.php';
+require_once __DIR__ . '/cron_cleanup.php';
 
 /**
  * Run all lazy cron tasks that are due.
@@ -38,6 +41,9 @@ function runLazyCron(PDO $pdo): void
 
     // Anonymize old reports: run every 7 days minimum
     runLazyCronTask($pdo, 'anonymize', 7 * 24 * 3600, 'lazyCronAnonymize');
+
+    // Purge old agent invites: run every 7 days minimum
+    runLazyCronTask($pdo, 'cleanup', 7 * 24 * 3600, 'lazyCronCleanup');
 }
 
 /**

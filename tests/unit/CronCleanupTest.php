@@ -15,10 +15,15 @@ class CronCleanupTest extends TestCase
     {
         $this->pdo = getDB();
         $this->pdo->exec('DELETE FROM sessions');
+        $this->pdo->exec('DELETE FROM report_access_log');
         $this->pdo->exec('DELETE FROM report_agent_invites');
+        $this->pdo->exec('DELETE FROM report_state_history');
+        $this->pdo->exec('DELETE FROM report_responses');
+        $this->pdo->exec('DELETE FROM report_agents');
         $this->pdo->exec('DELETE FROM reports');
         $this->pdo->exec('DELETE FROM users');
         $this->pdo->exec('DELETE FROM sites');
+        $this->pdo->exec('DELETE FROM audit_log');
         $this->pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'Test', 1)");
         $this->pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'jean', 'M', 'J', 'agent', 1, 1)");
         $this->pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('r1', 'rsst-26-001', 'rsst', 'O', 'D', '2026-01-01', 1, 'M', 'J', 1, 'nouveau')");
@@ -145,6 +150,85 @@ class CronCleanupTest extends TestCase
         lazyCronPurgeSessions($this->pdo);
 
         $after = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'gc_purge'")->fetchColumn();
+        $this->assertEquals($before, $after);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Audit log purge tests
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    private function seedAuditLog(string $action, string $createdAt): void
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO audit_log (user_id, username, category, action, details, context, ip_address, created_at)
+            VALUES (NULL, 'system', 'test', :action, 'test', '{}', '127.0.0.1', :created_at)
+        ");
+        $stmt->execute([':action' => $action, ':created_at' => $createdAt]);
+    }
+
+    public function testPurgesOldAuditLogEntries(): void
+    {
+        $this->seedAuditLog('old_action', gmdate('Y-m-d H:i:s', strtotime('-200 days')));
+        $this->seedAuditLog('recent_action', gmdate('Y-m-d H:i:s', strtotime('-30 days')));
+
+        lazyCronPurgeAuditLog($this->pdo);
+
+        $remaining = $this->pdo->query("SELECT action FROM audit_log WHERE action != 'audit_purge'")->fetchAll(PDO::FETCH_COLUMN);
+        $this->assertEquals(['recent_action'], $remaining);
+    }
+
+    public function testAuditPurgeWritesItsOwnEntry(): void
+    {
+        $this->seedAuditLog('to_delete', gmdate('Y-m-d H:i:s', strtotime('-200 days')));
+
+        lazyCronPurgeAuditLog($this->pdo);
+
+        $purgeEntry = $this->pdo->query("SELECT details FROM audit_log WHERE action = 'audit_purge'")->fetch();
+        $this->assertNotEmpty($purgeEntry);
+        $this->assertStringContainsString('1 ligne', $purgeEntry['details']);
+    }
+
+    public function testAuditPurgeSkipsWhenNothingToDelete(): void
+    {
+        $this->seedAuditLog('recent', gmdate('Y-m-d H:i:s', strtotime('-10 days')));
+        $before = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'audit_purge'")->fetchColumn();
+
+        lazyCronPurgeAuditLog($this->pdo);
+
+        $after = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'audit_purge'")->fetchColumn();
+        $this->assertEquals($before, $after);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Access log purge tests
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testPurgesOldAccessLogEntries(): void
+    {
+        // Seed a report for FK
+        $this->pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('r2', 'rsst-26-002', 'rsst', 'O', 'D', '2026-01-01', 1, 'M', 'J', 1, 'nouveau')");
+
+        $stmt = $this->pdo->prepare("INSERT INTO report_access_log (report_uuid, user_id, role, accessed_at) VALUES ('r2', 1, 'superviseur', :accessed_at)");
+        $stmt->execute([':accessed_at' => gmdate('Y-m-d H:i:s', strtotime('-800 days'))]);
+        $stmt->execute([':accessed_at' => gmdate('Y-m-d H:i:s', strtotime('-30 days'))]);
+
+        lazyCronPurgeAccessLog($this->pdo);
+
+        $count = (int) $this->pdo->query('SELECT COUNT(*) FROM report_access_log')->fetchColumn();
+        $this->assertEquals(1, $count);
+    }
+
+    public function testAccessPurgeSkipsWhenNothingToDelete(): void
+    {
+        $this->pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('r3', 'rsst-26-003', 'rsst', 'O', 'D', '2026-01-01', 1, 'M', 'J', 1, 'nouveau')");
+        $stmt = $this->pdo->prepare("INSERT INTO report_access_log (report_uuid, user_id, role, accessed_at) VALUES ('r3', 1, 'superviseur', :accessed_at)");
+        $stmt->execute([':accessed_at' => gmdate('Y-m-d H:i:s', strtotime('-10 days'))]);
+
+        $before = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'access_purge'")->fetchColumn();
+
+        lazyCronPurgeAccessLog($this->pdo);
+
+        $after = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'access_purge'")->fetchColumn();
         $this->assertEquals($before, $after);
     }
 }

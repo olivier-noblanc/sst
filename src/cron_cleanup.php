@@ -102,3 +102,84 @@ function lazyCronPurgeSessions(PDO $pdo): void
         ]),
     ]);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Task 5: Purge Old Audit Log
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Delete audit_log entries older than 180 days.
+ *
+ * The audit log is an operational trail (logins, report edits, exports...).
+ * It grows unboundedly with every action. 180 days is enough for
+ * debugging and post-incident review; anything older has no operational
+ * value and just bloats the database.
+ *
+ * @param PDO $pdo  Database connection
+ */
+function lazyCronPurgeAuditLog(PDO $pdo): void
+{
+    $retentionDays = 180;
+    $cutoff = gmdate('Y-m-d H:i:s', strtotime("-{$retentionDays} days"));
+
+    $stmt = $pdo->prepare('DELETE FROM audit_log WHERE created_at < :cutoff');
+    $stmt->execute([':cutoff' => $cutoff]);
+    $deleted = $stmt->rowCount();
+
+    if ($deleted === 0) {
+        return;
+    }
+
+    $stmt = $pdo->prepare("
+        INSERT INTO audit_log (user_id, username, category, action, details, context, ip_address)
+        VALUES (NULL, 'system', 'maintenance', 'audit_purge', :details, :context, 'lazy-cron')
+    ");
+    $stmt->execute([
+        ':details' => "Lazy cron — {$deleted} ligne(s) d'audit purgée(s) (> {$retentionDays}j)",
+        ':context' => json_encode([
+            'source'          => 'lazy_cron',
+            'deleted'         => $deleted,
+            'retention_days'  => $retentionDays,
+        ]),
+    ]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Task 6: Purge Old Access Log
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Delete report_access_log entries older than 2 years.
+ *
+ * This is a legal consultation trail (Code du travail). Keep 2 years
+ * for compliance; entries for deleted reports are already cascade-removed.
+ *
+ * @param PDO $pdo  Database connection
+ */
+function lazyCronPurgeAccessLog(PDO $pdo): void
+{
+    $retentionDays = 730; // 2 years
+    $cutoff = gmdate('Y-m-d H:i:s', strtotime("-{$retentionDays} days"));
+
+    $stmt = $pdo->prepare('DELETE FROM report_access_log WHERE accessed_at < :cutoff');
+    $stmt->execute([':cutoff' => $cutoff]);
+    $deleted = $stmt->rowCount();
+
+    if ($deleted === 0) {
+        return;
+    }
+
+    require_once __DIR__ . '/audit.php';
+    $stmt = $pdo->prepare("
+        INSERT INTO audit_log (user_id, username, category, action, details, context, ip_address)
+        VALUES (NULL, 'system', 'maintenance', 'access_purge', :details, :context, 'lazy-cron')
+    ");
+    $stmt->execute([
+        ':details' => "Lazy cron — {$deleted} ligne(s) de consultation purgée(s) (> {$retentionDays}j)",
+        ':context' => json_encode([
+            'source'          => 'lazy_cron',
+            'deleted'         => $deleted,
+            'retention_days'  => $retentionDays,
+        ]),
+    ]);
+}

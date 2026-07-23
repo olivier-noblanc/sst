@@ -22,6 +22,8 @@
  *                        (report_agent_invites, jamais nettoyée auparavant)
  *   4. session_gc     — Purge des sessions expirées (>24h)
  *                        (garantit un nettoyage quotidien, au-delà du GC probabiliste)
+ *   5. audit_purge    — Purge des logs d'audit > 180 jours
+ *   6. access_purge   — Purge des logs de consultation > 2 ans
  *
  * Les outils CLI (tools/check_delays.php, tools/anonymize_old_reports.php)
  * restent disponibles pour les dry-run et l'exécution manuelle.
@@ -49,6 +51,12 @@ function runLazyCron(PDO $pdo): void
 
     // Purge expired sessions: run every 24 hours minimum
     runLazyCronTask($pdo, 'session_gc', 24 * 3600, 'lazyCronPurgeSessions');
+
+    // Purge old audit log entries: run every 7 days minimum
+    runLazyCronTask($pdo, 'audit_purge', 7 * 24 * 3600, 'lazyCronPurgeAuditLog');
+
+    // Purge old access log entries: run every 7 days minimum
+    runLazyCronTask($pdo, 'access_purge', 7 * 24 * 3600, 'lazyCronPurgeAccessLog');
 }
 
 /**

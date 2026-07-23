@@ -25,6 +25,35 @@
 - **Exceptions** : noms de colonnes SQL (`$row['nouveau']`), form values HTML (`value="rsst"`), seed data, tests
 - PHPStan vérifie ça via la règle custom `NoMagicStringRule` (`src/PHPStan/NoMagicStringRule.php`)
 - Rector peut auto-migrer les `===`/`!==` et `switch/case` via `ReplaceMagicStringWithEnumRector`
+- **Nouveaux développements** : introduire les enums dès le départ, ne jamais créer de constantes string pour des valeurs métier
+- **DTO typés** : préférer `public readonly VisibilityMode $visibility` à `public readonly string $visibility` quand le DTO porte une valeur d'enum — impossible de passer une string, le bug est éliminé à la compilation
+
+### Patterns DDD — Architecture et couche métier
+
+**Règle : la logique métier ne vit que dans `src/Services/` ou `src/Repository/`**, jamais dans `pages/` ni `handlers/`.
+
+**Pattern VisibilityPolicy** (quand la logique de visibilité se complexifie) :
+```php
+final class VisibilityPolicy
+{
+    public function canSee(User $user, Report $report): bool
+    {
+        return match ($this->visibility) {
+            VisibilityMode::Confidential => $report->declarantId === $user->id || $report->isLinkedAgent($user->id),
+            VisibilityMode::AgentChoice  => !$report->isConfidential || $report->declarantId === $user->id || $report->isLinkedAgent($user->id),
+            VisibilityMode::Public       => true,
+        };
+    }
+}
+```
+→ Évite la duplication SQL/PHP de la logique de visibilité (un seul point de vérité).
+
+**Règle PHPStan** : SQL interdit hors `src/Repository/` — voir `NoSqlOutsideRepositoryRule` (`src/PHPStan/NoSqlOutsideRepositoryRule.php`).
+
+**Outils d'architecture** :
+- **Deptrac** (`deptrac.yaml`) — enforce les dépendances entre layers (Enum, DTO, Repository, Service, Helpers)
+- **NoMagicStringRule** — interdit les magic strings métier
+- **Rector** — auto-migration des patterns legacy
 
 ### Captures d'écran
 - Les captures sont au format **PNG annoté** (numérotation + flèches + descriptions).

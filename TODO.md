@@ -8,16 +8,17 @@ Dernière mise à jour : 2026-07-23
 
 | Métrique | Valeur |
 |----------|--------|
-| PHPStan erreurs | **0** (173 fichiers analysés) |
-| PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule) |
+| PHPStan erreurs | **30** (NoSqlOutsideRepositoryRule — à fixer, voir Priorité 20) |
+| PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
 | Tests | **901** (1886 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
-| CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + PHPArkitect + Rector + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
+| CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + PHPArkitect + Rector + Deptrac + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
 | Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |
 | Rector custom | **ReplaceMagicStringWithEnumRector** (auto-migre === / !== / switch/case vers enums) |
+| Deptrac | **installé** (ruleset architecture : Enum, DTO, Repository, Service, Helpers) |
 
 ### ⚠️ Pipeline qualité — État réel
 
@@ -310,6 +311,22 @@ Tous les `try/catch` qui avalaient une erreur et continuaient (migrations, e-mai
 - E2E : RAMI/DGI traités comme conditionnels (`app_registry_*_enabled`, défaut désactivé) dans les specs qui supposaient les trois registres toujours actifs (fix Mimo) ; `workers` forcé à 1 uniquement en CI (`process.env.CI`, pas par détection CPU/OS — le runner GitHub Actions a plusieurs cœurs, une détection CPU aurait annulé le fix côté CI) pour éviter la contention SQLite entre fichiers de test exécutés en parallèle contre le même serveur PHP mono-thread.
 
 **CI confirmé vert** (run [27fe99d]) : les deux jobs (`Lint + PHPStan + PHPUnit` et `E2E Firefox`, 204/204 tests) passent. Chasse aux 36 échecs E2E signalés par Mimo menée à terme sur plusieurs itérations, grâce au reporter Playwright `github` (annotations directement récupérables via l'API GitHub, sans dépendre du stockage Azure ni de l'artefact HTML complet — tous deux hors de portée du sandbox). Causes trouvées et corrigées, dans l'ordre : `page.request.post()` ne navigue jamais `page` (login custom) ; textes de bouton figés ne correspondant plus au libellé réel/dynamique ; champ `#site_id` non géré ; sélecteur de tab inexistant ; sélecteur `button[type="submit"]` trop générique matchant un bouton caché du menu impersonation ; mauvais index de site (placeholder vide) dans le flux `choose_site` ; RAMI/DGI non traités comme conditionnels dans un test de synthèse ; et une régression introduite en cours de route (champs Pôle/Téléphone mobile passés `required`) que les tests de création de signalement ne remplissaient pas encore.
+
+---
+
+## Priorité 20 — NoSqlOutsideRepositoryRule (30 violations restantes)
+
+La règle PHPStan `NoSqlOutsideRepositoryRule` est créée et enregistrée, mais 30 violations restent dans les fichiers légitimes qui nécessitent du SQL hors Repository :
+
+- **ConfigService** (5) — `config_app` : accès DB pour config. Solution → migrer vers `ConfigRepository`.
+- **SQLiteSessionHandler** (4) — handler PHP natif, SQL nécessaire. Solution → whitelist ou migrer vers `SessionRepository`.
+- **audit.php** (3) — audit logging. Solution → migrer vers `AuditRepository`.
+- **handlers/** (4) — `settings_handler.php`, `user_delete_handler.php`. Solution → migrer vers les repositories.
+- **pages/** (4) — `logs.php`, `report_attachment.php`, `response_attachment.php`. Solution → migrer vers les repositories.
+- **database.php** (2) — seed data. Solution → whitelist.
+- **mail_notifications.php** (2) — requêtes notification. Solution → migrer vers `NotificationRepository`.
+
+**Approche** : migrer SQL vers Repository quand c'est possible, whitelist les cas légitimes (config, session, audit, seed).
 
 ---
 

@@ -20,6 +20,14 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **8** 🟢 **~20 fichiers** — Migration des magic strings vers les enums dans `src/`, `pages/`, `handlers/`, `templates/`, `helpers/`.
 - **9** 🟢 **AGENTS.md** — Règle ajoutée : « JAMAIS de magic strings métier, toujours les enums ».
 
+### Architecture — Deptrac + NoSqlOutsideRepositoryRule + DDD patterns
+
+- **10** 🔴 **deptrac.yaml** — Ruleset architecture : Enum ↔ DTO, Repository → Query, Service → Repository/Query/Event, Helpers → Service.
+- **11** 🔴 **NoSqlOutsideRepositoryRule.php** — Règle PHPStan : SQL interdit hors `src/Repository/` (30 violations restantes à fixer).
+- **12** 🟢 **AGENTS.md** — Patterns DDD ajoutés (VisibilityPolicy, DTO typés avec enums, SQL interdit hors Repository).
+- **13** 🟢 **ci.yml** — Étape Deptrac ajoutée au pipeline CI.
+- **14** 🟢 **grumphp.yml** — Tâche deptrac ajoutée au pre-commit hook.
+
 
 ## [3.44.5] — 2026-07-22
 

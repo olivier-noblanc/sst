@@ -20,6 +20,8 @@
  *                        (remplace l'exécution manuelle de anonymize_old_reports.php)
  *   3. cleanup        — Purge des invitations agent expirées
  *                        (report_agent_invites, jamais nettoyée auparavant)
+ *   4. session_gc     — Purge des sessions expirées (>24h)
+ *                        (garantit un nettoyage quotidien, au-delà du GC probabiliste)
  *
  * Les outils CLI (tools/check_delays.php, tools/anonymize_old_reports.php)
  * restent disponibles pour les dry-run et l'exécution manuelle.
@@ -44,6 +46,9 @@ function runLazyCron(PDO $pdo): void
 
     // Purge old agent invites: run every 7 days minimum
     runLazyCronTask($pdo, 'cleanup', 7 * 24 * 3600, 'lazyCronCleanup');
+
+    // Purge expired sessions: run every 24 hours minimum
+    runLazyCronTask($pdo, 'session_gc', 24 * 3600, 'lazyCronPurgeSessions');
 }
 
 /**

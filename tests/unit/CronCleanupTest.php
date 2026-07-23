@@ -14,6 +14,7 @@ class CronCleanupTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = getDB();
+        $this->pdo->exec('DELETE FROM sessions');
         $this->pdo->exec('DELETE FROM report_agent_invites');
         $this->pdo->exec('DELETE FROM reports');
         $this->pdo->exec('DELETE FROM users');
@@ -78,6 +79,72 @@ class CronCleanupTest extends TestCase
         lazyCronCleanup($this->pdo);
 
         $after = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'cleanup'")->fetchColumn();
+        $this->assertEquals($before, $after);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Session GC tests
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    private function seedSession(string $id, int $lastAccessed): void
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO sessions (id, data, last_accessed)
+            VALUES (:id, '', :last_accessed)
+        ");
+        $stmt->execute([':id' => $id, ':last_accessed' => $lastAccessed]);
+    }
+
+    public function testPurgesExpiredSessions(): void
+    {
+        $maxLifetime = 86400; // 24h, same as SessionService default
+        ini_set('session.gc_maxlifetime', (string) $maxLifetime);
+
+        $this->seedSession('purge-expired', time() - $maxLifetime - 100);
+        $this->seedSession('purge-fresh', time() - 3600);
+
+        lazyCronPurgeSessions($this->pdo);
+
+        $remaining = $this->pdo->query('SELECT id FROM sessions')->fetchAll(PDO::FETCH_COLUMN);
+        $this->assertEquals(['purge-fresh'], $remaining);
+    }
+
+    public function testKeepsRecentSessions(): void
+    {
+        ini_set('session.gc_maxlifetime', '86400');
+
+        $this->seedSession('keep-s1', time() - 3600);
+        $this->seedSession('keep-s2', time() - 7200);
+
+        lazyCronPurgeSessions($this->pdo);
+
+        $count = (int) $this->pdo->query('SELECT COUNT(*) FROM sessions')->fetchColumn();
+        $this->assertEquals(2, $count);
+    }
+
+    public function testSessionPurgeWritesAuditLog(): void
+    {
+        ini_set('session.gc_maxlifetime', '86400');
+        $this->seedSession('audit-expired', time() - 86500);
+
+        $before = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'gc_purge'")->fetchColumn();
+
+        lazyCronPurgeSessions($this->pdo);
+
+        $after = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'gc_purge'")->fetchColumn();
+        $this->assertEquals($before + 1, $after);
+    }
+
+    public function testSessionPurgeSkipsAuditLogWhenNothingToDelete(): void
+    {
+        ini_set('session.gc_maxlifetime', '86400');
+        $this->seedSession('noaudit-fresh', time() - 3600);
+
+        $before = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'gc_purge'")->fetchColumn();
+
+        lazyCronPurgeSessions($this->pdo);
+
+        $after = (int) $this->pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'gc_purge'")->fetchColumn();
         $this->assertEquals($before, $after);
     }
 }

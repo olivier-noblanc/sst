@@ -3,10 +3,9 @@
 /**
  * Lazy Cron — Cleanup Task — Application SST DREETS BFC
  *
- * Purges old report_agent_invites rows — nothing did this before, so the
- * table only ever grew (one row per invite sent, forever). Split from
- * cron.php to keep file size under 250 lines, same convention as
- * cron_anonymize.php.
+ * Purges expired sessions and old report_agent_invites rows — nothing did
+ * this before, so those tables only ever grew. Split from cron.php to
+ * keep file size under 250 lines, same convention as cron_anonymize.php.
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,6 +54,51 @@ function lazyCronCleanup(PDO $pdo): void
         ':context' => json_encode([
             'source'  => 'lazy_cron',
             'deleted' => $deleted,
+        ]),
+    ]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Task 4: Purge Expired Sessions
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Delete sessions older than gc_maxlifetime (24h).
+ *
+ * PHP's built-in garbage collector already does this probabilistically
+ * (gc_probability=1 / gc_divisor=100 ≈ 1% chance per request), but on
+ * a low-traffic app that can take hundreds of requests to fire. This
+ * explicit call guarantees at least one cleanup per day via the lazy cron.
+ *
+ * @param PDO $pdo  Database connection
+ */
+function lazyCronPurgeSessions(PDO $pdo): void
+{
+    $maxLifetime = (int) ini_get('session.gc_maxlifetime');
+    if ($maxLifetime <= 0) {
+        $maxLifetime = 86400; // 24h default, same as SessionService
+    }
+
+    $cutoff = time() - $maxLifetime;
+    $stmt = $pdo->prepare('DELETE FROM sessions WHERE last_accessed < :cutoff');
+    $stmt->execute([':cutoff' => $cutoff]);
+    $deleted = $stmt->rowCount();
+
+    if ($deleted === 0) {
+        return;
+    }
+
+    require_once __DIR__ . '/audit.php';
+    $stmt = $pdo->prepare("
+        INSERT INTO audit_log (user_id, username, category, action, details, context, ip_address)
+        VALUES (NULL, 'system', 'session', 'gc_purge', :details, :context, 'lazy-cron')
+    ");
+    $stmt->execute([
+        ':details' => "Lazy cron — {$deleted} session(s) expirée(s) purgée(s)",
+        ':context' => json_encode([
+            'source'         => 'lazy_cron',
+            'deleted'        => $deleted,
+            'max_lifetime'   => $maxLifetime,
         ]),
     ]);
 }

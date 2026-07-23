@@ -50,26 +50,15 @@ jobs:
         if: always()
         run: |
           COUNT=$(grep -c "database disk image is malformed" phpunit-output.txt || true)
-          echo "malformed_count=$COUNT" >> "$GITHUB_STEP_SUMMARY"
-          echo "## FTS5 'malformed' diagnostic" >> "$GITHUB_STEP_SUMMARY"
-          echo "Occurrences: $COUNT" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "PHP: $(php -v | head -1)" >> "$GITHUB_STEP_SUMMARY"
-          echo "SQLite (pdo_sqlite): $(php -r 'echo (new PDO("sqlite::memory:"))->query("SELECT sqlite_version()")->fetchColumn();')" >> "$GITHUB_STEP_SUMMARY"
-          echo "sqlite3 ext version: $(php -r 'echo (new SQLite3(":memory:"))->querySingle("SELECT sqlite_version()");')" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          php -m | grep -i sqlite >> "$GITHUB_STEP_SUMMARY" || true
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
           if [ "$COUNT" -gt 0 ]; then
-            echo "::warning::FTS5 'database disk image is malformed' seen $COUNT time(s) in this PHPUnit run — see step summary for environment details."
-            echo "### Test names immediately preceding each occurrence (--debug output)" >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
-            grep -B1 "database disk image is malformed" phpunit-output.txt | grep -E "^Test|malformed" | head -60 >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
-            echo "### First occurrence, wider context" >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
-            grep -n -m1 "database disk image is malformed" phpunit-output.txt | cut -d: -f1 | xargs -I{} sh -c 'START=$(({} - 15)); [ $START -lt 1 ] && START=1; sed -n "${START},$(({} + 3))p" phpunit-output.txt' >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            SQLITE_VER=$(php -r 'echo (new PDO("sqlite::memory:"))->query("SELECT sqlite_version()")->fetchColumn();')
+            FIRST_LINE=$(grep -n -m1 "database disk image is malformed" phpunit-output.txt | cut -d: -f1)
+            START=$((FIRST_LINE - 15))
+            [ $START -lt 1 ] && START=1
+            CONTEXT=$(sed -n "${START},$((FIRST_LINE))p" phpunit-output.txt | grep -E "^Test|malformed" | tr '\n' '|')
+            echo "::warning::FTS5 malformed x$COUNT — PHP $(php -r 'echo PHP_VERSION;') SQLite $SQLITE_VER — context before 1st: $CONTEXT"
+          else
+            echo "::notice::FTS5 malformed: 0 occurrences this run."
           fi
 
       - name: PHPArkitect

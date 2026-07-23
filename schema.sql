@@ -229,10 +229,36 @@ CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, decl
 CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement);
 CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential);
 
--- Full-text search index (uuid/objet/description), synced manually on write.
--- content=reports / content_rowid=rowid: external-content table, no data
--- duplication — the FTS index just points back to the reports rows.
+-- Full-text search index (uuid/objet/description). content=reports /
+-- content_rowid=rowid: external-content table, no data duplication — the
+-- FTS index just points back to the reports rows.
+--
+-- Kept in sync via triggers (the standard SQLite-recommended pattern for
+-- external-content FTS5 tables — see https://sqlite.org/fts5.html#the_content_option),
+-- NOT manually in application code. An external-content FTS5 table does
+-- NOT auto-sync with its content table — without these triggers, any raw
+-- INSERT/UPDATE/DELETE on reports (application code that forgets to call
+-- a sync helper, a migration, a test fixture's cleanup query, a future
+-- admin tool) leaves reports_fts referencing rows that no longer match,
+-- and the FTS5 module's own internal consistency check then throws
+-- "database disk image is malformed" on the next write — not actual file
+-- corruption, just FTS5 detecting its shadow index disagrees with the
+-- content table because something wrote to reports outside the expected
+-- path.
 CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid);
+
+CREATE TRIGGER IF NOT EXISTS reports_fts_ai AFTER INSERT ON reports BEGIN
+    INSERT INTO reports_fts(rowid, uuid, objet, description) VALUES (new.rowid, new.uuid, new.objet, new.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS reports_fts_ad AFTER DELETE ON reports BEGIN
+    INSERT INTO reports_fts(reports_fts, rowid, uuid, objet, description) VALUES ('delete', old.rowid, old.uuid, old.objet, old.description);
+END;
+
+CREATE TRIGGER IF NOT EXISTS reports_fts_au AFTER UPDATE ON reports BEGIN
+    INSERT INTO reports_fts(reports_fts, rowid, uuid, objet, description) VALUES ('delete', old.rowid, old.uuid, old.objet, old.description);
+    INSERT INTO reports_fts(rowid, uuid, objet, description) VALUES (new.rowid, new.uuid, new.objet, new.description);
+END;
 
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id);

@@ -24,4 +24,25 @@ function migrateTables(PDO $pdo): void
         data TEXT NOT NULL DEFAULT '',
         last_accessed INTEGER NOT NULL DEFAULT 0
     )");
+
+    // ── reports_fts sync triggers ────────────────────────────────────────
+    // An existing database already has reports_fts (from an earlier
+    // schema.sql) but not these triggers, added later once external-content
+    // FTS5 tables were found to need them (without them, any raw write to
+    // reports outside ReportRepository leaves the FTS5 index out of sync,
+    // and SQLite's own consistency check then throws "database disk image
+    // is malformed" on the next write — not real corruption, just FTS5
+    // detecting its shadow index disagrees with the content table). See
+    // schema.sql for the full explanation and where these are also created
+    // for a fresh install.
+    $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_ai AFTER INSERT ON reports BEGIN
+        INSERT INTO reports_fts(rowid, uuid, objet, description) VALUES (new.rowid, new.uuid, new.objet, new.description);
+    END");
+    $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_ad AFTER DELETE ON reports BEGIN
+        INSERT INTO reports_fts(reports_fts, rowid, uuid, objet, description) VALUES ('delete', old.rowid, old.uuid, old.objet, old.description);
+    END");
+    $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_au AFTER UPDATE ON reports BEGIN
+        INSERT INTO reports_fts(reports_fts, rowid, uuid, objet, description) VALUES ('delete', old.rowid, old.uuid, old.objet, old.description);
+        INSERT INTO reports_fts(rowid, uuid, objet, description) VALUES (new.rowid, new.uuid, new.objet, new.description);
+    END");
 }

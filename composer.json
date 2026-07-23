@@ -6,9 +6,11 @@
         "php": "^8.5"
     },
     "require-dev": {
+        "deptrac/deptrac": "^4.7",
         "friendsofphp/php-cs-fixer": "^3.95",
         "infection/infection": "^0.34",
         "phparkitect/phparkitect": "*",
+        "phpro/grumphp": "*",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^13",
         "rector/rector": "^2.0"
@@ -41,7 +43,8 @@
         "vendor-dir": "vendor",
         "sort-packages": true,
         "allow-plugins": {
-            "infection/extension-installer": true
+            "infection/extension-installer": true,
+            "phpro/grumphp": true
         }
     }
 }

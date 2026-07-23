@@ -93,6 +93,7 @@ phpstan_*.neon
 phpstan_*.txt
 phpstan_*.json
 src/phpstan_*.json
+!phpstan-no-magic-string.neon
 
 # Dev/test scripts (not part of the app)
 tests/test_services_smoke.php

@@ -44,7 +44,7 @@ jobs:
         run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress
 
       - name: PHPUnit
-        run: php vendor/bin/phpunit --no-coverage 2>&1 | tee phpunit-output.txt
+        run: php vendor/bin/phpunit --no-coverage --debug 2>&1 | tee phpunit-output.txt
 
       - name: Diagnose FTS5 "malformed" warning
         if: always()
@@ -62,9 +62,13 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           if [ "$COUNT" -gt 0 ]; then
             echo "::warning::FTS5 'database disk image is malformed' seen $COUNT time(s) in this PHPUnit run — see step summary for environment details."
-            echo "### First 3 occurrences with context" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Test names immediately preceding each occurrence (--debug output)" >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
-            grep -B2 "database disk image is malformed" phpunit-output.txt | head -40 >> "$GITHUB_STEP_SUMMARY"
+            grep -B1 "database disk image is malformed" phpunit-output.txt | grep -E "^Test|malformed" | head -60 >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "### First occurrence, wider context" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            grep -n -m1 "database disk image is malformed" phpunit-output.txt | cut -d: -f1 | xargs -I{} sh -c 'START=$(({} - 15)); [ $START -lt 1 ] && START=1; sed -n "${START},$(({} + 3))p" phpunit-output.txt' >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi
 

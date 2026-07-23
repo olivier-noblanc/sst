@@ -44,7 +44,29 @@ jobs:
         run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress
 
       - name: PHPUnit
-        run: php vendor/bin/phpunit --no-coverage
+        run: php vendor/bin/phpunit --no-coverage 2>&1 | tee phpunit-output.txt
+
+      - name: Diagnose FTS5 "malformed" warning
+        if: always()
+        run: |
+          COUNT=$(grep -c "database disk image is malformed" phpunit-output.txt || true)
+          echo "malformed_count=$COUNT" >> "$GITHUB_STEP_SUMMARY"
+          echo "## FTS5 'malformed' diagnostic" >> "$GITHUB_STEP_SUMMARY"
+          echo "Occurrences: $COUNT" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "PHP: $(php -v | head -1)" >> "$GITHUB_STEP_SUMMARY"
+          echo "SQLite (pdo_sqlite): $(php -r 'echo (new PDO("sqlite::memory:"))->query("SELECT sqlite_version()")->fetchColumn();')" >> "$GITHUB_STEP_SUMMARY"
+          echo "sqlite3 ext version: $(php -r 'echo (new SQLite3(":memory:"))->querySingle("SELECT sqlite_version()");')" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          php -m | grep -i sqlite >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          if [ "$COUNT" -gt 0 ]; then
+            echo "::warning::FTS5 'database disk image is malformed' seen $COUNT time(s) in this PHPUnit run — see step summary for environment details."
+            echo "### First 3 occurrences with context" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            grep -B2 "database disk image is malformed" phpunit-output.txt | head -40 >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: PHPArkitect
         run: php vendor/bin/phparkitect check --config=phparkitect.php

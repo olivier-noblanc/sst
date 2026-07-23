@@ -3,6 +3,7 @@
 use App\Enum\UserRole;
 use App\Enum\ReportState;
 use App\Enum\ReportType;
+use App\Enum\VisibilityMode;
 
 /**
  * Configuration — Application SST DREETS BFC
@@ -142,9 +143,9 @@ if (!defined('ROLE_LABELS')) {
 // 'agent_choice'  : Agent chooses per-report (public/confidential), defaulting to confidential
 // 'public'        : All reports visible to all agents in the site
 define('REPORT_VISIBILITY_MODES', [
-    'confidential' => 'Confidentiel (l\'agent ne voit que ses signalements)',
-    'agent_choice' => 'Choix de l\'agent (confidentiel par défaut)',
-    'public'       => 'Visibilité publique de tous les signalements',
+    VisibilityMode::Confidential->value => 'Confidentiel (l\'agent ne voit que ses signalements)',
+    VisibilityMode::AgentChoice->value  => 'Choix de l\'agent (confidentiel par défaut)',
+    VisibilityMode::Public->value       => 'Visibilité publique de tous les signalements',
 ]);
 
 // State labels — derived from ReportState enum

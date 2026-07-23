@@ -1,4 +1,7 @@
 <?php
+
+use App\Enum\ReportType;
+
 /**
  * Report Form Template — Application SST DREETS BFC
  *
@@ -50,15 +53,15 @@ $registryFullLabel = (string) (REGISTRY_LABELS[$type] ?? $type);
 
 // Determine card accent class
 $cardClass = match($type) {
-    'rsst' => 'card--rsst',
-    'rami' => 'card--rami',
-    'dgi'  => 'card--dgi',
+    ReportType::Rsst->value => 'card--rsst',
+    ReportType::Rami->value => 'card--rami',
+    ReportType::Dgi->value  => 'card--dgi',
     default => 'card--rsst',
 };
 
 // Determine submit button class based on mode and registry type
 $submitBtnClass = $isEdit
-    ? match($type) { 'rsst' => 'btn--rsst', 'rami' => 'btn--rami', 'dgi' => 'btn--dgi', default => 'btn--primary' }
+    ? match($type) { ReportType::Rsst->value => 'btn--rsst', ReportType::Rami->value => 'btn--rami', ReportType::Dgi->value => 'btn--dgi', default => 'btn--primary' }
     : 'btn--primary'; // blue for create mode (main action)
 ?>
 <div class="card <?php echo $cardClass; ?>">
@@ -109,14 +112,14 @@ $submitBtnClass = $isEdit
                 <span class="form-hint">Rempli automatiquement au moment du dépôt.</span>
             </div>
             <div class="form-group">
-                <label for="lieu"><?php echo $type === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></label>
+                <label for="lieu"><?php echo $type === \App\Enum\ReportType::Dgi->value ? 'Lieu / Mesures de protection' : 'Lieu'; ?></label>
                 <input type="text" id="lieu" name="lieu"
                        value="<?php echo e($val('lieu')); ?>"
                        maxlength="200"
                        autocomplete="off"
                        placeholder="Ex : Bâtiment B, 2e étage, couloir principal"
                        aria-describedby="hint_lieu">
-                <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo $type === 'dgi' ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
+                <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo $type === \App\Enum\ReportType::Dgi->value ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
             </div>
             <div class="form-group">
                 <label for="pole">Pôle <span class="required">*</span></label>
@@ -285,7 +288,7 @@ $submitBtnClass = $isEdit
                 <label for="declarant_prenom">Déclarant — Prénom</label>
                 <input type="text" id="declarant_prenom" value="<?php echo e($user['prenom'] ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
             </div>
-            <?php if ($type === 'rami'): require __DIR__ . '/report_form_rami.php'; endif; ?>
+            <?php if ($type === \App\Enum\ReportType::Rami->value): require __DIR__ . '/report_form_rami.php'; endif; ?>
         </div>
         <?php require __DIR__ . '/report_form_linked_agents.php'; ?>
 

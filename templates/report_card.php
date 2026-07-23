@@ -1,4 +1,6 @@
 <?php
+use App\Enum\ReportType;
+
 /**
  * Report Card Template — Application SST DREETS BFC
  *
@@ -49,10 +51,10 @@ $fmt = new \App\Services\FormattingService();
  * } $report
  */
 $type = (string) ($report['type'] ?? TYPE_RSST);
-$cardClass = match($type) {
-    'rsst' => 'card--rsst',
-    'rami' => 'card--rami',
-    'dgi'  => 'card--dgi',
+$cardClass = match(ReportType::tryFrom($type)) {
+    ReportType::Rsst => 'card--rsst',
+    ReportType::Rami => 'card--rami',
+    ReportType::Dgi  => 'card--dgi',
     default => 'card--rsst',
 };
 

@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use DateTimeZone;
+use App\Enum\ReportState;
 use App\Enum\ReportType;
 use DateTime;
 use PDO;
@@ -117,13 +118,13 @@ class FormattingService
      */
     public function getEtatBadgeClass(mixed $etat): string
     {
-        return match ((string) $etat) {
-            'nouveau'    => 'badge--nouveau',
-            'en_cours'   => 'badge--en-cours',
-            'traite'     => 'badge--traite',
-            'abandonne'  => 'badge--abandonne',
-            'reouvert'   => 'badge--reouvert',
-            default      => '',
+        return match (ReportState::tryFrom((string) $etat)) {
+            ReportState::Nouveau   => 'badge--nouveau',
+            ReportState::EnCours   => 'badge--en-cours',
+            ReportState::Traite    => 'badge--traite',
+            ReportState::Abandonne => 'badge--abandonne',
+            ReportState::Reouvert  => 'badge--reouvert',
+            default                => '',
         };
     }
 

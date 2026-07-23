@@ -1,4 +1,8 @@
 <?php
+
+use App\Enum\ReportState;
+use App\Enum\ReportType;
+
 /**
  * Report Reopen Page — Application SST DREETS BFC
  *
@@ -24,7 +28,7 @@ if (!in_array($userRole, [ROLE_SUPERVISEUR], true)) {
 }
 
 // Check report is in a reopenable state
-if (!in_array($report['etat'], ['traite', 'abandonne'], true)) {
+if (!in_array($report['etat'], [ReportState::Traite->value, ReportState::Abandonne->value], true)) {
     new \App\Services\SessionService()->setFlash('error', 'Ce signalement ne peut pas être réouvert (état actuel : ' . $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
     $http->redirect($http->url('report_view', ['uuid' => $uuid]));
 }
@@ -49,7 +53,7 @@ $flash = new \App\Services\SessionService()->getFlash();
 ]); ?>
 
 <div class="card <?php echo match ($type) {
-    'rsst' => 'card--rsst', 'rami' => 'card--rami', 'dgi' => 'card--dgi', default => 'card--rsst'
+    ReportType::Rsst->value => 'card--rsst', ReportType::Rami->value => 'card--rami', ReportType::Dgi->value => 'card--dgi', default => 'card--rsst'
 }; ?>">
     <h2 class="card__subtitle">Signalement <?php echo $fmt->e($report['reference']); ?></h2>
     <table class="report-detail__table" aria-label="Détails du signalement">

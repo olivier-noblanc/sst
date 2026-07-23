@@ -3,6 +3,24 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.45.0] — 2026-07-23
+
+### Fix — Signalements rattachés invisibles dans les listes
+
+- **1** 🔴 **ReportFilter.php** — Champs `linkedAgentId` et `linkedAgentVisibility` ajoutés au DTO.
+- **2** 🔴 **ReportRepository.php** — Nouvelle méthode `countVisibleForAgent()` : compte les signalements visibles pour un agent (déclarant + rattachés via `report_agents`). `findPaginated()` gère le filtre `linked_agent_id` avec sous-requête sur `report_agents`.
+- **3** 🔴 **home.php** — Comptage migré vers `countVisibleForAgent()` pour les modes `confidential` et `agent_choice`.
+- **4** 🔴 **report_list.php** — Passe `linkedAgentId` + `linkedAgentVisibility` au `ReportFilter`.
+- **5** 🟢 **9 tests** — `LinkedAgentVisibilityTest.php` : couvre comptage et liste paginée pour les 3 modes de visibilité. 901 tests, 1886 assertions.
+
+### Amélioration — Règle PHPStan anti magic strings + Rector auto-migration
+
+- **6** 🔴 **NoMagicStringRule.php** — Règle PHPStan custom qui bloque les 11 magic strings métier (VisibilityMode, ReportType, ReportState) hors enums/tests/seed.
+- **7** 🔴 **ReplaceMagicStringWithEnumRector.php** — Rector custom qui auto-migre les `===`/`!==` et `switch/case` vers les enums.
+- **8** 🟢 **~20 fichiers** — Migration des magic strings vers les enums dans `src/`, `pages/`, `handlers/`, `templates/`, `helpers/`.
+- **9** 🟢 **AGENTS.md** — Règle ajoutée : « JAMAIS de magic strings métier, toujours les enums ».
+
+
 ## [3.44.5] — 2026-07-22
 
 ### Fix — Texte d'aide abandon + 4 tests pré-existants corrigés

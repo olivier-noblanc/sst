@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 
 /** Registry Card Renderer — HTML unifié pour les cartes de registre. */
@@ -7,9 +8,9 @@ use App\Enum\VisibilityMode;
 function getRegistryIcon(string $type): string
 {
     return match ($type) {
-        'rsst' => '📋',
-        'rami' => '⚠️',
-        'dgi'  => '🔴',
+        ReportType::Rsst->value => '📋',
+        ReportType::Rami->value => '⚠️',
+        ReportType::Dgi->value  => '🔴',
         default => '📋',
     };
 }
@@ -83,7 +84,7 @@ function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool 
 
     $cards = [];
     $cards[] = [
-        'type' => 'rsst', 'title' => 'Registre de Santé et de Sécurité au Travail',
+        'type' => ReportType::Rsst->value, 'title' => 'Registre de Santé et de Sécurité au Travail',
         'subtitle' => 'RSST', 'desc' => getConfig('app_rsst_description', 'Risques liés aux locaux, équipements, ergonomie, conditions environnementales'),
         'count' => $rsstCount, 'btnLabel' => 'Déposer un signalement',
         'btnUrl' => url('report_create', ['type' => TYPE_RSST]), 'listUrl' => url('report_list', ['type' => TYPE_RSST]),
@@ -91,7 +92,7 @@ function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool 
     ];
     if ($ramiEnabled) {
         $cards[] = [
-            'type' => 'rami', 'title' => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
+            'type' => ReportType::Rami->value, 'title' => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
             'subtitle' => 'RAMI', 'desc' => 'Agressions physiques ou verbales, menaces, incivilités, harcèlement',
             'count' => $ramiCount, 'btnLabel' => 'Signaler une agression',
             'btnUrl' => url('report_create', ['type' => TYPE_RAMI]), 'listUrl' => url('report_list', ['type' => TYPE_RAMI]),
@@ -100,7 +101,7 @@ function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool 
     }
     if ($dgiEnabled) {
         $cards[] = [
-            'type' => 'dgi', 'title' => 'Registre de signalement d\'un Danger Grave et Imminent',
+            'type' => ReportType::Dgi->value, 'title' => 'Registre de signalement d\'un Danger Grave et Imminent',
             'subtitle' => 'DGI', 'desc' => 'Danger nécessitant une action immédiate, droit de retrait',
             'count' => $dgiCount, 'btnLabel' => 'Signaler un danger urgent',
             'btnUrl' => url('report_create', ['type' => TYPE_DGI]), 'listUrl' => url('report_list', ['type' => TYPE_DGI]),

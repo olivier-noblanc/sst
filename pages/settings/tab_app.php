@@ -4,6 +4,7 @@
  *
  * Variables attendues: $csrfToken
  */
+use App\Enum\VisibilityMode;
 
 /** @var string $csrfToken */?>
 <form method="POST" action="<?php echo new \App\Services\HttpService()->url('settings'); ?>">
@@ -245,7 +246,7 @@
                 $configKey = 'app_report_visibility_' . $type->value;
                 $currentValue = \App\Services\ConfigService::getInstance()->get($configKey, '');
                 if ($currentValue === '') {
-                    $currentValue = \App\Services\ConfigService::getInstance()->get('app_report_visibility', 'agent_choice');
+                    $currentValue = \App\Services\ConfigService::getInstance()->get('app_report_visibility', VisibilityMode::AgentChoice->value);
                 }
                 $currentValue = normalizeVisibilityValue($currentValue);
                 $legend = $type->shortLabel() . ' — ' . $type->label();
@@ -256,7 +257,7 @@
                 <div class="visibility-radios">
                     <label class="visibility-radio-label">
                         <input type="radio" name="<?php echo new \App\Services\FormattingService()->e($configKey); ?>" value="confidential"
-                               <?php echo $currentValue === 'confidential' ? 'checked' : ''; ?>>
+                               <?php echo $currentValue === \App\Enum\VisibilityMode::Confidential->value ? 'checked' : ''; ?>>
                         <div>
                             <strong>Confidentiel</strong> <span class="text-muted text-small">(le plus restrictif)</span>
                             <div class="text-muted text-small mt-2px">L'agent ne voit que ses propres signalements.</div>
@@ -264,7 +265,7 @@
                     </label>
                     <label class="visibility-radio-label">
                         <input type="radio" name="<?php echo new \App\Services\FormattingService()->e($configKey); ?>" value="agent_choice"
-                               <?php echo $currentValue === 'agent_choice' ? 'checked' : ''; ?>>
+                               <?php echo $currentValue === \App\Enum\VisibilityMode::AgentChoice->value ? 'checked' : ''; ?>>
                         <div>
                             <strong>Choix de l'agent</strong> <span class="text-muted text-small">(confidentiel par défaut)</span>
                             <div class="text-muted text-small mt-2px">L'agent choisit la visibilité de chaque signalement. Par défaut confidentiel.</div>
@@ -272,14 +273,14 @@
                     </label>
                     <label class="visibility-radio-label">
                         <input type="radio" name="<?php echo new \App\Services\FormattingService()->e($configKey); ?>" value="public"
-                               <?php echo $currentValue === 'public' ? 'checked' : ''; ?>>
+                               <?php echo $currentValue === \App\Enum\VisibilityMode::Public->value ? 'checked' : ''; ?>>
                         <div>
                             <strong>Visibilité publique</strong>
                             <div class="text-muted text-small mt-2px">Tous les signalements du site sont visibles par tous les agents du site.</div>
                         </div>
                     </label>
                 </div>
-                <?php if ($type === \App\Enum\ReportType::Rsst && $currentValue !== 'public'): ?>
+                <?php if ($type === \App\Enum\ReportType::Rsst && $currentValue !== \App\Enum\VisibilityMode::Public->value): ?>
                 <div class="info-panel agent-visibility-warning info-panel--warning">
                     &#x26A0;&#xFE0F; <strong>Avertissement réglementaire :</strong> Le décret n° 82-453 art. 3-2 prévoit que le RSST est tenu à la disposition de l'ensemble des agents. Un mode restrictif peut ne pas être conforme à cette obligation de transparence.
                 </div>

@@ -1,12 +1,13 @@
 <?php
 
+use App\Enum\VisibilityMode;
+
 /**
  * Settings App Tab Handler — Application SST DREETS BFC
  *
  * Handles the 'app' tab of the settings page.
  * Split from settings_handler.php for readability.
  */
-
 /**
  * Handle the 'app' tab of settings.
  *
@@ -130,9 +131,9 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     updateConfig($pdo, 'app_role_label_chsct', $roleLabelChsct);
 
     // Report visibility setting (radio: confidential / agent_choice / public)
-    $reportVisibility = (string) ($postData['app_report_visibility'] ?? 'agent_choice');
-    if (!in_array($reportVisibility, ['confidential', 'agent_choice', 'public'], true)) {
-        $reportVisibility = 'agent_choice';
+    $reportVisibility = (string) ($postData['app_report_visibility'] ?? VisibilityMode::AgentChoice->value);
+    if (!in_array($reportVisibility, [VisibilityMode::Confidential->value, VisibilityMode::AgentChoice->value, VisibilityMode::Public->value], true)) {
+        $reportVisibility = VisibilityMode::AgentChoice->value;
     }
     updateConfig($pdo, 'app_report_visibility', $reportVisibility);
 
@@ -141,7 +142,7 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     foreach ($registryTypes as $type) {
         $key = 'app_report_visibility_' . $type;
         $value = (string) ($postData[$key] ?? '');
-        if ($value !== '' && !in_array($value, ['confidential', 'agent_choice', 'public'], true)) {
+        if ($value !== '' && !in_array($value, [VisibilityMode::Confidential->value, VisibilityMode::AgentChoice->value, VisibilityMode::Public->value], true)) {
             $value = '';
         }
         updateConfig($pdo, $key, $value);
@@ -149,7 +150,7 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
 
     // Legacy keys: keep in sync for backward compatibility
     updateConfig($pdo, 'app_agent_visibility', $reportVisibility);
-    updateConfig($pdo, 'app_agent_see_only_own', $reportVisibility === 'confidential' ? '1' : '0');
+    updateConfig($pdo, 'app_agent_see_only_own', $reportVisibility === VisibilityMode::Confidential->value ? '1' : '0');
 
     // CHSCT report scope (consent_only / all)
     $chsctScope = (string) ($postData['app_chsct_report_scope'] ?? 'consent_only');

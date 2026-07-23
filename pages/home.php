@@ -26,21 +26,13 @@ $rsstCount = 0;
 $ramiCount = 0;
 $dgiCount  = 0;
 
-if ($agentVisibility === 'confidential') {
-    $rsstCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_RSST, $userId);
+if ($agentVisibility === \App\Enum\VisibilityMode::Confidential->value || $agentVisibility === \App\Enum\VisibilityMode::AgentChoice->value) {
+    $rsstCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(TYPE_RSST, $userId, $userSiteId, $agentVisibility);
     if ($config->isRegistryEnabled(TYPE_RAMI)) {
-        $ramiCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_RAMI, $userId);
+        $ramiCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(TYPE_RAMI, $userId, $userSiteId, $agentVisibility);
     }
     if ($config->isRegistryEnabled(TYPE_DGI)) {
-        $dgiCount = \App\Repository\ReportRepository::instance()->countActiveForUser(TYPE_DGI, $userId);
-    }
-} elseif ($agentVisibility === 'agent_choice') {
-    $rsstCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RSST, $userSiteId, $userId, true);
-    if ($config->isRegistryEnabled(TYPE_RAMI)) {
-        $ramiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RAMI, $userSiteId, $userId, true);
-    }
-    if ($config->isRegistryEnabled(TYPE_DGI)) {
-        $dgiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_DGI, $userSiteId, $userId, true);
+        $dgiCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(TYPE_DGI, $userId, $userSiteId, $agentVisibility);
     }
 } else {
     $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
@@ -65,7 +57,7 @@ $wordCloud = $fmt->buildWordCloud();
 $cards = buildRegistryCards($rsstCount, $ramiCount, $dgiCount, $ramiEnabled, $dgiEnabled);
 $extraContentMap = [];
 if (!empty($wordCloud)) {
-    $extraContentMap['rsst'] = $wordCloud;
+    $extraContentMap[\App\Enum\ReportType::Rsst->value] = $wordCloud;
 }
 ?>
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ReportType;
 use App\Services\SessionService;
 use App\Services\AccessService;
 use App\Services\HttpService;
@@ -25,7 +26,7 @@ $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 $reportReference = $report['reference'] ?? '';
-$reportType = $report['type'] ?? 'rsst';
+$reportType = $report['type'] ?? ReportType::Rsst->value;
 $reportEtat = $report['etat'] ?? '';
 
 // Access control: centralized via canAccessReport()
@@ -149,7 +150,7 @@ if (!empty($report['site_text'])) {
     drawField($pdf, 'Site', $report['site_text']);
 }
 
-if ($type === 'rami' && !empty($report['pour_compte_nom'])) {
+if ($type === ReportType::Rami->value && !empty($report['pour_compte_nom'])) {
     $reportPourComptePrenom = $report['pour_compte_prenom'] ?? '';
     $reportPourCompteNom = $report['pour_compte_nom'] ?? '';
     drawField(

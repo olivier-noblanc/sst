@@ -50,13 +50,15 @@ $filters = [
 ];
 
 // Apply agent visibility restrictions
-if ($agentVisibility === 'confidential') {
+if ($agentVisibility === \App\Enum\VisibilityMode::Confidential->value) {
     $filters['force_site_id'] = $userSiteId;
-    $filters['own_only'] = $userId;
-} elseif ($agentVisibility === 'agent_choice') {
+    $filters['linked_agent_id'] = $userId;
+    $filters['linked_agent_visibility'] = $agentVisibility;
+} elseif ($agentVisibility === \App\Enum\VisibilityMode::AgentChoice->value) {
     $filters['force_site_id'] = $userSiteId;
-    $filters['confidential_filter'] = $userId;
-} elseif ($agentVisibility === 'public') {
+    $filters['linked_agent_id'] = $userId;
+    $filters['linked_agent_visibility'] = $agentVisibility;
+} elseif ($agentVisibility === \App\Enum\VisibilityMode::Public->value) {
     $filters['force_site_id'] = $userSiteId;
 }
 
@@ -72,15 +74,14 @@ $filterSiteId = (int) $filterSiteIdStr;
 $declarantIdRaw = $filters['declarant_id'] ?? '';
 $declarantIdFilter = !empty($declarantIdRaw) ? (int) $declarantIdRaw : null;
 /** @var string */
-$confidentialRaw = $filters['confidential_filter'] ?? '';
-$confidentialFilter = !empty($confidentialRaw) ? (int) $confidentialRaw : null;
-/** @var string */
 $forceSiteIdRaw = $filters['force_site_id'] ?? '';
 $forceSiteIdFilter = !empty($forceSiteIdRaw) ? (int) $forceSiteIdRaw : null;
 /** @var string|null */
 $filterSearch = $filters['q'] ?? null;
+$linkedAgentIdFilter = !empty($filters['linked_agent_id']) ? (int) $filters['linked_agent_id'] : null;
+$linkedAgentVisibilityFilter = $filters['linked_agent_visibility'] ?? null;
 /** @var array{reports: list<array<string, mixed>>, total: int} $result */
-$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: $filterSiteId, declarantId: $declarantIdFilter, confidentialFilter: $confidentialFilter, forceSiteId: $forceSiteIdFilter, search: $filterSearch, seeAllSites: $seeAllSites, chsctConsentOnly: $chsctScope === 'consent_only'), $pageNum, $perPage);
+$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: $filterSiteId, declarantId: $declarantIdFilter, forceSiteId: $forceSiteIdFilter, search: $filterSearch, seeAllSites: $seeAllSites, chsctConsentOnly: $chsctScope === 'consent_only', linkedAgentId: $linkedAgentIdFilter, linkedAgentVisibility: $linkedAgentVisibilityFilter), $pageNum, $perPage);
 $reports = $result['reports'];
 $totalItems = $result['total'];
 

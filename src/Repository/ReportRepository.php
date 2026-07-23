@@ -4,6 +4,8 @@
 
 namespace App\Repository;
 
+use App\Enum\ReportType;
+use App\Enum\VisibilityMode;
 use Exception;
 use App\DTO\CreateReportCommand;
 use App\DTO\ReportFilter;
@@ -145,14 +147,37 @@ class ReportRepository
             $builder->addEqual('r.site_id', $filter->forceSiteId ?? 0);
         }
         $filters = $filter->toArray();
-        if (!empty($filters['confidential_filter'])) {
-            $cfIdRaw = $filters['confidential_filter'];
-            $cfId = (int) $cfIdRaw;
-            $builder->addRaw('(r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)', [':cf_declarant_id' => $cfId]);
+
+        if (!empty($filters['linked_agent_id'])) {
+            // linked_agent_id replaces both own_only and confidential_filter:
+            // the agent sees reports they declared + reports they are linked to
+            $lid = (int) $filters['linked_agent_id'];
+            $linkedCondition = 'r.declarant_id = :linked_agent_id OR r.uuid IN (SELECT report_uuid FROM report_agents WHERE user_id = :linked_agent_id)';
+            $visibility = $filters['linked_agent_visibility'] ?? VisibilityMode::Confidential->value;
+            if ($visibility === VisibilityMode::AgentChoice->value) {
+                // In agent_choice: linked reports + all non-confidential reports from the site
+                $builder->addRaw(
+                    "($linkedCondition OR r.is_confidential = 0)",
+                    [':linked_agent_id' => $lid]
+                );
+            } else {
+                // In confidential: only declarant's own + linked reports
+                $builder->addRaw(
+                    "($linkedCondition)",
+                    [':linked_agent_id' => $lid]
+                );
+            }
+        } else {
+            if (!empty($filters['confidential_filter'])) {
+                $cfIdRaw = $filters['confidential_filter'];
+                $cfId = (int) $cfIdRaw;
+                $builder->addRaw('(r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)', [':cf_declarant_id' => $cfId]);
+            }
+            if (!empty($filters['own_only'])) {
+                $builder->addEqual('r.declarant_id', $filters['own_only']);
+            }
         }
-        if (!empty($filters['own_only'])) {
-            $builder->addEqual('r.declarant_id', $filters['own_only']);
-        }
+
         if (!empty($filters['etat'])) {
             $builder->addEqual('r.etat', $filters['etat']);
         }
@@ -163,7 +188,7 @@ class ReportRepository
             $forceSiteIdRaw = $filters['force_site_id'];
             $builder->addEqual('r.site_id', (int) $forceSiteIdRaw);
         }
-        if (!empty($filters['declarant_id']) && empty($filters['confidential_filter'])) {
+        if (!empty($filters['declarant_id']) && empty($filters['confidential_filter']) && empty($filters['linked_agent_id'])) {
             $builder->addEqual('r.declarant_id', $filters['declarant_id']);
         }
         if (!empty($filters['chsct_consent_only'])) {
@@ -216,7 +241,7 @@ class ReportRepository
      */
     public function getAdjacentUuids(array $report): array
     {
-        $type = $report['type'] ?? 'rsst';
+        $type = $report['type'] ?? ReportType::Rsst->value;
         $createdAt = $report['created_at'] ?? '';
         $uuid = $report['uuid'] ?? '';
         $result = ['prev' => null, 'next' => null];
@@ -311,6 +336,40 @@ class ReportRepository
     {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "' AND declarant_id = :user_id");
         $stmt->execute([':type' => $type, ':user_id' => $userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Count reports visible to an agent, including reports where they are linked
+     * via report_agents table.
+     */
+    public function countVisibleForAgent(string $type, int $userId, int $siteId = 0, string $visibility = VisibilityMode::Confidential->value): int
+    {
+        $sql = "SELECT COUNT(*) FROM reports r WHERE r.type = :type AND r.etat != '" . ETAT_ABANDONNE . "'";
+        $params = [':type' => $type];
+
+        $linkedClause = '(r.declarant_id = :user_id OR r.uuid IN (SELECT report_uuid FROM report_agents WHERE user_id = :user_id))';
+
+        if ($visibility === VisibilityMode::Confidential->value) {
+            $sql .= " AND $linkedClause";
+            $params[':user_id'] = $userId;
+        } elseif ($visibility === VisibilityMode::AgentChoice->value) {
+            if ($siteId > 0) {
+                $sql .= ' AND r.site_id = :site_id';
+                $params[':site_id'] = $siteId;
+            }
+            $sql .= " AND (r.is_confidential = 0 OR $linkedClause)";
+            $params[':user_id'] = $userId;
+        } else {
+            // public
+            if ($siteId > 0) {
+                $sql .= ' AND r.site_id = :site_id';
+                $params[':site_id'] = $siteId;
+            }
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         return (int) $stmt->fetchColumn();
     }
 

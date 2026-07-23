@@ -5,6 +5,9 @@
  * Summary table across all registries, showing counts by site, registry type, and state.
  * Access: superviseur, chsct
  */
+use App\Enum\ReportState;
+use App\Enum\ReportType;
+
 requireRole([ROLE_SUPERVISEUR]);
 
 // Service instances (created once for the page)
@@ -37,8 +40,8 @@ $synthesisData = \App\Repository\StatsRepository::instance()->getSynthesis($year
 $siteData = [];
 foreach ($sites as $site) {
     $typeData = array_combine(
-        array_map(fn(\App\Enum\ReportType $t) => $t->value, \App\Enum\ReportType::cases()),
-        array_fill(0, count(\App\Enum\ReportType::cases()), ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'reouvert' => 0, 'total' => 0])
+        array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
+        array_fill(0, count(ReportType::cases()), [ReportState::Nouveau->value => 0, ReportState::EnCours->value => 0, ReportState::Traite->value => 0, ReportState::Abandonne->value => 0, ReportState::Reouvert->value => 0, 'total' => 0])
     );
     $siteData[$site['id']] = array_merge(['code' => $site['code'], 'nom' => $site['nom']], $typeData);
 }
@@ -49,32 +52,32 @@ foreach ($synthesisData as $row) {
     $type = $row['type'] ?? '';
     if (isset($siteData[$sId]) && isset($siteData[$sId][$type])) {
         $siteData[$sId][$type] = [
-            'nouveau'   => (int) $row['nouveau'],
-            'en_cours'  => (int) $row['en_cours'],
-            'traite'    => (int) $row['traite'],
-            'abandonne' => (int) $row['abandonne'],
-            'reouvert'  => (int) $row['reouvert'],
-            'total'     => (int) $row['total'],
+            ReportState::Nouveau->value   => (int) $row['nouveau'],
+            ReportState::EnCours->value   => (int) $row['en_cours'],
+            ReportState::Traite->value    => (int) $row['traite'],
+            ReportState::Abandonne->value => (int) $row['abandonne'],
+            ReportState::Reouvert->value  => (int) $row['reouvert'],
+            'total'                       => (int) $row['total'],
         ];
     }
 }
 
 // Calculate totals
 $totals = array_combine(
-    array_map(fn(\App\Enum\ReportType $t) => $t->value, \App\Enum\ReportType::cases()),
-    array_fill(0, count(\App\Enum\ReportType::cases()), ['nouveau' => 0, 'en_cours' => 0, 'traite' => 0, 'abandonne' => 0, 'reouvert' => 0, 'total' => 0])
+    array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
+    array_fill(0, count(ReportType::cases()), [ReportState::Nouveau->value => 0, ReportState::EnCours->value => 0, ReportState::Traite->value => 0, ReportState::Abandonne->value => 0, ReportState::Reouvert->value => 0, 'total' => 0])
 );
 
 foreach ($siteData as $sId => $sd) {
-    foreach (\App\Enum\ReportType::cases() as $type) {
-        foreach (['nouveau', 'en_cours', 'traite', 'abandonne', 'reouvert', 'total'] as $state) {
+    foreach (ReportType::cases() as $type) {
+        foreach ([ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Traite->value, ReportState::Abandonne->value, ReportState::Reouvert->value, 'total'] as $state) {
             $totals[$type->value][$state] += $sd[$type->value][$state];
         }
     }
 }
 
 $grandTotal = 0;
-foreach (\App\Enum\ReportType::cases() as $type) {
+foreach (ReportType::cases() as $type) {
     $grandTotal += $totals[$type->value]['total'];
 }
 
@@ -84,12 +87,12 @@ $ramiEnabled = $config->isRegistryEnabled(TYPE_RAMI);
 $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
 
 // Build list of active registry types for the table columns
-$activeTypes = ['rsst' => 'RSST'];
+$activeTypes = [ReportType::Rsst->value => 'RSST'];
 if ($ramiEnabled) {
-    $activeTypes['rami'] = 'RAMI';
+    $activeTypes[ReportType::Rami->value] = 'RAMI';
 }
 if ($dgiEnabled) {
-    $activeTypes['dgi'] = 'DGI';
+    $activeTypes[ReportType::Dgi->value] = 'DGI';
 }
 $colSpan = count($activeTypes) * 4;
 ?>
@@ -147,7 +150,7 @@ $colSpan = count($activeTypes) * 4;
                 <tr>
                     <td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><strong><?php echo $fmt->e($sd['code']); ?></strong></td>
                     <?php foreach ($activeTypes as $type => $typeLabel): ?>
-                        <?php foreach (['nouveau' => 'Nouv.', 'en_cours' => 'En cours', 'traite' => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
+                        <?php foreach ([ReportState::Nouveau->value => 'Nouv.', ReportState::EnCours->value => 'En cours', ReportState::Traite->value => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
                             <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="<?php echo $sd[$type][$state] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>">
                                 <?php echo $sd[$type][$state]; ?>
                             </td>
@@ -166,7 +169,7 @@ $colSpan = count($activeTypes) * 4;
                 <tr class="row--totals">
                     <td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><strong>Total</strong></td>
                     <?php foreach ($activeTypes as $type => $typeLabel): ?>
-                        <?php foreach (['nouveau' => 'Nouv.', 'en_cours' => 'En cours', 'traite' => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
+                        <?php foreach ([ReportState::Nouveau->value => 'Nouv.', ReportState::EnCours->value => 'En cours', ReportState::Traite->value => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
                             <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="synthesis-cell-value"><?php echo $totals[$type][$state]; ?></td>
                         <?php endforeach; ?>
                     <?php endforeach; ?>

@@ -16,6 +16,8 @@ class ReportFilter
         public readonly ?string $search = null,
         public readonly bool $seeAllSites = true,
         public readonly bool $chsctConsentOnly = false,
+        public readonly ?int $linkedAgentId = null,
+        public readonly ?string $linkedAgentVisibility = null,
     ) {}
 
     /**
@@ -44,6 +46,8 @@ class ReportFilter
             'force_site_id' => $this->forceSiteId,
             'declarant_id' => $this->declarantId,
             'chsct_consent_only' => $this->chsctConsentOnly,
+            'linked_agent_id' => $this->linkedAgentId,
+            'linked_agent_visibility' => $this->linkedAgentVisibility,
         ];
     }
 }

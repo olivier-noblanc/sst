@@ -1,5 +1,6 @@
 includes:
     - phpstan-baseline.neon
+    - phpstan-no-magic-string.neon
 
 parameters:
     level: 8

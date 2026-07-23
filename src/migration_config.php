@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\VisibilityMode;
+
 /**
  * Migration — Config Keys & SMTP Password Encryption
  *
@@ -24,10 +26,10 @@ function migrateConfigKeys(PDO $pdo): void
     $newKeys = [
         'app_superviseur_usernames' => ['', 'text', 'app', 'Logins Windows des superviseurs (séparés par virgule, ex: jean.martin, sophie.dupont). Ces utilisateurs seront automatiquement promus Superviseur lors de leur première connexion via IIS. Utile pour une première installation.', 1],
         'app_agent_see_only_own' => ['0', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
-        'app_agent_visibility' => ['agent_choice', 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
-        'app_report_visibility' => ['agent_choice', 'text', 'app', 'Visibilité des signalements : "confidential" (l\'agent ne voit que ses propres signalements), "agent_choice" (l\'agent choisit au cas par cas, confidentiel par défaut), "public" (tous les signalements du site sont visibles par tous les agents).', 1],
+        'app_agent_visibility' => [VisibilityMode::AgentChoice->value, 'text', 'app', 'Obsolète : utilisez app_report_visibility', 1],
+        'app_report_visibility' => [VisibilityMode::AgentChoice->value, 'text', 'app', 'Visibilité des signalements : "confidential" (l\'agent ne voit que ses propres signalements), "agent_choice" (l\'agent choisit au cas par cas, confidentiel par défaut), "public" (tous les signalements du site sont visibles par tous les agents).', 1],
         'app_admin_email' => ['', 'email', 'app', 'Adresse e-mail de l\'administrateur technique. Les erreurs critiques (Fatal, E_ERROR, E_PARSE, etc.) seront automatiquement envoyées à cette adresse pour un diagnostic rapide. Laissez vide pour désactiver les notifications par e-mail.', 1],
-        'app_report_visibility_rsst' => ['public', 'text', 'app', 'Visibilité des signalements RSST : "confidential", "agent_choice" ou "public". Par défaut "public" conformément au décret 82-453 art. 3-2 (registre consultable par tout agent).', 1],
+        'app_report_visibility_rsst' => [VisibilityMode::Public->value, 'text', 'app', 'Visibilité des signalements RSST : "confidential", "agent_choice" ou "public". Par défaut "public" conformément au décret 82-453 art. 3-2 (registre consultable par tout agent).', 1],
         'app_report_visibility_rami' => ['', 'text', 'app', 'Visibilité des signalements RAMI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1],
         'app_report_visibility_dgi' => ['', 'text', 'app', 'Visibilité des signalements DGI. Laisser vide pour utiliser la visibilité globale. Valeurs : "confidential", "agent_choice" ou "public".', 1],
         'app_retention_years' => ['0', 'number', 'app', 'Durée de conservation des signalements traités/abandonnés (en années). 0 = désactivé (conservation illimitée). Doit être fixé après validation du DPO.', 1],
@@ -59,9 +61,9 @@ function migrateConfigKeys(PDO $pdo): void
                 if ($existingValue !== false) {
                     // Key exists but with old value — migrate it
                     if ($existingValue === 'site') {
-                        $value = 'public'; // old "site" → new "public"
+                        $value = VisibilityMode::Public->value; // old "site" → new "public"
                     } elseif ($existingValue === 'own') {
-                        $value = 'confidential'; // old "own" → new "confidential"
+                        $value = VisibilityMode::Confidential->value; // old "own" → new "confidential"
                     }
                     // Update the existing row instead of inserting
                     $stmt3 = $pdo->prepare('UPDATE config_app SET valeur = :valeur, libelle = :libelle, updated_at = datetime("now") WHERE cle = :cle');
@@ -73,7 +75,7 @@ function migrateConfigKeys(PDO $pdo): void
                 $stmt2->execute([':cle' => 'app_agent_see_only_own']);
                 $oldValue = $stmt2->fetchColumn();
                 if ($oldValue === '1') {
-                    $value = 'confidential'; // Migrate: old "see only own" → new "confidential"
+                    $value = VisibilityMode::Confidential->value; // Migrate: old "see only own" → new "confidential"
                 }
             }
 
@@ -84,14 +86,14 @@ function migrateConfigKeys(PDO $pdo): void
                 $oldVisValue = $stmt2->fetchColumn();
                 if ($oldVisValue !== false) {
                     // Map old 2-mode value to new 3-mode value
-                    if ($oldVisValue === 'confidential') {
-                        $value = 'agent_choice'; // old "confidential" was actually agent_choice mode
-                    } elseif ($oldVisValue === 'public') {
-                        $value = 'public';
+                    if ($oldVisValue === VisibilityMode::Confidential->value) {
+                        $value = VisibilityMode::AgentChoice->value; // old "confidential" was actually agent_choice mode
+                    } elseif ($oldVisValue === VisibilityMode::Public->value) {
+                        $value = VisibilityMode::Public->value;
                     } elseif ($oldVisValue === 'site') {
-                        $value = 'public';
+                        $value = VisibilityMode::Public->value;
                     } elseif ($oldVisValue === 'own') {
-                        $value = 'confidential'; // old "own" = truly confidential
+                        $value = VisibilityMode::Confidential->value; // old "own" = truly confidential
                     }
                     // else: keep default 'agent_choice'
                 }

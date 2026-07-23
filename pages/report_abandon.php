@@ -1,4 +1,6 @@
 <?php
+use App\Enum\ReportType;
+
 /**
  * Report Abandon Page — Application SST DREETS BFC
  *
@@ -40,8 +42,8 @@ $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
     ['label' => 'Abandonner'],
 ]); ?>
 
-<div class="card <?php echo match ($type) {
-    'rsst' => 'card--rsst', 'rami' => 'card--rami', 'dgi' => 'card--dgi', default => 'card--rsst'
+<div class="card <?php echo match (ReportType::tryFrom($type)) {
+    ReportType::Rsst => 'card--rsst', ReportType::Rami => 'card--rami', ReportType::Dgi => 'card--dgi', default => 'card--rsst'
 }; ?>">
     <h2 class="card__subtitle">Signalement <?php echo $fmt->e($report['reference']); ?></h2>
     <table class="report-detail__table" aria-label="Détails du signalement">

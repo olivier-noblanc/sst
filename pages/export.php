@@ -42,9 +42,9 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE
                 <div class="btn-group--inline items-center">
                     <select name="type" id="type">
                         <option value="" <?php echo empty($formData['type']) ? 'selected' : ''; ?>>— Choisir —</option>
-                        <option value="rsst" <?php echo ($formData['type'] ?? '') === 'rsst' ? 'selected' : ''; ?>>RSST</option>
-                        <?php if ($ramiEnabled): ?><option value="rami" <?php echo ($formData['type'] ?? '') === 'rami' ? 'selected' : ''; ?>>RAMI</option><?php endif; ?>
-                        <?php if ($dgiEnabled): ?><option value="dgi"  <?php echo ($formData['type'] ?? '') === 'dgi' ? 'selected' : ''; ?>>DGI</option><?php endif; ?>
+                        <option value="rsst" <?php echo ($formData['type'] ?? '') === \App\Enum\ReportType::Rsst->value ? 'selected' : ''; ?>>RSST</option>
+                        <?php if ($ramiEnabled): ?><option value="rami" <?php echo ($formData['type'] ?? '') === \App\Enum\ReportType::Rami->value ? 'selected' : ''; ?>>RAMI</option><?php endif; ?>
+                        <?php if ($dgiEnabled): ?><option value="dgi"  <?php echo ($formData['type'] ?? '') === \App\Enum\ReportType::Dgi->value ? 'selected' : ''; ?>>DGI</option><?php endif; ?>
                     </select>
                     <label class="label--checkbox">
                         <input type="checkbox" name="all_registries" id="all_registries" value="1"

@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-22
+Dernière mise à jour : 2026-07-23
 
 ---
 
@@ -9,14 +9,15 @@ Dernière mise à jour : 2026-07-22
 | Métrique | Valeur |
 |----------|--------|
 | PHPStan erreurs | **0** (173 fichiers analysés) |
-| PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector) |
+| PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
-| Tests | **896** (1874 assertions) |
+| Tests | **901** (1886 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
 | CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + PHPArkitect + Rector + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
 | Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |
+| Rector custom | **ReplaceMagicStringWithEnumRector** (auto-migre === / !== / switch/case vers enums) |
 
 ### ⚠️ Pipeline qualité — État réel
 

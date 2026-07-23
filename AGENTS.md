@@ -16,6 +16,16 @@
 - L'identifiant de rôle dans le code reste `'chsct'` (inchangé).
 - Exception : les références légales exactes du Code du travail (ex : « CSE/CHSCT » dans D4132-1) sont inchangées.
 
+### Enums — Toujours utiliser les enums, jamais de magic strings
+- **JAMAIS** écrire de magic strings métier dans le code source (hors tests/seed/tools).
+- Utiliser les enums : `VisibilityMode::Confidential->value`, `ReportType::Rsst->value`, `ReportState::Nouveau->value`, etc.
+- Les comparaisons `=== 'confidential'` sont interdites → `=== VisibilityMode::Confidential->value`
+- Les switch/case `case 'nouveau':` sont interdits → `case ReportState::Nouveau->value:`
+- Les clés de tableau `$arr['rsst']` → `$arr[ReportType::Rsst->value]` quand c'est une clé métier (pas une colonne SQL)
+- **Exceptions** : noms de colonnes SQL (`$row['nouveau']`), form values HTML (`value="rsst"`), seed data, tests
+- PHPStan vérifie ça via la règle custom `NoMagicStringRule` (`src/PHPStan/NoMagicStringRule.php`)
+- Rector peut auto-migrer les `===`/`!==` et `switch/case` via `ReplaceMagicStringWithEnumRector`
+
 ### Captures d'écran
 - Les captures sont au format **PNG annoté** (numérotation + flèches + descriptions).
 - Elles sont générées en deux étapes : `capture_screenshots.py` (HTML→PNG via Playwright) puis `annotate_screenshots.py` (ajout des callouts via Pillow + détection de positions via Playwright).

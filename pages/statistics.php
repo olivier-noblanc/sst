@@ -7,6 +7,8 @@
  */
 requireRole([ROLE_SUPERVISEUR]);
 
+use App\Enum\ReportType;
+
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();
 $http = new \App\Services\HttpService();
@@ -44,9 +46,9 @@ foreach ($sites as $site) {
     $tableData[$site['id']] = [
         'code' => $site['code'],
         'nom'  => $site['nom'],
-        'rsst' => 0,
-        'dgi'  => 0,
-        'rami' => 0,
+        ReportType::Rsst->value => 0,
+        ReportType::Dgi->value  => 0,
+        ReportType::Rami->value => 0,
         'total' => 0,
     ];
 }
@@ -55,9 +57,9 @@ foreach ($statsBySite as $row) {
     // Find matching site
     foreach ($tableData as $sId => &$td) {
         if ($td['code'] === $row['code']) {
-            $td['rsst']  = (int) ($row['rsst'] ?? 0);
-            $td['rami']  = (int) ($row['rami'] ?? 0);
-            $td['dgi']   = (int) ($row['dgi'] ?? 0);
+            $td[ReportType::Rsst->value]  = (int) ($row[ReportType::Rsst->value] ?? 0);
+            $td[ReportType::Rami->value]  = (int) ($row[ReportType::Rami->value] ?? 0);
+            $td[ReportType::Dgi->value]   = (int) ($row[ReportType::Dgi->value] ?? 0);
             $td['total'] = (int) ($row['total'] ?? 0);
             break;
         }
@@ -71,9 +73,9 @@ $totalRami = 0;
 $totalDgi = 0;
 $totalAll = 0;
 foreach ($tableData as $td) {
-    $totalRsst += $td['rsst'];
-    $totalRami += $td['rami'];
-    $totalDgi  += $td['dgi'];
+    $totalRsst += $td[ReportType::Rsst->value];
+    $totalRami += $td[ReportType::Rami->value];
+    $totalDgi  += $td[ReportType::Dgi->value];
     $totalAll  += $td['total'];
 }
 
@@ -145,9 +147,9 @@ $dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
                 <?php foreach ($tableData as $td): ?>
                 <tr>
                     <td><strong><?php echo $fmt->e($td['code']); ?></strong> — <?php echo $fmt->e($td['nom']); ?></td>
-                    <td class="text-center <?php echo $td['rsst'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rsst']; ?></td>
-                    <?php if ($dgiEnabled): ?><td class="text-center <?php echo $td['dgi'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['dgi']; ?></td><?php endif; ?>
-                    <?php if ($ramiEnabled): ?><td class="text-center <?php echo $td['rami'] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['rami']; ?></td><?php endif; ?>
+                    <td class="text-center <?php echo $td[ReportType::Rsst->value] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td[ReportType::Rsst->value]; ?></td>
+                    <?php if ($dgiEnabled): ?><td class="text-center <?php echo $td[ReportType::Dgi->value] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td[ReportType::Dgi->value]; ?></td><?php endif; ?>
+                    <?php if ($ramiEnabled): ?><td class="text-center <?php echo $td[ReportType::Rami->value] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td[ReportType::Rami->value]; ?></td><?php endif; ?>
                     <td class="text-center synthesis-cell-value"><strong><?php echo $td['total']; ?></strong></td>
                 </tr>
                 <?php endforeach; ?>

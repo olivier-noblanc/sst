@@ -82,7 +82,7 @@ $etat = $report['etat'] ?? '';
         </tr>
         <?php endif; ?>
         <tr>
-            <th><?php echo $registryType === 'dgi' ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
+            <th><?php echo $registryType === \App\Enum\ReportType::Dgi->value ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
             <td><?php echo $fmt->e($report['lieu'] ?? '—'); ?></td>
         </tr>
         <?php if (!empty($report['pole'])): ?>
@@ -159,8 +159,8 @@ $etat = $report['etat'] ?? '';
             <label for="nouvel_etat">Nouvel état <span class="required">*</span></label>
             <select name="nouvel_etat" id="nouvel_etat" required
                     <?php echo isset($formErrors['nouvel_etat']) ? 'aria-describedby="err_nouvel_etat" aria-invalid="true"' : ''; ?>>
-                <option value="en_cours" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === 'en_cours') ? 'selected' : ''; ?>>En cours</option>
-                <option value="traite" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === 'traite') ? 'selected' : ''; ?>>Traité</option>
+                <option value="en_cours" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === \App\Enum\ReportState::EnCours->value) ? 'selected' : ''; ?>>En cours</option>
+                <option value="traite" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === \App\Enum\ReportState::Traite->value) ? 'selected' : ''; ?>>Traité</option>
             </select>
             <?php if (isset($formErrors['nouvel_etat'])): ?>
                 <span class="form-error" id="err_nouvel_etat"><?php echo $fmt->e($formErrors['nouvel_etat']); ?></span>

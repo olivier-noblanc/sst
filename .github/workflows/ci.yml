@@ -19,7 +19,7 @@ on:
 
 jobs:
   quality:
-    name: Lint + PHPStan + PHPUnit + PHPArkitect + Rector
+    name: Lint + PHPStan + PHPUnit + PHPArkitect + Rector + Deptrac
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,6 +66,9 @@ jobs:
 
       - name: Rector (dry-run)
         run: php vendor/bin/rector process --dry-run --no-progress-bar --config=rector.php
+
+      - name: Deptrac
+        run: php vendor/bin/deptrac analyse --no-progress
 
   e2e:
     name: E2E (Playwright, Firefox)

@@ -1,0 +1,97 @@
+deptrac:
+  paths:
+    - src/
+
+  layers:
+    - name: Enum
+      collectors:
+        - type: directory
+          value: src/Enum/*
+
+    - name: DTO
+      collectors:
+        - type: directory
+          value: src/DTO/*
+
+    - name: Query
+      collectors:
+        - type: directory
+          value: src/Query/*
+
+    - name: Repository
+      collectors:
+        - type: directory
+          value: src/Repository/*
+
+    - name: Service
+      collectors:
+        - type: directory
+          value: src/Services/*
+
+    - name: Event
+      collectors:
+        - type: directory
+          value: src/Event/*
+
+    - name: Router
+      collectors:
+        - type: directory
+          value: src/Router/*
+
+    - name: Container
+      collectors:
+        - type: directory
+          value: src/Container/*
+
+    - name: Helpers
+      collectors:
+        - type: directory
+          value: src/helpers/*
+
+    - name: Rector
+      collectors:
+        - type: directory
+          value: src/Rector/*
+
+    - name: PHPStan
+      collectors:
+        - type: directory
+          value: src/PHPStan/*
+
+  ruleset:
+    Enum:
+      - DTO
+
+    DTO:
+      - Enum
+
+    Query:
+      - Enum
+      - DTO
+      - Repository
+
+    Repository:
+      - Enum
+      - DTO
+      - Query
+
+    Service:
+      - Enum
+      - DTO
+      - Repository
+      - Query
+      - Event
+
+    Event:
+      - Enum
+      - DTO
+
+    Helpers:
+      - Enum
+      - Service
+
+    Rector:
+      - Enum
+
+    PHPStan:
+      - Enum

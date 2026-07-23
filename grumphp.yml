@@ -14,3 +14,5 @@ parameters:
         rector:
             config: rector.php
             triggered_by: ['php']
+        deptrac:
+            depfile: deptrac.yaml

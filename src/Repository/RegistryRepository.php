@@ -176,4 +176,34 @@ class RegistryRepository
     {
         return $this->pdo;
     }
+
+    /**
+     * Get all available CSS theme keys.
+     * @return list<string>
+     */
+    public static function availableThemes(): array
+    {
+        return array_merge(
+            array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
+            ['vert', 'violet', 'orange', 'teal', 'indigo', 'rose', 'ambre'],
+        );
+    }
+
+    /**
+     * Get CSS class names for a given theme.
+     * @return array{card: string, badge: string, btn: string, registry_card: string, indicateur: string, synthesis_th: string, text: string, border_left: string}
+     */
+    public static function themeClasses(string $theme): array
+    {
+        return [
+            'card'          => "card--$theme",
+            'badge'         => "badge--$theme",
+            'btn'           => "btn--$theme",
+            'registry_card' => "registry-card--$theme",
+            'indicateur'    => "indicateur-card--$theme",
+            'synthesis_th'  => "synthesis-th--$theme",
+            'text'          => "text--$theme",
+            'border_left'   => "border-left--$theme",
+        ];
+    }
 }

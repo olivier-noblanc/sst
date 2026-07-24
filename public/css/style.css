@@ -13,10 +13,22 @@
     --color-primary-dark: #003D75;
     --color-primary-light: #3498DB;
 
-    /* Registry colors */
+    /* Registry colors (legacy — kept for backward compatibility) */
     --rsst-color: #2E5C8A;             /* Blue */
     --rami-color: #6C6C6C;             /* Grey */
     --dgi-color: #b91c1c;              /* Red (softened) */
+
+    /* Registry theme palettes (10 themes) — each provides: primary, light bg, dark text */
+    --theme-rsst: #2E5C8A;
+    --theme-rami: #6C6C6C;
+    --theme-dgi: #b91c1c;
+    --theme-vert: #15803D;
+    --theme-violet: #7C3AED;
+    --theme-orange: #C2410C;
+    --theme-teal: #0D9488;
+    --theme-indigo: #4338CA;
+    --theme-rose: #BE123C;
+    --theme-ambre: #B45309;
 
     /* State colors */
     --state-nouveau: #2E5C8A;          /* Blue */
@@ -703,6 +715,122 @@ img { max-width: 100%; height: auto; display: block; }
 .registry-card--dgi .registry-card__btn:hover { background: var(--dgi-color); color: white; }
 .registry-card--dgi .registry-card__link { color: var(--dgi-color); }
 .registry-card--dgi .registry-card__desc { color: #991b1b; }
+
+/* ═══ Registry theme classes — 10 themes ═══════════════════════════════════════
+ * Generic classes that work with any theme. Each theme provides:
+ *   .card--{theme}              — card top border
+ *   .badge--{theme}             — badge background
+ *   .btn--{theme}               — button background
+ *   .registry-card--{theme}     — registry card background
+ *   .indicateur-card--{theme}   — indicator card top border
+ *   .synthesis-th--{theme}      — synthesis table header
+ *   .text--{theme}              — text color
+ *   .border-left--{theme}       — left border accent
+ */
+
+/* --- rsst (Blue) --- */
+.card--rsst { border-top: 4px solid var(--theme-rsst); }
+.badge--rsst { background: var(--theme-rsst); }
+.btn--rsst { background: var(--theme-rsst); color: white; }
+.registry-card--rsst { background: var(--theme-rsst); }
+.indicateur-card--rsst { border-top-color: var(--theme-rsst); }
+.synthesis-th--rsst { text-align: center; background: var(--theme-rsst); color: white; }
+.text--rsst { color: var(--theme-rsst); }
+.border-left--rsst { border-left: 4px solid var(--theme-rsst); }
+
+/* --- rami (Grey) --- */
+.card--rami { border-top: 4px solid var(--theme-rami); }
+.badge--rami { background: var(--theme-rami); }
+.btn--rami { background: var(--theme-rami); color: white; }
+.registry-card--rami { background: var(--theme-rami); }
+.indicateur-card--rami { border-top-color: var(--theme-rami); }
+.synthesis-th--rami { text-align: center; background: var(--theme-rami); color: white; }
+.text--rami { color: var(--theme-rami); }
+.border-left--rami { border-left: 4px solid var(--theme-rami); }
+
+/* --- dgi (Red — inverted: light bg, dark text) --- */
+.card--dgi { border-top: 4px solid var(--theme-dgi); }
+.badge--dgi { background: var(--theme-dgi); }
+.btn--dgi { background: var(--theme-dgi); color: white; }
+.registry-card--dgi { background: #fef2f2; border: 3px solid var(--theme-dgi); color: var(--theme-dgi); }
+.registry-card--dgi .registry-card__btn { border-color: var(--theme-dgi); color: var(--theme-dgi); }
+.registry-card--dgi .registry-card__btn:hover { background: var(--theme-dgi); color: white; }
+.registry-card--dgi .registry-card__link { color: var(--theme-dgi); }
+.registry-card--dgi .registry-card__desc { color: #991b1b; }
+.indicateur-card--dgi { border-top-color: var(--theme-dgi); }
+.synthesis-th--dgi { text-align: center; background: var(--theme-dgi); color: white; }
+.text--dgi { color: var(--theme-dgi); }
+.border-left--dgi { border-left: 4px solid var(--theme-dgi); }
+
+/* --- vert (Green) --- */
+.card--vert { border-top: 4px solid var(--theme-vert); }
+.badge--vert { background: var(--theme-vert); }
+.btn--vert { background: var(--theme-vert); color: white; }
+.registry-card--vert { background: var(--theme-vert); }
+.indicateur-card--vert { border-top-color: var(--theme-vert); }
+.synthesis-th--vert { text-align: center; background: var(--theme-vert); color: white; }
+.text--vert { color: var(--theme-vert); }
+.border-left--vert { border-left: 4px solid var(--theme-vert); }
+
+/* --- violet (Purple) --- */
+.card--violet { border-top: 4px solid var(--theme-violet); }
+.badge--violet { background: var(--theme-violet); }
+.btn--violet { background: var(--theme-violet); color: white; }
+.registry-card--violet { background: var(--theme-violet); }
+.indicateur-card--violet { border-top-color: var(--theme-violet); }
+.synthesis-th--violet { text-align: center; background: var(--theme-violet); color: white; }
+.text--violet { color: var(--theme-violet); }
+.border-left--violet { border-left: 4px solid var(--theme-violet); }
+
+/* --- orange (Burnt Orange) --- */
+.card--orange { border-top: 4px solid var(--theme-orange); }
+.badge--orange { background: var(--theme-orange); }
+.btn--orange { background: var(--theme-orange); color: white; }
+.registry-card--orange { background: var(--theme-orange); }
+.indicateur-card--orange { border-top-color: var(--theme-orange); }
+.synthesis-th--orange { text-align: center; background: var(--theme-orange); color: white; }
+.text--orange { color: var(--theme-orange); }
+.border-left--orange { border-left: 4px solid var(--theme-orange); }
+
+/* --- teal (Teal) --- */
+.card--teal { border-top: 4px solid var(--theme-teal); }
+.badge--teal { background: var(--theme-teal); }
+.btn--teal { background: var(--theme-teal); color: white; }
+.registry-card--teal { background: var(--theme-teal); }
+.indicateur-card--teal { border-top-color: var(--theme-teal); }
+.synthesis-th--teal { text-align: center; background: var(--theme-teal); color: white; }
+.text--teal { color: var(--theme-teal); }
+.border-left--teal { border-left: 4px solid var(--theme-teal); }
+
+/* --- indigo (Indigo) --- */
+.card--indigo { border-top: 4px solid var(--theme-indigo); }
+.badge--indigo { background: var(--theme-indigo); }
+.btn--indigo { background: var(--theme-indigo); color: white; }
+.registry-card--indigo { background: var(--theme-indigo); }
+.indicateur-card--indigo { border-top-color: var(--theme-indigo); }
+.synthesis-th--indigo { text-align: center; background: var(--theme-indigo); color: white; }
+.text--indigo { color: var(--theme-indigo); }
+.border-left--indigo { border-left: 4px solid var(--theme-indigo); }
+
+/* --- rose (Rose) --- */
+.card--rose { border-top: 4px solid var(--theme-rose); }
+.badge--rose { background: var(--theme-rose); }
+.btn--rose { background: var(--theme-rose); color: white; }
+.registry-card--rose { background: var(--theme-rose); }
+.indicateur-card--rose { border-top-color: var(--theme-rose); }
+.synthesis-th--rose { text-align: center; background: var(--theme-rose); color: white; }
+.text--rose { color: var(--theme-rose); }
+.border-left--rose { border-left: 4px solid var(--theme-rose); }
+
+/* --- ambre (Amber) --- */
+.card--ambre { border-top: 4px solid var(--theme-ambre); }
+.badge--ambre { background: var(--theme-ambre); }
+.btn--ambre { background: var(--theme-ambre); color: white; }
+.registry-card--ambre { background: var(--theme-ambre); }
+.indicateur-card--ambre { border-top-color: var(--theme-ambre); }
+.synthesis-th--ambre { text-align: center; background: var(--theme-ambre); color: white; }
+.text--ambre { color: var(--theme-ambre); }
+.border-left--ambre { border-left: 4px solid var(--theme-ambre); }
 
 .registry-card__icon { font-size: 36px; margin-bottom: 8px; }
 .registry-card__title { font-size: 15px; font-weight: 500; margin-bottom: 4px; opacity: 0.9; }

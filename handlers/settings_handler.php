@@ -12,6 +12,7 @@ use App\Services\ConfigService;
 
 require_once __DIR__ . '/settings_handler_app.php';
 require_once __DIR__ . '/settings_handler_sites.php';
+require_once __DIR__ . '/settings_handler_registres.php';
 
 /** @var array<string, string> $_POST */
 
@@ -122,6 +123,10 @@ try {
         handleSettingsManageSitesTab($pdo, $_POST);
     }
 
+    if ($tab === 'registres') {
+        handleSettingsRegistresTab($pdo, $_POST);
+    }
+
     if ($tab === 'wordcloud') {
         /** @var array<int, mixed> $rawWords */
         $rawWords = is_array($_POST['words'] ?? null) ? $_POST['words'] : [];
@@ -154,6 +159,7 @@ try {
         'app'           => 'Paramètres de l\'application enregistrés avec succès.',
         'manage_sites'  => 'Sites mis à jour avec succès.',
         'wordcloud'     => 'Nuage de mots configuré avec succès.',
+        'registres'     => 'Registres mis à jour avec succès.',
     ];
     auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . $tab, null, 'config', ['tab' => $tab]);
     setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');

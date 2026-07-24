@@ -116,32 +116,26 @@ $visibilityModes = [
         <!-- Color theme + Icon + Sort order -->
         <div class="form-grid form-grid--3">
             <div class="form-group">
-                <label>Couleur du thème</label>
-                <div class="flex-row gap-2" style="flex-wrap: wrap;">
+                <label for="registres_<?php echo $regId; ?>_color_theme">Couleur</label>
+                <select id="registres_<?php echo $regId; ?>_color_theme"
+                        name="registres[<?php echo $regId; ?>][color_theme]" class="input">
                     <?php foreach ($themes as $theme): ?>
-                    <label class="toggle-switch-label" style="gap: 4px;">
-                        <input type="radio" name="registres[<?php echo $regId; ?>][color_theme]"
-                               value="<?php echo $fmt->e($theme); ?>"
-                               <?php echo $colorTheme === $theme ? 'checked' : ''; ?>
-                               style="display: none;">
-                        <span style="display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: var(--theme-<?php echo $fmt->e($theme); ?>, #666); border: 3px solid <?php echo $colorTheme === $theme ? '#333' : 'transparent'; ?>; cursor: pointer;" title="<?php echo $fmt->e($theme); ?>"></span>
-                    </label>
+                    <option value="<?php echo $fmt->e($theme); ?>" <?php echo $colorTheme === $theme ? 'selected' : ''; ?>>
+                        <?php echo $fmt->e($theme); ?>
+                    </option>
                     <?php endforeach; ?>
-                </div>
+                </select>
             </div>
             <div class="form-group">
-                <label>Icône</label>
-                <div class="flex-row gap-2" style="flex-wrap: wrap;">
+                <label for="registres_<?php echo $regId; ?>_icon">Icône</label>
+                <select id="registres_<?php echo $regId; ?>_icon"
+                        name="registres[<?php echo $regId; ?>][icon]" class="input">
                     <?php foreach ($icons as $ic): ?>
-                    <label class="toggle-switch-label" style="gap: 4px;">
-                        <input type="radio" name="registres[<?php echo $regId; ?>][icon]"
-                               value="<?php echo $fmt->e($ic); ?>"
-                               <?php echo $icon === $ic ? 'checked' : ''; ?>
-                               style="display: none;">
-                        <span style="display: inline-block; width: 32px; height: 32px; text-align: center; line-height: 32px; border-radius: 6px; border: 2px solid <?php echo $icon === $ic ? '#333' : '#ddd'; ?>; cursor: pointer; font-size: 18px;"><?php echo $ic; ?></span>
-                    </label>
+                    <option value="<?php echo $fmt->e($ic); ?>" <?php echo $icon === $ic ? 'selected' : ''; ?>>
+                        <?php echo $ic; ?> <?php echo $fmt->e($ic); ?>
+                    </option>
                     <?php endforeach; ?>
-                </div>
+                </select>
             </div>
             <div class="form-group">
                 <label for="registres_<?php echo $regId; ?>_sort_order">Ordre</label>

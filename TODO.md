@@ -348,9 +348,9 @@ Le run `30086453658` est en cours. Vérifier qu'il passe. Si non, diagnostiquer 
 
 ---
 
-## Priorité 24 — Intégrer wordcloud par registre aux E2E
+## Priorité 24 — ✅ Intégrer wordcloud par registre aux E2E — TERMINÉ
 
-Ajouter des tests E2E pour le nouveau wordcloud per-registry (navigation settings, édition par registre, affichage sur home).
+15 tests E2E ajoutés dans `e2e/wordcloud.spec.js` : onglet settings, sous-onglets registres, CRUD mots, sauvegarde/persistance, rendu home page.
 
 ---
 
@@ -358,8 +358,9 @@ Ajouter des tests E2E pour le nouveau wordcloud per-registry (navigation setting
 
 1. **Fonctions procédurales legacy** — `getConfig()`, `isRegistryEnabled()`, `currentUser()`, `currentUserId()`, `setFlash()`, `redirect()`, `url()` dans `src/helpers/` et `src/user_context.php` — wrappers procéduraux autour des services OOP. À migrer vers les services quand on touche à ces fichiers.
 2. **Doublon SQL migration** — `migration_columns.php` contient du SQL qui pourrait être dans les repositories (mais c'est un fichier de migration, donc acceptable de garder le SQL là).
-3. **Constantes legacy** — `TYPE_RSST`/`TYPE_RAMI`/`TYPE_DGI` encore dans quelques fichiers (Rector les migre progressivement, `ekino/phpstan-banned-code` les bannit).
-4. **Queries procédurales** — `src/queries/report_count_queries.php` a encore des wrappers procéduraux vers ReportRepository.
+3. **Constantes legacy** — ✅ TERMINÉ. 0 utilisation résiduelle — Rector a fait son job.
+4. **Queries procédurales** — ✅ TERMINÉ. 6 fichiers supprimés, ~40 appelants migrés vers Repository.
+5. **Tests anti-magic-string** — Ajouter des tests PHPStan ou unitaires qui catch les constantes legacy (`ROLE_CHSCT`, `ROLE_AGENT`, `ROLE_SUPERVISEUR`, `ETAT_*`, `TYPE_*`) utilisées en dur au lieu des enums. Pattern : étendre `NoMagicStringRule` ou test dédié qui scanne `src/`, `pages/`, `handlers/`, `templates/`.
 
 ---
 

@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\Repository\SiteRepository;
 use App\Enum\UserRole;
 use RuntimeException;
 use App\Repository\UserRepository;
@@ -203,7 +204,7 @@ class UserService
         $siteIdVal = $input['site_id'] ?? '0';
         $siteId = (int) $siteIdVal;
         if (!isNoSiteMode($this->repo->getPdo()) && $siteId > 0) {
-            $site = getSiteById($this->repo->getPdo(), $siteId);
+            $site = SiteRepository::instance()->findById($siteId);
             if ($site === null) {
                 $errors['site_id'] = 'Site invalide.';
             }

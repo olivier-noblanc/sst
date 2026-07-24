@@ -1,12 +1,13 @@
 <?php
 
+use App\Repository\SiteRepository;
+
 /**
  * Settings Manage Sites Tab Handler — Application SST DREETS BFC
  *
  * Handles the 'manage_sites' tab of the settings page.
  * Split from settings_handler.php for readability.
  */
-
 /**
  * Handle the 'manage_sites' tab of settings.
  *
@@ -30,14 +31,14 @@ function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
         }
 
         // Check for duplicate code
-        $existing = getSiteByCode($pdo, $code);
+        $existing = SiteRepository::instance()->findByCode($code);
         if ($existing !== null) {
             $pdo->rollBack();
             setFlash('error', 'Un site avec ce code existe déjà.');
             redirect(url('settings', ['tab' => 'manage_sites']));
         }
 
-        createSite($pdo, $code, $nom, $departement);
+        SiteRepository::instance()->create($code, $nom, $departement);
     }
 
     if ($action === 'toggle_site') {
@@ -45,7 +46,7 @@ function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
         $isActive = (bool) ($postData['is_active'] ?? 0);
 
         if ($siteId > 0) {
-            toggleSiteActive($pdo, $siteId, $isActive);
+            SiteRepository::instance()->toggleActive($siteId, $isActive);
         }
     }
 
@@ -54,8 +55,8 @@ function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 
         if ($siteId > 0) {
             // Verify this site can be deleted (no users, no reports)
-            $userCount = countUsersBySite($pdo, $siteId);
-            $reportCount = countReportsBySite($pdo, $siteId);
+            $userCount = SiteRepository::instance()->countUsers($siteId);
+            $reportCount = SiteRepository::instance()->countReports($siteId);
 
             if ($userCount > 0 || $reportCount > 0) {
                 $pdo->rollBack();
@@ -63,7 +64,7 @@ function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
                 redirect(url('settings', ['tab' => 'manage_sites']));
             }
 
-            $deleted = deleteSite($pdo, $siteId);
+            $deleted = SiteRepository::instance()->delete($siteId);
             if (!$deleted) {
                 $pdo->rollBack();
                 setFlash('error', 'Erreur lors de la suppression du site.');

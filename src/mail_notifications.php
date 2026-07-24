@@ -1,5 +1,8 @@
 <?php
 
+use App\Repository\ReportRepository;
+use App\Repository\UserRepository;
+use App\Enum\UserRole;
 use App\Enum\ReportType;
 use App\Repository\NotificationRepository;
 
@@ -23,7 +26,7 @@ require_once __DIR__ . '/mail/email_renderer.php';
  */
 function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId): void
 {
-    $report = getReportByUuid($pdo, $reportUuid);
+    $report = ReportRepository::instance()->findById($reportUuid);
     if ($report === null) {
         return;
     }
@@ -47,7 +50,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     }
     // DGI: notify CSA/CHSCT members (article L4131-2 Code du travail)
     if ($type === ReportType::Dgi->value && getConfig('app_dgi_notify_csa', '1') === '1') {
-        $csaUsers = getUsersByRole($pdo, ROLE_CHSCT);
+        $csaUsers = UserRepository::instance()->findByRole(UserRole::Chsct->value);
         foreach ($csaUsers as $csaUser) {
             /** @var array<string, mixed> $csaUser */
             if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients, true)) {
@@ -74,14 +77,14 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
  */
 function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): void
 {
-    $report = getReportByUuid($pdo, $reportUuid);
+    $report = ReportRepository::instance()->findById($reportUuid);
     if ($report === null) {
         return;
     }
     // Get declarant email
     /** @var int */
     $declarantId = $report['declarant_id'] ?? 0;
-    $declarant = getUserById($pdo, $declarantId);
+    $declarant = UserRepository::instance()->findById($declarantId);
     if ($declarant === null || empty($declarant['email'])) {
         return;
     }
@@ -89,7 +92,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     $reportType = $report['type'] ?? '';
     $registryLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
     $subject = "Réponse à votre signalement $registryLabel — {$report['reference']}";
-    $respondent = getUserById($pdo, $respondentId);
+    $respondent = UserRepository::instance()->findById($respondentId);
     if ($respondent === null) {
         return;
     }
@@ -105,7 +108,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     sendMail($declarant['email'], $subject, $body);
 
     // Also notify linked/confirmed agents
-    $linkedAgents = getLinkedAgents($pdo, $reportUuid);
+    $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
     foreach ($linkedAgents as $linkedAgent) {
         if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== $declarant['email']) {
             $linkedSubject = "Réponse au signalement $registryLabel — {$report['reference']}";
@@ -167,7 +170,7 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
  */
 function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRole): void
 {
-    $user = getUserById($pdo, $userId);
+    $user = UserRepository::instance()->findById($userId);
     if ($user === null || empty($user['email'])) {
         return;
     }
@@ -204,7 +207,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
  */
 function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): void
 {
-    $report = getReportByUuid($pdo, $reportUuid);
+    $report = ReportRepository::instance()->findById($reportUuid);
     if ($report === null) {
         return;
     }
@@ -214,7 +217,7 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
             continue;
         }
         // Create invite token
-        $token = createAgentInvite($pdo, $reportUuid, $email);
+        $token = ReportRepository::instance()->createAgentInvite($reportUuid, $email);
         // Build confirmation link
         $confirmUrl = absoluteUrl('agent_confirm', ['token' => $token]);
         $subject = 'Vous avez été rattaché(e) au signalement ' . $report['reference'];

@@ -3,7 +3,8 @@
 /**
  * Report Reopen Handler — Thin controller delegating to ReportService.
  */
-
+use App\Repository\UserRepository;
+use App\Repository\ReportRepository;
 use App\DTO\ReopenReportCommand;
 use App\Services\ReportService;
 
@@ -36,7 +37,7 @@ try {
         require_once __DIR__ . '/../src/mail.php';
         $pdo = getDB();
         $registryLabel = REGISTRY_SHORT_LABELS[(string) ($report['type'] ?? '')] ?? strtoupper((string) ($report['type'] ?? ''));
-        $declarant = getUserById($pdo, (int) ($report['declarant_id'] ?? 0));
+        $declarant = UserRepository::instance()->findById((int) ($report['declarant_id'] ?? 0));
         if ($declarant !== null && !empty($declarant['email']) && (int) ($report['declarant_id'] ?? 0) !== $userId) {
             /** @var array<string, string> $declarant */
             $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
@@ -48,7 +49,7 @@ try {
             $body .= '</body></html>';
             sendMail($declarant['email'], $subject, $body);
         }
-        $linkedAgents = getLinkedAgents($pdo, $reportUuid);
+        $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
         foreach ($linkedAgents as $linkedAgent) {
             /** @var array<string, string> $linkedAgent */
             if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {

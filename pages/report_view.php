@@ -42,7 +42,7 @@ $reference = $report['reference'] ?? '';
 $pageTitle = 'Signalement — ' . $reference;
 
 // Get response history
-$responses = getReportResponses($pdo, $uuid);
+$responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 
 // Get linked agents and pending invites (moved from template to avoid DB queries in presentation layer)
 /** @var string */
@@ -89,7 +89,7 @@ if ($justCreated):
 
 <?php
     // Previous/Next navigation for the same registry list
-    $adjacent = getAdjacentReportUuids($pdo, $report);
+    $adjacent = \App\Repository\ReportRepository::instance()->getAdjacentUuids($report);
 ?>
 
 <?php

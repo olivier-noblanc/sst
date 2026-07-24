@@ -22,7 +22,6 @@ use App\Repository\ReportRepository;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/../../src/queries/report_queries.php';
 
 class ReportQueriesTest extends TestCase
 {
@@ -92,7 +91,7 @@ class ReportQueriesTest extends TestCase
             'type' => 'rami', 'objet' => 'Test RAMI', 'description' => 'Description RAMI test',
             'dateEvenement' => '2025-06-01',
         ]));
-        $report = getReportByUuid(self::$pdo, $uuid);
+        $report = self::$reports->findById($uuid);
         $this->assertNotNull($report);
         $this->assertMatchesRegularExpression('/^rami-\d{2}-\d{3}$/', $report['reference']);
         $this->assertEquals('rami', $report['type']);
@@ -129,7 +128,7 @@ class ReportQueriesTest extends TestCase
         $result = self::$reports->update($uuid, $updateCmd, self::$userId);
         $this->assertTrue($result);
 
-        $report = getReportByUuid(self::$pdo, $uuid);
+        $report = self::$reports->findById($uuid);
         $this->assertEquals('DGI modifié', $report['objet']);
         $this->assertEquals('Description modifiée', $report['description']);
         $this->assertEquals(1, (int) $report['is_confidential']);
@@ -146,7 +145,7 @@ class ReportQueriesTest extends TestCase
         $result = self::$reports->abandon($uuid, self::$userId);
         $this->assertTrue($result);
 
-        $report = getReportByUuid(self::$pdo, $uuid);
+        $report = self::$reports->findById($uuid);
         $this->assertEquals('abandonne', $report['etat']);
     }
 
@@ -165,7 +164,7 @@ class ReportQueriesTest extends TestCase
         $result = self::$reports->respondToReport($uuid, $supId, 'Prise en charge du signalement.', 'en_cours');
         $this->assertEquals('ok', $result['status']);
 
-        $report = getReportByUuid(self::$pdo, $uuid);
+        $report = self::$reports->findById($uuid);
         $this->assertEquals('en_cours', $report['etat']);
         $this->assertEquals('Prise en charge du signalement.', $report['reponse']);
     }

@@ -3,6 +3,7 @@
 /**
  * Report Edit Handler — Thin controller delegating to ReportService.
  */
+use App\Repository\ReportRepository;
 use App\Enum\ReportType;
 use App\DTO\UpdateReportCommand;
 use App\Services\ReportService;
@@ -88,7 +89,7 @@ try {
                 $linkedEmailsList = [];
             }
 
-            $existingLinked = getLinkedAgents($pdo, $reportUuid);
+            $existingLinked = ReportRepository::instance()->getLinkedAgents($reportUuid);
             $existingEmails = array_column($existingLinked, 'email');
             $newEmails = array_diff($linkedEmailsList, $existingEmails);
             if (!empty($newEmails)) {

@@ -9,6 +9,8 @@
 
 namespace App\Services;
 
+use App\Repository\ReportRepository;
+use App\Repository\UserRepository;
 use PDO;
 
 class NotificationService
@@ -41,7 +43,7 @@ class NotificationService
      */
     public function notifyReportAbandon(string $reportUuid, int $userId): void
     {
-        $report = getReportByUuid($this->pdo, $reportUuid);
+        $report = ReportRepository::instance()->findById($reportUuid);
         if ($report === null) {
             return;
         }
@@ -78,7 +80,7 @@ class NotificationService
      */
     public function notifyReportReopen(string $reportUuid, int $userId): void
     {
-        $report = getReportByUuid($this->pdo, $reportUuid);
+        $report = ReportRepository::instance()->findById($reportUuid);
         if ($report === null) {
             return;
         }
@@ -92,7 +94,7 @@ class NotificationService
         // Notify declarant
         /** @var int */
         $declarantId = $report['declarant_id'] ?? 0;
-        $declarant = getUserById($this->pdo, $declarantId);
+        $declarant = UserRepository::instance()->findById($declarantId);
         if ($declarant !== null && !empty($declarant['email']) && $declarantId !== $userId) {
             $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
             $body = '<html><body>';
@@ -104,7 +106,7 @@ class NotificationService
         }
 
         // Also notify linked agents
-        $linkedAgents = getLinkedAgents($this->pdo, $reportUuid);
+        $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
         foreach ($linkedAgents as $linkedAgent) {
             if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
                 $linkedSubject = "Signalement réouvert $registryLabel — {$report['reference']}";

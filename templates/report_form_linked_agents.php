@@ -19,7 +19,7 @@ if ($declarantEmailStr !== '' && str_contains($declarantEmailStr, '@')) {
 }
 $linkedEmails = '';
 if ($isEdit && $report !== null) {
-    $existing = getLinkedAgents($pdo ?? getDB(), $report['uuid']);
+    $existing = \App\Repository\ReportRepository::instance()->getLinkedAgents($report['uuid']);
     $linkedEmails = implode(', ', array_map(fn($a) => $a['email'], $existing));
 }
 if (isset($formData['linked_emails'])) {

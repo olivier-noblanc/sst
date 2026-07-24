@@ -54,8 +54,8 @@
         <tbody>
             <?php foreach ($sites as $site): ?>
             <?php
-                $userCount = countUsersBySite($pdo, (int) $site['id']);
-                $reportCount = countReportsBySite($pdo, (int) $site['id']);
+                $userCount = \App\Repository\SiteRepository::instance()->countUsers((int) $site['id']);
+                $reportCount = \App\Repository\SiteRepository::instance()->countReports((int) $site['id']);
                 $isActive = !isset($site['is_active']) || $site['is_active'] === 1 || $site['is_active'] === '1';
                 ?>
             <tr class="<?php echo !$isActive ? 'row--inactive' : ''; ?>">

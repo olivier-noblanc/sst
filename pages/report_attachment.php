@@ -33,7 +33,7 @@ if ($user === null) {
 }
 
 // Get full report for access check
-$report = getReportByUuid($pdo, $uuid);
+$report = ReportRepository::instance()->findById($uuid);
 if ($report === null) {
     http_response_code(404);
     exit('Fichier introuvable.');

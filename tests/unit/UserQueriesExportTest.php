@@ -76,7 +76,7 @@ class UserQueriesExportTest extends TestCase
         ]);
         $result = $this->users->anonymize($id);
         $this->assertTrue($result);
-        $user = getUserById($this->pdo, $id);
+        $user = $this->users->findById($id);
         $this->assertEquals('Anonymisé', $user['nom']);
         $this->assertEquals('Utilisateur', $user['prenom']);
         $this->assertNull($user['email']);
@@ -103,7 +103,7 @@ class UserQueriesExportTest extends TestCase
             'username' => 'no.site', 'nom' => 'NoSite', 'prenom' => 'User',
             'role' => 'agent', 'site_id' => null,
         ]);
-        $user = getUserById($this->pdo, $id);
+        $user = $this->users->findById($id);
         $this->assertNull($user['site_code']);
         $this->assertNull($user['site_nom']);
     }

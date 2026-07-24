@@ -3,6 +3,7 @@
 /**
  * Report Create Handler — Thin controller delegating to ReportService.
  */
+use App\Repository\SiteRepository;
 use App\Enum\ReportType;
 use App\DTO\CreateReportCommand;
 use App\Services\ReportService;
@@ -38,7 +39,7 @@ if (!isNoSiteMode($pdo)) {
         setFormData($_POST);
         redirect(url('report_create', ['type' => $type]));
     }
-    $site = getSiteById($pdo, $siteId);
+    $site = SiteRepository::instance()->findById($siteId);
     if ($site === null || empty($site['is_active'])) {
         setFormErrors(['site_id' => 'Unité invalide ou désactivée.']);
         setFormData($_POST);

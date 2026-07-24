@@ -33,14 +33,14 @@ class MailHelperTest extends TestCase
 
     public function testGetNotificationRecipientsWithNoSettings(): void
     {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
+        $siteId = \App\Repository\SiteRepository::instance()->create('UR21', 'UR Test', 'Test');
         $result = getNotificationRecipients($this->pdo, $siteId);
         $this->assertEquals([], $result);
     }
 
     public function testGetNotificationRecipientsPerSiteOnly(): void
     {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
+        $siteId = \App\Repository\SiteRepository::instance()->create('UR21', 'UR Test', 'Test');
 
         $stmt = $this->pdo->prepare(
             "INSERT INTO notification_settings (site_id, type, registry, email) VALUES (:site_id, 'site', 'rsst', :email)"
@@ -53,7 +53,7 @@ class MailHelperTest extends TestCase
 
     public function testGetNotificationRecipientsGlobalOnly(): void
     {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
+        $siteId = \App\Repository\SiteRepository::instance()->create('UR21', 'UR Test', 'Test');
 
         $stmt = $this->pdo->prepare(
             "INSERT INTO notification_settings (site_id, type, registry, email) VALUES (NULL, 'global', 'rsst', :email)"
@@ -66,7 +66,7 @@ class MailHelperTest extends TestCase
 
     public function testGetNotificationRecipientsPerSiteAndGlobal(): void
     {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
+        $siteId = \App\Repository\SiteRepository::instance()->create('UR21', 'UR Test', 'Test');
 
         $stmt = $this->pdo->prepare(
             "INSERT INTO notification_settings (site_id, type, registry, email) VALUES (:site_id, 'site', 'rsst', :email)"
@@ -86,7 +86,7 @@ class MailHelperTest extends TestCase
 
     public function testGetNotificationRecipientsDeduplicatesEmails(): void
     {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
+        $siteId = \App\Repository\SiteRepository::instance()->create('UR21', 'UR Test', 'Test');
 
         $stmt = $this->pdo->prepare(
             "INSERT INTO notification_settings (site_id, type, registry, email) VALUES (:site_id, 'site', 'rsst', :email)"
@@ -105,8 +105,8 @@ class MailHelperTest extends TestCase
 
     public function testGetNotificationRecipientsOnlyReturnsMatchingSite(): void
     {
-        $site1 = createSite($this->pdo, 'UR21', 'UR Test 1', 'Test1');
-        $site2 = createSite($this->pdo, 'UR58', 'UR Test 2', 'Test2');
+        $site1 = \App\Repository\SiteRepository::instance()->create('UR21', 'UR Test 1', 'Test1');
+        $site2 = \App\Repository\SiteRepository::instance()->create('UR58', 'UR Test 2', 'Test2');
 
         $stmt = $this->pdo->prepare(
             "INSERT INTO notification_settings (site_id, type, registry, email) VALUES (:site_id, 'site', 'rsst', :email)"
@@ -120,7 +120,7 @@ class MailHelperTest extends TestCase
 
     public function testGetNotificationRecipientsMultipleSiteEmails(): void
     {
-        $siteId = createSite($this->pdo, 'UR21', 'UR Test', 'Test');
+        $siteId = \App\Repository\SiteRepository::instance()->create('UR21', 'UR Test', 'Test');
 
         $stmt = $this->pdo->prepare(
             "INSERT INTO notification_settings (site_id, type, registry, email) VALUES (:site_id, 'site', 'rsst', :email)"

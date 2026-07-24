@@ -1,5 +1,7 @@
 <?php
 
+use App\Repository\UserRepository;
+
 /**
  * User Context — Application SST DREETS BFC
  *
@@ -126,8 +128,7 @@ function refreshCurrentUser(PDO $pdo): bool
     if ($id <= 0) {
         return false;
     }
-    require_once __DIR__ . '/queries/user_queries.php';
-    $freshUser = getUserById($pdo, $id);
+    $freshUser = UserRepository::instance()->findById($id);
     if ($freshUser !== null) {
         // Preserve impersonation state if active
         setUserSession($freshUser);

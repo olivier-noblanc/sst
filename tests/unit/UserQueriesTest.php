@@ -61,7 +61,7 @@ class UserQueriesTest extends TestCase
             'role' => 'agent', 'site_id' => 1,
         ]);
         $this->assertGreaterThan(0, $id);
-        $user = getUserById($this->pdo, $id);
+        $user = $this->users->findById($id);
         $this->assertNull($user['email']);
     }
 
@@ -73,7 +73,7 @@ class UserQueriesTest extends TestCase
             'username' => 'jean.martin', 'nom' => 'Martin', 'prenom' => 'Jean',
             'email' => 'jean.martin@dreets.gouv.fr', 'role' => 'agent', 'site_id' => 1,
         ]);
-        $user = getUserById($this->pdo, $id);
+        $user = $this->users->findById($id);
         $this->assertNotNull($user);
         $this->assertEquals('jean.martin', $user['username']);
         $this->assertEquals('Martin', $user['nom']);
@@ -98,7 +98,7 @@ class UserQueriesTest extends TestCase
             'username' => 'sophie.dupont', 'nom' => 'Dupont', 'prenom' => 'Sophie',
             'role' => 'superviseur', 'site_id' => 2,
         ]);
-        $user = getUserByUsername($this->pdo, 'sophie.dupont');
+        $user = $this->users->findByUsername('sophie.dupont');
         $this->assertNotNull($user);
         $this->assertEquals('Dupont', $user['nom']);
         $this->assertEquals('superviseur', $user['role']);
@@ -112,13 +112,13 @@ class UserQueriesTest extends TestCase
             'role' => 'agent', 'site_id' => 1,
         ]);
         $this->users->deactivate($id);
-        $user = getUserByUsername($this->pdo, 'inactive.user');
+        $user = $this->users->findByUsername('inactive.user');
         $this->assertNull($user);
     }
 
     public function testGetUserByUsernameReturnsNullForNonexistent(): void
     {
-        $user = getUserByUsername($this->pdo, 'nobody');
+        $user = $this->users->findByUsername('nobody');
         $this->assertNull($user);
     }
 
@@ -169,7 +169,7 @@ class UserQueriesTest extends TestCase
             'username' => 'edit.me', 'role' => 'superviseur', 'site_id' => 2,
         ]);
         $this->assertTrue($result);
-        $user = getUserById($this->pdo, $id);
+        $user = $this->users->findById($id);
         $this->assertEquals('New', $user['nom']);
         $this->assertEquals('superviseur', $user['role']);
         $this->assertEquals('UR25', $user['site_code']);
@@ -182,7 +182,7 @@ class UserQueriesTest extends TestCase
         $id = $this->users->create(['username' => 'deac', 'nom' => 'Deac', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
         $result = $this->users->deactivate($id);
         $this->assertTrue($result);
-        $user = getUserById($this->pdo, $id);
+        $user = $this->users->findById($id);
         $this->assertEquals(0, (int) $user['is_active']);
     }
 
@@ -191,7 +191,7 @@ class UserQueriesTest extends TestCase
         $id = $this->users->create(['username' => 'react', 'nom' => 'React', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
         $this->users->deactivate($id);
         $this->users->reactivate($id);
-        $user = getUserById($this->pdo, $id);
+        $user = $this->users->findById($id);
         $this->assertEquals(1, (int) $user['is_active']);
     }
 
@@ -202,7 +202,7 @@ class UserQueriesTest extends TestCase
         $id = $this->users->create(['username' => 'promo', 'nom' => 'Promo', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
         $result = $this->users->updateRole($id, 'superviseur');
         $this->assertTrue($result);
-        $user = getUserById($this->pdo, $id);
+        $user = $this->users->findById($id);
         $this->assertEquals('superviseur', $user['role']);
     }
 }

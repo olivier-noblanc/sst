@@ -24,9 +24,6 @@
         "files": [
             "src/config.php",
             "src/helpers.php",
-            "src/queries/user_queries.php",
-            "src/queries/report_queries.php",
-            "src/queries/site_queries.php",
             "src/user_context.php"
         ]
     },

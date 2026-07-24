@@ -42,7 +42,7 @@ $icons = [
         $colorTheme = $reg['color_theme'];
         $icon = $reg['icon'];
         $reportCount = ReportRepository::instance()->countActive($regCode);
-    ?>
+        ?>
     <div class="card mb-4" style="border-top: 4px solid var(--theme-<?php echo $fmt->e($colorTheme); ?>, #666);">
         <div class="card__title-row">
             <div>

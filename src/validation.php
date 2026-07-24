@@ -1,5 +1,7 @@
 <?php
 
+use App\Repository\ReportRepository;
+
 /**
  * Validation Functions — Application SST DREETS BFC
  *
@@ -189,7 +191,7 @@ function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array
         redirect($fallbackUrl);
     }
     $pdo = getDB();
-    $report = getReportByUuid($pdo, $uuid);
+    $report = ReportRepository::instance()->findById($uuid);
     if ($report === null) {
         setFlash('error', 'Signalement introuvable.');
         redirect($fallbackUrl);

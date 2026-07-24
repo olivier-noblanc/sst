@@ -32,7 +32,7 @@ if ($user === null) {
     exit('Accès refusé.');
 }
 
-$report = getReportByUuid($pdo, $row['report_uuid']);
+$report = ReportRepository::instance()->findById($row['report_uuid']);
 if ($report === null || !canAccessReport($report, $user)) {
     http_response_code(403);
     exit('Accès refusé.');

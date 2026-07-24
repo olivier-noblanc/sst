@@ -29,11 +29,11 @@ function lazyCronCleanup(PDO $pdo): void
     $confirmedCutoff = gmdate('Y-m-d H:i:s', strtotime('-90 days'));
     $unconfirmedCutoff = gmdate('Y-m-d H:i:s', strtotime('-30 days'));
 
-    $stmt = $pdo->prepare("
+    $stmt = $pdo->prepare('
         DELETE FROM report_agent_invites
         WHERE (confirmed = 1 AND confirmed_at IS NOT NULL AND confirmed_at < :confirmed_cutoff)
            OR (confirmed = 0 AND created_at < :unconfirmed_cutoff)
-    ");
+    ');
     $stmt->execute([
         ':confirmed_cutoff' => $confirmedCutoff,
         ':unconfirmed_cutoff' => $unconfirmedCutoff,

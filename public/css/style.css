@@ -3841,3 +3841,14 @@ tr:hover td {
 .color-picker { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
 .color-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
 .color-dot--active { border-color: #333; }
+.color-dot--rsst { background: #2E5C8A; }
+.color-dot--rami { background: #6C6C6C; }
+.color-dot--dgi { background: #b91c1c; }
+.color-dot--vert { background: #15803D; }
+.color-dot--violet { background: #7C3AED; }
+.color-dot--orange { background: #C2410C; }
+.color-dot--teal { background: #0D9488; }
+.color-dot--indigo { background: #4338CA; }
+.color-dot--rose { background: #BE123C; }
+.color-dot--ambre { background: #B45309; }
+.card--dashed { border-top: 4px dashed #ccc; }

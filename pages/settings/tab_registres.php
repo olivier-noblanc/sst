@@ -54,12 +54,12 @@ $visibilityModes = [
         $legalNote = $reg['legal_note'] ?? '';
         $reportCount = ReportRepository::instance()->countActive($regCode);
         ?>
-    <div class="card mb-4" style="border-top: 4px solid var(--theme-<?php echo $fmt->e($colorTheme); ?>, #666);">
+    <div class="card mb-4 card--<?php echo $fmt->e($colorTheme); ?>">
         <div class="card__title-row">
             <div>
                 <h3 class="card__subtitle">
                     <?php echo $fmt->e($icon); ?> <?php echo $fmt->e($regLabel); ?>
-                    <span class="badge badge--sm" style="background: var(--theme-<?php echo $fmt->e($colorTheme); ?>, #666); color: white;"><?php echo $fmt->e($regShortLabel); ?></span>
+                    <span class="badge badge--sm badge--<?php echo $fmt->e($colorTheme); ?>"><?php echo $fmt->e($regShortLabel); ?></span>
                 </h3>
                 <p class="text-muted text-small">
                     Code : <code><?php echo $fmt->e($regCode); ?></code>
@@ -127,9 +127,8 @@ $visibilityModes = [
                 <input type="hidden" name="registres[<?php echo $regId; ?>][color_theme]" value="<?php echo $fmt->e($colorTheme); ?>">
                 <div class="color-picker" data-regid="<?php echo $regId; ?>">
                     <?php foreach ($themes as $theme): ?>
-                    <span class="color-dot<?php echo $colorTheme === $theme ? ' color-dot--active' : ''; ?>"
+                    <span class="color-dot color-dot--<?php echo $fmt->e($theme); ?><?php echo $colorTheme === $theme ? ' color-dot--active' : ''; ?>"
                           data-theme="<?php echo $fmt->e($theme); ?>"
-                          style="background: <?php echo $themeColors[$theme] ?? '#666'; ?>"
                           title="<?php echo $fmt->e($theme); ?>"></span>
                     <?php endforeach; ?>
                 </div>
@@ -191,7 +190,7 @@ $visibilityModes = [
     <?php endforeach; ?>
 
     <!-- Add new registry -->
-    <div class="card mb-4" style="border-top: 4px dashed var(--border, #ccc);">
+    <div class="card mb-4 card--dashed">
         <h3 class="card__subtitle mb-2">Ajouter un registre</h3>
         <div class="form-grid form-grid--3">
             <div class="form-group">
@@ -226,9 +225,9 @@ document.querySelectorAll('.color-picker').forEach(function(picker) {
         dot.addEventListener('click', function() {
             hidden.value = this.dataset.theme;
             picker.querySelectorAll('.color-dot').forEach(function(d) {
-                d.style.border = '2px solid transparent';
+                d.classList.remove('color-dot--active');
             });
-            this.style.border = '2px solid #333';
+            this.classList.add('color-dot--active');
         });
     });
 });

@@ -11,19 +11,11 @@ use App\Repository\ReportRepository;
 
 class RegistryCardService
 {
-    private readonly RegistryRepository $registryRepo;
-    private readonly ReportRepository $reportRepo;
-    private readonly AccessService $accessService;
-
     public function __construct(
-        ?RegistryRepository $registryRepo = null,
-        ?ReportRepository $reportRepo = null,
-        ?AccessService $accessService = null,
-    ) {
-        $this->registryRepo = $registryRepo ?? RegistryRepository::instance();
-        $this->reportRepo = $reportRepo ?? ReportRepository::instance();
-        $this->accessService = $accessService ?? new AccessService();
-    }
+        private readonly RegistryRepository $registryRepo,
+        private readonly ReportRepository $reportRepo,
+        private readonly AccessService $accessService,
+    ) {}
 
     public function getRegistryIcon(string $type): string
     {

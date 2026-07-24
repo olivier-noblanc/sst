@@ -4,9 +4,14 @@ use App\Services\RegistryCardService;
 
 /** Registry Card Renderer — HTML unifié pour les cartes de registre. */
 
+function getRegistryCardService(): RegistryCardService
+{
+    return getContainer()->get(RegistryCardService::class);
+}
+
 function getRegistryIcon(string $type): string
 {
-    return new RegistryCardService()->getRegistryIcon($type);
+    return getRegistryCardService()->getRegistryIcon($type);
 }
 
 /**
@@ -64,5 +69,5 @@ function renderRegistryCards(array $cards, string $layout = 'compact', array $ex
  */
 function buildRegistryCards(): array
 {
-    return new RegistryCardService()->buildRegistryCards();
+    return getRegistryCardService()->buildRegistryCards();
 }

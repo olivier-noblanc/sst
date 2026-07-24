@@ -80,6 +80,8 @@ playwright-report/
 
 # QA tool caches
 .php-cs-fixer.cache
+.deptrac.cache
+phpstan_errors.log
 psalm-cache/
 phpstan-result.txt
 phpstan_output.txt

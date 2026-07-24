@@ -44,8 +44,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS reports (
     uuid            TEXT PRIMARY KEY,                -- UUID v4 — non-guessable public identifier
     reference       TEXT NOT NULL UNIQUE,            -- e.g. "rsst-25-001"
-    type            TEXT NOT NULL                    -- 'rsst'|'rami'|'dgi'
-                        CHECK (type IN ('rsst','rami','dgi')),
+    type            TEXT NOT NULL,                    -- Registry code (references registries.code)
     objet           TEXT NOT NULL,                   -- Subject line, max 100 chars
     description     TEXT NOT NULL,                   -- Full description
     date_evenement  TEXT NOT NULL,                   -- Date of the event (ISO 8601 date)

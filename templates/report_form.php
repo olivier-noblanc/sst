@@ -290,6 +290,7 @@ $submitBtnClass = $isEdit
             </div>
             <?php if ($type === \App\Enum\ReportType::Rami->value): require __DIR__ . '/report_form_rami.php'; endif; ?>
         </div>
+        <!-- TODO P21: replace RAMI form include with dynamic registry_fields rendering -->
         <?php require __DIR__ . '/report_form_linked_agents.php'; ?>
 
         <div class="form-actions">

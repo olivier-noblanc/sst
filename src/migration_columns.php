@@ -104,4 +104,79 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
         error_log('[SST-MIGRATION] reports.site_id is now nullable (no-site mode support).');
     }
+
+    // ── Remove CHECK constraint on reports.type ──────────────────────────────
+    // The CHECK (type IN ('rsst','rami','dgi')) prevents adding custom registres.
+    // Since SQLite has no ALTER TABLE DROP CONSTRAINT, rebuild the table without it.
+    // Check if the constraint exists by trying to insert a custom type — if it
+    // fails, the constraint is present and needs removal.
+    $hasTypeCheck = false;
+    try {
+        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, etat) VALUES ('00000000-0000-0000-0000-000000000000', 'test-check-removal', 'custom_test', 'test', 'test', '2025-01-01', 1, 'test', 'test', 'nouveau')");
+        $hasTypeCheck = false; // No constraint — insertion succeeded
+        $pdo->exec("DELETE FROM reports WHERE uuid = '00000000-0000-0000-0000-000000000000'");
+    } catch (Exception) {
+        $hasTypeCheck = true; // Constraint rejected the insert
+    }
+
+    if ($hasTypeCheck) {
+        $colStmt = $pdo->query('PRAGMA table_info(reports)');
+        $columns = ($colStmt !== false) ? $colStmt->fetchAll() : [];
+        $colStmt = null;
+        $colDefs = [];
+        foreach ($columns as $col) {
+            if (!is_array($col)) {
+                continue;
+            }
+            /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
+            $def = $col['name'] . ' ' . $col['type'];
+            if ($col['pk']) {
+                $def .= ' PRIMARY KEY';
+            }
+            if ($col['notnull'] && !$col['pk']) {
+                $def .= ' NOT NULL';
+            }
+            if ($col['dflt_value'] !== null) {
+                /** @var string $dfltValue */
+                $dfltValue = $col['dflt_value'];
+                $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
+                $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
+            }
+            $colDefs[] = $def;
+        }
+        // NOT adding CHECK (type IN (...)) — that's the whole point
+        $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
+        $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
+        $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
+        $fkStmt = null;
+        $fkClauses = [];
+        foreach ($fks as $fk) {
+            if (!is_array($fk)) {
+                continue;
+            }
+            /** @var array{from: string, table: string, to: string} $fk */
+            $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
+        }
+        $allDefs = array_merge($colDefs, $fkClauses);
+        $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
+        backupBeforeMigration($pdo);
+        $pdo->exec($createSql);
+        $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
+        $pdo->exec('DROP TABLE IF EXISTS reports');
+        $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
+        // Recreate indexes (SQLite drops them with the table)
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
+        $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+        error_log('[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
+    }
 }

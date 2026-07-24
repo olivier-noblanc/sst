@@ -188,6 +188,7 @@ CREATE TABLE IF NOT EXISTS registries (
     description         TEXT,                            -- for home cards
     icon                TEXT NOT NULL DEFAULT '📋',
     color_theme         TEXT NOT NULL DEFAULT 'rsst',    -- CSS theme key (10 themes)
+    btn_label           TEXT,                            -- button label on home cards (nullable = default)
     is_enabled          INTEGER NOT NULL DEFAULT 1,
     is_system           INTEGER NOT NULL DEFAULT 0,      -- 1 = cannot be deleted
     sort_order          INTEGER NOT NULL DEFAULT 0,

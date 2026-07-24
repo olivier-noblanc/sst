@@ -129,6 +129,21 @@ class StatsRepository
     public function getIndicateurs(string $year = '', int $siteId = 0): array
     {
         $params = [];
+
+        // Build dynamic per-registry CASE columns from active registries
+        $registryRepo = RegistryRepository::instance();
+        $enabledRegistries = $registryRepo->findEnabled();
+        $typeColumns = [];
+        $defaultReturn = ['total_reports' => 0, 'total_nouveau' => 0, 'total_en_cours' => 0,
+            'total_traite' => 0, 'total_abandonne' => 0, 'total_reouvert' => 0];
+        foreach ($enabledRegistries as $reg) {
+            $code = (string) $reg['code'];
+            $safeCode = str_replace("'", "''", $code);
+            $typeColumns[] = "SUM(CASE WHEN type = '{$safeCode}' THEN 1 ELSE 0 END) as total_" . str_replace('-', '_', $code);
+            $defaultReturn['total_' . str_replace('-', '_', $code)] = 0;
+        }
+        $typeColumnsSql = !empty($typeColumns) ? ",\n                " . implode(",\n                ", $typeColumns) : '';
+
         $sql = "
             SELECT
                 COUNT(*) as total_reports,
@@ -136,10 +151,8 @@ class StatsRepository
                 SUM(CASE WHEN etat = 'en_cours' THEN 1 ELSE 0 END) as total_en_cours,
                 SUM(CASE WHEN etat = 'traite' THEN 1 ELSE 0 END) as total_traite,
                 SUM(CASE WHEN etat = 'abandonne' THEN 1 ELSE 0 END) as total_abandonne,
-                SUM(CASE WHEN etat = 'reouvert' THEN 1 ELSE 0 END) as total_reouvert,
-                SUM(CASE WHEN type = 'rsst' THEN 1 ELSE 0 END) as total_rsst,
-                SUM(CASE WHEN type = 'rami' THEN 1 ELSE 0 END) as total_rami,
-                SUM(CASE WHEN type = 'dgi' THEN 1 ELSE 0 END) as total_dgi
+                SUM(CASE WHEN etat = 'reouvert' THEN 1 ELSE 0 END) as total_reouvert
+                {$typeColumnsSql}
             FROM reports
             WHERE 1=1
         ";
@@ -160,29 +173,38 @@ class StatsRepository
         $result = $stmt->fetch();
 
         if (!is_array($result)) {
-            return [
-                'total_reports' => 0, 'total_nouveau' => 0, 'total_en_cours' => 0,
-                'total_traite' => 0, 'total_abandonne' => 0, 'total_reouvert' => 0,
-                'total_rsst' => 0, 'total_rami' => 0, 'total_dgi' => 0,
-            ];
+            return $defaultReturn;
         }
 
-        return [
+        $return = [
             'total_reports'   => (int) ($result['total_reports'] ?? 0),
             'total_nouveau'   => (int) ($result['total_nouveau'] ?? 0),
             'total_en_cours'  => (int) ($result['total_en_cours'] ?? 0),
             'total_traite'    => (int) ($result['total_traite'] ?? 0),
             'total_abandonne' => (int) ($result['total_abandonne'] ?? 0),
             'total_reouvert'  => (int) ($result['total_reouvert'] ?? 0),
-            'total_rsst'      => (int) ($result['total_rsst'] ?? 0),
-            'total_rami'      => (int) ($result['total_rami'] ?? 0),
-            'total_dgi'       => (int) ($result['total_dgi'] ?? 0),
         ];
+        foreach ($enabledRegistries as $reg) {
+            $key = 'total_' . str_replace('-', '_', (string) $reg['code']);
+            $return[$key] = (int) ($result[$key] ?? 0);
+        }
+        return $return;
     }
 
     /** @return array<mixed, mixed> */
     public function getBySite(string $year = '', int $siteId = 0): array
     {
+        // Build dynamic per-registry CASE columns from active registries
+        $registryRepo = RegistryRepository::instance();
+        $enabledRegistries = $registryRepo->findEnabled();
+        $typeColumns = [];
+        foreach ($enabledRegistries as $reg) {
+            $code = (string) $reg['code'];
+            $safeCode = str_replace("'", "''", $code);
+            $typeColumns[] = "SUM(CASE WHEN r.type = '{$safeCode}' THEN 1 ELSE 0 END) as " . str_replace('-', '_', $code);
+        }
+        $typeColumnsSql = !empty($typeColumns) ? ",\n                " . implode(",\n                ", $typeColumns) : '';
+
         $sql = "
             SELECT s.code, s.nom,
                 COUNT(r.uuid) as total,
@@ -190,10 +212,8 @@ class StatsRepository
                 SUM(CASE WHEN r.etat = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
                 SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,
                 SUM(CASE WHEN r.etat = 'abandonne' THEN 1 ELSE 0 END) as abandonne,
-                SUM(CASE WHEN r.etat = 'reouvert' THEN 1 ELSE 0 END) as reouvert,
-                SUM(CASE WHEN r.type = 'rsst' THEN 1 ELSE 0 END) as rsst,
-                SUM(CASE WHEN r.type = 'rami' THEN 1 ELSE 0 END) as rami,
-                SUM(CASE WHEN r.type = 'dgi' THEN 1 ELSE 0 END) as dgi
+                SUM(CASE WHEN r.etat = 'reouvert' THEN 1 ELSE 0 END) as reouvert
+                {$typeColumnsSql}
             FROM sites s
             LEFT JOIN reports r ON r.site_id = s.id
         ";

@@ -179,4 +179,24 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
         error_log('[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
     }
+
+    // ── Add btn_label column to registries ──────────────────────────────────
+    $colStmt = $pdo->query('PRAGMA table_info(registries)');
+    $columns = ($colStmt !== false) ? $colStmt->fetchAll() : [];
+    $colStmt = null;
+    $btnLabelExists = false;
+    foreach ($columns as $col) {
+        if (is_array($col) && ($col['name'] ?? '') === 'btn_label') {
+            $btnLabelExists = true;
+            break;
+        }
+    }
+    if (!$btnLabelExists) {
+        $pdo->exec("ALTER TABLE registries ADD COLUMN btn_label TEXT");
+        // Backfill default labels for the 3 system registres
+        $pdo->exec("UPDATE registries SET btn_label = 'Déposer un signalement' WHERE code = 'rsst'");
+        $pdo->exec("UPDATE registries SET btn_label = 'Signaler une agression' WHERE code = 'rami'");
+        $pdo->exec("UPDATE registries SET btn_label = 'Signaler un danger urgent' WHERE code = 'dgi'");
+        error_log('[SST-MIGRATION] Added btn_label column to registries.');
+    }
 }

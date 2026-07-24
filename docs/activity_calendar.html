@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activite Git — SST DREETS BFC</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#c9d1d9;padding:2rem 1rem;min-height:100vh}
+.wrap{max-width:960px;margin:0 auto}
+h1{text-align:center;margin-bottom:.2rem;color:#58a6ff;font-size:1.5rem}
+.sub{text-align:center;color:#8b949e;margin-bottom:1.5rem;font-size:.85rem}
+
+.stats{display:flex;justify-content:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.st{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:.6rem 1rem;text-align:center;min-width:100px}
+.st b{display:block;font-size:1.4rem;font-weight:700}
+.st span{font-size:.65rem;color:#8b949e}
+.v-blue{color:#58a6ff}.v-orange{color:#f0883e}.v-purple{color:#a371f7}.v-green{color:#3fb950}.v-red{color:#f85149}
+
+/* heatmap */
+.hm-wrap{max-width:720px;margin:0 auto 1.5rem;overflow-x:auto}
+.hm-grid{display:grid;grid-template-columns:repeat(7,14px);gap:3px}
+.hm-dow{font-size:.55rem;color:#484f58;text-align:right;padding-right:3px;display:flex;align-items:center;justify-content:flex-end}
+.hm-cell{width:14px;height:14px;border-radius:2px;position:relative;cursor:default;transition:transform .1s}
+.hm-cell:hover{transform:scale(1.5);z-index:10}
+.hm-cell[data-t]:hover::after{content:attr(data-t);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#1c2128;border:1px solid #30363d;border-radius:6px;padding:.35rem .5rem;font-size:.6rem;white-space:nowrap;z-index:20;color:#c9d1d9;box-shadow:0 4px 12px rgba(0,0,0,.5);pointer-events:none}
+.c0{background:#161b22;border:1px solid #21262d}
+.c1{background:#0e4429;border:1px solid #238636}
+.c2{background:#26a641;border:1px solid #3fb950}
+.c3{background:#39d353;border:1px solid #56d364}
+.c-early{background:#1f6feb;border:1px solid #58a6ff}
+.c-late{background:#9e6a03;border:1px solid #d29922}
+.c-late-hi{background:#d29922;border:1px solid #e3b341}
+.c-wk{background:#8957e5;border:1px solid #a371f7}
+.c-wk-late{background:linear-gradient(135deg,#8957e5 50%,#9e6a03 50%);border:1px solid #a371f7}
+.c-wk-early{background:linear-gradient(135deg,#8957e5 50%,#1f6feb 50%);border:1px solid #a371f7}
+
+.legend{display:flex;justify-content:center;gap:.8rem;margin-bottom:1.5rem;flex-wrap:wrap;font-size:.65rem;color:#8b949e}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:2px}
+
+.detail h2{color:#58a6ff;font-size:1rem;margin-bottom:.5rem}
+.dg{margin-bottom:.6rem}
+.dg-d{font-size:.78rem;font-weight:600;padding-left:.4rem;margin-bottom:.15rem;border-left:3px solid #58a6ff}
+.dg-d.late{border-color:#f0883e;color:#f0883e}
+.dg-d.early{border-color:#58a6ff;color:#58a6ff}
+.dg-d.wk{border-color:#a371f7;color:#a371f7}
+.dg-d.wk-late{border-color:#a371f7;background:linear-gradient(90deg,#a371f722 0%,#f0883e22 100%)}
+.cm{padding:.1rem .3rem .1rem 1.2rem;font-size:.7rem;color:#8b949e;position:relative;line-height:1.4}
+.cm::before{content:'';position:absolute;left:.2rem;top:.35rem;width:6px;height:6px;border-radius:50%;background:#30363d}
+.cm.early::before{background:#58a6ff}
+.cm.late::before{background:#f0883e}
+.cm.wk::before{background:#a371f7}
+.cm-t{color:#484f58;margin-right:.3rem}
+.cm-m{color:#c9d1d9}
+
+footer{text-align:center;color:#484f58;margin-top:1.5rem;padding-top:.75rem;border-top:1px solid #21262d;font-size:.65rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Activite Git — Application SST</h1>
+<p class="sub">DREETS BFC — 7 juillet au 24 juillet 2026</p>
+
+<div class="stats">
+  <div class="st"><b class="v-blue">114</b><span>Commits</span></div>
+  <div class="st"><b class="v-orange">38</b><span>Apres 17h30</span></div>
+  <div class="st"><b class="v-blue">8</b><span>Avant 9h</span></div>
+  <div class="st"><b class="v-purple">66</b><span>Week-end</span></div>
+  <div class="st"><b class="v-green">23:41</b><span>Plus tardif</span></div>
+  <div class="st"><b class="v-red">18</b><span>Jours actifs</span></div>
+</div>
+
+<div class="legend">
+  <span><i class="c0"></i>Aucun</span>
+  <span><i class="c1"></i>1-3</span>
+  <span><i class="c2"></i>4-10</span>
+  <span><i class="c3"></i>11+</span>
+  <span><i class="c-early"></i>Avant 9h</span>
+  <span><i class="c-late"></i>Apres 17h30</span>
+  <span><i class="c-wk"></i>Week-end</span>
+</div>
+
+<!-- HEATMAP -->
+<div class="hm-wrap">
+  <div class="hm-grid" style="grid-template-columns:repeat(7,14px)">
+    <div class="hm-dow">Lun</div><div class="hm-dow">Mar</div><div class="hm-dow">Mer</div>
+    <div class="hm-dow">Jeu</div><div class="hm-dow">Ven</div><div class="hm-dow">Sam</div><div class="hm-dow">Dim</div>
+    <!-- Jul 2026: Wed=1st. Pad Mon/Tue -->
+    <div class="c0" style="opacity:.2"></div><div class="c0" style="opacity:.2"></div>
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <!-- Week 2: Jul 6-12 -->
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <!-- Week 3: Jul 13-19 -->
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <!-- Week 4: Jul 20-26 -->
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+    <div class="hm-cell c-late" data-t="Mer 23/07 — 5 commits (13:50→22:41) — 3 soir"></div>
+    <div class="hm-cell c3" data-t="Jeu 24/07 — 46 commits (08:39→21:48) — 17 soir, 1 matin"></div>
+    <div class="hm-cell c0"></div>
+    <div class="hm-cell c0"></div><div class="hm-cell c0"></div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="detail">
+<h2>Detail des 114 commits</h2>
+
+<!-- 7 juillet -->
+<div class="dg">
+  <div class="dg-d">Lundi 7 juillet — 1 commit</div>
+  <div class="cm"><span class="cm-t">16:44</span><span class="cm-m">fix: update_sst.ps1 utilise FORMULAIRE_TOKEN pour le fetch git</span></div>
+</div>
+
+<!-- 8 juillet -->
+<div class="dg">
+  <div class="dg-d wk-late">Mardi 8 juillet — 27 commits (08:22 → 22:22) — WE + soiree</div>
+  <div class="cm early"><span class="cm-t">08:22</span><span class="cm-m">refactor: split formatting.php into 5 focused files</span></div>
+  <div class="cm early"><span class="cm-t">08:25</span><span class="cm-m">refactor: extract RegistryCardRenderer, deduplicate home.php card HTML</span></div>
+  <div class="cm early"><span class="cm-t">08:29</span><span class="cm-m">feat: add QueryFilterBuilder with tests</span></div>
+  <div class="cm early"><span class="cm-t">08:29</span><span class="cm-m">refactor: use QueryFilterBuilder in getReportsByRegistry</span></div>
+  <div class="cm early"><span class="cm-t">08:32</span><span class="cm-m">fix: restore confidential_filter OR semantics with addRaw()</span></div>
+  <div class="cm early"><span class="cm-t">08:49</span><span class="cm-m">refactor: unify email HTML via EmailRenderer, eliminate inline duplication</span></div>
+  <div class="cm early"><span class="cm-t">08:56</span><span class="cm-m">feat: add DTOs (CreateReportCommand, ReportFilter, UpdateReportCommand, RespondToReportCommand)</span></div>
+  <div class="cm"><span class="cm-t">09:04</span><span class="cm-m">feat: add ReportRepository with tests</span></div>
+  <div class="cm"><span class="cm-t">09:07</span><span class="cm-m">feat: add EventDispatcher with tests</span></div>
+  <div class="cm"><span class="cm-t">09:20</span><span class="cm-m">feat: add ReportService with tests</span></div>
+  <div class="cm"><span class="cm-t">09:31</span><span class="cm-m">refactor: rewrite report CRUD handlers as thin controllers</span></div>
+  <div class="cm"><span class="cm-t">09:33</span><span class="cm-m">feat: add DI Container with tests</span></div>
+  <div class="cm"><span class="cm-t">09:35</span><span class="cm-m">feat: add PHP 8 Router with Route attribute and tests</span></div>
+  <div class="cm"><span class="cm-t">09:37</span><span class="cm-m">refactor: add render() helper and extract templates</span></div>
+  <div class="cm"><span class="cm-t">09:40</span><span class="cm-m">refactor: complete 3-phase migration to layered architecture</span></div>
+  <div class="cm"><span class="cm-t">09:55</span><span class="cm-m">refactor: connect Router to bootstrap, replace hardcoded page dispatch</span></div>
+  <div class="cm"><span class="cm-t">09:58</span><span class="cm-m">refactor: use DI Container for service instantiation in handlers</span></div>
+  <div class="cm"><span class="cm-t">12:50</span><span class="cm-m">fix: use Throwable catch for mail notifications, add respond handler safety net</span></div>
+  <div class="cm"><span class="cm-t">13:35</span><span class="cm-m">refactor: add PSR-4 autoload and namespace all application classes</span></div>
+  <div class="cm"><span class="cm-t">13:53</span><span class="cm-m">refactor: unify routing into single Router class</span></div>
+  <div class="cm"><span class="cm-t">14:05</span><span class="cm-m">feat: add UserService, UserRepository, AuthService with DTOs</span></div>
+  <div class="cm"><span class="cm-t">14:33</span><span class="cm-m">feat: add SessionManager, NotificationService, BackupService, Pipeline, fix PHP 9 warnings</span></div>
+  <div class="cm"><span class="cm-t">14:36</span><span class="cm-m">fix: use actual user ID in AuthProvisionTest instead of hardcoded 1</span></div>
+  <div class="cm"><span class="cm-t">14:42</span><span class="cm-m">fix: guard filemtime/filesize against missing DB file in tests</span></div>
+  <div class="cm late"><span class="cm-t">16:18</span><span class="cm-m">refactor: integrate middleware pipeline into Router, remove validatePostRequest from handlers</span></div>
+  <div class="cm late"><span class="cm-t">16:19</span><span class="cm-m">docs: update CHANGELOG for middleware pipeline + event dispatcher</span></div>
+  <div class="cm late"><span class="cm-t">16:57</span><span class="cm-m">feat: EventDispatcher on UserService/AuthService, quality analysis complete</span></div>
+  <div class="cm late"><span class="cm-t">20:27</span><span class="cm-m">chore: cleanup debug files, add test coverage, commit docs and changelog fixes</span></div>
+  <div class="cm late"><span class="cm-t">21:46</span><span class="cm-m">test: add 143 unit tests for middlewares and services, generate PHPStan baseline</span></div>
+  <div class="cm late"><span class="cm-t">22:22</span><span class="cm-m">test: complete middleware unit tests (31 tests, 40 assertions)</span></div>
+</div>
+
+<!-- 10 juillet -->
+<div class="dg">
+  <div class="dg-d late">Vendredi 10 juillet — 1 commit (23:31)</div>
+  <div class="cm late"><span class="cm-t">23:31</span><span class="cm-m">fix: autoload custom sans Composer — supprime vendor/ dependency en prod, 612 tests OK</span></div>
+</div>
+
+<!-- 11 juillet -->
+<div class="dg">
+  <div class="dg-d wk-late">Samedi 11 juillet — 4 commits (12:44 → 21:56) — WE + soiree</div>
+  <div class="cm wk"><span class="cm-t">12:44</span><span class="cm-m">feat: refactoring OOP complet — handlers, pages, tests, PHPStan 0 erreurs</span></div>
+  <div class="cm late"><span class="cm-t">16:24</span><span class="cm-m">fix: ultrareview — 22 constats corrigés (3 critiques, 5 élevés, 8 moyens, 5 dette technique)</span></div>
+  <div class="cm late"><span class="cm-t">20:01</span><span class="cm-m">fix: E2E tests Playwright Python — autoloader chargé plus tôt, config cross-platform</span></div>
+  <div class="cm late"><span class="cm-t">21:56</span><span class="cm-m">fix: ConfigService singleton partagé avec container DI + E2E tests Playwright Python + autoloader bootstrap</span></div>
+</div>
+
+<!-- 12 juillet -->
+<div class="dg">
+  <div class="dg-d wk-late">Dimanche 12 juillet — 5 commits (12:05 → 22:18) — WE + soiree</div>
+  <div class="cm wk"><span class="cm-t">12:05</span><span class="cm-m">fix: ultrareview — 10 issues corrigés (6 critiques + 4 warnings)</span></div>
+  <div class="cm wk"><span class="cm-t">12:07</span><span class="cm-m">fix: review post-commit — 3 issues from ultrareview report</span></div>
+  <div class="cm wk"><span class="cm-t">12:09</span><span class="cm-m">fix: ultrareview — 13 issues corrigés (6 critiques + 5 warnings)</span></div>
+  <div class="cm wk"><span class="cm-t">12:17</span><span class="cm-m">chore: remove .mimocode/.cron-lock from tracking (already in .gitignore)</span></div>
+  <div class="cm late"><span class="cm-t">22:18</span><span class="cm-m">feat: PHP 8.5 modernization + Ultrareview bug fixes (23 bugs)</span></div>
+</div>
+
+<!-- 17 juillet -->
+<div class="dg">
+  <div class="dg-d late">Vendredi 17 juillet — 1 commit (20:00)</div>
+  <div class="cm late"><span class="cm-t">20:00</span><span class="cm-m">docs: TODO.md + changelog v3.41.0 cast fixes — baseline 423 blocs</span></div>
+</div>
+
+<!-- 18 juillet -->
+<div class="dg">
+  <div class="dg-d wk-late">Samedi 18 juillet — 14 commits (10:55 → 23:41) — WE + soiree</div>
+  <div class="cm wk"><span class="cm-t">10:55</span><span class="cm-m">feat: word cloud feature + merge integration post-pull (v3.41.0)</span></div>
+  <div class="cm wk"><span class="cm-t">13:58</span><span class="cm-m">fix: cast.int/string PHPStan — baseline 423→356 entrées (-67, -15.8%)</span></div>
+  <div class="cm wk"><span class="cm-t">15:20</span><span class="cm-m">chore: PHPStan level 10→8 — baseline 234→44 erreurs (-81%)</span></div>
+  <div class="cm wk"><span class="cm-t">15:23</span><span class="cm-m">fix: type safety improvements — 15 fichiers corrigés</span></div>
+  <div class="cm wk"><span class="cm-t">16:10</span><span class="cm-m">fix: PHPStan baseline 44→25 erreurs — 26 fichiers corrigés</span></div>
+  <div class="cm wk"><span class="cm-t">16:14</span><span class="cm-m">docs: TODO.md updated — baseline 25 erreurs, priorités 1-7 terminées</span></div>
+  <div class="cm wk"><span class="cm-t">16:23</span><span class="cm-m">feat: CSS checker intégré au gate + pre-push (bloquant)</span></div>
+  <div class="cm wk"><span class="cm-t">16:41</span><span class="cm-m">fix: CSS checker faux positifs corrigés — exclusion list + classes dynamiques</span></div>
+  <div class="cm late"><span class="cm-t">17:19</span><span class="cm-m">fix: E2E auth tests updated for 3-form login refactoring</span></div>
+  <div class="cm late"><span class="cm-t">18:11</span><span class="cm-m">fix: E2E login helpers unified — shared loginAs() for 3-form login</span></div>
+  <div class="cm late"><span class="cm-t">20:58</span><span class="cm-m">fix: E2E tests — 6 failures remaining (was 8)</span></div>
+  <div class="cm late"><span class="cm-t">21:25</span><span class="cm-m">fix: E2E — 15/16 impersonate passent, navigation-flows améliorés</span></div>
+  <div class="cm late"><span class="cm-t">23:29</span><span class="cm-m">fix: impersonate test login agent.dev</span></div>
+  <div class="cm late"><span class="cm-t">23:41</span><span class="cm-m">chore: ignore dev artifacts (sessions, php_server logs)</span></div>
+</div>
+
+<!-- 19 juillet -->
+<div class="dg">
+  <div class="dg-d wk-late">Dimanche 19 juillet — 2 commits (22:34 → 22:40) — WE + soiree</div>
+  <div class="cm late"><span class="cm-t">22:34</span><span class="cm-m">feat: grumphp phar + hook pre-commit</span></div>
+  <div class="cm late"><span class="cm-t">22:40</span><span class="cm-m">docs: update changelog grumphp phar</span></div>
+</div>
+
+<!-- 20 juillet -->
+<div class="dg">
+  <div class="dg-d wk-late">Lundi 20 juillet — 2 commits (22:33 → 22:53)</div>
+  <div class="cm late"><span class="cm-t">22:33</span><span class="cm-m">fix: migrer remote de Codeberg vers GitHub</span></div>
+  <div class="cm late"><span class="cm-t">22:53</span><span class="cm-m">merge: sync Codeberg v3.44.0 vers GitHub</span></div>
+</div>
+
+<!-- 21 juillet -->
+<div class="dg">
+  <div class="dg-d late">Mardi 21 juillet — 3 commits (15:43 → 22:17)</div>
+  <div class="cm late"><span class="cm-t">15:43</span><span class="cm-m">fix: lien 'Voir les signalements' -> 'Voir mes signalements' pour un agent en mode confidential</span></div>
+  <div class="cm late"><span class="cm-t">20:20</span><span class="cm-m">feat: redirect() ajoute automatiquement result=<type du flash> — aide au debug</span></div>
+  <div class="cm late"><span class="cm-t">22:17</span><span class="cm-m">fix: tests E2E — RAMI/DGI conditionnels + quick-access supprimé</span></div>
+</div>
+
+<!-- 23 juillet -->
+<div class="dg">
+  <div class="dg-d wk-late">Mercredi 23 juillet — 5 commits (13:50 → 22:41) — soiree</div>
+  <div class="cm"><span class="cm-t">13:50</span><span class="cm-m">fix(cron): purge audit_log (>180j) et report_access_log (>2ans) via lazy cron</span></div>
+  <div class="cm late"><span class="cm-t">21:46</span><span class="cm-m">fix: signalements rattachés invisibles + règle PHPStan anti magic strings</span></div>
+  <div class="cm late"><span class="cm-t">22:11</span><span class="cm-m">fix(ci): track phpstan-no-magic-string.neon + deptrac</span></div>
+  <div class="cm late"><span class="cm-t">22:32</span><span class="cm-m">fix(ci): corriger include phpstan.neon + ajouter Deptrac au CI</span></div>
+  <div class="cm late"><span class="cm-t">22:41</span><span class="cm-m">fix(ci): phpstan.neon + AGENTS.md DDD patterns</span></div>
+</div>
+
+<!-- 24 juillet -->
+<div class="dg">
+  <div class="dg-d">Jeudi 24 juillet — 46 commits (08:39 → 21:48) — 17 soiree, 1 matin</div>
+  <div class="cm early"><span class="cm-t">08:39</span><span class="cm-m">refactor(p20): 29→0 violations NoSqlOutsideRepositoryRule</span></div>
+  <div class="cm"><span class="cm-t">09:21</span><span class="cm-m">feat: installer ekino/phpstan-banned-code + config</span></div>
+  <div class="cm"><span class="cm-t">10:05</span><span class="cm-m">feat(p21-phase1): tables registries + registry_fields + repositories + TDD</span></div>
+  <div class="cm"><span class="cm-t">10:19</span><span class="cm-m">feat(p21-phase2): 10 themes CSS pour les registres</span></div>
+  <div class="cm"><span class="cm-t">11:02</span><span class="cm-m">refactor(p21-phase3): TYPE_RSST/TYPE_RAMI/TYPE_DGI → ReportType::X->value via Rector</span></div>
+  <div class="cm"><span class="cm-t">11:12</span><span class="cm-m">refactor(p21-phase4): supprimer CHECK constraint reports.type</span></div>
+  <div class="cm"><span class="cm-t">11:31</span><span class="cm-m">refactor(p21-phase5): enforcement — bannir magic strings + tests migrés</span></div>
+  <div class="cm"><span class="cm-t">11:46</span><span class="cm-m">feat(p21-phase6): settings UI registres (admin page)</span></div>
+  <div class="cm"><span class="cm-t">11:52</span><span class="cm-m">test(e2e): tests E2E pour P21 registres paramétrables</span></div>
+  <div class="cm"><span class="cm-t">11:55</span><span class="cm-m">test(e2e): cycle de vie complet registre custom avec rattachement</span></div>
+  <div class="cm"><span class="cm-t">12:19</span><span class="cm-m">fix(ci): telecharger phpstan.phar depuis GitHub releases</span></div>
+  <div class="cm"><span class="cm-t">12:30</span><span class="cm-m">fix(ci): revenir a php vendor/bin/phpstan</span></div>
+  <div class="cm"><span class="cm-t">13:04</span><span class="cm-m">feat: wordcloud par registre — 1 nuage de mots par registre actif</span></div>
+  <div class="cm"><span class="cm-t">13:20</span><span class="cm-m">fix(ci): ajouter phpstan-banned-code.neon au repo</span></div>
+  <div class="cm"><span class="cm-t">13:26</span><span class="cm-m">fix(ci): supprimer extension.neon ekino/spaze du phpstan.neon</span></div>
+  <div class="cm"><span class="cm-t">13:39</span><span class="cm-m">test(e2e): wordcloud par registre — settings tabs + home rendering</span></div>
+  <div class="cm"><span class="cm-t">15:49</span><span class="cm-m">fix(ci): creer /tmp/php_sessions + supprimer queries procedureles</span></div>
+  <div class="cm"><span class="cm-t">16:03</span><span class="cm-m">ci: workflow minimal pour tester le login E2E</span></div>
+  <div class="cm"><span class="cm-t">16:21</span><span class="cm-m">fix: seed des registres par defaut + NoLegacyConstantRule</span></div>
+  <div class="cm"><span class="cm-t">16:27</span><span class="cm-m">fix: registres systeme toujours actives + migration safety net</span></div>
+  <div class="cm"><span class="cm-t">16:31</span><span class="cm-m">feat: interface admin registres complete — CRUD + visibilite + notes legales</span></div>
+  <div class="cm"><span class="cm-t">16:34</span><span class="cm-m">fix: selecteurs couleur/icone en dropdown au lieu de grille radio</span></div>
+  <div class="cm"><span class="cm-t">16:37</span><span class="cm-m">fix: retirer required des champs ajout pour ne pas bloquer suppression</span></div>
+  <div class="cm"><span class="cm-t">16:54</span><span class="cm-m">fix: supprimer try/finally transactionnel dans settings_handler — crash hard</span></div>
+  <div class="cm"><span class="cm-t">17:00</span><span class="cm-m">fix: supprimer use Statement duplique dans settings_handler.php</span></div>
+  <div class="cm"><span class="cm-t">17:05</span><span class="cm-m">fix: couleur en pastilles + icone sans doublon dans select</span></div>
+  <div class="cm"><span class="cm-t">17:11</span><span class="cm-m">fix: sidebar magic strings → enum UserRole + registres dynamiques depuis DB</span></div>
+  <div class="cm"><span class="cm-t">17:12</span><span class="cm-m">fix: home + registry_card_renderer dynamiques depuis table registries</span></div>
+  <div class="cm late"><span class="cm-t">17:16</span><span class="cm-m">fix: pastilles couleur dynamiques — bordure selection live au clic</span></div>
+  <div class="cm late"><span class="cm-t">17:20</span><span class="cm-m">fix: validate registry type against registries table</span></div>
+  <div class="cm late"><span class="cm-t">17:23</span><span class="cm-m">test(e2e): cycle de vie complet registre custom</span></div>
+  <div class="cm late"><span class="cm-t">17:37</span><span class="cm-m">fix: signalements rattaches invisibles en incarnation</span></div>
+  <div class="cm late"><span class="cm-t">17:47</span><span class="cm-m">fix: selecteur couleur avec pastille + label dans chaque option</span></div>
+  <div class="cm late"><span class="cm-t">17:49</span><span class="cm-m">fix: pastilles couleur sans texte, juste le cercle + tooltip</span></div>
+  <div class="cm late"><span class="cm-t">17:55</span><span class="cm-m">fix: pastilles couleur avec hex hardcodes au lieu de CSS vars</span></div>
+  <div class="cm late"><span class="cm-t">18:00</span><span class="cm-m">fix: selecteur couleur en vrai select dropdown</span></div>
+  <div class="cm late"><span class="cm-t">18:03</span><span class="cm-m">fix: color picker custom avec pastilles cliquables</span></div>
+  <div class="cm late"><span class="cm-t">18:13</span><span class="cm-m">fix: ajouter unsafe-inline au style-src dans web.config IIS</span></div>
+  <div class="cm late"><span class="cm-t">18:19</span><span class="cm-m">fix: styles dans CSS au lieu de inline + regle AGENTS.md sur CSP</span></div>
+  <div class="cm late"><span class="cm-t">18:26</span><span class="cm-m">fix: tous les styles inline supprimes de tab_registres</span></div>
+  <div class="cm late"><span class="cm-t">18:45</span><span class="cm-m">feat: NoInlineStyleRule PHPStan + check_inline_styles.php + GrumPHP</span></div>
+  <div class="cm late"><span class="cm-t">19:44</span><span class="cm-m">fix: supprimer les 9 derniers styles inline — classes CSS (CSP)</span></div>
+  <div class="cm late"><span class="cm-t">19:53</span><span class="cm-m">feat: NoInlineScriptRule PHPStan — interdire les balises script inline</span></div>
+  <div class="cm late"><span class="cm-t">21:26</span><span class="cm-m">refactor: remplacer les constantes legacy par des enums — extension Rector</span></div>
+  <div class="cm late"><span class="cm-t">21:34</span><span class="cm-m">fix: corriger les violations deptrac et echecs tests pre-existants</span></div>
+  <div class="cm late"><span class="cm-t">21:48</span><span class="cm-m">refactor: injection DI propre RegistryCardService — sans fallbacks</span></div>
+</div>
+
+</div>
+
+<footer>114 commits sur 18 jours — 7 juillet au 24 juillet 2026 — Application SST DREETS BFC</footer>
+
+</div>
+</body>
+</html>

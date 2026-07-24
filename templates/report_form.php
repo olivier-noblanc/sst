@@ -51,18 +51,13 @@ $val = function(string $field, string $default = '') use ($formData, $report, $i
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
 $registryFullLabel = (string) (REGISTRY_LABELS[$type] ?? $type);
 
-// Determine card accent class
-$cardClass = match($type) {
-    ReportType::Rsst->value => 'card--rsst',
-    ReportType::Rami->value => 'card--rami',
-    ReportType::Dgi->value  => 'card--dgi',
-    default => 'card--rsst',
-};
+// Determine card accent class from registries.color_theme
+$registryForTheme = \App\Repository\RegistryRepository::instance()->findByCode($type);
+$colorTheme = (string) ($registryForTheme['color_theme'] ?? $type);
+$cardClass = 'card--' . $colorTheme;
 
-// Determine submit button class based on mode and registry type
-$submitBtnClass = $isEdit
-    ? match($type) { ReportType::Rsst->value => 'btn--rsst', ReportType::Rami->value => 'btn--rami', ReportType::Dgi->value => 'btn--dgi', default => 'btn--primary' }
-    : 'btn--primary'; // blue for create mode (main action)
+// Determine submit button class based on mode and registry color_theme
+$submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
 ?>
 <div class="card <?php echo $cardClass; ?>">
     <?php echo renderBreadcrumb([

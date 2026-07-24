@@ -44,12 +44,6 @@ class RegistryCardService
             ? 'Voir mes signalements'
             : 'Voir les signalements';
 
-        $btnLabels = [
-            ReportType::Rsst->value => 'Déposer un signalement',
-            ReportType::Rami->value => 'Signaler une agression',
-            ReportType::Dgi->value  => 'Signaler un danger urgent',
-        ];
-
         $cards = [];
         foreach ($enabledRegistries as $reg) {
             $code = $reg['code'];
@@ -68,7 +62,7 @@ class RegistryCardService
                 'subtitle' => $reg['short_label'],
                 'desc'     => $reg['description'] ?? '',
                 'count'    => $reportCount,
-                'btnLabel' => $btnLabels[$code] ?? 'Signaler un événement',
+                'btnLabel' => $reg['btn_label'] ?? 'Signaler un événement',
                 'btnUrl'   => url('report_create', ['type' => $code]),
                 'listUrl'  => url('report_list', ['type' => $code]),
                 'listLabel' => $listLabel($code),

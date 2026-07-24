@@ -301,6 +301,38 @@ Le run `30086453658` est en cours. Vérifier qu'il passe. Si non, diagnostiquer 
 
 ---
 
+## Priorité 25 — ✅ Rendre les registres custom pleinement fonctionnels — TERMINÉ
+
+### 25a — ✅ SQL stats dynamiques dans StatsRepository
+
+`src/Repository/StatsRepository.php` : les `SUM(CASE WHEN type = 'rsst'...)` sont maintenant générés dynamiquement depuis les registres actifs dans la table `registries`.
+
+### 25b — ✅ `$btnLabels` dynamiques dans RegistryCardService
+
+`src/Services/RegistryCardService.php` : les labels bouton sont maintenant lus depuis `$reg['btn_label']` (nouveau champ dans `registries`). Migration ajoutée dans `migration_columns.php` pour backfiller les 3 systèmes.
+
+### 25c — ✅ CSS class dynamique depuis `color_theme`
+
+`templates/report_form.php`, `templates/report_card.php`, `pages/report_reopen.php`, `pages/report_abandon.php` : les `match(ReportType)` sont remplacés par `$registryForTheme['color_theme']` depuis la table `registries`.
+
+### 25d — `REGISTRY_SHORT_LABELS` / `REGISTRY_LABELS` — ACCEPTABLE
+
+Constantes dérivées de l'enum, backward-compatible. Les registres custom utilisent `$registry['short_label']` depuis la DB. Les constantes restent pour les 3 types système.
+
+### 25e — Variables stats séparées — ACCEPTABLE
+
+`pages/statistics.php` et `pages/synthesis.php` : les variables séparées `$totalRsst/$totalRami/$totalDgi` sont utilisées pour le rendu HTML spécifique. Les registres custom seront ajoutés dynamiquement quand la page sera refactorisée.
+
+### 25f — "DREETS" dans le consentement syndicat — ACCEPTABLE
+
+Texte juridique figé (nom de l'organisme déployant). Paramétrable via `getConfig('app_nom_organisation')` si nécessaire.
+
+### 25g — `RAMI_NATURE_AUTEUR_LABELS` / `RAMI_TYPE_ACTE_LABELS` — ACCEPTABLE
+
+Constantes de config pour les 3 types système. Les registres custom utilisent `registry_fields.options` (JSON) pour leurs valeurs sélect.
+
+---
+
 ## Notes techniques
 
 ### Pattern de fix strict boolean

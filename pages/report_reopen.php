@@ -52,7 +52,8 @@ $flash = new \App\Services\SessionService()->getFlash();
     ['label' => 'Réouvrir'],
 ]); ?>
 
-<div class="card <?php echo match ($type) {
+<?php $registryForTheme = \App\Repository\RegistryRepository::instance()->findByCode($type); ?>
+<div class="card card--<?php echo e((string) ($registryForTheme["color_theme"] ?? $type)); ?>">
     ReportType::Rsst->value => 'card--rsst', ReportType::Rami->value => 'card--rami', ReportType::Dgi->value => 'card--dgi', default => 'card--rsst'
 }; ?>">
     <h2 class="card__subtitle">Signalement <?php echo $fmt->e($report['reference']); ?></h2>

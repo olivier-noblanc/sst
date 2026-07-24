@@ -51,12 +51,9 @@ $fmt = new \App\Services\FormattingService();
  * } $report
  */
 $type = (string) ($report['type'] ?? \App\Enum\ReportType::Rsst->value);
-$cardClass = match(ReportType::tryFrom($type)) {
-    ReportType::Rsst => 'card--rsst',
-    ReportType::Rami => 'card--rami',
-    ReportType::Dgi  => 'card--dgi',
-    default => 'card--rsst',
-};
+$registryForTheme = \App\Repository\RegistryRepository::instance()->findByCode($type);
+$colorTheme = (string) ($registryForTheme['color_theme'] ?? $type);
+$cardClass = 'card--' . $colorTheme;
 
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
 $user = new \App\Services\SessionService()->getUserSession() ?? [];

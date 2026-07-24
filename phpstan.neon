@@ -3,7 +3,6 @@ includes:
     - phpstan-no-magic-string.neon
     - vendor/ekino/phpstan-banned-code/extension.neon
     - phpstan-banned-code.neon
-    - phpstan-disallowed-calls.neon
 
 parameters:
     level: 8

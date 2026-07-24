@@ -336,6 +336,33 @@ Tous les `try/catch` qui avalaient une erreur et continuaient (migrations, e-mai
 
 ---
 
+## Priorité 22 — Fix CI définitif
+
+Le run `30086453658` est en cours. Vérifier qu'il passe. Si non, diagnostiquer le vrai problème (le phar ne charge pas les extensions vendor, `php vendor/bin/phpstan` devrait fonctionner).
+
+---
+
+## Priorité 23 — Wordcloud par registre — TERMINÉ
+
+`FormattingService::buildWordCloud(?string $registryCode = null)` avec fallback global. Onglets par registre dans settings. 20 tests, 47 assertions.
+
+---
+
+## Priorité 24 — Intégrer wordcloud par registre aux E2E
+
+Ajouter des tests E2E pour le nouveau wordcloud per-registry (navigation settings, édition par registre, affichage sur home).
+
+---
+
+## Problèmes résiduels DDD (non bloquants)
+
+1. **Fonctions procédurales legacy** — `getConfig()`, `isRegistryEnabled()`, `currentUser()`, `currentUserId()`, `setFlash()`, `redirect()`, `url()` dans `src/helpers/` et `src/user_context.php` — wrappers procéduraux autour des services OOP. À migrer vers les services quand on touche à ces fichiers.
+2. **Doublon SQL migration** — `migration_columns.php` contient du SQL qui pourrait être dans les repositories (mais c'est un fichier de migration, donc acceptable de garder le SQL là).
+3. **Constantes legacy** — `TYPE_RSST`/`TYPE_RAMI`/`TYPE_DGI` encore dans quelques fichiers (Rector les migre progressivement, `ekino/phpstan-banned-code` les bannit).
+4. **Queries procédurales** — `src/queries/report_count_queries.php` a encore des wrappers procéduraux vers ReportRepository.
+
+---
+
 ## Notes techniques
 
 ### Pattern de fix strict boolean

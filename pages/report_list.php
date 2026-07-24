@@ -15,8 +15,8 @@ $config = \App\Services\ConfigService::getInstance();
 $session = new \App\Services\SessionService();
 $access = new \App\Services\AccessService();
 
-// Validate type
-if (!in_array($type, [\App\Enum\ReportType::Rsst->value, \App\Enum\ReportType::Rami->value, \App\Enum\ReportType::Dgi->value], true)) {
+// Validate type against registries table (not hardcoded enum)
+if (\App\Repository\RegistryRepository::instance()->findByCode($type) === null) {
     $session->setFlash('error', 'Type de registre invalide.');
     $http->redirect($http->url('home'));
 }

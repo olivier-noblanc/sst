@@ -1,6 +1,6 @@
 <?php
 
-use App\Enum\ReportType;
+use App\Repository\RegistryRepository;
 use App\Services\SessionService;
 use App\Services\HttpService;
 use App\Services\ConfigService;
@@ -16,8 +16,8 @@ use App\Repository\SiteRepository;
 /** @var string */
 $type = $_GET['type'] ?? '';
 
-// Validate type
-if (!in_array($type, [ReportType::Rsst->value, ReportType::Rami->value, ReportType::Dgi->value], true)) {
+// Validate type against registries table (not hardcoded enum)
+if (RegistryRepository::instance()->findByCode($type) === null) {
     SessionService::getInstance()->setFlash('error', 'Type de registre invalide.');
     new HttpService()->redirect(new HttpService()->url('home'));
 }

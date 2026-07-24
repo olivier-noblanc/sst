@@ -19,3 +19,7 @@ services:
         class: App\PHPStan\NoSqlOutsideRepositoryRule
         tags:
             - phpstan.rules.rule
+    -
+        class: App\PHPStan\NoTodoCommentRule
+        tags:
+            - phpstan.rules.rule

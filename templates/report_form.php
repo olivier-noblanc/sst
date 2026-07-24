@@ -288,9 +288,70 @@ $submitBtnClass = $isEdit
                 <label for="declarant_prenom">Déclarant — Prénom</label>
                 <input type="text" id="declarant_prenom" value="<?php echo e($user['prenom'] ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
             </div>
-            <?php if ($type === \App\Enum\ReportType::Rami->value): require __DIR__ . '/report_form_rami.php'; endif; ?>
+            <?php
+            // Dynamic registry_fields rendering (P21)
+            $registryRepo = \App\Repository\RegistryRepository::instance();
+            $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
+            $registry = $registryRepo->findByCode($type);
+            if ($registry !== null) {
+                $fields = $fieldRepo->findByRegistry((int) $registry['id']);
+                foreach ($fields as $field):
+                    $fieldCode = (string) $field['field_code'];
+                    $fieldLabel = (string) $field['label'];
+                    $fieldType = (string) $field['field_type'];
+                    $isRequired = (int) ($field['is_required'] ?? 0) === 1;
+                    $fieldValue = $val($fieldCode);
+                    $hasError = isset($formErrors[$fieldCode]);
+                    $errId = $hasError ? ' id="err_' . e($fieldCode) . '"' : '';
+                    $errAttr = $hasError ? ' aria-describedby="err_' . e($fieldCode) . '" aria-invalid="true"' : '';
+            ?>
+            <div class="form-group<?php echo $fieldType === 'textarea' ? ' form-grid__full' : ''; ?>">
+                <?php if ($fieldType === 'checkbox'): ?>
+                    <label class="label--checkbox">
+                        <input type="checkbox" name="<?php echo e($fieldCode); ?>" id="<?php echo e($fieldCode); ?>" value="1"
+                               <?php echo (bool) $fieldValue ? 'checked' : ''; ?>>
+                        <?php echo e($fieldLabel); ?>
+                    </label>
+                <?php elseif ($fieldType === 'select'): ?>
+                    <label for="<?php echo e($fieldCode); ?>"><?php echo e($fieldLabel); ?></label>
+                    <select id="<?php echo e($fieldCode); ?>" name="<?php echo e($fieldCode); ?>"<?php echo $isRequired ? ' required' : ''; ?><?php echo $errAttr; ?>>
+                        <option value="">— Non renseigné —</option>
+                        <?php
+                        $options = json_decode((string) ($field['options'] ?? '{}'), true);
+                        if (is_array($options)):
+                            foreach ($options as $optVal => $optLabel):
+                        ?>
+                        <option value="<?php echo e((string) $optVal); ?>"<?php echo $fieldValue === (string) $optVal ? ' selected' : ''; ?>><?php echo e((string) $optLabel); ?></option>
+                        <?php
+                            endforeach;
+                        endif;
+                        ?>
+                    </select>
+                    <?php if ($hasError): ?>
+                        <span class="form-error"<?php echo $errId; ?>><?php echo e($formErrors[$fieldCode]); ?></span>
+                    <?php endif; ?>
+                <?php elseif ($fieldType === 'textarea'): ?>
+                    <label for="<?php echo e($fieldCode); ?>"><?php echo e($fieldLabel); ?></label>
+                    <textarea id="<?php echo e($fieldCode); ?>" name="<?php echo e($fieldCode); ?>" rows="4"
+                              maxlength="5000"<?php echo $isRequired ? ' required' : ''; ?><?php echo $errAttr; ?>><?php echo e($fieldValue); ?></textarea>
+                    <?php if ($hasError): ?>
+                        <span class="form-error"<?php echo $errId; ?>><?php echo e($formErrors[$fieldCode]); ?></span>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <label for="<?php echo e($fieldCode); ?>"><?php echo e($fieldLabel); ?></label>
+                    <input type="text" id="<?php echo e($fieldCode); ?>" name="<?php echo e($fieldCode); ?>"
+                           value="<?php echo e($fieldValue); ?>" maxlength="500"
+                           <?php echo $isRequired ? ' required' : ''; ?><?php echo $errAttr; ?>>
+                    <?php if ($hasError): ?>
+                        <span class="form-error"<?php echo $errId; ?>><?php echo e($formErrors[$fieldCode]); ?></span>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+            <?php
+                endforeach;
+            }
+            ?>
         </div>
-        <!-- TODO P21: replace RAMI form include with dynamic registry_fields rendering -->
         <?php require __DIR__ . '/report_form_linked_agents.php'; ?>
 
         <div class="form-actions">

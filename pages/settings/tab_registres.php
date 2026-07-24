@@ -188,17 +188,17 @@ $visibilityModes = [
         <div class="form-grid form-grid--3">
             <div class="form-group">
                 <label for="new_code">Code</label>
-                <input type="text" id="new_code" name="new_code" class="input" required maxlength="20"
+                <input type="text" id="new_code" name="new_code" class="input" maxlength="20"
                        placeholder="ex: harcèlement" pattern="[a-z_]+">
             </div>
             <div class="form-group">
                 <label for="new_label">Libellé complet</label>
-                <input type="text" id="new_label" name="new_label" class="input" required maxlength="100"
+                <input type="text" id="new_label" name="new_label" class="input" maxlength="100"
                        placeholder="Registre de...">
             </div>
             <div class="form-group">
                 <label for="new_short_label">Sigle</label>
-                <input type="text" id="new_short_label" name="new_short_label" class="input" required maxlength="10"
+                <input type="text" id="new_short_label" name="new_short_label" class="input" maxlength="10"
                        placeholder="HARC">
             </div>
         </div>

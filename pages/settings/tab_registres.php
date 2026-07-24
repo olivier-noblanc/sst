@@ -116,13 +116,21 @@ $visibilityModes = [
         <!-- Color theme + Icon + Sort order -->
         <div class="form-grid form-grid--3">
             <div class="form-group">
-                <label for="registres_<?php echo $regId; ?>_color_theme">Couleur</label>
-                <select id="registres_<?php echo $regId; ?>_color_theme"
-                        name="registres[<?php echo $regId; ?>][color_theme]" class="input">
+                <label>Couleur</label>
+                <?php
+                $themeColors = [
+                    'rsst' => '#2E5C8A', 'rami' => '#6C6C6C', 'dgi' => '#b91c1c',
+                    'vert' => '#15803D', 'violet' => '#7C3AED', 'orange' => '#C2410C',
+                    'teal' => '#0D9488', 'indigo' => '#4338CA', 'rose' => '#BE123C', 'ambre' => '#B45309',
+                ];
+                ?>
+                <input type="hidden" name="registres[<?php echo $regId; ?>][color_theme]" value="<?php echo $fmt->e($colorTheme); ?>">
+                <div class="color-picker" data-regid="<?php echo $regId; ?>" style="display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff;">
                     <?php foreach ($themes as $theme): ?>
-                    <option value="<?php echo $fmt->e($theme); ?>" <?php echo $colorTheme === $theme ? 'selected' : ''; ?>><?php echo $fmt->e($theme); ?></option>
+                    <span class="color-dot" data-theme="<?php echo $fmt->e($theme); ?>"
+                          style="width: 24px; height: 24px; border-radius: 50%; background: <?php echo $themeColors[$theme] ?? '#666'; ?>; border: 2px solid <?php echo $colorTheme === $theme ? '#333' : 'transparent'; ?>; cursor: pointer;" title="<?php echo $fmt->e($theme); ?>"></span>
                     <?php endforeach; ?>
-                </select>
+                </div>
             </div>
             <div class="form-group">
                 <label for="registres_<?php echo $regId; ?>_icon">Icône</label>
@@ -208,3 +216,18 @@ $visibilityModes = [
         <a href="<?php echo $http->url('settings', ['tab' => 'app']); ?>" class="btn btn--outline">Annuler</a>
     </div>
 </form>
+
+<script>
+document.querySelectorAll('.color-picker').forEach(function(picker) {
+    var hidden = picker.previousElementSibling;
+    picker.querySelectorAll('.color-dot').forEach(function(dot) {
+        dot.addEventListener('click', function() {
+            hidden.value = this.dataset.theme;
+            picker.querySelectorAll('.color-dot').forEach(function(d) {
+                d.style.border = '2px solid transparent';
+            });
+            this.style.border = '2px solid #333';
+        });
+    });
+});
+</script>

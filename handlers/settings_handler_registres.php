@@ -3,11 +3,13 @@
 /**
  * Settings Handler: Registres — Application SST DREETS BFC
  *
- * POST handler: save registry settings (enable/disable, color, icon).
+ * POST handler: full CRUD for registry settings.
+ * Actions: save (update all), add (create new), delete_{id} (remove).
  * Access: superviseur only (enforced by Router middleware)
  */
 
 use App\Repository\RegistryRepository;
+use App\Enum\VisibilityMode;
 
 /**
  * Handle the 'registres' settings tab.
@@ -18,6 +20,70 @@ use App\Repository\RegistryRepository;
 function handleSettingsRegistresTab(PDO $pdo, array $postData): void
 {
     $repo = RegistryRepository::instance();
+    $action = trim((string) ($postData['action'] ?? 'save'));
+
+    // ── Delete a registry ─────────────────────────────────────────────────
+    if (str_starts_with($action, 'delete_')) {
+        $deleteId = (int) substr($action, 7);
+        if ($deleteId > 0) {
+            $reg = $repo->findById($deleteId);
+            if ($reg !== null && (int) $reg['is_system'] === 0) {
+                $repo->delete($deleteId);
+                setFlash('success', 'Registre « ' . $reg['label'] . ' » supprimé.');
+            } else {
+                setFlash('error', 'Impossible de supprimer ce registre.');
+            }
+        }
+        redirect(url('settings', ['tab' => 'registres']));
+    }
+
+    // ── Add a new registry ────────────────────────────────────────────────
+    if ($action === 'add') {
+        $code = trim(strtolower((string) ($postData['new_code'] ?? '')));
+        $label = trim((string) ($postData['new_label'] ?? ''));
+        $shortLabel = trim((string) ($postData['new_short_label'] ?? ''));
+
+        if ($code === '' || $label === '' || $shortLabel === '') {
+            setFlash('error', 'Code, libellé et sigle sont requis.');
+            redirect(url('settings', ['tab' => 'registres']));
+        }
+
+        if (!preg_match('/^[a-z_]+$/', $code)) {
+            setFlash('error', 'Le code ne doit contenir que des lettres minuscules et des underscores.');
+            redirect(url('settings', ['tab' => 'registres']));
+        }
+
+        if ($repo->countByCode($code) > 0) {
+            setFlash('error', 'Un registre avec le code « ' . $code . ' » existe déjà.');
+            redirect(url('settings', ['tab' => 'registres']));
+        }
+
+        $maxOrder = 0;
+        foreach ($repo->findAll() as $r) {
+            $o = (int) ($r['sort_order'] ?? 0);
+            if ($o > $maxOrder) {
+                $maxOrder = $o;
+            }
+        }
+
+        $repo->create([
+            'code'               => $code,
+            'label'              => $label,
+            'short_label'        => $shortLabel,
+            'description'        => trim((string) ($postData['new_description'] ?? '')),
+            'icon'               => '📋',
+            'color_theme'        => VisibilityMode::AgentChoice->value,
+            'is_enabled'         => 1,
+            'is_system'          => 0,
+            'sort_order'         => $maxOrder + 1,
+            'default_visibility' => VisibilityMode::AgentChoice->value,
+        ]);
+
+        setFlash('success', 'Registre « ' . $label . ' » ajouté.');
+        redirect(url('settings', ['tab' => 'registres']));
+    }
+
+    // ── Save all registres ────────────────────────────────────────────────
     /** @var array<int, array<string, mixed>> $registres */
     $registres = is_array($postData['registres'] ?? null) ? $postData['registres'] : [];
 
@@ -32,14 +98,22 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             continue;
         }
 
-        // System registres can't be disabled
         $isSystem = (int) $existing['is_system'] === 1;
         $isEnabled = $isSystem ? 1 : (!empty($data['is_enabled']) ? 1 : 0);
 
-        $updateData = ['is_enabled' => $isEnabled];
+        $updateData = [
+            'is_enabled'         => $isEnabled,
+            'label'              => trim((string) ($data['label'] ?? $existing['label'])),
+            'short_label'        => trim((string) ($data['short_label'] ?? $existing['short_label'])),
+            'description'        => trim((string) ($data['description'] ?? '')),
+            'sort_order'         => (int) ($data['sort_order'] ?? $existing['sort_order']),
+            'default_visibility' => (string) ($data['default_visibility'] ?? $existing['default_visibility']),
+            'notify_chsct'       => !empty($data['notify_chsct']) ? 1 : 0,
+            'legal_note'         => trim((string) ($data['legal_note'] ?? '')),
+        ];
 
-        // Color theme (only for non-system registres)
-        if (!$isSystem && !empty($data['color_theme'])) {
+        // Color theme
+        if (!empty($data['color_theme'])) {
             $theme = (string) $data['color_theme'];
             $validThemes = RegistryRepository::availableThemes();
             if (in_array($theme, $validThemes, true)) {
@@ -47,11 +121,14 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             }
         }
 
-        // Icon (only for non-system registres)
-        if (!$isSystem && !empty($data['icon'])) {
+        // Icon
+        if (!empty($data['icon'])) {
             $updateData['icon'] = (string) $data['icon'];
         }
 
         $repo->update($id, $updateData);
     }
+
+    setFlash('success', 'Registres mis à jour avec succès.');
+    redirect(url('settings', ['tab' => 'registres']));
 }

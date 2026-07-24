@@ -1,0 +1,38 @@
+name: E2E Login Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  login-test:
+    name: E2E Login (Firefox)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: none
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: npm install
+        run: npm install
+
+      - name: Install Playwright (Firefox only)
+        run: npx playwright install --with-deps firefox
+
+      - name: Create session directory
+        run: mkdir -p /tmp/php_sessions
+
+      - name: Run auth tests only
+        run: npx playwright test --project=firefox e2e/auth.spec.js

@@ -1,3 +1,6 @@
+includes:
+    - vendor/spaze/phpstan-disallowed-calls/extension.neon
+
 parameters:
     disallowedMethodCalls:
         -
@@ -16,3 +19,14 @@ parameters:
                 - src/config.php
                 - src/Services/SessionService.php
                 - public/index.php
+
+    disallowedConstants:
+        -
+            constant: 'TYPE_RSST'
+            message: 'TYPE_RSST est supprimé. Utiliser ReportType::Rsst->value directement.'
+        -
+            constant: 'TYPE_RAMI'
+            message: 'TYPE_RAMI est supprimé. Utiliser ReportType::Rami->value directement.'
+        -
+            constant: 'TYPE_DGI'
+            message: 'TYPE_DGI est supprimé. Utiliser ReportType::Dgi->value directement.'

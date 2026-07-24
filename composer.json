@@ -14,7 +14,8 @@
         "phpro/grumphp": "*",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^13",
-        "rector/rector": "^2.0"
+        "rector/rector": "^2.0",
+        "spaze/phpstan-disallowed-calls": "^4.13"
     },
     "autoload": {
         "psr-4": {

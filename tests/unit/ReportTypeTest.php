@@ -65,11 +65,11 @@ class ReportTypeTest extends TestCase
     /**
      * TYPE_* constants must match the enum values.
      */
-    public function testConstantsMatchEnumValues(): void
+    public function testEnumValuesAreStrings(): void
     {
-        $this->assertSame(TYPE_RSST, ReportType::Rsst->value);
-        $this->assertSame(TYPE_RAMI, ReportType::Rami->value);
-        $this->assertSame(TYPE_DGI, ReportType::Dgi->value);
+        $this->assertIsString(ReportType::Rsst->value);
+        $this->assertIsString(ReportType::Rami->value);
+        $this->assertIsString(ReportType::Dgi->value);
     }
 
     /**

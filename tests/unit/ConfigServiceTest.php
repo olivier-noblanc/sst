@@ -167,20 +167,20 @@ class ConfigServiceTest extends TestCase
     public function testIsRegistryEnabledRsstAlwaysReturnsTrue(): void
     {
         RegistryRepository::instance()->seedDefaults();
-        $this->assertTrue($this->service->isRegistryEnabled(TYPE_RSST));
+        $this->assertTrue($this->service->isRegistryEnabled(ReportType::Rsst->value));
     }
 
     public function testIsRegistryEnabledRamiDefaultReturnsFalse(): void
     {
         $this->service->clearCache();
-        $result = $this->service->isRegistryEnabled(TYPE_RAMI);
+        $result = $this->service->isRegistryEnabled(ReportType::Rami->value);
         $this->assertFalse($result);
     }
 
     public function testIsRegistryEnabledDgiDefaultReturnsFalse(): void
     {
         $this->service->clearCache();
-        $result = $this->service->isRegistryEnabled(TYPE_DGI);
+        $result = $this->service->isRegistryEnabled(ReportType::Dgi->value);
         $this->assertFalse($result);
     }
 
@@ -188,10 +188,10 @@ class ConfigServiceTest extends TestCase
     {
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
-        $rami = $repo->findByCode(TYPE_RAMI);
+        $rami = $repo->findByCode(ReportType::Rami->value);
         $repo->update((int) $rami['id'], ['is_enabled' => 1]);
         $this->service->clearCache();
-        $result = $this->service->isRegistryEnabled(TYPE_RAMI);
+        $result = $this->service->isRegistryEnabled(ReportType::Rami->value);
         $this->assertTrue($result);
     }
 
@@ -199,10 +199,10 @@ class ConfigServiceTest extends TestCase
     {
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
-        $dgi = $repo->findByCode(TYPE_DGI);
+        $dgi = $repo->findByCode(ReportType::Dgi->value);
         $repo->update((int) $dgi['id'], ['is_enabled' => 1]);
         $this->service->clearCache();
-        $result = $this->service->isRegistryEnabled(TYPE_DGI);
+        $result = $this->service->isRegistryEnabled(ReportType::Dgi->value);
         $this->assertTrue($result);
     }
 
@@ -210,10 +210,10 @@ class ConfigServiceTest extends TestCase
     {
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
-        $rami = $repo->findByCode(TYPE_RAMI);
+        $rami = $repo->findByCode(ReportType::Rami->value);
         $repo->update((int) $rami['id'], ['is_enabled' => 0]);
         $this->service->clearCache();
-        $result = $this->service->isRegistryEnabled(TYPE_RAMI);
+        $result = $this->service->isRegistryEnabled(ReportType::Rami->value);
         $this->assertFalse($result);
     }
 
@@ -231,31 +231,31 @@ class ConfigServiceTest extends TestCase
         RegistryRepository::instance()->seedDefaults();
         $this->service->clearCache();
         $result = $this->service->getEnabledRegistries();
-        $this->assertEquals([TYPE_RSST], $result);
+        $this->assertEquals([ReportType::Rsst->value], $result);
     }
 
     public function testGetEnabledRegistriesIncludesRamiWhenEnabled(): void
     {
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
-        $rami = $repo->findByCode(TYPE_RAMI);
+        $rami = $repo->findByCode(ReportType::Rami->value);
         $repo->update((int) $rami['id'], ['is_enabled' => 1]);
         $this->service->clearCache();
         $result = $this->service->getEnabledRegistries();
-        $this->assertContains(TYPE_RSST, $result);
-        $this->assertContains(TYPE_RAMI, $result);
+        $this->assertContains(ReportType::Rsst->value, $result);
+        $this->assertContains(ReportType::Rami->value, $result);
     }
 
     public function testGetEnabledRegistriesIncludesDgiWhenEnabled(): void
     {
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
-        $dgi = $repo->findByCode(TYPE_DGI);
+        $dgi = $repo->findByCode(ReportType::Dgi->value);
         $repo->update((int) $dgi['id'], ['is_enabled' => 1]);
         $this->service->clearCache();
         $result = $this->service->getEnabledRegistries();
-        $this->assertContains(TYPE_RSST, $result);
-        $this->assertContains(TYPE_DGI, $result);
+        $this->assertContains(ReportType::Rsst->value, $result);
+        $this->assertContains(ReportType::Dgi->value, $result);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

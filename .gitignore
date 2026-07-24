@@ -94,6 +94,7 @@ phpstan_*.txt
 phpstan_*.json
 src/phpstan_*.json
 !phpstan-no-magic-string.neon
+!phpstan-banned-code.neon
 
 # Dev/test scripts (not part of the app)
 tests/test_services_smoke.php

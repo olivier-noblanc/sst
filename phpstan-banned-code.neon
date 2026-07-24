@@ -1,0 +1,12 @@
+parameters:
+    banned_code:
+        nodes:
+            -
+                type: Expr_FuncCall
+                functions:
+                    - dd
+                    - dump
+                    - print_r
+                    - var_dump
+        use_from_tests: false
+        non_ignorable: false

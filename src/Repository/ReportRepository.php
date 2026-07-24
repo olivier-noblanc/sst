@@ -143,9 +143,6 @@ class ReportRepository
     {
         $builder = new QueryFilterBuilder();
         $builder->addEqual('r.type', $filter->type);
-        if (!$filter->seeAllSites) {
-            $builder->addEqual('r.site_id', $filter->forceSiteId ?? 0);
-        }
         $filters = $filter->toArray();
 
         if (!empty($filters['linked_agent_id'])) {
@@ -184,7 +181,7 @@ class ReportRepository
         if (!empty($filters['site_id']) && $filter->seeAllSites) {
             $builder->addEqual('r.site_id', $filters['site_id']);
         }
-        if (!empty($filters['force_site_id'])) {
+        if (!empty($filters['force_site_id']) && empty($filters['linked_agent_id'])) {
             $forceSiteIdRaw = $filters['force_site_id'];
             $builder->addEqual('r.site_id', (int) $forceSiteIdRaw);
         }

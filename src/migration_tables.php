@@ -89,4 +89,7 @@ function migrateTables(PDO $pdo): void
             ('dgi', 'Danger Grave et Imminent', 'DGI', 'Dangers immédiats pour la santé', '🔴', 'dgi', 1, 0, 3, 'agent_choice', 1)
         ");
     }
+
+    // ── Ensure system registres are always enabled ─────────────────────────
+    $pdo->exec("UPDATE registries SET is_enabled = 1 WHERE is_system = 1 AND is_enabled = 0");
 }

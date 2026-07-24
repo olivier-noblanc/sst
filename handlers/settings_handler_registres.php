@@ -34,7 +34,7 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
 
         // System registres can't be disabled
         $isSystem = (int) $existing['is_system'] === 1;
-        $isEnabled = !empty($data['is_enabled']) ? 1 : 0;
+        $isEnabled = $isSystem ? 1 : (!empty($data['is_enabled']) ? 1 : 0);
 
         $updateData = ['is_enabled' => $isEnabled];
 

@@ -125,10 +125,12 @@ $visibilityModes = [
                 ];
                 ?>
                 <input type="hidden" name="registres[<?php echo $regId; ?>][color_theme]" value="<?php echo $fmt->e($colorTheme); ?>">
-                <div class="color-picker" data-regid="<?php echo $regId; ?>" style="display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff;">
+                <div class="color-picker" data-regid="<?php echo $regId; ?>">
                     <?php foreach ($themes as $theme): ?>
-                    <span class="color-dot" data-theme="<?php echo $fmt->e($theme); ?>"
-                          style="width: 24px; height: 24px; border-radius: 50%; background: <?php echo $themeColors[$theme] ?? '#666'; ?>; border: 2px solid <?php echo $colorTheme === $theme ? '#333' : 'transparent'; ?>; cursor: pointer;" title="<?php echo $fmt->e($theme); ?>"></span>
+                    <span class="color-dot<?php echo $colorTheme === $theme ? ' color-dot--active' : ''; ?>"
+                          data-theme="<?php echo $fmt->e($theme); ?>"
+                          style="background: <?php echo $themeColors[$theme] ?? '#666'; ?>"
+                          title="<?php echo $fmt->e($theme); ?>"></span>
                     <?php endforeach; ?>
                 </div>
             </div>

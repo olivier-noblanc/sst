@@ -3836,3 +3836,8 @@ tr:hover td {
 .wc-c4 { color: #c5d5f5; }
 .wc-c5 { color: #bdd0f0; }
 .wc-c6 { color: #f0f4ff; }
+
+/* Color picker for registry settings */
+.color-picker { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+.color-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+.color-dot--active { border-color: #333; }

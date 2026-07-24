@@ -10,6 +10,7 @@
 ### Fichiers CSS
 - Le CSS de l'application est dans **`public/css/style.css`** (fichier statique, inliné via `inlineCss()` dans les templates).
 - Il n'y a **pas de `style.php`**. Ne pas créer de fichier PHP pour le CSS.
+- **Pas de styles inline** dans le PHP — le CSP (`web.config`) interdit `style-src 'unsafe-inline'`. Tous les styles doivent aller dans `public/css/style.css` avec des classes CSS.
 
 ### Terminologie
 - Toujours utiliser **CSA/CHSCT** (et non CHSCT seul) dans tout texte visible par l'utilisateur.

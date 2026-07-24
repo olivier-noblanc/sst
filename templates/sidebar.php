@@ -28,32 +28,35 @@ if ($activeRegistryType === null && in_array($currentPage, $reportSubpages, true
 }
 
 // Define menu items with role visibility
+use App\Enum\UserRole;
+
+$allRoles = [UserRole::Agent->value, UserRole::Superviseur->value, UserRole::Chsct->value];
+$supRoles = [UserRole::Superviseur->value, UserRole::Chsct->value];
+$supOnly  = [UserRole::Superviseur->value];
+
 $menuItems = [
-    ['label' => 'Accueil', 'icon' => '&#127968;', 'page' => 'home', 'params' => [], 'roles' => ['agent','superviseur','chsct']],
+    ['label' => 'Accueil', 'icon' => '&#127968;', 'page' => 'home', 'params' => [], 'roles' => $allRoles],
 ];
 
-// Add registry types from enum (RSST always enabled, others conditional)
-foreach (\App\Enum\ReportType::cases() as $type) {
-    $isEnabled = $type === \App\Enum\ReportType::Rsst || isRegistryEnabled($type->value);
-    if (!$isEnabled) {
-        continue;
-    }
+// Add registry types from database (dynamic, includes custom registres)
+$enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled();
+foreach ($enabledRegistries as $reg) {
     $menuItems[] = [
-        'label'  => $type->shortLabel(),
-        'icon'   => $type->icon(),
+        'label'  => $reg['short_label'],
+        'icon'   => $reg['icon'],
         'page'   => 'report_list',
-        'params' => ['type' => $type->value],
-        'roles'  => ['agent', 'superviseur', 'chsct'],
+        'params' => ['type' => $reg['code']],
+        'roles'  => $allRoles,
     ];
 }
 
 $menuItems = array_merge($menuItems, [
-    ['label' => 'Synthèse',       'icon' => '&#128202;', 'page' => 'synthesis',           'params' => [],                                  'roles' => ['superviseur','chsct']],
-    ['label' => 'Export',         'icon' => '&#128229;', 'page' => 'export',              'params' => [],                                  'roles' => ['superviseur','chsct']],
-    ['label' => 'Statistiques',   'icon' => '&#128200;', 'page' => 'statistics',          'params' => [],                                  'roles' => ['superviseur','chsct']],
-    ['label' => 'Utilisateurs',   'icon' => '&#128101;', 'page' => 'users',               'params' => [],                                  'roles' => ['superviseur']],
-    ['label' => 'Paramètres',     'icon' => '&#9881;',   'page' => 'settings',            'params' => [],                                  'roles' => ['superviseur']],
-    ['label' => 'Journal',        'icon' => '&#128220;', 'page' => 'logs',                'params' => [],                                  'roles' => ['superviseur']],
+    ['label' => 'Synthèse',       'icon' => '&#128202;', 'page' => 'synthesis',           'params' => [],  'roles' => $supRoles],
+    ['label' => 'Export',         'icon' => '&#128229;', 'page' => 'export',              'params' => [],  'roles' => $supRoles],
+    ['label' => 'Statistiques',   'icon' => '&#128200;', 'page' => 'statistics',          'params' => [],  'roles' => $supRoles],
+    ['label' => 'Utilisateurs',   'icon' => '&#128101;', 'page' => 'users',               'params' => [],  'roles' => $supOnly],
+    ['label' => 'Paramètres',     'icon' => '&#9881;',   'page' => 'settings',            'params' => [],  'roles' => $supOnly],
+    ['label' => 'Journal',        'icon' => '&#128220;', 'page' => 'logs',                'params' => [],  'roles' => $supOnly],
 ]);
 ?>
 <!-- Hidden checkbox for CSS-only sidebar toggle (mobile) — tabindex="-1" prevents focus since hidden attr is not always sufficient -->

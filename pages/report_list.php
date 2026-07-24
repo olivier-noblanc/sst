@@ -16,7 +16,7 @@ $session = new \App\Services\SessionService();
 $access = new \App\Services\AccessService();
 
 // Validate type
-if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI], true)) {
+if (!in_array($type, [\App\Enum\ReportType::Rsst->value, \App\Enum\ReportType::Rami->value, \App\Enum\ReportType::Dgi->value], true)) {
     $session->setFlash('error', 'Type de registre invalide.');
     $http->redirect($http->url('home'));
 }

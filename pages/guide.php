@@ -9,8 +9,8 @@
  * CSS served via css.php with proper HTTP caching (ETag, 304).
  */
 $pageTitle = 'Guide rapide';
-$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
+$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
 $noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
 $labelUnite = \App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR');

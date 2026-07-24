@@ -50,7 +50,7 @@ $fmt = new \App\Services\FormattingService();
  *   ...
  * } $report
  */
-$type = (string) ($report['type'] ?? TYPE_RSST);
+$type = (string) ($report['type'] ?? \App\Enum\ReportType::Rsst->value);
 $cardClass = match(ReportType::tryFrom($type)) {
     ReportType::Rsst => 'card--rsst',
     ReportType::Rami => 'card--rami',
@@ -81,7 +81,7 @@ if (!isset($csrfToken)) {
 ?>
 
 <div class="card <?php echo $cardClass; ?>">
-    <?php if ($type === TYPE_DGI): ?>
+    <?php if ($type === \App\Enum\ReportType::Dgi->value): ?>
     <div class="danger-panel">
         &#9888;&#65039; <strong>Procédure prioritaire :</strong> Ce signalement relève du registre DGI (Danger Grave et Imminent). Conformément aux articles L4131-1 et L4132-5 du Code du travail, l'agent a le droit de se retirer de la situation de danger. Le registre DGI doit être tenu à disposition de l'inspecteur du travail et du CHSCT/CSA.
     </div>
@@ -114,7 +114,7 @@ if (!isset($csrfToken)) {
                     <td><?php echo $fmt->e($report['heure_evenement'] ?? '—'); ?></td>
                 </tr>
                 <tr>
-                    <th><?php echo $type === TYPE_DGI ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
+                    <th><?php echo $type === \App\Enum\ReportType::Dgi->value ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
                     <td><?php echo $fmt->e($report['lieu'] ?? '—'); ?></td>
                 </tr>
                 <?php if (!empty($report['pole'])): ?>
@@ -159,7 +159,7 @@ if (!isset($csrfToken)) {
                     <td><?php echo $fmt->e($report['site_text']); ?></td>
                 </tr>
                 <?php endif; ?>
-                <?php if ($type === TYPE_RAMI && !empty($report['pour_compte_nom'])): ?>
+                <?php if ($type === \App\Enum\ReportType::Rami->value && !empty($report['pour_compte_nom'])): ?>
                 <tr>
                     <th>Signalé au nom de</th>
                     <td><?php echo $fmt->e(($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']); ?></td>

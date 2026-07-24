@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enum\UserRole;
 use App\Repository\ConfigRepository;
+use App\Repository\RegistryRepository;
 use App\Repository\SiteRepository;
 use Exception;
 
@@ -73,36 +74,22 @@ class ConfigService
     }
 
     /**
-     * Check if a registry type is enabled (RAMI or DGI). RSST is always enabled.
+     * Check if a registry type is enabled.
+     * Reads from the registries table instead of hardcoded constants.
      */
     public function isRegistryEnabled(string $type): bool
     {
-        if ($type === TYPE_RSST) {
-            return true;
-        }
-        if ($type === TYPE_RAMI) {
-            return $this->get('app_registry_rami_enabled', '0') === '1';
-        }
-        if ($type === TYPE_DGI) {
-            return $this->get('app_registry_dgi_enabled', '0') === '1';
-        }
-        return false;
+        $reg = RegistryRepository::instance()->findByCode($type);
+        return $reg !== null && (int) $reg['is_enabled'] === 1;
     }
 
     /**
-     * Get the list of enabled registry types.
-     * @return string[]
+     * Get the list of enabled registry codes.
+     * @return list<string>
      */
     public function getEnabledRegistries(): array
     {
-        $types = [TYPE_RSST];
-        if ($this->isRegistryEnabled(TYPE_RAMI)) {
-            $types[] = TYPE_RAMI;
-        }
-        if ($this->isRegistryEnabled(TYPE_DGI)) {
-            $types[] = TYPE_DGI;
-        }
-        return $types;
+        return array_column(RegistryRepository::instance()->findEnabled(), 'code');
     }
 
     /**

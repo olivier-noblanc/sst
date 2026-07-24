@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 use RuntimeException;
 use InvalidArgumentException;
@@ -146,7 +147,7 @@ class ReportService
             $cmd->lieu ?? '',
             $cmd->heureEvenement ?? ''
         );
-        if ($cmd->type === TYPE_RAMI) {
+        if ($cmd->type === ReportType::Rami->value) {
             $errors = array_merge($errors, validatePourCompte(
                 $cmd->pourCompteNom !== null,
                 $cmd->pourCompteNom ?? '',

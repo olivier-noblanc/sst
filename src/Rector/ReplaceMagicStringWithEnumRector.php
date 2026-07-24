@@ -8,8 +8,10 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Case_;
@@ -19,17 +21,31 @@ use Rector\Rector\AbstractRector;
 /**
  * Remplace les magic strings métier par les cases d'enum correspondantes.
  *
- * Gère : ===, !==, switch/case
+ * Gère :
+ * - ===, !==, switch/case (string literals)
+ * - Constantes TYPE_RSST/TYPE_RAMI/TYPE_DGI → ReportType::X->value
  */
 final class ReplaceMagicStringWithEnumRector extends AbstractRector implements ConfigurableRectorInterface
 {
     /** @var array<string, string> Map magic string → "EnumClass::CaseName" */
     private array $stringToEnum = [];
 
+    /** @var array<string, string> Map constant name → "EnumClass::CaseName" */
+    private array $constToEnum = [];
+
     /** @param array{stringToEnum: array<string, string>} $configuration */
     public function configure(array $configuration): void
     {
         $this->stringToEnum = $configuration['stringToEnum'];
+
+        // Build const-to-enum map: TYPE_RSST → ReportType::Rsst->value
+        foreach ($this->stringToEnum as $stringVal => $enumFqcn) {
+            $parts = explode('::', $enumFqcn);
+            if (count($parts) === 2) {
+                $constName = 'TYPE_' . strtoupper($stringVal);
+                $this->constToEnum[$constName] = $enumFqcn;
+            }
+        }
     }
 
     public function getNodeTypes(): array
@@ -38,6 +54,7 @@ final class ReplaceMagicStringWithEnumRector extends AbstractRector implements C
             Identical::class,
             NotIdentical::class,
             Case_::class,
+            ConstFetch::class,
         ];
     }
 
@@ -48,6 +65,8 @@ final class ReplaceMagicStringWithEnumRector extends AbstractRector implements C
                 => $this->refactorComparison($node),
             $node instanceof Case_
                 => $this->refactorCase($node),
+            $node instanceof ConstFetch
+                => $this->refactorConstFetch($node),
             default => null,
         };
     }
@@ -85,7 +104,6 @@ final class ReplaceMagicStringWithEnumRector extends AbstractRector implements C
 
     private function refactorCase(Case_ $node): ?Node
     {
-        // case 'confidential': → case VisibilityMode::Confidential->value:
         if (!$node->cond instanceof String_) {
             return null;
         }
@@ -102,6 +120,19 @@ final class ReplaceMagicStringWithEnumRector extends AbstractRector implements C
 
         $node->cond = $valueNode;
         return $node;
+    }
+
+    /**
+     * Replace TYPE_RSST → ReportType::Rsst->value, TYPE_RAMI → ReportType::Rami->value, etc.
+     */
+    private function refactorConstFetch(ConstFetch $node): ?Node
+    {
+        $constName = $node->name->toString();
+        if (!isset($this->constToEnum[$constName])) {
+            return null;
+        }
+
+        return $this->buildEnumValueNode($this->constToEnum[$constName]);
     }
 
     private function buildEnumValueNode(string $enumFqcn): ?PropertyFetch

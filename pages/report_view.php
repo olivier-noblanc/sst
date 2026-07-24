@@ -52,7 +52,7 @@ $pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvite
 
 // Breadcrumb data
 /** @var string */
-$reportType = $report['type'] ?? TYPE_RSST;
+$reportType = $report['type'] ?? \App\Enum\ReportType::Rsst->value;
 $reportShortLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
 ?>
 

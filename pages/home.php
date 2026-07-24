@@ -27,29 +27,29 @@ $ramiCount = 0;
 $dgiCount  = 0;
 
 if ($agentVisibility === \App\Enum\VisibilityMode::Confidential->value || $agentVisibility === \App\Enum\VisibilityMode::AgentChoice->value) {
-    $rsstCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(TYPE_RSST, $userId, $userSiteId, $agentVisibility);
-    if ($config->isRegistryEnabled(TYPE_RAMI)) {
-        $ramiCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(TYPE_RAMI, $userId, $userSiteId, $agentVisibility);
+    $rsstCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(\App\Enum\ReportType::Rsst->value, $userId, $userSiteId, $agentVisibility);
+    if ($config->isRegistryEnabled(\App\Enum\ReportType::Rami->value)) {
+        $ramiCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(\App\Enum\ReportType::Rami->value, $userId, $userSiteId, $agentVisibility);
     }
-    if ($config->isRegistryEnabled(TYPE_DGI)) {
-        $dgiCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(TYPE_DGI, $userId, $userSiteId, $agentVisibility);
+    if ($config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value)) {
+        $dgiCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(\App\Enum\ReportType::Dgi->value, $userId, $userSiteId, $agentVisibility);
     }
 } else {
     $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
-    $rsstCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RSST, $siteIdFilter);
-    if ($config->isRegistryEnabled(TYPE_RAMI)) {
-        $ramiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_RAMI, $siteIdFilter);
+    $rsstCount = \App\Repository\ReportRepository::instance()->countActive(\App\Enum\ReportType::Rsst->value, $siteIdFilter);
+    if ($config->isRegistryEnabled(\App\Enum\ReportType::Rami->value)) {
+        $ramiCount = \App\Repository\ReportRepository::instance()->countActive(\App\Enum\ReportType::Rami->value, $siteIdFilter);
     }
-    if ($config->isRegistryEnabled(TYPE_DGI)) {
-        $dgiCount = \App\Repository\ReportRepository::instance()->countActive(TYPE_DGI, $siteIdFilter);
+    if ($config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value)) {
+        $dgiCount = \App\Repository\ReportRepository::instance()->countActive(\App\Enum\ReportType::Dgi->value, $siteIdFilter);
     }
 }
 
 $totalReports = $rsstCount + $ramiCount + $dgiCount;
 $userRole = $user['role'] ?? ROLE_AGENT;
 $labelUnite = $config->get('app_label_unite', 'UR');
-$ramiEnabled = $config->isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
+$dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 
 // Word cloud — ALL roles, integrated inside RSST card
 $wordCloud = $fmt->buildWordCloud();

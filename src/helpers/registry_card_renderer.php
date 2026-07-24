@@ -87,16 +87,16 @@ function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool 
         'type' => ReportType::Rsst->value, 'title' => 'Registre de Santé et de Sécurité au Travail',
         'subtitle' => 'RSST', 'desc' => getConfig('app_rsst_description', 'Risques liés aux locaux, équipements, ergonomie, conditions environnementales'),
         'count' => $rsstCount, 'btnLabel' => 'Déposer un signalement',
-        'btnUrl' => url('report_create', ['type' => TYPE_RSST]), 'listUrl' => url('report_list', ['type' => TYPE_RSST]),
-        'listLabel' => $listLabel(TYPE_RSST),
+        'btnUrl' => url('report_create', ['type' => ReportType::Rsst->value]), 'listUrl' => url('report_list', ['type' => ReportType::Rsst->value]),
+        'listLabel' => $listLabel(ReportType::Rsst->value),
     ];
     if ($ramiEnabled) {
         $cards[] = [
             'type' => ReportType::Rami->value, 'title' => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
             'subtitle' => 'RAMI', 'desc' => 'Agressions physiques ou verbales, menaces, incivilités, harcèlement',
             'count' => $ramiCount, 'btnLabel' => 'Signaler une agression',
-            'btnUrl' => url('report_create', ['type' => TYPE_RAMI]), 'listUrl' => url('report_list', ['type' => TYPE_RAMI]),
-            'listLabel' => $listLabel(TYPE_RAMI),
+            'btnUrl' => url('report_create', ['type' => ReportType::Rami->value]), 'listUrl' => url('report_list', ['type' => ReportType::Rami->value]),
+            'listLabel' => $listLabel(ReportType::Rami->value),
         ];
     }
     if ($dgiEnabled) {
@@ -104,8 +104,8 @@ function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool 
             'type' => ReportType::Dgi->value, 'title' => 'Registre de signalement d\'un Danger Grave et Imminent',
             'subtitle' => 'DGI', 'desc' => 'Danger nécessitant une action immédiate, droit de retrait',
             'count' => $dgiCount, 'btnLabel' => 'Signaler un danger urgent',
-            'btnUrl' => url('report_create', ['type' => TYPE_DGI]), 'listUrl' => url('report_list', ['type' => TYPE_DGI]),
-            'listLabel' => $listLabel(TYPE_DGI),
+            'btnUrl' => url('report_create', ['type' => ReportType::Dgi->value]), 'listUrl' => url('report_list', ['type' => ReportType::Dgi->value]),
+            'listLabel' => $listLabel(ReportType::Dgi->value),
         ];
     }
     return $cards;

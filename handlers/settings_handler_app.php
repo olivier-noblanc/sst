@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 
 /**
@@ -138,7 +139,7 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     updateConfig($pdo, 'app_report_visibility', $reportVisibility);
 
     // Per-registry visibility settings
-    $registryTypes = [TYPE_RSST, TYPE_RAMI, TYPE_DGI];
+    $registryTypes = [ReportType::Rsst->value, ReportType::Rami->value, ReportType::Dgi->value];
     foreach ($registryTypes as $type) {
         $key = 'app_report_visibility_' . $type;
         $value = (string) ($postData[$key] ?? '');

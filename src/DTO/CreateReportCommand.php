@@ -4,6 +4,8 @@
 
 namespace App\DTO;
 
+use App\Enum\ReportType;
+
 class CreateReportCommand
 {
     public function __construct(
@@ -42,7 +44,7 @@ class CreateReportCommand
         $type = $post['type'] ?? '';
         $natureAuteur = trim($post['nature_auteur'] ?? '');
         $typeActe = trim($post['type_acte'] ?? '');
-        if ($type === TYPE_RAMI) {
+        if ($type === ReportType::Rami->value) {
             $ramiFields = validateRamiFields($natureAuteur, $typeActe);
             $natureAuteur = $ramiFields['nature_auteur'];
             $typeActe = $ramiFields['type_acte'];

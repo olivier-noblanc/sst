@@ -20,8 +20,8 @@ $formData = new \App\Services\SessionService()->getFormData();
 
 $pageTitle = 'Export des données';
 
-$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
+$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 ?>
 
 <h1 class="page-title">Export des données</h1>

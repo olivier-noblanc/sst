@@ -81,8 +81,8 @@ foreach ($tableData as $td) {
 
 $pageTitle = 'Statistiques';
 
-$ramiEnabled = $config->isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
+$dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 ?>
 
 <h1 class="page-title">Statistiques</h1>

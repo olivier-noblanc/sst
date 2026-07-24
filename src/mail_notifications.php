@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ReportType;
 use App\Repository\NotificationRepository;
 
 /**
@@ -45,7 +46,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         sendMail($email, $subject, $body);
     }
     // DGI: notify CSA/CHSCT members (article L4131-2 Code du travail)
-    if ($type === TYPE_DGI && getConfig('app_dgi_notify_csa', '1') === '1') {
+    if ($type === ReportType::Dgi->value && getConfig('app_dgi_notify_csa', '1') === '1') {
         $csaUsers = getUsersByRole($pdo, ROLE_CHSCT);
         foreach ($csaUsers as $csaUser) {
             /** @var array<string, mixed> $csaUser */

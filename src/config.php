@@ -106,12 +106,7 @@ define('ETAT_TRAITE', ReportState::Traite->value);
 define('ETAT_ABANDONNE', ReportState::Abandonne->value);
 define('ETAT_REOUVERT', ReportState::Reouvert->value);
 
-// Registry types — aliases on ReportType enum for backward compatibility
-define('TYPE_RSST', ReportType::Rsst->value);
-define('TYPE_RAMI', ReportType::Rami->value);
-define('TYPE_DGI', ReportType::Dgi->value);
-
-// Registry type labels — derived from ReportType enum
+// Registry type labels — derived from ReportType enum (kept for templates/helpers)
 if (!defined('REGISTRY_LABELS')) {
     define('REGISTRY_LABELS', array_combine(
         array_map(fn($c) => $c->value, ReportType::cases()),

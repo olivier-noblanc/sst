@@ -83,8 +83,8 @@ foreach (ReportType::cases() as $type) {
 
 $pageTitle = 'Synthèse des signalements';
 
-$ramiEnabled = $config->isRegistryEnabled(TYPE_RAMI);
-$dgiEnabled = $config->isRegistryEnabled(TYPE_DGI);
+$ramiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
+$dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 
 // Build list of active registry types for the table columns
 $activeTypes = [ReportType::Rsst->value => 'RSST'];

@@ -3,7 +3,7 @@
 /**
  * Report Edit Handler — Thin controller delegating to ReportService.
  */
-
+use App\Enum\ReportType;
 use App\DTO\UpdateReportCommand;
 use App\Services\ReportService;
 
@@ -41,7 +41,7 @@ $errors = array_merge($errors, $fieldErrors);
 
 // RAMI-specific validation
 $type = $report['type'];
-if ($type === TYPE_RAMI) {
+if ($type === ReportType::Rami->value) {
     $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
     $pourCompteNom = trim((string) ($_POST['pour_compte_nom'] ?? ''));
     $pourComptePrenom = trim((string) ($_POST['pour_compte_prenom'] ?? ''));

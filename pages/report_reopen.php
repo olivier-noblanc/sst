@@ -85,7 +85,7 @@ $flash = new \App\Services\SessionService()->getFlash();
     <?php endif; ?>
 
 <div class="warning-panel">
-    <?php if ($report['type'] === TYPE_DGI): ?>
+    <?php if ($report['type'] === \App\Enum\ReportType::Dgi->value): ?>
     <div class="alert alert--danger" role="alert">
         <strong>Attention — Registre DGI</strong><br>
         La réouverture d'un signalement DGI signifie que le danger grave et imminent n'a pas été résolu. 

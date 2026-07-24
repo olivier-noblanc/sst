@@ -3,7 +3,7 @@
 /**
  * Report Create Handler — Thin controller delegating to ReportService.
  */
-
+use App\Enum\ReportType;
 use App\DTO\CreateReportCommand;
 use App\Services\ReportService;
 
@@ -16,7 +16,7 @@ use App\Services\ReportService;
 // already-deleted token, silently redirecting home on every submission.
 
 $type = (string) ($_POST['type'] ?? '');
-if (!in_array($type, [TYPE_RSST, TYPE_RAMI, TYPE_DGI], true)) {
+if (!in_array($type, [ReportType::Rsst->value, ReportType::Rami->value, ReportType::Dgi->value], true)) {
     setFlash('error', 'Type de registre invalide.');
     redirect(url('home'));
 }

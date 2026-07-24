@@ -14,6 +14,7 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Services\ConfigService;
+use App\Repository\RegistryRepository;
 
 class ConfigServiceTest extends TestCase
 {
@@ -25,6 +26,8 @@ class ConfigServiceTest extends TestCase
         $this->pdo = getDB();
         $this->pdo->exec('PRAGMA foreign_keys = OFF');
         $this->pdo->exec('DELETE FROM config_app');
+        $this->pdo->exec('DELETE FROM registry_fields');
+        $this->pdo->exec('DELETE FROM registries');
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec('PRAGMA foreign_keys = ON');
         clearConfigCache();
@@ -163,6 +166,7 @@ class ConfigServiceTest extends TestCase
 
     public function testIsRegistryEnabledRsstAlwaysReturnsTrue(): void
     {
+        RegistryRepository::instance()->seedDefaults();
         $this->assertTrue($this->service->isRegistryEnabled(TYPE_RSST));
     }
 
@@ -182,21 +186,33 @@ class ConfigServiceTest extends TestCase
 
     public function testIsRegistryEnabledRamiWhenEnabledInDB(): void
     {
-        $this->service->set('app_registry_rami_enabled', '1');
+        $repo = RegistryRepository::instance();
+        $repo->seedDefaults();
+        $rami = $repo->findByCode(TYPE_RAMI);
+        $repo->update((int) $rami['id'], ['is_enabled' => 1]);
+        $this->service->clearCache();
         $result = $this->service->isRegistryEnabled(TYPE_RAMI);
         $this->assertTrue($result);
     }
 
     public function testIsRegistryEnabledDgiWhenEnabledInDB(): void
     {
-        $this->service->set('app_registry_dgi_enabled', '1');
+        $repo = RegistryRepository::instance();
+        $repo->seedDefaults();
+        $dgi = $repo->findByCode(TYPE_DGI);
+        $repo->update((int) $dgi['id'], ['is_enabled' => 1]);
+        $this->service->clearCache();
         $result = $this->service->isRegistryEnabled(TYPE_DGI);
         $this->assertTrue($result);
     }
 
     public function testIsRegistryEnabledRamiWhenExplicitlyDisabledInDB(): void
     {
-        $this->service->set('app_registry_rami_enabled', '0');
+        $repo = RegistryRepository::instance();
+        $repo->seedDefaults();
+        $rami = $repo->findByCode(TYPE_RAMI);
+        $repo->update((int) $rami['id'], ['is_enabled' => 0]);
+        $this->service->clearCache();
         $result = $this->service->isRegistryEnabled(TYPE_RAMI);
         $this->assertFalse($result);
     }
@@ -212,6 +228,7 @@ class ConfigServiceTest extends TestCase
 
     public function testGetEnabledRegistriesReturnsRsstByDefault(): void
     {
+        RegistryRepository::instance()->seedDefaults();
         $this->service->clearCache();
         $result = $this->service->getEnabledRegistries();
         $this->assertEquals([TYPE_RSST], $result);
@@ -219,7 +236,11 @@ class ConfigServiceTest extends TestCase
 
     public function testGetEnabledRegistriesIncludesRamiWhenEnabled(): void
     {
-        $this->service->set('app_registry_rami_enabled', '1');
+        $repo = RegistryRepository::instance();
+        $repo->seedDefaults();
+        $rami = $repo->findByCode(TYPE_RAMI);
+        $repo->update((int) $rami['id'], ['is_enabled' => 1]);
+        $this->service->clearCache();
         $result = $this->service->getEnabledRegistries();
         $this->assertContains(TYPE_RSST, $result);
         $this->assertContains(TYPE_RAMI, $result);
@@ -227,7 +248,11 @@ class ConfigServiceTest extends TestCase
 
     public function testGetEnabledRegistriesIncludesDgiWhenEnabled(): void
     {
-        $this->service->set('app_registry_dgi_enabled', '1');
+        $repo = RegistryRepository::instance();
+        $repo->seedDefaults();
+        $dgi = $repo->findByCode(TYPE_DGI);
+        $repo->update((int) $dgi['id'], ['is_enabled' => 1]);
+        $this->service->clearCache();
         $result = $this->service->getEnabledRegistries();
         $this->assertContains(TYPE_RSST, $result);
         $this->assertContains(TYPE_DGI, $result);

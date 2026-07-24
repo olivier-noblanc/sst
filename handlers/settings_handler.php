@@ -10,10 +10,6 @@
 use App\Repository\NotificationRepository;
 use App\Services\ConfigService;
 
-require_once __DIR__ . '/settings_handler_app.php';
-require_once __DIR__ . '/settings_handler_sites.php';
-require_once __DIR__ . '/settings_handler_registres.php';
-
 /**
  * POST handler: save notification email settings, SMTP config, and app settings.
  * Access: superviseur only
@@ -23,9 +19,6 @@ require_once __DIR__ . '/settings_handler_registres.php';
  * DELETE/INSERT (le finally s'exécute même après exit dans un redirect).
  * AGENTS.md : « Ne JAMAIS catcher silencieusement les erreurs ».
  */
-
-use App\Repository\NotificationRepository;
-use App\Services\ConfigService;
 
 require_once __DIR__ . '/settings_handler_app.php';
 require_once __DIR__ . '/settings_handler_sites.php';

@@ -213,3 +213,15 @@ $visibilityModes = [
         <a href="<?php echo $http->url('settings', ['tab' => 'app']); ?>" class="btn btn--outline">Annuler</a>
     </div>
 </form>
+
+<script>
+document.querySelectorAll('input[name$="[color_theme]"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+        var name = this.name;
+        document.querySelectorAll('input[name="' + CSS.escape(name) + '"]').forEach(function(r) {
+            r.nextElementSibling.style.border = '3px solid transparent';
+        });
+        this.nextElementSibling.style.border = '3px solid #333';
+    });
+});
+</script>

@@ -116,16 +116,15 @@ $visibilityModes = [
         <!-- Color theme + Icon + Sort order -->
         <div class="form-grid form-grid--3">
             <div class="form-group">
-                <label for="registres_<?php echo $regId; ?>_color_theme">Couleur</label>
+                <label>Couleur</label>
                 <div class="flex-row gap-2" style="flex-wrap: wrap;">
                     <?php foreach ($themes as $theme): ?>
-                    <label style="cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; border: 2px solid <?php echo $colorTheme === $theme ? '#333' : '#ddd'; ?>;">
+                    <label style="cursor: pointer; display: inline-flex; align-items: center; padding: 4px; border-radius: 6px; border: 2px solid <?php echo $colorTheme === $theme ? '#333' : '#ddd'; ?>;" title="<?php echo $fmt->e($theme); ?>">
                         <input type="radio" name="registres[<?php echo $regId; ?>][color_theme]"
                                value="<?php echo $fmt->e($theme); ?>"
                                <?php echo $colorTheme === $theme ? 'checked' : ''; ?>
                                style="display: none;">
-                        <span style="display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--theme-<?php echo $fmt->e($theme); ?>, #666);"></span>
-                        <span style="font-size: 12px;"><?php echo $fmt->e($theme); ?></span>
+                        <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background: var(--theme-<?php echo $fmt->e($theme); ?>, #666);"></span>
                     </label>
                     <?php endforeach; ?>
                 </div>

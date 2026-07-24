@@ -116,25 +116,13 @@ $visibilityModes = [
         <!-- Color theme + Icon + Sort order -->
         <div class="form-grid form-grid--3">
             <div class="form-group">
-                <label>Couleur</label>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff;">
-                    <?php
-                    $themeColors = [
-                        'rsst' => '#2E5C8A', 'rami' => '#6C6C6C', 'dgi' => '#b91c1c',
-                        'vert' => '#15803D', 'violet' => '#7C3AED', 'orange' => '#C2410C',
-                        'teal' => '#0D9488', 'indigo' => '#4338CA', 'rose' => '#BE123C', 'ambre' => '#B45309',
-                    ];
-                    ?>
+                <label for="registres_<?php echo $regId; ?>_color_theme">Couleur</label>
+                <select id="registres_<?php echo $regId; ?>_color_theme"
+                        name="registres[<?php echo $regId; ?>][color_theme]" class="input">
                     <?php foreach ($themes as $theme): ?>
-                    <label style="cursor: pointer; margin: 0;">
-                        <input type="radio" name="registres[<?php echo $regId; ?>][color_theme]"
-                               value="<?php echo $fmt->e($theme); ?>"
-                               <?php echo $colorTheme === $theme ? 'checked' : ''; ?>
-                               style="display: none;">
-                        <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background: <?php echo $themeColors[$theme] ?? '#666'; ?>; border: 2px solid <?php echo $colorTheme === $theme ? '#333' : 'transparent'; ?>;" title="<?php echo $fmt->e($theme); ?>"></span>
-                    </label>
+                    <option value="<?php echo $fmt->e($theme); ?>" <?php echo $colorTheme === $theme ? 'selected' : ''; ?>><?php echo $fmt->e($theme); ?></option>
                     <?php endforeach; ?>
-                </div>
+                </select>
             </div>
             <div class="form-group">
                 <label for="registres_<?php echo $regId; ?>_icon">Icône</label>
@@ -220,15 +208,3 @@ $visibilityModes = [
         <a href="<?php echo $http->url('settings', ['tab' => 'app']); ?>" class="btn btn--outline">Annuler</a>
     </div>
 </form>
-
-<script>
-document.querySelectorAll('input[name$="[color_theme]"]').forEach(function(radio) {
-    radio.addEventListener('change', function() {
-        var name = this.name;
-        document.querySelectorAll('input[name="' + CSS.escape(name) + '"]').forEach(function(r) {
-            r.parentElement.style.border = '2px solid #ddd';
-        });
-        this.parentElement.style.border = '2px solid #333';
-    });
-});
-</script>

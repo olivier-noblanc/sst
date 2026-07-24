@@ -4,7 +4,9 @@
 
 namespace App\Services;
 
+use App\Enum\ReportState;
 use App\Enum\ReportType;
+use App\Enum\UserRole;
 use App\Enum\VisibilityMode;
 use RuntimeException;
 use InvalidArgumentException;
@@ -110,10 +112,10 @@ class ReportService
             throw new RuntimeException('Signalement introuvable.');
         }
         /** @var array<string, mixed> $report */
-        if (!in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE], true)) {
+        if (!in_array($report['etat'], [ReportState::Traite->value, ReportState::Abandonne->value], true)) {
             throw new RuntimeException('Ce signalement ne peut pas être réouvert.');
         }
-        if (!in_array(currentUserRole(), [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
+        if (!in_array(currentUserRole(), [UserRole::Superviseur->value, UserRole::Chsct->value], true)) {
             throw new RuntimeException('Accès refusé — seuls les superviseurs et le CHSCT peuvent réouvrir.');
         }
 

@@ -10,7 +10,7 @@ if (!isset($currentPage)) {
     $currentPage = $_GET['page'] ?? 'home';
 }
 
-$userRole = currentUserRole() !== '' ? currentUserRole() : ROLE_AGENT;
+$userRole = currentUserRole() !== '' ? currentUserRole() : \App\Enum\UserRole::Agent->value;
 
 // Determine the active registry type for report subpages
 $activeRegistryType = $_GET['type'] ?? null;

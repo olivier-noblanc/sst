@@ -23,7 +23,7 @@ use Rector\Rector\AbstractRector;
  *
  * Gère :
  * - ===, !==, switch/case (string literals)
- * - Constantes TYPE_RSST/TYPE_RAMI/TYPE_DGI → ReportType::X->value
+ * - Constantes legacy (ROLE_*, ETAT_*, TYPE_*) → Enum::Case->value
  */
 final class ReplaceMagicStringWithEnumRector extends AbstractRector implements ConfigurableRectorInterface
 {
@@ -33,17 +33,22 @@ final class ReplaceMagicStringWithEnumRector extends AbstractRector implements C
     /** @var array<string, string> Map constant name → "EnumClass::CaseName" */
     private array $constToEnum = [];
 
-    /** @param array{stringToEnum: array<string, string>} $configuration */
+    /**
+     * @param array{stringToEnum: array<string, string>, constToEnum?: array<string, string>} $configuration
+     */
     public function configure(array $configuration): void
     {
         $this->stringToEnum = $configuration['stringToEnum'];
 
-        // Build const-to-enum map: TYPE_RSST → ReportType::Rsst->value
+        // Explicit const-to-enum mappings from config
+        $this->constToEnum = $configuration['constToEnum'] ?? [];
+
+        // Auto-build TYPE_* mappings from stringToEnum: TYPE_RSST → ReportType::Rsst->value
         foreach ($this->stringToEnum as $stringVal => $enumFqcn) {
             $parts = explode('::', $enumFqcn);
             if (count($parts) === 2) {
                 $constName = 'TYPE_' . strtoupper($stringVal);
-                $this->constToEnum[$constName] = $enumFqcn;
+                $this->constToEnum[$constName] ??= $enumFqcn;
             }
         }
     }

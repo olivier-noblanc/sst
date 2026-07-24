@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\ReportState;
+
 /**
  * Lazy Cron — Application SST DREETS BFC
  *
@@ -127,7 +129,7 @@ function lazyCronCheckDelays(PDO $pdo): void
             FROM reports r
             LEFT JOIN sites s ON r.site_id = s.id
             LEFT JOIN users d ON r.declarant_id = d.id
-            WHERE r.etat = '" . ETAT_NOUVEAU . "'
+            WHERE r.etat = '" . ReportState::Nouveau->value . "'
               AND r.created_at < :cutoff_date
             ORDER BY r.created_at ASC";
 

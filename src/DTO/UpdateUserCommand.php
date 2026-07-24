@@ -4,6 +4,8 @@
 
 namespace App\DTO;
 
+use App\Enum\UserRole;
+
 class UpdateUserCommand
 {
     public function __construct(
@@ -22,7 +24,7 @@ class UpdateUserCommand
             username: trim($post['username'] ?? ''),
             nom: trim($post['nom'] ?? ''),
             prenom: trim($post['prenom'] ?? ''),
-            role: trim($post['role'] ?? ROLE_AGENT),
+            role: trim($post['role'] ?? UserRole::Agent->value),
             siteId: (int) ($post['site_id'] ?? 0),
             email: !empty(trim($post['email'] ?? '')) ? trim((string) $post['email']) : null,
         );

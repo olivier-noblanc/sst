@@ -13,6 +13,7 @@
  */
 
 $projectDir = dirname(__DIR__);
+$argv ??= [];
 $outputJson = in_array('--json', $argv);
 
 $dirs = ['src', 'pages', 'handlers', 'templates', 'public'];
@@ -35,15 +36,9 @@ foreach ($dirs as $dir) {
             continue;
         }
 
-        $relativePath = str_replace(['\\', '/'], '/', $file->getPathname());
-        $relativePath = str_replace(str_replace(['\\', '/'], '/', $projectDir) . '/', '', $relativePath);
-        $skip = false;
-        foreach ($excluded as $exc) {
-            if (str_starts_with($relativePath, $exc) && (str_ends_with($relativePath, $exc) || str_starts_with(substr($relativePath, strlen($exc)), '/'))) {
-                $skip = true;
-                break;
-            }
-        }
+        $relativePath = (string) str_replace(['\\', '/'], '/', $file->getPathname());
+        $relativePath = (string) str_replace(str_replace(['\\', '/'], '/', $projectDir) . '/', '', $relativePath);
+        $skip = array_any($excluded, fn($exc) => str_starts_with($relativePath, (string) $exc) && (str_ends_with($relativePath, (string) $exc) || str_starts_with(substr($relativePath, strlen((string) $exc)), '/')));
         if ($skip) {
             continue;
         }

@@ -5,7 +5,7 @@
  * Edit an existing site's code, name, and department.
  * Access: superviseur only
  */
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 /** @var string */
 $siteIdRaw = $_GET['id'] ?? '0';

@@ -61,14 +61,14 @@ $cardClass = match(ReportType::tryFrom($type)) {
 $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
 $user = new \App\Services\SessionService()->getUserSession() ?? [];
 /** @var array{role: string, site_id: int|string, id: int|string} $user */
-$userRole = (string) ($user['role'] ?? ROLE_AGENT);
+$userRole = (string) ($user['role'] ?? \App\Enum\UserRole::Agent->value);
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $isDeclarant = ((int) $report['declarant_id'] === $userId);
 $canEdit = new \App\Services\AccessService()->canEditReport((array) $report, $userId);
-$canAbandon = $isDeclarant && !in_array($report['etat'], [ETAT_ABANDONNE, ETAT_TRAITE], true);
+$canAbandon = $isDeclarant && !in_array($report['etat'], [\App\Enum\ReportState::Abandonne->value, \App\Enum\ReportState::Traite->value], true);
 $canRespondToReport = new \App\Services\AccessService()->canRespondToReport((array) $report, $userRole);
-$canReopen = in_array($report['etat'], [ETAT_TRAITE, ETAT_ABANDONNE], true) && in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT], true);
+$canReopen = in_array($report['etat'], [\App\Enum\ReportState::Traite->value, \App\Enum\ReportState::Abandonne->value], true) && in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true);
 
 // Ensure $csrfToken is available (set by index.php but may not be in scope)
 if (!isset($csrfToken)) {

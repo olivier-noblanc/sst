@@ -4,6 +4,7 @@
 
 namespace App\Repository;
 
+use App\Enum\UserRole;
 use Exception;
 use PDO;
 
@@ -123,7 +124,7 @@ class UserRepository
     public function countActiveSuperviseurs(): int
     {
         $stmt = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM users WHERE role = '" . ROLE_SUPERVISEUR . "' AND is_active = 1"
+            "SELECT COUNT(*) FROM users WHERE role = '" . UserRole::Superviseur->value . "' AND is_active = 1"
         );
         $stmt->execute();
         return (int) $stmt->fetchColumn();
@@ -145,7 +146,7 @@ class UserRepository
             ':nom'      => $data['nom'],
             ':prenom'   => $data['prenom'],
             ':email'    => $data['email'] ?? null,
-            ':role'     => $data['role'] ?? ROLE_AGENT,
+            ':role'     => $data['role'] ?? UserRole::Agent->value,
             // site_id = 0 is the UI/form sentinel for "no site" ("— Aucun —" option,
             // and the hidden field forced empty in no-site-mode) — 0 is never a real
             // site id (SQLite autoincrement starts at 1), and the FOREIGN KEY on
@@ -225,7 +226,7 @@ class UserRepository
     public function promoteToSuperviseur(int $id): bool
     {
         $stmt = $this->pdo->prepare("
-            UPDATE users SET role = '" . ROLE_SUPERVISEUR . "', updated_at = datetime('now')
+            UPDATE users SET role = '" . UserRole::Superviseur->value . "', updated_at = datetime('now')
             WHERE id = :id
         ");
         $stmt->execute([':id' => $id]);

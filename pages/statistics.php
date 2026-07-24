@@ -5,7 +5,7 @@
  * Tableau de bord avec cartes indicateurs et répartition par site.
  * Access: superviseur, chsct
  */
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 use App\Enum\ReportType;
 

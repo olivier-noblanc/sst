@@ -93,5 +93,8 @@ deptrac:
     Rector:
       - Enum
 
+    Router:
+      - Enum
+
     PHPStan:
       - Enum

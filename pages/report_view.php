@@ -33,7 +33,7 @@ $declarantIdRaw = $report['declarant_id'] ?? '0';
 $userIdRaw = $user['id'] ?? '0';
 /** @var string */
 $userRole = $user['role'] ?? '';
-if ($report['etat'] === ETAT_ABANDONNE && (int) $declarantIdRaw !== (int) $userIdRaw && !in_array($userRole, [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
+if ($report['etat'] === \App\Enum\ReportState::Abandonne->value && (int) $declarantIdRaw !== (int) $userIdRaw && !in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true)) {
     setFlash('warning', 'Ce signalement a été abandonné.');
 }
 

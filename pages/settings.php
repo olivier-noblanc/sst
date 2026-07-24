@@ -8,7 +8,7 @@
  *
  * Tab content is delegated to sub-templates under settings/.
  */
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();

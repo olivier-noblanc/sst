@@ -4,6 +4,8 @@
 
 namespace App\DTO;
 
+use App\Enum\ReportState;
+
 class RespondToReportCommand
 {
     /**
@@ -20,7 +22,7 @@ class RespondToReportCommand
     {
         return new self(
             reponse: trim($post['reponse'] ?? ''),
-            nouvelEtat: $post['nouvel_etat'] ?? ETAT_EN_COURS,
+            nouvelEtat: $post['nouvel_etat'] ?? ReportState::EnCours->value,
         );
     }
 }

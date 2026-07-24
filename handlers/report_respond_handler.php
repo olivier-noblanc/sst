@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\ReportState;
+
 /**
  * Report Respond Handler — Application SST DREETS BFC
  *
@@ -17,7 +19,7 @@ $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 
 // Validate nouvel_etat
 $nouvelEtat = trim((string) ($_POST['nouvel_etat'] ?? ''));
-if (!in_array($nouvelEtat, [ETAT_EN_COURS, ETAT_TRAITE], true)) {
+if (!in_array($nouvelEtat, [ReportState::EnCours->value, ReportState::Traite->value], true)) {
     setFlash('error', 'L\'état sélectionné n\'est pas valide.');
     setFormData($_POST);
     redirect(url('report_respond', ['uuid' => $reportUuid]));
@@ -43,7 +45,7 @@ $report = fetchReportOrRedirect($reportUuid);
 
 /** @var array<string, string> $report */
 
-if (!in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT], true)) {
+if (!in_array($report['etat'], [ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Reouvert->value], true)) {
     setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
     redirect(url('report_view', ['uuid' => $reportUuid]));
 }

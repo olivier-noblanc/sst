@@ -6,7 +6,7 @@
  * Access: superviseur, chsct
  */
 /** @var string $csrfToken */
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 $noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
 

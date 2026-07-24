@@ -39,7 +39,7 @@ $userRole = (string) ($user['role'] ?? '');
 $agentVisibility = $access->getReportVisibility($type);
 $seeAllSites = $access->canSeeAllSites();
 $noSiteMode = $config->isNoSiteMode();
-$chsctScope = $userRole === ROLE_CHSCT ? $access->getChsctReportScope() : null;
+$chsctScope = $userRole === \App\Enum\UserRole::Chsct->value ? $access->getChsctReportScope() : null;
 
 // Build filters from GET params
 /** @var array<string, mixed> $filters */
@@ -113,7 +113,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
     <a href="<?php echo $http->url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 
-<?php if ($userRole === ROLE_SUPERVISEUR): ?>
+<?php if ($userRole === \App\Enum\UserRole::Superviseur->value): ?>
 <p class="mb-3"><a href="<?php echo $http->url('export'); ?>" class="btn btn--sm btn--outline">&#x1F4E5; Exporter les signalements filtrés</a></p>
 <?php endif; ?>
 

@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\UserRole;
+
 /**
  * Impersonate Handler — Application SST DREETS BFC
  *
@@ -36,13 +38,13 @@ if ($action === 'start') {
 
     // Only superviseurs can impersonate (check real_role if already impersonating)
     $effectiveRole = $session->getRealRole() ?? currentUserRole();
-    if ($effectiveRole !== ROLE_SUPERVISEUR) {
+    if ($effectiveRole !== UserRole::Superviseur->value) {
         setFlash('error', 'Seuls les superviseurs peuvent incarner un autre rôle.');
         redirect(url('home'));
     }
 
     // Only allow impersonating agent or chsct
-    if (!in_array($targetRole, [ROLE_AGENT, ROLE_CHSCT], true)) {
+    if (!in_array($targetRole, [UserRole::Agent->value, UserRole::Chsct->value], true)) {
         setFlash('error', 'Rôle cible invalide. Seuls Agent et ' . getRoleLabelShort('chsct') . ' peuvent être incarnés.');
         redirect(url('home'));
     }

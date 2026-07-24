@@ -65,7 +65,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
             // Impersonation dropdown: only for superviseurs who are NOT already impersonating
             $isImpersonating = isImpersonatingRole();
             $realRole = getRealRole() ?? currentUserRole();
-            if ($realRole === ROLE_SUPERVISEUR && !$isImpersonating):
+            if ($realRole === \App\Enum\UserRole::Superviseur->value && !$isImpersonating):
             ?>
             <div class="impersonate-dropdown">
                 <input type="checkbox" id="impersonate-toggle" class="impersonate-toggle" aria-hidden="true">
@@ -74,14 +74,14 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
                     <form method="POST" action="<?php echo url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
-                        <input type="hidden" name="target_role" value="<?php echo ROLE_AGENT; ?>">
+                        <input type="hidden" name="target_role" value="<?php echo \App\Enum\UserRole::Agent->value; ?>">
                         <button type="submit" class="impersonate-menu__item" role="menuitem">Agent</button>
                     </form>
                     <form method="POST" action="<?php echo url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
-                        <input type="hidden" name="target_role" value="<?php echo ROLE_CHSCT; ?>">
-                        <button type="submit" class="impersonate-menu__item" role="menuitem"><?php echo e(getRoleLabel(ROLE_CHSCT)); ?></button>
+                        <input type="hidden" name="target_role" value="<?php echo \App\Enum\UserRole::Chsct->value; ?>">
+                        <button type="submit" class="impersonate-menu__item" role="menuitem"><?php echo e(getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?></button>
                     </form>
                     <label for="impersonate-toggle" class="impersonate-menu__item impersonate-menu__close" role="menuitem" tabindex="0">&#10005; Fermer</label>
                 </div>

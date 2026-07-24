@@ -48,4 +48,16 @@ return RectorConfig::configure()
             'reouvert'  => 'App\Enum\ReportState::Reouvert',
             'abandonne' => 'App\Enum\ReportState::Abandonne',
         ],
+        'constToEnum' => [
+            // UserRole constants
+            'ROLE_AGENT'       => 'App\Enum\UserRole::Agent',
+            'ROLE_SUPERVISEUR' => 'App\Enum\UserRole::Superviseur',
+            'ROLE_CHSCT'       => 'App\Enum\UserRole::Chsct',
+            // ReportState constants
+            'ETAT_NOUVEAU'   => 'App\Enum\ReportState::Nouveau',
+            'ETAT_EN_COURS'  => 'App\Enum\ReportState::EnCours',
+            'ETAT_TRAITE'    => 'App\Enum\ReportState::Traite',
+            'ETAT_REOUVERT'  => 'App\Enum\ReportState::Reouvert',
+            'ETAT_ABANDONNE' => 'App\Enum\ReportState::Abandonne',
+        ],
     ]);

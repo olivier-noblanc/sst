@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use Exception;
+use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 
@@ -145,10 +146,10 @@ class AuthService
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users, true)) {
-                return ROLE_SUPERVISEUR;
+                return UserRole::Superviseur->value;
             }
         }
-        return ROLE_AGENT;
+        return UserRole::Agent->value;
     }
 
     /**
@@ -158,7 +159,7 @@ class AuthService
      */
     public function checkAndPromote(array $user, string $username): array
     {
-        if ($user['role'] !== ROLE_AGENT) {
+        if ($user['role'] !== UserRole::Agent->value) {
             return $user;
         }
 
@@ -168,13 +169,13 @@ class AuthService
             if (in_array(strtolower($username), $users, true)) {
                 $id = is_int($user['id']) ? $user['id'] : 0;
                 $this->repo->promoteToSuperviseur($id);
-                $user['role'] = ROLE_SUPERVISEUR;
+                $user['role'] = UserRole::Superviseur->value;
                 error_log("SST App: Auto-promoted user '$username' to superviseur (config list rule)");
 
                 $this->events->dispatch('user.promoted', [
                     'user' => $user,
-                    'oldRole' => ROLE_AGENT,
-                    'newRole' => ROLE_SUPERVISEUR,
+                    'oldRole' => UserRole::Agent->value,
+                    'newRole' => UserRole::Superviseur->value,
                     'pdo' => $this->repo->getPdo(),
                 ]);
             }

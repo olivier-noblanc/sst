@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\UserRole;
+
 /**
  * User Edit Handler — Application SST DREETS BFC
  *
@@ -62,11 +64,11 @@ $errors = $service->validate($_POST, $userId);
 $cmd = UpdateUserCommand::fromPost($_POST);
 
 // Guard: prevent demoting the last active superviseur
-if (is_array($user) && (string) ($user['role'] ?? '') === ROLE_SUPERVISEUR && $cmd->role !== ROLE_SUPERVISEUR) {
+if (is_array($user) && (string) ($user['role'] ?? '') === UserRole::Superviseur->value && $cmd->role !== UserRole::Superviseur->value) {
     $demoteErrors = $service->canDemote($userId, $cmd->role, $user);
     $errors = array_merge($errors, $demoteErrors);
 
-    if ($cmd->role === ROLE_AGENT && empty($_POST['confirm_demotion'])) {
+    if ($cmd->role === UserRole::Agent->value && empty($_POST['confirm_demotion'])) {
         $errors['role'] = 'Veuillez confirmer la rétrogradation en cochant la case de confirmation.';
     }
 }

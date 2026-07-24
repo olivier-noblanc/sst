@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ReportState;
 use App\Repository\ReportRepository;
 
 /**
@@ -231,7 +232,7 @@ function requireReportEditable(array $report, string $uuid, string $verb = 'modi
 {
     /** @var string */
     $etat = $report['etat'] ?? '';
-    if (!in_array($etat, [ETAT_NOUVEAU, ETAT_EN_COURS], true)) {
+    if (!in_array($etat, [ReportState::Nouveau->value, ReportState::EnCours->value], true)) {
         setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$etat] ?? $etat) . ').');
         redirect(url('report_view', ['uuid' => $uuid]));
     }

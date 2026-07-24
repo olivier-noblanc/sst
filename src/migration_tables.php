@@ -81,7 +81,8 @@ function migrateTables(PDO $pdo): void
     END");
 
     // ── Seed default registries if table is empty ──────────────────────────
-    $count = (int) $pdo->query('SELECT COUNT(*) FROM registries')->fetchColumn();
+    $countResult = $pdo->query('SELECT COUNT(*) FROM registries');
+    $count = $countResult !== false ? (int) $countResult->fetchColumn() : 0;
     if ($count === 0) {
         $pdo->exec("INSERT INTO registries (code, label, short_label, description, icon, color_theme, is_enabled, is_system, sort_order, default_visibility, notify_chsct) VALUES
             ('rsst', 'Santé et Sécurité au Travail', 'RSST', 'Signalements généraux SST', '📋', 'rsst', 1, 1, 1, 'agent_choice', 0),
@@ -91,5 +92,5 @@ function migrateTables(PDO $pdo): void
     }
 
     // ── Ensure system registres are always enabled ─────────────────────────
-    $pdo->exec("UPDATE registries SET is_enabled = 1 WHERE is_system = 1 AND is_enabled = 0");
+    $pdo->exec('UPDATE registries SET is_enabled = 1 WHERE is_system = 1 AND is_enabled = 0');
 }

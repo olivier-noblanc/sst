@@ -52,10 +52,8 @@ final class NoInlineStyleRule implements Rule
         $content = $node->getAttribute('rawText') ?? '';
         if ($content === '') {
             // Check concatenated strings
-            foreach ($node->stmts as $stmt) {
-                if (isset($stmt->expr)) {
-                    $content .= $stmt->expr->getAttribute('rawText') ?? '';
-                }
+            foreach ($node->exprs as $expr) {
+                $content .= $expr->getAttribute('rawText') ?? '';
             }
         }
 

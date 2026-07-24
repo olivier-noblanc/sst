@@ -14,7 +14,7 @@
  */
 
 // Restrict changelog access to superviseurs only
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 // Try multiple path resolution strategies (same logic as getAppVersion())
 $changelogPath = null;

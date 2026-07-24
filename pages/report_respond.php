@@ -5,7 +5,7 @@
  * Superviseur responds to a report.
  * Access: superviseur only.
  */
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();

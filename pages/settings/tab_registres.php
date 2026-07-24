@@ -119,11 +119,11 @@ $visibilityModes = [
                 <label>Couleur</label>
                 <?php
                 $themeColors = [
-                    'rsst' => '#2E5C8A', 'rami' => '#6C6C6C', 'dgi' => '#b91c1c',
+                    \App\Enum\ReportType::Rsst->value => '#2E5C8A', \App\Enum\ReportType::Rami->value => '#6C6C6C', \App\Enum\ReportType::Dgi->value => '#b91c1c',
                     'vert' => '#15803D', 'violet' => '#7C3AED', 'orange' => '#C2410C',
                     'teal' => '#0D9488', 'indigo' => '#4338CA', 'rose' => '#BE123C', 'ambre' => '#B45309',
                 ];
-                ?>
+        ?>
                 <input type="hidden" name="registres[<?php echo $regId; ?>][color_theme]" value="<?php echo $fmt->e($colorTheme); ?>">
                 <div class="color-picker" data-regid="<?php echo $regId; ?>">
                     <?php foreach ($themes as $theme): ?>

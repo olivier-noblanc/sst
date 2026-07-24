@@ -8,7 +8,7 @@
  *
  * Uses the DI Container for middleware instantiation.
  */
-
+use App\Enum\UserRole;
 use App\Router\Router;
 use App\Middleware\CsrfMiddleware;
 use App\Middleware\RoleMiddleware;
@@ -46,7 +46,7 @@ function createRouter(): Router
     }
 
     // Role-based middlewares (override CSRF-only for specific handlers)
-    $superviseur = new RoleMiddleware([ROLE_SUPERVISEUR]);
+    $superviseur = new RoleMiddleware([UserRole::Superviseur->value]);
     $router->setPostMiddleware('export', [$csrf, $superviseur]);
     $router->setPostMiddleware('settings', [$csrf, $superviseur]);
     $router->setPostMiddleware('site_edit', [$csrf, $superviseur]);

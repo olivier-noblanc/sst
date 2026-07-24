@@ -1,16 +1,16 @@
 <?php
 
+use App\Enum\ReportState;
+
 /**
  * Lazy Cron — Anonymize Task — Application SST DREETS BFC
  *
  * RGPD anonymization of old reports.
  * Split from cron.php to keep file size under 250 lines.
  */
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Task 2: Anonymize Old Reports (RGPD)
 // ─────────────────────────────────────────────────────────────────────────────
-
 /**
  * Anonymize reports that have been in a final state (traité/abandonné)
  * for longer than the configured retention period.
@@ -43,7 +43,7 @@ function lazyCronAnonymize(PDO $pdo): void
     // Find eligible reports
     $sql = "SELECT uuid, reference, type, declarant_nom, declarant_prenom, date_evenement, etat
             FROM reports
-            WHERE etat IN ('" . ETAT_TRAITE . "', '" . ETAT_ABANDONNE . "')
+            WHERE etat IN ('" . ReportState::Traite->value . "', '" . ReportState::Abandonne->value . "')
               AND date_evenement < :cutoff_date
               AND declarant_nom != 'Anonymisé'";
 
@@ -71,7 +71,7 @@ function lazyCronAnonymize(PDO $pdo): void
                 telephone_mobile = NULL,
                 updated_at = datetime('now')
             WHERE uuid = :uuid
-              AND etat IN ('" . ETAT_TRAITE . "', '" . ETAT_ABANDONNE . "')
+              AND etat IN ('" . ReportState::Traite->value . "', '" . ReportState::Abandonne->value . "')
               AND declarant_nom != 'Anonymisé'
         ");
 

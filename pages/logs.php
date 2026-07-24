@@ -6,7 +6,7 @@
  * Access: superviseur only (admin tool)
  */
 /** @var string $csrfToken */
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();

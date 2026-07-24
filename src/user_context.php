@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\UserRole;
 use App\Repository\UserRepository;
 
 /**
@@ -98,7 +99,7 @@ function currentUserRole(): string
  */
 function isAgent(): bool
 {
-    return currentUserRole() === ROLE_AGENT;
+    return currentUserRole() === UserRole::Agent->value;
 }
 
 // ─── Site ─────────────────────────────────────────────────────────────────────

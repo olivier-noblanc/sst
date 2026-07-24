@@ -5,7 +5,7 @@
  * User management: list users and register new user.
  * Access: superviseur only
  */
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();
@@ -176,7 +176,7 @@ $pageTitle = 'Gestion des utilisateurs';
     $editPrenom = $formData['prenom'] ?? '';
     $editEmail = $formData['email'] ?? '';
     $editUsername = $formData['username'] ?? '';
-    $editRole = $formData['role'] ?? ROLE_AGENT;
+    $editRole = $formData['role'] ?? \App\Enum\UserRole::Agent->value;
     $editSiteId = $formData['site_id'] ?? 1;
     $usernameHint = 'Identifiant de connexion Windows (ex: jean.martin)';
     require __DIR__ . '/../templates/user_form_fields.php';

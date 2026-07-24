@@ -1,7 +1,9 @@
 <?php
 
+use App\Repository\ReportRepository;
+use App\Services\SessionService;
+use App\Services\AccessService;
 use App\Enum\ReportType;
-use App\Enum\UserRole;
 use App\Enum\VisibilityMode;
 use App\Repository\RegistryRepository;
 
@@ -70,17 +72,17 @@ function buildRegistryCards(): array
 {
     $registryRepo = RegistryRepository::instance();
     $enabledRegistries = $registryRepo->findEnabled();
-    $reportRepo = \App\Repository\ReportRepository::instance();
+    $reportRepo = ReportRepository::instance();
 
-    $user = (new \App\Services\SessionService())->getUserSession();
+    $user = new SessionService()->getUserSession();
     /** @var string */
     $userIdStr = $user['id'] ?? '0';
     $userId = (int) $userIdStr;
     /** @var string */
     $siteIdStr = $user['site_id'] ?? '0';
     $userSiteId = (int) $siteIdStr;
-    $agentVisibility = (new \App\Services\AccessService())->getReportVisibility(null);
-    $seeAllSites = (new \App\Services\AccessService())->canSeeAllSites();
+    $agentVisibility = new AccessService()->getReportVisibility(null);
+    $seeAllSites = new AccessService()->canSeeAllSites();
 
     $listLabel = static fn(string $type): string => \getReportVisibility($type) === VisibilityMode::Confidential->value
         ? 'Voir mes signalements'

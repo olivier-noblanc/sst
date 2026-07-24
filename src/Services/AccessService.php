@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\Enum\ReportState;
 use App\Enum\VisibilityMode;
 use App\Enum\UserRole;
 use PDO;
@@ -41,10 +42,10 @@ class AccessService
      */
     public function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool
     {
-        if ($user['role'] === ROLE_SUPERVISEUR) {
+        if ($user['role'] === UserRole::Superviseur->value) {
             return true;
         }
-        if ($user['role'] === ROLE_CHSCT) {
+        if ($user['role'] === UserRole::Chsct->value) {
             if ($this->getChsctReportScope() === 'all') {
                 return true;
             }
@@ -84,7 +85,7 @@ class AccessService
         if ($isConfidential !== 1) {
             return;
         }
-        if (!in_array($user['role'], [ROLE_SUPERVISEUR, ROLE_CHSCT], true)) {
+        if (!in_array($user['role'], [UserRole::Superviseur->value, UserRole::Chsct->value], true)) {
             return;
         }
         $reportDeclarantId = (int) ($report['declarant_id'] ?? 0);
@@ -148,7 +149,7 @@ class AccessService
     public function getReportVisibility(?string $type = null, ?string $role = null): string
     {
         $role ??= \currentUserRole();
-        if (empty($role) || $role !== ROLE_AGENT) {
+        if (empty($role) || $role !== UserRole::Agent->value) {
             return 'all';
         }
         return $this->getReportVisibilityMode($type);
@@ -186,7 +187,7 @@ class AccessService
     public function canEditReport(array $report, int $userId): bool
     {
         $isDeclarant = ((int) $report['declarant_id'] === $userId);
-        return $isDeclarant && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS], true);
+        return $isDeclarant && in_array($report['etat'], [ReportState::Nouveau->value, ReportState::EnCours->value], true);
     }
 
     /**
@@ -196,6 +197,6 @@ class AccessService
      */
     public function canRespondToReport(array $report, string $role): bool
     {
-        return in_array($role, [ROLE_SUPERVISEUR], true) && in_array($report['etat'], [ETAT_NOUVEAU, ETAT_EN_COURS, ETAT_REOUVERT], true);
+        return in_array($role, [UserRole::Superviseur->value], true) && in_array($report['etat'], [ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Reouvert->value], true);
     }
 }

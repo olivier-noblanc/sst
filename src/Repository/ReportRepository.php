@@ -4,6 +4,7 @@
 
 namespace App\Repository;
 
+use App\Enum\ReportState;
 use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 use Exception;
@@ -277,7 +278,7 @@ class ReportRepository
     /** @return array<string, int> */
     public function countByState(string $type, int $siteId = 0, bool $seeAllSites = true): array
     {
-        $sql = "SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "'";
+        $sql = "SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != '" . ReportState::Abandonne->value . "'";
         $params = [':type' => $type];
 
         if (!$seeAllSites && $siteId > 0) {
@@ -290,10 +291,10 @@ class ReportRepository
         $stmt->execute($params);
 
         $counts = [
-            ETAT_NOUVEAU   => 0,
-            ETAT_EN_COURS  => 0,
-            ETAT_TRAITE    => 0,
-            ETAT_REOUVERT  => 0,
+            ReportState::Nouveau->value   => 0,
+            ReportState::EnCours->value   => 0,
+            ReportState::Traite->value    => 0,
+            ReportState::Reouvert->value  => 0,
             'total'        => 0,
         ];
         $rows = $stmt->fetchAll();
@@ -312,7 +313,7 @@ class ReportRepository
 
     public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int
     {
-        $sql = "SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "'";
+        $sql = "SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ReportState::Abandonne->value . "'";
         $params = [':type' => $type];
 
         if ($siteId > 0) {
@@ -331,7 +332,7 @@ class ReportRepository
 
     public function countActiveForUser(string $type, int $userId): int
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ETAT_ABANDONNE . "' AND declarant_id = :user_id");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ReportState::Abandonne->value . "' AND declarant_id = :user_id");
         $stmt->execute([':type' => $type, ':user_id' => $userId]);
         return (int) $stmt->fetchColumn();
     }
@@ -342,7 +343,7 @@ class ReportRepository
      */
     public function countVisibleForAgent(string $type, int $userId, int $siteId = 0, string $visibility = VisibilityMode::Confidential->value): int
     {
-        $sql = "SELECT COUNT(*) FROM reports r WHERE r.type = :type AND r.etat != '" . ETAT_ABANDONNE . "'";
+        $sql = "SELECT COUNT(*) FROM reports r WHERE r.type = :type AND r.etat != '" . ReportState::Abandonne->value . "'";
         $params = [':type' => $type];
 
         $linkedClause = '(r.declarant_id = :user_id OR r.uuid IN (SELECT report_uuid FROM report_agents WHERE user_id = :user_id))';
@@ -491,7 +492,7 @@ class ReportRepository
                     :lieu, :declarant_id, :declarant_nom, :declarant_prenom,
                     :pour_compte_de, :pour_compte_nom, :pour_compte_prenom,
                     :nature_auteur, :type_acte, :site_id, :site_text, :pole, :service_affectation, :telephone_mobile,
-                    :is_confidential, :consent_syndicat, '" . ETAT_NOUVEAU . "',
+                    :is_confidential, :consent_syndicat, '" . ReportState::Nouveau->value . "',
                     :attachment_blob, :attachment_name, :attachment_mime
                 )
             ");
@@ -592,7 +593,7 @@ class ReportRepository
         $params[':user_id'] = $userId;
 
         $sql = 'UPDATE reports SET ' . implode(', ', $setClauses)
-            . " WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')";
+            . " WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ReportState::Nouveau->value . "', '" . ReportState::EnCours->value . "')";
 
         $this->pdo->beginTransaction();
         try {
@@ -617,8 +618,8 @@ class ReportRepository
     {
         $stmt = $this->pdo->prepare("
             UPDATE reports
-            SET etat = '" . ETAT_ABANDONNE . "', updated_at = datetime('now')
-            WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "')
+            SET etat = '" . ReportState::Abandonne->value . "', updated_at = datetime('now')
+            WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ReportState::Nouveau->value . "', '" . ReportState::EnCours->value . "')
         ");
         $stmt->execute([':uuid' => $uuid, ':user_id' => $userId]);
         return $stmt->rowCount() > 0;
@@ -643,7 +644,7 @@ class ReportRepository
             $histStmt->execute([
                 ':report_uuid'    => $uuid,
                 ':etat_precedent' => $current['etat'],
-                ':etat_suivant'   => ETAT_REOUVERT,
+                ':etat_suivant'   => ReportState::Reouvert->value,
                 ':user_id'        => $userId,
                 ':motif'          => $motif,
             ]);
@@ -653,7 +654,7 @@ class ReportRepository
                 SET etat = :nouvel_etat, updated_at = datetime('now')
                 WHERE uuid = :uuid AND etat IN ('traite', 'abandonne')
             ");
-            $updateStmt->execute([':nouvel_etat' => ETAT_REOUVERT, ':uuid' => $uuid]);
+            $updateStmt->execute([':nouvel_etat' => ReportState::Reouvert->value, ':uuid' => $uuid]);
             if ($updateStmt->rowCount() === 0) {
                 $this->pdo->rollBack();
                 return false;
@@ -667,7 +668,7 @@ class ReportRepository
                 ':report_uuid' => $uuid,
                 ':user_id'     => $userId,
                 ':reponse'     => 'Réouverture du signalement. Motif : ' . $motif,
-                ':nouvel_etat' => ETAT_REOUVERT,
+                ':nouvel_etat' => ReportState::Reouvert->value,
             ]);
 
             $this->pdo->commit();
@@ -699,7 +700,7 @@ class ReportRepository
             $checkStmt->execute([':uuid' => $uuid]);
             $current = $checkStmt->fetch();
 
-            if (is_array($current) && $current['etat'] === ETAT_REOUVERT && !empty($current['reponse'])) {
+            if (is_array($current) && $current['etat'] === ReportState::Reouvert->value && !empty($current['reponse'])) {
                 $archiveStmt = $this->pdo->prepare('
                     INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
                     VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
@@ -710,7 +711,7 @@ class ReportRepository
                     ':report_uuid' => $uuid,
                     ':user_id'     => $archiveUserId,
                     ':reponse'     => '[Réponse initiale archivée] ' . $current['reponse'],
-                    ':nouvel_etat' => ETAT_TRAITE,
+                    ':nouvel_etat' => ReportState::Traite->value,
                 ]);
             }
 
@@ -721,7 +722,7 @@ class ReportRepository
                     repondant_id = :user_id,
                     date_reponse = datetime('now'),
                     updated_at = datetime('now')
-                WHERE uuid = :uuid AND etat IN ('" . ETAT_NOUVEAU . "', '" . ETAT_EN_COURS . "', '" . ETAT_REOUVERT . "')
+                WHERE uuid = :uuid AND etat IN ('" . ReportState::Nouveau->value . "', '" . ReportState::EnCours->value . "', '" . ReportState::Reouvert->value . "')
             ");
             $stmt->execute([
                 ':nouvel_etat' => $nouvelEtat,

@@ -22,7 +22,7 @@ $config = \App\Services\ConfigService::getInstance();
 $user = new \App\Services\SessionService()->getUserSession();
 $userRole = $user['role'] ?? 'agent';
 
-if (!in_array($userRole, [ROLE_SUPERVISEUR], true)) {
+if (!in_array($userRole, [\App\Enum\UserRole::Superviseur->value], true)) {
     new \App\Services\SessionService()->setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs peuvent réouvrir un signalement.');
     $http->redirect($http->url('report_view', ['uuid' => $uuid]));
 }

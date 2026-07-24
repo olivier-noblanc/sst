@@ -8,7 +8,7 @@
 use App\Enum\ReportState;
 use App\Enum\ReportType;
 
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();

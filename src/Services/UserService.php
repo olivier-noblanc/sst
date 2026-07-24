@@ -226,7 +226,7 @@ class UserService
         if ($user === null) {
             return false;
         }
-        if ($user['role'] === ROLE_SUPERVISEUR && $this->repo->countActiveSuperviseurs() <= 1) {
+        if ($user['role'] === UserRole::Superviseur->value && $this->repo->countActiveSuperviseurs() <= 1) {
             return false;
         }
         return true;
@@ -239,7 +239,7 @@ class UserService
     public function canDemote(int $id, string $newRole, array $user): array
     {
         $errors = [];
-        if ($user['role'] === ROLE_SUPERVISEUR && $newRole !== ROLE_SUPERVISEUR) {
+        if ($user['role'] === UserRole::Superviseur->value && $newRole !== UserRole::Superviseur->value) {
             if ($this->repo->countActiveSuperviseurs() <= 1) {
                 $errors['role'] = 'Impossible de rétrograder le dernier superviseur actif.';
             }

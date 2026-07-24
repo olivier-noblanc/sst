@@ -6,7 +6,7 @@
  * Access: superviseur only
  */
 /** @var string $csrfToken */
-requireRole([ROLE_SUPERVISEUR]);
+requireRole([\App\Enum\UserRole::Superviseur->value]);
 
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();
@@ -54,14 +54,14 @@ $pageTitle = 'Éditer l\'utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNo
 $editPrenom = $formData['prenom'] ?? $user['prenom'] ?? '';
 $editEmail = $formData['email'] ?? $user['email'] ?? '';
 $editUsername = $formData['username'] ?? $user['username'] ?? '';
-$editRole = $formData['role'] ?? $user['role'] ?? ROLE_AGENT;
+$editRole = $formData['role'] ?? $user['role'] ?? \App\Enum\UserRole::Agent->value;
 $editSiteId = $formData['site_id'] ?? $user['site_id'] ?? 1;
 $usernameHint = 'Identifiant de connexion Windows';
 require __DIR__ . '/../templates/user_form_fields.php';
 ?>
 
         <?php if (!empty($editEmail) && $editRole !== ($user['role'] ?? '')): ?>
-        <?php if (($user['role'] ?? '') === ROLE_SUPERVISEUR && $editRole === ROLE_AGENT): ?>
+        <?php if (($user['role'] ?? '') === \App\Enum\UserRole::Superviseur->value && $editRole === \App\Enum\UserRole::Agent->value): ?>
         <div class="separator">
             <div class="alert alert--danger">
                 <strong>Attention :</strong> Vous êtes sur le point de rétrograder un superviseur en agent. Cette action est significative.

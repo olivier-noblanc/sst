@@ -116,15 +116,16 @@ $visibilityModes = [
         <!-- Color theme + Icon + Sort order -->
         <div class="form-grid form-grid--3">
             <div class="form-group">
-                <label>Couleur</label>
+                <label for="registres_<?php echo $regId; ?>_color_theme">Couleur</label>
                 <div class="flex-row gap-2" style="flex-wrap: wrap;">
                     <?php foreach ($themes as $theme): ?>
-                    <label style="cursor: pointer;" title="<?php echo $fmt->e($theme); ?>">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; border: 2px solid <?php echo $colorTheme === $theme ? '#333' : '#ddd'; ?>;">
                         <input type="radio" name="registres[<?php echo $regId; ?>][color_theme]"
                                value="<?php echo $fmt->e($theme); ?>"
                                <?php echo $colorTheme === $theme ? 'checked' : ''; ?>
                                style="display: none;">
-                        <span style="display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: var(--theme-<?php echo $fmt->e($theme); ?>, #666); border: 3px solid <?php echo $colorTheme === $theme ? '#333' : 'transparent'; ?>;"></span>
+                        <span style="display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--theme-<?php echo $fmt->e($theme); ?>, #666);"></span>
+                        <span style="font-size: 12px;"><?php echo $fmt->e($theme); ?></span>
                     </label>
                     <?php endforeach; ?>
                 </div>
@@ -219,9 +220,9 @@ document.querySelectorAll('input[name$="[color_theme]"]').forEach(function(radio
     radio.addEventListener('change', function() {
         var name = this.name;
         document.querySelectorAll('input[name="' + CSS.escape(name) + '"]').forEach(function(r) {
-            r.nextElementSibling.style.border = '3px solid transparent';
+            r.parentElement.style.border = '2px solid #ddd';
         });
-        this.nextElementSibling.style.border = '3px solid #333';
+        this.parentElement.style.border = '2px solid #333';
     });
 });
 </script>

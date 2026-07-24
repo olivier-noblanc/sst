@@ -128,6 +128,7 @@ try {
     }
 
     if ($tab === 'wordcloud') {
+        $registryCode = trim((string) ($_POST['registry_code'] ?? ''));
         /** @var array<int, mixed> $rawWords */
         $rawWords = is_array($_POST['words'] ?? null) ? $_POST['words'] : [];
         $cleanWords = [];
@@ -146,7 +147,13 @@ try {
             }
         }
         $json = json_encode($cleanWords, JSON_UNESCAPED_UNICODE);
-        $configService->set('word_cloud_words', is_string($json) ? $json : '[]');
+        $jsonStr = is_string($json) ? $json : '[]';
+
+        if ($registryCode !== '' && $registryCode !== 'global') {
+            $configService->set('word_cloud_words_' . $registryCode, $jsonStr);
+        } else {
+            $configService->set('word_cloud_words', $jsonStr);
+        }
     }
 
     $pdo->commit();

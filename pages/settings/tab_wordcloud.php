@@ -2,8 +2,9 @@
 /**
  * Settings Tab — Word Cloud Configuration
  *
- * Configure words and weights for the home page word cloud.
- * Words are displayed with randomized importance on each page load.
+ * Configure words and weights for the home page word cloud, per registry.
+ * Each registry has its own word cloud stored in config_app as 'word_cloud_words_{code}'.
+ * The global word cloud ('word_cloud_words') serves as fallback.
  *
  * Variables attendues: $csrfToken
  */
@@ -14,23 +15,55 @@ $fmt = new \App\Services\FormattingService();
 if (!isset($csrfToken)) {
     $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 }
-$wordsJson = $configService->get('word_cloud_words', '[]');
+
+$registryRepo = \App\Repository\RegistryRepository::instance();
+$enabledRegistries = $registryRepo->findEnabled();
+
+// Active registry tab (from query or first enabled)
+$activeRegistry = $_GET['registry'] ?? ($enabledRegistries[0]['code'] ?? 'global');
+
+// Load words for active registry
+$registryConfigKey = 'word_cloud_words_' . $activeRegistry;
+$wordsJson = $configService->get($registryConfigKey, '');
+if ($wordsJson === '' || $activeRegistry === 'global') {
+    $wordsJson = $configService->get('word_cloud_words', '[]');
+}
 /** @var list<array{word: string, weight: int}> $words */
 $words = json_decode($wordsJson, true) ?? [];
 ?>
 <form method="post" action="<?php echo $http->url('settings'); ?>">
     <input type="hidden" name="tab" value="wordcloud">
     <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
+    <input type="hidden" name="registry_code" value="<?php echo $fmt->e($activeRegistry); ?>">
 
     <div class="card mt-4">
         <h3 class="card__subtitle">Nuage de mots — page d'accueil</h3>
         <p class="text-muted mb-4">
-            Configurez les mots affichés dans le nuage de mots de la page d'accueil.
+            Configurez les mots affichés dans le nuage de mots de la page d'accueil, par registre.
             Chaque mot a un poids (1-20) qui détermine sa taille relative.
             L'importance est randomisée à chaque chargement de page pour un rendu vivant.
         </p>
 
-        <div id="wordcloud-words">
+        <!-- Registry tabs -->
+        <nav class="tabs mt-4" role="tablist" aria-label="Sélection du registre">
+            <a href="?page=settings&tab=wordcloud&registry=global"
+               class="tabs__item <?php echo $activeRegistry === 'global' ? 'tabs__item--active' : ''; ?>"
+               role="tab"
+               aria-selected="<?php echo $activeRegistry === 'global' ? 'true' : 'false'; ?>">
+                Global (fallback)
+            </a>
+            <?php foreach ($enabledRegistries as $reg): ?>
+            <a href="?page=settings&tab=wordcloud&registry=<?php echo $fmt->e((string) $reg['code']); ?>"
+               class="tabs__item <?php echo $activeRegistry === $reg['code'] ? 'tabs__item--active' : ''; ?>"
+               role="tab"
+               aria-selected="<?php echo $activeRegistry === $reg['code'] ? 'true' : 'false'; ?>">
+                <?php echo $fmt->e((string) ($reg['icon'] ?? '')); ?>
+                <?php echo $fmt->e((string) ($reg['short_label'] ?? $reg['code'])); ?>
+            </a>
+            <?php endforeach; ?>
+        </nav>
+
+        <div id="wordcloud-words" class="mt-4">
             <?php if (empty($words)): ?>
             <div class="wordcloud-row" data-index="0">
                 <input type="text" name="words[0][word]" placeholder="Mot" class="input" required maxlength="50">

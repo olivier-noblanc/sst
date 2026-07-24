@@ -215,17 +215,32 @@ class FormattingService
     /**
      * Build a word cloud from admin-configured words with randomized importance.
      *
-     * Words and weights are stored in config key 'word_cloud_words' as JSON:
+     * Words and weights are stored in config_app as JSON:
      * [{"word": "chute", "weight": 10}, {"word": "incendie", "weight": 8}, ...]
+     *
+     * Per-registry: key 'word_cloud_words_{code}' (e.g. 'word_cloud_words_rsst').
+     * Global fallback: key 'word_cloud_words' (backward compat).
      *
      * Each page load randomizes weights by ±30% for a dynamic visual effect.
      *
+     * @param ?string $registryCode Registry code (rsst, rami, dgi, etc.) or null for global
      * @return string HTML word cloud, or empty string if no data
      */
-    public function buildWordCloud(): string
+    public function buildWordCloud(?string $registryCode = null): string
     {
         $configService = ConfigService::getInstance();
-        $wordsJson = $configService->get('word_cloud_words', '[]');
+
+        if ($registryCode !== null) {
+            $registryKey = 'word_cloud_words_' . $registryCode;
+            $wordsJson = $configService->get($registryKey, '');
+            if ($wordsJson === '') {
+                // Fallback to global key
+                $wordsJson = $configService->get('word_cloud_words', '[]');
+            }
+        } else {
+            $wordsJson = $configService->get('word_cloud_words', '[]');
+        }
+
         $words = json_decode($wordsJson, true) ?? [];
 
         if (empty($words)) {

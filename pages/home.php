@@ -51,13 +51,15 @@ $labelUnite = $config->get('app_label_unite', 'UR');
 $ramiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
 $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 
-// Word cloud — ALL roles, integrated inside RSST card
-$wordCloud = $fmt->buildWordCloud();
-
+// Word cloud — per registry, integrated inside each registry card
+$enabledRegistries = $config->getEnabledRegistries();
 $cards = buildRegistryCards($rsstCount, $ramiCount, $dgiCount, $ramiEnabled, $dgiEnabled);
 $extraContentMap = [];
-if (!empty($wordCloud)) {
-    $extraContentMap[\App\Enum\ReportType::Rsst->value] = $wordCloud;
+foreach ($enabledRegistries as $regCode) {
+    $wc = $fmt->buildWordCloud($regCode);
+    if (!empty($wc)) {
+        $extraContentMap[$regCode] = $wc;
+    }
 }
 ?>
 

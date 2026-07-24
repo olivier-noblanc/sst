@@ -1,18 +1,12 @@
 <?php
 
-use App\Repository\ReportRepository;
-use App\Services\SessionService;
-use App\Services\AccessService;
-use App\Enum\ReportType;
-use App\Enum\VisibilityMode;
-use App\Repository\RegistryRepository;
+use App\Services\RegistryCardService;
 
 /** Registry Card Renderer — HTML unifié pour les cartes de registre. */
 
 function getRegistryIcon(string $type): string
 {
-    $reg = RegistryRepository::instance()->findByCode($type);
-    return $reg !== null ? ($reg['icon'] ?? '📋') : '📋';
+    return new RegistryCardService()->getRegistryIcon($type);
 }
 
 /**
@@ -70,53 +64,5 @@ function renderRegistryCards(array $cards, string $layout = 'compact', array $ex
  */
 function buildRegistryCards(): array
 {
-    $registryRepo = RegistryRepository::instance();
-    $enabledRegistries = $registryRepo->findEnabled();
-    $reportRepo = ReportRepository::instance();
-
-    $user = new SessionService()->getUserSession();
-    /** @var string */
-    $userIdStr = $user['id'] ?? '0';
-    $userId = (int) $userIdStr;
-    /** @var string */
-    $siteIdStr = $user['site_id'] ?? '0';
-    $userSiteId = (int) $siteIdStr;
-    $agentVisibility = new AccessService()->getReportVisibility(null);
-    $seeAllSites = new AccessService()->canSeeAllSites();
-
-    $listLabel = static fn(string $type): string => \getReportVisibility($type) === VisibilityMode::Confidential->value
-        ? 'Voir mes signalements'
-        : 'Voir les signalements';
-
-    $btnLabels = [
-        ReportType::Rsst->value => 'Déposer un signalement',
-        ReportType::Rami->value => 'Signaler une agression',
-        ReportType::Dgi->value  => 'Signaler un danger urgent',
-    ];
-
-    $cards = [];
-    foreach ($enabledRegistries as $reg) {
-        $code = $reg['code'];
-        $reportCount = 0;
-
-        if ($agentVisibility === VisibilityMode::Confidential->value || $agentVisibility === VisibilityMode::AgentChoice->value) {
-            $reportCount = $reportRepo->countVisibleForAgent($code, $userId, $userSiteId, $agentVisibility);
-        } else {
-            $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
-            $reportCount = $reportRepo->countActive($code, $siteIdFilter);
-        }
-
-        $cards[] = [
-            'type'     => $code,
-            'title'    => $reg['label'],
-            'subtitle' => $reg['short_label'],
-            'desc'     => $reg['description'] ?? '',
-            'count'    => $reportCount,
-            'btnLabel' => $btnLabels[$code] ?? 'Signaler un événement',
-            'btnUrl'   => url('report_create', ['type' => $code]),
-            'listUrl'  => url('report_list', ['type' => $code]),
-            'listLabel' => $listLabel($code),
-        ];
-    }
-    return $cards;
+    return new RegistryCardService()->buildRegistryCards();
 }

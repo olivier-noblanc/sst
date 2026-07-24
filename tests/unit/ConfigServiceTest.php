@@ -13,6 +13,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\Enum\ReportType;
 use App\Services\ConfigService;
 use App\Repository\RegistryRepository;
 

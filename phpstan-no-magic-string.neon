@@ -8,6 +8,10 @@ services:
         tags:
             - phpstan.rules.rule
     -
+        class: App\PHPStan\NoInlineStyleRule
+        tags:
+            - phpstan.rules.rule
+    -
         class: App\PHPStan\NoSqlOutsideRepositoryRule
         tags:
             - phpstan.rules.rule

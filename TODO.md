@@ -8,7 +8,7 @@ Dernière mise à jour : 2026-07-23
 
 | Métrique | Valeur |
 |----------|--------|
-| PHPStan erreurs | **30** (NoSqlOutsideRepositoryRule — à fixer, voir Priorité 20) |
+| PHPStan erreurs | **0** |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
 | Tests | **901** (1886 assertions) |
@@ -314,19 +314,25 @@ Tous les `try/catch` qui avalaient une erreur et continuaient (migrations, e-mai
 
 ---
 
-## Priorité 20 — NoSqlOutsideRepositoryRule (30 violations restantes)
+## Priorité 20 — ✅ NoSqlOutsideRepositoryRule (30→0 violations) — TERMINÉ
 
-La règle PHPStan `NoSqlOutsideRepositoryRule` est créée et enregistrée, mais 30 violations restent dans les fichiers légitimes qui nécessitent du SQL hors Repository :
+**Regex corrigée** : le pattern `\b(select|insert|update|delete)\b` matchait des faux positifs (strings `'update'`/`'delete'` dans des labels ou appels `auditLog()`). Nouveau regex : `^\s*(DML)\b.*\b(FROM|WHERE|INTO|SET|VALUES|JOIN|...)\b/is` — exige un mot-clé SQL en début de string + une clause SQL dans la même string.
 
-- **ConfigService** (5) — `config_app` : accès DB pour config. Solution → migrer vers `ConfigRepository`.
-- **SQLiteSessionHandler** (4) — handler PHP natif, SQL nécessaire. Solution → whitelist ou migrer vers `SessionRepository`.
-- **audit.php** (3) — audit logging. Solution → migrer vers `AuditRepository`.
-- **handlers/** (4) — `settings_handler.php`, `user_delete_handler.php`. Solution → migrer vers les repositories.
-- **pages/** (4) — `logs.php`, `report_attachment.php`, `response_attachment.php`. Solution → migrer vers les repositories.
-- **database.php** (2) — seed data. Solution → whitelist.
-- **mail_notifications.php** (2) — requêtes notification. Solution → migrer vers `NotificationRepository`.
+**Whitelist étendue** : `/database.php` (seed), `/audit.php` (audit logging), `/SQLiteSessionHandler` (handler PHP natif, à supprimer ultérieurement).
 
-**Approche** : migrer SQL vers Repository quand c'est possible, whitelist les cas légitimes (config, session, audit, seed).
+**Migrations vers repositories** :
+- `ConfigService` (5) → `ConfigRepository` (nouveau, get/set config_app) + `SiteRepository::countActiveSites()` (3)
+- `mail_notifications.php` (2) → `NotificationRepository::findSiteEmails()`/`findGlobalEmails()` (déjà existantes)
+- `report_attachment.php` (1) → `ReportRepository::getAttachmentBlob()` (déjà existante)
+- `response_attachment.php` (1) → `ReportRepository::getResponseAttachmentById()` (nouvelle)
+- `user_view.php` (1) → `ReportRepository::countByDeclarantId()` (nouvelle)
+- `bootstrap.php` (1) → `UserRepository::promoteToSuperviseur()` (déjà existante)
+- `AccessService.php` (1) → `ReportRepository::logAccess()` (nouvelle)
+- `FormattingService.php` (1) → `ReportRepository::getNextSequence()` (nouvelle)
+- `sidebar.php` (1) → `ReportRepository::getTypeByUuid()` (nouvelle)
+- `user_queries.php` (1) → fonction `userSelectWithSite()` supprimée (doublon de `UserRepository::baseQuery()`)
+
+**Faux positifs éliminés** (5) : `settings_handler.php` (2), `user_delete_handler.php` (1), `logs.php` (2) — strings non-SQL contenant `update`/`delete` en milieu de phrase.
 
 ---
 

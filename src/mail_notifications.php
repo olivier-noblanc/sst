@@ -1,5 +1,7 @@
 <?php
 
+use App\Repository\NotificationRepository;
+
 /**
  * Mail Notification Functions — Application SST DREETS BFC
  *
@@ -132,9 +134,8 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
     $emails = [];
     $seen = [];
     // Per-site
-    $stmt = $pdo->prepare("SELECT DISTINCT email FROM notification_settings WHERE site_id = :site_id AND type = 'site'");
-    $stmt->execute([':site_id' => $siteId]);
-    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $email) {
+    $siteEmails = NotificationRepository::instance()->findSiteEmails($siteId);
+    foreach ($siteEmails as $email) {
         /** @var string */
         $emailStr = $email ?? '';
         $lower = strtolower($emailStr);
@@ -142,9 +143,8 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
         $emails[] = $email;
     }
     // Global
-    $stmt = $pdo->prepare("SELECT DISTINCT email FROM notification_settings WHERE type = 'global'");
-    $stmt->execute();
-    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $email) {
+    $globalEmails = NotificationRepository::instance()->findGlobalEmails();
+    foreach ($globalEmails as $email) {
         /** @var string */
         $emailStr = $email ?? '';
         $lower = strtolower($emailStr);

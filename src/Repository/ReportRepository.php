@@ -863,4 +863,61 @@ class ReportRepository
     {
         return $this->pdo;
     }
+
+    /**
+     * Get response attachment by response ID.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getResponseAttachmentById(int $responseId): ?array
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT rr.attachment_blob, rr.attachment_name, rr.attachment_mime, rr.report_uuid
+            FROM report_responses rr
+            WHERE rr.id = :id
+        ');
+        $stmt->execute([':id' => $responseId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return is_array($row) ? $row : null;
+    }
+
+    public function countByDeclarantId(int $declarantId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM reports WHERE declarant_id = :uid');
+        $stmt->execute([':uid' => $declarantId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function getTypeByUuid(string $uuid): ?string
+    {
+        $stmt = $this->pdo->prepare('SELECT type FROM reports WHERE uuid = :uuid');
+        $stmt->execute([':uuid' => $uuid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return is_array($row) ? ($row['type'] ?? null) : null;
+    }
+
+    public function getNextSequence(string $type, int $year): int
+    {
+        $stmt = $this->pdo->prepare('
+            INSERT INTO report_sequence (type, year, last_sequence)
+            VALUES (:type, :year, 1)
+            ON CONFLICT(type, year) DO UPDATE SET last_sequence = last_sequence + 1
+            RETURNING last_sequence
+        ');
+        $stmt->execute([':type' => $type, ':year' => $year]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function logAccess(string $reportUuid, int $userId, string $role): void
+    {
+        $stmt = $this->pdo->prepare('
+            INSERT INTO report_access_log (report_uuid, user_id, role)
+            VALUES (:report_uuid, :user_id, :role)
+        ');
+        $stmt->execute([
+            ':report_uuid' => $reportUuid,
+            ':user_id'     => $userId,
+            ':role'        => $role,
+        ]);
+    }
 }

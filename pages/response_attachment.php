@@ -1,5 +1,7 @@
 <?php
 
+use App\Repository\ReportRepository;
+
 /**
  * Response Attachment Download — Application SST DREETS BFC
  *
@@ -16,15 +18,9 @@ if ($responseId <= 0) {
 }
 
 $pdo = getDB();
-$stmt = $pdo->prepare('
-    SELECT rr.attachment_blob, rr.attachment_name, rr.attachment_mime, rr.report_uuid
-    FROM report_responses rr
-    WHERE rr.id = :id
-');
-$stmt->execute([':id' => $responseId]);
-$row = $stmt->fetch();
+$row = ReportRepository::instance()->getResponseAttachmentById($responseId);
 
-if ($row === false || empty($row['attachment_blob'])) {
+if ($row === null || empty($row['attachment_blob'])) {
     http_response_code(404);
     exit('Fichier introuvable.');
 }

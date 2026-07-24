@@ -17,16 +17,10 @@ $activeRegistryType = $_GET['type'] ?? null;
 $reportSubpages = ['report_create', 'report_view', 'report_edit', 'report_abandon', 'report_respond'];
 if ($activeRegistryType === null && in_array($currentPage, $reportSubpages, true) && isset($_GET['uuid'])) {
     try {
-        $pdo = getDB();
         $reportUuid = $_GET['uuid'] ?? '';
         $reportUuidStr = (string) $reportUuid;
         if (strlen($reportUuidStr) === 36) {
-            $stmt = $pdo->prepare('SELECT type FROM reports WHERE uuid = :uuid');
-            $stmt->execute([':uuid' => $reportUuidStr]);
-            $row = $stmt->fetch();
-            if ($row !== null) {
-                $activeRegistryType = $row['type'];
-            }
+            $activeRegistryType = \App\Repository\ReportRepository::instance()->getTypeByUuid($reportUuidStr);
         }
     } catch (Exception) {
         // Ignore database errors in sidebar

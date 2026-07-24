@@ -136,6 +136,15 @@ class SiteRepository
         }
     }
 
+    public function countActiveSites(): int
+    {
+        $stmt = $this->pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
+        if ($stmt === false) {
+            return 0;
+        }
+        return (int) $stmt->fetchColumn();
+    }
+
     public function getPdo(): PDO
     {
         return $this->pdo;

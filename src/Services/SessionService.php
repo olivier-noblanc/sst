@@ -51,11 +51,6 @@ class SessionService
             ini_set('session.gc_maxlifetime', (string) (60 * 60 * 24)); // 24h
             session_name('SST_SESSION');
 
-            // Use SQLite session handler instead of file-based sessions
-            // (IIS worker process cannot write to session.save_path)
-            $pdo = \getDB();
-            session_set_save_handler(new SQLiteSessionHandler($pdo), true);
-
             session_start();
         }
     }

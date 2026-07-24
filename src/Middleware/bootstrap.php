@@ -1,5 +1,7 @@
 <?php
 
+use App\Repository\UserRepository;
+
 /**
  * Middleware — Application SST DREETS BFC
  *
@@ -51,10 +53,9 @@ function checkSuperviseurPromotion(): void
 
     // Promote in database
     $pdo = getDB();
-    $stmt = $pdo->prepare("UPDATE users SET role = '" . ROLE_SUPERVISEUR . "', updated_at = datetime('now') WHERE id = :id AND role = '" . ROLE_AGENT . "'");
-    $stmt->execute([':id' => currentUserId()]);
+    $promoted = UserRepository::instance()->promoteToSuperviseur(currentUserId());
 
-    if ($stmt->rowCount() > 0) {
+    if ($promoted) {
         // Promotion applied — refresh session from DB
         refreshCurrentUser($pdo);
         error_log("SST App: Auto-promoted user '$currentUsername' to superviseur (config list rule, session refresh)");

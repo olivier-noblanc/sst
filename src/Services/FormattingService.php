@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\Repository\ReportRepository;
 use DateTimeZone;
 use App\Enum\ReportState;
 use App\Enum\ReportType;
@@ -91,14 +92,7 @@ class FormattingService
      */
     public function getNextSequence(PDO $pdo, string $type, int $year): int
     {
-        $stmt = $pdo->prepare('
-            INSERT INTO report_sequence (type, year, last_sequence)
-            VALUES (:type, :year, 1)
-            ON CONFLICT(type, year) DO UPDATE SET last_sequence = last_sequence + 1
-            RETURNING last_sequence
-        ');
-        $stmt->execute([':type' => $type, ':year' => $year]);
-        return (int) $stmt->fetchColumn();
+        return ReportRepository::instance()->getNextSequence($type, $year);
     }
 
     /**

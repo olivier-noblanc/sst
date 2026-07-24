@@ -40,9 +40,7 @@ $userUpdatedAt = (string) ($user['updated_at'] ?? '');
 $userIsActive = !empty($user['is_active']);
 
 // Get user's report count
-$stmt = $pdo->prepare('SELECT COUNT(*) FROM reports WHERE declarant_id = :uid');
-$stmt->execute([':uid' => $userId]);
-$reportCount = (int) $stmt->fetchColumn();
+$reportCount = \App\Repository\ReportRepository::instance()->countByDeclarantId($userId);
 
 $pageTitle = 'Utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNom);
 ?>

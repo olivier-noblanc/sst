@@ -93,15 +93,7 @@ class AccessService
             return;
         }
         try {
-            $stmt = $pdo->prepare('
-                INSERT INTO report_access_log (report_uuid, user_id, role)
-                VALUES (:report_uuid, :user_id, :role)
-            ');
-            $stmt->execute([
-                ':report_uuid' => $report['uuid'],
-                ':user_id'     => $userId,
-                ':role'        => $user['role'],
-            ]);
+            ReportRepository::instance()->logAccess((string) $report['uuid'], $userId, (string) $user['role']);
         } catch (Exception $e) {
             error_log('[SST-ACCESS-LOG] Failed to log report access: ' . $e->getMessage());
         }

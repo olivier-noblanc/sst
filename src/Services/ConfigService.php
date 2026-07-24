@@ -5,6 +5,8 @@
 namespace App\Services;
 
 use App\Enum\UserRole;
+use App\Repository\ConfigRepository;
+use App\Repository\SiteRepository;
 use Exception;
 
 class ConfigService
@@ -43,11 +45,8 @@ class ConfigService
             return $this->cache[$cle];
         }
         try {
-            $pdo = \getDB();
-            $stmt = $pdo->prepare('SELECT valeur FROM config_app WHERE cle = :cle');
-            $stmt->execute([':cle' => $cle]);
-            $result = $stmt->fetchColumn();
-            $value = ($result !== false && $result !== null && $result !== '') ? (string) $result : $default;
+            $value = ConfigRepository::instance()->get($cle);
+            $value = ($value !== null && $value !== '') ? $value : $default;
         } catch (Exception) {
             $value = $default;
         }
@@ -60,11 +59,7 @@ class ConfigService
      */
     public function set(string $cle, string $valeur): void
     {
-        $pdo = \getDB();
-        $stmt = $pdo->prepare('INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) 
-            VALUES (:cle, :valeur, "", "", "", 1)
-            ON CONFLICT(cle) DO UPDATE SET valeur = :valeur2, updated_at = datetime("now")');
-        $stmt->execute([':cle' => $cle, ':valeur' => $valeur, ':valeur2' => $valeur]);
+        ConfigRepository::instance()->set($cle, $valeur);
         $this->clearCache();
     }
 
@@ -155,13 +150,7 @@ class ConfigService
      */
     public function hasActiveSites(): bool
     {
-        $pdo = \getDB();
-        $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
-        if ($stmt === false) {
-            return false;
-        }
-        $count = (int) $stmt->fetchColumn();
-        return $count > 0;
+        return SiteRepository::instance()->countActiveSites() > 0;
     }
 
     /**
@@ -172,13 +161,7 @@ class ConfigService
         static $cache = null;
         if ($cache === null || !empty($GLOBALS['_config_cache_cleared'])) {
             $GLOBALS['_config_cache_cleared'] = false;
-            $pdo = \getDB();
-            $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
-            if ($stmt === false) {
-                $cache = true;
-            } else {
-                $cache = ((int) $stmt->fetchColumn()) === 0;
-            }
+            $cache = SiteRepository::instance()->countActiveSites() === 0;
         }
         return $cache;
     }
@@ -188,12 +171,7 @@ class ConfigService
      */
     public function countActiveSites(): int
     {
-        $pdo = \getDB();
-        $stmt = $pdo->query('SELECT COUNT(*) FROM sites WHERE is_active = 1');
-        if ($stmt === false) {
-            return 0;
-        }
-        return (int) $stmt->fetchColumn();
+        return SiteRepository::instance()->countActiveSites();
     }
 
     /**

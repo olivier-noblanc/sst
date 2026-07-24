@@ -11,21 +11,6 @@
 use App\Repository\UserRepository;
 
 /**
- * Base SELECT for user queries with site JOIN.
- * Centralises the "SELECT u.*, s.code as site_code, s.nom as site_nom
- * FROM users u LEFT JOIN sites s ON u.site_id = s.id" pattern
- * that was duplicated across auth.php, index.php, and this file.
- *
- * @return string  SQL fragment (SELECT ... FROM ... LEFT JOIN ...)
- */
-function userSelectWithSite(): string
-{
-    return 'SELECT u.*, s.code as site_code, s.nom as site_nom
-            FROM users u
-            LEFT JOIN sites s ON u.site_id = s.id';
-}
-
-/**
  * Get a user by their username.
  *
  * @param PDO    $pdo       Database connection

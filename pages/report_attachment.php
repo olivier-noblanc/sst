@@ -1,5 +1,7 @@
 <?php
 
+use App\Repository\ReportRepository;
+
 /**
  * Report Attachment Download — Application SST DREETS BFC
  *
@@ -16,9 +18,7 @@ if (!isValidUuid($uuid)) {
 }
 
 $pdo = getDB();
-$stmt = $pdo->prepare('SELECT attachment_blob, attachment_name, attachment_mime FROM reports WHERE uuid = :uuid');
-$stmt->execute([':uuid' => $uuid]);
-$row = $stmt->fetch();
+$row = ReportRepository::instance()->getAttachmentBlob($uuid);
 
 if (!is_array($row) || empty($row['attachment_blob'])) {
     http_response_code(404);

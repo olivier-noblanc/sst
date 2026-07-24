@@ -17,7 +17,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  */
 final class NoSqlOutsideRepositoryRule implements Rule
 {
-    private const SQL_PATTERN = '/\b(select|insert|update|delete)\b/i';
+    private const SQL_PATTERN = '/^\s*(select|insert|update|delete)\b.*\b(from|where|into|set|values|join|on conflict|do update|returning|limit|order by|group by)\b/is';
 
     /** @var list<string> Paths whitelistés (SQL légitime hors Repository) */
     private const WHITELIST_PATHS = [
@@ -30,6 +30,8 @@ final class NoSqlOutsideRepositoryRule implements Rule
         '/tools/',
         '/cron',
         '/nuclear-reset',
+        '/database.php',
+        '/audit.php',
     ];
 
     public function getNodeType(): string

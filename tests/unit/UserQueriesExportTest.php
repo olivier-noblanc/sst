@@ -7,7 +7,7 @@
  *   (formerly the countActiveUsers()/exportUserData()/anonymizeUser() wrappers
  *   in src/queries/user_admin_queries.php and user_gdpr_queries.php, removed
  *   as dead code — no callers outside test fixtures)
- * - userSelectWithSite() (still live, in src/queries/user_queries.php)
+ * - UserRepository site JOIN (baseQuery returns site_code/site_nom)
  */
 
 use App\Repository\UserRepository;
@@ -83,15 +83,18 @@ class UserQueriesExportTest extends TestCase
         $this->assertEquals(0, (int) $user['is_active']);
     }
 
-    // ─── userSelectWithSite() centralisation ───────────────────────────────────
+    // ─── UserRepository site JOIN ─────────────────────────────────────────────
 
-    public function testUserSelectWithSiteReturnsSqlFragment(): void
+    public function testUserRepositoryReturnsSiteFields(): void
     {
-        $sql = userSelectWithSite();
-        $this->assertStringContainsString('u.*', $sql);
-        $this->assertStringContainsString('site_code', $sql);
-        $this->assertStringContainsString('site_nom', $sql);
-        $this->assertStringContainsString('LEFT JOIN sites', $sql);
+        $user = $this->users->create([
+            'username' => 'site.test', 'nom' => 'Site', 'prenom' => 'Test',
+            'email' => 'site@test.fr', 'role' => 'agent', 'site_id' => 1,
+        ]);
+        $result = $this->users->findById($user);
+        $this->assertNotNull($result);
+        $this->assertEquals('UR21', $result['site_code']);
+        $this->assertEquals('UR Côte-d\'Or', $result['site_nom']);
     }
 
     public function testUserWithoutSiteReturnsNullSiteFields(): void

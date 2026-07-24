@@ -116,15 +116,18 @@ $visibilityModes = [
         <!-- Color theme + Icon + Sort order -->
         <div class="form-grid form-grid--3">
             <div class="form-group">
-                <label for="registres_<?php echo $regId; ?>_color_theme">Couleur</label>
-                <select id="registres_<?php echo $regId; ?>_color_theme"
-                        name="registres[<?php echo $regId; ?>][color_theme]" class="input">
+                <label>Couleur</label>
+                <div class="flex-row gap-2" style="flex-wrap: wrap;">
                     <?php foreach ($themes as $theme): ?>
-                    <option value="<?php echo $fmt->e($theme); ?>" <?php echo $colorTheme === $theme ? 'selected' : ''; ?>>
-                        <?php echo $fmt->e($theme); ?>
-                    </option>
+                    <label style="cursor: pointer;" title="<?php echo $fmt->e($theme); ?>">
+                        <input type="radio" name="registres[<?php echo $regId; ?>][color_theme]"
+                               value="<?php echo $fmt->e($theme); ?>"
+                               <?php echo $colorTheme === $theme ? 'checked' : ''; ?>
+                               style="display: none;">
+                        <span style="display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: var(--theme-<?php echo $fmt->e($theme); ?>, #666); border: 3px solid <?php echo $colorTheme === $theme ? '#333' : 'transparent'; ?>;"></span>
+                    </label>
                     <?php endforeach; ?>
-                </select>
+                </div>
             </div>
             <div class="form-group">
                 <label for="registres_<?php echo $regId; ?>_icon">Icône</label>
@@ -132,7 +135,7 @@ $visibilityModes = [
                         name="registres[<?php echo $regId; ?>][icon]" class="input">
                     <?php foreach ($icons as $ic): ?>
                     <option value="<?php echo $fmt->e($ic); ?>" <?php echo $icon === $ic ? 'selected' : ''; ?>>
-                        <?php echo $ic; ?> <?php echo $fmt->e($ic); ?>
+                        <?php echo $ic; ?>
                     </option>
                     <?php endforeach; ?>
                 </select>

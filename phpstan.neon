@@ -1,6 +1,7 @@
 includes:
     - phpstan-baseline.neon
     - phpstan-no-magic-string.neon
+    - phpstan-banned-code.neon
 
 parameters:
     level: 8

@@ -3,6 +3,41 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.46.0] — 2026-07-24
+
+### Feature — Registres custom pleinement fonctionnels (P21 final)
+
+- **1** 🔴 **report_form.php** — Rendu dynamique des `registry_fields` depuis la DB (text, select, textarea, checkbox) avec validation required et gestion d'erreurs. Remplace le require RAMI hardcodé.
+- **2** 🔴 **StatsRepository.php** — SQL stats dynamique : les `SUM(CASE WHEN type = 'rsst'...)` sont générés depuis les registres actifs dans `registries` (plus de types hardcodés).
+- **3** 🔴 **RegistryCardService.php** — `btn_label` lu depuis `$reg['btn_label']` (nouveau champ dans `registries`). Plus de mappe 3 types hardcodée.
+- **4** 🔴 **CSS classes dynamiques** — `report_form.php`, `report_card.php`, `report_reopen.php`, `report_abandon.php` : `match(ReportType)` remplacé par `color_theme` depuis `registries`.
+- **5** 🔴 **schema.sql** — Colonne `btn_label` ajoutée à `registries`.
+- **6** 🔴 **migration_columns.php** — Migration `btn_label` + backfill des 3 systèmes.
+
+### Feature — PHPStan NoTodoCommentRule
+
+- **7** 🔴 **NoTodoCommentRule.php** — Nouvelle règle PHPStan : interdit TODO/FIXME/HACK/XXX dans le code source avec message clair « utiliser TODO.md ».
+- **8** 🟢 **phpstan-no-magic-string.neon** — Règle enregistrée.
+
+### Fix — Constantes legacy remplacées par des enums (Rector)
+
+- **9** 🔴 **~40 fichiers** — 119 usages de constantes `ROLE_*`/`ETAT_*` remplacés par `UserRole::X->value`/`ReportState::X->value`.
+- **10** 🔴 **ReplaceMagicStringWithEnumRector.php** — Paramètre `constToEnum` ajouté pour mapper `ROLE_AGENT`, `ROLE_SUPERVISEUR`, `ROLE_CHSCT`, `ETAT_*`.
+- **11** 🔴 **rector.php** — Mappings `constToEnum` ajoutés.
+
+### Fix — Deptrac + Architecture
+
+- **12** 🔴 **RegistryCardService.php** — Injection DI propre (plus de fallbacks `?? instance()`).
+- **13** 🔴 **deptrac.yaml** — Router → Enum ajouté au ruleset.
+- **14** 🔴 **registry_card_renderer.php** — Helpers utilisent `getContainer()` pour résoudre le service.
+
+### CI/Quality
+
+- **15** 🟢 **GrumPHP** — PHPStan, PHPUnit, phpcsfixer, phparkitect, rector, deptrac tous passent.
+- **16** 🟢 **935 tests, 1886 assertions** — tous verts.
+
+---
+
 ## [3.45.0] — 2026-07-23
 
 ### Fix — Signalements rattachés invisibles dans les listes

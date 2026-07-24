@@ -76,6 +76,22 @@ npx playwright test --ui               # interface interactive
 php tools/anonymize_old_reports.php --dry-run
 ```
 
+### Qualité du code
+
+```bash
+# PHPStan (level 8, baseline)
+phpstan analyse --memory-limit=1G
+
+# GrumPHP (tous les outils d'un coup)
+tools/grumphp.phar run
+
+# Rector (auto-migration)
+rector process --dry-run
+
+# Deptrac (architecture layers)
+deptrac analyse
+```
+
 ### Couverture de tests
 
 | Suite | Tests | Fichiers | Portée |

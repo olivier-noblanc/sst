@@ -1,6 +1,7 @@
 includes:
     - phpstan-baseline.neon
     - phpstan-no-magic-string.neon
+    - vendor/ekino/phpstan-banned-code/extension.neon
     - phpstan-banned-code.neon
 
 parameters:
@@ -29,3 +30,10 @@ parameters:
     scanDirectories:
         - src/
         - handlers/
+    ignoreErrors:
+        -
+            identifier: ekinoBannedCode.expression
+            message: '#Should not use node with type "(Stmt_Echo|Expr_Exit|Expr_Eval|Expr_Print|Expr_ShellExec)".#'
+        -
+            identifier: ekinoBannedCode.function
+            message: '#Should not use function "(debug_backtrace|exec|passthru|phpinfo|proc_open|shell_exec|system)".#'

@@ -18,6 +18,40 @@
  */
 function migrateTables(PDO $pdo): void
 {
+    // ── Registries table (dynamic registry definitions) ────────────────────
+    $pdo->exec("CREATE TABLE IF NOT EXISTS registries (
+        id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+        code                TEXT NOT NULL UNIQUE,
+        label               TEXT NOT NULL,
+        short_label         TEXT NOT NULL,
+        description         TEXT,
+        icon                TEXT NOT NULL DEFAULT '📋',
+        color_theme         TEXT NOT NULL DEFAULT 'rsst',
+        is_enabled          INTEGER NOT NULL DEFAULT 1,
+        is_system           INTEGER NOT NULL DEFAULT 0,
+        sort_order          INTEGER NOT NULL DEFAULT 0,
+        default_visibility  TEXT NOT NULL DEFAULT 'agent_choice',
+        notify_chsct        INTEGER NOT NULL DEFAULT 0,
+        legal_note          TEXT,
+        created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
+    )");
+
+    // ── Registry fields table (custom fields per registry) ─────────────────
+    $pdo->exec("CREATE TABLE IF NOT EXISTS registry_fields (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        registry_id     INTEGER NOT NULL,
+        field_code      TEXT NOT NULL,
+        label           TEXT NOT NULL,
+        field_type      TEXT NOT NULL DEFAULT 'text',
+        options         TEXT,
+        is_required     INTEGER NOT NULL DEFAULT 0,
+        sort_order      INTEGER NOT NULL DEFAULT 0,
+        created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (registry_id) REFERENCES registries(id) ON DELETE CASCADE,
+        UNIQUE(registry_id, field_code)
+    )");
+
     // ── Sessions table (SQLite-backed session handler) ──────────────────────
     $pdo->exec("CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
@@ -35,9 +69,9 @@ function migrateTables(PDO $pdo): void
     // detecting its shadow index disagrees with the content table). See
     // schema.sql for the full explanation and where these are also created
     // for a fresh install.
-    $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_ai AFTER INSERT ON reports BEGIN
+    $pdo->exec('CREATE TRIGGER IF NOT EXISTS reports_fts_ai AFTER INSERT ON reports BEGIN
         INSERT INTO reports_fts(rowid, uuid, objet, description) VALUES (new.rowid, new.uuid, new.objet, new.description);
-    END");
+    END');
     $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_ad AFTER DELETE ON reports BEGIN
         INSERT INTO reports_fts(reports_fts, rowid, uuid, objet, description) VALUES ('delete', old.rowid, old.uuid, old.objet, old.description);
     END");

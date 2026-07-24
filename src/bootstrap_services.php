@@ -8,6 +8,8 @@ use App\Repository\UserRepository;
 use App\Repository\SiteRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\StatsRepository;
+use App\Repository\RegistryRepository;
+use App\Repository\RegistryFieldRepository;
 use App\Services\ReportService;
 use App\Services\UserService;
 use App\Services\AuthService;
@@ -50,6 +52,12 @@ function createContainer(): Container
     });
     $container->set(StatsRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new StatsRepository($pdo);
+    });
+    $container->set(RegistryRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new RegistryRepository($pdo);
+    });
+    $container->set(RegistryFieldRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new RegistryFieldRepository($pdo);
     });
 
     // ═══════════════════════════════════════════════════════════════════════════════

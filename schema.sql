@@ -176,6 +176,49 @@ INSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) VALUE
 
 
 -- ============================================================
+-- Table: registries
+-- Dynamic registry definitions (RSST, RAMI, DGI, and custom).
+-- The 'rsst' registry is always system=1 (cannot be deleted).
+-- New registries are created by duplicating RSST as template.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS registries (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    code                TEXT NOT NULL UNIQUE,            -- 'rsst', 'rami', 'dgi', or custom
+    label               TEXT NOT NULL,                   -- full name: 'Registre de Santé...'
+    short_label         TEXT NOT NULL,                   -- short: 'RSST'
+    description         TEXT,                            -- for home cards
+    icon                TEXT NOT NULL DEFAULT '📋',
+    color_theme         TEXT NOT NULL DEFAULT 'rsst',    -- CSS theme key (10 themes)
+    is_enabled          INTEGER NOT NULL DEFAULT 1,
+    is_system           INTEGER NOT NULL DEFAULT 0,      -- 1 = cannot be deleted
+    sort_order          INTEGER NOT NULL DEFAULT 0,
+    default_visibility  TEXT NOT NULL DEFAULT 'agent_choice',
+    notify_chsct        INTEGER NOT NULL DEFAULT 0,      -- DGI-style CHSCT notification
+    legal_note          TEXT,
+    created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ============================================================
+-- Table: registry_fields
+-- Custom fields per registry (ex: nature_auteur for RAMI).
+-- Rendered dynamically in report forms via HTML5 attributes.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS registry_fields (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    registry_id     INTEGER NOT NULL,
+    field_code      TEXT NOT NULL,               -- 'nature_auteur', 'type_acte', etc.
+    label           TEXT NOT NULL,               -- display label
+    field_type      TEXT NOT NULL DEFAULT 'text', -- 'text', 'select', 'textarea', 'checkbox'
+    options         TEXT,                        -- JSON for select: {"value":"label",...}
+    is_required     INTEGER NOT NULL DEFAULT 0,  -- HTML5 required attribute
+    sort_order      INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (registry_id) REFERENCES registries(id) ON DELETE CASCADE,
+    UNIQUE(registry_id, field_code)
+);
+
+-- ============================================================
 -- Table: schema_version
 -- Tracks which migration versions have been applied.
 -- Prevents re-running migrations and provides auditability.

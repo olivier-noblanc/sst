@@ -253,7 +253,7 @@ if (!isset($csrfToken)) {
                 </tr>
                 <?php if (!empty($resp['attachment_name'])): ?>
                 <tr>
-                    <td colspan="4" style="padding-top:0;">
+                    <td colspan="4" class="td--flush-top">
                         <?php
                         $isImage = !empty($resp['attachment_mime']) && in_array($resp['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif'], true);
                         ?>
@@ -261,7 +261,7 @@ if (!isset($csrfToken)) {
                             <a href="<?php echo new \App\Services\HttpService()->url('response_attachment', ['id' => $resp['id']]); ?>" title="<?php echo $fmt->e($resp['attachment_name']); ?>">
                                 <img src="<?php echo new \App\Services\HttpService()->url('response_attachment', ['id' => $resp['id'], 'inline' => 1]); ?>"
                                      alt="<?php echo $fmt->e($resp['attachment_name']); ?>"
-                                     class="attachment-image" loading="lazy" style="max-height:120px;">
+                                     class="attachment-image attachment-image--thumb" loading="lazy">
                             </a>
                         <?php endif; ?>
                         <a href="<?php echo new \App\Services\HttpService()->url('response_attachment', ['id' => $resp['id']]); ?>"

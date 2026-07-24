@@ -207,8 +207,8 @@ $etat = $report['etat'] ?? '';
     var input = document.getElementById('response_attachment'), nameEl = document.getElementById('resp_file_chosen_name');
     if (input && nameEl) input.addEventListener('change', function() {
         if (this.files && this.files.length > 0) {
-            nameEl.textContent = this.files[0].name; nameEl.style.fontStyle = 'normal'; nameEl.style.color = '';
-        } else { nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.style.fontStyle = 'italic'; }
+            nameEl.textContent = this.files[0].name; nameEl.classList.add('file-upload-wrapper__filename--selected');
+        } else { nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.classList.remove('file-upload-wrapper__filename--selected'); }
     });
 })();
 </script>

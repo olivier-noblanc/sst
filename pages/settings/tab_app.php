@@ -61,7 +61,7 @@ use App\Enum\VisibilityMode;
                 <label for="app_brand_color">Couleur de marque</label>
                 <input type="color" id="app_brand_color" name="app_brand_color" class="form-control"
                        value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_brand_color', '#1e40af')); ?>"
-                       style="width:80px; height:36px; padding:2px; cursor:pointer;">
+                       class="form-control color-input">
                 <small class="text-muted block mt-1">
                     Couleur utilisée pour les titres des e-mails et certains éléments d'interface. Défaut : #1e40af (bleu).
                 </small>

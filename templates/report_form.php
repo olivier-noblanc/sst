@@ -77,7 +77,7 @@ $submitBtnClass = $isEdit
     $preamble = getConfig('app_report_preamble', '');
     if (!empty($preamble)):
     ?>
-    <div class="alert alert--info" role="note" style="white-space: pre-line;"><?php echo e($preamble); ?></div>
+    <div class="alert alert--info whitespace-pre-line" role="note"><?php echo e($preamble); ?></div>
     <?php endif; ?>
     <div class="alert alert--info form-encouragement" role="note">
         💡 <strong>Remplissez les champs marqués d'une étoile <span class="required">*</span>, les autres sont optionnels.</strong>
@@ -308,8 +308,8 @@ $submitBtnClass = $isEdit
         var input = document.getElementById('attachment'), nameEl = document.getElementById('file_chosen_name');
         if (input && nameEl) input.addEventListener('change', function() {
             if (this.files && this.files.length > 0) {
-                nameEl.textContent = this.files[0].name; nameEl.style.fontStyle = 'normal'; nameEl.style.color = '';
-            } else { nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.style.fontStyle = 'italic'; }
+                nameEl.textContent = this.files[0].name; nameEl.classList.add('file-upload-wrapper__filename--selected');
+            } else { nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.classList.remove('file-upload-wrapper__filename--selected'); }
         });
     })();
     </script>

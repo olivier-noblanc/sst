@@ -3811,6 +3811,10 @@ tr:hover td {
     text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
+.word-cloud__word--noscript {
+    position: static;
+}
+
 .word-cloud__word:hover {
     transform: scale(1.2) !important;
     text-shadow: 0 2px 8px rgba(0,0,0,0.4);
@@ -3852,3 +3856,8 @@ tr:hover td {
 .color-dot--rose { background: #BE123C; }
 .color-dot--ambre { background: #B45309; }
 .card--dashed { border-top: 4px dashed #ccc; }
+.whitespace-pre-line { white-space: pre-line; }
+.color-input { width: 80px; height: 36px; padding: 2px; cursor: pointer; }
+.td--flush-top { padding-top: 0; }
+.attachment-image--thumb { max-height: 120px; }
+.file-upload-wrapper__filename--selected { font-style: normal; color: inherit; }

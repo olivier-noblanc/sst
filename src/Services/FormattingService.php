@@ -282,7 +282,7 @@ class FormattingService
         $html .= '<noscript>';
         foreach ($randomized as $entry) {
             $size = 0.65 + ($entry['p'] * 0.05);
-            $html .= '<span class="word-cloud__word" style="font-size:' . number_format($size, 1) . 'rem;">' . $this->e($entry['w']) . '</span> ';
+            $html .= '<span class="word-cloud__word word-cloud__word--noscript">' . $this->e($entry['w']) . '</span> ';
         }
         $html .= '</noscript>';
         $html .= '</div>';

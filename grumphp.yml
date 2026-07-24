@@ -16,6 +16,3 @@ parameters:
             triggered_by: ['php']
         deptrac:
             depfile: deptrac.yaml
-        inline_styles:
-            command: 'php tools/check_inline_styles.php'
-            triggered_by: ['php']

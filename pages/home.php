@@ -12,48 +12,15 @@ $config = \App\Services\ConfigService::getInstance();
 
 $pdo = getContainer()->get(\PDO::class);
 $user = new \App\Services\SessionService()->getUserSession();
-/** @var string */
-$siteIdStr = $user['site_id'] ?? '0';
-$userSiteId = (int) $siteIdStr;
-$agentVisibility = new \App\Services\AccessService()->getReportVisibility(null);
-$seeAllSites = new \App\Services\AccessService()->canSeeAllSites();
-$noSiteMode = $config->isNoSiteMode();
-
-/** @var string */
-$userIdStr = $user['id'] ?? '0';
-$userId = (int) $userIdStr;
-$rsstCount = 0;
-$ramiCount = 0;
-$dgiCount  = 0;
-
-if ($agentVisibility === \App\Enum\VisibilityMode::Confidential->value || $agentVisibility === \App\Enum\VisibilityMode::AgentChoice->value) {
-    $rsstCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(\App\Enum\ReportType::Rsst->value, $userId, $userSiteId, $agentVisibility);
-    if ($config->isRegistryEnabled(\App\Enum\ReportType::Rami->value)) {
-        $ramiCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(\App\Enum\ReportType::Rami->value, $userId, $userSiteId, $agentVisibility);
-    }
-    if ($config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value)) {
-        $dgiCount = \App\Repository\ReportRepository::instance()->countVisibleForAgent(\App\Enum\ReportType::Dgi->value, $userId, $userSiteId, $agentVisibility);
-    }
-} else {
-    $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
-    $rsstCount = \App\Repository\ReportRepository::instance()->countActive(\App\Enum\ReportType::Rsst->value, $siteIdFilter);
-    if ($config->isRegistryEnabled(\App\Enum\ReportType::Rami->value)) {
-        $ramiCount = \App\Repository\ReportRepository::instance()->countActive(\App\Enum\ReportType::Rami->value, $siteIdFilter);
-    }
-    if ($config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value)) {
-        $dgiCount = \App\Repository\ReportRepository::instance()->countActive(\App\Enum\ReportType::Dgi->value, $siteIdFilter);
-    }
-}
-
-$totalReports = $rsstCount + $ramiCount + $dgiCount;
-$userRole = $user['role'] ?? ROLE_AGENT;
+$userRole = $user['role'] ?? \App\Enum\UserRole::Agent->value;
 $labelUnite = $config->get('app_label_unite', 'UR');
-$ramiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
+
+// Build registry cards dynamically from the database
+$cards = buildRegistryCards();
+$totalReports = array_sum(array_column($cards, 'count'));
 
 // Word cloud — per registry, integrated inside each registry card
 $enabledRegistries = $config->getEnabledRegistries();
-$cards = buildRegistryCards($rsstCount, $ramiCount, $dgiCount, $ramiEnabled, $dgiEnabled);
 $extraContentMap = [];
 foreach ($enabledRegistries as $regCode) {
     $wc = $fmt->buildWordCloud($regCode);

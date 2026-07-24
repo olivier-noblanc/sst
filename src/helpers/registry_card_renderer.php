@@ -1,18 +1,16 @@
 <?php
 
 use App\Enum\ReportType;
+use App\Enum\UserRole;
 use App\Enum\VisibilityMode;
+use App\Repository\RegistryRepository;
 
 /** Registry Card Renderer — HTML unifié pour les cartes de registre. */
 
 function getRegistryIcon(string $type): string
 {
-    return match ($type) {
-        ReportType::Rsst->value => '📋',
-        ReportType::Rami->value => '⚠️',
-        ReportType::Dgi->value  => '🔴',
-        default => '📋',
-    };
+    $reg = RegistryRepository::instance()->findByCode($type);
+    return $reg !== null ? ($reg['icon'] ?? '📋') : '📋';
 }
 
 /**
@@ -64,48 +62,58 @@ function renderRegistryCards(array $cards, string $layout = 'compact', array $ex
 }
 
 /**
+ * Build registry cards from the database — works for all registres (core + custom).
+ *
  * @return list<array{type: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
  */
-function buildRegistryCards(int $rsstCount, int $ramiCount, int $dgiCount, bool $ramiEnabled, bool $dgiEnabled): array
+function buildRegistryCards(): array
 {
-    // "Voir mes signalements" only when this user's effective visibility for
-    // that registry type is 'confidential' — the one mode where the report
-    // list is actually filtered to their own reports only (own_only, see
-    // pages/report_list.php). getReportVisibility() (not
-    // reportVisibilityIsConfidential(), which ignores role and just reads
-    // the raw config) already returns 'all' for superviseur/chsct
-    // regardless of the agent-facing config, so they always get "Voir les
-    // signalements". 'agent_choice' and 'public' both show a wider set for
-    // agents too (linked/non-confidential reports, or everyone at the
-    // site) — "Voir les signalements" stays accurate for those.
+    $registryRepo = RegistryRepository::instance();
+    $enabledRegistries = $registryRepo->findEnabled();
+    $reportRepo = \App\Repository\ReportRepository::instance();
+
+    $user = (new \App\Services\SessionService())->getUserSession();
+    /** @var string */
+    $userIdStr = $user['id'] ?? '0';
+    $userId = (int) $userIdStr;
+    /** @var string */
+    $siteIdStr = $user['site_id'] ?? '0';
+    $userSiteId = (int) $siteIdStr;
+    $agentVisibility = (new \App\Services\AccessService())->getReportVisibility(null);
+    $seeAllSites = (new \App\Services\AccessService())->canSeeAllSites();
+
     $listLabel = static fn(string $type): string => \getReportVisibility($type) === VisibilityMode::Confidential->value
         ? 'Voir mes signalements'
         : 'Voir les signalements';
 
-    $cards = [];
-    $cards[] = [
-        'type' => ReportType::Rsst->value, 'title' => 'Registre de Santé et de Sécurité au Travail',
-        'subtitle' => 'RSST', 'desc' => getConfig('app_rsst_description', 'Risques liés aux locaux, équipements, ergonomie, conditions environnementales'),
-        'count' => $rsstCount, 'btnLabel' => 'Déposer un signalement',
-        'btnUrl' => url('report_create', ['type' => ReportType::Rsst->value]), 'listUrl' => url('report_list', ['type' => ReportType::Rsst->value]),
-        'listLabel' => $listLabel(ReportType::Rsst->value),
+    $btnLabels = [
+        ReportType::Rsst->value => 'Déposer un signalement',
+        ReportType::Rami->value => 'Signaler une agression',
+        ReportType::Dgi->value  => 'Signaler un danger urgent',
     ];
-    if ($ramiEnabled) {
+
+    $cards = [];
+    foreach ($enabledRegistries as $reg) {
+        $code = $reg['code'];
+        $reportCount = 0;
+
+        if ($agentVisibility === VisibilityMode::Confidential->value || $agentVisibility === VisibilityMode::AgentChoice->value) {
+            $reportCount = $reportRepo->countVisibleForAgent($code, $userId, $userSiteId, $agentVisibility);
+        } else {
+            $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
+            $reportCount = $reportRepo->countActive($code, $siteIdFilter);
+        }
+
         $cards[] = [
-            'type' => ReportType::Rami->value, 'title' => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
-            'subtitle' => 'RAMI', 'desc' => 'Agressions physiques ou verbales, menaces, incivilités, harcèlement',
-            'count' => $ramiCount, 'btnLabel' => 'Signaler une agression',
-            'btnUrl' => url('report_create', ['type' => ReportType::Rami->value]), 'listUrl' => url('report_list', ['type' => ReportType::Rami->value]),
-            'listLabel' => $listLabel(ReportType::Rami->value),
-        ];
-    }
-    if ($dgiEnabled) {
-        $cards[] = [
-            'type' => ReportType::Dgi->value, 'title' => 'Registre de signalement d\'un Danger Grave et Imminent',
-            'subtitle' => 'DGI', 'desc' => 'Danger nécessitant une action immédiate, droit de retrait',
-            'count' => $dgiCount, 'btnLabel' => 'Signaler un danger urgent',
-            'btnUrl' => url('report_create', ['type' => ReportType::Dgi->value]), 'listUrl' => url('report_list', ['type' => ReportType::Dgi->value]),
-            'listLabel' => $listLabel(ReportType::Dgi->value),
+            'type'     => $code,
+            'title'    => $reg['label'],
+            'subtitle' => $reg['short_label'],
+            'desc'     => $reg['description'] ?? '',
+            'count'    => $reportCount,
+            'btnLabel' => $btnLabels[$code] ?? 'Signaler un événement',
+            'btnUrl'   => url('report_create', ['type' => $code]),
+            'listUrl'  => url('report_list', ['type' => $code]),
+            'listLabel' => $listLabel($code),
         ];
     }
     return $cards;

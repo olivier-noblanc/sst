@@ -34,6 +34,11 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --prefer-dist
 
+      - name: Download PHPStan phar
+        run: |
+          curl -sL https://github.com/phpstan/phpstan/releases/download/2.2.5/phpstan.phar -o phpstan.phar
+          chmod +x phpstan.phar
+
       - name: Lint (php -l)
         run: |
           set -e
@@ -41,7 +46,7 @@ jobs:
             | xargs -0 -n1 php -l
 
       - name: PHPStan
-        run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+        run: php phpstan.phar analyse --memory-limit=1G --no-progress
 
       - name: PHPUnit
         run: php vendor/bin/phpunit --no-coverage --debug 2>&1 | tee phpunit-output.txt

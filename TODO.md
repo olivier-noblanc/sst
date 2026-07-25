@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-24
+Dernière mise à jour : 2026-07-25
 
 ---
 
@@ -14,6 +14,7 @@ Dernière mise à jour : 2026-07-24
 | Tests | **901** (1886 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
+| DTOs readonly | **11** (IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult, ReportListItem, PaginatedReports, ReportStateCounts, AdjacentUuids, ReportData, RegistryCard) |
 | CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + PHPArkitect + Rector + Deptrac + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
 | Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |
@@ -304,7 +305,7 @@ Les échecs CI n'étaient pas techniques mais liés à la **facturation GitHub A
 | 5 | DTO Pattern | ✅ | 11 DTOs readonly, ReadModels pour tous les retours Repository/Service |
 | 6 | Enum Usage | ✅ | Règles actives, magic strings SQL corrigées, 0 utilisation résiduelle |
 | 7 | Error Handling | ✅ | Catch silencieux supprimé (R2), crash hard partout |
-| 8 | Procedural vs OOP | ⚠️ | Fonctions procédurales legacy (`getConfig()`, `currentUser()`, etc.) |
+| 8 | Procedural vs OOP | ⚠️ | Fonctions procédurales legacy (`getConfig()`, `currentUser()`, etc.) à migrer |
 | 9 | Testing | ✅ | 901 tests, couverture raisonnable |
 | 10 | Code Quality | ✅ | 5 règles custom, 0 magic strings, PHPStan 0 erreur |
 

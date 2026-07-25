@@ -12,9 +12,23 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **3** 🔴 **ReportRepository::findPaginated()** retourne `PaginatedReports`, `getAdjacentUuids()` → `AdjacentUuids`, `countByState()` → `ReportStateCounts`.
 - **4** 🔴 **StatsRepository** : 4 méthodes retournent des ReadModels (`IndicateursData`, `SiteStatsRow`, `SynthesisRow`, `RamiStats`).
 - **5** 🔴 **Helpers migration** : `fetchReportOrRedirect()`, `requireReportOwnership()`, `requireReportEditable()`, `canAccessReport()`, `logConfidentialReportAccess()` acceptent `ReportData`.
-- **6** 🔴 **~30 fichiers migrés** : pages (report_view, report_list, report_print, report_edit, report_abandon, report_respond, report_reopen, agent_confirm), templates (report_card, report_form, report_form_rami, report_form_linked_agents), handlers (5), services (ReportService, NotificationService, StatisticsService), helpers (access.php), mail_notifications.php, cron.php.
-- **7** 🔴 **Magic strings SQL corrigées** : StatsRepository + ReportRepository::countByState() utilisent `$this->pdo->quote()` + enums.
-- **8** 🔴 **PHPStan 0 erreur**, 901 tests verts.
+- **6** 🔴 **~30 fichiers migrés** : pages, templates, handlers, services, helpers, mail_notifications.php, cron.php.
+- **7** 🔴 **PHPStan 0 erreur**, 901 tests verts.
+
+### Fix — R6 Magic strings SQL terminé
+
+- **8** 🔴 **ReportRepository::reopen()** : `WHERE etat IN ('traite', 'abandonne')` → `$this->pdo->quote()` + enums.
+- **9** 🔴 **0 magic string SQL** dans tout le codebase.
+
+### Refactoring — ConfigService singleton → DI container
+
+- **10** 🔴 **ConfigService::getInstance()/setInstance()** supprimés. 174 appels migrés vers `getConfigService()` (résout depuis le container DI). 58 fichiers modifiés.
+- **11** 🔴 **deptrac** : Helpers layer autorisé à dépendre de DTO.
+
+### Audit DDD — 7/10 aspects ✅
+
+- **12** 🟢 Audit DDD mis à jour : Architecture Layers ✅, DTO Pattern ✅, Enum Usage ✅, Error Handling ✅, Service Pattern ✅, Testing ✅, Code Quality ✅.
+- **13** 🟢 R7 (deptrac handlers/pages/templates) confirmé terminé. 0 violation.
 
 ---
 

@@ -1,7 +1,8 @@
 <?php
 
-use App\Repository\ReportRepository;
 use App\Repository\AuditRepository;
+use App\Repository\ConfigRepository;
+use App\Repository\ReportRepository;
 
 /**
  * Lazy Cron — Application SST DREETS BFC
@@ -46,7 +47,7 @@ function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable 
         // new timestamp → both execute the task (double email, double
         // anonymization, etc.). Now claimLazyCronLock does the read+write
         // inside a transaction, so only one caller acquires the lock.
-        $configRepo = \App\Repository\ConfigRepository::instance();
+        $configRepo = ConfigRepository::instance();
         if (!$configRepo->claimLazyCronLock("last_lazy_cron_{$taskName}", $minInterval)) {
             return; // Another caller already claimed it
         }

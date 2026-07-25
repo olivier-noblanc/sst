@@ -76,7 +76,7 @@ class RepositoryInvariantTest extends TestCase
     // ReportRepository
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    public function testFindByIdReturnsArrayOrNull(): void
+    public function testFindByIdReturnsReportDataOrNull(): void
     {
         $repo = new ReportRepository($this->pdo);
         $siteId = $this->seedSite();
@@ -84,7 +84,8 @@ class RepositoryInvariantTest extends TestCase
         $uuid = $this->seedReport($siteId, $userId);
 
         $result = $repo->findById($uuid);
-        $this->assertIsArray($result);
+        // Audit #60 — findById now returns ?ReportData (DTO object), not ?array.
+        $this->assertInstanceOf(\App\DTO\ReportData::class, $result);
 
         $this->assertNull($repo->findById('00000000-0000-0000-0000-000000000000'));
     }
@@ -281,15 +282,14 @@ class RepositoryInvariantTest extends TestCase
 
         $result = $repo->getIndicateurs();
 
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('total_reports', $result);
-        $this->assertArrayHasKey('total_nouveau', $result);
-        $this->assertArrayHasKey('total_en_cours', $result);
-        $this->assertArrayHasKey('total_traite', $result);
-        $this->assertArrayHasKey('total_abandonne', $result);
-        $this->assertArrayHasKey('total_rsst', $result);
-        $this->assertArrayHasKey('total_rami', $result);
-        $this->assertArrayHasKey('total_dgi', $result);
+        // Audit #60 — getIndicateurs now returns IndicateursData (DTO object),
+        // not an array. assertIsArray was failing silently.
+        $this->assertInstanceOf(\App\DTO\IndicateursData::class, $result);
+        $this->assertIsInt($result->totalReports);
+        $this->assertIsInt($result->totalNouveau);
+        $this->assertIsInt($result->totalEnCours);
+        $this->assertIsInt($result->totalTraite);
+        $this->assertIsArray($result->registryTotals);
     }
 
     public function testGetAvailableYearsReturnsArray(): void

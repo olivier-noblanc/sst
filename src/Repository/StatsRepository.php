@@ -52,8 +52,13 @@ class StatsRepository
 
         $params = [':year_start' => $year . '-01-01 00:00:00', ':year_next' => ((int) $year + 1) . '-01-01 00:00:00'];
 
+        // Audit #61 — site filter must be a WHERE clause on s.id, not added to
+        // the LEFT JOIN's ON clause. Before this fix, `AND r.site_id = :site_id`
+        // was added to the ON clause, which doesn't filter the sites returned
+        // (LEFT JOIN still includes all sites, just with NULL report data for
+        // non-matching sites). The user saw all sites even when filtering by one.
         if ($siteId > 0) {
-            $sql .= ' AND r.site_id = :site_id';
+            $sql .= ' WHERE s.id = :site_id';
             $params[':site_id'] = $siteId;
         }
 
@@ -253,21 +258,31 @@ class StatsRepository
         ";
 
         $params = [];
+        $onExtra = [];
         $where = [];
 
+        // Year filter goes in the ON clause to preserve the LEFT JOIN semantics:
+        // sites with no reports in the year still appear with total=0.
         if (!empty($year)) {
-            $where[] = 'r.created_at >= :year_start AND r.created_at < :year_next';
+            $onExtra[] = 'r.created_at >= :year_start AND r.created_at < :year_next';
             $params[':year_start'] = $year . '-01-01 00:00:00';
             $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
         }
 
+        if (!empty($onExtra)) {
+            $sql .= ' AND ' . implode(' AND ', $onExtra);
+        }
+
+        // Audit #62 — site filter on s.id (WHERE), not r.site_id (LEFT JOIN ON).
+        // Same bug as #61: filtering on r.site_id in the ON clause doesn't filter
+        // the sites returned (LEFT JOIN keeps all sites with NULL report data).
         if ($siteId > 0) {
-            $where[] = 'r.site_id = :site_id';
+            $where[] = 's.id = :site_id';
             $params[':site_id'] = $siteId;
         }
 
         if (!empty($where)) {
-            $sql .= ' AND ' . implode(' AND ', $where);
+            $sql .= ' WHERE ' . implode(' AND ', $where);
         }
 
         $sql .= ' GROUP BY s.id ORDER BY s.code';

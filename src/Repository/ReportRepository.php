@@ -230,6 +230,14 @@ class ReportRepository
 
         if (!empty($filters['etat'])) {
             $builder->addEqual('r.etat', $filters['etat']);
+        } else {
+            // Audit #64 — exclude 'abandonne' by default from the list view.
+            // Before this fix, findPaginated returned all states including
+            // 'abandonne' (soft-deleted reports), but RegistryCardService count
+            // excludes them → the card said "5 signalements" but the list showed 7.
+            // Now findPaginated excludes abandonne unless the user explicitly
+            // filters by etat=abandonne.
+            $builder->addRaw('r.etat != ' . $this->pdo->quote(ReportState::Abandonne->value));
         }
         if (!empty($filters['site_id']) && $filter->seeAllSites) {
             $builder->addEqual('r.site_id', $filters['site_id']);

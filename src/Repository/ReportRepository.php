@@ -184,6 +184,14 @@ class ReportRepository
 
     public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): PaginatedReports
     {
+        // Audit #18 — clamp page and perPage to safe values.
+        // Before this fix, a negative or zero page could produce a negative
+        // OFFSET, which SQLite silently treats as 0 (so page -1 returned page 1,
+        // not very harmful, but page 0 with offset -1 * perPage = -20 returned
+        // page 1 too, masking the misuse).
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+
         $builder = new QueryFilterBuilder();
         $builder->addEqual('r.type', $filter->type);
         $filters = $filter->toArray();
@@ -278,7 +286,7 @@ class ReportRepository
 
         $params[':limit'] = $perPage;
         $params[':offset'] = ($page - 1) * $perPage;
-        $stmt = $this->pdo->prepare($this->baseSelect() . " WHERE $where ORDER BY r.created_at DESC LIMIT :limit OFFSET :offset");
+        $stmt = $this->pdo->prepare($this->baseSelect() . " WHERE $where ORDER BY r.created_at DESC, r.uuid DESC LIMIT :limit OFFSET :offset");
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
         $reports = [];

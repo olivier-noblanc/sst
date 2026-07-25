@@ -19,7 +19,12 @@ if (!isset($totalItems) || !isset($currentPage) || !isset($perPage) || !isset($b
 /** @var int $currentPage */
 /** @var int $perPage */
 /** @var string $baseUrl */
-$totalPages = (int) ceil($totalItems / $perPage);
+
+// Audit #96 — Guard against DivisionByZeroError if $perPage is 0 (misuse).
+// Before this fix, (int) ceil($totalItems / $perPage) would crash with
+// DivisionByZeroError when $perPage = 0. Now we clamp it to 1.
+$perPageSafe = max(1, (int) $perPage);
+$totalPages = (int) ceil($totalItems / $perPageSafe);
 
 if ($totalPages <= 1) {
     return;

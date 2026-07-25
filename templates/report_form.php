@@ -51,6 +51,20 @@ $val = function(string $field, string $default = '') use ($formData, $reportArra
     return $default;
 };
 
+// Audit #98 — Sticky checkboxes (HTML unchecked checkboxes are NOT submitted
+// in form data). Before this fix, if a user un-checked a checkbox and re-submitted
+// the form (with a validation error elsewhere), $val('is_confidential') would
+// fall back to $reportArray['is_confidential'] (DB value) and the checkbox would
+// appear re-checked. Now we know whether the form was submitted (sticky mode)
+// and respect the absence of the checkbox key as an explicit 'unchecked'.
+$stickySubmitted = !empty($formData);
+$isConfidentialSticky = $stickySubmitted
+    ? !empty($formData['is_confidential'])
+    : ($isEdit && !empty($reportArray['is_confidential']));
+$consentSyndicatSticky = $stickySubmitted
+    ? !empty($formData['consent_syndicat'])
+    : ($isEdit && !empty($reportArray['consent_syndicat']));
+
 $registryLabel = getRegistryShortLabel($type);
 $registryFullLabel = getRegistryLabel($type);
 
@@ -242,7 +256,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 <label class="label--checkbox">
                     <input type="checkbox" name="is_confidential" id="is_confidential" value="1"
                            class="confidential-toggle__input"
-                           <?php echo $val('is_confidential', '0') === '1' ? 'checked' : ''; ?>>
+                           <?php echo $isConfidentialSticky ? 'checked' : ''; ?>>
                     Signalement confidentiel
                 </label>
                 <div class="confidential-toggle__details">
@@ -274,7 +288,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
-                           <?php echo ((bool) $val('consent_syndicat') || ($isEdit && !empty($report->consentSyndicat))) ? 'checked' : ''; ?>>
+                           <?php echo $consentSyndicatSticky ? 'checked' : ''; ?>>
                     J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS')); ?>
                 </label>
             </div>

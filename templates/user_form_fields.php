@@ -57,8 +57,8 @@ if (!isset($usernameHint)) {
         <input type="text" name="username" id="username" required minlength="2" maxlength="100" value="<?php echo e($editUsername); ?>"
                pattern="[a-zA-Z0-9.\-]+" title="Lettres, chiffres, points et tirets uniquement"
                autocomplete="username"
-               aria-describedby="hint_username"
-               <?php echo isset($formErrors['username']) ? 'aria-describedby="err_username" aria-invalid="true"' : ''; ?>>
+               aria-describedby="<?php echo isset($formErrors['username']) ? 'err_username hint_username' : 'hint_username'; ?>"
+               <?php echo isset($formErrors['username']) ? 'aria-invalid="true"' : ''; ?>>
         <div class="form-hint" id="hint_username"><?php echo e($usernameHint); ?></div>
         <?php if (isset($formErrors['username'])): ?><span class="form-error" id="err_username"><?php echo e($formErrors['username']); ?></span><?php endif; ?>
     </div>

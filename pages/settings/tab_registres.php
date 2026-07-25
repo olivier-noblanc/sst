@@ -80,9 +80,17 @@ $visibilityModes = [
                     <span>Actif</span>
                 </label>
                 <?php if (!$isSystem): ?>
+                <?php
+                // Audit #86 — escape the label for JS context. Apostrophe in
+                // $regLabel broke the JS confirm() string before (e.g. label
+                // "L'UR21" closed the JS string early → syntax error → button silent).
+                // Use addslashes to escape ' and " for JS, on top of HTML escaping
+                // for the surrounding attribute.
+                $confirmLabelJs = addslashes($regLabel);
+                ?>
                 <button type="submit" name="action" value="delete_<?php echo $regId; ?>"
                         class="btn btn--danger btn--small"
-                        onclick="return confirm('Supprimer le registre « <?php echo $fmt->e($regLabel); ?> » ? Les signalements existants ne seront pas supprimés.')">
+                        onclick="return confirm('Supprimer le registre « <?php echo $fmt->e($confirmLabelJs); ?> » ? Les signalements existants ne seront pas supprimés.')">
                     Supprimer
                 </button>
                 <?php endif; ?>

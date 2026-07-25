@@ -117,6 +117,11 @@ function validateReportFields(string $dateEvenement, string $objet, string $desc
         $errors['date_evenement'] = 'La date de l\'événement est obligatoire.';
     } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateEvenement) !== 1) {
         $errors['date_evenement'] = 'Format de date invalide.';
+    } elseif (!checkdate((int) substr($dateEvenement, 5, 2), (int) substr($dateEvenement, 8, 2), (int) substr($dateEvenement, 0, 4))) {
+        // Audit #88 — Avant ce fix, on testait juste le format YYYY-MM-DD via regex.
+        // '2025-11-45' matchait la regex mais est une date invalide (jour 45 n'existe
+        // pas). checkdate() valide réellement jour/mois/année.
+        $errors['date_evenement'] = 'Date invalide (jour/mois/année hors plage).';
     } elseif ($dateEvenement > date('Y-m-d')) {
         $errors['date_evenement'] = 'La date ne peut pas être dans le futur.';
     }

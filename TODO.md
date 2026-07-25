@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-25 (v3.49.0)
+Dernière mise à jour : 2026-07-25 (v3.50.0)
 
 ---
 
@@ -368,14 +368,14 @@ $isAgent = ($userRole === UserRole::Agent->value);
 **Fichiers** : `pages/help.php`
 **Impact** : Conformité NoMagicStringRule
 
-### A3 — Extraire validation email de `report_edit_handler.php` vers `ReportService`
+### A3 — ✅ Extraire validation email de `report_edit_handler.php` vers `ReportService`
 
 La validation du domaine email (lignes 82-91) est dupliquée depuis `report_create_handler.php`. `ReportService::validateLinkedEmails()` existe déjà — l'utiliser dans le handler edit au lieu de dupliquer la logique.
 
 **Fichiers** : `handlers/report_edit_handler.php` → appeler `ReportService::validateLinkedEmails()`
 **Impact** : Éliminer la duplication, centraliser la validation métier
 
-### A4 — Typser les DTOs avec des enums
+### A4 — ✅ Typser les DTOs avec des enums
 
 Remplacer les `string` par des types enum dans les constructeurs DTO :
 - `CreateReportCommand.type` : `string` → `ReportType`

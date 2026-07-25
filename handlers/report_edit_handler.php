@@ -74,29 +74,22 @@ try {
         // Send invite emails for newly linked agents (non-blocking)
         $linkedEmailsRaw = trim((string) ($_POST['linked_emails'] ?? ''));
         if (!empty($linkedEmailsRaw)) {
-            $pdo = getDB();
-            $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
-            $linkedEmailsList = array_filter($linkedEmailsList, fn($e) => filter_var((string) $e, FILTER_VALIDATE_EMAIL) !== false);
-
-            // Domain validation: only allow emails from the declarant's domain
-            // Fail-closed: if we can't determine the domain, reject all invites
-            $declarantEmail = (string) ($user['email'] ?? '');
-            if ($declarantEmail !== '' && str_contains($declarantEmail, '@')) {
-                $emailDomain = substr($declarantEmail, (int) strrpos($declarantEmail, '@') + 1);
-                $linkedEmailsList = array_filter($linkedEmailsList, function (string $em) use ($emailDomain): bool {
-                    $emDomain = substr($em, (int) strrpos($em, '@') + 1);
-                    return strtolower($emDomain) === strtolower($emailDomain);
-                });
-            } else {
-                $linkedEmailsList = [];
+            try {
+                $service = getContainer()->get(ReportService::class);
+                $linkedEmails = $service->validateLinkedEmails($linkedEmailsRaw, $user ?? []);
+            } catch (\InvalidArgumentException $e) {
+                $linkedEmails = [];
             }
 
-            $existingLinked = ReportRepository::instance()->getLinkedAgents($reportUuid);
-            $existingEmails = array_column($existingLinked, 'email');
-            $newEmails = array_diff($linkedEmailsList, $existingEmails);
-            if (!empty($newEmails)) {
-                require_once __DIR__ . '/../src/mail.php';
-                sendAgentInviteEmails($pdo, $reportUuid, $newEmails);
+            if (!empty($linkedEmails)) {
+                $pdo = getDB();
+                $existingLinked = ReportRepository::instance()->getLinkedAgents($reportUuid);
+                $existingEmails = array_column($existingLinked, 'email');
+                $newEmails = array_diff($linkedEmails, $existingEmails);
+                if (!empty($newEmails)) {
+                    require_once __DIR__ . '/../src/mail.php';
+                    sendAgentInviteEmails($pdo, $reportUuid, $newEmails);
+                }
             }
         }
 

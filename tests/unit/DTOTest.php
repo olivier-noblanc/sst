@@ -4,6 +4,7 @@ use App\DTO\CreateReportCommand;
 use App\DTO\ReportFilter;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
+use App\Enum\ReportState;
 
 class DTOTest extends TestCase
 {
@@ -23,7 +24,7 @@ class DTOTest extends TestCase
         $this->assertEquals('rsst', $cmd->type);
         $this->assertEquals('Test', $cmd->objet);
         $this->assertEquals(42, $cmd->declarantId);
-        $this->assertEquals(1, $cmd->isConfidential);
+        $this->assertEquals(true, $cmd->isConfidential);
     }
 
     public function testReportFilterFromGet(): void
@@ -47,8 +48,8 @@ class DTOTest extends TestCase
         ];
         $cmd = UpdateReportCommand::fromPost($post);
         $this->assertEquals('Updated', $cmd->objet);
-        $this->assertEquals(0, $cmd->isConfidential);
-        $this->assertEquals(1, $cmd->consentSyndicat);
+        $this->assertEquals(false, $cmd->isConfidential);
+        $this->assertEquals(true, $cmd->consentSyndicat);
     }
 
     public function testRespondToReportCommandFromPost(): void
@@ -56,6 +57,6 @@ class DTOTest extends TestCase
         $post = ['reponse' => 'Pris en compte', 'nouvel_etat' => 'en_cours'];
         $cmd = RespondToReportCommand::fromPost($post);
         $this->assertEquals('Pris en compte', $cmd->reponse);
-        $this->assertEquals('en_cours', $cmd->nouvelEtat);
+        $this->assertEquals(ReportState::EnCours, $cmd->nouvelEtat);
     }
 }

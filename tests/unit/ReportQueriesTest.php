@@ -65,7 +65,7 @@ class ReportQueriesTest extends TestCase
             'declarantId' => self::$userId, 'declarantNom' => 'Martin', 'declarantPrenom' => 'Jean',
             'siteId' => self::$siteId, 'siteText' => null, 'pole' => null,
             'serviceAffectation' => null, 'telephoneMobile' => null,
-            'isConfidential' => 0, 'consentSyndicat' => 0,
+            'isConfidential' => false, 'consentSyndicat' => false,
             'natureAuteur' => null, 'typeActe' => null,
             'pourCompteNom' => null, 'pourComptePrenom' => null,
             'attachmentBlob' => null, 'attachmentName' => null, 'attachmentMime' => null,

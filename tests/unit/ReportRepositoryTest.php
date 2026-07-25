@@ -143,7 +143,7 @@ class ReportRepositoryTest extends TestCase
             'lieu' => null, 'declarantId' => $this->userId, 'declarantNom' => 'Martin',
             'declarantPrenom' => 'Jean', 'siteId' => $this->siteId, 'siteText' => null,
             'pole' => null, 'serviceAffectation' => null, 'telephoneMobile' => null,
-            'isConfidential' => 1, 'consentSyndicat' => 0,
+            'isConfidential' => true, 'consentSyndicat' => false,
             'natureAuteur' => null, 'typeActe' => null,
             'pourCompteNom' => null, 'pourComptePrenom' => null,
             'attachmentBlob' => null, 'attachmentName' => null, 'attachmentMime' => null,

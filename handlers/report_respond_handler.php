@@ -71,7 +71,7 @@ $userId = (int) ($session->getUserSession()['id'] ?? 0);
 try {
     $cmd = new RespondToReportCommand(
         reponse: $reponse,
-        nouvelEtat: $nouvelEtat,
+        nouvelEtat: ReportState::from($nouvelEtat),
         attachment: $attachment,
     );
 

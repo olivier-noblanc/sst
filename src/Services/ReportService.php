@@ -196,13 +196,11 @@ class ReportService
     {
         $mode = getReportVisibilityMode($cmd->type);
         if ($mode === VisibilityMode::Public->value) {
-            $data = array_merge($cmd->toArray(), ['isConfidential' => 0]);
-            /** @phpstan-var array{type: string, objet: string, description: string, dateEvenement: string, heureEvenement: string|null, lieu: string|null, declarantId: int, declarantNom: string, declarantPrenom: string, siteId: int, siteText: string|null, pole: string|null, serviceAffectation: string|null, telephoneMobile: string|null, isConfidential: int, consentSyndicat: int, natureAuteur: string|null, typeActe: string|null, pourCompteNom: string|null, pourComptePrenom: string|null, attachmentBlob: string|null, attachmentName: string|null, attachmentMime: string|null} $data */
+            $data = array_merge($cmd->toArray(), ['isConfidential' => false]);
             return new CreateReportCommand(...$data);
         }
         if ($mode === VisibilityMode::Confidential->value) {
-            $data = array_merge($cmd->toArray(), ['isConfidential' => 1]);
-            /** @phpstan-var array{type: string, objet: string, description: string, dateEvenement: string, heureEvenement: string|null, lieu: string|null, declarantId: int, declarantNom: string, declarantPrenom: string, siteId: int, siteText: string|null, pole: string|null, serviceAffectation: string|null, telephoneMobile: string|null, isConfidential: int, consentSyndicat: int, natureAuteur: string|null, typeActe: string|null, pourCompteNom: string|null, pourComptePrenom: string|null, attachmentBlob: string|null, attachmentName: string|null, attachmentMime: string|null} $data */
+            $data = array_merge($cmd->toArray(), ['isConfidential' => true]);
             return new CreateReportCommand(...$data);
         }
         return $cmd;

@@ -17,6 +17,7 @@ use App\Event\EventDispatcher;
 use App\DTO\CreateReportCommand;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
+use App\Enum\ReportState;
 
 class ReportServiceTest extends TestCase
 {
@@ -209,7 +210,7 @@ class ReportServiceTest extends TestCase
         $report = $this->createReport();
         $cmd = new RespondToReportCommand(
             reponse: 'Response test',
-            nouvelEtat: ETAT_EN_COURS,
+            nouvelEtat: ReportState::EnCours,
         );
         setUserSession([
             'id' => $this->supervisorId,
@@ -226,7 +227,7 @@ class ReportServiceTest extends TestCase
     {
         $cmd = new RespondToReportCommand(
             reponse: 'Response test',
-            nouvelEtat: ETAT_EN_COURS,
+            nouvelEtat: ReportState::EnCours,
         );
         setUserSession([
             'id' => $this->supervisorId,
@@ -252,7 +253,7 @@ class ReportServiceTest extends TestCase
         $report = $this->createReport();
         $cmd = new RespondToReportCommand(
             reponse: 'Event response',
-            nouvelEtat: ETAT_EN_COURS,
+            nouvelEtat: ReportState::EnCours,
         );
         setUserSession([
             'id' => $this->supervisorId,

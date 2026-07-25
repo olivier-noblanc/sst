@@ -13,7 +13,7 @@ class RespondToReportCommand
      */
     public function __construct(
         public readonly string $reponse,
-        public readonly string $nouvelEtat,
+        public readonly ReportState $nouvelEtat,
         public readonly array $attachment = [],
     ) {}
 
@@ -22,7 +22,7 @@ class RespondToReportCommand
     {
         return new self(
             reponse: trim($post['reponse'] ?? ''),
-            nouvelEtat: $post['nouvel_etat'] ?? ReportState::EnCours->value,
+            nouvelEtat: ReportState::from($post['nouvel_etat'] ?? ReportState::EnCours->value),
         );
     }
 }

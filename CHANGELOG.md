@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.50.0] — 2026-07-25
+
+### Refactoring — Type-safety DTOs + DRY handlers
+
+- **1** 🔴 **`RespondToReportCommand.nouvelEtat`** : `string` → `ReportState` (enum). Handler, repository et tests migrés.
+- **2** 🔴 **`CreateReportCommand.isConfidential` + `consentSyndicat`** : `int` → `bool`. Factory `fromPost()`, `enforceVisibility()`, repository et tests migrés.
+- **3** 🔴 **`UpdateReportCommand.isConfidential` + `consentSyndicat`** : `int` → `bool`. Factory `fromPost()` et tests migrés.
+- **4** 🔴 **`report_edit_handler.php`** : validation email dupliquée (12 lignes) remplacée par appel à `ReportService::validateLinkedEmails()` — DRY.
+- **5** 🔴 **PHPStan 0 erreur**, tous les tests passent.
+
+
 ## [3.49.0] — 2026-07-25
 
 ### Audit DDD complet — Score 8.2/10

@@ -12,6 +12,7 @@ use App\Enum\ReportType;
 use DateTime;
 use PDO;
 use RuntimeException;
+use Throwable;
 use finfo;
 
 class FormattingService
@@ -119,7 +120,7 @@ class FormattingService
                 $theme = (string) $registry['color_theme'];
                 return 'var(--theme-' . $theme . ')';
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             // Pre-migration or registry not found — fall back to enum
         }
         // Fallback for the 3 historical system registries
@@ -162,7 +163,7 @@ class FormattingService
             if ($registry !== null && !empty($registry['color_theme'])) {
                 return 'badge--' . (string) $registry['color_theme'];
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             // Fall back to enum
         }
         // Fallback for the 3 historical system registries

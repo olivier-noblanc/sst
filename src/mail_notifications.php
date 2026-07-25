@@ -5,6 +5,7 @@ use App\Repository\UserRepository;
 use App\Enum\UserRole;
 use App\Enum\ReportType;
 use App\Repository\RegistryRepository;
+use Throwable;
 use App\Repository\NotificationRepository;
 
 /**
@@ -64,7 +65,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
             // Compatibilité : registre custom DGI sans ligne en DB (edge case)
             $notifyChsct = getConfigService()->get('app_dgi_notify_csa', '1') === '1';
         }
-    } catch (\Throwable $e) {
+    } catch (Throwable) {
         // Pre-migration (colonne notify_chsct absente) — fallback ancien comportement
         $notifyChsct = ($type === ReportType::Dgi->value && getConfigService()->get('app_dgi_notify_csa', '1') === '1');
     }

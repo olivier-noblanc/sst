@@ -26,6 +26,8 @@ use App\Services\RegistryCardService;
 use App\Services\StatisticsService;
 use App\Event\EventDispatcher;
 
+require_once __DIR__ . '/Event/event_listeners.php';
+
 function createContainer(): Container
 {
     $container = new Container();
@@ -35,7 +37,12 @@ function createContainer(): Container
     // ═══════════════════════════════════════════════════════════════════════════════
 
     $container->set(PDO::class, fn() => getDB());
-    $container->set(EventDispatcher::class, fn() => new EventDispatcher());
+    $container->set(EventDispatcher::class, function (Container $c) {
+        $events = new EventDispatcher();
+        // Audit #1 — wire les listeners en production (avant ce fix, 0 listener).
+        registerEventListeners($events, $c);
+        return $events;
+    });
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Repositories (require PDO)

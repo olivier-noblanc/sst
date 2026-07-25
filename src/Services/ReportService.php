@@ -99,12 +99,19 @@ class ReportService
 
         $result = $this->repo->respond($uuid, $cmd, $userId);
 
-        $this->events->dispatch('report.responded', [
-            'report' => $report->toArray(),
-            'cmd' => $cmd,
-            'userId' => $userId,
-            'pdo' => $this->repo->getPdo(),
-        ]);
+        // Audit #12 — ne pas dispatcher les events si l'opération a échoué
+        // (status='concurrent' = race condition : un autre superviseur a déjà
+        // répondu). Avant ce fix, l'event 'report.responded' était dispatché
+        // même en cas d'échec → ghost events → notifications email mentant
+        // sur l'état réel du signalement.
+        if (($result['status'] ?? '') === 'success') {
+            $this->events->dispatch('report.responded', [
+                'report' => $report->toArray(),
+                'cmd' => $cmd,
+                'userId' => $userId,
+                'pdo' => $this->repo->getPdo(),
+            ]);
+        }
 
         return $result;
     }
@@ -121,11 +128,14 @@ class ReportService
 
         $result = $this->repo->update($uuid, $cmd, $userId);
 
-        $this->events->dispatch('report.updated', [
-            'report' => $report->toArray(),
-            'cmd' => $cmd,
-            'pdo' => $this->repo->getPdo(),
-        ]);
+        // Audit #12 — ne pas dispatcher si l'UPDATE a échoué.
+        if ($result) {
+            $this->events->dispatch('report.updated', [
+                'report' => $report->toArray(),
+                'cmd' => $cmd,
+                'pdo' => $this->repo->getPdo(),
+            ]);
+        }
 
         return $result;
     }
@@ -157,11 +167,14 @@ class ReportService
 
         $result = $this->repo->reopen($uuid, $userId, $cmd->motif);
 
-        $this->events->dispatch('report.reopened', [
-            'report' => $report->toArray(),
-            'cmd'    => $cmd,
-            'pdo'    => $this->repo->getPdo(),
-        ]);
+        // Audit #12 — ne pas dispatcher si la réouverture a échoué.
+        if ($result) {
+            $this->events->dispatch('report.reopened', [
+                'report' => $report->toArray(),
+                'cmd'    => $cmd,
+                'pdo'    => $this->repo->getPdo(),
+            ]);
+        }
 
         return $result;
     }

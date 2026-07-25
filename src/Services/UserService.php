@@ -51,28 +51,32 @@ class UserService
         }
 
         $roleChanged = $user['role'] !== $cmd->role;
-        $this->repo->update($id, $cmd->toArray());
+        // Audit #29 — test le retour du repo.update. Avant ce fix, l'event
+        // 'user.updated' était dispatché même si l'UPDATE était no-op.
+        $updateResult = $this->repo->update($id, $cmd->toArray());
 
         if ($currentUserId === $id) {
             refreshCurrentUser($this->repo->getPdo());
         }
 
-        $this->events->dispatch('user.updated', [
-            'user' => $user,
-            'cmd' => $cmd,
-            'pdo' => $this->repo->getPdo(),
-        ]);
-
-        if ($roleChanged) {
-            $this->events->dispatch('user.role_changed', [
+        if ($updateResult) {
+            $this->events->dispatch('user.updated', [
                 'user' => $user,
-                'oldRole' => $user['role'],
-                'newRole' => $cmd->role,
+                'cmd' => $cmd,
                 'pdo' => $this->repo->getPdo(),
             ]);
+
+            if ($roleChanged) {
+                $this->events->dispatch('user.role_changed', [
+                    'user' => $user,
+                    'oldRole' => $user['role'],
+                    'newRole' => $cmd->role,
+                    'pdo' => $this->repo->getPdo(),
+                ]);
+            }
         }
 
-        return true;
+        return $updateResult;
     }
 
     public function deactivate(int $id, int $currentUserId): bool
@@ -92,10 +96,13 @@ class UserService
 
         $result = $this->repo->deactivate($id);
 
-        $this->events->dispatch('user.deactivated', [
-            'user' => $user,
-            'pdo' => $this->repo->getPdo(),
-        ]);
+        // Audit #12 — ne dispatcher que si la désactivation a réussi.
+        if ($result) {
+            $this->events->dispatch('user.deactivated', [
+                'user' => $user,
+                'pdo' => $this->repo->getPdo(),
+            ]);
+        }
 
         return $result;
     }
@@ -111,10 +118,12 @@ class UserService
         }
         $result = $this->repo->reactivate($id);
 
-        $this->events->dispatch('user.reactivated', [
-            'user' => $user,
-            'pdo' => $this->repo->getPdo(),
-        ]);
+        if ($result) {
+            $this->events->dispatch('user.reactivated', [
+                'user' => $user,
+                'pdo' => $this->repo->getPdo(),
+            ]);
+        }
 
         return $result;
     }

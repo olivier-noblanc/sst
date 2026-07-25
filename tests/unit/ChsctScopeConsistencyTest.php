@@ -70,7 +70,7 @@ class ChsctScopeConsistencyTest extends TestCase
 
     private function setChsctScope(string $scope): void
     {
-        $configService = ConfigService::getInstance();
+        $configService = getConfigService();
         $configService->set('app_chsct_report_scope', $scope);
         $configService->clearCache();
     }
@@ -224,7 +224,7 @@ class ChsctScopeConsistencyTest extends TestCase
     protected function tearDown(): void
     {
         // Reset config
-        $configService = ConfigService::getInstance();
+        $configService = getConfigService();
         $configService->set('app_chsct_report_scope', 'consent_only');
         $configService->clearCache();
     }

@@ -24,7 +24,7 @@ use App\Services\ConfigService;
 
 $http = new HttpService();
 $session = SessionService::getInstance();
-$config = ConfigService::getInstance();
+$config = getConfigService();
 
 $to = trim((string) ($_POST['smtp_test_to'] ?? ''));
 $host = trim($config->get('smtp_host', ''));

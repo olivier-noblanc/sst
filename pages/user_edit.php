@@ -11,7 +11,7 @@ requireRole([\App\Enum\UserRole::Superviseur->value]);
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();
 $http = new \App\Services\HttpService();
-$config = \App\Services\ConfigService::getInstance();
+$config = getConfigService();
 
 $userId = (int) ($_GET['id'] ?? 0);
 

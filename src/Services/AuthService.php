@@ -142,7 +142,7 @@ class AuthService
      */
     public function determineRole(string $username): string
     {
-        $superviseurUsernames = ConfigService::getInstance()->get('app_superviseur_usernames', '');
+        $superviseurUsernames = getConfigService()->get('app_superviseur_usernames', '');
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users, true)) {
@@ -163,7 +163,7 @@ class AuthService
             return $user;
         }
 
-        $superviseurUsernames = ConfigService::getInstance()->get('app_superviseur_usernames', '');
+        $superviseurUsernames = getConfigService()->get('app_superviseur_usernames', '');
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users, true)) {

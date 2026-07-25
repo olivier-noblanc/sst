@@ -39,7 +39,7 @@ function checkSuperviseurPromotion(): void
     }
 
     // Priority: DB setting (Settings UI) > environment variable
-    $superviseurUsernames = ConfigService::getInstance()->get('app_superviseur_usernames', '');
+    $superviseurUsernames = getConfigService()->get('app_superviseur_usernames', '');
     if (empty($superviseurUsernames)) {
         $superviseurUsernames = getenv('APP_SUPERVISEUR_USERNAMES') !== false && getenv('APP_SUPERVISEUR_USERNAMES') !== '' ? getenv('APP_SUPERVISEUR_USERNAMES') : '';
     }

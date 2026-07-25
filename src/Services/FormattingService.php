@@ -228,7 +228,7 @@ class FormattingService
      */
     public function buildWordCloud(?string $registryCode = null): string
     {
-        $configService = ConfigService::getInstance();
+        $configService = getConfigService();
 
         if ($registryCode !== null) {
             $registryKey = 'word_cloud_words_' . $registryCode;

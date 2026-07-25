@@ -10,10 +10,7 @@ use App\Services\ConfigService;
 
 function getConfigService(): ConfigService
 {
-    if (function_exists('getContainer') && getContainer()->has(ConfigService::class)) {
-        return getContainer()->get(ConfigService::class);
-    }
-    return ConfigService::getInstance();
+    return getContainer()->get(ConfigService::class);
 }
 
 function getConfig(string $cle, string $default = ''): string

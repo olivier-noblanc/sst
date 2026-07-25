@@ -24,13 +24,13 @@
             <div class="form-group">
                 <label for="smtp_host">Serveur SMTP</label>
                 <input type="text" id="smtp_host" name="smtp_host" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('smtp_host')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('smtp_host')); ?>"
                        placeholder="smtp.example.com">
             </div>
             <div class="form-group">
                 <label for="smtp_port">Port SMTP</label>
                 <input type="number" id="smtp_port" name="smtp_port" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('smtp_port', '25')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('smtp_port', '25')); ?>"
                        placeholder="25">
             </div>
         </div>
@@ -39,14 +39,14 @@
             <div class="form-group">
                 <label for="smtp_user">Utilisateur SMTP</label>
                 <input type="text" id="smtp_user" name="smtp_user" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('smtp_user')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('smtp_user')); ?>"
                        placeholder="utilisateur@exemple.com">
             </div>
             <div class="form-group">
                 <label for="smtp_pass">Mot de passe SMTP</label>
                 <input type="password" id="smtp_pass" name="smtp_pass" class="form-control"
                        value=""
-                       placeholder="<?php echo \App\Services\ConfigService::getInstance()->get('smtp_pass') !== '' ? '•••••••• (laisser vide pour conserver)' : 'Non défini'; ?>">
+                       placeholder="<?php echo getConfigService()->get('smtp_pass') !== '' ? '•••••••• (laisser vide pour conserver)' : 'Non défini'; ?>">
             </div>
         </div>
 
@@ -54,14 +54,14 @@
             <div class="form-group">
                 <label for="smtp_from">Adresse d'expédition</label>
                 <input type="email" id="smtp_from" name="smtp_from" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('smtp_from')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('smtp_from')); ?>"
                        placeholder="noreply@dreets-bfc.gouv.fr">
             </div>
             <div class="form-group">
                 <label for="smtp_encryption">Chiffrement</label>
                 <select id="smtp_encryption" name="smtp_encryption" class="form-control">
                     <?php
-                        $currentEncryption = \App\Services\ConfigService::getInstance()->get('smtp_encryption', 'none');
+                        $currentEncryption = getConfigService()->get('smtp_encryption', 'none');
 $options = ['none' => 'Aucun', 'tls' => 'TLS', 'starttls' => 'STARTTLS'];
 ?>
                     <?php foreach ($options as $val => $label): ?>

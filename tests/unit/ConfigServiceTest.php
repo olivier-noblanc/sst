@@ -326,8 +326,8 @@ class ConfigServiceTest extends TestCase
 
     public function testGetInstanceReturnsSameInstance(): void
     {
-        $a = ConfigService::getInstance();
-        $b = ConfigService::getInstance();
+        $a = getConfigService();
+        $b = getConfigService();
         $this->assertSame($a, $b);
     }
 

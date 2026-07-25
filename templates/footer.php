@@ -8,7 +8,7 @@
  */
 ?>
     <footer class="footer" role="contentinfo">
-        <p>&copy; <?php echo date('Y'); ?> <?php echo e(\App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?> — Application SST <?php if (hasRole(\App\Enum\UserRole::Superviseur->value)): ?><a href="<?php echo new \App\Services\HttpService()->url('changelog'); ?>" class="footer-version" title="Voir l'historique des modifications">v<?php echo e(getAppVersion()); ?></a><?php else: ?>v<?php echo e(getAppVersion()); ?><?php endif; ?> — PHP <?php echo PHP_VERSION; ?> — D&eacute;veloppeur : Olivier Noblanc</p>
+        <p>&copy; <?php echo date('Y'); ?> <?php echo e(getConfigService()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?> — Application SST <?php if (hasRole(\App\Enum\UserRole::Superviseur->value)): ?><a href="<?php echo new \App\Services\HttpService()->url('changelog'); ?>" class="footer-version" title="Voir l'historique des modifications">v<?php echo e(getAppVersion()); ?></a><?php else: ?>v<?php echo e(getAppVersion()); ?><?php endif; ?> — PHP <?php echo PHP_VERSION; ?> — D&eacute;veloppeur : Olivier Noblanc</p>
     </footer>
     <a href="#top" class="back-to-top" aria-label="Retour en haut" title="Retour en haut">&#x25B2;</a>
 </main><!-- end #main-content -->

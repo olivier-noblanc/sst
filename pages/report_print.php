@@ -67,9 +67,9 @@ require_once __DIR__ . '/report_print_helpers.php';
 
 // Create PDF
 $pdf = new SSTPDF('P', 'mm', 'A4');
-$pdf->headerText = ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')
+$pdf->headerText = getConfigService()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')
     . ' — Signalement ' . $reportReference;
-$pdf->footerOrgName = ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
+$pdf->footerOrgName = getConfigService()->get('app_nom_organisation', 'DREETS BFC');
 $pdf->AliasNbPages();
 $pdf->SetAutoPageBreak(true, 22);
 $pdf->SetMargins(15, 22, 15);
@@ -83,14 +83,14 @@ $pdf->AddPage();
 
 // Set PDF metadata (pass UTF-8, FPDF handles conversion internally)
 $pdf->SetTitle('Signalement ' . $reportReference, true);
-$pdf->SetAuthor(ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC'), true);
+$pdf->SetAuthor(getConfigService()->get('app_nom_organisation', 'DREETS BFC'), true);
 
 // =====================================================================
 // BUILD THE PDF CONTENT
 // =====================================================================
 
-$orgName = ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté');
-$labelUnite = ConfigService::getInstance()->get('app_label_unite', 'UR');
+$orgName = getConfigService()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté');
+$labelUnite = getConfigService()->get('app_label_unite', 'UR');
 
 // --- Title ---
 $pdf->SetFont('DejaVu', 'B', 16);
@@ -124,7 +124,7 @@ $fields = [
     'Heure du dépôt'        => $reportHeureEvenement,
     'Lieu'                  => $reportLieu,
     'Objet'                 => $reportObjet,
-    'Transmission aux ' . ConfigService::getInstance()->getRoleLabel('chsct') . 's' => $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée',
+    'Transmission aux ' . getConfigService()->getRoleLabel('chsct') . 's' => $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée',
 ];
 
 foreach ($fields as $label => $value) {
@@ -141,7 +141,7 @@ $reportDeclarantPrenom = $report->declarantPrenom;
 $reportDeclarantNom = $report->declarantNom;
 $pdf->Ln(1);
 drawField($pdf, 'Déclarant', $reportDeclarantPrenom . ' ' . $reportDeclarantNom);
-if (!ConfigService::getInstance()->isNoSiteMode()) {
+if (!getConfigService()->isNoSiteMode()) {
     $reportSiteNom = $report->siteNom ?: '—';
     $reportSiteCode = $report->siteCode ?: '—';
     drawField($pdf, $labelUnite, $reportSiteNom . ' (' . $reportSiteCode . ')');
@@ -194,7 +194,7 @@ $pdf->SetFont('DejaVu', '', 8);
 $pdf->SetTextColor(153, 153, 153);
 $pdf->Cell(0, 5, utf8ToCp1252(
     'Document généré le ' . new FormattingService()->formatDateFR(date('Y-m-d'))
-    . ' — ' . ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC')
+    . ' — ' . getConfigService()->get('app_nom_organisation', 'DREETS BFC')
 ), 0, 1, 'C');
 
 // Output PDF inline (displayed in browser, not forced download)

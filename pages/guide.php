@@ -9,11 +9,11 @@
  * CSS served via css.php with proper HTTP caching (ETag, 304).
  */
 $pageTitle = 'Guide rapide';
-$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
+$ramiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
+$dgiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
-$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
-$labelUnite = \App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR');
+$noSiteMode = getConfigService()->isNoSiteMode();
+$labelUnite = getConfigService()->get('app_label_unite', 'UR');
 ?>
 <?php echo new \App\Services\AssetService()->cssLink('css/guide.css'); ?>
 

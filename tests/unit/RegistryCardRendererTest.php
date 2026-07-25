@@ -15,7 +15,7 @@ class RegistryCardRendererTest extends TestCase
     protected function tearDown(): void
     {
         unset($_SESSION['user']);
-        $configService = \App\Services\ConfigService::getInstance();
+        $configService = \App\Services\getConfigService();
         $configService->set('app_report_visibility_rsst', 'public');
         $configService->clearCache();
     }
@@ -180,7 +180,7 @@ class RegistryCardRendererTest extends TestCase
 
     public function testListLabelIsMineForAgentInConfidentialMode(): void
     {
-        $configService = \App\Services\ConfigService::getInstance();
+        $configService = \App\Services\getConfigService();
         $configService->set('app_report_visibility_rsst', 'confidential');
         $configService->clearCache();
         $_SESSION['user'] = ['role' => ROLE_AGENT];
@@ -192,7 +192,7 @@ class RegistryCardRendererTest extends TestCase
 
     public function testListLabelIsAllForAgentInPublicMode(): void
     {
-        $configService = \App\Services\ConfigService::getInstance();
+        $configService = \App\Services\getConfigService();
         $configService->set('app_report_visibility_rsst', 'public');
         $configService->clearCache();
         $_SESSION['user'] = ['role' => ROLE_AGENT];
@@ -206,7 +206,7 @@ class RegistryCardRendererTest extends TestCase
     {
         // A superviseur sees every report regardless of the agent-facing
         // visibility config — the label must reflect what THIS user sees.
-        $configService = \App\Services\ConfigService::getInstance();
+        $configService = \App\Services\getConfigService();
         $configService->set('app_report_visibility_rsst', 'confidential');
         $configService->clearCache();
         $_SESSION['user'] = ['role' => ROLE_SUPERVISEUR];

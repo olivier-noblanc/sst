@@ -8,7 +8,7 @@
 /** @var string $csrfToken */
 requireRole([\App\Enum\UserRole::Superviseur->value]);
 
-$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
+$noSiteMode = getConfigService()->isNoSiteMode();
 
 // Get sites and users for filter dropdowns
 $sites = \App\Repository\SiteRepository::instance()->findAll();
@@ -20,8 +20,8 @@ $formData = new \App\Services\SessionService()->getFormData();
 
 $pageTitle = 'Export des données';
 
-$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
+$ramiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
+$dgiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 ?>
 
 <h1 class="page-title">Export des données</h1>
@@ -57,7 +57,7 @@ $dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App
             <!-- Site -->
             <?php if (!$noSiteMode): ?>
             <div class="form-group">
-                <label for="site_id"><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></label>
+                <label for="site_id"><?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_label_unite', 'UR')); ?></label>
                 <div class="btn-group--inline items-center">
                     <select name="site_id" id="site_id">
                         <option value="" <?php echo empty($formData['site_id']) ? 'selected' : ''; ?>>— Choisir —</option>

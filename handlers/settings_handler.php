@@ -33,7 +33,7 @@ $session = SessionService::getInstance();
 $pdo = getDB();
 $tab = (string) ($_POST['tab'] ?? 'sites');
 $notifRepo = NotificationRepository::instance();
-$configService = ConfigService::getInstance();
+$configService = getConfigService();
 
 if ($tab === 'sites') {
     $notifRepo->deleteByType('site');

@@ -43,7 +43,7 @@ class WordCloudRegressionTest extends TestCase
             ['word' => 'incendie', 'weight' => 8],
             ['word' => 'blessure', 'weight' => 6],
         ];
-        ConfigService::getInstance()->set('word_cloud_words', json_encode($words));
+        getConfigService()->set('word_cloud_words', json_encode($words));
         clearConfigCache();
 
         $html = $this->fmt->buildWordCloud();
@@ -59,7 +59,7 @@ class WordCloudRegressionTest extends TestCase
 
     public function testBuildWordCloudReturnsEmptyWhenNoWords(): void
     {
-        ConfigService::getInstance()->set('word_cloud_words', '[]');
+        getConfigService()->set('word_cloud_words', '[]');
         clearConfigCache();
 
         $html = $this->fmt->buildWordCloud();
@@ -83,7 +83,7 @@ class WordCloudRegressionTest extends TestCase
             ['word' => '<script>alert(1)</script>', 'weight' => 10],
             ['word' => 'safe', 'weight' => 5],
         ];
-        ConfigService::getInstance()->set('word_cloud_words', json_encode($words));
+        getConfigService()->set('word_cloud_words', json_encode($words));
         clearConfigCache();
 
         $html = $this->fmt->buildWordCloud();
@@ -103,7 +103,7 @@ class WordCloudRegressionTest extends TestCase
             ['word' => 'chute', 'weight' => 12],
             ['word' => 'ergonomie', 'weight' => 9],
         ];
-        ConfigService::getInstance()->set('word_cloud_words_rsst', json_encode($registryWords));
+        getConfigService()->set('word_cloud_words_rsst', json_encode($registryWords));
         clearConfigCache();
 
         $html = $this->fmt->buildWordCloud('rsst');
@@ -118,7 +118,7 @@ class WordCloudRegressionTest extends TestCase
         $globalWords = [
             ['word' => 'global_word', 'weight' => 10],
         ];
-        ConfigService::getInstance()->set('word_cloud_words', json_encode($globalWords));
+        getConfigService()->set('word_cloud_words', json_encode($globalWords));
         clearConfigCache();
 
         // No registry-specific key set — should fall back to global
@@ -136,8 +136,8 @@ class WordCloudRegressionTest extends TestCase
         $registryWords = [
             ['word' => 'rsst_only', 'weight' => 10],
         ];
-        ConfigService::getInstance()->set('word_cloud_words', json_encode($globalWords));
-        ConfigService::getInstance()->set('word_cloud_words_rsst', json_encode($registryWords));
+        getConfigService()->set('word_cloud_words', json_encode($globalWords));
+        getConfigService()->set('word_cloud_words_rsst', json_encode($registryWords));
         clearConfigCache();
 
         $html = $this->fmt->buildWordCloud('rsst');
@@ -152,7 +152,7 @@ class WordCloudRegressionTest extends TestCase
         $globalWords = [
             ['word' => 'fallback', 'weight' => 10],
         ];
-        ConfigService::getInstance()->set('word_cloud_words', json_encode($globalWords));
+        getConfigService()->set('word_cloud_words', json_encode($globalWords));
         clearConfigCache();
 
         // Unknown registry code — no registry-specific key exists
@@ -174,7 +174,7 @@ class WordCloudRegressionTest extends TestCase
         $globalWords = [
             ['word' => 'explicit_global', 'weight' => 10],
         ];
-        ConfigService::getInstance()->set('word_cloud_words', json_encode($globalWords));
+        getConfigService()->set('word_cloud_words', json_encode($globalWords));
         clearConfigCache();
 
         $html = $this->fmt->buildWordCloud(null);
@@ -189,7 +189,7 @@ class WordCloudRegressionTest extends TestCase
             ['word' => '<img onerror=alert(1)>', 'weight' => 10],
             ['word' => 'safe', 'weight' => 5],
         ];
-        ConfigService::getInstance()->set('word_cloud_words_rami', json_encode($registryWords));
+        getConfigService()->set('word_cloud_words_rami', json_encode($registryWords));
         clearConfigCache();
 
         $html = $this->fmt->buildWordCloud('rami');

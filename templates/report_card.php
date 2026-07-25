@@ -13,7 +13,7 @@ use App\Enum\ReportType;
  *   $pendingInvites — Array of pending invite rows (from ReportRepository::getPendingInvites)
  */
 
-$noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
+$noSiteMode = getConfigService()->isNoSiteMode();
 if (!isset($report) || !$report) {
     return;
 }
@@ -117,7 +117,7 @@ if (!isset($csrfToken)) {
                 </tr>
                 <?php if (!$noSiteMode): ?>
                 <tr>
-                    <th><?php echo $fmt->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></th>
+                    <th><?php echo $fmt->e(getConfigService()->get('app_label_unite', 'UR')); ?></th>
                     <td><?php echo $fmt->e($report->siteNom ?: '—'); ?> (<?php echo $fmt->e($report->siteCode ?: '—'); ?>)</td>
                 </tr>
                 <?php endif; ?>
@@ -151,7 +151,7 @@ if (!isset($csrfToken)) {
                 </tr>
                 <?php endif; ?>
                 <tr>
-                    <th>Transmission aux <?php echo $fmt->e(\App\Services\ConfigService::getInstance()->getRoleLabel('chsct')); ?>s</th>
+                    <th>Transmission aux <?php echo $fmt->e(getConfigService()->getRoleLabel('chsct')); ?>s</th>
                     <td><?php echo (bool) $report->consentSyndicat ? '✅ Acceptée' : '❌ Refusée'; ?></td>
                 </tr>
                 <tr>

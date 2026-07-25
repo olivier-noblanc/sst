@@ -13,7 +13,7 @@ class VisibilityModeTest extends TestCase
     protected function setUp(): void
     {
         // Reset RSST visibility to default (public) to avoid test ordering issues
-        $configService = \App\Services\ConfigService::getInstance();
+        $configService = \App\Services\getConfigService();
         $configService->set('app_report_visibility_rsst', 'public');
         $configService->clearCache();
     }

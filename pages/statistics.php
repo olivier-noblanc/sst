@@ -12,7 +12,7 @@ use App\Enum\ReportType;
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();
 $http = new \App\Services\HttpService();
-$config = \App\Services\ConfigService::getInstance();
+$config = getConfigService();
 
 $noSiteMode = $config->isNoSiteMode();
 

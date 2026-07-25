@@ -11,26 +11,9 @@ use App\Repository\SiteRepository;
 
 class ConfigService
 {
-    private static ?self $instance = null;
     /** @var array<string, string> */
     private array $cache = [];
     private bool $cacheCleared = false;
-
-    public static function getInstance(): self
-    {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
-
-    /**
-     * Reset singleton (used by container to share instance).
-     */
-    public static function setInstance(self $instance): void
-    {
-        self::$instance = $instance;
-    }
 
     /**
      * Get a configuration value from the config_app table.

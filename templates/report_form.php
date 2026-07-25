@@ -69,10 +69,10 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
         ['label' => $isEdit ? 'Modifier' : 'Nouveau signalement'],
     ]); ?>
     <h2 class="mb-4">
-        <?php echo $isEdit ? 'Modifier le signalement' : e(\App\Services\ConfigService::getInstance()->get('app_report_create_label', 'Signaler un événement')); ?> — <?php echo e($registryFullLabel); ?>
+        <?php echo $isEdit ? 'Modifier le signalement' : e(getConfigService()->get('app_report_create_label', 'Signaler un événement')); ?> — <?php echo e($registryFullLabel); ?>
     </h2>
     <?php
-    $preamble = \App\Services\ConfigService::getInstance()->get('app_report_preamble', '');
+    $preamble = getConfigService()->get('app_report_preamble', '');
     if (!empty($preamble)):
     ?>
     <div class="alert alert--info whitespace-pre-line" role="note"><?php echo e($preamble); ?></div>
@@ -214,7 +214,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <span class="form-hint" id="hint_site_id">Sélectionnez votre <?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?> (unité de rattachement).</span>
+                <span class="form-hint" id="hint_site_id">Sélectionnez votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?> (unité de rattachement).</span>
                 <?php if (isset($formErrors['site_id'])): ?>
                     <span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span>
                 <?php endif; ?>
@@ -247,13 +247,13 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 </label>
                 <div class="confidential-toggle__details">
                     <?php if (new \App\Services\AccessService()->getChsctReportScope() === 'all'): ?>
-                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>. Décochez pour le rendre visible par tous les agents de votre <?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>.</span>
+                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>.</span>
                     <?php else: ?>
-                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous et les superviseurs. Les membres de la <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez également la case de consentement ci-dessous. Décochez pour le rendre visible par tous les agents de votre <?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>.</span>
+                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous et les superviseurs. Les membres de la <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez également la case de consentement ci-dessous. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>.</span>
                     <?php endif; ?>
                     <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                     <div class="confidential-warning">
-                        &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
+                        &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
                     </div>
                 </div>
             </div>
@@ -275,7 +275,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
                            <?php echo ((bool) $val('consent_syndicat') || ($isEdit && !empty($report->consentSyndicat))) ? 'checked' : ''; ?>>
-                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(\App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS')); ?>
+                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS')); ?>
                 </label>
             </div>
             <div class="form-group">

@@ -11,8 +11,8 @@ use App\Services\ConfigService;
 
 function renderEmailBody(string $title, string $contentHtml, string $siteName = ''): string
 {
-    $brandColor = ConfigService::getInstance()->get('app_brand_color', '#1e40af');
-    $appName = ConfigService::getInstance()->get('app_nom_organisation', 'SST DREETS BFC');
+    $brandColor = getConfigService()->get('app_brand_color', '#1e40af');
+    $appName = getConfigService()->get('app_nom_organisation', 'SST DREETS BFC');
     $footerText = $siteName !== '' ? " — $siteName" : '';
 
     return '<html><body style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; max-width:600px; margin:0 auto; padding:20px;">'

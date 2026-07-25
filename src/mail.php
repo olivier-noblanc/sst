@@ -26,9 +26,9 @@ require_once __DIR__ . '/mail_notifications.php';
  */
 function sendMail(string $to, string $subject, string $body, string $from = ''): bool
 {
-    $smtpHost = ConfigService::getInstance()->get('smtp_host', '');
-    $smtpFrom = $from !== '' ? $from : ConfigService::getInstance()->get('smtp_from', 'noreply@dreets-bfc.gouv.fr');
-    $appName = str_replace(["\r", "\n"], '', ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC'));
+    $smtpHost = getConfigService()->get('smtp_host', '');
+    $smtpFrom = $from !== '' ? $from : getConfigService()->get('smtp_from', 'noreply@dreets-bfc.gouv.fr');
+    $appName = str_replace(["\r", "\n"], '', getConfigService()->get('app_nom_organisation', 'DREETS BFC'));
 
     // Build email headers
     $headers = "From: $appName <$smtpFrom>\r\n";
@@ -64,12 +64,12 @@ function sendMail(string $to, string $subject, string $body, string $from = ''):
  */
 function sendViaSMTP(string $to, string $subject, string $body, string $headers): bool
 {
-    $host = ConfigService::getInstance()->get('smtp_host', '');
-    $port = (int) ConfigService::getInstance()->get('smtp_port', '25');
-    $user = ConfigService::getInstance()->get('smtp_user', '');
-    $pass = decryptConfigValue(ConfigService::getInstance()->get('smtp_pass', ''));
-    $encryption = ConfigService::getInstance()->get('smtp_encryption', 'none');
-    $from = ConfigService::getInstance()->get('smtp_from', 'noreply@dreets-bfc.gouv.fr');
+    $host = getConfigService()->get('smtp_host', '');
+    $port = (int) getConfigService()->get('smtp_port', '25');
+    $user = getConfigService()->get('smtp_user', '');
+    $pass = decryptConfigValue(getConfigService()->get('smtp_pass', ''));
+    $encryption = getConfigService()->get('smtp_encryption', 'none');
+    $from = getConfigService()->get('smtp_from', 'noreply@dreets-bfc.gouv.fr');
 
     if (empty($host)) {
         return false;
@@ -181,7 +181,7 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
     }
 
     // Send email content
-    $appName = ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
+    $appName = getConfigService()->get('app_nom_organisation', 'DREETS BFC');
     fwrite($socket, "Subject: [$appName] $subject\r\n");
     fwrite($socket, "To: $to\r\n");
     fwrite($socket, $headers . "\r\n");

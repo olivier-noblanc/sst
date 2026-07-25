@@ -55,7 +55,7 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
         <div class="login-card">
             <div class="login-header">
                 <h1><?php echo new \App\Services\FormattingService()->e(APP_NAME); ?></h1>
-                <p class="login-subtitle"><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?></p>
+                <p class="login-subtitle"><?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?></p>
                 <p class="login-dev-badge">
                     <?php if (!empty($_SERVER['AUTH_USER'])): ?>
                     Authentification Windows IIS
@@ -98,7 +98,7 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
                         <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e(new \App\Services\SessionService()->generateCsrfToken()); ?>">
                         <input type="hidden" name="username" value="chsct.dev">
                         <input type="hidden" name="password" value="test">
-                        <button type="submit" class="btn btn--primary login-btn--chsct"><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabel('chsct')); ?></button>
+                        <button type="submit" class="btn btn--primary login-btn--chsct"><?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabel('chsct')); ?></button>
                     </form>
                     <span class="login-btn-desc">Consultation et synthèse</span>
                 </div>

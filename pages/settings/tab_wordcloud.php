@@ -9,7 +9,7 @@
  * Variables attendues: $csrfToken
  */
 
-$configService = \App\Services\ConfigService::getInstance();
+$configService = getConfigService();
 $http = new \App\Services\HttpService();
 $fmt = new \App\Services\FormattingService();
 if (!isset($csrfToken)) {

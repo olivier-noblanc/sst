@@ -9,13 +9,13 @@
  */
 $pageTitle = 'Documentation';
 $userRole = currentUserRole() !== '' ? currentUserRole() : 'agent';
-$labelUnite = new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR'));
+$labelUnite = new \App\Services\FormattingService()->e(getConfigService()->get('app_label_unite', 'UR'));
 $screenshotBase = 'asset.php?f=screenshots';
 $isAgent = ($userRole === 'agent');
-$ramiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = \App\Services\ConfigService::getInstance()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
+$ramiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
+$dgiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
-$hotlineNumber = \App\Services\ConfigService::getInstance()->get('app_hotline_number', '');
+$hotlineNumber = getConfigService()->get('app_hotline_number', '');
 $hotlineEnabled = !empty($hotlineNumber);
 
 // Screenshot helper — must be defined BEFORE any HTML output

@@ -9,7 +9,7 @@
 /** @var string $csrfToken */
 ?>
 <div class="card">
-    <h3 class="card__title">&#x1F3E2; Gestion des sites (<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>)</h3>
+    <h3 class="card__title">&#x1F3E2; Gestion des sites (<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_label_unite', 'UR')); ?>)</h3>
     <p class="text-muted text-small mb-4">Gérez les sites disponibles. Les sites désactivés n'apparaissent plus dans les listes de choix (pour les nouveaux agents) mais les signalements existants restent accessibles.</p>
 
     <!-- Add new site form -->

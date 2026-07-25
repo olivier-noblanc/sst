@@ -8,7 +8,7 @@ $pageTitle = 'Accueil';
 
 $fmt = new \App\Services\FormattingService();
 $http = new \App\Services\HttpService();
-$config = \App\Services\ConfigService::getInstance();
+$config = getConfigService();
 
 $pdo = getContainer()->get(\PDO::class);
 $user = new \App\Services\SessionService()->getUserSession();

@@ -15,7 +15,7 @@ use App\Services\ReportService;
 
 $http = new HttpService();
 $session = SessionService::getInstance();
-$config = ConfigService::getInstance();
+$config = getConfigService();
 
 // CSRF already validated by the router's CsrfMiddleware (applied to every
 // POST handler in src/Router/routes.php). Calling validatePostRequest()

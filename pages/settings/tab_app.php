@@ -15,7 +15,7 @@ use App\Enum\VisibilityMode;
         <p class="text-muted text-small mb-5">Configurez les paramètres généraux de l'application.</p>
         <div class="form-group">
             <label>Version de l'application</label>
-            <div class="form-control-readonly"><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getAppVersion()); ?></div>
+            <div class="form-control-readonly"><?php echo new \App\Services\FormattingService()->e(getConfigService()->getAppVersion()); ?></div>
             <small class="text-muted block mt-1" id="hint_app_version">
                 La version est lue automatiquement depuis le fichier CHANGELOG.md.
                 Pour la modifier, mettez à jour la première entrée du changelog.
@@ -24,18 +24,18 @@ use App\Enum\VisibilityMode;
 
         <div class="form-group">
             <label for="app_nom_organisation">Nom de l'organisation</label>
-            <input type="text" id="app_nom_organisation" name="app_nom_organisation" class="form-control" value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC')); ?>" placeholder="DREETS BFC">
+            <input type="text" id="app_nom_organisation" name="app_nom_organisation" class="form-control" value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_nom_organisation', 'DREETS BFC')); ?>" placeholder="DREETS BFC">
         </div>
 
         <div class="form-group">
             <label for="app_nom_complet">Nom complet</label>
-            <input type="text" id="app_nom_complet" name="app_nom_complet" class="form-control" value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>" placeholder="DREETS Bourgogne-Franche-Comté">
+            <input type="text" id="app_nom_complet" name="app_nom_complet" class="form-control" value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>" placeholder="DREETS Bourgogne-Franche-Comté">
         </div>
 
         <div class="form-group">
             <label for="app_label_unite">Libellé des unités</label>
             <input type="text" id="app_label_unite" name="app_label_unite" class="form-control"
-                   value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>"
+                   value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_label_unite', 'UR')); ?>"
                    placeholder="UR">
             <small class="text-muted block mt-1">
                 Exemple : UR, UD, Direction... Ce libellé est utilisé partout dans l'application.
@@ -45,7 +45,7 @@ use App\Enum\VisibilityMode;
         <div class="form-group">
             <label for="app_superviseur_usernames">Logins Windows des superviseurs (liste explicite)</label>
             <input type="text" id="app_superviseur_usernames" name="app_superviseur_usernames" class="form-control"
-                   value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_superviseur_usernames', '')); ?>"
+                   value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_superviseur_usernames', '')); ?>"
                    placeholder="jean.martin, sophie.dupont">
             <small class="text-muted block mt-1">
                 Séparés par des virgules. Ces utilisateurs seront automatiquement promus <strong>Superviseur</strong>
@@ -60,7 +60,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_brand_color">Couleur de marque</label>
                 <input type="color" id="app_brand_color" name="app_brand_color" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_brand_color', '#1e40af')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_brand_color', '#1e40af')); ?>"
                        class="form-control color-input">
                 <small class="text-muted block mt-1">
                     Couleur utilisée pour les titres des e-mails et certains éléments d'interface. Défaut : #1e40af (bleu).
@@ -73,7 +73,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_hotline_number">Numéro de hotline</label>
                 <input type="text" id="app_hotline_number" name="app_hotline_number" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_hotline_number', '')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_hotline_number', '')); ?>"
                        placeholder="01 23 45 67 89 ou poste 1234">
                 <small class="text-muted block mt-1">
                     Ce numéro sera affiché en gros dans la page Aide. Laissez vide pour désactiver la hotline
@@ -87,7 +87,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_dpo_contact">Contact DPO</label>
                 <input type="text" id="app_dpo_contact" name="app_dpo_contact" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_dpo_contact', '')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_dpo_contact', '')); ?>"
                        placeholder="dpo@dreets-bfc.gouv.fr — M. Jean Martin, Délégué à la Protection des Données">
                 <small class="text-muted block mt-1">
                     Adresse e-mail et/ou nom du DPO. Ce texte apparaît dans la mention d'information RGPD
@@ -101,7 +101,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_admin_email">E-mail administrateur technique</label>
                 <input type="email" id="app_admin_email" name="app_admin_email" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_admin_email', '')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_admin_email', '')); ?>"
                        placeholder="admin.tech@dreets-bfc.gouv.fr">
                 <small class="text-muted block mt-1">
                     Une même erreur ne déclenche qu'un seul e-mail toutes les 5 minutes pour éviter le spam.
@@ -116,7 +116,7 @@ use App\Enum\VisibilityMode;
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_display_errors" id="app_display_errors" value="1"
                            class="toggle-switch__input"
-                           <?php echo \App\Services\ConfigService::getInstance()->get('app_display_errors', '') === '1' ? 'checked' : ''; ?>>
+                           <?php echo getConfigService()->get('app_display_errors', '') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Afficher les erreurs PHP à l'écran (même en production)</span>
                 </label>
@@ -135,7 +135,7 @@ use App\Enum\VisibilityMode;
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_registry_rami_enabled" id="app_registry_rami_enabled" value="1"
                            class="toggle-switch__input"
-                           <?php echo \App\Services\ConfigService::getInstance()->get('app_registry_rami_enabled', '0') === '1' ? 'checked' : ''; ?>>
+                           <?php echo getConfigService()->get('app_registry_rami_enabled', '0') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Activer le registre RAMI (Agressions, Menaces, Incivilités)</span>
                 </label>
@@ -144,7 +144,7 @@ use App\Enum\VisibilityMode;
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_registry_dgi_enabled" id="app_registry_dgi_enabled" value="1"
                            class="toggle-switch__input"
-                           <?php echo \App\Services\ConfigService::getInstance()->get('app_registry_dgi_enabled', '0') === '1' ? 'checked' : ''; ?>>
+                           <?php echo getConfigService()->get('app_registry_dgi_enabled', '0') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
                     <span>Activer le registre DGI (Danger Grave et Imminent)</span>
                 </label>
@@ -153,14 +153,14 @@ use App\Enum\VisibilityMode;
                 <label class="toggle-switch-label">
                     <input type="checkbox" name="app_dgi_notify_csa" id="app_dgi_notify_csa" value="1"
                            class="toggle-switch__input"
-                           <?php echo \App\Services\ConfigService::getInstance()->get('app_dgi_notify_csa', '1') === '1' ? 'checked' : ''; ?>>
+                           <?php echo getConfigService()->get('app_dgi_notify_csa', '1') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
-                    <span>Notifier le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> lors d'un signalement DGI</span>
+                    <span>Notifier le <?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> lors d'un signalement DGI</span>
                 </label>
                 <small class="text-muted block mt-1">
-                    Conformément à l'article L4131-2 du Code du travail, le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_role_label_chsct', 'Membre FS/CSA')); ?>
+                    Conformément à l'article L4131-2 du Code du travail, le <?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?>
                     doit être informé de tout signalement relatif à un danger grave et imminent.
-                    Si activé, les membres <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> recevront un e-mail de notification
+                    Si activé, les membres <?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> recevront un e-mail de notification
                     pour chaque nouveau signalement DGI.
                 </small>
             </div>
@@ -172,19 +172,19 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_role_label_agent">Nom du rôle Agent</label>
                 <input type="text" id="app_role_label_agent" name="app_role_label_agent" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_role_label_agent', 'Agent')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_agent', 'Agent')); ?>"
                        placeholder="Agent">
             </div>
             <div class="form-group">
                 <label for="app_role_label_superviseur">Nom du rôle Superviseur</label>
                 <input type="text" id="app_role_label_superviseur" name="app_role_label_superviseur" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_role_label_superviseur', 'Superviseur')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_superviseur', 'Superviseur')); ?>"
                        placeholder="Superviseur">
             </div>
             <div class="form-group">
                 <label for="app_role_label_chsct">Nom du rôle FS/CSA</label>
                 <input type="text" id="app_role_label_chsct" name="app_role_label_chsct" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_role_label_chsct', 'Membre FS/CSA')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?>"
                        placeholder="Membre FS/CSA">
             </div>
         </div>
@@ -195,7 +195,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_report_preamble">Préambule du formulaire (zone readonly)</label>
                 <textarea id="app_report_preamble" name="app_report_preamble" class="form-control" rows="3"
-                          placeholder="Pour toute inscription d'un fait..."><?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_report_preamble', '')); ?></textarea>
+                          placeholder="Pour toute inscription d'un fait..."><?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_report_preamble', '')); ?></textarea>
                 <small class="text-muted block mt-1">
                     Texte affiché en lecture seule sous le titre du formulaire de signalement. Informe l'agent de ses obligations.
                 </small>
@@ -203,7 +203,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_report_create_label">Libellé "Signaler un événement"</label>
                 <input type="text" id="app_report_create_label" name="app_report_create_label" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_report_create_label', 'Signaler un événement')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_report_create_label', 'Signaler un événement')); ?>"
                        placeholder="Signaler un événement" required>
                 <small class="text-muted block mt-1">
                     Libellé du bouton et du titre affichés sur la page d'accueil, la liste des signalements, le formulaire de création et l'onglet du navigateur.
@@ -212,7 +212,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_linked_agents_label">Libellé "Rattacher des collègues"</label>
                 <input type="text" id="app_linked_agents_label" name="app_linked_agents_label" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_linked_agents_label', 'Rattacher des collègues au signalement')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_linked_agents_label', 'Rattacher des collègues au signalement')); ?>"
                        placeholder="Rattacher des collègues au signalement" required>
                 <small class="text-muted block mt-1">
                     Libellé du champ de rattachement d'agents sur le formulaire de signalement.
@@ -221,7 +221,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_base_url">URL publique de l'application</label>
                 <input type="url" id="app_base_url" name="app_base_url" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_base_url', '')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_base_url', '')); ?>"
                        placeholder="https://sst.dreets-bfc.gouv.fr">
                 <small class="text-muted block mt-1">
                     Utilisée pour les liens dans les e-mails (ex : "Consulter le signalement"). Laisser vide pour détecter automatiquement l'adresse depuis la requête — à renseigner si les liens reçus par e-mail sont incorrects (ex : envoi depuis une tâche planifiée sans requête HTTP, ou serveur derrière un proxy).
@@ -230,7 +230,7 @@ use App\Enum\VisibilityMode;
             <div class="form-group">
                 <label for="app_rsst_description">Description du registre RSST (page d'accueil)</label>
                 <input type="text" id="app_rsst_description" name="app_rsst_description" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->get('app_rsst_description', '')); ?>"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_rsst_description', '')); ?>"
                        placeholder="Risques liés aux locaux, équipements, ergonomie, conditions environnementales">
                 <small class="text-muted block mt-1">
                     Texte descriptif affiché sous le titre du registre RSST sur la page d'accueil.
@@ -240,13 +240,13 @@ use App\Enum\VisibilityMode;
 
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voient toujours tous les signalements.</p>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> voient toujours tous les signalements.</p>
 
             <?php foreach (\App\Enum\ReportType::cases() as $type):
                 $configKey = 'app_report_visibility_' . $type->value;
-                $currentValue = \App\Services\ConfigService::getInstance()->get($configKey, '');
+                $currentValue = getConfigService()->get($configKey, '');
                 if ($currentValue === '') {
-                    $currentValue = \App\Services\ConfigService::getInstance()->get('app_report_visibility', VisibilityMode::AgentChoice->value);
+                    $currentValue = getConfigService()->get('app_report_visibility', VisibilityMode::AgentChoice->value);
                 }
                 $currentValue = normalizeVisibilityValue($currentValue);
                 $legend = $type->shortLabel() . ' — ' . $type->label();
@@ -292,26 +292,26 @@ use App\Enum\VisibilityMode;
             <?php endforeach; ?>
 
             <div class="info-panel agent-visibility-warning">
-                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voient tous les signalements, y compris les confidentiels.
+                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> voient tous les signalements, y compris les confidentiels.
             </div>
         </div>
 
         <div class="separator">
-            <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?></h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les membres du <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> peuvent consulter.</p>
+            <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?></h4>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> peuvent consulter.</p>
             <?php
-                        $chsctScopeValue = \App\Services\ConfigService::getInstance()->get('app_chsct_report_scope', 'consent_only');
+                        $chsctScopeValue = getConfigService()->get('app_chsct_report_scope', 'consent_only');
 $chsctScopeValue = new \App\Services\AccessService()->normalizeChsctScope($chsctScopeValue);
 ?>
             <fieldset class="form-group visibility-radios">
-                <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?></legend>
+                <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?></legend>
                 <div class="visibility-radios">
                     <label class="visibility-radio-label">
                         <input type="radio" name="app_chsct_report_scope" value="consent_only"
                                <?php echo $chsctScopeValue === 'consent_only' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Consentement uniquement</strong> <span class="text-muted text-small">(par défaut)</span>
-                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> ne voit que les signalements dont le déclarant a coché la case de consentement de transmission syndicale.</div>
+                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> ne voit que les signalements dont le déclarant a coché la case de consentement de transmission syndicale.</div>
                         </div>
                     </label>
                     <label class="visibility-radio-label">
@@ -319,7 +319,7 @@ $chsctScopeValue = new \App\Services\AccessService()->normalizeChsctScope($chsct
                                <?php echo $chsctScopeValue === 'all' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Tous les signalements</strong>
-                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(\App\Services\ConfigService::getInstance()->getRoleLabelShort('chsct')); ?> voit l'intégralité des signalements de tous les sites, y compris les signalements confidentiels non consentis (nom, prénom, objet inclus).</div>
+                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> voit l'intégralité des signalements de tous les sites, y compris les signalements confidentiels non consentis (nom, prénom, objet inclus).</div>
                         </div>
                     </label>
                 </div>

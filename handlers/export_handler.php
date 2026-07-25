@@ -20,7 +20,7 @@ use App\Repository\ReportRepository;
 
 $http = new HttpService();
 $session = SessionService::getInstance();
-$config = ConfigService::getInstance();
+$config = getConfigService();
 
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);

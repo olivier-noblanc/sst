@@ -105,7 +105,7 @@ function sstShutdownHandler(): void
     $adminDisplayErrors = false;
     if (class_exists(ConfigService::class)) {
         try {
-            $adminDisplayErrors = (ConfigService::getInstance()->get('app_display_errors', '') === '1');
+            $adminDisplayErrors = (getConfigService()->get('app_display_errors', '') === '1');
         } catch (Exception) {
         }
     }

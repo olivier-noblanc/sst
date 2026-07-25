@@ -23,7 +23,7 @@ if (RegistryRepository::instance()->findByCode($type) === null) {
 }
 
 // Block access to disabled registries
-if (!ConfigService::getInstance()->isRegistryEnabled($type)) {
+if (!getConfigService()->isRegistryEnabled($type)) {
     SessionService::getInstance()->setFlash('error', 'Ce registre est désactivé.');
     new HttpService()->redirect(new HttpService()->url('home'));
 }

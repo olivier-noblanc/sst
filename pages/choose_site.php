@@ -26,7 +26,7 @@ $pageTitle = 'Choisir mon site';
 // Service instances (created once for the page)
 $fmt = new \App\Services\FormattingService();
 $http = new \App\Services\HttpService();
-$config = \App\Services\ConfigService::getInstance();
+$config = getConfigService();
 
 // In noSiteMode, there are no sites to choose — redirect home
 if ($config->isNoSiteMode()) {

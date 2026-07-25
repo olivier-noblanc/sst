@@ -73,7 +73,7 @@ function runLazyCron(PDO $pdo): void
 function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable $callback): void
 {
     try {
-        $lastRun = ConfigService::getInstance()->get("last_lazy_cron_{$taskName}", '');
+        $lastRun = getConfigService()->get("last_lazy_cron_{$taskName}", '');
         $now = time();
 
         if (!empty($lastRun)) {
@@ -110,7 +110,7 @@ function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable 
  */
 function lazyCronCheckDelays(PDO $pdo): void
 {
-    $alertDelayDays = (int) ConfigService::getInstance()->get('app_alert_delay_days', '0');
+    $alertDelayDays = (int) getConfigService()->get('app_alert_delay_days', '0');
 
     // If alert delay is disabled, skip entirely
     if ($alertDelayDays <= 0) {
@@ -170,7 +170,7 @@ function lazyCronCheckDelays(PDO $pdo): void
             continue;
         }
 
-        $appName = ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
+        $appName = getConfigService()->get('app_nom_organisation', 'DREETS BFC');
         $subject = "Alerte : {$siteData['site_code']} — " . count($siteData['reports']) . " signalement(s) en attente depuis plus de {$alertDelayDays}j";
 
         $body = buildDelayAlertEmail($siteData, $alertDelayDays);

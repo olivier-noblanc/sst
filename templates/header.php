@@ -50,7 +50,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
             if ($logoDataUri !== ''): ?>
                 <img src="<?php echo $logoDataUri; ?>" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
             <?php else: ?>
-                <span class="header__logo-text"><?php echo e(\App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC')); ?></span>
+                <span class="header__logo-text"><?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS BFC')); ?></span>
             <?php endif; ?>
             <span class="header__title">Application SST</span>
         </div>

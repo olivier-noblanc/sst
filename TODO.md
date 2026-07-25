@@ -329,12 +329,9 @@ Layers `Handler`, `Page`, `Template` ajoutés au ruleset deptrac. Router autoris
 **Fichiers** : `handlers/report_create_handler.php`, `handlers/report_edit_handler.php`, `src/Services/ReportService.php`
 **Impact** : Handlers thin controllers, logique métier centralisée
 
-#### R4 — Ajouter StatisticsService
+#### R4 — ✅ Ajouter StatisticsService — TERMINÉ
 
-Créer `StatisticsService` pour intercaler entre pages et `StatsRepository`, éliminant les 48 appels `::instance()` directs depuis les pages.
-
-**Fichiers** : `src/Services/StatisticsService.php` (nouveau), `pages/statistics.php`, `pages/synthesis.php`
-**Impact** : Pas de dépendance directe pages→Repository
+`StatisticsService` créé avec `getAvailableYears()` et `getStatistics()`. Branché dans `statistics.php`. Enregistré dans le DI container.
 
 #### R5 — Typifier les retours avec des ReadModels
 
@@ -342,6 +339,7 @@ Introduire des ReadModels (`ReportSummary`, `SiteStats`, `RegistryStats`) au lie
 
 **Fichiers** : `src/DTO/` (nouveau), `src/Services/`, `src/Repository/`
 **Impact** : Moins d'erreurs runtime, autocomplétion IDE
+**Effort** : Gros chantier — à faire dans une session dédiée
 
 #### R6 — Nettoyer magic strings résiduelles
 

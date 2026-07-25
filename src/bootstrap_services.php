@@ -22,6 +22,7 @@ use App\Services\CryptoService;
 use App\Services\HttpService;
 use App\Services\AssetService;
 use App\Services\RegistryCardService;
+use App\Services\StatisticsService;
 use App\Event\EventDispatcher;
 
 function createContainer(): Container
@@ -103,6 +104,10 @@ function createContainer(): Container
         /** @var ReportRepository $reportRepo */ $reportRepo = $c->get(ReportRepository::class);
         /** @var AccessService $accessService */ $accessService = $c->get(AccessService::class);
         return new RegistryCardService($registryRepo, $reportRepo, $accessService);
+    });
+    $container->set(StatisticsService::class, function (Container $c) {
+        /** @var StatsRepository $statsRepo */ $statsRepo = $c->get(StatsRepository::class);
+        return new StatisticsService($statsRepo);
     });
 
     return $container;

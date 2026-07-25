@@ -20,23 +20,13 @@ $noSiteMode = $config->isNoSiteMode();
 $yearGet = $_GET['year'] ?? date('Y');
 $year = trim((string) $yearGet);
 
-// Get available years
-$availableYears = \App\Repository\StatsRepository::instance()->getAvailableYears();
-if (empty($availableYears)) {
-    $availableYears = [date('Y')];
-}
-
-// Get indicateurs
-/** @var array<string, int> $indicateurs */
-$indicateurs = \App\Repository\StatsRepository::instance()->getIndicateurs($year);
-
-// Get stats by site
-/** @var list<array{code: string, rsst: int, rami: int, dgi: int, total: int}> $statsBySite */
-$statsBySite = \App\Repository\StatsRepository::instance()->getBySite($year);
-
-// Get RAMI structured stats
-/** @var array{by_nature_auteur: list<array{nature_auteur: string, count: int}>, by_type_acte: list<array{type_acte: string, count: int}>} $ramiStats */
-$ramiStats = \App\Repository\StatsRepository::instance()->getRamiStructuredStats($year);
+// Get statistics via StatisticsService
+$statsService = getContainer()->get(\App\Services\StatisticsService::class);
+$availableYears = $statsService->getAvailableYears();
+$stats = $statsService->getStatistics($year);
+$indicateurs = $stats['indicateurs'];
+$statsBySite = $stats['statsBySite'];
+$ramiStats = $stats['ramiStats'];
 
 // Build table data by site
 /** @var list<array{id: int, code: string, nom: string}> $sites */

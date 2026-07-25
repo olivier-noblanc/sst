@@ -310,12 +310,9 @@ Les échecs CI n'étaient pas techniques mais liés à la **facturation GitHub A
 
 ### Recommandations prioritaires
 
-#### R1 — Étendre deptrac pour couvrir handlers/pages/templates
+#### R1 — ✅ Étendre deptrac pour couvrir handlers/pages/templates — TERMINÉ
 
-Le ruleset actuel ne couvre que `src/`. Ajouter des layers pour `handlers/`, `pages/`, `templates/` et forcer la couche Service comme intermédiaire obligatoire (interdire pages→Repository, handlers→Repository).
-
-**Fichiers** : `deptrac.yaml`
-**Impact** : Architecture DDD propre, pas de SQL hors Repository
+Layers `Handler`, `Page`, `Template` ajoutés au ruleset deptrac. Router autorisé à dépendre de Service. Templates autorisés à dépendre de Service (mail_templates). 0 violation.
 
 #### R2 — Éliminer catch silencieux dans ConfigService::get()
 

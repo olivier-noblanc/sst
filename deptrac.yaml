@@ -1,6 +1,9 @@
 deptrac:
   paths:
     - src/
+    - handlers/
+    - pages/
+    - templates/
 
   layers:
     - name: Enum
@@ -58,6 +61,21 @@ deptrac:
         - type: directory
           value: src/PHPStan/*
 
+    - name: Handler
+      collectors:
+        - type: directory
+          value: handlers/*
+
+    - name: Page
+      collectors:
+        - type: directory
+          value: pages/*
+
+    - name: Template
+      collectors:
+        - type: directory
+          value: templates/*
+
   ruleset:
     Enum:
       - DTO
@@ -95,6 +113,27 @@ deptrac:
 
     Router:
       - Enum
+      - Service
 
     PHPStan:
       - Enum
+
+    # Handlers : controllers thin — accèdent aux Services et Enums
+    Handler:
+      - Enum
+      - DTO
+      - Service
+      - Repository
+
+    # Pages : vue + logique légère — accèdent aux Services et Enums
+    Page:
+      - Enum
+      - DTO
+      - Service
+      - Repository
+
+    # Templates : affichage pur — accèdent aux Helpers, Enums et Services
+    Template:
+      - Enum
+      - Helpers
+      - Service

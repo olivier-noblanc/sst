@@ -708,7 +708,7 @@ class ReportRepository
             $updateStmt = $this->pdo->prepare("
                 UPDATE reports
                 SET etat = :nouvel_etat, updated_at = datetime('now')
-                WHERE uuid = :uuid AND etat IN ('traite', 'abandonne')
+                WHERE uuid = :uuid AND etat IN (" . $this->pdo->quote(ReportState::Traite->value) . ", " . $this->pdo->quote(ReportState::Abandonne->value) . ")
             ");
             $updateStmt->execute([':nouvel_etat' => ReportState::Reouvert->value, ':uuid' => $uuid]);
             if ($updateStmt->rowCount() === 0) {

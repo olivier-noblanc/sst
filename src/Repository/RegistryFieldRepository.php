@@ -70,35 +70,4 @@ class RegistryFieldRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array<string, mixed> $data */
-    public function update(int $id, array $data): bool
-    {
-        $sets = [];
-        $params = [':id' => $id];
-        foreach (['label', 'field_type', 'options', 'is_required', 'sort_order'] as $field) {
-            if (array_key_exists($field, $data)) {
-                $sets[] = "$field = :$field";
-                $params[":$field"] = $data[$field];
-            }
-        }
-        if (empty($sets)) {
-            return false;
-        }
-        $sql = 'UPDATE registry_fields SET ' . implode(', ', $sets) . ' WHERE id = :id';
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->rowCount() > 0;
-    }
-
-    public function delete(int $id): bool
-    {
-        $stmt = $this->pdo->prepare('DELETE FROM registry_fields WHERE id = :id');
-        $stmt->execute([':id' => $id]);
-        return $stmt->rowCount() > 0;
-    }
-
-    public function getPdo(): PDO
-    {
-        return $this->pdo;
-    }
 }

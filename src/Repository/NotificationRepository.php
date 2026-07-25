@@ -58,12 +58,6 @@ class NotificationRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    public function delete(int $id): bool
-    {
-        $stmt = $this->pdo->prepare('DELETE FROM notification_settings WHERE id = :id');
-        $stmt->execute([':id' => $id]);
-        return $stmt->rowCount() > 0;
-    }
 
     public function deleteByType(string $type): int
     {

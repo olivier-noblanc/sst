@@ -45,15 +45,6 @@ enum ReportType: string
         };
     }
 
-    public function icon(): string
-    {
-        return match ($this) {
-            self::Rsst => '&#128203;',
-            self::Rami => '&#9888;',
-            self::Dgi  => '&#128308;',
-        };
-    }
-
     public function legalNote(): string
     {
         return match ($this) {

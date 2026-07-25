@@ -1,174 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: handlers/agent_confirm_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: handlers/choose_site_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 13
-			path: handlers/export_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: handlers/login_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: handlers/report_abandon_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 5
-			path: handlers/report_create_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: handlers/report_edit_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: handlers/report_reopen_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: handlers/report_respond_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 4
-			path: handlers/settings_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 11
-			path: handlers/settings_handler_app.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: handlers/settings_handler_sites.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 4
-			path: handlers/site_edit_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: handlers/smtp_test_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: handlers/user_create_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 5
-			path: handlers/user_edit_handler.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: pages/agent_confirm.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: pages/changelog.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: pages/choose_site.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 7
-			path: pages/export.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: pages/help.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: pages/home.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: pages/login.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 9
-			path: pages/logs.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: pages/report_attachment.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 8
-			path: pages/report_list.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 4
-			path: pages/report_print.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: pages/report_print_helpers.php
-
-		-
 			message: '#^Property SSTPDF\:\:\$footerOrgName is never read$#'
 			identifier: shipmonk.deadProperty.neverRead
 			count: 1
@@ -185,72 +17,6 @@ parameters:
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: pages/report_print_helpers.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: pages/report_respond.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 5
-			path: pages/report_view.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: pages/response_attachment.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: pages/settings/tab_wordcloud.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 5
-			path: pages/statistics.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: pages/synthesis.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: pages/user_edit.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: pages/user_view.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 4
-			path: pages/users.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: public/asset.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: public/css.php
 
 		-
 			message: '#^Parameter \#1 \$num of function dechex expects int, int\<0, max\>\|false given\.$#'
@@ -271,12 +37,6 @@ parameters:
 			path: public/css.php
 
 		-
-			message: '#^Only booleans are allowed in a negated boolean, string\|false given\.$#'
-			identifier: booleanNot.exprNotBoolean
-			count: 1
-			path: public/router.php
-
-		-
 			message: '#^Parameter \#1 \$haystack of function str_starts_with expects string, string\|false\|null given\.$#'
 			identifier: argument.type
 			count: 3
@@ -285,19 +45,7 @@ parameters:
 		-
 			message: '#^Variable \$pdo might not be defined\.$#'
 			identifier: variable.undefined
-			count: 2
-			path: seed/_registries.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: seed/_reports.php
-
-		-
-			message: '#^Variable \$pdo might not be defined\.$#'
-			identifier: variable.undefined
-			count: 4
+			count: 3
 			path: seed/_reports.php
 
 		-
@@ -319,12 +67,6 @@ parameters:
 			path: seed/_users.php
 
 		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/DTO/CreateUserCommand.php
-
-		-
 			message: '#^Unused App\\DTO\\ReportFilter\:\:fromGet$#'
 			identifier: shipmonk.deadMethod
 			count: 1
@@ -335,12 +77,6 @@ parameters:
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/DTO/RespondToReportCommand.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/DTO/UpdateUserCommand.php
 
 		-
 			message: '#^Unused App\\Enum\\ReportState\:\:badgeClass$#'
@@ -355,27 +91,21 @@ parameters:
 			path: src/Event/EventDispatcher.php
 
 		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: src/Middleware/bootstrap.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: src/Middleware/require_role.php
-
-		-
 			message: '#^Unused App\\Repository\\NotificationRepository\:\:getPdo$#'
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Repository/NotificationRepository.php
 
 		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 13
+			message: '#^Unused App\\Repository\\RegistryFieldRepository\:\:findById$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/Repository/RegistryFieldRepository.php
+
+		-
+			message: '#^Unused App\\Repository\\ReportRepository\:\:countByState$#'
+			identifier: shipmonk.deadMethod
+			count: 1
 			path: src/Repository/ReportRepository.php
 
 		-
@@ -385,22 +115,10 @@ parameters:
 			path: src/Repository/SiteRepository.php
 
 		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 10
-			path: src/Repository/StatsRepository.php
-
-		-
 			message: '#^Unused App\\Repository\\StatsRepository\:\:getPdo$#'
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Repository/StatsRepository.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/Repository/UserRepository.php
 
 		-
 			message: '#^Unused App\\Router\\Router\:\:getRoutes$#'
@@ -409,46 +127,10 @@ parameters:
 			path: src/Router/Router.php
 
 		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: src/Services/AccessService.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 6
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: src/Services/ConfigService.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 5
-			path: src/Services/FormattingService.php
-
-		-
 			message: '#^Unused App\\Services\\FormattingService\:\:formatTime$#'
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Services/FormattingService.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/Services/HttpService.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: src/Services/NotificationService.php
 
 		-
 			message: '#^Unused App\\Services\\NotificationService\:\:notifyNewReport$#'
@@ -485,12 +167,6 @@ parameters:
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Services/NotificationService.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/Services/ReportService.php
 
 		-
 			message: '#^Unused App\\Services\\ReportService\:\:findById$#'
@@ -601,18 +277,6 @@ parameters:
 			path: src/Services/SessionManager.php
 
 		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: src/Services/SessionService.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 5
-			path: src/Services/UserService.php
-
-		-
 			message: '#^Unused App\\Services\\UserService\:\:countActive$#'
 			identifier: shipmonk.deadMethod
 			count: 1
@@ -629,138 +293,6 @@ parameters:
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Services/UserService.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 7
-			path: src/audit.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/config.php
-
-		-
-			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
-			identifier: ternary.shortNotAllowed
-			count: 1
-			path: src/config.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: src/cron.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/cron_anonymize.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/error_notify.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 4
-			path: src/mail.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 6
-			path: src/mail_notifications.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: src/migration_columns.php
-
-		-
-			message: '#^Only booleans are allowed in &&, int given on the left side\.$#'
-			identifier: booleanAnd.leftNotBoolean
-			count: 1
-			path: src/migration_columns.php
-
-		-
-			message: '#^Only booleans are allowed in a negated boolean, int given\.$#'
-			identifier: booleanNot.exprNotBoolean
-			count: 1
-			path: src/migration_columns.php
-
-		-
-			message: '#^Only booleans are allowed in an if condition, int given\.$#'
-			identifier: if.condNotBoolean
-			count: 1
-			path: src/migration_columns.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 3
-			path: src/queries/report_queries.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: src/user_context.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 9
-			path: src/validation.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 4
-			path: src/validation_user.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: templates/form_error_summary.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 17
-			path: templates/report_card.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 4
-			path: templates/report_form.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: templates/report_form_rami.php
-
-		-
-			message: '#^Call to function in_array\(\) requires parameter \#3 to be set\.$#'
-			identifier: function.strict
-			count: 1
-			path: tools/anonymize_old_reports.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: tools/anonymize_old_reports.php
 
 		-
 			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
@@ -793,12 +325,6 @@ parameters:
 			path: tools/check_css_classes.php
 
 		-
-			message: '#^Call to function in_array\(\) requires parameter \#3 to be set\.$#'
-			identifier: function.strict
-			count: 3
-			path: tools/check_css_classes.php
-
-		-
 			message: '#^Function scanDirForClasses\(\) has parameter \$excludedStrings with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -807,24 +333,6 @@ parameters:
 		-
 			message: '#^Function scanDirForClasses\(\) has parameter \$htmlClasses with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: tools/check_css_classes.php
-
-		-
-			message: '#^Only booleans are allowed in &&, int\|false given on the right side\.$#'
-			identifier: booleanAnd.rightNotBoolean
-			count: 2
-			path: tools/check_css_classes.php
-
-		-
-			message: '#^Only booleans are allowed in an if condition, int\<0, max\>\|false given\.$#'
-			identifier: if.condNotBoolean
-			count: 4
-			path: tools/check_css_classes.php
-
-		-
-			message: '#^Only booleans are allowed in \|\|, int\|false given on the right side\.$#'
-			identifier: booleanOr.rightNotBoolean
 			count: 1
 			path: tools/check_css_classes.php
 
@@ -853,37 +361,13 @@ parameters:
 			path: tools/check_css_classes.php
 
 		-
-			message: '#^Call to function in_array\(\) requires parameter \#3 to be set\.$#'
-			identifier: function.strict
-			count: 1
-			path: tools/check_delays.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 2
-			path: tools/check_delays.php
-
-		-
 			message: '#^Parameter \#2 \$timestamp of function gmdate expects int\|null, int\|false given\.$#'
 			identifier: argument.type
 			count: 1
 			path: tools/check_delays.php
 
 		-
-			message: '#^Call to function in_array\(\) requires parameter \#3 to be set\.$#'
-			identifier: function.strict
-			count: 1
-			path: tools/tests/test_can_access_report.php
-
-		-
 			message: '#^Comparison operation "\>" between 0 and 0 is always false\.$#'
 			identifier: greater.alwaysFalse
 			count: 2
 			path: tools/tests/test_can_access_report.php
-
-		-
-			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
-			identifier: empty.notAllowed
-			count: 1
-			path: tools/verify_container.php

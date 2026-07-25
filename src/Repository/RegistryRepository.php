@@ -116,11 +116,6 @@ class RegistryRepository
         return $stmt->rowCount() > 0;
     }
 
-    public function toggleEnabled(int $id, bool $enabled): bool
-    {
-        return $this->update($id, ['is_enabled' => $enabled ? 1 : 0]);
-    }
-
     public function delete(int $id): bool
     {
         $reg = $this->findById($id);
@@ -172,11 +167,6 @@ class RegistryRepository
         }
     }
 
-    public function getPdo(): PDO
-    {
-        return $this->pdo;
-    }
-
     /**
      * Get all available CSS theme keys.
      * @return list<string>
@@ -187,23 +177,5 @@ class RegistryRepository
             array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
             ['vert', 'violet', 'orange', 'teal', 'indigo', 'rose', 'ambre'],
         );
-    }
-
-    /**
-     * Get CSS class names for a given theme.
-     * @return array{card: string, badge: string, btn: string, registry_card: string, indicateur: string, synthesis_th: string, text: string, border_left: string}
-     */
-    public static function themeClasses(string $theme): array
-    {
-        return [
-            'card'          => "card--$theme",
-            'badge'         => "badge--$theme",
-            'btn'           => "btn--$theme",
-            'registry_card' => "registry-card--$theme",
-            'indicateur'    => "indicateur-card--$theme",
-            'synthesis_th'  => "synthesis-th--$theme",
-            'text'          => "text--$theme",
-            'border_left'   => "border-left--$theme",
-        ];
     }
 }

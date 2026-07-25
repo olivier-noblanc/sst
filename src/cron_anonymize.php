@@ -21,7 +21,12 @@ function lazyCronAnonymize(PDO $pdo): void
     if ($cutoffTs === false) {
         return;
     }
-    $cutoffDate = date('Y-m-d', $cutoffTs);
+    // Audit #48 — use gmdate() (UTC) since the DB stores all timestamps in UTC.
+    // Before this fix, date() returned local time (Europe/Paris = UTC+1 or +2),
+    // so the cutoff was shifted by 1-2 hours vs the convention used everywhere
+    // else in the app. This made some borderline reports anonymized a few hours
+    // too early (or kept a few hours too long depending on direction).
+    $cutoffDate = gmdate('Y-m-d', $cutoffTs);
 
     $reports = ReportRepository::instance()->findAnonymizable($cutoffDate);
     if (empty($reports)) {

@@ -250,8 +250,10 @@ class UserRepository
 
             $stmt = $this->pdo->prepare("
                 UPDATE reports
-                SET declarant_nom = 'Anonymisé', declarant_prenom = 'Utilisateur',
-                    telephone_mobile = NULL
+                SET declarant_nom = 'Anonymisé', declarant_prenom = 'Anonymé',
+                    telephone_mobile = NULL,
+                    pour_compte_nom = NULL,
+                    pour_compte_prenom = NULL
                 WHERE declarant_id = :id
             ");
             $stmt->execute([':id' => $id]);

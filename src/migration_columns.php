@@ -102,6 +102,11 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
         $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+        // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
+        // DROP TABLE reports silently dropped the triggers reports_fts_ai/ad/au
+        // (and reports_fts itself was orphaned). Without this, future INSERTs on
+        // reports would not be reflected in reports_fts → full-text search broken.
+        recreateReportsFts5($pdo);
         error_log('[SST-MIGRATION] reports.site_id is now nullable (no-site mode support).');
     }
 
@@ -110,13 +115,31 @@ function migrateColumns(PDO $pdo): void
     // Since SQLite has no ALTER TABLE DROP CONSTRAINT, rebuild the table without it.
     // Check if the constraint exists by trying to insert a custom type — if it
     // fails, the constraint is present and needs removal.
+    //
+    // Audit #43 — Before this fix, the test INSERT used declarant_id=1, which
+    // could fail with a FK violation if user 1 didn't exist (e.g. fresh install
+    // running migrations before seed). The catch block assumed any failure was
+    // the CHECK constraint → infinite rebuild loop on every page load.
+    // Now we disable FK enforcement during the test, so only a real CHECK
+    // constraint can reject the insert.
     $hasTypeCheck = false;
+    $fkStmt = $pdo->query('PRAGMA foreign_keys');
+    $fkEnabled = ($fkStmt !== false) ? (int) $fkStmt->fetchColumn() : 0;
+    $fkStmt = null;
     try {
+        $pdo->exec('PRAGMA foreign_keys = OFF');
         $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, etat) VALUES ('00000000-0000-0000-0000-000000000000', 'test-check-removal', 'custom_test', 'test', 'test', '2025-01-01', 1, 'test', 'test', 'nouveau')");
         $hasTypeCheck = false; // No constraint — insertion succeeded
         $pdo->exec("DELETE FROM reports WHERE uuid = '00000000-0000-0000-0000-000000000000'");
     } catch (Exception) {
         $hasTypeCheck = true; // Constraint rejected the insert
+        try {
+            $pdo->exec("DELETE FROM reports WHERE uuid = '00000000-0000-0000-0000-000000000000'");
+        } catch (Exception) {
+            // ignore cleanup failure
+        }
+    } finally {
+        $pdo->exec('PRAGMA foreign_keys = ' . ($fkEnabled ? 'ON' : 'OFF'));
     }
 
     if ($hasTypeCheck) {
@@ -177,6 +200,8 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
         $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+        // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
+        recreateReportsFts5($pdo);
         error_log('[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
     }
 
@@ -282,4 +307,47 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec("ALTER TABLE users ADD COLUMN sessions_invalid_before DATETIME");
         error_log('[SST-MIGRATION] Added users.sessions_invalid_before column (R4 — session invalidation support).');
     }
+}
+
+/**
+ * Recreate the reports_fts virtual table and its triggers after a reports rebuild.
+ *
+ * Audit #42 — DROP TABLE reports silently drops the FTS5 triggers
+ * (reports_fts_ai/ad/au) and orphans the reports_fts virtual table (its content
+ * no longer matches reports). Without this helper, future INSERTs on reports
+ * would not be reflected in reports_fts → full-text search broken after migration.
+ *
+ * Safe to call multiple times — uses IF NOT EXISTS for triggers and rebuilds
+ * reports_fts content from scratch.
+ */
+function recreateReportsFts5(PDO $pdo): void
+{
+    // Drop and recreate the FTS5 virtual table (it's a content-less mirror)
+    try {
+        $pdo->exec('DROP TABLE IF EXISTS reports_fts');
+    } catch (Exception $e) {
+        // FTS5 tables can sometimes be in a weird state after the parent table is rebuilt
+        error_log('[SST-MIGRATION] recreateReportsFts5: could not drop reports_fts: ' . $e->getMessage());
+    }
+
+    $pdo->exec("CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid)");
+
+    // Rebuild the FTS5 index from current reports data
+    try {
+        $pdo->exec("INSERT INTO reports_fts(rowid, uuid, objet, description) SELECT rowid, uuid, objet, description FROM reports");
+    } catch (Exception $e) {
+        error_log('[SST-MIGRATION] recreateReportsFts5: rebuild failed: ' . $e->getMessage());
+    }
+
+    // Recreate the triggers (mirrors schema.sql)
+    $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_ai AFTER INSERT ON reports BEGIN
+        INSERT INTO reports_fts(rowid, uuid, objet, description) VALUES (new.rowid, new.uuid, new.objet, new.description);
+    END");
+    $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_ad AFTER DELETE ON reports BEGIN
+        INSERT INTO reports_fts(reports_fts, rowid, uuid, objet, description) VALUES ('delete', old.rowid, old.uuid, old.objet, old.description);
+    END");
+    $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_au AFTER UPDATE ON reports BEGIN
+        INSERT INTO reports_fts(reports_fts, rowid, uuid, objet, description) VALUES ('delete', old.rowid, old.uuid, old.objet, old.description);
+        INSERT INTO reports_fts(rowid, uuid, objet, description) VALUES (new.rowid, new.uuid, new.objet, new.description);
+    END");
 }

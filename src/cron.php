@@ -42,17 +42,16 @@ function runLazyCron(PDO $pdo): void
 function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable $callback): void
 {
     try {
-        $lastRun = getConfigService()->get("last_lazy_cron_{$taskName}", '');
-        $now = time();
-
-        if (!empty($lastRun)) {
-            $lastTs = strtotime($lastRun);
-            if ($lastTs !== false && ($now - $lastTs) < $minInterval) {
-                return;
-            }
+        // Audit #41 — atomic compare-and-swap lock. Before this fix,
+        // two concurrent logins could both read lastRun=old → both write
+        // new timestamp → both execute the task (double email, double
+        // anonymization, etc.). Now claimLazyCronLock does the read+write
+        // inside a transaction, so only one caller acquires the lock.
+        $configRepo = \App\Repository\ConfigRepository::instance();
+        if (!$configRepo->claimLazyCronLock("last_lazy_cron_{$taskName}", $minInterval)) {
+            return; // Another caller already claimed it
         }
 
-        updateConfig($pdo, "last_lazy_cron_{$taskName}", date('Y-m-d H:i:s', $now));
         $callback($pdo);
     } catch (Exception $e) {
         error_log("[SST-CRON] Lazy cron task '{$taskName}' failed: " . $e->getMessage());

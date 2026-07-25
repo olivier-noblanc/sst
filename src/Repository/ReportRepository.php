@@ -1016,11 +1016,20 @@ class ReportRepository
      */
     public function findAnonymizable(string $cutoffDate): array
     {
+        // Audit #46 — Before this fix, the retention period was based on
+        // date_evenement (event date) instead of date_reponse (close date).
+        // A report closed yesterday could be anonymized today if the event
+        // was old — defeating the purpose of the RGPD retention period.
+        // Now we use COALESCE(date_reponse, date_evenement, created_at):
+        //   - Prefer date_reponse (when the report was closed)
+        //   - Fall back to date_evenement (if not yet closed — should not happen
+        //     since we filter on etat IN (traite, abandonne))
+        //   - Fall back to created_at (last resort)
         $stmt = $this->pdo->prepare("
             SELECT uuid, reference, type, declarant_nom, declarant_prenom, date_evenement, etat
             FROM reports
             WHERE etat IN ('" . ReportState::Traite->value . "', '" . ReportState::Abandonne->value . "')
-              AND date_evenement < :cutoff_date
+              AND COALESCE(date_reponse, date_evenement, created_at) < :cutoff_date
               AND declarant_nom != 'Anonymisé'
         ");
         $stmt->execute([':cutoff_date' => $cutoffDate]);

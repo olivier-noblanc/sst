@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\SessionService;
 use App\Repository\ReportRepository;
 
 /**
@@ -26,7 +27,7 @@ if (!is_array($row) || empty($row['attachment_blob'])) {
 }
 
 // Access control: centralized via canAccessReport()
-$user = \App\Services\SessionService::getInstance()->getUserSession();
+$user = SessionService::getInstance()->getUserSession();
 if ($user === null) {
     http_response_code(403);
     exit('Accès refusé.');

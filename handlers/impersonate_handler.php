@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Enum\UserRole;
 
 /**
@@ -24,8 +26,8 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\Services\SessionManager;
 
 $session = getContainer()->get(SessionManager::class);
-$http = new \App\Services\HttpService();
-$sessionService = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$sessionService = SessionService::getInstance();
 
 // Must be authenticated
 if (!$session->isLoggedIn()) {

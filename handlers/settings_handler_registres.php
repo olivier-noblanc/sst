@@ -7,7 +7,9 @@
  * Actions: save (update all), add (create new), delete_{id} (remove).
  * Access: superviseur only (enforced by Router middleware)
  */
-
+use App\Repository\RegistryFieldRepository;
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Repository\RegistryRepository;
 use App\Enum\VisibilityMode;
 
@@ -20,11 +22,11 @@ use App\Enum\VisibilityMode;
 function handleSettingsRegistresTab(PDO $pdo, array $postData): void
 {
     $repo = RegistryRepository::instance();
-    $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
+    $fieldRepo = RegistryFieldRepository::instance();
     $action = trim((string) ($postData['action'] ?? 'save'));
 
-    $http = new \App\Services\HttpService();
-    $session = \App\Services\SessionService::getInstance();
+    $http = new HttpService();
+    $session = SessionService::getInstance();
 
     // ── Delete a registry field ──────────────────────────────────────────
     if ($action === 'delete_field') {

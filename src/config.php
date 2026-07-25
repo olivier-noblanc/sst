@@ -1,8 +1,9 @@
 <?php
 
+use App\Repository\RegistryRepository;
+use App\Repository\RegistryFieldRepository;
 use App\Enum\UserRole;
 use App\Enum\ReportState;
-use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 
 /**
@@ -144,7 +145,7 @@ function getRegistryLabel(string $type): string {
     if ($cache === null) {
         $cache = [];
         if (function_exists('getDB')) {
-            $repo = \App\Repository\RegistryRepository::instance();
+            $repo = RegistryRepository::instance();
             foreach ($repo->findAll() as $reg) {
                 $cache[(string) $reg['code']] = (string) $reg['label'];
             }
@@ -158,7 +159,7 @@ function getRegistryShortLabel(string $type): string {
     if ($cache === null) {
         $cache = [];
         if (function_exists('getDB')) {
-            $repo = \App\Repository\RegistryRepository::instance();
+            $repo = RegistryRepository::instance();
             foreach ($repo->findAll() as $reg) {
                 $cache[(string) $reg['code']] = (string) $reg['short_label'];
             }
@@ -178,8 +179,8 @@ function getRegistryFieldOptions(string $registryCode, string $fieldCode): array
     if (!isset($cache[$key])) {
         $cache[$key] = [];
         if (function_exists('getDB')) {
-            $registryRepo = \App\Repository\RegistryRepository::instance();
-            $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
+            $registryRepo = RegistryRepository::instance();
+            $fieldRepo = RegistryFieldRepository::instance();
             $registry = $registryRepo->findByCode($registryCode);
             if ($registry !== null) {
                 $field = $fieldRepo->findByCode((int) $registry['id'], $fieldCode);

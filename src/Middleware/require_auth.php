@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\HttpService;
+
 /**
  * Middleware: Require Authentication — Application SST DREETS BFC
  *
@@ -12,12 +14,11 @@
  * via getAuthenticatedUser(). So if we reach here without a user,
  * it means auto-auth failed.
  */
-
 if (!isUserLoggedIn()) {
     if (DEV_MODE) {
         // Dev: redirect to mock login form
         setIntendedUrl($_SERVER['REQUEST_URI'] ?? '');
-        new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('login'));
+        new HttpService()->redirect(new HttpService()->url('login'));
     } else {
         // Prod: should never happen — AUTH_USER should always be set by IIS
         die('Erreur de configuration : impossible d\'authentifier l\'utilisateur. '

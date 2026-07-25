@@ -1,5 +1,8 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
+
 /**
  * Report Abandon Handler — Application SST DREETS BFC
  *
@@ -12,17 +15,14 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 use App\Services\ReportService;
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
-
-/** @var array<string, string> $report */
-
 $user = $session->getUserSession();
-$userId = (int)($session->getUserSession()['id'] ?? 0);
-$type = (string) ($report['type'] ?? '');
+$userId = (int) ($session->getUserSession()['id'] ?? 0);
+$type = $report->type;
 
 requireReportOwnership($report, $userId, $reportUuid, 'abandonner');
 requireReportEditable($report, $reportUuid, 'abandonné');
@@ -34,21 +34,21 @@ try {
     $abandoned = $service->abandon($reportUuid, $userId);
 
     if ($abandoned) {
-        auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference'] ?? ''], $reportUuid);
+        auditLog($pdo, 'report', 'abandon', 'Signalement abandonné : ' . $report->reference, null, 'report', ['reference' => $report->reference], $reportUuid);
 
         // Notify supervisors of the site
         require_once __DIR__ . '/../src/mail.php';
-        $siteId = (int) ($report['site_id'] ?? 0);
+        $siteId = $report->siteId;
         $recipients = getNotificationRecipients($pdo, $siteId);
         if (!empty($recipients)) {
             $registryLabel = getRegistryShortLabel($type);
-            $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
+            $subject = "Signalement abandonné $registryLabel — {$report->reference}";
             $body = '<html><body>';
             $body .= '<h2>Signalement abandonné</h2>';
-            $body .= '<p><strong>Référence :</strong> ' . e((string) $report['reference']) . '</p>';
+            $body .= '<p><strong>Référence :</strong> ' . e((string) $report->reference) . '</p>';
             $body .= "<p><strong>Registre :</strong> $registryLabel</p>";
-            $body .= '<p><strong>Objet :</strong> ' . e((string) $report['objet']) . '</p>';
-            $body .= '<p><strong>Déclarant :</strong> ' . e((string) $report['declarant_prenom'] . ' ' . (string) $report['declarant_nom']) . '</p>';
+            $body .= '<p><strong>Objet :</strong> ' . e((string) $report->objet) . '</p>';
+            $body .= '<p><strong>Déclarant :</strong> ' . e((string) $report->declarantPrenom . ' ' . (string) $report->declarantNom) . '</p>';
             $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
             foreach ($recipients as $email) {
@@ -56,10 +56,10 @@ try {
             }
         }
 
-        $session->setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' abandonné.');
+        $session->setFlash('success', 'Signalement ' . e((string) $report->reference) . ' abandonné.');
         $http->redirect($http->url('report_list', ['type' => $type]));
     } else {
-        $session->setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps. (uuid=' . e($reportUuid) . ', etat=' . e((string) ($report['etat'] ?? '')) . ')');
+        $session->setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps. (uuid=' . e($reportUuid) . ', etat=' . e($report->etat) . ')');
         $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
     }
 } catch (RuntimeException $e) {

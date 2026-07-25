@@ -2,6 +2,9 @@
 
 namespace App\Middleware;
 
+use App\Services\SessionService;
+use App\Services\HttpService;
+
 class RoleMiddleware
 {
     /** @param list<string> $roles */
@@ -9,8 +12,8 @@ class RoleMiddleware
     public function __invoke(callable $next): void
     {
         if (!hasAnyRole($this->roles)) {
-            \App\Services\SessionService::getInstance()->setFlash('error', 'Accès refusé.');
-            new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('home'));
+            SessionService::getInstance()->setFlash('error', 'Accès refusé.');
+            new HttpService()->redirect(new HttpService()->url('home'));
         }
         $next();
     }

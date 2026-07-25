@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\ConfigService;
 use App\Services\FormattingService;
 
 /**
@@ -21,7 +22,7 @@ use App\Services\FormattingService;
  */
 function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string
 {
-    $appName = \App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
+    $appName = ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
 
     $body = '<html><body>';
     $body .= '<h2>Alerte de délai de traitement</h2>';
@@ -30,17 +31,16 @@ function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string
     $body .= "<tr style='background:#f5f5f5;'><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Réf.</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Registre</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Objet</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Déclarant</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Créé le</th></tr>";
 
     foreach ($siteData['reports'] as $report) {
-        /** @var array{type: string, reference: string, objet: string, created_at: string, declarant_prenom: string, declarant_nom: string} $report */
         $reportType = $report['type'] ?? '';
         $registryLabel = getRegistryShortLabel($reportType);
         $reference = $report['reference'] ?? '';
         $objet = $report['objet'] ?? '';
         $createdAt = $report['created_at'] ?? '';
         $body .= '<tr>';
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($reference) . '</td>';
+        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars((string) $reference) . '</td>';
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($registryLabel) . '</td>';
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($objet) . '</td>';
-        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . '</td>';
+        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars((string) $objet) . '</td>';
+        $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars(($report['declarant_prenom'] ?? '') . ' ' . ($report['declarant_nom'] ?? '')) . '</td>';
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars(new FormattingService()->formatDateTimeFR($createdAt)) . '</td>';
         $body .= '</tr>';
     }

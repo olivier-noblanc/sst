@@ -13,6 +13,7 @@ use InvalidArgumentException;
 use App\Repository\ReportRepository;
 use App\Event\EventDispatcher;
 use App\DTO\CreateReportCommand;
+use App\DTO\ReportData;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
 use App\DTO\ReopenReportCommand;
@@ -64,19 +65,18 @@ class ReportService
         return $validEmails;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function create(CreateReportCommand $cmd): array
+    public function create(CreateReportCommand $cmd): ReportData
     {
         $this->validateForCreation($cmd);
         $cmd = $this->enforceVisibility($cmd);
         $uuid = $this->repo->create($cmd);
         $report = $this->repo->findById($uuid);
-        /** @var array<string, mixed> $report */
+        if ($report === null) {
+            throw new RuntimeException('Signalement introuvable après création.');
+        }
 
         $this->events->dispatch('report.created', [
-            'report' => $report,
+            'report' => $report->toArray(),
             'cmd' => $cmd,
             'pdo' => $this->repo->getPdo(),
         ]);
@@ -93,15 +93,14 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        /** @var array<string, mixed> $report */
-        if (!canRespondToReport($report, currentUserRole())) {
+        if (!canRespondToReport($report->toArray(), currentUserRole())) {
             throw new RuntimeException('Accès refusé.');
         }
 
         $result = $this->repo->respond($uuid, $cmd, $userId);
 
         $this->events->dispatch('report.responded', [
-            'report' => $report,
+            'report' => $report->toArray(),
             'cmd' => $cmd,
             'userId' => $userId,
             'pdo' => $this->repo->getPdo(),
@@ -116,15 +115,14 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        /** @var array<string, mixed> $report */
-        if (!canEditReport($report, $userId)) {
+        if (!canEditReport($report->toArray(), $userId)) {
             throw new RuntimeException('Accès refusé.');
         }
 
         $result = $this->repo->update($uuid, $cmd, $userId);
 
         $this->events->dispatch('report.updated', [
-            'report' => $report,
+            'report' => $report->toArray(),
             'cmd' => $cmd,
             'pdo' => $this->repo->getPdo(),
         ]);
@@ -138,8 +136,7 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        /** @var array<string, mixed> $report */
-        if (!canEditReport($report, $userId)) {
+        if (!canEditReport($report->toArray(), $userId)) {
             throw new RuntimeException('Accès refusé.');
         }
         return $this->repo->abandon($uuid, $userId);
@@ -151,8 +148,7 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        /** @var array<string, mixed> $report */
-        if (!in_array($report['etat'], [ReportState::Traite->value, ReportState::Abandonne->value], true)) {
+        if (!in_array($report->etat, [ReportState::Traite->value, ReportState::Abandonne->value], true)) {
             throw new RuntimeException('Ce signalement ne peut pas être réouvert.');
         }
         if (!in_array(currentUserRole(), [UserRole::Superviseur->value, UserRole::Chsct->value], true)) {
@@ -162,7 +158,7 @@ class ReportService
         $result = $this->repo->reopen($uuid, $userId, $cmd->motif);
 
         $this->events->dispatch('report.reopened', [
-            'report' => $report,
+            'report' => $report->toArray(),
             'cmd'    => $cmd,
             'pdo'    => $this->repo->getPdo(),
         ]);
@@ -170,14 +166,9 @@ class ReportService
         return $result;
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
-    public function findById(string $uuid): ?array
+    public function findById(string $uuid): ?ReportData
     {
-        $result = $this->repo->findById($uuid);
-        /** @var array<string, mixed>|null $result */
-        return $result;
+        return $this->repo->findById($uuid);
     }
 
     private function validateForCreation(CreateReportCommand $cmd): void

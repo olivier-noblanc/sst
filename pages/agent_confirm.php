@@ -38,24 +38,24 @@ $pageTitle = 'Confirmer mon rattachement';
 <h1 class="page-title">Confirmer mon rattachement</h1>
 
 <div class="card card--spaced card--narrow-center">
-    <p>Vous avez été rattaché(e) au signalement <strong><?php echo new \App\Services\FormattingService()->e($report['reference']); ?></strong> par le déclarant.</p>
+    <p>Vous avez été rattaché(e) au signalement <strong><?php echo new \App\Services\FormattingService()->e($report->reference); ?></strong> par le déclarant.</p>
 
     <table class="table table--compact table--spaced">
         <tr>
             <th>Référence</th>
-            <td><?php echo new \App\Services\FormattingService()->e($report['reference']); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e($report->reference); ?></td>
         </tr>
         <tr>
             <th>Registre</th>
-            <td><?php echo new \App\Services\FormattingService()->e(getRegistryLabel((string) ($report['type'] ?? ''))); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e(getRegistryLabel($report->type)); ?></td>
         </tr>
         <tr>
             <th>Objet</th>
-            <td><?php echo new \App\Services\FormattingService()->e($report['objet']); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e($report->objet); ?></td>
         </tr>
         <tr>
             <th>Date</th>
-            <td><?php echo new \App\Services\FormattingService()->e(new \App\Services\FormattingService()->formatDateFR($report['date_evenement'])); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e(new \App\Services\FormattingService()->formatDateFR($report->dateEvenement)); ?></td>
         </tr>
     </table>
 

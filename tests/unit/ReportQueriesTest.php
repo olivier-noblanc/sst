@@ -183,9 +183,9 @@ class ReportQueriesTest extends TestCase
     public function testCountReportsByState(): void
     {
         $counts = self::$reports->countByState('rsst', self::$siteId, true);
-        $this->assertArrayHasKey('nouveau', $counts);
-        $this->assertArrayHasKey('en_cours', $counts);
-        $this->assertArrayHasKey('traite', $counts);
-        $this->assertArrayHasKey('total', $counts);
+        $this->assertSame(0, $counts->nouveau);
+        $this->assertSame(0, $counts->enCours);
+        $this->assertSame(0, $counts->traite);
+        $this->assertSame(0, $counts->total);
     }
 }

@@ -27,9 +27,9 @@ $noSiteMode = $config->isNoSiteMode();
 // Get response history
 $responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 
-$pageTitle = 'Répondre au signalement — ' . $fmt->e($report['reference']);
+$pageTitle = 'Répondre au signalement — ' . $fmt->e($report->reference);
 /** @var string */
-$registryType = $report['type'];
+$registryType = $report->type;
 $registryTypeStr = $registryType;
 $registryLabel = getRegistryShortLabel($registryTypeStr);
 
@@ -38,19 +38,19 @@ $formErrors = $session->getFormErrors();
 $formData = $session->getFormData();
 
 /** @var string */
-$prenomDeclarant = $report['declarant_prenom'] ?? '';
+$prenomDeclarant = $report->declarantPrenom;
 /** @var string */
-$nomDeclarant = $report['declarant_nom'] ?? '';
+$nomDeclarant = $report->declarantNom;
 /** @var string */
-$etat = $report['etat'] ?? '';
+$etat = $report->etat;
 ?>
 
-<h1 class="page-title">Répondre au signalement — <span class="badge <?php echo $fmt->getRegistryBadgeClass($registryType); ?>"><?php echo $fmt->e($report['reference']); ?></span></h1>
+<h1 class="page-title">Répondre au signalement — <span class="badge <?php echo $fmt->getRegistryBadgeClass($registryType); ?>"><?php echo $fmt->e($report->reference); ?></span></h1>
 
 <?php echo $fmt->renderBreadcrumb([
     ['url' => $http->url('home'), 'label' => 'Accueil'],
     ['url' => $http->url('report_list', ['type' => $registryType]), 'label' => $registryLabel],
-    ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
+    ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report->reference],
     ['label' => 'Répondre'],
 ]); ?>
 
@@ -61,7 +61,7 @@ $etat = $report['etat'] ?? '';
     <table class="report-detail__table" aria-label="Détails du signalement">
         <tr>
             <th>Référence</th>
-            <td><?php echo $fmt->e($report['reference']); ?></td>
+            <td><?php echo $fmt->e($report->reference); ?></td>
         </tr>
         <tr>
             <th>Registre</th>
@@ -69,7 +69,7 @@ $etat = $report['etat'] ?? '';
         </tr>
         <tr>
             <th>Date de l'événement</th>
-            <td><?php echo $fmt->e($fmt->formatDateFR($report['date_evenement'])); ?></td>
+            <td><?php echo $fmt->e($fmt->formatDateFR($report->dateEvenement)); ?></td>
         </tr>
         <tr>
             <th>Déclarant</th>
@@ -78,32 +78,32 @@ $etat = $report['etat'] ?? '';
         <?php if (!$noSiteMode): ?>
         <tr>
             <th><?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?></th>
-            <td><?php echo $fmt->e($report['site_nom'] ?? '—'); ?></td>
+            <td><?php echo $fmt->e($report->siteNom ?: '—'); ?></td>
         </tr>
         <?php endif; ?>
         <tr>
             <th><?php echo $registryType === \App\Enum\ReportType::Dgi->value ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
-            <td><?php echo $fmt->e($report['lieu'] ?? '—'); ?></td>
+            <td><?php echo $fmt->e($report->lieu ?: '—'); ?></td>
         </tr>
-        <?php if (!empty($report['pole'])): ?>
+        <?php if (!empty($report->pole)): ?>
         <tr>
             <th>Pôle</th>
-            <td><?php echo $fmt->e($report['pole']); ?></td>
+            <td><?php echo $fmt->e($report->pole); ?></td>
         </tr>
         <?php endif; ?>
-        <?php if (!empty($report['service_affectation'])): ?>
+        <?php if (!empty($report->serviceAffectation)): ?>
         <tr>
             <th>Service d'affectation</th>
-            <td><?php echo $fmt->e($report['service_affectation']); ?></td>
+            <td><?php echo $fmt->e($report->serviceAffectation); ?></td>
         </tr>
         <?php endif; ?>
         <tr>
             <th>Objet</th>
-            <td><?php echo $fmt->e($report['objet']); ?></td>
+            <td><?php echo $fmt->e($report->objet); ?></td>
         </tr>
         <tr>
             <th>Description</th>
-            <td><?php echo nl2br($fmt->e($report['description'])); ?></td>
+            <td><?php echo nl2br($fmt->e($report->description)); ?></td>
         </tr>
         <tr>
             <th>État actuel</th>

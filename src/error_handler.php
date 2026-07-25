@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\ConfigService;
+
 /**
  * Error Handler — Application SST DREETS BFC
  *
@@ -101,9 +103,9 @@ function sstShutdownHandler(): void
     // In production, render a clean error page for the user
     // BUT: if app_display_errors is '1' (admin toggle), show the real error instead
     $adminDisplayErrors = false;
-    if (class_exists(\App\Services\ConfigService::class)) {
+    if (class_exists(ConfigService::class)) {
         try {
-            $adminDisplayErrors = (\App\Services\ConfigService::getInstance()->get('app_display_errors', '') === '1');
+            $adminDisplayErrors = (ConfigService::getInstance()->get('app_display_errors', '') === '1');
         } catch (Exception) {
         }
     }

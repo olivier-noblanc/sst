@@ -1,5 +1,9 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
+use App\Services\ConfigService;
+
 /**
  * SMTP Test Handler — Application SST DREETS BFC
  *
@@ -18,9 +22,9 @@
 
 /** @var array<string, string> $_POST */
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
-$config = \App\Services\ConfigService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
+$config = ConfigService::getInstance();
 
 $to = trim((string) ($_POST['smtp_test_to'] ?? ''));
 $host = trim($config->get('smtp_host', ''));

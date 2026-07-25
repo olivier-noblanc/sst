@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Repository\SiteRepository;
 
 /**
@@ -17,8 +19,8 @@ use App\Repository\SiteRepository;
 function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 {
     /** @var array<string, string> $postData */
-    $http = new \App\Services\HttpService();
-    $session = \App\Services\SessionService::getInstance();
+    $http = new HttpService();
+    $session = SessionService::getInstance();
 
     $action = (string) ($postData['action'] ?? '');
 

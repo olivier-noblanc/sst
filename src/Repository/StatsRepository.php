@@ -4,6 +4,12 @@
 
 namespace App\Repository;
 
+use App\Enum\ReportType;
+use App\DTO\IndicateursData;
+use App\DTO\RamiStats;
+use App\DTO\SiteStatsRow;
+use App\DTO\SynthesisRow;
+use App\Enum\ReportState;
 use PDO;
 
 class StatsRepository
@@ -25,17 +31,19 @@ class StatsRepository
         return $instance;
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<SynthesisRow> */
     public function getSynthesis(string $year, int $siteId = 0): array
     {
+        $stateColumns = [];
+        foreach (ReportState::cases() as $state) {
+            $stateColumns[] = 'SUM(CASE WHEN r.etat = ' . $this->pdo->quote($state->value) . ' THEN 1 ELSE 0 END) as ' . $state->value;
+        }
+        $stateColumnsSql = implode(",\n                ", $stateColumns);
+
         $sql = "
             SELECT s.id as site_id, s.code, s.nom,
                 r.type,
-                SUM(CASE WHEN r.etat = 'nouveau' THEN 1 ELSE 0 END) as nouveau,
-                SUM(CASE WHEN r.etat = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
-                SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,
-                SUM(CASE WHEN r.etat = 'abandonne' THEN 1 ELSE 0 END) as abandonne,
-                SUM(CASE WHEN r.etat = 'reouvert' THEN 1 ELSE 0 END) as reouvert,
+                {$stateColumnsSql},
                 COUNT(r.uuid) as total
             FROM sites s
             LEFT JOIN reports r ON r.site_id = s.id
@@ -54,7 +62,23 @@ class StatsRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
-        return is_array($rows) ? $rows : [];
+        if (!is_array($rows)) {
+            return [];
+        }
+        $result = [];
+        foreach ($rows as $row) {
+            $result[] = new SynthesisRow(
+                siteId: (int) $row['site_id'],
+                type: (string) $row['type'],
+                nouveau: (int) ($row[ReportState::Nouveau->value] ?? 0),
+                enCours: (int) ($row[ReportState::EnCours->value] ?? 0),
+                traite: (int) ($row[ReportState::Traite->value] ?? 0),
+                abandonne: (int) ($row[ReportState::Abandonne->value] ?? 0),
+                reouvert: (int) ($row[ReportState::Reouvert->value] ?? 0),
+                total: (int) $row['total'],
+            );
+        }
+        return $result;
     }
 
     /**
@@ -125,8 +149,7 @@ class StatsRepository
         return is_array($rows) ? $rows : [];
     }
 
-    /** @return array<string, int> */
-    public function getIndicateurs(string $year = '', int $siteId = 0): array
+    public function getIndicateurs(string $year = '', int $siteId = 0): IndicateursData
     {
         $params = [];
 
@@ -134,24 +157,25 @@ class StatsRepository
         $registryRepo = RegistryRepository::instance();
         $enabledRegistries = $registryRepo->findEnabled();
         $typeColumns = [];
-        $defaultReturn = ['total_reports' => 0, 'total_nouveau' => 0, 'total_en_cours' => 0,
-            'total_traite' => 0, 'total_abandonne' => 0, 'total_reouvert' => 0];
+        $defaultRegistryTotals = [];
         foreach ($enabledRegistries as $reg) {
             $code = (string) $reg['code'];
             $safeCode = str_replace("'", "''", $code);
             $typeColumns[] = "SUM(CASE WHEN type = '{$safeCode}' THEN 1 ELSE 0 END) as total_" . str_replace('-', '_', $code);
-            $defaultReturn['total_' . str_replace('-', '_', $code)] = 0;
+            $defaultRegistryTotals['total_' . str_replace('-', '_', $code)] = 0;
         }
         $typeColumnsSql = !empty($typeColumns) ? ",\n                " . implode(",\n                ", $typeColumns) : '';
+
+        $stateColumns = [];
+        foreach (ReportState::cases() as $state) {
+            $stateColumns[] = 'SUM(CASE WHEN etat = ' . $this->pdo->quote($state->value) . ' THEN 1 ELSE 0 END) as total_' . $state->value;
+        }
+        $stateColumnsSql = implode(",\n                ", $stateColumns);
 
         $sql = "
             SELECT
                 COUNT(*) as total_reports,
-                SUM(CASE WHEN etat = 'nouveau' THEN 1 ELSE 0 END) as total_nouveau,
-                SUM(CASE WHEN etat = 'en_cours' THEN 1 ELSE 0 END) as total_en_cours,
-                SUM(CASE WHEN etat = 'traite' THEN 1 ELSE 0 END) as total_traite,
-                SUM(CASE WHEN etat = 'abandonne' THEN 1 ELSE 0 END) as total_abandonne,
-                SUM(CASE WHEN etat = 'reouvert' THEN 1 ELSE 0 END) as total_reouvert
+                {$stateColumnsSql}
                 {$typeColumnsSql}
             FROM reports
             WHERE 1=1
@@ -173,25 +197,31 @@ class StatsRepository
         $result = $stmt->fetch();
 
         if (!is_array($result)) {
-            return $defaultReturn;
+            return new IndicateursData(
+                totalReports: 0,
+                totalNouveau: 0,
+                totalEnCours: 0,
+                totalTraite: 0,
+                registryTotals: $defaultRegistryTotals,
+            );
         }
 
-        $return = [
-            'total_reports'   => (int) ($result['total_reports'] ?? 0),
-            'total_nouveau'   => (int) ($result['total_nouveau'] ?? 0),
-            'total_en_cours'  => (int) ($result['total_en_cours'] ?? 0),
-            'total_traite'    => (int) ($result['total_traite'] ?? 0),
-            'total_abandonne' => (int) ($result['total_abandonne'] ?? 0),
-            'total_reouvert'  => (int) ($result['total_reouvert'] ?? 0),
-        ];
+        $registryTotals = [];
         foreach ($enabledRegistries as $reg) {
             $key = 'total_' . str_replace('-', '_', (string) $reg['code']);
-            $return[$key] = (int) ($result[$key] ?? 0);
+            $registryTotals[$key] = (int) ($result[$key] ?? 0);
         }
-        return $return;
+
+        return new IndicateursData(
+            totalReports: (int) ($result['total_reports'] ?? 0),
+            totalNouveau: (int) ($result['total_' . ReportState::Nouveau->value] ?? 0),
+            totalEnCours: (int) ($result['total_' . ReportState::EnCours->value] ?? 0),
+            totalTraite: (int) ($result['total_' . ReportState::Traite->value] ?? 0),
+            registryTotals: $registryTotals,
+        );
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<SiteStatsRow> */
     public function getBySite(string $year = '', int $siteId = 0): array
     {
         // Build dynamic per-registry CASE columns from active registries
@@ -205,14 +235,16 @@ class StatsRepository
         }
         $typeColumnsSql = !empty($typeColumns) ? ",\n                " . implode(",\n                ", $typeColumns) : '';
 
+        $stateColumns = [];
+        foreach (ReportState::cases() as $state) {
+            $stateColumns[] = 'SUM(CASE WHEN r.etat = ' . $this->pdo->quote($state->value) . ' THEN 1 ELSE 0 END) as ' . $state->value;
+        }
+        $stateColumnsSql = implode(",\n                ", $stateColumns);
+
         $sql = "
             SELECT s.code, s.nom,
                 COUNT(r.uuid) as total,
-                SUM(CASE WHEN r.etat = 'nouveau' THEN 1 ELSE 0 END) as nouveau,
-                SUM(CASE WHEN r.etat = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
-                SUM(CASE WHEN r.etat = 'traite' THEN 1 ELSE 0 END) as traite,
-                SUM(CASE WHEN r.etat = 'abandonne' THEN 1 ELSE 0 END) as abandonne,
-                SUM(CASE WHEN r.etat = 'reouvert' THEN 1 ELSE 0 END) as reouvert
+                {$stateColumnsSql}
                 {$typeColumnsSql}
             FROM sites s
             LEFT JOIN reports r ON r.site_id = s.id
@@ -241,7 +273,23 @@ class StatsRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
-        return is_array($rows) ? $rows : [];
+        if (!is_array($rows)) {
+            return [];
+        }
+        $result = [];
+        foreach ($rows as $row) {
+            $registryCounts = [];
+            foreach ($enabledRegistries as $reg) {
+                $code = (string) $reg['code'];
+                $registryCounts[$code] = (int) ($row[$code] ?? 0);
+            }
+            $result[] = new SiteStatsRow(
+                code: (string) $row['code'],
+                total: (int) $row['total'],
+                registryCounts: $registryCounts,
+            );
+        }
+        return $result;
     }
 
     /** @return list<mixed> */
@@ -256,8 +304,7 @@ class StatsRepository
         return array_column(is_array($rows) ? $rows : [], 'year');
     }
 
-    /** @return array{by_nature_auteur: array<mixed, mixed>, by_type_acte: array<mixed, mixed>} */
-    public function getRamiStructuredStats(string $year = ''): array
+    public function getRamiStructuredStats(string $year = ''): RamiStats
     {
         $params = [];
         $yearFilter = '';
@@ -267,25 +314,32 @@ class StatsRepository
             $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
         }
 
+        $ramiType = $this->pdo->quote(ReportType::Rami->value);
+
         $sqlNature = "SELECT nature_auteur, COUNT(*) as count
             FROM reports
-            WHERE type = 'rami' AND nature_auteur IS NOT NULL AND nature_auteur != ''{$yearFilter}
+            WHERE type = {$ramiType} AND nature_auteur IS NOT NULL AND nature_auteur != ''{$yearFilter}
             GROUP BY nature_auteur
             ORDER BY count DESC";
         $stmt = $this->pdo->prepare($sqlNature);
         $stmt->execute($params);
+        /** @var list<array{nature_auteur: string, count: int}> $byNature */
         $byNature = $stmt->fetchAll();
 
         $sqlType = "SELECT type_acte, COUNT(*) as count
             FROM reports
-            WHERE type = 'rami' AND type_acte IS NOT NULL AND type_acte != ''{$yearFilter}
+            WHERE type = {$ramiType} AND type_acte IS NOT NULL AND type_acte != ''{$yearFilter}
             GROUP BY type_acte
             ORDER BY count DESC";
         $stmt = $this->pdo->prepare($sqlType);
         $stmt->execute($params);
+        /** @var list<array{type_acte: string, count: int}> $byType */
         $byType = $stmt->fetchAll();
 
-        return ['by_nature_auteur' => is_array($byNature) ? $byNature : [], 'by_type_acte' => is_array($byType) ? $byType : []];
+        return new RamiStats(
+            byNatureAuteur: is_array($byNature) ? $byNature : [],
+            byTypeActe: is_array($byType) ? $byType : [],
+        );
     }
 
     public function getPdo(): PDO

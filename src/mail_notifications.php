@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\ConfigService;
 use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
 use App\Enum\UserRole;
@@ -30,17 +31,16 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     if ($report === null) {
         return;
     }
-    /** @var array<string, mixed> $report */
     $registryLabel = getRegistryShortLabel($type);
-    $subject = "Nouveau signalement $registryLabel — {$report['reference']}";
+    $subject = "Nouveau signalement $registryLabel — {$report->reference}";
     $reportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
     $body = '<html><body>';
     $body .= '<h2>Nouveau signalement enregistré</h2>';
-    $body .= renderEmailField('Référence', $report['reference']);
+    $body .= renderEmailField('Référence', $report->reference);
     $body .= renderEmailField('Registre', $registryLabel);
-    $body .= renderEmailField('Objet', $report['objet']);
-    $body .= renderEmailField('Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
-    $body .= renderEmailField('Date de l\'événement', formatDateFR($report['date_evenement']));
+    $body .= renderEmailField('Objet', $report->objet);
+    $body .= renderEmailField('Déclarant', $report->declarantPrenom . ' ' . $report->declarantNom);
+    $body .= renderEmailField('Date de l\'événement', formatDateFR($report->dateEvenement));
     $body .= renderEmailLink($reportUrl, 'Consulter le signalement');
     $body .= '</body></html>';
     // Collect recipients: per-site + global
@@ -49,18 +49,18 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         sendMail($email, $subject, $body);
     }
     // DGI: notify CSA/CHSCT members (article L4131-2 Code du travail)
-    if ($type === ReportType::Dgi->value && \App\Services\ConfigService::getInstance()->get('app_dgi_notify_csa', '1') === '1') {
+    if ($type === ReportType::Dgi->value && ConfigService::getInstance()->get('app_dgi_notify_csa', '1') === '1') {
         $csaUsers = UserRepository::instance()->findByRole(UserRole::Chsct->value);
         foreach ($csaUsers as $csaUser) {
             /** @var array<string, mixed> $csaUser */
             if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients, true)) {
-                $csaSubject = 'Signalement DGI — Notification ' . getRoleLabelShort('chsct') . " — {$report['reference']}";
+                $csaSubject = 'Signalement DGI — Notification ' . getRoleLabelShort('chsct') . " — {$report->reference}";
                 $csaBody = '<html><body>';
                 $csaBody .= '<h2>Notification DGI — Article L4131-2 du Code du travail</h2>';
                 $csaBody .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>';
-                $csaBody .= renderEmailField('Référence', $report['reference']);
-                $csaBody .= renderEmailField('Objet', $report['objet']);
-                $csaBody .= renderEmailField('Déclarant', $report['declarant_prenom'] . ' ' . $report['declarant_nom']);
+                $csaBody .= renderEmailField('Référence', $report->reference);
+                $csaBody .= renderEmailField('Objet', $report->objet);
+                $csaBody .= renderEmailField('Déclarant', $report->declarantPrenom . ' ' . $report->declarantNom);
                 $csaBody .= renderEmailLink($reportUrl, 'Consulter le signalement');
                 $csaBody .= '</body></html>';
                 sendMail($csaUser['email'], $csaSubject, $csaBody);
@@ -83,15 +83,15 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     }
     // Get declarant email
     /** @var int */
-    $declarantId = $report['declarant_id'] ?? 0;
+    $declarantId = $report->declarantId;
     $declarant = UserRepository::instance()->findById($declarantId);
     if ($declarant === null || empty($declarant['email'])) {
         return;
     }
     /** @var string */
-    $reportType = $report['type'] ?? '';
+    $reportType = $report->type;
     $registryLabel = getRegistryShortLabel($reportType);
-    $subject = "Réponse à votre signalement $registryLabel — {$report['reference']}";
+    $subject = "Réponse à votre signalement $registryLabel — {$report->reference}";
     $respondent = UserRepository::instance()->findById($respondentId);
     if ($respondent === null) {
         return;
@@ -100,9 +100,9 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     $reportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
     $body = '<html><body>';
     $body .= '<h2>Votre signalement a reçu une réponse</h2>';
-    $body .= renderEmailField('Référence', $report['reference']);
+    $body .= renderEmailField('Référence', $report->reference);
     $body .= renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom']);
-    $body .= renderEmailField('Nouvel état', ETAT_LABELS[$report['etat']] ?? $report['etat']);
+    $body .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);
     $body .= renderEmailLink($reportUrl, 'Consulter la réponse');
     $body .= '</body></html>';
     sendMail($declarant['email'], $subject, $body);
@@ -111,14 +111,14 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
     foreach ($linkedAgents as $linkedAgent) {
         if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== $declarant['email']) {
-            $linkedSubject = "Réponse au signalement $registryLabel — {$report['reference']}";
+            $linkedSubject = "Réponse au signalement $registryLabel — {$report->reference}";
             $linkedReportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
             $linkedBody = '<html><body>';
             $linkedBody .= '<h2>Réponse au signalement</h2>';
             $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>';
-            $linkedBody .= '<p>Le signalement <strong>' . e($report['reference']) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>';
+            $linkedBody .= '<p>Le signalement <strong>' . e($report->reference) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>';
             $linkedBody .= renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom']);
-            $linkedBody .= renderEmailField('Nouvel état', ETAT_LABELS[$report['etat']] ?? $report['etat']);
+            $linkedBody .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);
             $linkedBody .= renderEmailLink($linkedReportUrl, 'Consulter la réponse');
             $linkedBody .= '</body></html>';
             sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
@@ -174,7 +174,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     if ($user === null || empty($user['email'])) {
         return;
     }
-    $appName = \App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
+    $appName = ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
     $oldLabel = ROLE_LABELS[$oldRole] ?? $oldRole;
     $newLabel = ROLE_LABELS[$newRole] ?? $newRole;
     $subject = "Changement de votre rôle dans $appName";
@@ -220,12 +220,12 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
         $token = ReportRepository::instance()->createAgentInvite($reportUuid, $email);
         // Build confirmation link
         $confirmUrl = absoluteUrl('agent_confirm', ['token' => $token]);
-        $subject = 'Vous avez été rattaché(e) au signalement ' . $report['reference'];
+        $subject = 'Vous avez été rattaché(e) au signalement ' . $report->reference;
         $body = renderEmailBody(
             'Confirmation de rattachement',
             '<p>Bonjour,</p>'
-            . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report['reference']) . '</strong> par le déclarant.</p>'
-            . renderEmailField('Objet', $report['objet'])
+            . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report->reference) . '</strong> par le déclarant.</p>'
+            . renderEmailField('Objet', $report->objet)
             . '<p>Pour confirmer votre rattachement, cliquez sur le bouton ci-dessous :</p>'
             . renderEmailButton($confirmUrl, 'Confirmer mon rattachement')
             . '<p style="font-size:13px; color:#888;">Si vous ne souhaitez pas être rattaché(e), ignorez cet e-mail. Aucune action ne sera effectuée.</p>'
@@ -246,7 +246,7 @@ function getBaseUrl(): string
     // real HTTP request, or reflecting an internal hostname behind a
     // reverse proxy) and falls back to 'localhost', producing a link that
     // only resolves on the server itself — broken for every recipient.
-    $configured = trim(\App\Services\ConfigService::getInstance()->get('app_base_url', ''));
+    $configured = trim(ConfigService::getInstance()->get('app_base_url', ''));
     if ($configured !== '') {
         return rtrim($configured, '/');
     }

@@ -25,14 +25,14 @@ use App\Services\FormattingService;
 $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
-$reportReference = $report['reference'] ?? '';
-$reportType = $report['type'] ?? ReportType::Rsst->value;
-$reportEtat = $report['etat'] ?? '';
+$reportReference = $report->reference;
+$reportType = $report->type;
+$reportEtat = $report->etat;
 
 // Access control: centralized via canAccessReport()
 $user = SessionService::getInstance()->getUserSession();
 
-if ($user === null || !new AccessService()->canAccessReport($report, $user)) {
+if ($user === null || !new AccessService()->canAccessReport($report->toArray(), $user)) {
     SessionService::getInstance()->setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
     new HttpService()->redirect(new HttpService()->url('home'));
 }
@@ -40,11 +40,11 @@ if ($user === null || !new AccessService()->canAccessReport($report, $user)) {
 // Log confidential report access by supervisor/CHSCT
 $pdo = getContainer()->get(PDO::class);
 assert($user !== null);
-new AccessService()->logConfidentialReportAccess($pdo, $report, $user);
+new AccessService()->logConfidentialReportAccess($pdo, $report->toArray(), $user);
 
 // Fetch attachment blob separately (not loaded by findById for performance)
 $attachmentData = ReportRepository::instance()->getAttachmentBlob($uuid);
-$report['attachment_blob'] = $attachmentData['attachment_blob'] ?? null;
+$attachmentBlob = $attachmentData['attachment_blob'] ?? null;
 
 // Get response history
 /** @var list<array<string, mixed>> $responses */
@@ -105,17 +105,17 @@ drawBadge($pdf, $registryShortLabel, $regColor);
 $etatColor = $etatColors[$reportEtat] ?? $colorNouveau;
 drawBadge($pdf, $etatLabel, $etatColor);
 
-if (!empty($report['is_confidential'])) {
+if (!empty($report->isConfidential)) {
     drawBadge($pdf, 'Confidentiel', [107, 114, 128]);
 }
 $pdf->Ln(8);
 
 // --- Fields ---
-$reportDateEvenement = $report['date_evenement'] ?? '';
-$reportHeureEvenement = $report['heure_evenement'] ?? '—';
-$reportLieu = $report['lieu'] ?? '—';
-$reportObjet = $report['objet'] ?? '';
-$reportConsentSyndicat = $report['consent_syndicat'] ?? 0;
+$reportDateEvenement = $report->dateEvenement;
+$reportHeureEvenement = $report->heureEvenement ?: '—';
+$reportLieu = $report->lieu ?: '—';
+$reportObjet = $report->objet;
+$reportConsentSyndicat = $report->consentSyndicat;
 
 $fields = [
     'Référence'             => $reportReference,
@@ -132,27 +132,27 @@ foreach ($fields as $label => $value) {
 }
 
 // Description (multiline)
-$reportDescription = $report['description'] ?? '';
+$reportDescription = $report->description;
 $pdf->Ln(1);
 drawMultiField($pdf, 'Description', $reportDescription);
 
 // Remaining fields
-$reportDeclarantPrenom = $report['declarant_prenom'] ?? '';
-$reportDeclarantNom = $report['declarant_nom'] ?? '';
+$reportDeclarantPrenom = $report->declarantPrenom;
+$reportDeclarantNom = $report->declarantNom;
 $pdf->Ln(1);
 drawField($pdf, 'Déclarant', $reportDeclarantPrenom . ' ' . $reportDeclarantNom);
 if (!ConfigService::getInstance()->isNoSiteMode()) {
-    $reportSiteNom = $report['site_nom'] ?? '—';
-    $reportSiteCode = $report['site_code'] ?? '—';
+    $reportSiteNom = $report->siteNom ?: '—';
+    $reportSiteCode = $report->siteCode ?: '—';
     drawField($pdf, $labelUnite, $reportSiteNom . ' (' . $reportSiteCode . ')');
 }
-if (!empty($report['site_text'])) {
-    drawField($pdf, 'Site', $report['site_text']);
+if (!empty($report->siteText)) {
+    drawField($pdf, 'Site', $report->siteText);
 }
 
-if ($type === ReportType::Rami->value && !empty($report['pour_compte_nom'])) {
-    $reportPourComptePrenom = $report['pour_compte_prenom'] ?? '';
-    $reportPourCompteNom = $report['pour_compte_nom'] ?? '';
+if ($type === ReportType::Rami->value && !empty($report->pourCompteNom)) {
+    $reportPourComptePrenom = $report->pourComptePrenom;
+    $reportPourCompteNom = $report->pourCompteNom;
     drawField(
         $pdf,
         'Déclaré pour le compte de',
@@ -160,14 +160,14 @@ if ($type === ReportType::Rami->value && !empty($report['pour_compte_nom'])) {
     );
 }
 
-$reportCreatedAt = $report['created_at'] ?? '';
+$reportCreatedAt = $report->createdAt;
 drawField($pdf, 'Date de création', new FormattingService()->formatDateTimeFR($reportCreatedAt));
 
-if (!empty($report['attachment_name'])) {
-    $reportAttachmentName = $report['attachment_name'] ?? '';
-    $reportAttachmentMime = $report['attachment_mime'] ?? '';
+if (!empty($report->attachmentName)) {
+    $reportAttachmentName = $report->attachmentName;
+    $reportAttachmentMime = $report->attachmentMime;
     $isImage = $reportAttachmentMime !== '' && in_array($reportAttachmentMime, ['image/jpeg', 'image/png', 'image/gif'], true);
-    if ($isImage && !empty($report['attachment_blob'])) {
+    if ($isImage && !empty($attachmentBlob)) {
         drawField($pdf, 'Pièce jointe', $reportAttachmentName . ' (image embarquée ci-dessous)');
     } else {
         drawField($pdf, 'Pièce jointe', $reportAttachmentName . ' (jointe au signalement)');
@@ -175,7 +175,7 @@ if (!empty($report['attachment_name'])) {
 }
 
 // --- Embed image attachment in PDF ---
-drawEmbeddedImage($pdf, $report, $blueDark);
+drawEmbeddedImage($pdf, $report->toArray(), $blueDark);
 
 // État badge (special rendering)
 $pdf->Ln(1);

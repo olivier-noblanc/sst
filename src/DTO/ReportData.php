@@ -1,0 +1,86 @@
+<?php
+
+namespace App\DTO;
+
+class ReportData
+{
+    public function __construct(
+        public readonly string $uuid,
+        public readonly string $reference,
+        public readonly string $type,
+        public readonly string $objet,
+        public readonly string $description,
+        public readonly string $dateEvenement,
+        public readonly string $heureEvenement,
+        public readonly string $lieu,
+        public readonly int $declarantId,
+        public readonly string $declarantNom,
+        public readonly string $declarantPrenom,
+        public readonly string $pourCompteDe,
+        public readonly string $pourCompteNom,
+        public readonly string $pourComptePrenom,
+        public readonly string $natureAuteur,
+        public readonly string $typeActe,
+        public readonly int $siteId,
+        public readonly string $siteText,
+        public readonly string $pole,
+        public readonly string $serviceAffectation,
+        public readonly string $telephoneMobile,
+        public readonly int $isConfidential,
+        public readonly int $consentSyndicat,
+        public readonly string $etat,
+        public readonly ?int $repondantId,
+        public readonly ?string $dateReponse,
+        public readonly ?string $reponse,
+        public readonly ?string $attachmentName,
+        public readonly ?string $attachmentMime,
+        public readonly string $createdAt,
+        public readonly string $updatedAt,
+        public readonly string $siteCode,
+        public readonly string $siteNom,
+        public readonly ?string $repondantNom,
+        public readonly ?string $repondantPrenom,
+    ) {}
+
+    /** @return array<string, mixed> */
+    public function toArray(): array
+    {
+        return [
+            'uuid' => $this->uuid,
+            'reference' => $this->reference,
+            'type' => $this->type,
+            'objet' => $this->objet,
+            'description' => $this->description,
+            'date_evenement' => $this->dateEvenement,
+            'heure_evenement' => $this->heureEvenement,
+            'lieu' => $this->lieu,
+            'declarant_id' => $this->declarantId,
+            'declarant_nom' => $this->declarantNom,
+            'declarant_prenom' => $this->declarantPrenom,
+            'pour_compte_de' => $this->pourCompteDe,
+            'pour_compte_nom' => $this->pourCompteNom,
+            'pour_compte_prenom' => $this->pourComptePrenom,
+            'nature_auteur' => $this->natureAuteur,
+            'type_acte' => $this->typeActe,
+            'site_id' => $this->siteId,
+            'site_text' => $this->siteText,
+            'pole' => $this->pole,
+            'service_affectation' => $this->serviceAffectation,
+            'telephone_mobile' => $this->telephoneMobile,
+            'is_confidential' => $this->isConfidential,
+            'consent_syndicat' => $this->consentSyndicat,
+            'etat' => $this->etat,
+            'repondant_id' => $this->repondantId,
+            'date_reponse' => $this->dateReponse,
+            'reponse' => $this->reponse,
+            'attachment_name' => $this->attachmentName,
+            'attachment_mime' => $this->attachmentMime,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+            'site_code' => $this->siteCode,
+            'site_nom' => $this->siteNom,
+            'repondant_nom' => $this->repondantNom,
+            'repondant_prenom' => $this->repondantPrenom,
+        ];
+    }
+}

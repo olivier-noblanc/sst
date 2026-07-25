@@ -1,5 +1,8 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
+
 /**
  * User Delete Handler — Application SST DREETS BFC
  *
@@ -13,8 +16,8 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 use App\Services\UserService;
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 

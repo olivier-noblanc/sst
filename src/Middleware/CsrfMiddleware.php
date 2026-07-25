@@ -2,6 +2,9 @@
 
 namespace App\Middleware;
 
+use App\Services\SessionService;
+use App\Services\HttpService;
+
 class CsrfMiddleware
 {
     public function __invoke(callable $next): void
@@ -9,8 +12,8 @@ class CsrfMiddleware
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = $_POST['csrf_token'] ?? '';
             if (!validateCsrfToken($token)) {
-                \App\Services\SessionService::getInstance()->setFlash('error', 'Erreur de sécurité.');
-                new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('home'));
+                SessionService::getInstance()->setFlash('error', 'Erreur de sécurité.');
+                new HttpService()->redirect(new HttpService()->url('home'));
             }
         }
         $next();

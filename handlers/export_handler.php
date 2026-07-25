@@ -9,14 +9,18 @@
  * Uses fputcsv() for proper field enclosure (handles semicolons,
  * quotes, and newlines inside fields). Exports multi-response history.
  */
+use App\Services\HttpService;
+use App\Services\SessionService;
+use App\Services\ConfigService;
+use App\Enum\ReportType;
 use App\Repository\StatsRepository;
 use App\Repository\ReportRepository;
 
 /** @var array<string, string> $_POST */
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
-$config = \App\Services\ConfigService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
+$config = ConfigService::getInstance();
 
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
@@ -129,8 +133,8 @@ foreach ($reports as $row) {
     }
 
     // Build RAMI structured fields labels
-    $natureAuteurLabel = getRegistryFieldOptions(\App\Enum\ReportType::Rami->value, 'nature_auteur')[(string) ($row['nature_auteur'] ?? '')] ?? '';
-    $typeActeLabel = getRegistryFieldOptions(\App\Enum\ReportType::Rami->value, 'type_acte')[(string) ($row['type_acte'] ?? '')] ?? '';
+    $natureAuteurLabel = getRegistryFieldOptions(ReportType::Rami->value, 'nature_auteur')[(string) ($row['nature_auteur'] ?? '')] ?? '';
+    $typeActeLabel = getRegistryFieldOptions(ReportType::Rami->value, 'type_acte')[(string) ($row['type_acte'] ?? '')] ?? '';
 
     // Build response history as structured text
     // Format: [Date] Répondant (État) : Réponse | [Date] ...

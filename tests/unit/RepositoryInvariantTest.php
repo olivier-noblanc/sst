@@ -102,11 +102,9 @@ class RepositoryInvariantTest extends TestCase
         );
         $result = $repo->findPaginated($filter);
 
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('reports', $result);
-        $this->assertArrayHasKey('total', $result);
-        $this->assertIsArray($result['reports']);
-        $this->assertIsInt($result['total']);
+        $this->assertInstanceOf(\App\DTO\PaginatedReports::class, $result);
+        $this->assertIsArray($result->reports);
+        $this->assertIsInt($result->total);
     }
 
     public function testGetResponsesReturnsArray(): void
@@ -167,11 +165,11 @@ class RepositoryInvariantTest extends TestCase
 
         $result = $repo->countByState('rsst');
 
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('nouveau', $result);
-        $this->assertArrayHasKey('en_cours', $result);
-        $this->assertArrayHasKey('traite', $result);
-        $this->assertArrayHasKey('total', $result);
+        $this->assertInstanceOf(\App\DTO\ReportStateCounts::class, $result);
+        $this->assertSame(1, $result->nouveau);
+        $this->assertSame(1, $result->enCours);
+        $this->assertSame(1, $result->traite);
+        $this->assertSame(3, $result->total);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

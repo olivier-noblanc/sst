@@ -1,5 +1,8 @@
 <?php
 
+use App\Services\ConfigService;
+use App\Services\SessionService;
+use App\Services\HttpService;
 use App\Repository\UserRepository;
 
 /**
@@ -36,7 +39,7 @@ function checkSuperviseurPromotion(): void
     }
 
     // Priority: DB setting (Settings UI) > environment variable
-    $superviseurUsernames = \App\Services\ConfigService::getInstance()->get('app_superviseur_usernames', '');
+    $superviseurUsernames = ConfigService::getInstance()->get('app_superviseur_usernames', '');
     if (empty($superviseurUsernames)) {
         $superviseurUsernames = getenv('APP_SUPERVISEUR_USERNAMES') !== false && getenv('APP_SUPERVISEUR_USERNAMES') !== '' ? getenv('APP_SUPERVISEUR_USERNAMES') : '';
     }
@@ -53,7 +56,7 @@ function checkSuperviseurPromotion(): void
 
     // Promote in database
     $pdo = getDB();
-    $promoted = UserRepository::instance()->promoteToSuperviseur((int)(\App\Services\SessionService::getInstance()->getUserSession()['id'] ?? 0));
+    $promoted = UserRepository::instance()->promoteToSuperviseur((int)(SessionService::getInstance()->getUserSession()['id'] ?? 0));
 
     if ($promoted) {
         // Promotion applied — refresh session from DB
@@ -96,10 +99,10 @@ function checkUserSiteAssignment(): void
     // but the session didn't persist (edge case on some IIS configs)
     $refreshed = refreshCurrentUser($pdo);
 
-    if ($refreshed && !empty(\App\Services\SessionService::getInstance()->getUserSession()['site_id'])) {
+    if ($refreshed && !empty(SessionService::getInstance()->getUserSession()['site_id'])) {
         // DB has the site but session didn't — now fixed by refreshCurrentUser
     } else {
         // Really no site — redirect to choose_site
-        new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('choose_site'));
+        new HttpService()->redirect(new HttpService()->url('choose_site'));
     }
 }

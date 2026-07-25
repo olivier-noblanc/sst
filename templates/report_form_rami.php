@@ -9,15 +9,15 @@
  *   $report     — Existing report data for edit
  */
 /** @var bool $isEdit */
-/** @var array<string, mixed>|null $report */
+/** @var \App\DTO\ReportData|null $report */
 /** @var array<string, string> $formErrors */
 /** @var callable(string, string=): string $val */
 ?>
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">
                     <input type="checkbox" name="pour_compte" id="pour_compte" value="1"
-                           aria-controls="pour_compte_fields" aria-expanded="<?php echo ((bool) $val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? 'true' : 'false'; ?>"
-                           <?php echo ((bool) $val('pour_compte') || ($isEdit && !empty($report['pour_compte_nom']))) ? 'checked' : ''; ?>>
+                           aria-controls="pour_compte_fields" aria-expanded="<?php echo ((bool) $val('pour_compte') || ($isEdit && !empty($report->pourCompteNom))) ? 'true' : 'false'; ?>"
+                           <?php echo ((bool) $val('pour_compte') || ($isEdit && !empty($report->pourCompteNom))) ? 'checked' : ''; ?>>
                     Signaler pour le compte d'un autre agent
                 </label>
             </div>

@@ -7,7 +7,7 @@ use App\Enum\ReportType;
  * Shared display for a single report view.
  *
  * Required variables:
- *   $report         — Report data array with joined site and respondent info
+ *   $report         — \App\DTO\ReportData
  *   $responses      — Array of response history entries
  *   $linkedAgents   — Array of linked agent rows (from ReportRepository::getLinkedAgents)
  *   $pendingInvites — Array of pending invite rows (from ReportRepository::getPendingInvites)
@@ -17,40 +17,11 @@ $noSiteMode = \App\Services\ConfigService::getInstance()->isNoSiteMode();
 if (!isset($report) || !$report) {
     return;
 }
+/** @var \App\DTO\ReportData $report */
 
 $fmt = new \App\Services\FormattingService();
 
-/**
- * @var array{
- *   uuid: string,
- *   type: string,
- *   etat: string,
- *   reference: string,
- *   date_evenement: string,
- *   heure_evenement: string|null,
- *   lieu: string|null,
- *   pole: string|null,
- *   service_affectation: string|null,
- *   telephone_mobile: string|null,
- *   objet: string,
- *   description: string,
- *   declarant_id: int|string,
- *   declarant_prenom: string,
- *   declarant_nom: string,
- *   site_nom: string|null,
- *   site_code: string|null,
- *   site_text: string|null,
- *   pour_compte_prenom: string|null,
- *   pour_compte_nom: string|null,
- *   consent_syndicat: int|bool|null,
- *   created_at: string,
- *   attachment_name: string|null,
- *   attachment_mime: string|null,
- *   is_confidential: int|bool|null,
- *   ...
- * } $report
- */
-$type = (string) ($report['type'] ?? \App\Enum\ReportType::Rsst->value);
+$type = $report->type;
 $registryForTheme = \App\Repository\RegistryRepository::instance()->findByCode($type);
 $colorTheme = (string) ($registryForTheme['color_theme'] ?? $type);
 $cardClass = 'card--' . $colorTheme;
@@ -61,11 +32,11 @@ $user = new \App\Services\SessionService()->getUserSession() ?? [];
 $userRole = (string) ($user['role'] ?? \App\Enum\UserRole::Agent->value);
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
-$isDeclarant = ((int) $report['declarant_id'] === $userId);
+$isDeclarant = ((int) $report->declarantId === $userId);
 $canEdit = new \App\Services\AccessService()->canEditReport((array) $report, $userId);
-$canAbandon = $isDeclarant && !in_array($report['etat'], [\App\Enum\ReportState::Abandonne->value, \App\Enum\ReportState::Traite->value], true);
+$canAbandon = $isDeclarant && !in_array($report->etat, [\App\Enum\ReportState::Abandonne->value, \App\Enum\ReportState::Traite->value], true);
 $canRespondToReport = new \App\Services\AccessService()->canRespondToReport((array) $report, $userRole);
-$canReopen = in_array($report['etat'], [\App\Enum\ReportState::Traite->value, \App\Enum\ReportState::Abandonne->value], true) && in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true);
+$canReopen = in_array($report->etat, [\App\Enum\ReportState::Traite->value, \App\Enum\ReportState::Abandonne->value], true) && in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true);
 
 // Ensure $csrfToken is available (set by index.php but may not be in scope)
 if (!isset($csrfToken)) {
@@ -85,11 +56,11 @@ if (!isset($csrfToken)) {
     <?php endif; ?>
     <div class="report-detail">
         <div class="report-detail__header">
-            <h2>Signalement — <?php echo $fmt->e($report['reference']); ?></h2>
+            <h2>Signalement — <?php echo $fmt->e($report->reference); ?></h2>
             <div class="btn-group">
                 <span class="badge <?php echo $fmt->getRegistryBadgeClass($type); ?>"><?php echo $fmt->e($registryLabel); ?></span>
-                <span class="badge <?php echo $fmt->getEtatBadgeClass($report['etat']); ?>"><?php echo $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?></span>
-                <?php if (!empty($report['is_confidential'])): ?>
+                <span class="badge <?php echo $fmt->getEtatBadgeClass($report->etat); ?>"><?php echo $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat); ?></span>
+                <?php if (!empty($report->isConfidential)): ?>
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
                 <small class="help-text">(Seuls les superviseurs peuvent voir ce signalement)</small>
                 <?php endif; ?>
@@ -100,66 +71,66 @@ if (!isset($csrfToken)) {
             <tbody>
                 <tr>
                     <th>Référence</th>
-                    <td><?php echo $fmt->e($report['reference']); ?></td>
+                    <td><?php echo $fmt->e($report->reference); ?></td>
                 </tr>
                 <tr>
                     <th>Date de l'événement</th>
-                    <td><?php echo $fmt->e($fmt->formatDateFR($report['date_evenement'])); ?></td>
+                    <td><?php echo $fmt->e($fmt->formatDateFR($report->dateEvenement)); ?></td>
                 </tr>
                 <tr>
                     <th>Heure du dépôt</th>
-                    <td><?php echo $fmt->e($report['heure_evenement'] ?? '—'); ?></td>
+                    <td><?php echo $fmt->e($report->heureEvenement ?: '—'); ?></td>
                 </tr>
                 <tr>
                     <th><?php echo $type === \App\Enum\ReportType::Dgi->value ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
-                    <td><?php echo $fmt->e($report['lieu'] ?? '—'); ?></td>
+                    <td><?php echo $fmt->e($report->lieu ?: '—'); ?></td>
                 </tr>
-                <?php if (!empty($report['pole'])): ?>
+                <?php if (!empty($report->pole)): ?>
                 <tr>
                     <th>Pôle</th>
-                    <td><?php echo $fmt->e($report['pole']); ?></td>
+                    <td><?php echo $fmt->e($report->pole); ?></td>
                 </tr>
                 <?php endif; ?>
-                <?php if (!empty($report['service_affectation'])): ?>
+                <?php if (!empty($report->serviceAffectation)): ?>
                 <tr>
                     <th>Service d'affectation</th>
-                    <td><?php echo $fmt->e($report['service_affectation']); ?></td>
+                    <td><?php echo $fmt->e($report->serviceAffectation); ?></td>
                 </tr>
                 <?php endif; ?>
-                <?php if (!empty($report['telephone_mobile'])): ?>
+                <?php if (!empty($report->telephoneMobile)): ?>
                 <tr>
                     <th>Téléphone mobile</th>
-                    <td><?php echo $fmt->e($report['telephone_mobile']); ?></td>
+                    <td><?php echo $fmt->e($report->telephoneMobile); ?></td>
                 </tr>
                 <?php endif; ?>
                 <tr>
                     <th>Objet</th>
-                    <td><?php echo $fmt->e($report['objet']); ?></td>
+                    <td><?php echo $fmt->e($report->objet); ?></td>
                 </tr>
                 <tr>
                     <th>Description</th>
-                    <td><?php echo nl2br($fmt->e($report['description'])); ?></td>
+                    <td><?php echo nl2br($fmt->e($report->description)); ?></td>
                 </tr>
                 <tr>
                     <th>Signalé par</th>
-                    <td><?php echo $fmt->e($report['declarant_prenom'] . ' ' . $report['declarant_nom']); ?></td>
+                    <td><?php echo $fmt->e($report->declarantPrenom . ' ' . $report->declarantNom); ?></td>
                 </tr>
                 <?php if (!$noSiteMode): ?>
                 <tr>
                     <th><?php echo $fmt->e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?></th>
-                    <td><?php echo $fmt->e($report['site_nom'] ?? '—'); ?> (<?php echo $fmt->e($report['site_code'] ?? '—'); ?>)</td>
+                    <td><?php echo $fmt->e($report->siteNom ?: '—'); ?> (<?php echo $fmt->e($report->siteCode ?: '—'); ?>)</td>
                 </tr>
                 <?php endif; ?>
-                <?php if (!empty($report['site_text'])): ?>
+                <?php if (!empty($report->siteText)): ?>
                 <tr>
                     <th>Site</th>
-                    <td><?php echo $fmt->e($report['site_text']); ?></td>
+                    <td><?php echo $fmt->e($report->siteText); ?></td>
                 </tr>
                 <?php endif; ?>
-                <?php if ($type === \App\Enum\ReportType::Rami->value && !empty($report['pour_compte_nom'])): ?>
+                <?php if ($type === \App\Enum\ReportType::Rami->value && !empty($report->pourCompteNom)): ?>
                 <tr>
                     <th>Signalé au nom de</th>
-                    <td><?php echo $fmt->e(($report['pour_compte_prenom'] ?? '') . ' ' . $report['pour_compte_nom']); ?></td>
+                    <td><?php echo $fmt->e($report->pourComptePrenom . ' ' . $report->pourCompteNom); ?></td>
                 </tr>
                 <?php endif; ?>
                 <?php if (!empty($linkedAgents) || !empty($pendingInvites)): ?>
@@ -179,37 +150,35 @@ if (!isset($csrfToken)) {
                     </td>
                 </tr>
                 <?php endif; ?>
-                <?php if (isset($report['consent_syndicat'])): ?>
                 <tr>
                     <th>Transmission aux <?php echo $fmt->e(\App\Services\ConfigService::getInstance()->getRoleLabel('chsct')); ?>s</th>
-                    <td><?php echo (bool) $report['consent_syndicat'] ? '✅ Acceptée' : '❌ Refusée'; ?></td>
+                    <td><?php echo (bool) $report->consentSyndicat ? '✅ Acceptée' : '❌ Refusée'; ?></td>
                 </tr>
-                <?php endif; ?>
                 <tr>
                     <th>Date de création</th>
-                    <td><?php echo $fmt->e($fmt->formatDateTimeFR($report['created_at'])); ?></td>
+                    <td><?php echo $fmt->e($fmt->formatDateTimeFR($report->createdAt)); ?></td>
                 </tr>
-                <?php if (!empty($report['attachment_name'])): ?>
+                <?php if (!empty($report->attachmentName)): ?>
                 <tr>
                     <th>Pièce jointe</th>
                     <td>
                         <?php
-                        $isImageAttachment = !empty($report['attachment_mime']) && in_array($report['attachment_mime'], ['image/jpeg', 'image/png', 'image/gif'], true);
+                        $isImageAttachment = !empty($report->attachmentMime) && in_array($report->attachmentMime, ['image/jpeg', 'image/png', 'image/gif'], true);
                         ?>
                         <?php if ($isImageAttachment): ?>
                             <div class="mb-2">
-                                <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
-                                   title="<?php echo $fmt->e($report['attachment_name']); ?> — Télécharger">
-                                    <img src="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report['uuid'], 'inline' => 1]); ?>"
-                                         alt="<?php echo $fmt->e($report['attachment_name']); ?>"
+                                <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report->uuid]); ?>"
+                                   title="<?php echo $fmt->e($report->attachmentName); ?> — Télécharger">
+                                    <img src="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report->uuid, 'inline' => 1]); ?>"
+                                         alt="<?php echo $fmt->e($report->attachmentName); ?>"
                                          class="attachment-image" loading="lazy">
                                 </a>
                             </div>
-                            <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
-                               class="btn btn--outline btn--sm">&#11015; <?php echo $fmt->e($report['attachment_name']); ?></a>
+                            <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report->uuid]); ?>"
+                               class="btn btn--outline btn--sm">&#11015; <?php echo $fmt->e($report->attachmentName); ?></a>
                         <?php else: ?>
-                            <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report['uuid']]); ?>"
-                               class="btn btn--outline btn--sm">&#128206; <?php echo $fmt->e($report['attachment_name']); ?></a>
+                            <a href="<?php echo new \App\Services\HttpService()->url('report_attachment', ['uuid' => $report->uuid]); ?>"
+                               class="btn btn--outline btn--sm">&#128206; <?php echo $fmt->e($report->attachmentName); ?></a>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -275,22 +244,22 @@ if (!isset($csrfToken)) {
 
 <div class="form-actions">
     <?php if ($canEdit): ?>
-        <a href="<?php echo new \App\Services\HttpService()->url('report_edit', ['uuid' => $report['uuid']]); ?>" class="btn btn--secondary">Modifier</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('report_edit', ['uuid' => $report->uuid]); ?>" class="btn btn--secondary">Modifier</a>
     <?php endif; ?>
 
     <?php if ($canRespondToReport): ?>
-        <a href="<?php echo new \App\Services\HttpService()->url('report_respond', ['uuid' => $report['uuid']]); ?>" class="btn btn--primary">Répondre</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('report_respond', ['uuid' => $report->uuid]); ?>" class="btn btn--primary">Répondre</a>
     <?php endif; ?>
 
     <?php if ($canAbandon): ?>
-        <a href="<?php echo new \App\Services\HttpService()->url('report_abandon', ['uuid' => $report['uuid']]); ?>" class="btn btn--danger">Abandonner le signalement</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('report_abandon', ['uuid' => $report->uuid]); ?>" class="btn btn--danger">Abandonner le signalement</a>
         <small class="help-text help-text--danger">(Le signalement est marqué comme abandonné mais reste consultable)</small>
     <?php endif; ?>
 
     <?php if ($canReopen): ?>
-        <a href="<?php echo new \App\Services\HttpService()->url('report_reopen', ['uuid' => $report['uuid']]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
+        <a href="<?php echo new \App\Services\HttpService()->url('report_reopen', ['uuid' => $report->uuid]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
     <?php endif; ?>
 
-    <a href="<?php echo new \App\Services\HttpService()->url('report_print', ['uuid' => $report['uuid']]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Imprimer ou enregistrer en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
+    <a href="<?php echo new \App\Services\HttpService()->url('report_print', ['uuid' => $report->uuid]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Imprimer ou enregistrer en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
     <a href="<?php echo new \App\Services\HttpService()->url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>

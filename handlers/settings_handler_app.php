@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 
@@ -10,8 +12,8 @@ use App\Enum\VisibilityMode;
  * Split from settings_handler.php for readability.
  */
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 /**
  * Handle the 'app' tab of settings.
@@ -22,8 +24,8 @@ $session = \App\Services\SessionService::getInstance();
 function handleSettingsAppTab(PDO $pdo, array $postData): void
 {
     /** @var array<string, string> $postData */
-    $http = new \App\Services\HttpService();
-    $session = \App\Services\SessionService::getInstance();
+    $http = new HttpService();
+    $session = SessionService::getInstance();
     // Update application settings
     // NOTE: app_version is NOT editable here — it is read from CHANGELOG.md by getAppVersion()
     $appNomOrganisation = trim((string) ($postData['app_nom_organisation'] ?? ''));

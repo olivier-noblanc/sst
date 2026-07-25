@@ -3,6 +3,21 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.48.0] — 2026-07-25
+
+### Feature — R5 ReadModels : Typification complète des retours
+
+- **1** 🔴 **11 DTOs readonly** dans `src/DTO/` : `IndicateursData`, `SiteStatsRow`, `SynthesisRow`, `RamiStats`, `StatisticsResult`, `ReportListItem`, `PaginatedReports`, `ReportStateCounts`, `AdjacentUuids`, `ReportData`, `RegistryCard`.
+- **2** 🔴 **ReportRepository::findById()** retourne `?ReportData` au lieu de `?array`. Tous les consommateurs migrés (pages, templates, handlers, services, tests).
+- **3** 🔴 **ReportRepository::findPaginated()** retourne `PaginatedReports`, `getAdjacentUuids()` → `AdjacentUuids`, `countByState()` → `ReportStateCounts`.
+- **4** 🔴 **StatsRepository** : 4 méthodes retournent des ReadModels (`IndicateursData`, `SiteStatsRow`, `SynthesisRow`, `RamiStats`).
+- **5** 🔴 **Helpers migration** : `fetchReportOrRedirect()`, `requireReportOwnership()`, `requireReportEditable()`, `canAccessReport()`, `logConfidentialReportAccess()` acceptent `ReportData`.
+- **6** 🔴 **~30 fichiers migrés** : pages (report_view, report_list, report_print, report_edit, report_abandon, report_respond, report_reopen, agent_confirm), templates (report_card, report_form, report_form_rami, report_form_linked_agents), handlers (5), services (ReportService, NotificationService, StatisticsService), helpers (access.php), mail_notifications.php, cron.php.
+- **7** 🔴 **Magic strings SQL corrigées** : StatsRepository + ReportRepository::countByState() utilisent `$this->pdo->quote()` + enums.
+- **8** 🔴 **PHPStan 0 erreur**, 901 tests verts.
+
+---
+
 ## [3.47.0] — 2026-07-25
 
 ### Feature — Audit DDD + améliorations architecture

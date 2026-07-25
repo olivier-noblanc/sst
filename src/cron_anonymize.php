@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\ConfigService;
 use App\Enum\ReportState;
 
 /**
@@ -26,7 +27,7 @@ use App\Enum\ReportState;
  */
 function lazyCronAnonymize(PDO $pdo): void
 {
-    $retentionYears = (int) \App\Services\ConfigService::getInstance()->get('app_retention_years', '0');
+    $retentionYears = (int) ConfigService::getInstance()->get('app_retention_years', '0');
 
     // If retention is disabled (0 = unlimited), skip entirely
     if ($retentionYears <= 0) {
@@ -77,13 +78,13 @@ function lazyCronAnonymize(PDO $pdo): void
 
         foreach ($reports as $report) {
             try {
-                $updateStmt->execute([':uuid' => $report['uuid']]);
+                $updateStmt->execute([':uuid' => $report->uuid]);
                 if ($updateStmt->rowCount() > 0) {
                     $anonymized++;
                 }
             } catch (Exception $e) {
                 $errors++;
-                error_log("[SST-CRON] anonymize: failed on {$report['reference']} — " . $e->getMessage());
+                error_log("[SST-CRON] anonymize: failed on {$report->reference} — " . $e->getMessage());
             }
         }
 

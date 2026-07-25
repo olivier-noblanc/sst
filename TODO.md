@@ -333,20 +333,20 @@ Layers `Handler`, `Page`, `Template` ajoutés au ruleset deptrac. Router autoris
 
 `StatisticsService` créé avec `getAvailableYears()` et `getStatistics()`. Branché dans `statistics.php`. Enregistré dans le DI container.
 
-#### R5 — Typifier les retours avec des ReadModels
+#### R5 — Typifier les retours avec des ReadModels — ✅ TERMINÉ
 
-Introduire des ReadModels (`ReportSummary`, `SiteStats`, `RegistryStats`) au lieu de `array<string, mixed>` pour les retours des Services/Repository.
+Phase 1 : 5 ReadModels pour les statistiques (`IndicateursData`, `SiteStatsRow`, `SynthesisRow`, `RamiStats`, `StatisticsResult`).
+Phase 2 : 4 ReadModels pour les listes (`ReportListItem`, `PaginatedReports`, `ReportStateCounts`, `AdjacentUuids`).
+Phase 3 : 2 ReadModels pour les signalements (`ReportData`, `RegistryCard`). `ReportRepository::findById()` retourne `?ReportData`. Pages, templates, handlers, services, tests migrés. `fetchReportOrRedirect()`, `requireReportOwnership()`, `requireReportEditable()`, `canAccessReport()`, `logConfidentialReportAccess()` acceptent `ReportData`. 11 DTOs readonly au total dans `src/DTO/`.
 
-**Fichiers** : `src/DTO/` (nouveau), `src/Services/`, `src/Repository/`
-**Impact** : Moins d'erreurs runtime, autocomplétion IDE
-**Effort** : Gros chantier — à faire dans une session dédiée
+#### R6 — Nettoyer magic strings résiduelles — ✅ StatsRepository TERMINÉ
 
-#### R6 — Nettoyer magic strings résiduelles
+- `StatsRepository::getSynthesis()` : SQL dynamically built from `ReportState::cases()` via `$this->pdo->quote()`
+- `StatsRepository::getIndicateurs()` : idem
+- `StatsRepository::getBySite()` : idem
+- `StatsRepository::getRamiStructuredStats()` : `type = 'rami'` → `$this->pdo->quote(ReportType::Rami->value)`
 
-- `ReportRepository::reopen()` ligne 625 : `'traite', 'abandonne'` → enums
-- `StatsRepository::getSynthesis()` lignes 34-38 : hardcoded strings
-
-**Fichiers** : `src/Repository/ReportRepository.php`, `src/Repository/StatsRepository.php`
+**Reste** : `ReportRepository::reopen()` ligne 625 : `'traite', 'abandonne'` → enums
 
 #### R7 — Étendre deptrac pour couvrir handlers/pages/templates
 

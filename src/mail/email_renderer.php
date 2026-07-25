@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\ConfigService;
+
 /**
  * Email Renderer — Template unifié pour les emails HTML.
  *
@@ -9,8 +11,8 @@
 
 function renderEmailBody(string $title, string $contentHtml, string $siteName = ''): string
 {
-    $brandColor = \App\Services\ConfigService::getInstance()->get('app_brand_color', '#1e40af');
-    $appName = \App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'SST DREETS BFC');
+    $brandColor = ConfigService::getInstance()->get('app_brand_color', '#1e40af');
+    $appName = ConfigService::getInstance()->get('app_nom_organisation', 'SST DREETS BFC');
     $footerText = $siteName !== '' ? " — $siteName" : '';
 
     return '<html><body style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; max-width:600px; margin:0 auto; padding:20px;">'

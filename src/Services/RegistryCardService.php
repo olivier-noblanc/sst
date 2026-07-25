@@ -4,7 +4,6 @@
 
 namespace App\Services;
 
-use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 use App\Repository\RegistryRepository;
 use App\Repository\ReportRepository;

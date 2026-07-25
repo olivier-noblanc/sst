@@ -35,6 +35,47 @@ if (!function_exists('getDB')) {
 
 require_once $projectRoot . '/src/helpers.php';
 
+/** @param array<string, mixed> $overrides */
+function makeReportData(array $overrides): \App\DTO\ReportData {
+    return new \App\DTO\ReportData(
+        uuid: $overrides['uuid'] ?? '',
+        reference: $overrides['reference'] ?? '',
+        type: $overrides['type'] ?? 'rsst',
+        objet: $overrides['objet'] ?? '',
+        description: $overrides['description'] ?? '',
+        dateEvenement: $overrides['date_evenement'] ?? '',
+        heureEvenement: $overrides['heure_evenement'] ?? '',
+        lieu: $overrides['lieu'] ?? '',
+        declarantId: $overrides['declarant_id'] ?? 0,
+        declarantNom: $overrides['declarant_nom'] ?? '',
+        declarantPrenom: $overrides['declarant_prenom'] ?? '',
+        pourCompteDe: $overrides['pour_compte_de'] ?? '',
+        pourCompteNom: $overrides['pour_compte_nom'] ?? '',
+        pourComptePrenom: $overrides['pour_compte_prenom'] ?? '',
+        natureAuteur: $overrides['nature_auteur'] ?? '',
+        typeActe: $overrides['type_acte'] ?? '',
+        siteId: $overrides['site_id'] ?? 0,
+        siteText: $overrides['site_text'] ?? '',
+        pole: $overrides['pole'] ?? '',
+        serviceAffectation: $overrides['service_affectation'] ?? '',
+        telephoneMobile: $overrides['telephone_mobile'] ?? '',
+        isConfidential: $overrides['is_confidential'] ?? 0,
+        consentSyndicat: $overrides['consent_syndicat'] ?? 0,
+        etat: $overrides['etat'] ?? '',
+        repondantId: $overrides['repondant_id'] ?? null,
+        dateReponse: $overrides['date_reponse'] ?? null,
+        reponse: $overrides['reponse'] ?? null,
+        attachmentName: $overrides['attachment_name'] ?? null,
+        attachmentMime: $overrides['attachment_mime'] ?? null,
+        createdAt: $overrides['created_at'] ?? '',
+        updatedAt: $overrides['updated_at'] ?? '',
+        siteCode: $overrides['site_code'] ?? '',
+        siteNom: $overrides['site_nom'] ?? '',
+        repondantNom: $overrides['repondant_nom'] ?? null,
+        repondantPrenom: $overrides['repondant_prenom'] ?? null,
+    );
+}
+
 $passed = 0;
 $failed = 0;
 $total = 0;
@@ -84,12 +125,12 @@ foreach ($roles as $role) {
                     $reportSiteId = ($siteCase === 'same') ? $siteId : $otherSiteId;
                     $reportDeclarantId = ($declCase === 'self') ? $userId : $otherUserId;
 
-                    $report = [
+                    $report = makeReportData([
                         'site_id' => $reportSiteId,
                         'declarant_id' => $reportDeclarantId,
                         'is_confidential' => $isConf,
                         'type' => 'rsst',
-                    ];
+                    ]);
 
                     $user = [
                         'id' => $userId,
@@ -136,7 +177,7 @@ foreach ($roles as $role) {
 echo "--- Cas limites ---\n";
 
 // 1. Superviseur with different site — should still have access
-$report = ['site_id' => 999, 'declarant_id' => $otherUserId, 'is_confidential' => 1, 'type' => 'rami'];
+$report = makeReportData(['site_id' => 999, 'declarant_id' => $otherUserId, 'is_confidential' => 1, 'type' => 'rami']);
 $user = ['id' => $userId, 'site_id' => $siteId, 'role' => 'superviseur'];
 assert_can_access(true, canAccessReport($report, $user, 'confidential'), 'superviseur × other site × confidential = ALLOW');
 
@@ -149,11 +190,11 @@ $user = ['id' => $userId, 'site_id' => $siteId, 'role' => 'agent'];
 assert_can_access(false, canAccessReport($report, $user, 'public'), 'agent × public × other site = DENY');
 
 // 4. Agent in agent_choice mode, not confidential, other declarant — ALLOW
-$report = ['site_id' => $siteId, 'declarant_id' => $otherUserId, 'is_confidential' => 0, 'type' => 'rsst'];
+$report = makeReportData(['site_id' => $siteId, 'declarant_id' => $otherUserId, 'is_confidential' => 0, 'type' => 'rsst']);
 assert_can_access(true, canAccessReport($report, $user, 'agent_choice'), 'agent × agent_choice × not_confidential × other = ALLOW');
 
 // 5. Agent in confidential mode, own report — ALLOW
-$report = ['site_id' => $siteId, 'declarant_id' => $userId, 'is_confidential' => 1, 'type' => 'dgi'];
+$report = makeReportData(['site_id' => $siteId, 'declarant_id' => $userId, 'is_confidential' => 1, 'type' => 'dgi']);
 assert_can_access(true, canAccessReport($report, $user, 'confidential'), 'agent × confidential × own = ALLOW');
 
 // 6. Agent in agent_choice mode, own confidential report — ALLOW

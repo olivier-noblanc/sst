@@ -3,13 +3,14 @@
 /**
  * Site Edit Handler — Thin controller delegating to SiteRepository.
  */
-
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Repository\SiteRepository;
 
 /** @var array<string, string> $_POST */
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 $siteId = (int) ($_POST['site_id'] ?? 0);
 

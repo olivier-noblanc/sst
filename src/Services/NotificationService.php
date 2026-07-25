@@ -49,7 +49,7 @@ class NotificationService
         }
 
         /** @var int */
-        $siteId = $report['site_id'] ?? 0;
+        $siteId = $report->siteId;
         $recipients = getNotificationRecipients($this->pdo, $siteId);
         if (empty($recipients)) {
             return;
@@ -58,15 +58,15 @@ class NotificationService
         require_once __DIR__ . '/../mail.php';
 
         /** @var string */
-        $type = $report['type'] ?? '';
+        $type = $report->type;
         $registryLabel = getRegistryShortLabel($type);
-        $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
+        $subject = "Signalement abandonné $registryLabel — {$report->reference}";
         $body = '<html><body>';
         $body .= '<h2>Signalement abandonné</h2>';
-        $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
+        $body .= '<p><strong>Référence :</strong> ' . e($report->reference) . '</p>';
         $body .= "<p><strong>Registre :</strong> $registryLabel</p>";
-        $body .= '<p><strong>Objet :</strong> ' . e($report['objet']) . '</p>';
-        $body .= '<p><strong>Déclarant :</strong> ' . e($report['declarant_prenom'] . ' ' . $report['declarant_nom']) . '</p>';
+        $body .= '<p><strong>Objet :</strong> ' . e($report->objet) . '</p>';
+        $body .= '<p><strong>Déclarant :</strong> ' . e($report->declarantPrenom . ' ' . $report->declarantNom) . '</p>';
         $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
         $body .= '</body></html>';
 
@@ -88,18 +88,18 @@ class NotificationService
         require_once __DIR__ . '/../mail.php';
 
         /** @var string */
-        $type = $report['type'] ?? '';
+        $type = $report->type;
         $registryLabel = getRegistryShortLabel($type);
 
         // Notify declarant
         /** @var int */
-        $declarantId = $report['declarant_id'] ?? 0;
+        $declarantId = $report->declarantId;
         $declarant = UserRepository::instance()->findById($declarantId);
         if ($declarant !== null && !empty($declarant['email']) && $declarantId !== $userId) {
-            $subject = "Signalement réouvert $registryLabel — {$report['reference']}";
+            $subject = "Signalement réouvert $registryLabel — {$report->reference}";
             $body = '<html><body>';
             $body .= '<h2>Votre signalement a été réouvert</h2>';
-            $body .= '<p><strong>Référence :</strong> ' . e($report['reference']) . '</p>';
+            $body .= '<p><strong>Référence :</strong> ' . e($report->reference) . '</p>';
             $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
             sendMail($declarant['email'], $subject, $body);
@@ -109,11 +109,11 @@ class NotificationService
         $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
         foreach ($linkedAgents as $linkedAgent) {
             if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
-                $linkedSubject = "Signalement réouvert $registryLabel — {$report['reference']}";
+                $linkedSubject = "Signalement réouvert $registryLabel — {$report->reference}";
                 $linkedBody = '<html><body>';
                 $linkedBody .= '<h2>Signalement réouvert</h2>';
                 $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>';
-                $linkedBody .= '<p>Le signalement <strong>' . e($report['reference']) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>';
+                $linkedBody .= '<p>Le signalement <strong>' . e($report->reference) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>';
                 $linkedBody .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
                 $linkedBody .= '</body></html>';
                 sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);

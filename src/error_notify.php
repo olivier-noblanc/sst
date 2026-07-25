@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\ConfigService;
+
 /**
  * Error Notification & Throttle — Application SST DREETS BFC
  *
@@ -98,8 +100,8 @@ function sstGetAdminEmail(): string
     }
 
     // Try ConfigService if available (database is initialized)
-    if (class_exists(\App\Services\ConfigService::class)) {
-        $email = \App\Services\ConfigService::getInstance()->get('app_admin_email', '');
+    if (class_exists(ConfigService::class)) {
+        $email = ConfigService::getInstance()->get('app_admin_email', '');
         $cachedEmail = $email;
         return $email;
     }

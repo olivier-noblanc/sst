@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\ConfigService;
 use App\Enum\ReportState;
 
 /**
@@ -72,7 +73,7 @@ function runLazyCron(PDO $pdo): void
 function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable $callback): void
 {
     try {
-        $lastRun = \App\Services\ConfigService::getInstance()->get("last_lazy_cron_{$taskName}", '');
+        $lastRun = ConfigService::getInstance()->get("last_lazy_cron_{$taskName}", '');
         $now = time();
 
         if (!empty($lastRun)) {
@@ -109,7 +110,7 @@ function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable 
  */
 function lazyCronCheckDelays(PDO $pdo): void
 {
-    $alertDelayDays = (int) \App\Services\ConfigService::getInstance()->get('app_alert_delay_days', '0');
+    $alertDelayDays = (int) ConfigService::getInstance()->get('app_alert_delay_days', '0');
 
     // If alert delay is disabled, skip entirely
     if ($alertDelayDays <= 0) {
@@ -145,11 +146,11 @@ function lazyCronCheckDelays(PDO $pdo): void
     $bySite = [];
     foreach ($overdueReports as $report) {
         /** @var int */
-        $siteId = $report['site_id'] ?? 0;
+        $siteId = $report->siteId ?? 0;
         if (!isset($bySite[$siteId])) {
             $bySite[$siteId] = [
-                'site_code' => $report['site_code'],
-                'site_nom'  => $report['site_nom'],
+                'site_code' => $report->siteCode,
+                'site_nom'  => $report->siteNom,
                 'reports'   => [],
             ];
         }
@@ -169,7 +170,7 @@ function lazyCronCheckDelays(PDO $pdo): void
             continue;
         }
 
-        $appName = \App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
+        $appName = ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
         $subject = "Alerte : {$siteData['site_code']} — " . count($siteData['reports']) . " signalement(s) en attente depuis plus de {$alertDelayDays}j";
 
         $body = buildDelayAlertEmail($siteData, $alertDelayDays);

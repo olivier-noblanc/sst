@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\SessionService;
+
 /**
  * Audit Log — Application SST DREETS BFC
  *
@@ -32,7 +34,7 @@
 function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = [], ?string $targetUuid = null): void
 {
     try {
-        $userId = (int)(\App\Services\SessionService::getInstance()->getUserSession()['id'] ?? 0);
+        $userId = (int)(SessionService::getInstance()->getUserSession()['id'] ?? 0);
         $username = currentUserUsername() !== '' ? currentUserUsername() : 'system';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
 

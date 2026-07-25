@@ -3,6 +3,9 @@
 /**
  * Report Create Handler — Thin controller delegating to ReportService.
  */
+use App\Services\HttpService;
+use App\Services\SessionService;
+use App\Services\ConfigService;
 use App\Repository\RegistryRepository;
 use App\Repository\SiteRepository;
 use App\DTO\CreateReportCommand;
@@ -10,9 +13,9 @@ use App\Services\ReportService;
 
 /** @var array<string, string> $_POST */
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
-$config = \App\Services\ConfigService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
+$config = ConfigService::getInstance();
 
 // CSRF already validated by the router's CsrfMiddleware (applied to every
 // POST handler in src/Router/routes.php). Calling validatePostRequest()
@@ -63,7 +66,7 @@ if (!empty($linkedEmailsRaw)) {
     try {
         $reportService = getContainer()->get(ReportService::class);
         $linkedEmails = $reportService->validateLinkedEmails($linkedEmailsRaw, $user ?? []);
-    } catch (\InvalidArgumentException $e) {
+    } catch (InvalidArgumentException $e) {
         setFormErrors(['linked_emails' => e($e->getMessage())]);
         setFormData($_POST);
         $http->redirect($http->url('report_create', ['type' => $type]));
@@ -84,21 +87,18 @@ try {
 
     $service = getContainer()->get(ReportService::class);
     $report = $service->create($cmd);
-
-    /** @var array<string, string> $report */
-
     // Audit log
-    auditLog(getDB(), 'report', 'create', 'Signalement créé : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference'], 'type' => $type, 'site_id' => $siteId], $report['uuid']);
+    auditLog(getDB(), 'report', 'create', 'Signalement créé : ' . (string) $report->reference, null, 'report', ['reference' => $report->reference, 'type' => $type, 'site_id' => $siteId], $report->uuid);
 
     // Send linked agent invite emails (non-blocking)
     if (!empty($linkedEmails)) {
         require_once __DIR__ . '/../src/mail.php';
-        sendAgentInviteEmails($pdo, (string) $report['uuid'], $linkedEmails);
+        sendAgentInviteEmails($pdo, (string) $report->uuid, $linkedEmails);
     }
 
-    $session->setFlash('success', 'Signalement enregistré avec la référence ' . e((string) $report['reference']));
+    $session->setFlash('success', 'Signalement enregistré avec la référence ' . e((string) $report->reference));
     $_SESSION['report_created'] = true;
-    $http->redirect($http->url('report_view', ['uuid' => $report['uuid']]));
+    $http->redirect($http->url('report_view', ['uuid' => $report->uuid]));
 
 } catch (InvalidArgumentException $e) {
     setFormErrors(['general' => $e->getMessage()]);

@@ -2,6 +2,8 @@
 
 namespace App\Router;
 
+use App\Services\HttpService;
+
 class Router
 {
     /** @var list<array{path: string, name: string, methods: list<string>, handler: callable}> */
@@ -100,7 +102,7 @@ class Router
         if ($match !== null) {
             ($match['handler'])();
         } else {
-            new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('home'));
+            new HttpService()->redirect(new HttpService()->url('home'));
         }
     }
 

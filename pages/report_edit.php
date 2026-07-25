@@ -1,5 +1,8 @@
 <?php
 
+use App\Services\SessionService;
+use App\Services\HttpService;
+
 /**
  * Report Edit Page — Application SST DREETS BFC
  *
@@ -11,17 +14,17 @@ $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 // Access control: only the declarant can edit
-$user = \App\Services\SessionService::getInstance()->getUserSession();
+$user = SessionService::getInstance()->getUserSession();
 $userIdStr = $user['id'] ?? '0';
 $userId = (int) $userIdStr;
 
 requireReportOwnership($report, $userId, $uuid, 'modifier');
 requireReportEditable($report, $uuid, 'modifié');
 
-$pageTitle = 'Modifier le signalement — ' . $report['reference'];
+$pageTitle = 'Modifier le signalement — ' . $report->reference;
 
-$type = $report['type'];
-$action = new \App\Services\HttpService()->url('report_edit', ['uuid' => $uuid]);
+$type = $report->type;
+$action = new HttpService()->url('report_edit', ['uuid' => $uuid]);
 
 // Prepare variables for the shared form template
 $isEdit = true;

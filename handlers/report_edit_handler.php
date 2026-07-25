@@ -3,6 +3,8 @@
 /**
  * Report Edit Handler — Thin controller delegating to ReportService.
  */
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Repository\ReportRepository;
 use App\Enum\ReportType;
 use App\DTO\UpdateReportCommand;
@@ -10,8 +12,8 @@ use App\Services\ReportService;
 
 /** @var array<string, string> $_POST */
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 // CSRF already validated by the router's CsrfMiddleware (applied to every
 // POST handler in src/Router/routes.php) — see report_create_handler.php
@@ -19,10 +21,7 @@ $session = \App\Services\SessionService::getInstance();
 
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
-
-/** @var array<string, string> $report */
-
-$userId = (int)($session->getUserSession()['id'] ?? 0);
+$userId = (int) ($session->getUserSession()['id'] ?? 0);
 $user = $session->getUserSession();
 
 /** @var array<string, string> $user */
@@ -44,7 +43,7 @@ $fieldErrors = validateReportFields($dateEvenement, $objet, $description, $lieu,
 $errors = array_merge($errors, $fieldErrors);
 
 // RAMI-specific validation
-$type = $report['type'];
+$type = $report->type;
 if ($type === ReportType::Rami->value) {
     $pourCompte = isset($_POST['pour_compte']) && $_POST['pour_compte'] === '1';
     $pourCompteNom = trim((string) ($_POST['pour_compte_nom'] ?? ''));
@@ -101,10 +100,10 @@ try {
             }
         }
 
-        auditLog(getDB(), 'report', 'edit', 'Signalement modifié : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference']], $report['uuid']);
-        $session->setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' modifié avec succès.');
+        auditLog(getDB(), 'report', 'edit', 'Signalement modifié : ' . (string) $report->reference, null, 'report', ['reference' => $report->reference], $report->uuid);
+        $session->setFlash('success', 'Signalement ' . e((string) $report->reference) . ' modifié avec succès.');
     } else {
-        error_log("SST: report_edit failed - uuid=$reportUuid, user_id=$userId, etat=" . (string) ($report['etat'] ?? ''));
+        error_log("SST: report_edit failed - uuid=$reportUuid, user_id=$userId, etat=" . $report->etat);
         $session->setFlash('error', 'Impossible de modifier ce signalement. Veuillez contacter un administrateur.');
     }
 } catch (RuntimeException $e) {

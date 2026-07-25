@@ -152,9 +152,9 @@ class LinkedAgentVisibilityTest extends TestCase
         $filter = new ReportFilter(type: ReportType::Rsst->value, linkedAgentId: $this->agentId1);
         $result = $this->repo->findPaginated($filter);
 
-        $this->assertEquals(1, $result['total']);
-        $this->assertCount(1, $result['reports']);
-        $this->assertEquals($uuid, $result['reports'][0]['uuid']);
+        $this->assertEquals(1, $result->total);
+        $this->assertCount(1, $result->reports);
+        $this->assertEquals($uuid, $result->reports[0]->uuid);
     }
 
     public function testFindPaginated_Confidential_ExcludesUnlinkedConfidentialReports(): void
@@ -164,8 +164,8 @@ class LinkedAgentVisibilityTest extends TestCase
         $filter = new ReportFilter(type: ReportType::Rsst->value, linkedAgentId: $this->agentId1);
         $result = $this->repo->findPaginated($filter);
 
-        $this->assertEquals(0, $result['total']);
-        $this->assertCount(0, $result['reports']);
+        $this->assertEquals(0, $result->total);
+        $this->assertCount(0, $result->reports);
     }
 
     public function testFindPaginated_AgentChoice_IncludesLinkedConfidentialAndPublicReports(): void
@@ -179,8 +179,8 @@ class LinkedAgentVisibilityTest extends TestCase
         $result = $this->repo->findPaginated($filter);
 
         // Should see both: the linked confidential + the public one
-        $this->assertEquals(2, $result['total']);
-        $uuids = array_column($result['reports'], 'uuid');
+        $this->assertEquals(2, $result->total);
+        $uuids = array_map(fn($r) => $r->uuid, $result->reports);
         $this->assertContains($uuidConfidential, $uuids);
         $this->assertContains($uuidPublic, $uuids);
     }

@@ -3,7 +3,8 @@
 /**
  * Choose Site Handler — Thin controller delegating to SiteRepository + UserRepository.
  */
-
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Repository\SiteRepository;
 use App\Repository\UserRepository;
 
@@ -16,8 +17,8 @@ use App\Repository\UserRepository;
 $siteIdRaw = $_POST['site_id'] ?? '0';
 $siteId = (int) $siteIdRaw;
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 if ($siteId <= 0) {
     $session->setFlash('error', 'Veuillez sélectionner un site.');

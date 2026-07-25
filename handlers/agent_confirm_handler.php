@@ -3,7 +3,9 @@
 /**
  * Agent Confirmation Handler — Thin controller delegating to ReportRepository.
  */
-
+use App\Services\HttpService;
+use App\Services\SessionService;
+use App\DTO\ReportData;
 use App\Repository\ReportRepository;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -14,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $tokenRaw = $_POST['token'] ?? '';
 $token = trim($tokenRaw);
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 if (empty($token)) {
     $session->setFlash('error', 'Lien de confirmation invalide.');
@@ -48,8 +50,8 @@ $confirmed = $repo->confirmAgentInvite($token, (int) ((string) ($user['id'] ?? '
 if ($confirmed) {
     $reportUuid = (string) $invite['report_uuid'];
     $report = $repo->findById($reportUuid);
-    /** @var array{reference?: string}|null $report */
-    $ref = $report !== null ? (string) ($report['reference'] ?? '') : $reportUuid;
+    /** @var ReportData|null $report */
+    $ref = $report !== null ? $report->reference : $reportUuid;
     auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e($user['email'] ?? '') . ' confirmé rattachement au signalement ' . $ref, null, 'report', ['reference' => $ref, 'email' => $user['email'] ?? ''], $reportUuid);
     $session->setFlash('success', 'Votre rattachement au signalement ' . e($ref) . ' est confirmé.');
     $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));

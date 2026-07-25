@@ -1,5 +1,9 @@
 <?php
 
+use App\Enum\ReportType;
+use App\DTO\ReportData;
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Enum\ReportState;
 use App\Repository\ReportRepository;
 
@@ -79,12 +83,12 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
  */
 function validateRamiFields(string $natureAuteur, string $typeActe): array
 {
-    $allowedNatureAuteur = getRegistryFieldKeys(\App\Enum\ReportType::Rami->value, 'nature_auteur');
+    $allowedNatureAuteur = getRegistryFieldKeys(ReportType::Rami->value, 'nature_auteur');
     if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur, true)) {
         $natureAuteur = '';
     }
 
-    $allowedTypeActe = getRegistryFieldKeys(\App\Enum\ReportType::Rami->value, 'type_acte');
+    $allowedTypeActe = getRegistryFieldKeys(ReportType::Rami->value, 'type_acte');
     if (!empty($typeActe) && !in_array($typeActe, $allowedTypeActe, true)) {
         $typeActe = '';
     }
@@ -171,7 +175,6 @@ function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pou
 // ============================================================================
 // Report Fetch & Access Guards
 // ============================================================================
-
 /**
  * Fetch a report by UUID or redirect with an error flash.
  *
@@ -180,22 +183,22 @@ function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pou
  *
  * @param string $uuid         The report UUID (from $_GET or $_POST)
  * @param string $fallbackUrl  URL to redirect to on failure
- * @return array<string, mixed>  The report data (never returns null — redirects instead)
+ * @return ReportData The report data (never returns null — redirects instead)
  */
-function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array
+function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): ReportData
 {
     if ($fallbackUrl === '') {
-        $fallbackUrl = new \App\Services\HttpService()->url('home');
+        $fallbackUrl = new HttpService()->url('home');
     }
     if (!isValidUuid($uuid)) {
-        \App\Services\SessionService::getInstance()->setFlash('error', 'Signalement introuvable.');
-        new \App\Services\HttpService()->redirect($fallbackUrl);
+        SessionService::getInstance()->setFlash('error', 'Signalement introuvable.');
+        new HttpService()->redirect($fallbackUrl);
     }
     $pdo = getDB();
     $report = ReportRepository::instance()->findById($uuid);
     if ($report === null) {
-        \App\Services\SessionService::getInstance()->setFlash('error', 'Signalement introuvable.');
-        new \App\Services\HttpService()->redirect($fallbackUrl);
+        SessionService::getInstance()->setFlash('error', 'Signalement introuvable.');
+        new HttpService()->redirect($fallbackUrl);
     }
     assert($report !== null);
     return $report;
@@ -204,36 +207,23 @@ function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array
 /**
  * Verify that the current user owns the report (is the declarant).
  * Redirects to report_view with an error if not the owner.
- *
- * @param array<string, mixed> $report  Report data from DB
- * @param int    $userId  Current user's ID
- * @param string $uuid    Report UUID (for redirect URL)
- * @param string $verb    Verb for the error message ('modifier', 'abandonner', etc.)
  */
-function requireReportOwnership(array $report, int $userId, string $uuid, string $verb = 'modifier'): void
+function requireReportOwnership(ReportData $report, int $userId, string $uuid, string $verb = 'modifier'): void
 {
-    /** @var int */
-    $declarantId = $report['declarant_id'] ?? 0;
-    if ($declarantId !== $userId) {
-        \App\Services\SessionService::getInstance()->setFlash('error', 'Vous ne pouvez ' . $verb . ' que vos propres signalements.');
-        new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('report_view', ['uuid' => $uuid]));
+    if ($report->declarantId !== $userId) {
+        SessionService::getInstance()->setFlash('error', 'Vous ne pouvez ' . $verb . ' que vos propres signalements.');
+        new HttpService()->redirect(new HttpService()->url('report_view', ['uuid' => $uuid]));
     }
 }
 
 /**
  * Verify that the report is in an editable state (nouveau or en_cours).
  * Redirects to report_view with an error if not.
- *
- * @param array<string, mixed> $report  Report data from DB
- * @param string $uuid    Report UUID (for redirect URL)
- * @param string $verb    Verb for the error message ('modifié', 'abandonné', etc.)
  */
-function requireReportEditable(array $report, string $uuid, string $verb = 'modifié'): void
+function requireReportEditable(ReportData $report, string $uuid, string $verb = 'modifié'): void
 {
-    /** @var string */
-    $etat = $report['etat'] ?? '';
-    if (!in_array($etat, [ReportState::Nouveau->value, ReportState::EnCours->value], true)) {
-        \App\Services\SessionService::getInstance()->setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$etat] ?? $etat) . ').');
-        new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('report_view', ['uuid' => $uuid]));
+    if (!in_array($report->etat, [ReportState::Nouveau->value, ReportState::EnCours->value], true)) {
+        SessionService::getInstance()->setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$report->etat] ?? $report->etat) . ').');
+        new HttpService()->redirect(new HttpService()->url('report_view', ['uuid' => $uuid]));
     }
 }

@@ -8,8 +8,13 @@ use App\Enum\ReportState;
 use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 use Exception;
+use App\DTO\AdjacentUuids;
 use App\DTO\CreateReportCommand;
+use App\DTO\PaginatedReports;
+use App\DTO\ReportData;
 use App\DTO\ReportFilter;
+use App\DTO\ReportListItem;
+use App\DTO\ReportStateCounts;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
 use App\Query\QueryFilterBuilder;
@@ -91,8 +96,7 @@ class ReportRepository
     // Read — Reports
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /** @return array<mixed, mixed>|null */
-    public function findById(string $uuid): ?array
+    public function findById(string $uuid): ?ReportData
     {
         if (!isValidUuid($uuid)) {
             return null;
@@ -117,7 +121,46 @@ class ReportRepository
         ');
         $stmt->execute([':uuid' => $uuid]);
         $row = $stmt->fetch();
-        return is_array($row) ? $row : null;
+        if (!is_array($row)) {
+            return null;
+        }
+        return new ReportData(
+            uuid: (string) $row['uuid'],
+            reference: (string) ($row['reference'] ?? ''),
+            type: (string) $row['type'],
+            objet: (string) ($row['objet'] ?? ''),
+            description: (string) ($row['description'] ?? ''),
+            dateEvenement: (string) ($row['date_evenement'] ?? ''),
+            heureEvenement: (string) ($row['heure_evenement'] ?? ''),
+            lieu: (string) ($row['lieu'] ?? ''),
+            declarantId: (int) $row['declarant_id'],
+            declarantNom: (string) ($row['declarant_nom'] ?? ''),
+            declarantPrenom: (string) ($row['declarant_prenom'] ?? ''),
+            pourCompteDe: (string) ($row['pour_compte_de'] ?? ''),
+            pourCompteNom: (string) ($row['pour_compte_nom'] ?? ''),
+            pourComptePrenom: (string) ($row['pour_compte_prenom'] ?? ''),
+            natureAuteur: (string) ($row['nature_auteur'] ?? ''),
+            typeActe: (string) ($row['type_acte'] ?? ''),
+            siteId: (int) ($row['site_id'] ?? 0),
+            siteText: (string) ($row['site_text'] ?? ''),
+            pole: (string) ($row['pole'] ?? ''),
+            serviceAffectation: (string) ($row['service_affectation'] ?? ''),
+            telephoneMobile: (string) ($row['telephone_mobile'] ?? ''),
+            isConfidential: (int) ($row['is_confidential'] ?? 0),
+            consentSyndicat: (int) ($row['consent_syndicat'] ?? 0),
+            etat: (string) $row['etat'],
+            repondantId: isset($row['repondant_id']) ? (int) $row['repondant_id'] : null,
+            dateReponse: $row['date_reponse'] ?? null,
+            reponse: $row['reponse'] ?? null,
+            attachmentName: $row['attachment_name'] ?? null,
+            attachmentMime: $row['attachment_mime'] ?? null,
+            createdAt: (string) ($row['created_at'] ?? ''),
+            updatedAt: (string) ($row['updated_at'] ?? ''),
+            siteCode: (string) ($row['site_code'] ?? ''),
+            siteNom: (string) ($row['site_nom'] ?? ''),
+            repondantNom: $row['repondant_nom'] ?? null,
+            repondantPrenom: $row['repondant_prenom'] ?? null,
+        );
     }
 
     /**
@@ -139,8 +182,7 @@ class ReportRepository
         return $row !== false ? $row : null;
     }
 
-    /** @return array{reports: list<array<string, mixed>>, total: int} */
-    public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): array
+    public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): PaginatedReports
     {
         $builder = new QueryFilterBuilder();
         $builder->addEqual('r.type', $filter->type);
@@ -229,20 +271,36 @@ class ReportRepository
         $stmt = $this->pdo->prepare($this->baseSelect() . " WHERE $where ORDER BY r.created_at DESC LIMIT :limit OFFSET :offset");
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
-        /** @var list<array<string, mixed>> $rows */
-        return ['reports' => is_array($rows) ? $rows : [], 'total' => $total];
+        $reports = [];
+        if (is_array($rows)) {
+            foreach ($rows as $row) {
+                $reports[] = new ReportListItem(
+                    uuid: (string) $row['uuid'],
+                    reference: (string) ($row['reference'] ?? ''),
+                    type: (string) $row['type'],
+                    objet: (string) ($row['objet'] ?? ''),
+                    dateEvenement: (string) ($row['date_evenement'] ?? ''),
+                    declarantNom: (string) ($row['declarant_nom'] ?? ''),
+                    declarantPrenom: (string) ($row['declarant_prenom'] ?? ''),
+                    siteCode: (string) ($row['site_code'] ?? ''),
+                    etat: (string) $row['etat'],
+                    isConfidential: (int) ($row['is_confidential'] ?? 0),
+                );
+            }
+        }
+        return new PaginatedReports(reports: $reports, total: $total);
     }
 
     /**
-     * @param array<string, mixed> $report
-     * @return array{prev: string|null, next: string|null}
+     * @param array{type?: string, created_at?: string, uuid?: string} $report
      */
-    public function getAdjacentUuids(array $report): array
+    public function getAdjacentUuids(array $report): AdjacentUuids
     {
         $type = $report['type'] ?? ReportType::Rsst->value;
         $createdAt = $report['created_at'] ?? '';
         $uuid = $report['uuid'] ?? '';
-        $result = ['prev' => null, 'next' => null];
+        $prev = null;
+        $next = null;
 
         $stmt = $this->pdo->prepare('
             SELECT uuid, created_at FROM reports
@@ -250,10 +308,9 @@ class ReportRepository
             ORDER BY created_at DESC, uuid DESC LIMIT 1
         ');
         $stmt->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
-        $prev = $stmt->fetch();
-        if (is_array($prev) && isset($prev['uuid'])) {
-            $prevUuid = $prev['uuid'];
-            $result['prev'] = $prevUuid;
+        $row = $stmt->fetch();
+        if (is_array($row) && isset($row['uuid'])) {
+            $prev = $row['uuid'];
         }
 
         $stmt2 = $this->pdo->prepare('
@@ -262,23 +319,21 @@ class ReportRepository
             ORDER BY created_at ASC, uuid ASC LIMIT 1
         ');
         $stmt2->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
-        $next = $stmt2->fetch();
-        if (is_array($next) && isset($next['uuid'])) {
-            $nextUuid = $next['uuid'];
-            $result['next'] = $nextUuid;
+        $row2 = $stmt2->fetch();
+        if (is_array($row2) && isset($row2['uuid'])) {
+            $next = $row2['uuid'];
         }
 
-        return $result;
+        return new AdjacentUuids(prev: $prev, next: $next);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Read — Counts
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /** @return array<string, int> */
-    public function countByState(string $type, int $siteId = 0, bool $seeAllSites = true): array
+    public function countByState(string $type, int $siteId = 0, bool $seeAllSites = true): ReportStateCounts
     {
-        $sql = "SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != '" . ReportState::Abandonne->value . "'";
+        $sql = 'SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != ' . $this->pdo->quote(ReportState::Abandonne->value);
         $params = [':type' => $type];
 
         if (!$seeAllSites && $siteId > 0) {
@@ -290,25 +345,33 @@ class ReportRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
-        $counts = [
-            ReportState::Nouveau->value   => 0,
-            ReportState::EnCours->value   => 0,
-            ReportState::Traite->value    => 0,
-            ReportState::Reouvert->value  => 0,
-            'total'        => 0,
-        ];
+        $nouveau = 0;
+        $enCours = 0;
+        $traite = 0;
+        $reouvert = 0;
+        $total = 0;
         $rows = $stmt->fetchAll();
-        if (!is_array($rows)) {
-            return $counts;
+        if (is_array($rows)) {
+            foreach ($rows as $row) {
+                $etat = is_string($row['etat'] ?? null) ? $row['etat'] : '';
+                $count = (int) ($row['count'] ?? 0);
+                match ($etat) {
+                    ReportState::Nouveau->value => $nouveau = $count,
+                    ReportState::EnCours->value => $enCours = $count,
+                    ReportState::Traite->value => $traite = $count,
+                    ReportState::Reouvert->value => $reouvert = $count,
+                    default => null,
+                };
+                $total += $count;
+            }
         }
-        foreach ($rows as $row) {
-            /** @var array<string, mixed> $row */
-            $etat = is_string($row['etat'] ?? null) ? $row['etat'] : '';
-            $countRaw = $row['count'] ?? 0;
-            $counts[$etat] = (int) $countRaw;
-            $counts['total'] += (int) $countRaw;
-        }
-        return $counts;
+        return new ReportStateCounts(
+            nouveau: $nouveau,
+            enCours: $enCours,
+            traite: $traite,
+            reouvert: $reouvert,
+            total: $total,
+        );
     }
 
     public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int

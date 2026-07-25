@@ -34,7 +34,6 @@ $sites = \App\Repository\SiteRepository::instance()->findAll();
 
 // Get synthesis data
 $synthesisData = \App\Repository\StatsRepository::instance()->getSynthesis($year, $siteId);
-/** @var list<array{site_id: int, type: string, nouveau: int, en_cours: int, traite: int, abandonne: int, reouvert: int, total: int}> $synthesisData */
 
 // Organize data by site
 $siteData = [];
@@ -48,16 +47,16 @@ foreach ($sites as $site) {
 
 // Fill in the data
 foreach ($synthesisData as $row) {
-    $sId = (int) $row['site_id'];
-    $type = $row['type'] ?? '';
+    $sId = $row->siteId;
+    $type = $row->type;
     if (isset($siteData[$sId]) && isset($siteData[$sId][$type])) {
         $siteData[$sId][$type] = [
-            ReportState::Nouveau->value   => (int) $row['nouveau'],
-            ReportState::EnCours->value   => (int) $row['en_cours'],
-            ReportState::Traite->value    => (int) $row['traite'],
-            ReportState::Abandonne->value => (int) $row['abandonne'],
-            ReportState::Reouvert->value  => (int) $row['reouvert'],
-            'total'                       => (int) $row['total'],
+            ReportState::Nouveau->value   => $row->nouveau,
+            ReportState::EnCours->value   => $row->enCours,
+            ReportState::Traite->value    => $row->traite,
+            ReportState::Abandonne->value => $row->abandonne,
+            ReportState::Reouvert->value  => $row->reouvert,
+            'total'                       => $row->total,
         ];
     }
 }

@@ -6,7 +6,8 @@
  * POST handler: save notification email settings, SMTP config, and app settings.
  * Access: superviseur only
  */
-
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Repository\NotificationRepository;
 use App\Services\ConfigService;
 
@@ -26,8 +27,8 @@ require_once __DIR__ . '/settings_handler_registres.php';
 
 /** @var array<string, string> $_POST */
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 $pdo = getDB();
 $tab = (string) ($_POST['tab'] ?? 'sites');

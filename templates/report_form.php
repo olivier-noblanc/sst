@@ -11,7 +11,7 @@ use App\Enum\ReportType;
  *   $type        — Registry type: 'rsst', 'rami', 'dgi'
  *   $action      — Form action URL
  *   $isEdit      — Whether this is an edit form (bool)
- *   $report      — Existing report data for edit (array or null)
+ *   $report      — Existing report data for edit (\App\DTO\ReportData or null)
  *   $csrfToken   — CSRF token value
  *   $sites       — Array of sites for the dropdown
  *   $formErrors  — Array of field errors
@@ -19,6 +19,7 @@ use App\Enum\ReportType;
  */
 if (!isset($isEdit)) $isEdit = false;
 if (!isset($report)) $report = null;
+/** @var \App\DTO\ReportData|null $report */
 if (!isset($formErrors)) $formErrors = getFormErrors();
 if (!isset($formData)) $formData = getFormData();
 
@@ -30,20 +31,22 @@ $noSiteMode = isNoSiteMode(getDB());
 /** @var string $csrfToken */
 /** @var list<array<string, mixed>> $sites */
 /** @var bool $isEdit */
-/** @var array<string, mixed>|null $report */
+/** @var \App\DTO\ReportData|null $report */
 /** @var array<string, string> $formErrors */
 /** @var array<string, mixed> $user */
 
 // Determine values: prefer form data (on validation error), then report data, then defaults
 /** @var array<string, mixed> $formData */
-$val = function(string $field, string $default = '') use ($formData, $report, $isEdit): string {
+/** @var array<string, mixed> $reportArray */
+$reportArray = ($isEdit && $report !== null) ? $report->toArray() : [];
+$val = function(string $field, string $default = '') use ($formData, $reportArray, $isEdit): string {
     if (isset($formData[$field]) && $formData[$field] !== '') {
         $v = $formData[$field];
         return $v;
     }
-    if ($isEdit && $report !== null && isset($report[$field])) {
-        $v = $report[$field];
-        return $v;
+    if ($isEdit && isset($reportArray[$field])) {
+        $v = $reportArray[$field];
+        return (string) $v;
     }
     return $default;
 };
@@ -80,8 +83,8 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
     <form method="POST" action="<?php echo e($action); ?>" enctype="multipart/form-data">
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-        <?php if ($isEdit): ?>
-            <input type="hidden" name="report_uuid" value="<?php /** @var string $uuid */ $uuid = $report['uuid'] ?? ''; echo e($uuid); ?>">
+        <?php if ($isEdit && $report !== null): ?>
+            <input type="hidden" name="report_uuid" value="<?php echo e($report->uuid); ?>">
         <?php endif; ?>
         <?php if (!empty($formErrors)): ?>
         <?php require __DIR__ . '/form_error_summary.php'; ?>
@@ -182,9 +185,9 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     <span class="file-upload-wrapper__filename" id="file_chosen_name">Aucun fichier sélectionné</span>
                 </div>
                 <span class="form-hint" id="hint_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max.</span>
-                <?php if ($isEdit && !empty($report['attachment_name'])): ?>
+                <?php if ($isEdit && !empty($report->attachmentName)): ?>
                     <div class="attachment-preview">
-                        <span class="badge badge--confidential">&#128206; <?php echo e($report['attachment_name']); ?></span>
+                        <span class="badge badge--confidential">&#128206; <?php echo e($report->attachmentName); ?></span>
                         <label class="attachment-remove-label">
                             <input type="checkbox" name="remove_attachment" value="1"> Supprimer la pièce jointe actuelle
                         </label>
@@ -271,7 +274,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
-                           <?php echo ((bool) $val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat'] ?? ''))) ? 'checked' : ''; ?>>
+                           <?php echo ((bool) $val('consent_syndicat') || ($isEdit && !empty($report->consentSyndicat))) ? 'checked' : ''; ?>>
                     J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(\App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS')); ?>
                 </label>
             </div>
@@ -353,7 +356,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">
                 <?php echo $isEdit ? 'Enregistrer' : 'Envoyer le signalement'; ?>
             </button>
-            <a href="<?php echo $isEdit && $report !== null ? new \App\Services\HttpService()->url('report_view', ['uuid' => $report['uuid'] ?? '']) : new \App\Services\HttpService()->url('home'); ?>"
+            <a href="<?php echo $isEdit && $report !== null ? new \App\Services\HttpService()->url('report_view', ['uuid' => $report->uuid]) : new \App\Services\HttpService()->url('home'); ?>"
                class="btn btn--secondary" title="Supprimer le formulaire et revenir à la page précédente">Annuler</a>
         </div>
     </form>

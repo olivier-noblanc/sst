@@ -24,9 +24,9 @@ $year = trim((string) $yearGet);
 $statsService = getContainer()->get(\App\Services\StatisticsService::class);
 $availableYears = $statsService->getAvailableYears();
 $stats = $statsService->getStatistics($year);
-$indicateurs = $stats['indicateurs'];
-$statsBySite = $stats['statsBySite'];
-$ramiStats = $stats['ramiStats'];
+$indicateurs = $stats->indicateurs;
+$statsBySite = $stats->statsBySite;
+$ramiStats = $stats->ramiStats;
 
 // Build table data by site
 /** @var list<array{id: int, code: string, nom: string}> $sites */
@@ -46,11 +46,11 @@ foreach ($sites as $site) {
 foreach ($statsBySite as $row) {
     // Find matching site
     foreach ($tableData as $sId => &$td) {
-        if ($td['code'] === $row['code']) {
-            $td[ReportType::Rsst->value]  = (int) ($row[ReportType::Rsst->value] ?? 0);
-            $td[ReportType::Rami->value]  = (int) ($row[ReportType::Rami->value] ?? 0);
-            $td[ReportType::Dgi->value]   = (int) ($row[ReportType::Dgi->value] ?? 0);
-            $td['total'] = (int) ($row['total'] ?? 0);
+        if ($td['code'] === $row->code) {
+            $td[ReportType::Rsst->value]  = $row->getCount(ReportType::Rsst->value);
+            $td[ReportType::Rami->value]  = $row->getCount(ReportType::Rami->value);
+            $td[ReportType::Dgi->value]   = $row->getCount(ReportType::Dgi->value);
+            $td['total'] = $row->total;
             break;
         }
     }
@@ -96,17 +96,16 @@ $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 <!-- Cartes indicateurs -->
 <div class="indicateur-grid">
     <div class="indicateur-card">
-        <div class="indicateur-card__value"><?php echo $indicateurs['total_reports']; ?></div>
+        <div class="indicateur-card__value"><?php echo $indicateurs->totalReports; ?></div>
         <div class="indicateur-card__label">Total signalements</div>
-        <div class="indicateur-card__detail"><?php echo $indicateurs['total_nouveau']; ?> nouveaux · <?php echo $indicateurs['total_en_cours']; ?> en cours · <?php echo $indicateurs['total_traite']; ?> traités</div>
+        <div class="indicateur-card__detail"><?php echo $indicateurs->totalNouveau; ?> nouveaux · <?php echo $indicateurs->totalEnCours; ?> en cours · <?php echo $indicateurs->totalTraite; ?> traités</div>
     </div>
     <?php
     $registryRepo = \App\Repository\RegistryRepository::instance();
-    foreach ($registryRepo->findEnabled() as $reg):
-        $code = (string) $reg['code'];
-        $classes = \App\Repository\RegistryRepository::themeClasses((string) $reg['color_theme']);
-        $totalKey = 'total_' . str_replace('-', '_', $code);
-        $total = $indicateurs[$totalKey] ?? 0;
+foreach ($registryRepo->findEnabled() as $reg):
+    $code = (string) $reg['code'];
+    $classes = \App\Repository\RegistryRepository::themeClasses((string) $reg['color_theme']);
+    $total = $indicateurs->getRegistryTotal($code);
     ?>
     <div class="indicateur-card <?php echo e($classes['indicateur']); ?>">
         <div class="indicateur-card__value"><?php echo $total; ?></div>
@@ -155,12 +154,12 @@ $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 <?php endif; ?>
 
 <!-- RAMI: Répartition par nature de l'auteur et type d'acte -->
-<?php if ($ramiEnabled && (!empty($ramiStats['by_nature_auteur']) || !empty($ramiStats['by_type_acte']))): ?>
+<?php if ($ramiEnabled && $ramiStats->hasData()): ?>
 <div class="card card--mt">
     <h2 class="card__title">RAMI — Répartition par nature de l'auteur et type d'acte</h2>
     <p class="text-muted text-small">Statistiques sur les signalements RAMI ayant renseigné les champs « Nature de l'auteur » et « Type d'acte ».</p>
     <div class="help-profiles-grid">
-        <?php if (!empty($ramiStats['by_nature_auteur'])): ?>
+        <?php if (!empty($ramiStats->byNatureAuteur)): ?>
         <div>
             <h3>Nature de l'auteur</h3>
             <div class="table-wrapper">
@@ -172,7 +171,7 @@ $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($ramiStats['by_nature_auteur'] as $row): ?>
+                        <?php foreach ($ramiStats->byNatureAuteur as $row): ?>
                         <tr>
                             <td><?php echo $fmt->e(getRegistryFieldOptions('rami', 'nature_auteur')[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
@@ -183,7 +182,7 @@ $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
             </div>
         </div>
         <?php endif; ?>
-        <?php if (!empty($ramiStats['by_type_acte'])): ?>
+        <?php if (!empty($ramiStats->byTypeActe)): ?>
         <div>
             <h3>Type d'acte</h3>
             <div class="table-wrapper">
@@ -195,7 +194,7 @@ $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($ramiStats['by_type_acte'] as $row): ?>
+                        <?php foreach ($ramiStats->byTypeActe as $row): ?>
                         <tr>
                             <td><?php echo $fmt->e(getRegistryFieldOptions('rami', 'type_acte')[$row['type_acte']] ?? $row['type_acte']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>

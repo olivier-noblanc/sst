@@ -10,7 +10,7 @@
  *   $formErrors — Array of field errors
  */
 /** @var bool $isEdit */
-/** @var array<string, mixed> $report */
+/** @var \App\DTO\ReportData|null $report */
 $declarantEmail = $user['email'] ?? '';
 $declarantEmailStr = (string) $declarantEmail;
 $emailDomain = '';
@@ -19,7 +19,7 @@ if ($declarantEmailStr !== '' && str_contains($declarantEmailStr, '@')) {
 }
 $linkedEmails = '';
 if ($isEdit && $report !== null) {
-    $existing = \App\Repository\ReportRepository::instance()->getLinkedAgents($report['uuid']);
+    $existing = \App\Repository\ReportRepository::instance()->getLinkedAgents($report->uuid);
     $linkedEmails = implode(', ', array_map(fn($a) => $a['email'], $existing));
 }
 if (isset($formData['linked_emails'])) {

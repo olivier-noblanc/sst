@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\DTO\StatisticsResult;
 use App\Repository\StatsRepository;
 
 class StatisticsService
@@ -26,17 +27,12 @@ class StatisticsService
         return $years;
     }
 
-    /**
-     * Get all statistics for a given year.
-     *
-     * @return array<string, mixed>
-     */
-    public function getStatistics(string $year): array
+    public function getStatistics(string $year): StatisticsResult
     {
-        return [
-            'indicateurs' => $this->statsRepo->getIndicateurs($year),
-            'statsBySite' => $this->statsRepo->getBySite($year),
-            'ramiStats' => $this->statsRepo->getRamiStructuredStats($year),
-        ];
+        return new StatisticsResult(
+            indicateurs: $this->statsRepo->getIndicateurs($year),
+            statsBySite: $this->statsRepo->getBySite($year),
+            ramiStats: $this->statsRepo->getRamiStructuredStats($year),
+        );
     }
 }

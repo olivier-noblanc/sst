@@ -30,38 +30,31 @@ logConfidentialReportAccess($pdo, $report, $user);
 
 // If report is abandoned and user is not declarant nor supervisor/chsct
 /** @var string */
-$declarantIdRaw = $report['declarant_id'] ?? '0';
-/** @var string */
 $userIdRaw = $user['id'] ?? '0';
 /** @var string */
 $userRole = $user['role'] ?? '';
-if ($report['etat'] === \App\Enum\ReportState::Abandonne->value && (int) $declarantIdRaw !== (int) $userIdRaw && !in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true)) {
+if ($report->etat === \App\Enum\ReportState::Abandonne->value && $report->declarantId !== (int) $userIdRaw && !in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true)) {
     $session->setFlash('warning', 'Ce signalement a été abandonné.');
 }
 
-/** @var string */
-$reference = $report['reference'] ?? '';
-$pageTitle = 'Signalement — ' . $reference;
+$pageTitle = 'Signalement — ' . $report->reference;
 
 // Get response history
 $responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 
 // Get linked agents and pending invites (moved from template to avoid DB queries in presentation layer)
-/** @var string */
-$reportUuid = $report['uuid'] ?? '';
-$linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents($reportUuid);
-$pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites($reportUuid);
+$linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents($report->uuid);
+$pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites($report->uuid);
 
 // Breadcrumb data
-/** @var string */
-$reportType = $report['type'] ?? \App\Enum\ReportType::Rsst->value;
+$reportType = $report->type;
 $reportShortLabel = getRegistryShortLabel($reportType);
 ?>
 
 <?php echo renderBreadcrumb([
     ['url' => $http->url('home'), 'label' => 'Accueil'],
     ['url' => $http->url('report_list', ['type' => $reportType]), 'label' => $reportShortLabel],
-    ['label' => $reference],
+    ['label' => $report->reference],
 ]); ?>
 
 <?php
@@ -75,7 +68,7 @@ if ($justCreated):
     <div class="confirmation-banner__content">
         <h2 class="confirmation-banner__title">Signalement bien enregistré !</h2>
         <p class="confirmation-banner__text">
-            Votre signalement <strong><?php echo e($reference); ?></strong> a été enregistré dans le registre <?php echo e($reportShortLabel); ?>.
+            Votre signalement <strong><?php echo e($report->reference); ?></strong> a été enregistré dans le registre <?php echo e($reportShortLabel); ?>.
             Un superviseur va le prendre en charge.
         </p>
         <p class="confirmation-banner__text">
@@ -91,24 +84,24 @@ if ($justCreated):
 
 <?php
     // Previous/Next navigation for the same registry list
-    $adjacent = \App\Repository\ReportRepository::instance()->getAdjacentUuids($report);
+    $adjacent = \App\Repository\ReportRepository::instance()->getAdjacentUuids($report->toArray());
 ?>
 
 <?php
 require __DIR__ . '/../templates/report_card.php';
 ?>
 
-<?php if (!empty($adjacent['prev']) || !empty($adjacent['next'])): ?>
+<?php if ($adjacent->prev !== null || $adjacent->next !== null): ?>
 <nav class="report-nav" aria-label="Navigation entre signalements">
-    <?php if (!empty($adjacent['prev'])): ?>
-    <a href="<?php echo $http->url('report_view', ['uuid' => $adjacent['prev']]); ?>" class="report-nav__link">
+    <?php if ($adjacent->prev !== null): ?>
+    <a href="<?php echo $http->url('report_view', ['uuid' => $adjacent->prev]); ?>" class="report-nav__link">
         &#8592; Précédent
     </a>
     <?php else: ?>
     <span></span>
     <?php endif; ?>
-    <?php if (!empty($adjacent['next'])): ?>
-    <a href="<?php echo $http->url('report_view', ['uuid' => $adjacent['next']]); ?>" class="report-nav__link report-nav__link--next">
+    <?php if ($adjacent->next !== null): ?>
+    <a href="<?php echo $http->url('report_view', ['uuid' => $adjacent->next]); ?>" class="report-nav__link report-nav__link--next">
         Suivant &#8594;
     </a>
     <?php endif; ?>

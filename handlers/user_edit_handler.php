@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Enum\UserRole;
 
 /**
@@ -16,8 +18,8 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\UpdateUserCommand;
 use App\Services\UserService;
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 $userId = (int) ($_POST['user_id'] ?? 0);
 if ($userId <= 0) {

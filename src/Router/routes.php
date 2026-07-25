@@ -8,6 +8,7 @@
  *
  * Uses the DI Container for middleware instantiation.
  */
+use App\Services\ConfigService;
 use App\Enum\UserRole;
 use App\Router\Router;
 use App\Middleware\CsrfMiddleware;
@@ -118,7 +119,7 @@ function createRouter(): Router
     $router->setPageTitle('guide', 'Guide rapide — Comment signaler');
     $router->setPageTitle('changelog', 'Historique des modifications');
     $router->setPageTitle('choose_site', 'Choisir mon site');
-    $router->setPageTitle('report_create', \App\Services\ConfigService::getInstance()->get('app_report_create_label', 'Signaler un événement'));
+    $router->setPageTitle('report_create', ConfigService::getInstance()->get('app_report_create_label', 'Signaler un événement'));
     $router->setPageTitle('report_list', 'Liste des fiches');
     $router->setPageTitle('report_view', 'Signalement');
     $router->setPageTitle('report_edit', 'Modifier le signalement');

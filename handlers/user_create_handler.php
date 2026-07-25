@@ -1,5 +1,8 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
+
 /**
  * User Create Handler — Application SST DREETS BFC
  *
@@ -14,8 +17,8 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\CreateUserCommand;
 use App\Services\UserService;
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 $service = getContainer()->get(UserService::class);
 $cmd = CreateUserCommand::fromPost($_POST);

@@ -1,7 +1,6 @@
 <?php
 
 use App\Enum\ReportState;
-use App\Enum\ReportType;
 
 /**
  * Report Reopen Page — Application SST DREETS BFC
@@ -28,13 +27,13 @@ if (!in_array($userRole, [\App\Enum\UserRole::Superviseur->value], true)) {
 }
 
 // Check report is in a reopenable state
-if (!in_array($report['etat'], [ReportState::Traite->value, ReportState::Abandonne->value], true)) {
-    new \App\Services\SessionService()->setFlash('error', 'Ce signalement ne peut pas être réouvert (état actuel : ' . $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']) . ').');
+if (!in_array($report->etat, [ReportState::Traite->value, ReportState::Abandonne->value], true)) {
+    new \App\Services\SessionService()->setFlash('error', 'Ce signalement ne peut pas être réouvert (état actuel : ' . $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat) . ').');
     $http->redirect($http->url('report_view', ['uuid' => $uuid]));
 }
 
-$pageTitle = 'Réouvrir le signalement — ' . $report['reference'];
-$type = $report['type'];
+$pageTitle = 'Réouvrir le signalement — ' . $report->reference;
+$type = $report->type;
 $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 $typeStr = (string) $type;
 
@@ -48,30 +47,30 @@ $flash = new \App\Services\SessionService()->getFlash();
 <?php echo $fmt->renderBreadcrumb([
     ['url' => $http->url('home'), 'label' => 'Accueil'],
     ['url' => $http->url('report_list', ['type' => $type]), 'label' => getRegistryShortLabel($typeStr)],
-    ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
+    ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report->reference],
     ['label' => 'Réouvrir'],
 ]); ?>
 
 <?php $registryForTheme = \App\Repository\RegistryRepository::instance()->findByCode($type); ?>
-<div class="card card--<?php echo e((string) ($registryForTheme["color_theme"] ?? $type)); ?>">
+<div class="card card--<?php echo e((string) ($registryForTheme['color_theme'] ?? $type)); ?>">
     ReportType::Rsst->value => 'card--rsst', ReportType::Rami->value => 'card--rami', ReportType::Dgi->value => 'card--dgi', default => 'card--rsst'
 }; ?>">
-    <h2 class="card__subtitle">Signalement <?php echo $fmt->e($report['reference']); ?></h2>
+    <h2 class="card__subtitle">Signalement <?php echo $fmt->e($report->reference); ?></h2>
     <table class="report-detail__table" aria-label="Détails du signalement">
         <tbody>
             <tr>
                 <th>Objet</th>
-                <td><?php echo $fmt->e($report['objet']); ?></td>
+                <td><?php echo $fmt->e($report->objet); ?></td>
             </tr>
             <tr>
                 <th>Date de l'événement</th>
-                <td><?php echo $fmt->e($fmt->formatDateFR($report['date_evenement'])); ?></td>
+                <td><?php echo $fmt->e($fmt->formatDateFR($report->dateEvenement)); ?></td>
             </tr>
             <tr>
                 <th>État actuel</th>
                 <td>
-                    <span class="badge <?php echo $fmt->getEtatBadgeClass($report['etat']); ?>">
-                        <?php echo $fmt->e(ETAT_LABELS[$report['etat']] ?? $report['etat']); ?>
+                    <span class="badge <?php echo $fmt->getEtatBadgeClass($report->etat); ?>">
+                        <?php echo $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat); ?>
                     </span>
                 </td>
             </tr>
@@ -86,7 +85,7 @@ $flash = new \App\Services\SessionService()->getFlash();
     <?php endif; ?>
 
 <div class="warning-panel">
-    <?php if ($report['type'] === \App\Enum\ReportType::Dgi->value): ?>
+    <?php if ($report->type === \App\Enum\ReportType::Dgi->value): ?>
     <div class="alert alert--danger" role="alert">
         <strong>Attention — Registre DGI</strong><br>
         La réouverture d'un signalement DGI signifie que le danger grave et imminent n'a pas été résolu. 
@@ -94,12 +93,12 @@ $flash = new \App\Services\SessionService()->getFlash();
     </div>
     <?php endif; ?>
 
-    <p>Vous êtes sur le point de réouvrir le signalement <strong><?php echo $fmt->e($report['reference']); ?></strong>.</p>
+    <p>Vous êtes sur le point de réouvrir le signalement <strong><?php echo $fmt->e($report->reference); ?></strong>.</p>
     <p class="warning-panel__hint">Le signalement repassera à l'état « Réouvert ». Veuillez indiquer le motif de cette réouverture.</p>
 
     <form method="POST" action="<?php echo $http->url('report_reopen', ['uuid' => $uuid]); ?>" class="mt-4">
         <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
-        <input type="hidden" name="report_uuid" value="<?php echo $fmt->e($report['uuid']); ?>">
+        <input type="hidden" name="report_uuid" value="<?php echo $fmt->e($report->uuid); ?>">
 
         <div class="form-group">
             <label for="motif_reouverture">Motif de réouverture <span class="required">*</span></label>

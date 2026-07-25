@@ -106,7 +106,7 @@ class ChsctScopeConsistencyTest extends TestCase
             chsctConsentOnly: true,
         );
         $result = ReportRepository::instance()->findPaginated($filter, 1, 100);
-        $uuids = array_column($result['reports'], 'uuid');
+        $uuids = array_map(fn($r) => $r->uuid, $result->reports);
 
         $this->assertNotContains(
             $this->reportUuid,
@@ -146,7 +146,7 @@ class ChsctScopeConsistencyTest extends TestCase
             chsctConsentOnly: false,
         );
         $result = ReportRepository::instance()->findPaginated($filter, 1, 100);
-        $uuids = array_column($result['reports'], 'uuid');
+        $uuids = array_map(fn($r) => $r->uuid, $result->reports);
 
         $this->assertContains(
             $this->reportUuid,
@@ -189,7 +189,7 @@ class ChsctScopeConsistencyTest extends TestCase
             chsctConsentOnly: true,
         );
         $result = ReportRepository::instance()->findPaginated($filter, 1, 100);
-        $uuids = array_column($result['reports'], 'uuid');
+        $uuids = array_map(fn($r) => $r->uuid, $result->reports);
 
         $this->assertContains(
             $this->reportUuid,

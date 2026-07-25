@@ -80,10 +80,9 @@ $forceSiteIdFilter = !empty($forceSiteIdRaw) ? (int) $forceSiteIdRaw : null;
 $filterSearch = $filters['q'] ?? null;
 $linkedAgentIdFilter = !empty($filters['linked_agent_id']) ? (int) $filters['linked_agent_id'] : null;
 $linkedAgentVisibilityFilter = $filters['linked_agent_visibility'] ?? null;
-/** @var array{reports: list<array<string, mixed>>, total: int} $result */
-$result = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: $filterSiteId, declarantId: $declarantIdFilter, forceSiteId: $forceSiteIdFilter, search: $filterSearch, seeAllSites: $seeAllSites, chsctConsentOnly: $chsctScope === 'consent_only', linkedAgentId: $linkedAgentIdFilter, linkedAgentVisibility: $linkedAgentVisibilityFilter), $pageNum, $perPage);
-$reports = $result['reports'];
-$totalItems = $result['total'];
+$pager = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: $filterSiteId, declarantId: $declarantIdFilter, forceSiteId: $forceSiteIdFilter, search: $filterSearch, seeAllSites: $seeAllSites, chsctConsentOnly: $chsctScope === 'consent_only', linkedAgentId: $linkedAgentIdFilter, linkedAgentVisibility: $linkedAgentVisibilityFilter), $pageNum, $perPage);
+$reports = $pager->reports;
+$totalItems = $pager->total;
 
 // Get all sites for filter dropdown
 /** @var list<array<string, mixed>> $allSites */
@@ -192,30 +191,24 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
                 <?php else: ?>
                     <?php foreach ($reports as $report): ?>
                     <?php
-                        /** @var array<string, mixed> $report */
-                        $canEdit = $access->canEditReport((array) $report, $userId);
-                        $canRespond = $access->canRespondToReport((array) $report, $userRole);
+                        $reportArr = $report->toArray();
+                        $canEdit = $access->canEditReport($reportArr, $userId);
+                        $canRespond = $access->canRespondToReport($reportArr, $userRole);
                         ?>
                     <tr>
-                        <td data-label="Référence"><strong><?php echo $fmt->e($report['reference'] ?? ''); ?></strong></td>
-                        <?php
-                            $reportDateEvenement = $report['date_evenement'] ?? '';
-                        $reportObjet = $report['objet'] ?? '';
-                        $reportEtat = $report['etat'] ?? '';
-                        $reportUuid = $report['uuid'] ?? '';
-                        ?>
-                        <td data-label="Date"><?php echo $fmt->e($fmt->formatDateFR($reportDateEvenement)); ?></td>
-                        <td data-label="Objet"><?php echo $fmt->e($fmt->truncate($reportObjet, 50)); ?></td>
-                        <td data-label="Nom"><?php echo $fmt->e($report['declarant_nom'] ?? ''); ?></td>
-                        <td data-label="Prénom"><?php echo $fmt->e($report['declarant_prenom'] ?? ''); ?></td>
-                        <?php if (!$noSiteMode): ?><td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><?php echo $fmt->e($report['site_code'] ?? '—'); ?></td><?php endif; ?>
+                        <td data-label="Référence"><strong><?php echo $fmt->e($report->reference); ?></strong></td>
+                        <td data-label="Date"><?php echo $fmt->e($fmt->formatDateFR($report->dateEvenement)); ?></td>
+                        <td data-label="Objet"><?php echo $fmt->e($fmt->truncate($report->objet, 50)); ?></td>
+                        <td data-label="Nom"><?php echo $fmt->e($report->declarantNom); ?></td>
+                        <td data-label="Prénom"><?php echo $fmt->e($report->declarantPrenom); ?></td>
+                        <?php if (!$noSiteMode): ?><td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><?php echo $fmt->e($report->siteCode ?: '—'); ?></td><?php endif; ?>
                         <td data-label="État">
-                            <span class="badge <?php echo $fmt->getEtatBadgeClass($reportEtat); ?>">
-                                <?php echo $fmt->e(ETAT_LABELS[$reportEtat] ?? $reportEtat); ?>
+                            <span class="badge <?php echo $fmt->getEtatBadgeClass($report->etat); ?>">
+                                <?php echo $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat); ?>
                             </span>
                         </td>
                         <td data-label="Visibilité">
-                            <?php if (!empty($report['is_confidential'])): ?>
+                            <?php if ($report->isConfidential): ?>
                             <span class="badge badge--confidential">&#128274; Confidentiel</span>
                             <?php else: ?>
                             <span class="badge badge--public">Public</span>
@@ -223,12 +216,12 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
                         </td>
                         <td data-label="Actions">
                             <div class="btn-group">
-                                <a href="<?php echo $http->url('report_view', ['uuid' => $reportUuid]); ?>" class="btn btn--sm btn--outline">Voir</a>
+                                <a href="<?php echo $http->url('report_view', ['uuid' => $report->uuid]); ?>" class="btn btn--sm btn--outline">Voir</a>
                                 <?php if ($canEdit): ?>
-                                <a href="<?php echo $http->url('report_edit', ['uuid' => $reportUuid]); ?>" class="btn btn--sm btn--secondary">Modifier</a>
+                                <a href="<?php echo $http->url('report_edit', ['uuid' => $report->uuid]); ?>" class="btn btn--sm btn--secondary">Modifier</a>
                                 <?php endif; ?>
                                 <?php if ($canRespond): ?>
-                                <a href="<?php echo $http->url('report_respond', ['uuid' => $reportUuid]); ?>" class="btn btn--sm btn--primary">Répondre</a>
+                                <a href="<?php echo $http->url('report_respond', ['uuid' => $report->uuid]); ?>" class="btn btn--sm btn--primary">Répondre</a>
                                 <?php endif; ?>
                             </div>
                         </td>

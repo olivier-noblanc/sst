@@ -1,5 +1,8 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
+
 /**
  * Login Handler — Application SST DREETS BFC
  *
@@ -15,8 +18,8 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\Services\AuthService;
 use App\Services\SessionManager;
 
-$http = new \App\Services\HttpService();
-$sessionService = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$sessionService = SessionService::getInstance();
 
 validatePostRequest($http->url('login'));
 

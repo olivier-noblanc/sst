@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\HttpService;
+use App\Services\SessionService;
 use App\Enum\ReportState;
 
 /**
@@ -15,8 +17,8 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\RespondToReportCommand;
 use App\Services\ReportService;
 
-$http = new \App\Services\HttpService();
-$session = \App\Services\SessionService::getInstance();
+$http = new HttpService();
+$session = SessionService::getInstance();
 
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 
@@ -45,10 +47,7 @@ if (mb_strlen($reponse, 'UTF-8') > 5000) {
 
 // Validate report state
 $report = fetchReportOrRedirect($reportUuid);
-
-/** @var array<string, string> $report */
-
-if (!in_array($report['etat'], [ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Reouvert->value], true)) {
+if (!in_array($report->etat, [ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Reouvert->value], true)) {
     $session->setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
     $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
 }
@@ -67,7 +66,7 @@ if (isset($_FILES['response_attachment']) && is_array($_FILES['response_attachme
 }
 
 $pdo = getDB();
-$userId = (int)($session->getUserSession()['id'] ?? 0);
+$userId = (int) ($session->getUserSession()['id'] ?? 0);
 
 try {
     $cmd = new RespondToReportCommand(
@@ -80,12 +79,12 @@ try {
     $result = $service->respond($reportUuid, $cmd, $userId);
 
     if (is_array($result) && ($result['status'] ?? '') === 'ok') {
-        auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report['reference'] . ' — état : ' . $nouvelEtat, null, 'report', ['reference' => $report['reference'], 'nouvel_etat' => $nouvelEtat], $reportUuid);
+        auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report->reference . ' — état : ' . $nouvelEtat, null, 'report', ['reference' => $report->reference, 'nouvel_etat' => $nouvelEtat], $reportUuid);
 
         require_once __DIR__ . '/../src/mail.php';
         notifyReportResponse($pdo, $reportUuid, $userId);
 
-        $session->setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report['reference']) . '.');
+        $session->setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report->reference) . '.');
     } else {
         $status = $result['status'] ?? '';
         if ($status === 'concurrent') {

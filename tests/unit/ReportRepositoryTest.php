@@ -101,14 +101,14 @@ class ReportRepositoryTest extends TestCase
         $totalFromEachPage = [];
         foreach ([1, 2, 3] as $page) {
             $result = $this->repo->findPaginated($filter, $page, 2);
-            $totalFromEachPage[] = $result['total'];
-            foreach ($result['reports'] as $report) {
+            $totalFromEachPage[] = $result->total;
+            foreach ($result->reports as $report) {
                 $this->assertNotContains(
-                    $report['uuid'],
+                    $report->uuid,
                     $seenUuids,
-                    "Page $page returned uuid {$report['uuid']} already seen on an earlier page — offset math is wrong."
+                    "Page $page returned uuid {$report->uuid} already seen on an earlier page — offset math is wrong."
                 );
-                $seenUuids[] = $report['uuid'];
+                $seenUuids[] = $report->uuid;
             }
         }
 
@@ -130,8 +130,8 @@ class ReportRepositoryTest extends TestCase
         $default = $this->repo->findPaginated($filter, perPage: 20);
         $explicitPage1 = $this->repo->findPaginated($filter, 1, 20);
 
-        $this->assertEquals($explicitPage1['reports'], $default['reports']);
-        $this->assertContains($uuid, array_column($default['reports'], 'uuid'));
+        $this->assertEquals($explicitPage1->reports, $default->reports);
+        $this->assertContains($uuid, array_map(fn($r) => $r->uuid, $default->reports));
     }
 
     /** @param array<string, mixed> $overrides */

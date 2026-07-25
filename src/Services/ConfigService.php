@@ -8,7 +8,6 @@ use App\Enum\UserRole;
 use App\Repository\ConfigRepository;
 use App\Repository\RegistryRepository;
 use App\Repository\SiteRepository;
-use Exception;
 
 class ConfigService
 {

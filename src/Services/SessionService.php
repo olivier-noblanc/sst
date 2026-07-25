@@ -176,6 +176,13 @@ class SessionService
         if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
             $_SESSION['user']['role'] = $targetRole;
         }
+        // Audit #33 — regenerate session ID on impersonation start.
+        // Prevents session fixation: if an attacker steals the session cookie
+        // before impersonation starts, they can't hijack the impersonated role.
+        // Same logic as login — session ID changes, old cookie is invalidated.
+        if (function_exists('safeSessionRegenerate')) {
+            \safeSessionRegenerate();
+        }
     }
 
     /**

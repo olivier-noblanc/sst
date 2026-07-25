@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-25 (v3.50.0)
+Dernière mise à jour : 2026-07-25 (v3.51.0)
 
 ---
 
@@ -389,7 +389,7 @@ Remplacer les `string` par des types enum dans les constructeurs DTO :
 **Impact** : Type-safety au niveau compilation, impossible de passer une string invalide
 **Risque** : Moyen — toucher les DTOs affecte tous les appelants
 
-### A5 — Injecter PDO dans `NotificationService`
+### A5 — ✅ Injecter PDO dans `NotificationService`
 
 `NotificationService` construit son propre `PDO` via `getDB()` dans le constructeur au lieu d'utiliser l'injection de dépendances du Container.
 
@@ -407,7 +407,7 @@ public function __construct(private readonly PDO $pdo) {}
 **Fichiers** : `src/Services/NotificationService.php`, `src/bootstrap_services.php`
 **Impact** : Conformité DI, testabilité
 
-### A6 — Migrer SQL de `audit.php` vers `AuditRepository`
+### A6 — ✅ Migrer SQL de `audit.php` vers `AuditRepository`
 
 `src/audit.php` (155 lignes) contient du SQL procedural (INSERT, SELECT, pagination). Devrait être encapsulé dans un repository.
 

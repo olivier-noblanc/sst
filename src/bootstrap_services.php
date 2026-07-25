@@ -10,6 +10,7 @@ use App\Repository\NotificationRepository;
 use App\Repository\StatsRepository;
 use App\Repository\RegistryRepository;
 use App\Repository\RegistryFieldRepository;
+use App\Repository\AuditRepository;
 use App\Services\ReportService;
 use App\Services\UserService;
 use App\Services\AuthService;
@@ -61,6 +62,9 @@ function createContainer(): Container
     $container->set(RegistryFieldRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new RegistryFieldRepository($pdo);
     });
+    $container->set(AuditRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new AuditRepository($pdo);
+    });
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Services — standalone (no constructor dependencies)
@@ -73,12 +77,16 @@ function createContainer(): Container
     $container->set(HttpService::class, fn() => new HttpService());
     $container->set(AssetService::class, fn() => new AssetService());
     $container->set(SessionManager::class, fn() => new SessionManager());
-    $container->set(NotificationService::class, fn() => new NotificationService());
 
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Services — with dependencies
     // ═══════════════════════════════════════════════════════════════════════════════
+
+    $container->set(NotificationService::class, function (Container $c) {
+        /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new NotificationService($pdo);
+    });
 
     $container->set(ReportService::class, function (Container $c) {
         /** @var ReportRepository $repo */ $repo = $c->get(ReportRepository::class);

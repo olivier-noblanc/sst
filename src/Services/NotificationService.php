@@ -15,12 +15,9 @@ use PDO;
 
 class NotificationService
 {
-    private readonly PDO $pdo;
-
-    public function __construct()
-    {
-        $this->pdo = getDB();
-    }
+    public function __construct(
+        private readonly PDO $pdo
+    ) {}
 
     /**
      * Notify relevant people about a new report.

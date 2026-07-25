@@ -3,6 +3,16 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.51.0] — 2026-07-25
+
+### Refactoring — DI + AuditRepository
+
+- **1** 🔴 **`NotificationService`** : `getDB()` dans le constructeur → injection PDO via DI Container. Déplacé dans la section "Services — with dependencies" de `bootstrap_services.php`.
+- **2** 🔴 **`AuditRepository`** (nouveau) : SQL de `audit.php` encapsulé dans `App\Repository\AuditRepository` — `log()`, `findPaginated()`, `findByTarget()`. Enregistré dans le DI Container.
+- **3** 🔴 **`audit.php`** : converti en délégués propres (même pattern que `src/helpers/`). Signature publique inchangée — 0 impact sur les 20+ appelants.
+- **4** 🔴 **PHPStan 0 erreur**, tous les tests passent.
+
+
 ## [3.50.0] — 2026-07-25
 
 ### Refactoring — Type-safety DTOs + DRY handlers

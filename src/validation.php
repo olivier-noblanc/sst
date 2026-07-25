@@ -227,3 +227,22 @@ function requireReportEditable(ReportData $report, string $uuid, string $verb = 
         new HttpService()->redirect(new HttpService()->url('report_view', ['uuid' => $uuid]));
     }
 }
+
+/**
+ * Verify that the report is in a respondable state (nouveau, en_cours, or reouvert).
+ * Stricter than requireReportEditable: 'reouvert' is respondable but not editable.
+ *
+ * Audit #4 — workflow réouvrir→répondre cassé. Avant ce fix, requireReportEditable
+ * était appelé dans report_respond.php et rejetait l'état 'reouvert'. Mais
+ * canRespondToReport (AccessService.php:200) accepte Reouvert. Inconsistance :
+ * un superviseur pouvait réouvrir un signalement, mais ne pouvait plus y répondre.
+ *
+ * @param string $verb  Verb used in the error message (default: 'répondu')
+ */
+function requireReportRespondable(ReportData $report, string $uuid, string $verb = 'répondu'): void
+{
+    if (!in_array($report->etat, [ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Reouvert->value], true)) {
+        SessionService::getInstance()->setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$report->etat] ?? $report->etat) . ').');
+        new HttpService()->redirect(new HttpService()->url('report_view', ['uuid' => $uuid]));
+    }
+}

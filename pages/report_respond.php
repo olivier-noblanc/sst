@@ -19,7 +19,7 @@ $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 // Check if report can be responded to
-requireReportEditable($report, $uuid, 'répondu');
+requireReportRespondable($report, $uuid, 'répondu');
 
 $pdo = getContainer()->get(\PDO::class);
 $noSiteMode = $config->isNoSiteMode();

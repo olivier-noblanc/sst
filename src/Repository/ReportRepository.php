@@ -330,13 +330,6 @@ class ReportRepository
         return (int) $stmt->fetchColumn();
     }
 
-    public function countActiveForUser(string $type, int $userId): int
-    {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ReportState::Abandonne->value . "' AND declarant_id = :user_id");
-        $stmt->execute([':type' => $type, ':user_id' => $userId]);
-        return (int) $stmt->fetchColumn();
-    }
-
     /**
      * Count reports visible to an agent, including reports where they are linked
      * via report_agents table.

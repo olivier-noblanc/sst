@@ -218,6 +218,107 @@ $visibilityModes = [
     </div>
 </form>
 
+<!-- Registry Fields Management -->
+<?php
+$fieldRepo = \App\Repository\RegistryFieldRepository::instance();
+$enabledRegistries = $registryRepo->findEnabled();
+?>
+<h2 class="card__subtitle mb-4 mt-6">Champs personnalisés par registre</h2>
+<p class="text-muted text-small mb-4">Gérez les champs spécifiques à chaque registre (ex: nature_auteur pour RAMI). Les champs sont affichés dans le formulaire de signalement.</p>
+
+<?php foreach ($enabledRegistries as $reg):
+    $regId = (int) $reg['id'];
+    $fields = $fieldRepo->findByRegistry($regId);
+?>
+<div class="card mb-4">
+    <h3 class="card__subtitle mb-2"><?php echo $fmt->e((string) $reg['label']); ?> (<?php echo $fmt->e((string) $reg['short_label']); ?>)</h3>
+
+    <?php if (!empty($fields)): ?>
+    <table class="table-wrapper" aria-label="Champs du registre <?php echo $fmt->e((string) $reg['short_label']); ?>">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Libellé</th>
+                <th>Type</th>
+                <th>Obligatoire</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($fields as $field): ?>
+            <tr>
+                <td><code><?php echo $fmt->e((string) $field['field_code']); ?></code></td>
+                <td><?php echo $fmt->e((string) $field['label']); ?></td>
+                <td><?php echo $fmt->e((string) $field['field_type']); ?></td>
+                <td><?php echo (int) $field['is_required'] ? 'Oui' : 'Non'; ?></td>
+                <td>
+                    <form method="POST" action="<?php echo $http->url('settings'); ?>" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
+                        <input type="hidden" name="tab" value="registres">
+                        <input type="hidden" name="field_id" value="<?php echo (int) $field['id']; ?>">
+                        <button type="submit" name="action" value="delete_field" class="btn btn--danger btn--sm"
+                                onclick="return confirm('Supprimer ce champ ?')">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php else: ?>
+    <p class="text-muted">Aucun champ personnalisé pour ce registre.</p>
+    <?php endif; ?>
+
+    <!-- Add new field -->
+    <div class="card card--dashed mt-4">
+        <h4 class="card__subtitle mb-2">Ajouter un champ</h4>
+        <form method="POST" action="<?php echo $http->url('settings'); ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
+            <input type="hidden" name="tab" value="registres">
+            <input type="hidden" name="registry_id" value="<?php echo $regId; ?>">
+            <div class="form-grid form-grid--4">
+                <div class="form-group">
+                    <label for="new_field_code_<?php echo $regId; ?>">Code</label>
+                    <input type="text" id="new_field_code_<?php echo $regId; ?>" name="new_field_code" class="input" maxlength="50"
+                           placeholder="ex: nature_auteur" pattern="[a-z_]+" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_field_label_<?php echo $regId; ?>">Libellé</label>
+                    <input type="text" id="new_field_label_<?php echo $regId; ?>" name="new_field_label" class="input" maxlength="100"
+                           placeholder="Nature de l'auteur" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_field_type_<?php echo $regId; ?>">Type</label>
+                    <select id="new_field_type_<?php echo $regId; ?>" name="new_field_type" class="input">
+                        <option value="text">Texte</option>
+                        <option value="select">Sélection</option>
+                        <option value="textarea">Zone de texte</option>
+                        <option value="checkbox">Case à cocher</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new_field_options_<?php echo $regId; ?>">Options (JSON, pour select)</label>
+                    <input type="text" id="new_field_options_<?php echo $regId; ?>" name="new_field_options" class="input"
+                           placeholder='{"usager":"Usager","collegue":"Collègue"}'>
+                </div>
+            </div>
+            <div class="form-grid form-grid--2">
+                <div class="form-group">
+                    <label class="label--checkbox">
+                        <input type="checkbox" name="new_field_required" value="1">
+                        Obligatoire
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="new_field_order_<?php echo $regId; ?>">Ordre</label>
+                    <input type="number" id="new_field_order_<?php echo $regId; ?>" name="new_field_order" class="input" value="0" min="0">
+                </div>
+            </div>
+            <button type="submit" name="action" value="add_field" class="btn btn--primary mt-2">Ajouter ce champ</button>
+        </form>
+    </div>
+</div>
+<?php endforeach; ?>
+
 <script>
 document.querySelectorAll('.color-picker').forEach(function(picker) {
     var hidden = picker.previousElementSibling;

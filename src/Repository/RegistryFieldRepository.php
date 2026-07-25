@@ -96,9 +96,4 @@ class RegistryFieldRepository
         $stmt->execute([':id' => $id]);
         return $stmt->rowCount() > 0;
     }
-
-    public function getPdo(): PDO
-    {
-        return $this->pdo;
-    }
 }

@@ -172,11 +172,6 @@ class RegistryRepository
         }
     }
 
-    public function getPdo(): PDO
-    {
-        return $this->pdo;
-    }
-
     /**
      * Get all available CSS theme keys.
      * @return list<string>

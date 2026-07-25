@@ -20,7 +20,59 @@ use App\Enum\VisibilityMode;
 function handleSettingsRegistresTab(PDO $pdo, array $postData): void
 {
     $repo = RegistryRepository::instance();
+    $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
     $action = trim((string) ($postData['action'] ?? 'save'));
+
+    // ── Delete a registry field ──────────────────────────────────────────
+    if ($action === 'delete_field') {
+        $fieldId = (int) ($postData['field_id'] ?? 0);
+        if ($fieldId > 0) {
+            $fieldRepo->delete($fieldId);
+            setFlash('success', 'Champ supprimé.');
+        }
+        redirect(url('settings', ['tab' => 'registres']));
+    }
+
+    // ── Add a new registry field ─────────────────────────────────────────
+    if ($action === 'add_field') {
+        $registryId = (int) ($postData['registry_id'] ?? 0);
+        $fieldCode = trim(strtolower((string) ($postData['new_field_code'] ?? '')));
+        $fieldLabel = trim((string) ($postData['new_field_label'] ?? ''));
+        $fieldType = trim((string) ($postData['new_field_type'] ?? 'text'));
+        $fieldOptions = trim((string) ($postData['new_field_options'] ?? ''));
+        $isRequired = !empty($postData['new_field_required']) ? 1 : 0;
+        $sortOrder = (int) ($postData['new_field_order'] ?? 0);
+
+        if ($registryId <= 0 || $fieldCode === '' || $fieldLabel === '') {
+            setFlash('error', 'Registre, code et libellé sont requis.');
+            redirect(url('settings', ['tab' => 'registres']));
+        }
+
+        if (!preg_match('/^[a-z_]+$/', $fieldCode)) {
+            setFlash('error', 'Le code ne doit contenir que des lettres minuscules et des underscores.');
+            redirect(url('settings', ['tab' => 'registres']));
+        }
+
+        if ($fieldOptions !== '') {
+            $decoded = json_decode($fieldOptions, true);
+            if (!is_array($decoded)) {
+                setFlash('error', 'Les options doivent être un JSON valide.');
+                redirect(url('settings', ['tab' => 'registres']));
+            }
+        }
+
+        $fieldRepo->create($registryId, [
+            'field_code'  => $fieldCode,
+            'label'       => $fieldLabel,
+            'field_type'  => $fieldType,
+            'options'     => $fieldOptions !== '' ? $fieldOptions : null,
+            'is_required' => $isRequired,
+            'sort_order'  => $sortOrder,
+        ]);
+
+        setFlash('success', 'Champ « ' . $fieldLabel . ' » ajouté.');
+        redirect(url('settings', ['tab' => 'registres']));
+    }
 
     // ── Delete a registry ─────────────────────────────────────────────────
     if (str_starts_with($action, 'delete_')) {

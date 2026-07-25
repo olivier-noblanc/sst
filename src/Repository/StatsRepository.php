@@ -244,16 +244,6 @@ class StatsRepository
         return is_array($rows) ? $rows : [];
     }
 
-    public function countByRegistryAndSite(string $type, int $siteId): int
-    {
-        $stmt = $this->pdo->prepare("
-            SELECT COUNT(*) FROM reports
-            WHERE type = :type AND site_id = :site_id AND etat != 'abandonne'
-        ");
-        $stmt->execute([':type' => $type, ':site_id' => $siteId]);
-        return (int) $stmt->fetchColumn();
-    }
-
     /** @return list<mixed> */
     public function getAvailableYears(): array
     {

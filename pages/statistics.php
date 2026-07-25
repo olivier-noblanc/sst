@@ -110,22 +110,19 @@ $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
         <div class="indicateur-card__label">Total signalements</div>
         <div class="indicateur-card__detail"><?php echo $indicateurs['total_nouveau']; ?> nouveaux · <?php echo $indicateurs['total_en_cours']; ?> en cours · <?php echo $indicateurs['total_traite']; ?> traités</div>
     </div>
-    <div class="indicateur-card indicateur-card--rsst">
-        <div class="indicateur-card__value"><?php echo $indicateurs['total_rsst']; ?></div>
-        <div class="indicateur-card__label">Signalements RSST</div>
+    <?php
+    $registryRepo = \App\Repository\RegistryRepository::instance();
+    foreach ($registryRepo->findEnabled() as $reg):
+        $code = (string) $reg['code'];
+        $classes = \App\Repository\RegistryRepository::themeClasses((string) $reg['color_theme']);
+        $totalKey = 'total_' . str_replace('-', '_', $code);
+        $total = $indicateurs[$totalKey] ?? 0;
+    ?>
+    <div class="indicateur-card <?php echo e($classes['indicateur']); ?>">
+        <div class="indicateur-card__value"><?php echo $total; ?></div>
+        <div class="indicateur-card__label">Signalements <?php echo e((string) $reg['short_label']); ?></div>
     </div>
-    <?php if ($dgiEnabled): ?>
-    <div class="indicateur-card indicateur-card--dgi">
-        <div class="indicateur-card__value"><?php echo $indicateurs['total_dgi']; ?></div>
-        <div class="indicateur-card__label">Signalements DGI</div>
-    </div>
-    <?php endif; ?>
-    <?php if ($ramiEnabled): ?>
-    <div class="indicateur-card indicateur-card--rami">
-        <div class="indicateur-card__value"><?php echo $indicateurs['total_rami']; ?></div>
-        <div class="indicateur-card__label">Signalements RAMI</div>
-    </div>
-    <?php endif; ?>
+    <?php endforeach; ?>
 </div>
 
 <!-- Table: Reports by site and registry -->

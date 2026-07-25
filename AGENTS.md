@@ -56,6 +56,12 @@ final class VisibilityPolicy
 - **NoMagicStringRule** — interdit les magic strings métier
 - **Rector** — auto-migration des patterns legacy
 
+### Règle Rector — refactoring conséquent
+- **Étudier la possibilité d'utiliser Rector** pour les refactoring touchant **50+ fichiers** ou **200+ occurrences** (migrations de fonctions, remplacements de constantes, changements de signatures).
+- Si un rule Rector existant couvre le pattern, l'utiliser plutôt que le remplacement manuel.
+- Créer un Rector rule dédié si aucun rule existant ne couvre le pattern.
+- Exemple : la migration `getConfig()` → `ConfigService::getInstance()->get()` aurait dû être faite via Rector, pas manuellement.
+
 ### Captures d'écran
 - Les captures sont au format **PNG annoté** (numérotation + flèches + descriptions).
 - Elles sont générées en deux étapes : `capture_screenshots.py` (HTML→PNG via Playwright) puis `annotate_screenshots.py` (ajout des callouts via Pillow + détection de positions via Playwright).

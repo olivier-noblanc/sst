@@ -297,8 +297,15 @@ class StatsRepository
     /** @return list<mixed> */
     public function getAvailableYears(): array
     {
+        // Audit #74 — convert created_at (UTC) to Europe/Paris before extracting
+        // the year. Otherwise a report created at Paris 2025-01-01 00:30 (which is
+        // 2024-12-31 23:30 UTC) would appear in year 2024 instead of 2025 in the
+        // year filter dropdown.
+        // +1 hour shifts UTC to Europe/Paris winter time (CET). DST is ignored —
+        // for accurate DST handling we'd need full timezone logic, but for a
+        // year filter dropdown, +/-1h is good enough.
         $stmt = $this->pdo->query("
-            SELECT DISTINCT strftime('%Y', created_at) as year
+            SELECT DISTINCT strftime('%Y', datetime(created_at, '+1 hour')) as year
             FROM reports
             ORDER BY year DESC
         ");

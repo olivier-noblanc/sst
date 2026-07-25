@@ -184,11 +184,13 @@ class ReportRepository
 
     public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): PaginatedReports
     {
-        // Audit #18 — clamp page and perPage to safe values.
-        // Before this fix, a negative or zero page could produce a negative
-        // OFFSET, which SQLite silently treats as 0 (so page -1 returned page 1,
-        // not very harmful, but page 0 with offset -1 * perPage = -20 returned
-        // page 1 too, masking the misuse).
+        // Audit #18 + #73 — clamp page and perPage to safe values.
+        // #18: a negative or zero page could produce a negative OFFSET.
+        // #73: a page > totalPages would produce an empty result + confusing
+        //      UX (blank list, then pagination showing the last page).
+        //      Now we clamp the page to totalPages (computed from the count)
+        //      BEFORE the SELECT data, so the user sees the last available
+        //      page instead of a blank one.
         $page = max(1, $page);
         $perPage = max(1, min(100, $perPage));
 
@@ -283,6 +285,15 @@ class ReportRepository
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reports r WHERE $where");
         $stmt->execute($params);
         $total = (int) $stmt->fetchColumn();
+
+        // Audit #73 — clamp page to totalPages now that we know the total.
+        // If ?p=100 is requested on a 5-page list, return the last page
+        // instead of a blank list. Avoids the confusing "empty list + pagination
+        // showing page 5" UX.
+        $totalPages = (int) ceil($total / $perPage);
+        if ($totalPages > 0 && $page > $totalPages) {
+            $page = $totalPages;
+        }
 
         $params[':limit'] = $perPage;
         $params[':offset'] = ($page - 1) * $perPage;

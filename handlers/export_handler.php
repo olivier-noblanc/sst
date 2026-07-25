@@ -115,7 +115,7 @@ $headers = array_merge($headers, [
     'Date dernière réponse',
     'Historique réponses',
 ]);
-fputcsv($tmpFile, $headers, ';', escape: '\\');
+fputcsv($tmpFile, $headers, ';', escape: '');
 
 // Bulk-fetch all responses for the reports being exported (avoids N+1 queries)
 $allResponses = [];
@@ -197,7 +197,7 @@ foreach ($reports as $row) {
         $csvEscape($historyText),
     ]);
 
-    fputcsv($tmpFile, $csvRow, ';', escape: '\\');
+    fputcsv($tmpFile, $csvRow, ';', escape: '');
 }
 
 // Stream CSV directly to output (avoids loading entire file into memory)

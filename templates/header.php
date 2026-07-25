@@ -22,10 +22,14 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 
-// Content-Security-Policy: CSS served via css.php — no more 'unsafe-inline' for style-src
-// script-src 'unsafe-inline' needed for file-upload filename update in report_form.php
-// img-src data: needed for inline data: URIs (favicons, logos via inlineDataUri())
-// frame-ancestors 'none' : no iframing allowed (screenshots are now <img>, not <iframe>)
+// Content-Security-Policy:
+// - CSS served via css.php + some inline styles still required (tab_registres
+//   cards have inline styles for dynamic colors) → style-src 'self' 'unsafe-inline'
+// - script-src 'unsafe-inline' needed for file-upload filename update in report_form.php
+// - img-src data: needed for inline data: URIs (favicons, logos via inlineDataUri())
+// - frame-ancestors 'none' : no iframing allowed (screenshots are now <img>, not <iframe>)
+// Audit #79 — comment was misleading (said "no more unsafe-inline" but the header
+// still had it). Now accurately reflects the current state.
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';");
 ?>
 <!DOCTYPE html>

@@ -65,6 +65,8 @@ if ($agentVisibility === \App\Enum\VisibilityMode::Confidential->value) {
 // Pagination
 $pageNum = max(1, (int) ($_GET['p'] ?? 1));
 $perPage = ITEMS_PER_PAGE;
+// Audit #73 — see findPaginated, which now clamps the page internally
+// to totalPages (avoids blank page when ?p=100 is requested on a 5-page list).
 
 // Fetch reports
 /** @var string */

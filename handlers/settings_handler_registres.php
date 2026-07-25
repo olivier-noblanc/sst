@@ -23,14 +23,17 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
     $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
     $action = trim((string) ($postData['action'] ?? 'save'));
 
+    $http = new \App\Services\HttpService();
+    $session = \App\Services\SessionService::getInstance();
+
     // ── Delete a registry field ──────────────────────────────────────────
     if ($action === 'delete_field') {
         $fieldId = (int) ($postData['field_id'] ?? 0);
         if ($fieldId > 0) {
             $fieldRepo->delete($fieldId);
-            setFlash('success', 'Champ supprimé.');
+            $session->setFlash('success', 'Champ supprimé.');
         }
-        redirect(url('settings', ['tab' => 'registres']));
+        $http->redirect($http->url('settings', ['tab' => 'registres']));
     }
 
     // ── Add a new registry field ─────────────────────────────────────────
@@ -44,20 +47,20 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
         $sortOrder = (int) ($postData['new_field_order'] ?? 0);
 
         if ($registryId <= 0 || $fieldCode === '' || $fieldLabel === '') {
-            setFlash('error', 'Registre, code et libellé sont requis.');
-            redirect(url('settings', ['tab' => 'registres']));
+            $session->setFlash('error', 'Registre, code et libellé sont requis.');
+            $http->redirect($http->url('settings', ['tab' => 'registres']));
         }
 
         if (!preg_match('/^[a-z_]+$/', $fieldCode)) {
-            setFlash('error', 'Le code ne doit contenir que des lettres minuscules et des underscores.');
-            redirect(url('settings', ['tab' => 'registres']));
+            $session->setFlash('error', 'Le code ne doit contenir que des lettres minuscules et des underscores.');
+            $http->redirect($http->url('settings', ['tab' => 'registres']));
         }
 
         if ($fieldOptions !== '') {
             $decoded = json_decode($fieldOptions, true);
             if (!is_array($decoded)) {
-                setFlash('error', 'Les options doivent être un JSON valide.');
-                redirect(url('settings', ['tab' => 'registres']));
+                $session->setFlash('error', 'Les options doivent être un JSON valide.');
+                $http->redirect($http->url('settings', ['tab' => 'registres']));
             }
         }
 
@@ -70,8 +73,8 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             'sort_order'  => $sortOrder,
         ]);
 
-        setFlash('success', 'Champ « ' . $fieldLabel . ' » ajouté.');
-        redirect(url('settings', ['tab' => 'registres']));
+        $session->setFlash('success', 'Champ « ' . $fieldLabel . ' » ajouté.');
+        $http->redirect($http->url('settings', ['tab' => 'registres']));
     }
 
     // ── Delete a registry ─────────────────────────────────────────────────
@@ -81,12 +84,12 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             $reg = $repo->findById($deleteId);
             if ($reg !== null && (int) $reg['is_system'] === 0) {
                 $repo->delete($deleteId);
-                setFlash('success', 'Registre « ' . $reg['label'] . ' » supprimé.');
+                $session->setFlash('success', 'Registre « ' . $reg['label'] . ' » supprimé.');
             } else {
-                setFlash('error', 'Impossible de supprimer ce registre.');
+                $session->setFlash('error', 'Impossible de supprimer ce registre.');
             }
         }
-        redirect(url('settings', ['tab' => 'registres']));
+        $http->redirect($http->url('settings', ['tab' => 'registres']));
     }
 
     // ── Add a new registry ────────────────────────────────────────────────
@@ -96,18 +99,18 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
         $shortLabel = trim((string) ($postData['new_short_label'] ?? ''));
 
         if ($code === '' || $label === '' || $shortLabel === '') {
-            setFlash('error', 'Code, libellé et sigle sont requis.');
-            redirect(url('settings', ['tab' => 'registres']));
+            $session->setFlash('error', 'Code, libellé et sigle sont requis.');
+            $http->redirect($http->url('settings', ['tab' => 'registres']));
         }
 
         if (!preg_match('/^[a-z_]+$/', $code)) {
-            setFlash('error', 'Le code ne doit contenir que des lettres minuscules et des underscores.');
-            redirect(url('settings', ['tab' => 'registres']));
+            $session->setFlash('error', 'Le code ne doit contenir que des lettres minuscules et des underscores.');
+            $http->redirect($http->url('settings', ['tab' => 'registres']));
         }
 
         if ($repo->countByCode($code) > 0) {
-            setFlash('error', 'Un registre avec le code « ' . $code . ' » existe déjà.');
-            redirect(url('settings', ['tab' => 'registres']));
+            $session->setFlash('error', 'Un registre avec le code « ' . $code . ' » existe déjà.');
+            $http->redirect($http->url('settings', ['tab' => 'registres']));
         }
 
         $maxOrder = 0;
@@ -131,8 +134,8 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             'default_visibility' => VisibilityMode::AgentChoice->value,
         ]);
 
-        setFlash('success', 'Registre « ' . $label . ' » ajouté.');
-        redirect(url('settings', ['tab' => 'registres']));
+        $session->setFlash('success', 'Registre « ' . $label . ' » ajouté.');
+        $http->redirect($http->url('settings', ['tab' => 'registres']));
     }
 
     // ── Save all registres ────────────────────────────────────────────────
@@ -181,6 +184,6 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
         $repo->update($id, $updateData);
     }
 
-    setFlash('success', 'Registres mis à jour avec succès.');
-    redirect(url('settings', ['tab' => 'registres']));
+    $session->setFlash('success', 'Registres mis à jour avec succès.');
+    $http->redirect($http->url('settings', ['tab' => 'registres']));
 }

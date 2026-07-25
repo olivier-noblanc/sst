@@ -29,7 +29,7 @@ class AccessService
      */
     public function getChsctReportScope(): string
     {
-        $value = \getConfig('app_chsct_report_scope', 'consent_only');
+        $value = ConfigService::getInstance()->get('app_chsct_report_scope', 'consent_only');
         return $this->normalizeChsctScope($value);
     }
 
@@ -134,12 +134,12 @@ class AccessService
     {
         if ($type !== null) {
             $key = 'app_report_visibility_' . $type;
-            $value = \getConfig($key, '');
+            $value = ConfigService::getInstance()->get($key, '');
             if ($value !== '') {
                 return $this->normalizeVisibilityValue($value);
             }
         }
-        $value = \getConfig('app_report_visibility', VisibilityMode::AgentChoice->value);
+        $value = ConfigService::getInstance()->get('app_report_visibility', VisibilityMode::AgentChoice->value);
         return $this->normalizeVisibilityValue($value);
     }
 

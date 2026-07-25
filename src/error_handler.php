@@ -101,9 +101,9 @@ function sstShutdownHandler(): void
     // In production, render a clean error page for the user
     // BUT: if app_display_errors is '1' (admin toggle), show the real error instead
     $adminDisplayErrors = false;
-    if (function_exists('getConfig')) {
+    if (class_exists(\App\Services\ConfigService::class)) {
         try {
-            $adminDisplayErrors = (getConfig('app_display_errors', '') === '1');
+            $adminDisplayErrors = (\App\Services\ConfigService::getInstance()->get('app_display_errors', '') === '1');
         } catch (Exception) {
         }
     }

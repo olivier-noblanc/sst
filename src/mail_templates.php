@@ -21,7 +21,7 @@ use App\Services\FormattingService;
  */
 function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string
 {
-    $appName = getConfig('app_nom_organisation', 'DREETS BFC');
+    $appName = \App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
 
     $body = '<html><body>';
     $body .= '<h2>Alerte de délai de traitement</h2>';

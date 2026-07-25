@@ -132,7 +132,7 @@
 <div class="card card--spaced content-section">
     <h2>Guide rapide imprimable</h2>
     <p class="help-description">Vous pouvez imprimer un guide en 3 étapes avec des captures d'écran :</p>
-    <a href="<?php echo url('guide'); ?>" class="btn btn--primary help-cta-btn">
+    <a href="<?php echo new \App\Services\HttpService()->url('guide'); ?>" class="btn btn--primary help-cta-btn">
         📄 Ouvrir le guide rapide
     </a>
 </div>

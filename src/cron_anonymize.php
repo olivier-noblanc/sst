@@ -26,7 +26,7 @@ use App\Enum\ReportState;
  */
 function lazyCronAnonymize(PDO $pdo): void
 {
-    $retentionYears = (int) getConfig('app_retention_years', '0');
+    $retentionYears = (int) \App\Services\ConfigService::getInstance()->get('app_retention_years', '0');
 
     // If retention is disabled (0 = unlimited), skip entirely
     if ($retentionYears <= 0) {

@@ -10,20 +10,23 @@ use App\Services\ReportService;
 
 /** @var array<string, string> $_POST */
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $motifReouverture = trim((string) ($_POST['motif_reouverture'] ?? ''));
 
 if (mb_strlen($motifReouverture, 'UTF-8') < 10) {
-    setFlash('error', 'Le motif de réouverture doit contenir au moins 10 caractères.');
+    $session->setFlash('error', 'Le motif de réouverture doit contenir au moins 10 caractères.');
     setFormData($_POST);
-    redirect(url('report_reopen', ['uuid' => $reportUuid]));
+    $http->redirect($http->url('report_reopen', ['uuid' => $reportUuid]));
 }
 
 $report = fetchReportOrRedirect($reportUuid);
 
 /** @var array<string, string> $report */
 
-$userId = currentUserId();
+$userId = (int)($session->getUserSession()['id'] ?? 0);
 
 try {
     $cmd = new ReopenReportCommand(motif: $motifReouverture);
@@ -65,13 +68,13 @@ try {
             }
         }
 
-        setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' réouvert avec succès.');
+        $session->setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' réouvert avec succès.');
     } else {
-        setFlash('error', 'Ce signalement a été modifié entre-temps. Veuillez réessayer.');
+        $session->setFlash('error', 'Ce signalement a été modifié entre-temps. Veuillez réessayer.');
     }
 } catch (RuntimeException $e) {
-    setFlash('error', e($e->getMessage()));
-    redirect(url('report_view', ['uuid' => $reportUuid]));
+    $session->setFlash('error', e($e->getMessage()));
+    $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
 }
 
-redirect(url('report_view', ['uuid' => $reportUuid]));
+$http->redirect($http->url('report_view', ['uuid' => $reportUuid]));

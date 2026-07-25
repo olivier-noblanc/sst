@@ -26,6 +26,9 @@ require_once __DIR__ . '/settings_handler_registres.php';
 
 /** @var array<string, string> $_POST */
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 $pdo = getDB();
 $tab = (string) ($_POST['tab'] ?? 'sites');
 $notifRepo = NotificationRepository::instance();
@@ -95,12 +98,12 @@ if ($tab === 'smtp') {
             $testBody = '<html><body><h2>Test SMTP</h2><p>Ce message confirme que la connexion SMTP est fonctionnelle.</p></body></html>';
             $sent = sendMail($testTo, $testSubject, $testBody);
             if ($sent) {
-                setFlash('success', 'Configuration SMTP enregistrée. Un e-mail de test a été envoyé à ' . e($testTo) . '.');
+                $session->setFlash('success', 'Configuration SMTP enregistrée. Un e-mail de test a été envoyé à ' . e($testTo) . '.');
             } else {
-                setFlash('warning', 'Configuration SMTP enregistrée, mais l\'envoi de l\'e-mail de test a échoué. Vérifiez les paramètres SMTP.');
+                $session->setFlash('warning', 'Configuration SMTP enregistrée, mais l\'envoi de l\'e-mail de test a échoué. Vérifiez les paramètres SMTP.');
             }
             auditLog($pdo, 'config', 'update', 'Paramètres SMTP modifiés (test ' . ($sent ? 'réussi' : 'échoué') . ')', null, 'config', ['tab' => 'smtp']);
-            redirect(url('settings', ['tab' => 'smtp']));
+            $http->redirect($http->url('settings', ['tab' => 'smtp']));
         }
     }
 }
@@ -156,5 +159,5 @@ $messages = [
     'registres'     => 'Registres mis à jour avec succès.',
 ];
 auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . $tab, null, 'config', ['tab' => $tab]);
-setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');
-redirect(url('settings', ['tab' => $tab]));
+$session->setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');
+$http->redirect($http->url('settings', ['tab' => $tab]));

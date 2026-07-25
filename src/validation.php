@@ -185,17 +185,17 @@ function validatePourCompte(bool $pourCompte, string $pourCompteNom, string $pou
 function fetchReportOrRedirect(string $uuid, string $fallbackUrl = ''): array
 {
     if ($fallbackUrl === '') {
-        $fallbackUrl = url('home');
+        $fallbackUrl = new \App\Services\HttpService()->url('home');
     }
     if (!isValidUuid($uuid)) {
-        setFlash('error', 'Signalement introuvable.');
-        redirect($fallbackUrl);
+        \App\Services\SessionService::getInstance()->setFlash('error', 'Signalement introuvable.');
+        new \App\Services\HttpService()->redirect($fallbackUrl);
     }
     $pdo = getDB();
     $report = ReportRepository::instance()->findById($uuid);
     if ($report === null) {
-        setFlash('error', 'Signalement introuvable.');
-        redirect($fallbackUrl);
+        \App\Services\SessionService::getInstance()->setFlash('error', 'Signalement introuvable.');
+        new \App\Services\HttpService()->redirect($fallbackUrl);
     }
     assert($report !== null);
     return $report;
@@ -215,8 +215,8 @@ function requireReportOwnership(array $report, int $userId, string $uuid, string
     /** @var int */
     $declarantId = $report['declarant_id'] ?? 0;
     if ($declarantId !== $userId) {
-        setFlash('error', 'Vous ne pouvez ' . $verb . ' que vos propres signalements.');
-        redirect(url('report_view', ['uuid' => $uuid]));
+        \App\Services\SessionService::getInstance()->setFlash('error', 'Vous ne pouvez ' . $verb . ' que vos propres signalements.');
+        new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('report_view', ['uuid' => $uuid]));
     }
 }
 
@@ -233,7 +233,7 @@ function requireReportEditable(array $report, string $uuid, string $verb = 'modi
     /** @var string */
     $etat = $report['etat'] ?? '';
     if (!in_array($etat, [ReportState::Nouveau->value, ReportState::EnCours->value], true)) {
-        setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$etat] ?? $etat) . ').');
-        redirect(url('report_view', ['uuid' => $uuid]));
+        \App\Services\SessionService::getInstance()->setFlash('error', 'Ce signalement ne peut plus être ' . $verb . ' (état : ' . (ETAT_LABELS[$etat] ?? $etat) . ').');
+        new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('report_view', ['uuid' => $uuid]));
     }
 }

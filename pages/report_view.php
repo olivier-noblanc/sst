@@ -10,16 +10,18 @@ $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 // Access control: centralized via canAccessReport()
-$user = currentUser();
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+$user = $session->getUserSession();
 if ($user === null) {
-    setFlash('error', 'Accès refusé.');
-    redirect(url('home'));
+    $session->setFlash('error', 'Accès refusé.');
+    $http->redirect($http->url('home'));
     exit;
 }
 
 if (!canAccessReport($report, $user)) {
-    setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
-    redirect(url('home'));
+    $session->setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
+    $http->redirect($http->url('home'));
 }
 
 // Log confidential report access by supervisor/CHSCT
@@ -34,7 +36,7 @@ $userIdRaw = $user['id'] ?? '0';
 /** @var string */
 $userRole = $user['role'] ?? '';
 if ($report['etat'] === \App\Enum\ReportState::Abandonne->value && (int) $declarantIdRaw !== (int) $userIdRaw && !in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true)) {
-    setFlash('warning', 'Ce signalement a été abandonné.');
+    $session->setFlash('warning', 'Ce signalement a été abandonné.');
 }
 
 /** @var string */
@@ -57,8 +59,8 @@ $reportShortLabel = getRegistryShortLabel($reportType);
 ?>
 
 <?php echo renderBreadcrumb([
-    ['url' => url('home'), 'label' => 'Accueil'],
-    ['url' => url('report_list', ['type' => $reportType]), 'label' => $reportShortLabel],
+    ['url' => $http->url('home'), 'label' => 'Accueil'],
+    ['url' => $http->url('report_list', ['type' => $reportType]), 'label' => $reportShortLabel],
     ['label' => $reference],
 ]); ?>
 
@@ -80,8 +82,8 @@ if ($justCreated):
             Vous pouvez consulter son état à tout moment depuis la liste des signalements.
         </p>
         <div class="confirmation-banner__actions">
-            <a href="<?php echo url('home'); ?>" class="btn btn--primary">Retour à l'accueil</a>
-            <a href="<?php echo url('report_list', ['type' => $reportType]); ?>" class="btn btn--outline">Voir mes signalements</a>
+            <a href="<?php echo $http->url('home'); ?>" class="btn btn--primary">Retour à l'accueil</a>
+            <a href="<?php echo $http->url('report_list', ['type' => $reportType]); ?>" class="btn btn--outline">Voir mes signalements</a>
         </div>
     </div>
 </div>
@@ -99,14 +101,14 @@ require __DIR__ . '/../templates/report_card.php';
 <?php if (!empty($adjacent['prev']) || !empty($adjacent['next'])): ?>
 <nav class="report-nav" aria-label="Navigation entre signalements">
     <?php if (!empty($adjacent['prev'])): ?>
-    <a href="<?php echo url('report_view', ['uuid' => $adjacent['prev']]); ?>" class="report-nav__link">
+    <a href="<?php echo $http->url('report_view', ['uuid' => $adjacent['prev']]); ?>" class="report-nav__link">
         &#8592; Précédent
     </a>
     <?php else: ?>
     <span></span>
     <?php endif; ?>
     <?php if (!empty($adjacent['next'])): ?>
-    <a href="<?php echo url('report_view', ['uuid' => $adjacent['next']]); ?>" class="report-nav__link report-nav__link--next">
+    <a href="<?php echo $http->url('report_view', ['uuid' => $adjacent['next']]); ?>" class="report-nav__link report-nav__link--next">
         Suivant &#8594;
     </a>
     <?php endif; ?>

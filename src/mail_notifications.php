@@ -49,7 +49,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         sendMail($email, $subject, $body);
     }
     // DGI: notify CSA/CHSCT members (article L4131-2 Code du travail)
-    if ($type === ReportType::Dgi->value && getConfig('app_dgi_notify_csa', '1') === '1') {
+    if ($type === ReportType::Dgi->value && \App\Services\ConfigService::getInstance()->get('app_dgi_notify_csa', '1') === '1') {
         $csaUsers = UserRepository::instance()->findByRole(UserRole::Chsct->value);
         foreach ($csaUsers as $csaUser) {
             /** @var array<string, mixed> $csaUser */
@@ -174,7 +174,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     if ($user === null || empty($user['email'])) {
         return;
     }
-    $appName = getConfig('app_nom_organisation', 'DREETS BFC');
+    $appName = \App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC');
     $oldLabel = ROLE_LABELS[$oldRole] ?? $oldRole;
     $newLabel = ROLE_LABELS[$newRole] ?? $newRole;
     $subject = "Changement de votre rôle dans $appName";
@@ -246,7 +246,7 @@ function getBaseUrl(): string
     // real HTTP request, or reflecting an internal hostname behind a
     // reverse proxy) and falls back to 'localhost', producing a link that
     // only resolves on the server itself — broken for every recipient.
-    $configured = trim(getConfig('app_base_url', ''));
+    $configured = trim(\App\Services\ConfigService::getInstance()->get('app_base_url', ''));
     if ($configured !== '') {
         return rtrim($configured, '/');
     }

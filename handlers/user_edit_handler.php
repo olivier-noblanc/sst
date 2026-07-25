@@ -16,6 +16,9 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\UpdateUserCommand;
 use App\Services\UserService;
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 $userId = (int) ($_POST['user_id'] ?? 0);
 if ($userId <= 0) {
     $getId = $_GET['id'] ?? '0';
@@ -23,8 +26,8 @@ if ($userId <= 0) {
 }
 
 if ($userId <= 0) {
-    setFlash('error', 'Utilisateur introuvable.');
-    redirect(url('users'));
+    $session->setFlash('error', 'Utilisateur introuvable.');
+    $http->redirect($http->url('users'));
 }
 
 $pdo = getDB();
@@ -43,17 +46,17 @@ if ($action === 'export_data') {
 }
 
 if ($action === 'anonymize') {
-    $service->anonymize($userId, currentUserId());
+    $service->anonymize($userId, (int)($session->getUserSession()['id'] ?? 0));
     auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
-    setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
-    redirect(url('user_view', ['id' => $userId]));
+    $session->setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
+    $http->redirect($http->url('user_view', ['id' => $userId]));
 }
 
 // Verify user exists
 $user = $service->findById($userId);
 if ($user === null) {
-    setFlash('error', 'Utilisateur introuvable.');
-    redirect(url('users'));
+    $session->setFlash('error', 'Utilisateur introuvable.');
+    $http->redirect($http->url('users'));
 }
 
 /** @var array<string, string> $user */
@@ -76,7 +79,7 @@ if (is_array($user) && (string) ($user['role'] ?? '') === UserRole::Superviseur-
 if (!empty($errors)) {
     setFormErrors($errors);
     setFormData($_POST);
-    redirect(url('user_edit', ['id' => $userId]));
+    $http->redirect($http->url('user_edit', ['id' => $userId]));
 }
 
 // Update user
@@ -84,7 +87,7 @@ $oldRole = (string) ($user['role'] ?? '');
 $roleChanged = ($cmd->role !== $oldRole);
 $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
 
-$service->update($userId, $cmd, currentUserId());
+$service->update($userId, $cmd, (int)($session->getUserSession()['id'] ?? 0));
 
 auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, $userId, 'user', ['role' => $cmd->role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
 
@@ -99,6 +102,6 @@ if ($notifyRoleChange) {
 } elseif ($roleChanged && empty($cmd->email)) {
     $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\'a été envoyé (adresse manquante).';
 }
-setFlash('success', $successMsg);
+$session->setFlash('success', $successMsg);
 
-redirect(url('users'));
+$http->redirect($http->url('users'));

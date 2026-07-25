@@ -25,6 +25,46 @@ class ReportService
     ) {}
 
     /**
+     * Validate linked agent emails: format + same domain as declarant.
+     *
+     * @param array<string, mixed> $user
+     * @return list<string> valid emails
+     */
+    public function validateLinkedEmails(string $linkedEmailsRaw, array $user): array
+    {
+        if (empty(trim($linkedEmailsRaw))) {
+            return [];
+        }
+
+        $declarantEmail = (string) ($user['email'] ?? '');
+        $emailDomain = '';
+        if ($declarantEmail !== '' && str_contains($declarantEmail, '@')) {
+            $emailDomain = substr($declarantEmail, (int) strrpos($declarantEmail, '@') + 1);
+        }
+
+        $validEmails = [];
+        $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
+
+        foreach ($linkedEmailsList as $em) {
+            if (empty($em)) {
+                continue;
+            }
+            if (filter_var($em, FILTER_VALIDATE_EMAIL) === false) {
+                throw new InvalidArgumentException('Adresse e-mail invalide : ' . $em);
+            }
+            if ($emailDomain !== '') {
+                $emDomain = substr($em, (int) strrpos($em, '@') + 1);
+                if (strtolower($emDomain) !== strtolower($emailDomain)) {
+                    throw new InvalidArgumentException('Seul le domaine @' . $emailDomain . ' est autorisé. Adresse refusée : ' . $em);
+                }
+            }
+            $validEmails[] = $em;
+        }
+
+        return $validEmails;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function create(CreateReportCommand $cmd): array

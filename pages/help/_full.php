@@ -54,6 +54,6 @@
 
 <!-- Liens utiles -->
 <div class="card--spaced-top help-cards-row">
-    <a href="<?php echo url('preamble'); ?>" class="btn btn--outline">Lire le Préambule</a>
-    <a href="<?php echo url('changelog'); ?>" class="btn btn--outline">Journal des modifications</a>
+    <a href="<?php echo new \App\Services\HttpService()->url('preamble'); ?>" class="btn btn--outline">Lire le Préambule</a>
+    <a href="<?php echo new \App\Services\HttpService()->url('changelog'); ?>" class="btn btn--outline">Journal des modifications</a>
 </div>

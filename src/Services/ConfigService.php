@@ -45,12 +45,8 @@ class ConfigService
         if (isset($this->cache[$cle])) {
             return $this->cache[$cle];
         }
-        try {
-            $value = ConfigRepository::instance()->get($cle);
-            $value = ($value !== null && $value !== '') ? $value : $default;
-        } catch (Exception) {
-            $value = $default;
-        }
+        $value = ConfigRepository::instance()->get($cle);
+        $value = ($value !== null && $value !== '') ? $value : $default;
         $this->cache[$cle] = $value;
         return $value;
     }

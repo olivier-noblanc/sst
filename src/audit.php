@@ -32,7 +32,7 @@
 function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = [], ?string $targetUuid = null): void
 {
     try {
-        $userId = currentUserId();
+        $userId = (int)(\App\Services\SessionService::getInstance()->getUserSession()['id'] ?? 0);
         $username = currentUserUsername() !== '' ? currentUserUsername() : 'system';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
 

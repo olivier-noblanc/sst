@@ -113,7 +113,7 @@ class HttpService
         // and surface a specific message instead.
         if (empty($_POST) && empty($_FILES) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
             error_log('[SST-HTTP] validatePostRequest: POST body silently truncated by PHP (content_length=' . ($_SERVER['CONTENT_LENGTH'] ?? '?') . ', post_max_size=' . ini_get('post_max_size') . ')');
-            \setFlash('error', 'Le fichier joint est trop volumineux pour être envoyé. Réduisez sa taille et réessayez.');
+            \App\Services\SessionService::getInstance()->setFlash('error', 'Le fichier joint est trop volumineux pour être envoyé. Réduisez sa taille et réessayez.');
             $this->redirect($fallbackUrl);
         }
 
@@ -122,14 +122,14 @@ class HttpService
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
             $caller = $trace[1]['file'] ?? ($trace[0]['file'] ?? 'unknown');
             error_log('[SST-HTTP] validatePostRequest: CSRF token rejected (token_present=' . ($token !== '' ? 'yes' : 'no') . ', fallback=' . $fallbackUrl . ', called_from=' . $caller . ', post_keys=' . implode(',', array_keys($_POST)) . ')');
-            \setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
+            \App\Services\SessionService::getInstance()->setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
             $this->redirect($fallbackUrl);
         }
 
         if ($roles !== null && !empty($roles)) {
             if (!\hasAnyRole($roles)) {
                 error_log('[SST-HTTP] validatePostRequest: role check failed (required=' . implode(',', $roles) . ')');
-                \setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
+                \App\Services\SessionService::getInstance()->setFlash('error', 'Vous n\'avez pas les permissions nécessaires.');
                 $this->redirect($this->url('home'));
             }
         }
@@ -140,7 +140,7 @@ class HttpService
      */
     public function flashAndRedirect(string $type, string $message, string $url): void
     {
-        \setFlash($type, $message);
+        \App\Services\SessionService::getInstance()->setFlash($type, $message);
         $this->redirect($url);
     }
 }

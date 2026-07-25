@@ -50,7 +50,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
             if ($logoDataUri !== ''): ?>
                 <img src="<?php echo $logoDataUri; ?>" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
             <?php else: ?>
-                <span class="header__logo-text"><?php echo e(getConfig('app_nom_organisation', 'DREETS BFC')); ?></span>
+                <span class="header__logo-text"><?php echo e(\App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS BFC')); ?></span>
             <?php endif; ?>
             <span class="header__title">Application SST</span>
         </div>
@@ -71,13 +71,13 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
                 <input type="checkbox" id="impersonate-toggle" class="impersonate-toggle" aria-hidden="true">
                 <label for="impersonate-toggle" class="impersonate-btn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" title="Incarner un rôle"><span class="impersonate-icon" aria-hidden="true"></span> Incarner</label>
                 <div class="impersonate-menu" role="menu">
-                    <form method="POST" action="<?php echo url('impersonate'); ?>">
+                    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
                         <input type="hidden" name="target_role" value="<?php echo \App\Enum\UserRole::Agent->value; ?>">
                         <button type="submit" class="impersonate-menu__item" role="menuitem">Agent</button>
                     </form>
-                    <form method="POST" action="<?php echo url('impersonate'); ?>">
+                    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('impersonate'); ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
                         <input type="hidden" name="action" value="start">
                         <input type="hidden" name="target_role" value="<?php echo \App\Enum\UserRole::Chsct->value; ?>">
@@ -87,7 +87,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
                 </div>
             </div>
             <?php endif; ?>
-            <a href="<?php echo url('logout'); ?>" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
+            <a href="<?php echo new \App\Services\HttpService()->url('logout'); ?>" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
         </div>
         <?php endif; ?>
     </header>

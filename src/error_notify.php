@@ -97,9 +97,9 @@ function sstGetAdminEmail(): string
         return $cachedEmail;
     }
 
-    // Try getConfig() if available (database is initialized)
-    if (function_exists('getConfig')) {
-        $email = getConfig('app_admin_email', '');
+    // Try ConfigService if available (database is initialized)
+    if (class_exists(\App\Services\ConfigService::class)) {
+        $email = \App\Services\ConfigService::getInstance()->get('app_admin_email', '');
         $cachedEmail = $email;
         return $email;
     }

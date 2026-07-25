@@ -187,7 +187,7 @@ class SessionManager
      */
     public function setFlash(string $type, string $message): void
     {
-        setFlash($type, $message);
+        \App\Services\SessionService::getInstance()->setFlash($type, $message);
     }
 
     /**

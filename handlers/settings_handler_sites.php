@@ -17,6 +17,9 @@ use App\Repository\SiteRepository;
 function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 {
     /** @var array<string, string> $postData */
+    $http = new \App\Services\HttpService();
+    $session = \App\Services\SessionService::getInstance();
+
     $action = (string) ($postData['action'] ?? '');
 
     if ($action === 'add_site') {
@@ -26,16 +29,16 @@ function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 
         if (empty($code) || empty($nom)) {
             $pdo->rollBack();
-            setFlash('error', 'Le code et le nom du site sont requis.');
-            redirect(url('settings', ['tab' => 'manage_sites']));
+            $session->setFlash('error', 'Le code et le nom du site sont requis.');
+            $http->redirect($http->url('settings', ['tab' => 'manage_sites']));
         }
 
         // Check for duplicate code
         $existing = SiteRepository::instance()->findByCode($code);
         if ($existing !== null) {
             $pdo->rollBack();
-            setFlash('error', 'Un site avec ce code existe déjà.');
-            redirect(url('settings', ['tab' => 'manage_sites']));
+            $session->setFlash('error', 'Un site avec ce code existe déjà.');
+            $http->redirect($http->url('settings', ['tab' => 'manage_sites']));
         }
 
         SiteRepository::instance()->create($code, $nom, $departement);
@@ -60,15 +63,15 @@ function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 
             if ($userCount > 0 || $reportCount > 0) {
                 $pdo->rollBack();
-                setFlash('error', 'Impossible de supprimer ce site : il contient ' . $userCount . ' agent(s) et ' . $reportCount . ' signalement(s). Désactivez-le plutôt.');
-                redirect(url('settings', ['tab' => 'manage_sites']));
+                $session->setFlash('error', 'Impossible de supprimer ce site : il contient ' . $userCount . ' agent(s) et ' . $reportCount . ' signalement(s). Désactivez-le plutôt.');
+                $http->redirect($http->url('settings', ['tab' => 'manage_sites']));
             }
 
             $deleted = SiteRepository::instance()->delete($siteId);
             if (!$deleted) {
                 $pdo->rollBack();
-                setFlash('error', 'Erreur lors de la suppression du site.');
-                redirect(url('settings', ['tab' => 'manage_sites']));
+                $session->setFlash('error', 'Erreur lors de la suppression du site.');
+                $http->redirect($http->url('settings', ['tab' => 'manage_sites']));
             }
         }
     }

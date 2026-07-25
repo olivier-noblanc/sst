@@ -14,7 +14,7 @@
         <span class="impersonate-icon impersonate-icon--banner" aria-hidden="true"></span> Vous incarnez le rôle <strong><?php echo e(ROLE_LABELS[getImpersonatedRole() ?? ''] ?? getImpersonatedRole()); ?></strong>
         <span class="impersonate-banner__hint">— vous voyez l'application avec les mêmes restrictions que ce rôle.</span>
     </span>
-    <form method="POST" action="<?php echo url('impersonate'); ?>" class="impersonate-banner__form">
+    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('impersonate'); ?>" class="impersonate-banner__form">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <input type="hidden" name="action" value="stop">
         <button type="submit" class="impersonate-banner__btn">&#x21A9; Reprendre mon rôle</button>

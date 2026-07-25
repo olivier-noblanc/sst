@@ -142,7 +142,7 @@ class AuthService
      */
     public function determineRole(string $username): string
     {
-        $superviseurUsernames = \getConfig('app_superviseur_usernames', '');
+        $superviseurUsernames = ConfigService::getInstance()->get('app_superviseur_usernames', '');
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users, true)) {
@@ -163,7 +163,7 @@ class AuthService
             return $user;
         }
 
-        $superviseurUsernames = \getConfig('app_superviseur_usernames', '');
+        $superviseurUsernames = ConfigService::getInstance()->get('app_superviseur_usernames', '');
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users, true)) {
@@ -258,7 +258,7 @@ class AuthService
 
         if (!DEV_MODE) {
             if (\isUserLoggedIn()) {
-                \redirect(\url('home'));
+                new HttpService()->redirect(new HttpService()->url('home'));
             } else {
                 http_response_code(500);
                 $message = 'L\'authentification Windows IIS n\'est pas active. Vérifiez que Windows Authentication est activée et Anonymous Authentication désactivée dans IIS Manager.';
@@ -298,7 +298,7 @@ class AuthService
         if (DEV_MODE) {
             $requestUri = $_SERVER['REQUEST_URI'] ?? '';
             \setIntendedUrl($requestUri);
-            \redirect(\url('login'));
+            new HttpService()->redirect(new HttpService()->url('login'));
         } else {
             http_response_code(500);
             $message = 'AUTH_USER non disponible. Vérifiez que Windows Authentication est activée dans IIS Manager.';
@@ -332,9 +332,9 @@ class AuthService
         session_destroy();
 
         if (DEV_MODE) {
-            \redirect(\url('login'));
+            new HttpService()->redirect(new HttpService()->url('login'));
         } else {
-            \redirect(\url('home'));
+            new HttpService()->redirect(new HttpService()->url('home'));
         }
     }
 }

@@ -14,6 +14,9 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\DTO\CreateUserCommand;
 use App\Services\UserService;
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 $service = getContainer()->get(UserService::class);
 $cmd = CreateUserCommand::fromPost($_POST);
 
@@ -22,13 +25,13 @@ $errors = $service->validate($_POST);
 if (!empty($errors)) {
     setFormErrors($errors);
     setFormData($_POST);
-    redirect(url('users', ['tab' => 'create']));
+    $http->redirect($http->url('users', ['tab' => 'create']));
 }
 
 $newId = $service->create($cmd);
 
 $pdo = getDB();
 auditLog($pdo, 'user', 'create', 'Utilisateur créé : ' . $cmd->prenom . ' ' . $cmd->nom, (int) $newId, 'user', ['username' => $cmd->username, 'role' => $cmd->role]);
-setFlash('success', 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' créé avec succès (ID: ' . $newId . ').');
+$session->setFlash('success', 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' créé avec succès (ID: ' . $newId . ').');
 
-redirect(url('users'));
+$http->redirect($http->url('users'));

@@ -16,17 +16,20 @@ use App\Repository\UserRepository;
 $siteIdRaw = $_POST['site_id'] ?? '0';
 $siteId = (int) $siteIdRaw;
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 if ($siteId <= 0) {
-    setFlash('error', 'Veuillez sélectionner un site.');
+    $session->setFlash('error', 'Veuillez sélectionner un site.');
     session_write_close();
-    redirect(url('choose_site'));
+    $http->redirect($http->url('choose_site'));
 }
 
 $siteRepo = getContainer()->get(SiteRepository::class);
 $userRepo = getContainer()->get(UserRepository::class);
 
-$userId = currentUserId();
-$user = currentUser();
+$userId = (int)($session->getUserSession()['id'] ?? 0);
+$user = $session->getUserSession();
 /** @var array<string, mixed> $user */
 $hasExistingSite = !empty($user['site_id']);
 
@@ -43,24 +46,24 @@ if ($hasExistingSite) {
             $daysSinceChoice = 999;
         }
         if ($daysSinceChoice > 7) {
-            setFlash('error', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
+            $session->setFlash('error', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
             session_write_close();
-            redirect(url('home'));
+            $http->redirect($http->url('home'));
         }
     }
     /** @var string */
     $siteIdVal = $user['site_id'] ?? '0';
     if ((int) $siteIdVal === $siteId) {
         session_write_close();
-        redirect(url('home'));
+        $http->redirect($http->url('home'));
     }
 }
 
 $site = $siteRepo->findById($siteId);
 if ($site === null || empty($site['is_active'])) {
-    setFlash('error', 'Site invalide ou désactivé.');
+    $session->setFlash('error', 'Site invalide ou désactivé.');
     session_write_close();
-    redirect(url('choose_site'));
+    $http->redirect($http->url('choose_site'));
 }
 /** @var array{code: string, nom: string} $site */
 
@@ -71,17 +74,17 @@ if ($updated) {
     clearIntendedUrl();
 
     if ($hasExistingSite) {
-        setFlash('success', 'Votre site a été modifié : ' . (string) $site['code'] . ' — ' . (string) $site['nom'] . '.');
+        $session->setFlash('success', 'Votre site a été modifié : ' . (string) $site['code'] . ' — ' . (string) $site['nom'] . '.');
         auditLog(getDB(), 'user', 'site_change', 'Agent a changé son site : ' . (string) $site['code'] . ' — ' . (string) $site['nom'], $userId, 'user', ['site_id' => $siteId]);
     } else {
-        setFlash('success', 'Votre site a été défini : ' . (string) $site['code'] . ' — ' . (string) $site['nom'] . '. Bienvenue !');
+        $session->setFlash('success', 'Votre site a été défini : ' . (string) $site['code'] . ' — ' . (string) $site['nom'] . '. Bienvenue !');
     }
 
     session_write_close();
-    redirect(url('home'));
+    $http->redirect($http->url('home'));
 } else {
     error_log("SST App: choose_site_handler failed for user $userId, site_id=$siteId");
-    setFlash('error', 'Erreur lors de l\'enregistrement de votre site. Veuillez réessayer.');
+    $session->setFlash('error', 'Erreur lors de l\'enregistrement de votre site. Veuillez réessayer.');
     session_write_close();
-    redirect(url('choose_site'));
+    $http->redirect($http->url('choose_site'));
 }

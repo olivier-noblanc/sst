@@ -11,7 +11,7 @@ $uuid = $_GET['uuid'] ?? '';
 $report = fetchReportOrRedirect($uuid);
 
 // Access control: only the declarant can edit
-$user = currentUser();
+$user = \App\Services\SessionService::getInstance()->getUserSession();
 $userIdStr = $user['id'] ?? '0';
 $userId = (int) $userIdStr;
 
@@ -21,7 +21,7 @@ requireReportEditable($report, $uuid, 'modifié');
 $pageTitle = 'Modifier le signalement — ' . $report['reference'];
 
 $type = $report['type'];
-$action = url('report_edit', ['uuid' => $uuid]);
+$action = new \App\Services\HttpService()->url('report_edit', ['uuid' => $uuid]);
 
 // Prepare variables for the shared form template
 $isEdit = true;

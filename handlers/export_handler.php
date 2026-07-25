@@ -14,6 +14,10 @@ use App\Repository\ReportRepository;
 
 /** @var array<string, string> $_POST */
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+$config = \App\Services\ConfigService::getInstance();
+
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
 $reportRepo = ReportRepository::instance();
@@ -60,8 +64,8 @@ $filename = 'export_sst_' . date('Y-m-d_His') . '.csv';
 $tmpFile = tmpfile();
 if ($tmpFile === false) {
     $err = error_get_last();
-    setFlash('error', 'Erreur lors de la génération du fichier (tmpfile) : ' . e($err['message'] ?? 'erreur inconnue'));
-    redirect(url('export'));
+    $session->setFlash('error', 'Erreur lors de la génération du fichier (tmpfile) : ' . e($err['message'] ?? 'erreur inconnue'));
+    $http->redirect($http->url('export'));
 }
 
 /** @var resource $tmpFile */
@@ -85,8 +89,8 @@ $headers = [
     'Déclarant (prénom)',
 ];
 if (!$noSiteMode) {
-    $headers[] = getConfig('app_label_unite', 'UR');
-    $headers[] = 'Nom ' . getConfig('app_label_unite', 'UR');
+    $headers[] = $config->get('app_label_unite', 'UR');
+    $headers[] = 'Nom ' . $config->get('app_label_unite', 'UR');
 }
 $headers = array_merge($headers, [
     'État',

@@ -15,7 +15,7 @@ $pageTitle = 'Préambule';
     <h2>Contexte réglementaire</h2>
     <p>
         Conformément aux dispositions du <strong>Code du travail</strong>, les employeurs ont l'obligation d'assurer la santé et la sécurité de leurs agents.
-        La <?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?> met à disposition de ses agents trois registres permettant de signaler tout événement relatif à la santé, la sécurité ou l'intégrité physique et morale au travail.
+        La <?php echo e(\App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?> met à disposition de ses agents trois registres permettant de signaler tout événement relatif à la santé, la sécurité ou l'intégrité physique et morale au travail.
     </p>
 </div>
 
@@ -103,9 +103,9 @@ $pageTitle = 'Préambule';
     <ul>
         <li><strong>Finalité du traitement :</strong> recueil et suivi des signalements en matière de santé, sécurité et conditions de travail (registres RSST, RAMI et DGI), conformément aux obligations légales incombant à l'employeur.</li>
         <li><strong>Base légale :</strong> article 6.1.e du RGPD — exécution d'une mission d'intérêt public relevant de la compétence de l'administration (gestion des registres obligatoires de santé et sécurité au travail dans la fonction publique).</li>
-        <li><strong>Responsable du traitement :</strong> <?php echo e(getConfig('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>.</li>
+        <li><strong>Responsable du traitement :</strong> <?php echo e(\App\Services\ConfigService::getInstance()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?>.</li>
         <li><strong>Contact DPO :</strong> <?php
-            $dpoContact = getConfig('app_dpo_contact', '');
+            $dpoContact = \App\Services\ConfigService::getInstance()->get('app_dpo_contact', '');
 echo $dpoContact !== '' ? e($dpoContact) : '<em>à compléter dans Paramètres &rarr; Application &rarr; Contact DPO</em>';
 ?>.</li>
         <li><strong>Durée de conservation :</strong> les signalements sont conservés pendant la durée nécessaire au suivi et au traitement, puis archivés conformément à la réglementation. La durée de conservation est paramétrable par le superviseur après validation du DPO.</li>

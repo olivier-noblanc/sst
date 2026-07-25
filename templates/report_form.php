@@ -22,7 +22,7 @@ if (!isset($report)) $report = null;
 if (!isset($formErrors)) $formErrors = getFormErrors();
 if (!isset($formData)) $formData = getFormData();
 
-$user = currentUser() ?? [];
+$user = \App\Services\SessionService::getInstance()->getUserSession() ?? [];
 $noSiteMode = isNoSiteMode(getDB());
 
 /** @var string $type */
@@ -61,15 +61,15 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
 ?>
 <div class="card <?php echo $cardClass; ?>">
     <?php echo renderBreadcrumb([
-        ['url' => url('home'), 'label' => 'Accueil'],
-        ['url' => url('report_list', ['type' => $type]), 'label' => $registryLabel],
+        ['url' => new \App\Services\HttpService()->url('home'), 'label' => 'Accueil'],
+        ['url' => new \App\Services\HttpService()->url('report_list', ['type' => $type]), 'label' => $registryLabel],
         ['label' => $isEdit ? 'Modifier' : 'Nouveau signalement'],
     ]); ?>
     <h2 class="mb-4">
-        <?php echo $isEdit ? 'Modifier le signalement' : e(getConfig('app_report_create_label', 'Signaler un événement')); ?> — <?php echo e($registryFullLabel); ?>
+        <?php echo $isEdit ? 'Modifier le signalement' : e(\App\Services\ConfigService::getInstance()->get('app_report_create_label', 'Signaler un événement')); ?> — <?php echo e($registryFullLabel); ?>
     </h2>
     <?php
-    $preamble = getConfig('app_report_preamble', '');
+    $preamble = \App\Services\ConfigService::getInstance()->get('app_report_preamble', '');
     if (!empty($preamble)):
     ?>
     <div class="alert alert--info whitespace-pre-line" role="note"><?php echo e($preamble); ?></div>
@@ -211,7 +211,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <span class="form-hint" id="hint_site_id">Sélectionnez votre <?php echo e(getConfig('app_label_unite', 'UR')); ?> (unité de rattachement).</span>
+                <span class="form-hint" id="hint_site_id">Sélectionnez votre <?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?> (unité de rattachement).</span>
                 <?php if (isset($formErrors['site_id'])): ?>
                     <span class="form-error" id="err_site_id"><?php echo e($formErrors['site_id']); ?></span>
                 <?php endif; ?>
@@ -244,13 +244,13 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 </label>
                 <div class="confidential-toggle__details">
                     <?php if (new \App\Services\AccessService()->getChsctReportScope() === 'all'): ?>
-                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du <?php echo e(getRoleLabelShort('chsct')); ?>. Décochez pour le rendre visible par tous les agents de votre <?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>.</span>
                     <?php else: ?>
-                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous et les superviseurs. Les membres de la <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez également la case de consentement ci-dessous. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>.</span>
+                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous et les superviseurs. Les membres de la <?php echo e(getRoleLabelShort('chsct')); ?> ne le verront que si vous cochez également la case de consentement ci-dessous. Décochez pour le rendre visible par tous les agents de votre <?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>.</span>
                     <?php endif; ?>
                     <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                     <div class="confidential-warning">
-                        &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfig('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
+                        &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
                     </div>
                 </div>
             </div>
@@ -272,7 +272,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
                            <?php echo ((bool) $val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat'] ?? ''))) ? 'checked' : ''; ?>>
-                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(getConfig('app_nom_organisation', 'DREETS')); ?>
+                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(\App\Services\ConfigService::getInstance()->get('app_nom_organisation', 'DREETS')); ?>
                 </label>
             </div>
             <div class="form-group">
@@ -353,7 +353,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             <button type="submit" class="btn <?php echo $submitBtnClass; ?>">
                 <?php echo $isEdit ? 'Enregistrer' : 'Envoyer le signalement'; ?>
             </button>
-            <a href="<?php echo $isEdit && $report !== null ? url('report_view', ['uuid' => $report['uuid'] ?? '']) : url('home'); ?>"
+            <a href="<?php echo $isEdit && $report !== null ? new \App\Services\HttpService()->url('report_view', ['uuid' => $report['uuid'] ?? '']) : new \App\Services\HttpService()->url('home'); ?>"
                class="btn btn--secondary" title="Supprimer le formulaire et revenir à la page précédente">Annuler</a>
         </div>
     </form>

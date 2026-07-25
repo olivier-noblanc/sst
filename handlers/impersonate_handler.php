@@ -24,10 +24,12 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\Services\SessionManager;
 
 $session = getContainer()->get(SessionManager::class);
+$http = new \App\Services\HttpService();
+$sessionService = \App\Services\SessionService::getInstance();
 
 // Must be authenticated
 if (!$session->isLoggedIn()) {
-    redirect(url('home'));
+    $http->redirect($http->url('home'));
 }
 
 $action = (string) ($_POST['action'] ?? '');
@@ -39,19 +41,19 @@ if ($action === 'start') {
     // Only superviseurs can impersonate (check real_role if already impersonating)
     $effectiveRole = $session->getRealRole() ?? currentUserRole();
     if ($effectiveRole !== UserRole::Superviseur->value) {
-        setFlash('error', 'Seuls les superviseurs peuvent incarner un autre rôle.');
-        redirect(url('home'));
+        $sessionService->setFlash('error', 'Seuls les superviseurs peuvent incarner un autre rôle.');
+        $http->redirect($http->url('home'));
     }
 
     // Only allow impersonating agent or chsct
     if (!in_array($targetRole, [UserRole::Agent->value, UserRole::Chsct->value], true)) {
-        setFlash('error', 'Rôle cible invalide. Seuls Agent et ' . getRoleLabelShort('chsct') . ' peuvent être incarnés.');
-        redirect(url('home'));
+        $sessionService->setFlash('error', 'Rôle cible invalide. Seuls Agent et ' . getRoleLabelShort('chsct') . ' peuvent être incarnés.');
+        $http->redirect($http->url('home'));
     }
 
     // Don't impersonate if already impersonating the same role
     if ($session->getImpersonatedRole() === $targetRole) {
-        redirect(url('home'));
+        $http->redirect($http->url('home'));
     }
 
     // Save the real role and switch to the impersonated role
@@ -65,8 +67,8 @@ if ($action === 'start') {
         'impersonated_role' => $targetRole,
     ]);
 
-    setFlash('info', 'Vous incarnez maintenant le rôle ' . (ROLE_LABELS[$targetRole] ?? $targetRole) . '.');
-    redirect(url('home'));
+    $sessionService->setFlash('info', 'Vous incarnez maintenant le rôle ' . (ROLE_LABELS[$targetRole] ?? $targetRole) . '.');
+    $http->redirect($http->url('home'));
 }
 
 // === STOP IMPERSONATION (restore real role) ===
@@ -75,7 +77,7 @@ if ($action === 'stop') {
     $realRole = $session->stopImpersonation();
     if ($realRole === null) {
         // Not impersonating — nothing to do
-        redirect(url('home'));
+        $http->redirect($http->url('home'));
     }
 
     // Audit log
@@ -86,9 +88,9 @@ if ($action === 'stop') {
         'impersonated_role' => $impersonatedRole,
     ]);
 
-    setFlash('success', 'Vous avez repris votre rôle de ' . (ROLE_LABELS[$realRole] ?? $realRole) . '.');
-    redirect(url('home'));
+    $sessionService->setFlash('success', 'Vous avez repris votre rôle de ' . (ROLE_LABELS[$realRole] ?? $realRole) . '.');
+    $http->redirect($http->url('home'));
 }
 
 // Unknown action
-redirect(url('home'));
+$http->redirect($http->url('home'));

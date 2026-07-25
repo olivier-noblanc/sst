@@ -10,6 +10,10 @@ use App\Services\ReportService;
 
 /** @var array<string, string> $_POST */
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+$config = \App\Services\ConfigService::getInstance();
+
 // CSRF already validated by the router's CsrfMiddleware (applied to every
 // POST handler in src/Router/routes.php). Calling validatePostRequest()
 // here too consumed the same one-time-use token twice — the middleware's
@@ -18,16 +22,16 @@ use App\Services\ReportService;
 
 $type = (string) ($_POST['type'] ?? '');
 if (RegistryRepository::instance()->findByCode($type) === null) {
-    setFlash('error', 'Type de registre invalide.');
-    redirect(url('home'));
+    $session->setFlash('error', 'Type de registre invalide.');
+    $http->redirect($http->url('home'));
 }
-if (!isRegistryEnabled($type)) {
-    setFlash('error', 'Ce registre est désactivé.');
-    redirect(url('home'));
+if (!$config->isRegistryEnabled($type)) {
+    $session->setFlash('error', 'Ce registre est désactivé.');
+    $http->redirect($http->url('home'));
 }
 
 $pdo = getDB();
-$user = currentUser();
+$user = $session->getUserSession();
 
 /** @var array<string, string> $user */
 
@@ -37,47 +41,32 @@ if (!isNoSiteMode($pdo)) {
     if ($siteId <= 0) {
         setFormErrors(['site_id' => 'L\'unité départementale est obligatoire.']);
         setFormData($_POST);
-        redirect(url('report_create', ['type' => $type]));
+        $http->redirect($http->url('report_create', ['type' => $type]));
     }
     $site = SiteRepository::instance()->findById($siteId);
     if ($site === null || empty($site['is_active'])) {
         setFormErrors(['site_id' => 'Unité invalide ou désactivée.']);
         setFormData($_POST);
-        redirect(url('report_create', ['type' => $type]));
+        $http->redirect($http->url('report_create', ['type' => $type]));
     }
     if (!canSeeAllSites() && $siteId !== (int) ($user['site_id'] ?? 0)) {
-        setFormErrors(['site_id' => 'Vous ne pouvez créer un signalement que pour votre ' . getConfig('app_label_unite', 'UR') . '.']);
+        setFormErrors(['site_id' => 'Vous ne pouvez créer un signalement que pour votre ' . $config->get('app_label_unite', 'UR') . '.']);
         setFormData($_POST);
-        redirect(url('report_create', ['type' => $type]));
+        $http->redirect($http->url('report_create', ['type' => $type]));
     }
 }
 
 // Linked emails domain validation
 $linkedEmailsRaw = trim((string) ($_POST['linked_emails'] ?? ''));
+$linkedEmails = [];
 if (!empty($linkedEmailsRaw)) {
-    $declarantEmail = (string) ($user['email'] ?? '');
-    $emailDomain = '';
-    if ($declarantEmail !== '' && str_contains($declarantEmail, '@')) {
-        $emailDomain = substr($declarantEmail, (int) strrpos($declarantEmail, '@') + 1);
-    }
-    $linkedEmailsList = array_map(trim(...), explode(',', $linkedEmailsRaw));
-    foreach ($linkedEmailsList as $em) {
-        if (empty($em)) {
-            continue;
-        }
-        if (filter_var($em, FILTER_VALIDATE_EMAIL) === false) {
-            setFormErrors(['linked_emails' => 'Adresse e-mail invalide : ' . e($em)]);
-            setFormData($_POST);
-            redirect(url('report_create', ['type' => $type]));
-        }
-        if ($emailDomain !== '') {
-            $emDomain = substr($em, (int) strrpos($em, '@') + 1);
-            if (strtolower($emDomain) !== strtolower($emailDomain)) {
-                setFormErrors(['linked_emails' => 'Seul le domaine @' . e($emailDomain) . ' est autorisé. Adresse refusée : ' . e($em)]);
-                setFormData($_POST);
-                redirect(url('report_create', ['type' => $type]));
-            }
-        }
+    try {
+        $reportService = getContainer()->get(ReportService::class);
+        $linkedEmails = $reportService->validateLinkedEmails($linkedEmailsRaw, $user ?? []);
+    } catch (\InvalidArgumentException $e) {
+        setFormErrors(['linked_emails' => e($e->getMessage())]);
+        setFormData($_POST);
+        $http->redirect($http->url('report_create', ['type' => $type]));
     }
 }
 
@@ -102,21 +91,17 @@ try {
     auditLog(getDB(), 'report', 'create', 'Signalement créé : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference'], 'type' => $type, 'site_id' => $siteId], $report['uuid']);
 
     // Send linked agent invite emails (non-blocking)
-    if (!empty($linkedEmailsRaw)) {
+    if (!empty($linkedEmails)) {
         require_once __DIR__ . '/../src/mail.php';
-        $linkedEmails = array_map(trim(...), explode(',', $linkedEmailsRaw));
-        $linkedEmails = array_filter($linkedEmails, fn($e) => filter_var((string) $e, FILTER_VALIDATE_EMAIL) !== false);
-        if (!empty($linkedEmails)) {
-            sendAgentInviteEmails($pdo, (string) $report['uuid'], $linkedEmails);
-        }
+        sendAgentInviteEmails($pdo, (string) $report['uuid'], $linkedEmails);
     }
 
-    setFlash('success', 'Signalement enregistré avec la référence ' . e((string) $report['reference']));
+    $session->setFlash('success', 'Signalement enregistré avec la référence ' . e((string) $report['reference']));
     $_SESSION['report_created'] = true;
-    redirect(url('report_view', ['uuid' => $report['uuid']]));
+    $http->redirect($http->url('report_view', ['uuid' => $report['uuid']]));
 
 } catch (InvalidArgumentException $e) {
     setFormErrors(['general' => $e->getMessage()]);
     setFormData($_POST);
-    redirect(url('report_create', ['type' => $type]));
+    $http->redirect($http->url('report_create', ['type' => $type]));
 }

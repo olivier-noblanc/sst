@@ -10,6 +10,9 @@ use App\Services\ReportService;
 
 /** @var array<string, string> $_POST */
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 // CSRF already validated by the router's CsrfMiddleware (applied to every
 // POST handler in src/Router/routes.php) — see report_create_handler.php
 // for the full explanation of the double-consumption bug this caused.
@@ -19,8 +22,8 @@ $report = fetchReportOrRedirect($reportUuid);
 
 /** @var array<string, string> $report */
 
-$userId = currentUserId();
-$user = currentUser();
+$userId = (int)($session->getUserSession()['id'] ?? 0);
+$user = $session->getUserSession();
 
 /** @var array<string, string> $user */
 requireReportOwnership($report, $userId, $reportUuid, 'modifier');
@@ -52,7 +55,7 @@ if ($type === ReportType::Rami->value) {
 if (!empty($errors)) {
     setFormErrors($errors);
     setFormData($_POST);
-    redirect(url('report_edit', ['uuid' => $reportUuid]));
+    $http->redirect($http->url('report_edit', ['uuid' => $reportUuid]));
 }
 
 $cmd = UpdateReportCommand::fromPost($_POST);
@@ -99,15 +102,15 @@ try {
         }
 
         auditLog(getDB(), 'report', 'edit', 'Signalement modifié : ' . (string) $report['reference'], null, 'report', ['reference' => $report['reference']], $report['uuid']);
-        setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' modifié avec succès.');
+        $session->setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' modifié avec succès.');
     } else {
         error_log("SST: report_edit failed - uuid=$reportUuid, user_id=$userId, etat=" . (string) ($report['etat'] ?? ''));
-        setFlash('error', 'Impossible de modifier ce signalement. Veuillez contacter un administrateur.');
+        $session->setFlash('error', 'Impossible de modifier ce signalement. Veuillez contacter un administrateur.');
     }
 } catch (RuntimeException $e) {
-    setFlash('error', e($e->getMessage()));
+    $session->setFlash('error', e($e->getMessage()));
     setFormData($_POST);
-    redirect(url('report_edit', ['uuid' => $reportUuid]));
+    $http->redirect($http->url('report_edit', ['uuid' => $reportUuid]));
 }
 
-redirect(url('report_view', ['uuid' => $reportUuid]));
+$http->redirect($http->url('report_view', ['uuid' => $reportUuid]));

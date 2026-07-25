@@ -77,7 +77,7 @@ if (!isset($usernameHint)) {
     if (!$noSiteMode):
     ?>
     <div class="form-group">
-        <label for="site_id"><?php echo e(getConfig('app_label_unite', 'UR')); ?> <span class="required">*</span></label>
+        <label for="site_id"><?php echo e(\App\Services\ConfigService::getInstance()->get('app_label_unite', 'UR')); ?> <span class="required">*</span></label>
         <select name="site_id" id="site_id"
                 <?php echo isset($formErrors['site_id']) ? 'aria-describedby="err_site_id" aria-invalid="true"' : ''; ?>>
             <option value="0">— Aucun —</option>

@@ -29,6 +29,9 @@ final class NoLegacyConstantRule implements Rule
         'ETAT_TRAITE',
         'ETAT_ABANDONNE',
         'ETAT_REOUVERT',
+        'TYPE_RSST',
+        'TYPE_RAMI',
+        'TYPE_DGI',
     ];
 
     /** @var list<string> Chemins whitelistés */

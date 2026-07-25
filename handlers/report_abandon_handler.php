@@ -12,13 +12,16 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 use App\Services\ReportService;
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
 
 /** @var array<string, string> $report */
 
-$user = currentUser();
-$userId = currentUserId();
+$user = $session->getUserSession();
+$userId = (int)($session->getUserSession()['id'] ?? 0);
 $type = (string) ($report['type'] ?? '');
 
 requireReportOwnership($report, $userId, $reportUuid, 'abandonner');
@@ -53,13 +56,13 @@ try {
             }
         }
 
-        setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' abandonné.');
-        redirect(url('report_list', ['type' => $type]));
+        $session->setFlash('success', 'Signalement ' . e((string) $report['reference']) . ' abandonné.');
+        $http->redirect($http->url('report_list', ['type' => $type]));
     } else {
-        setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps. (uuid=' . e($reportUuid) . ', etat=' . e((string) ($report['etat'] ?? '')) . ')');
-        redirect(url('report_view', ['uuid' => $reportUuid]));
+        $session->setFlash('error', 'Impossible d\'abandonner le signalement. Il a peut-être été modifié entre-temps. (uuid=' . e($reportUuid) . ', etat=' . e((string) ($report['etat'] ?? '')) . ')');
+        $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
     }
 } catch (RuntimeException $e) {
-    setFlash('error', e($e->getMessage()));
-    redirect(url('report_view', ['uuid' => $reportUuid]));
+    $session->setFlash('error', e($e->getMessage()));
+    $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
 }

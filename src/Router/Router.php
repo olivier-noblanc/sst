@@ -100,7 +100,7 @@ class Router
         if ($match !== null) {
             ($match['handler'])();
         } else {
-            redirect(url('home'));
+            new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('home'));
         }
     }
 

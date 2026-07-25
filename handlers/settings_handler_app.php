@@ -9,6 +9,10 @@ use App\Enum\VisibilityMode;
  * Handles the 'app' tab of the settings page.
  * Split from settings_handler.php for readability.
  */
+
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 /**
  * Handle the 'app' tab of settings.
  *
@@ -18,6 +22,8 @@ use App\Enum\VisibilityMode;
 function handleSettingsAppTab(PDO $pdo, array $postData): void
 {
     /** @var array<string, string> $postData */
+    $http = new \App\Services\HttpService();
+    $session = \App\Services\SessionService::getInstance();
     // Update application settings
     // NOTE: app_version is NOT editable here — it is read from CHANGELOG.md by getAppVersion()
     $appNomOrganisation = trim((string) ($postData['app_nom_organisation'] ?? ''));
@@ -39,8 +45,8 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
 
     if (!empty($errors)) {
         $pdo->rollBack();
-        setFlash('error', implode(' ', $errors));
-        redirect(url('settings', ['tab' => 'app']));
+        $session->setFlash('error', implode(' ', $errors));
+        $http->redirect($http->url('settings', ['tab' => 'app']));
     }
 
     updateConfig($pdo, 'app_nom_organisation', $appNomOrganisation);
@@ -86,8 +92,8 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     $appBaseUrl = rtrim(trim((string) ($postData['app_base_url'] ?? '')), '/');
     if ($appBaseUrl !== '' && filter_var($appBaseUrl, FILTER_VALIDATE_URL) === false) {
         $pdo->rollBack();
-        setFlash('error', 'L\'URL publique de l\'application n\'est pas valide (ex : https://sst.dreets-bfc.gouv.fr).');
-        redirect(url('settings', ['tab' => 'app']));
+        $session->setFlash('error', 'L\'URL publique de l\'application n\'est pas valide (ex : https://sst.dreets-bfc.gouv.fr).');
+        $http->redirect($http->url('settings', ['tab' => 'app']));
     }
     updateConfig($pdo, 'app_base_url', $appBaseUrl);
 
@@ -95,8 +101,8 @@ function handleSettingsAppTab(PDO $pdo, array $postData): void
     $appAdminEmail = trim((string) ($postData['app_admin_email'] ?? ''));
     if ($appAdminEmail !== '' && filter_var($appAdminEmail, FILTER_VALIDATE_EMAIL) === false) {
         $pdo->rollBack();
-        setFlash('error', 'L\'adresse e-mail de l\'administrateur technique n\'est pas valide.');
-        redirect(url('settings', ['tab' => 'app']));
+        $session->setFlash('error', 'L\'adresse e-mail de l\'administrateur technique n\'est pas valide.');
+        $http->redirect($http->url('settings', ['tab' => 'app']));
     }
     updateConfig($pdo, 'app_admin_email', $appAdminEmail);
 

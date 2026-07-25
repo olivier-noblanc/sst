@@ -13,11 +13,14 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 use App\Services\UserService;
 
+$http = new \App\Services\HttpService();
+$session = \App\Services\SessionService::getInstance();
+
 $userId = (int) ($_POST['user_id'] ?? 0);
 
 if ($userId <= 0) {
-    setFlash('error', 'Utilisateur introuvable.');
-    redirect(url('users'));
+    $session->setFlash('error', 'Utilisateur introuvable.');
+    $http->redirect($http->url('users'));
 }
 
 $service = getContainer()->get(UserService::class);
@@ -30,9 +33,9 @@ try {
     /** @var array<string, string> $user */
     $label = is_array($user) ? $user['prenom'] . ' ' . $user['nom'] : '(id=' . $userId . ')';
     auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $label, $userId, 'user');
-    setFlash('success', 'Utilisateur ' . e($label) . ' réactivé avec succès.');
+    $session->setFlash('success', 'Utilisateur ' . e($label) . ' réactivé avec succès.');
 } catch (RuntimeException $e) {
-    setFlash('error', e($e->getMessage()));
+    $session->setFlash('error', e($e->getMessage()));
 }
 
-redirect(url('users'));
+$http->redirect($http->url('users'));

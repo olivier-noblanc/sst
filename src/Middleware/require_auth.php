@@ -17,7 +17,7 @@ if (!isUserLoggedIn()) {
     if (DEV_MODE) {
         // Dev: redirect to mock login form
         setIntendedUrl($_SERVER['REQUEST_URI'] ?? '');
-        redirect(url('login'));
+        new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('login'));
     } else {
         // Prod: should never happen — AUTH_USER should always be set by IIS
         die('Erreur de configuration : impossible d\'authentifier l\'utilisateur. '

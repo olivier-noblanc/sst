@@ -15,13 +15,16 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 use App\Services\AuthService;
 use App\Services\SessionManager;
 
-validatePostRequest(url('login'));
+$http = new \App\Services\HttpService();
+$sessionService = \App\Services\SessionService::getInstance();
+
+validatePostRequest($http->url('login'));
 
 $username = trim((string) ($_POST['username'] ?? ''));
 
 if (empty($username)) {
-    setFlash('error', 'Veuillez saisir un nom d\'utilisateur.');
-    redirect(url('login'));
+    $sessionService->setFlash('error', 'Veuillez saisir un nom d\'utilisateur.');
+    $http->redirect($http->url('login'));
 }
 
 $authService = getContainer()->get(AuthService::class);
@@ -36,11 +39,11 @@ if ($user !== null) {
     require_once __DIR__ . '/../src/cron.php';
     runLazyCron(getDB());
 
-    $intendedUrl = (string) ($session->clearIntendedUrl() ?? url('home'));
+    $intendedUrl = (string) ($session->clearIntendedUrl() ?? $http->url('home'));
     auditLog(getDB(), 'auth', 'login', 'Connexion : ' . (string) $user['prenom'] . ' ' . (string) $user['nom'], (int) $user['id'], 'user', ['username' => $user['username']]);
-    setFlash('success', 'Bienvenue, ' . (string) $user['prenom'] . ' ' . (string) $user['nom'] . ' !');
-    redirect($intendedUrl);
+    $sessionService->setFlash('success', 'Bienvenue, ' . (string) $user['prenom'] . ' ' . (string) $user['nom'] . ' !');
+    $http->redirect($intendedUrl);
 } else {
-    setFlash('error', 'Erreur lors de la connexion. Veuillez réessayer.');
-    redirect(url('login'));
+    $sessionService->setFlash('error', 'Erreur lors de la connexion. Veuillez réessayer.');
+    $http->redirect($http->url('login'));
 }

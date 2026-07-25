@@ -260,7 +260,7 @@ $enabledRegistries = $registryRepo->findEnabled();
                 <td><?php echo $fmt->e((string) $field['field_type']); ?></td>
                 <td><?php echo (int) $field['is_required'] ? 'Oui' : 'Non'; ?></td>
                 <td>
-                    <form method="POST" action="<?php echo $http->url('settings'); ?>" style="display:inline">
+                    <form method="POST" action="<?php echo $http->url('settings'); ?>" class="inline-form">
                         <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
                         <input type="hidden" name="tab" value="registres">
                         <input type="hidden" name="field_id" value="<?php echo (int) $field['id']; ?>">

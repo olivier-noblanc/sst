@@ -102,14 +102,3 @@ function addWordRow() {
     container.appendChild(row);
 }
 </script>
-
-<style>
-.wordcloud-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 8px;
-}
-.wordcloud-row .input:first-child { flex: 1; }
-.wordcloud-row .input--small { width: 70px; flex: none; }
-</style>

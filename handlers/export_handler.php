@@ -61,7 +61,6 @@ if (!empty($_POST['etats']) && is_array($_POST['etats'])) {
 $reports = $reportRepo->getExportData($filters);
 $count = count($reports);
 $truncated = $count >= StatsRepository::EXPORT_MAX_ROWS;
-auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . $count . ' signalements' . ($truncated ? ' (tronqué)' : ''), null, null, ['filters' => $filters, 'count' => $count]);
 
 // Build CSV in memory using fputcsv (proper enclosure, no injection risk)
 $filename = 'export_sst_' . date('Y-m-d_His') . '.csv';
@@ -71,6 +70,12 @@ if ($tmpFile === false) {
     $session->setFlash('error', 'Erreur lors de la génération du fichier (tmpfile) : ' . e($err['message'] ?? 'erreur inconnue'));
     $http->redirect($http->url('export'));
 }
+
+// Audit #65 — Audit log AFTER tmpfile() success. Before this fix, the audit
+// log was written before tmpfile() → if tmpfile() failed (disk full, /tmp
+// not writable), the audit log claimed success but the user got an error.
+// Now the audit log reflects the actual export attempt (data was fetched).
+auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . $count . ' signalements' . ($truncated ? ' (tronqué)' : ''), null, null, ['filters' => $filters, 'count' => $count]);
 
 /** @var resource $tmpFile */
 // UTF-8 BOM for Excel compatibility

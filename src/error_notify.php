@@ -76,8 +76,16 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
     $body .= '</body></html>';
 
     // Send email (defer to mail module if available, otherwise use error_log)
+    // Audit #49 — wrap sendMail in try/catch so a SMTP failure doesn't prevent
+    // the error page from rendering. error_notify is called from the shutdown
+    // handler; if sendMail throws, the user would see a blank page instead of
+    // the proper error display.
     if (function_exists('sendMail')) {
-        sendMail($adminEmail, $subject, $body);
+        try {
+            sendMail($adminEmail, $subject, $body);
+        } catch (\Throwable $e) {
+            error_log('[SST-ERROR-MAIL] sendMail failed: ' . $e->getMessage() . " — would have sent: $levelName — $message in $file:$line");
+        }
     } else {
         // Mail module not loaded yet (early bootstrap) — log instead
         error_log("[SST-ERROR-MAIL] Would notify admin $adminEmail: $levelName — $message in $file:$line");
@@ -166,5 +174,10 @@ function sstMarkThrottled(string $errorKey): void
         }
     }
 
-    @file_put_contents(ERROR_THROTTLE_FILE, json_encode($data, JSON_PRETTY_PRINT));
+    // Audit #50 — use LOCK_EX to prevent race condition when 2 concurrent
+    // errors try to write the throttle file simultaneously. Without the lock,
+    // the second write would overwrite the first → throttle entry lost →
+    // duplicate email sent. Failures are silently ignored (@) since throttle
+    // is best-effort.
+    @file_put_contents(ERROR_THROTTLE_FILE, json_encode($data, JSON_PRETTY_PRINT), LOCK_EX);
 }

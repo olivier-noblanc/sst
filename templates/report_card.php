@@ -48,7 +48,7 @@ if (!isset($csrfToken)) {
 /** @var list<array{id: int|string, created_at: string, prenom: string|null, nom: string|null, nouvel_etat: string|null, reponse: string, attachment_name: string|null, attachment_mime: string|null}> $responses */
 ?>
 
-<div class="card <?php echo $cardClass; ?>">
+<div class="card <?php echo e($cardClass); ?>">
     <?php if ($type === \App\Enum\ReportType::Dgi->value): ?>
     <div class="danger-panel">
         &#9888;&#65039; <strong>Procédure prioritaire :</strong> Ce signalement relève du registre DGI (Danger Grave et Imminent). Conformément aux articles L4131-1 et L4132-5 du Code du travail, l'agent a le droit de se retirer de la situation de danger. Le registre DGI doit être tenu à disposition de l'inspecteur du travail et du CHSCT/CSA.
@@ -58,8 +58,8 @@ if (!isset($csrfToken)) {
         <div class="report-detail__header">
             <h2>Signalement — <?php echo $fmt->e($report->reference); ?></h2>
             <div class="btn-group">
-                <span class="badge <?php echo $fmt->getRegistryBadgeClass($type); ?>"><?php echo $fmt->e($registryLabel); ?></span>
-                <span class="badge <?php echo $fmt->getEtatBadgeClass($report->etat); ?>"><?php echo $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat); ?></span>
+                <span class="badge <?php echo e($fmt->getRegistryBadgeClass($type)); ?>"><?php echo $fmt->e($registryLabel); ?></span>
+                <span class="badge <?php echo e($fmt->getEtatBadgeClass($report->etat)); ?>"><?php echo $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat); ?></span>
                 <?php if (!empty($report->isConfidential)): ?>
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
                 <small class="help-text">(Seuls les superviseurs peuvent voir ce signalement)</small>

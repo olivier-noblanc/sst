@@ -30,34 +30,32 @@ define('BACKUP_MARKER_FILE', BACKUP_DIR . '/.last_backup');
  * Reads filemtime + filesize of both the main .db and the WAL file
  * to detect changes without forcing a checkpoint.
  *
+ * Audit #47 — Cache disabled. Before this fix, the static $cached was set on
+ * the first call (e.g. before migration in database.php) and returned on
+ * the second call (after migration) → post-migration fingerprint was the
+ * pre-migration one → backup was skipped after every migration. Now each
+ * call reads the fresh state from disk.
+ *
  * @return array{mtime: int, size: int}
  */
 function getDbFingerprint(PDO $pdo): array
 {
-    // Cache fingerprint within a single request
-    static $cached = null;
-    if ($cached !== null) {
-        return $cached;
-    }
-
     clearstatcache(true, DB_PATH);
     if (!file_exists(DB_PATH)) {
-        $cached = ['mtime' => 0, 'size' => 0];
-    } else {
-        $mtime = (int) filemtime(DB_PATH);
-        $size = (int) filesize(DB_PATH);
-
-        // In WAL mode, writes go to the -wal file without changing .db
-        // Include the WAL file's mtime/size to detect pending changes
-        $walPath = DB_PATH . '-wal';
-        if (file_exists($walPath)) {
-            $mtime = max($mtime, (int) filemtime($walPath));
-            $size += (int) filesize($walPath);
-        }
-
-        $cached = ['mtime' => $mtime, 'size' => $size];
+        return ['mtime' => 0, 'size' => 0];
     }
-    return $cached;
+    $mtime = (int) filemtime(DB_PATH);
+    $size = (int) filesize(DB_PATH);
+
+    // In WAL mode, writes go to the -wal file without changing .db
+    // Include the WAL file's mtime/size to detect pending changes
+    $walPath = DB_PATH . '-wal';
+    if (file_exists($walPath)) {
+        $mtime = max($mtime, (int) filemtime($walPath));
+        $size += (int) filesize($walPath);
+    }
+
+    return ['mtime' => $mtime, 'size' => $size];
 }
 
 /**

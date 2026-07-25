@@ -97,6 +97,20 @@ class ReportService
             throw new RuntimeException('Accès refusé.');
         }
 
+        // Audit #6-Medium — validate that nouvelEtat is a valid response state.
+        // Before this fix, a supervisor could pass ReportState::Abandonne (via
+        // crafted POST) → bypassing the rule that abandon is declarant-only
+        // (cf. abandon() method). Only EnCours and Traite are valid response
+        // states — Nouveau is the initial state (no response yet), Reouvert and
+        // Abandonne are managed by their own methods.
+        $validResponseStates = [ReportState::EnCours, ReportState::Traite];
+        if (!in_array($cmd->nouvelEtat, $validResponseStates, true)) {
+            throw new InvalidArgumentException(
+                'État cible invalide pour une réponse. Seuls "en_cours" et "traite" sont autorisés. '
+                . 'Pour abandonner, utilisez le bouton "Abandonner" (réservé au déclarant).'
+            );
+        }
+
         $result = $this->repo->respond($uuid, $cmd, $userId);
 
         // Audit #12 — ne pas dispatcher les events si l'opération a échoué

@@ -3861,3 +3861,17 @@ tr:hover td {
 .td--flush-top { padding-top: 0; }
 .attachment-image--thumb { max-height: 120px; }
 .file-upload-wrapper__filename--selected { font-style: normal; color: inherit; }
+
+/* Audit #81 — inline-form class replaces inline style="display:inline" */
+.inline-form { display: inline; }
+
+/* Audit #80 — moved from inline <style> block in pages/settings/tab_wordcloud.php
+   to satisfy CSP style-src 'unsafe-inline' restriction. */
+.wordcloud-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.wordcloud-row .input:first-child { flex: 1; }
+.wordcloud-row .input--small { width: 70px; flex: none; }

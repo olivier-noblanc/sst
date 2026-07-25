@@ -85,7 +85,7 @@ $menuItems = array_merge($menuItems, [
                     <a href="<?php echo new \App\Services\HttpService()->url($itemPage, $itemParams); ?>"
                        class="sidebar__item<?php echo $isActive ? ' sidebar__item--active' : ''; ?>"
                        <?php echo $isActive ? 'aria-current="page"' : ''; ?>>
-                        <span class="sidebar__icon" aria-hidden="true"><?php echo $item['icon']; ?></span>
+                        <span class="sidebar__icon" aria-hidden="true"><?php echo e((string) $item['icon']); ?></span>
                         <?php echo e($item['label']); ?>
                     </a>
                 </li>

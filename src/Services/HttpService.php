@@ -16,7 +16,12 @@ class HttpService
     public function url(string $page, array $params = []): string
     {
         $queryParams = [];
-        if (isset($_GET['XTransformPort'])) {
+        // Audit #94 — XTransformPort is an IIS Express dev-only parameter
+        // (used by Visual Studio to track which port the dev server runs on).
+        // Before this fix, it was propagated to every URL the app generated,
+        // polluting production URLs and confusing users. Now only propagated
+        // in DEV_MODE.
+        if (defined('DEV_MODE') && DEV_MODE && isset($_GET['XTransformPort'])) {
             $queryParams['XTransformPort'] = $_GET['XTransformPort'];
         }
         $queryParams['page'] = $page;

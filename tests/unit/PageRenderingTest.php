@@ -216,6 +216,12 @@ class PageRenderingTest extends TestCase
             $this->assertStringNotContainsString('Parse error:', $output, "[$page] output contains Parse error");
             $this->assertStringNotContainsString('allowed memory size', $output, "[$page] output contains memory exhausted");
 
+            // 1.b. No leaked PHP source code (audit #5/#6 — pages must not show ReportType::Xsrt => 'card--rsst' etc.)
+            $this->assertStringNotContainsString('ReportType::', $output, "[$page] output contains leaked PHP source code (ReportType::)");
+            $this->assertStringNotContainsString("=> 'card--", $output, "[$page] output contains leaked match() arm");
+            $this->assertStringNotContainsString('default => ', $output, "[$page] output contains leaked match default arm");
+            $this->assertStringNotContainsString('}; ?>', $output, "[$page] output contains leaked PHP closing bracket+tag");
+
             // 2. Valid HTML structure
             $this->assertStringContainsString('<!DOCTYPE html>', $output, "[$page] missing <!DOCTYPE html>");
             $this->assertStringContainsString('<html', $output, "[$page] missing <html> tag");

@@ -89,7 +89,7 @@ function renderBreadcrumb(array $items): string
     return getFormattingService()->renderBreadcrumb($items);
 }
 
-function buildWordCloud(): string
+function buildWordCloud(?string $registryCode = null): string
 {
-    return getFormattingService()->buildWordCloud();
+    return getFormattingService()->buildWordCloud($registryCode);
 }

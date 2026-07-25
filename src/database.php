@@ -27,7 +27,7 @@ function getDB(): PDO
     }
 
     // Ensure the data directory exists
-    $dir = dirname(DB_PATH);
+    $dir = dirname((string) DB_PATH);
     if (!is_dir($dir)) {
         mkdir($dir, 0755, true);
     }

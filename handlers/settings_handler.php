@@ -9,7 +9,6 @@
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Repository\NotificationRepository;
-use App\Services\ConfigService;
 
 /**
  * POST handler: save notification email settings, SMTP config, and app settings.

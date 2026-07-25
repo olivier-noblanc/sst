@@ -19,7 +19,6 @@
 
 use App\Container\Container;
 use App\Event\EventDispatcher;
-use App\Repository\ReportRepository;
 use App\Services\NotificationService;
 
 /**

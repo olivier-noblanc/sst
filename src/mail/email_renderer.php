@@ -1,6 +1,5 @@
 <?php
 
-use App\Services\ConfigService;
 
 /**
  * Email Renderer — Template unifié pour les emails HTML.

@@ -8,7 +8,6 @@
  *
  * Uses the DI Container for middleware instantiation.
  */
-use App\Services\ConfigService;
 use App\Enum\UserRole;
 use App\Router\Router;
 use App\Middleware\CsrfMiddleware;

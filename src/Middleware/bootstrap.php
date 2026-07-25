@@ -1,6 +1,5 @@
 <?php
 
-use App\Services\ConfigService;
 use App\Services\SessionService;
 use App\Services\HttpService;
 use App\Repository\UserRepository;

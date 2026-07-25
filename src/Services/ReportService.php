@@ -185,6 +185,21 @@ class ReportService
             throw new RuntimeException('Accès refusé — seuls les superviseurs et le CHSCT peuvent réouvrir.');
         }
 
+        // Audit #19 — rate limit sur les réouvertures pour éviter l'abus
+        // (abandon → reopen → respond → reopen → ... en boucle). Limite
+        // arbitraire de 3 réouvertures par signalement. Le nombre est
+        // configurable via 'app_max_reopens_per_report' (default 3).
+        $maxReopens = (int) getConfigService()->get('app_max_reopens_per_report', '3');
+        if ($maxReopens > 0) {
+            $reopensCount = $this->repo->countReopens($uuid);
+            if ($reopensCount >= $maxReopens) {
+                throw new RuntimeException(
+                    'Ce signalement a déjà été réouvert ' . $reopensCount . ' fois. '
+                    . 'Limite de ' . $maxReopens . ' réouvertures atteinte — refusez définitivement le signalement via "Abandonner" si nécessaire.'
+                );
+            }
+        }
+
         $result = $this->repo->reopen($uuid, $userId, $cmd->motif);
 
         // Audit #12 — ne pas dispatcher si la réouverture a échoué.

@@ -4,6 +4,7 @@
 
 namespace App\Repository;
 
+use App\Services\SessionService;
 use PDO;
 
 class AuditRepository
@@ -35,7 +36,7 @@ class AuditRepository
         array $context = [],
         ?string $targetUuid = null,
     ): void {
-        $userId = (int)(\App\Services\SessionService::getInstance()->getUserSession()['id'] ?? 0);
+        $userId = (int)(SessionService::getInstance()->getUserSession()['id'] ?? 0);
         $username = \currentUserUsername() !== '' ? \currentUserUsername() : 'system';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
 

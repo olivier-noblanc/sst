@@ -5,7 +5,6 @@ use App\Services\SessionService;
 use App\Services\AccessService;
 use App\Services\HttpService;
 use App\Repository\ReportRepository;
-use App\Services\ConfigService;
 use App\Services\FormattingService;
 
 /**

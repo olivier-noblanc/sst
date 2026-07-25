@@ -3,7 +3,6 @@
 use App\Repository\RegistryRepository;
 use App\Services\SessionService;
 use App\Services\HttpService;
-use App\Services\ConfigService;
 use App\Services\AccessService;
 use App\Repository\SiteRepository;
 

@@ -86,7 +86,7 @@ $visibilityModes = [
                 // "L'UR21" closed the JS string early → syntax error → button silent).
                 // Use addslashes to escape ' and " for JS, on top of HTML escaping
                 // for the surrounding attribute.
-                $confirmLabelJs = addslashes($regLabel);
+                $confirmLabelJs = addslashes((string) $regLabel);
                 ?>
                 <button type="submit" name="action" value="delete_<?php echo $regId; ?>"
                         class="btn btn--danger btn--small"

@@ -1,6 +1,5 @@
 <?php
 
-use App\Services\ConfigService;
 
 /**
  * Mail Module — Application SST DREETS BFC

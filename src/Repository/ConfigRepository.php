@@ -5,6 +5,7 @@
 namespace App\Repository;
 
 use PDO;
+use Throwable;
 
 class ConfigRepository
 {
@@ -98,7 +99,7 @@ class ConfigRepository
 
             $this->pdo->commit();
             return false;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->pdo->rollBack();
             error_log('[SST-CRON] claimLazyCronLock failed for ' . $cle . ': ' . $e->getMessage());
             return false; // Fail safe — don't run if we can't claim

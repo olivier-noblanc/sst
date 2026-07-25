@@ -11,7 +11,6 @@
  */
 use App\Services\HttpService;
 use App\Services\SessionService;
-use App\Services\ConfigService;
 use App\Enum\ReportType;
 use App\Repository\StatsRepository;
 use App\Repository\ReportRepository;

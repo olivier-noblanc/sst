@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Enum\UserRole;
 use Exception;
 use PDO;
+use Throwable;
 
 class UserRepository
 {
@@ -219,7 +220,7 @@ class UserRepository
                 WHERE id = :id
             ");
             $stmt->execute([':id' => $userId]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Migration may not have run yet (column missing) — log and continue.
             error_log('[SST-USER] invalidateSessions failed: ' . $e->getMessage());
         }
@@ -248,7 +249,7 @@ class UserRepository
                 'is_active' => (int) ($row['is_active'] ?? 0),
                 'sessions_invalid_before' => $this->normalizeTimestamp($row['sessions_invalid_before'] ?? null),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Pre-migration (column missing) — fail safe (session considered valid)
             error_log('[SST-USER] findSessionState failed: ' . $e->getMessage());
             return ['is_active' => 1, 'sessions_invalid_before' => null];

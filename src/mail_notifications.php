@@ -1,6 +1,5 @@
 <?php
 
-use App\Services\ConfigService;
 use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
 use App\Enum\UserRole;

@@ -5,7 +5,6 @@
  */
 use App\Services\HttpService;
 use App\Services\SessionService;
-use App\Services\ConfigService;
 use App\Repository\RegistryRepository;
 use App\Repository\SiteRepository;
 use App\DTO\CreateReportCommand;

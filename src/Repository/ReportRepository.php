@@ -8,6 +8,7 @@ use App\Enum\ReportState;
 use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 use Exception;
+use Throwable;
 use App\DTO\AdjacentUuids;
 use App\DTO\CreateReportCommand;
 use App\DTO\PaginatedReports;
@@ -704,6 +705,30 @@ class ReportRepository
             $this->pdo->rollBack();
             error_log('[SST-DB] updateReport failed: ' . $e->getMessage());
             throw $e;
+        }
+    }
+
+    /**
+     * Audit #19 — count how many times a report has been reopened
+     * (for rate limiting). Uses report_state_history to count transitions
+     * to Reouvert state.
+     */
+    public function countReopens(string $uuid): int
+    {
+        try {
+            $stmt = $this->pdo->prepare(
+                "SELECT COUNT(*) FROM report_state_history
+                 WHERE report_uuid = :uuid AND etat_suivant = :etat_reouvert"
+            );
+            $stmt->execute([
+                ':uuid' => $uuid,
+                ':etat_reouvert' => ReportState::Reouvert->value,
+            ]);
+            return (int) $stmt->fetchColumn();
+        } catch (Throwable $e) {
+            // Pre-migration (table missing) — fail open (allow reopen)
+            error_log('[SST-REPORT] countReopens failed: ' . $e->getMessage());
+            return 0;
         }
     }
 

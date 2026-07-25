@@ -48,9 +48,18 @@ if ($action === 'export_data') {
 }
 
 if ($action === 'anonymize') {
-    $service->anonymize($userId, (int)($session->getUserSession()['id'] ?? 0));
-    auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
-    $session->setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
+    // Audit #8 — anonymize() returned false silently when NOT NULL constraint
+    // failed on report_responses.user_id. The handler ignored the return value
+    // and showed a success flash. Now we test the return + audit log is written
+    // only if anonymization actually succeeded.
+    $success = $service->anonymize($userId, (int)($session->getUserSession()['id'] ?? 0));
+    if ($success) {
+        auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
+        $session->setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
+    } else {
+        auditLog($pdo, 'gdpr', 'anonymize_failed', 'Échec anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
+        $session->setFlash('error', 'L\'anonymisation a échoué. Consultez les logs serveur (probablement une contrainte NOT NULL non encore migrée).');
+    }
     $http->redirect($http->url('user_view', ['id' => $userId]));
 }
 

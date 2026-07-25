@@ -227,9 +227,13 @@ class UserRepository
     {
         $this->pdo->beginTransaction();
         try {
+            // Audit #8 + #24 — anonymize username (was preserved, RGPD incomplete).
+            // username is UNIQUE NOT NULL — using a per-user suffix keeps it unique
+            // even after multiple anonymization attempts.
             $stmt = $this->pdo->prepare("
                 UPDATE users
                 SET nom = 'Anonymisé', prenom = 'Utilisateur', email = NULL,
+                    username = 'anonymized_' || CAST(:id AS TEXT),
                     is_active = 0, updated_at = datetime('now')
                 WHERE id = :id
             ");
@@ -248,6 +252,8 @@ class UserRepository
             ');
             $stmt->execute([':id' => $id]);
 
+            // Audit #8 — report_responses.user_id was NOT NULL. Now nullable via
+            // migration_columns.php. SET NULL works after migration runs.
             $stmt = $this->pdo->prepare('
                 UPDATE report_responses SET user_id = NULL WHERE user_id = :id AND user_id IS NOT NULL
             ');

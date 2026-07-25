@@ -199,4 +199,66 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec("UPDATE registries SET btn_label = 'Signaler un danger urgent' WHERE code = 'dgi'");
         error_log('[SST-MIGRATION] Added btn_label column to registries.');
     }
+
+    // ── Make report_responses.user_id nullable (RGPD anonymization) ────────
+    // Audit #8 — UserRepository::anonymize() does SET user_id = NULL on
+    // report_responses, but the column was NOT NULL → SQLite raised a
+    // NOT NULL constraint violation → transaction rolled back silently →
+    // anonymization never happened → flash success was a lie.
+    // Fix: rebuild the table to allow user_id = NULL.
+    $rrColStmt = $pdo->query('PRAGMA table_info(report_responses)');
+    $rrColumns = ($rrColStmt !== false) ? $rrColStmt->fetchAll() : [];
+    $rrColStmt = null;
+    $rrUserIdIsNotNull = false;
+    foreach ($rrColumns as $col) {
+        if (is_array($col) && ($col['name'] ?? '') === 'user_id' && ($col['notnull'] ?? 0) === 1) {
+            $rrUserIdIsNotNull = true;
+            break;
+        }
+    }
+    if ($rrUserIdIsNotNull) {
+        $colDefs = [];
+        foreach ($rrColumns as $col) {
+            if (!is_array($col)) {
+                continue;
+            }
+            /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
+            $def = $col['name'] . ' ' . $col['type'];
+            if ($col['pk']) {
+                $def .= ' PRIMARY KEY';
+            }
+            // user_id loses its NOT NULL here; every other column keeps its own.
+            if ($col['notnull'] && !$col['pk'] && $col['name'] !== 'user_id') {
+                $def .= ' NOT NULL';
+            }
+            if ($col['dflt_value'] !== null) {
+                /** @var string $dfltValue */
+                $dfltValue = $col['dflt_value'];
+                $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
+                $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
+            }
+            $colDefs[] = $def;
+        }
+        $fkStmt = $pdo->query('PRAGMA foreign_key_list(report_responses)');
+        $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
+        $fkStmt = null;
+        $fkClauses = [];
+        foreach ($fks as $fk) {
+            if (!is_array($fk)) {
+                continue;
+            }
+            /** @var array{from: string, table: string, to: string} $fk */
+            $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
+        }
+        $allDefs = array_merge($colDefs, $fkClauses);
+        $createSql = 'CREATE TABLE IF NOT EXISTS report_responses_new (' . implode(', ', $allDefs) . ')';
+        backupBeforeMigration($pdo);
+        $pdo->exec($createSql);
+        $pdo->exec('INSERT OR IGNORE INTO report_responses_new SELECT * FROM report_responses');
+        $pdo->exec('DROP TABLE IF EXISTS report_responses');
+        $pdo->exec('ALTER TABLE report_responses_new RENAME TO report_responses');
+        // Recreate indexes (SQLite drops them with the table)
+        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
+        error_log('[SST-MIGRATION] report_responses.user_id is now nullable (RGPD anonymization support).');
+    }
 }

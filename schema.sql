@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS reports (
 CREATE TABLE IF NOT EXISTS report_responses (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     report_uuid     TEXT NOT NULL,                   -- FK to reports(uuid)
-    user_id         INTEGER NOT NULL,                -- FK to users (the supervisor)
+    user_id         INTEGER,                          -- FK to users (the supervisor) — nullable for RGPD anonymization (audit #8)
     reponse         TEXT NOT NULL,                   -- Response text
     nouvel_etat     TEXT,                            -- State change if any: 'en_cours'|'traite'
     attachment_blob BLOB,                            -- Optional file attached to response

@@ -297,16 +297,16 @@ Les échecs CI n'étaient pas techniques mais liés à la **facturation GitHub A
 
 | # | Aspect | Verdict | Détail |
 |---|--------|---------|--------|
-| 1 | Architecture Layers (deptrac) | ⚠️ | Ruleset incomplet — ne couvre pas handlers/pages/templates |
+| 1 | Architecture Layers (deptrac) | ✅ | Ruleset complet : Handler/Page/Template, 0 violation |
 | 2 | Separation of Concerns | ⚠️ | Validation métier dans handlers, appels `::instance()` directs depuis pages |
 | 3 | Repository Pattern | ⚠️ | SQL bien isolé, mais singletons `::instance()` au lieu de DI |
 | 4 | Service Pattern | ⚠️ | Stateless OK, mais ConfigService singleton + catch silencieux |
-| 5 | DTO Pattern | ⚠️ | 7 DTOs readonly bien faits, mais `array<string, mixed>` omniprésents |
-| 6 | Enum Usage | ✅ | Règles actives, constantes legacy quasi éliminées |
-| 7 | Error Handling | ⚠️ | Catch silencieux dans ConfigService::get() |
-| 8 | Procedural vs OOP | ⚠️ | 97 appels `getDB()`, 17 `getConfig()` restants |
-| 9 | Testing | ✅ | 896 tests, couverture raisonnable |
-| 10 | Code Quality | ⚠️ | 5 règles custom, magic strings résiduelles dans reopen() |
+| 5 | DTO Pattern | ✅ | 11 DTOs readonly, ReadModels pour tous les retours Repository/Service |
+| 6 | Enum Usage | ✅ | Règles actives, magic strings SQL corrigées, 0 utilisation résiduelle |
+| 7 | Error Handling | ✅ | Catch silencieux supprimé (R2), crash hard partout |
+| 8 | Procedural vs OOP | ⚠️ | Fonctions procédurales legacy (`getConfig()`, `currentUser()`, etc.) |
+| 9 | Testing | ✅ | 901 tests, couverture raisonnable |
+| 10 | Code Quality | ✅ | 5 règles custom, 0 magic strings, PHPStan 0 erreur |
 
 ### Recommandations prioritaires
 
@@ -339,21 +339,15 @@ Phase 1 : 5 ReadModels pour les statistiques (`IndicateursData`, `SiteStatsRow`,
 Phase 2 : 4 ReadModels pour les listes (`ReportListItem`, `PaginatedReports`, `ReportStateCounts`, `AdjacentUuids`).
 Phase 3 : 2 ReadModels pour les signalements (`ReportData`, `RegistryCard`). `ReportRepository::findById()` retourne `?ReportData`. Pages, templates, handlers, services, tests migrés. `fetchReportOrRedirect()`, `requireReportOwnership()`, `requireReportEditable()`, `canAccessReport()`, `logConfidentialReportAccess()` acceptent `ReportData`. 11 DTOs readonly au total dans `src/DTO/`.
 
-#### R6 — Nettoyer magic strings résiduelles — ✅ StatsRepository TERMINÉ
+#### R6 — Nettoyer magic strings résiduelles — ✅ TERMINÉ
 
-- `StatsRepository::getSynthesis()` : SQL dynamically built from `ReportState::cases()` via `$this->pdo->quote()`
-- `StatsRepository::getIndicateurs()` : idem
-- `StatsRepository::getBySite()` : idem
-- `StatsRepository::getRamiStructuredStats()` : `type = 'rami'` → `$this->pdo->quote(ReportType::Rami->value)`
+- `StatsRepository::getSynthesis/Indicateurs/getBySite/RamiStats` — SQL dynamique via `ReportState::cases()` + `$this->pdo->quote()`
+- `ReportRepository::countByState()` — `$this->pdo->quote(ReportState::Abandonne->value)`
+- `ReportRepository::reopen()` — `WHERE etat IN ('traite', 'abandonne')` → `$this->pdo->quote()`
 
-**Reste** : `ReportRepository::reopen()` ligne 625 : `'traite', 'abandonne'` → enums
+#### R7 — Étendre deptrac pour couvrir handlers/pages/templates — ✅ TERMINÉ
 
-#### R7 — Étendre deptrac pour couvrir handlers/pages/templates
-
-Le ruleset actuel ne couvre que `src/`. Ajouter des layers pour `handlers/`, `pages/`, `templates/` et forcer la couche Service comme intermédiaire obligatoire (interdire pages→Repository, handlers→Repository).
-
-**Fichiers** : `deptrac.yaml`
-**Impact** : Architecture DDD propre, pas de SQL hors Repository
+Layers `Handler`, `Page`, `Template` ajoutés au ruleset deptrac (vérifié avec R1). Ruleset complet : Handler → Enum/DTO/Service/Repository, Page → Enum/DTO/Service/Repository, Template → Enum/Helpers/Service. 0 violation.
 
 ### Problèmes résiduels DDD (non bloquants)
 

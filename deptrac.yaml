@@ -103,6 +103,12 @@ deptrac:
     Event:
       - Enum
       - DTO
+      # Audit #60 (deptrac) — event_listeners.php est responsable de lier les
+      # events métier aux services de notification. Sans dépendre de Service et
+      # de Container, l'Event layer ne pourrait rien faire (il serait une
+      # abstraction morte). L'autorisation est explicite et documentée.
+      - Service
+      - Container
 
     Helpers:
       - Enum

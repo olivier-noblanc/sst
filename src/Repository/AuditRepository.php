@@ -4,7 +4,6 @@
 
 namespace App\Repository;
 
-use App\Services\SessionService;
 use PDO;
 
 class AuditRepository
@@ -35,8 +34,15 @@ class AuditRepository
         ?string $targetType = null,
         array $context = [],
         ?string $targetUuid = null,
+        ?int $userId = null,
     ): void {
-        $userId = (int)(SessionService::getInstance()->getUserSession()['id'] ?? 0);
+        if ($userId === null) {
+            // Audit #60 (deptrac) — délègue la lecture du user_id à l'appelant.
+            // Avant : AuditRepository dépendait de SessionService (Repository → Service,
+            // interdit par deptrac). Maintenant l'appelant passe userId explicitement.
+            // Si null, on retombe sur currentUser() helper (qui n'est pas une dépendance OOP).
+            $userId = (int) (\currentUser()['id'] ?? 0);
+        }
         $username = \currentUserUsername() !== '' ? \currentUserUsername() : 'system';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
 

@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use App\Repository\ReportRepository;
+use App\Repository\RegistryRepository;
 use DateTimeZone;
 use App\Enum\ReportState;
 use App\Enum\ReportType;
@@ -104,13 +105,30 @@ class FormattingService
 
     /**
      * Get the registry color CSS variable name.
+     *
+     * Modular-audit P2.2 — Avant ce fix, match(ReportType::from($type)) crashait
+     * avec ValueError sur tout code custom. Maintenant on lit color_theme depuis
+     * la table registries (avec fallback sur le theme par défaut).
      */
     public function getRegistryColor(string $type): string
     {
-        return match (ReportType::from($type)) {
+        // Try the DB-driven color theme first (works for custom registries too)
+        try {
+            $registry = RegistryRepository::instance()->findByCode($type);
+            if ($registry !== null && !empty($registry['color_theme'])) {
+                $theme = (string) $registry['color_theme'];
+                return 'var(--theme-' . $theme . ')';
+            }
+        } catch (\Throwable $e) {
+            // Pre-migration or registry not found — fall back to enum
+        }
+        // Fallback for the 3 historical system registries
+        $enumType = ReportType::tryFrom($type);
+        return match ($enumType) {
             ReportType::Rsst => 'var(--rsst-color)',
             ReportType::Rami => 'var(--rami-color)',
             ReportType::Dgi  => 'var(--dgi-color)',
+            default          => 'var(--rsst-color)', // Safe fallback
         };
     }
 
@@ -131,10 +149,25 @@ class FormattingService
 
     /**
      * Get the badge CSS class for a registry type.
+     *
+     * Modular-audit P2.2 — Avant ce fix, ReportType::from((string) $type)
+     * crashait sur tout code custom. Maintenant on lit color_theme depuis la DB.
      */
     public function getRegistryBadgeClass(mixed $type): string
     {
-        return ReportType::from((string) $type)->badgeClass();
+        $typeStr = (string) $type;
+        // Try DB-driven color theme (works for custom registries)
+        try {
+            $registry = RegistryRepository::instance()->findByCode($typeStr);
+            if ($registry !== null && !empty($registry['color_theme'])) {
+                return 'badge--' . (string) $registry['color_theme'];
+            }
+        } catch (\Throwable $e) {
+            // Fall back to enum
+        }
+        // Fallback for the 3 historical system registries
+        $enumType = ReportType::tryFrom($typeStr);
+        return $enumType !== null ? $enumType->badgeClass() : 'badge--rsst';
     }
 
     /**

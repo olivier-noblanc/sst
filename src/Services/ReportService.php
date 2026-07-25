@@ -228,7 +228,7 @@ class ReportService
             $cmd->lieu ?? '',
             $cmd->heureEvenement ?? ''
         );
-        if ($cmd->type === ReportType::Rami) {
+        if ($cmd->type === ReportType::Rami->value) {
             $errors = array_merge($errors, validatePourCompte(
                 $cmd->pourCompteNom !== null,
                 $cmd->pourCompteNom ?? '',
@@ -242,7 +242,8 @@ class ReportService
 
     private function enforceVisibility(CreateReportCommand $cmd): CreateReportCommand
     {
-        $mode = getReportVisibilityMode($cmd->type->value);
+        // Modular-audit P2.3 — $cmd->type is now a string (was ReportType enum)
+        $mode = getReportVisibilityMode($cmd->type);
         if ($mode === VisibilityMode::Public->value) {
             $data = array_merge($cmd->toArray(), ['type' => $cmd->type, 'isConfidential' => false]);
             return new CreateReportCommand(...$data);

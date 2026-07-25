@@ -31,7 +31,7 @@ class ReportRepositoryTest extends TestCase
     public function testCreateAndFindById(): void
     {
         $cmd = new CreateReportCommand(
-            type: ReportType::Rsst, objet: 'Test', description: 'Desc',
+            type: ReportType::Rsst->value, objet: 'Test', description: 'Desc',
             dateEvenement: '2026-01-15', heureEvenement: '10:30',
             lieu: 'Bureau', declarantId: $this->userId, declarantNom: 'Martin',
             declarantPrenom: 'Jean', siteId: $this->siteId, siteText: null,
@@ -64,7 +64,7 @@ class ReportRepositoryTest extends TestCase
     public function testCreateWithSiteIdZeroSucceeds(): void
     {
         $cmd = new CreateReportCommand(
-            type: ReportType::Rsst, objet: 'Sans site', description: 'Desc',
+            type: ReportType::Rsst->value, objet: 'Sans site', description: 'Desc',
             dateEvenement: '2026-01-15', heureEvenement: null,
             lieu: null, declarantId: $this->userId, declarantNom: 'Martin',
             declarantPrenom: 'Jean', siteId: 0, siteText: null,

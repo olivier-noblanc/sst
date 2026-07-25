@@ -8,8 +8,20 @@ use App\Enum\ReportType;
 
 class CreateReportCommand
 {
+    /**
+     * Modular-audit P2.3 — Type is now a string (validated by handler via
+     * RegistryRepository::findByCode), not a ReportType enum.
+     *
+     * Before this fix, `ReportType::from($post['type'])` was called in
+     * fromPost() — which throws ValueError on any custom registry code
+     * (e.g. 'violences', 'harassment'). Custom registries could never
+     * be created via the form.
+     *
+     * The handler validates that $type corresponds to an enabled registry
+     * in the `registries` table before constructing the DTO.
+     */
     public function __construct(
-        public readonly ReportType $type,
+        public readonly string $type,
         public readonly string $objet,
         public readonly string $description,
         public readonly string $dateEvenement,
@@ -41,10 +53,15 @@ class CreateReportCommand
     public static function fromPost(array $post, array $user): self
     {
         $pourCompte = isset($post['pour_compte']) && $post['pour_compte'] === '1';
-        $type = ReportType::from($post['type'] ?? '');
+        // Modular-audit P2.3 — accept any string code (custom registries included).
+        // Handler is responsible for validating via RegistryRepository::findByCode().
+        $type = trim($post['type'] ?? '');
         $natureAuteur = trim($post['nature_auteur'] ?? '');
         $typeActe = trim($post['type_acte'] ?? '');
-        if ($type === ReportType::Rami) {
+        // RAMI-specific fields validation (kept for backwards compat with the
+        // historical RAMI registry — custom registries use registry_fields DB
+        // for their dynamic fields, not these hardcoded columns).
+        if ($type === ReportType::Rami->value) {
             $ramiFields = validateRamiFields($natureAuteur, $typeActe);
             $natureAuteur = $ramiFields['nature_auteur'];
             $typeActe = $ramiFields['type_acte'];
@@ -85,7 +102,8 @@ class CreateReportCommand
     public function toArray(): array
     {
         $data = get_object_vars($this);
-        $data['type'] = $this->type->value;
+        // type is already a string (since P2.3), no need to convert
         return $data;
     }
 }
+

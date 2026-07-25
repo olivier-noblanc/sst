@@ -73,27 +73,34 @@ class ReportTypeTest extends TestCase
     }
 
     /**
-     * REGISTRY_LABELS must be derived from the enum and contain all 3 types.
+     * Modular-audit P1.4 — Test mis à jour.
+     * Avant : testRegistryLabelsMatchEnum assertait que REGISTRY_LABELS (constante
+     * globale) matchait exactement ReportType::cases(). Or cette constante a été
+     * supprimée dans P25d (remplacée par getRegistryLabel() qui lit depuis la DB).
+     * Le test échouait en silence.
+     * Maintenant : vérifie que getRegistryLabel() retourne bien le label de l'enum
+     * pour les 3 codes système (rsst/rami/dgi).
      */
     public function testRegistryLabelsMatchEnum(): void
     {
-        $expected = array_combine(
-            array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
-            array_map(fn(ReportType $t) => $t->label(), ReportType::cases())
-        );
-        $this->assertEquals($expected, REGISTRY_LABELS);
+        foreach (ReportType::cases() as $type) {
+            $label = getRegistryLabel($type->value);
+            $this->assertNotEmpty($label, "Label for {$type->value} should not be empty");
+            $this->assertSame($type->label(), $label, "Label for {$type->value} should match enum");
+        }
     }
 
     /**
-     * REGISTRY_SHORT_LABELS must be derived from the enum and contain all 3 types.
+     * Modular-audit P1.4 — Test mis à jour.
+     * Idem que testRegistryLabelsMatchEnum mais pour shortLabel.
      */
     public function testRegistryShortLabelsMatchEnum(): void
     {
-        $expected = array_combine(
-            array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
-            array_map(fn(ReportType $t) => $t->shortLabel(), ReportType::cases())
-        );
-        $this->assertEquals($expected, REGISTRY_SHORT_LABELS);
+        foreach (ReportType::cases() as $type) {
+            $short = getRegistryShortLabel($type->value);
+            $this->assertNotEmpty($short, "Short label for {$type->value} should not be empty");
+            $this->assertSame($type->shortLabel(), $short, "Short label for {$type->value} should match enum");
+        }
     }
 
     /**

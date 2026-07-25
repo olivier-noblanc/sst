@@ -12,9 +12,23 @@ $userRole = currentUserRole() !== '' ? currentUserRole() : \App\Enum\UserRole::A
 $labelUnite = new \App\Services\FormattingService()->e(getConfigService()->get('app_label_unite', 'UR'));
 $screenshotBase = 'asset.php?f=screenshots';
 $isAgent = ($userRole === \App\Enum\UserRole::Agent->value);
-$ramiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
-$registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
+
+// Modular-audit P1.2 — Récupère tous les registres actifs au lieu de hardcoder
+// RSST+RAMI+DGI. Les pages d'aide itèrent maintenant dynamiquement.
+$enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled();
+$registryCount = count($enabledRegistries);
+
+// Compatibilité arrière : $ramiEnabled / $dgiEnabled encore utilisés par
+// le partial _registres.php (3 cartes hardcodées). Sera supprimé en Phase 2
+// quand le partial sera rendu dynamique.
+$ramiEnabled = false;
+$dgiEnabled = false;
+foreach ($enabledRegistries as $reg) {
+    $code = (string) $reg['code'];
+    if ($code === \App\Enum\ReportType::Rami->value) { $ramiEnabled = true; }
+    if ($code === \App\Enum\ReportType::Dgi->value) { $dgiEnabled = true; }
+}
+
 $hotlineNumber = getConfigService()->get('app_hotline_number', '');
 $hotlineEnabled = !empty($hotlineNumber);
 

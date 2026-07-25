@@ -20,8 +20,10 @@ $formData = new \App\Services\SessionService()->getFormData();
 
 $pageTitle = 'Export des données';
 
-$ramiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
+// Modular-audit P1.2 — Dropdown dynamique depuis RegistryRepository::findEnabled()
+// au lieu de hardcoder RSST + conditionnel RAMI/DGI. Permet aux registres custom
+// d'apparaître automatiquement dans le filtre d'export.
+$enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled();
 ?>
 
 <h1 class="page-title">Export des données</h1>
@@ -42,9 +44,13 @@ $dgiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Dgi->v
                 <div class="btn-group--inline items-center">
                     <select name="type" id="type">
                         <option value="" <?php echo empty($formData['type']) ? 'selected' : ''; ?>>— Choisir —</option>
-                        <option value="rsst" <?php echo ($formData['type'] ?? '') === \App\Enum\ReportType::Rsst->value ? 'selected' : ''; ?>>RSST</option>
-                        <?php if ($ramiEnabled): ?><option value="rami" <?php echo ($formData['type'] ?? '') === \App\Enum\ReportType::Rami->value ? 'selected' : ''; ?>>RAMI</option><?php endif; ?>
-                        <?php if ($dgiEnabled): ?><option value="dgi"  <?php echo ($formData['type'] ?? '') === \App\Enum\ReportType::Dgi->value ? 'selected' : ''; ?>>DGI</option><?php endif; ?>
+                        <?php foreach ($enabledRegistries as $reg): ?>
+                            <?php
+                                $regCode = (string) $reg['code'];
+                                $regLabel = (string) $reg['short_label'];
+                            ?>
+                            <option value="<?php echo e($regCode); ?>" <?php echo ($formData['type'] ?? '') === $regCode ? 'selected' : ''; ?>><?php echo e($regLabel); ?></option>
+                        <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">
                         <input type="checkbox" name="all_registries" id="all_registries" value="1"

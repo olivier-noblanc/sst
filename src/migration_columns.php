@@ -69,7 +69,10 @@ function migrateColumns(PDO $pdo): void
             }
             $colDefs[] = $def;
         }
-        $colDefs[] = "CHECK (type IN ('rsst','rami','dgi'))";
+        // Modular-audit P1.1 — CHECK (type IN ('rsst','rami','dgi')) supprimé.
+        // Les registres doivent être 100% modulaires (création/suppression
+        // dynamique selon les lois). La table `registries` est la source de
+        // vérité pour les codes valides, pas une CHECK constraint hardcodée.
         $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
         $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
         $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];

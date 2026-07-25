@@ -4,6 +4,7 @@ use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
 use App\Enum\UserRole;
 use App\Enum\ReportType;
+use App\Repository\RegistryRepository;
 use App\Repository\NotificationRepository;
 
 /**
@@ -47,15 +48,35 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     foreach ($recipients as $email) {
         sendMail($email, $subject, $body);
     }
-    // DGI: notify CSA/CHSCT members (article L4131-2 Code du travail)
-    if ($type === ReportType::Dgi->value && getConfigService()->get('app_dgi_notify_csa', '1') === '1') {
+    // Modular-audit P1.3 — DGI notification au CSA/CHSCT n'était déclenchée
+    // qu'en checkant `$type === ReportType::Dgi->value`. Or la colonne
+    // `registries.notify_chsct` existe déjà (persistée par le handler
+    // settings_handler_registres.php:172) et permet à l'admin de configurer
+    // n'importe quel registre (custom inclus) pour notifier le CSA à la création.
+    // On lit maintenant notify_chsct depuis la DB. Fallback: si colonne absente
+    // ou registre introuvable, on garde la compatibilité arrière (DGI only).
+    $notifyChsct = false;
+    try {
+        $registry = RegistryRepository::instance()->findByCode($type);
+        if ($registry !== null && (int) ($registry['notify_chsct'] ?? 0) === 1) {
+            $notifyChsct = true;
+        } elseif ($registry === null && $type === ReportType::Dgi->value) {
+            // Compatibilité : registre custom DGI sans ligne en DB (edge case)
+            $notifyChsct = getConfigService()->get('app_dgi_notify_csa', '1') === '1';
+        }
+    } catch (\Throwable $e) {
+        // Pre-migration (colonne notify_chsct absente) — fallback ancien comportement
+        $notifyChsct = ($type === ReportType::Dgi->value && getConfigService()->get('app_dgi_notify_csa', '1') === '1');
+    }
+    if ($notifyChsct) {
         $csaUsers = UserRepository::instance()->findByRole(UserRole::Chsct->value);
         foreach ($csaUsers as $csaUser) {
             /** @var array<string, mixed> $csaUser */
             if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients, true)) {
-                $csaSubject = 'Signalement DGI — Notification ' . getRoleLabelShort('chsct') . " — {$report->reference}";
+                $registryLabel = getRegistryShortLabel($type);
+                $csaSubject = 'Signalement ' . $registryLabel . ' — Notification ' . getRoleLabelShort('chsct') . " — {$report->reference}";
                 $csaBody = '<html><body>';
-                $csaBody .= '<h2>Notification DGI — Article L4131-2 du Code du travail</h2>';
+                $csaBody .= '<h2>Notification ' . $registryLabel . ' — Article L4131-2 du Code du travail</h2>';
                 $csaBody .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>';
                 $csaBody .= renderEmailField('Référence', $report->reference);
                 $csaBody .= renderEmailField('Objet', $report->objet);

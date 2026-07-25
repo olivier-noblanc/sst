@@ -102,7 +102,7 @@ class ReportServiceTest extends TestCase
     public function testCreateWithInvalidDataThrows(): void
     {
         $cmd = new CreateReportCommand(
-            type: ReportType::Rsst,
+            type: ReportType::Rsst->value,
             objet: '',
             description: '',
             dateEvenement: '',
@@ -141,7 +141,7 @@ class ReportServiceTest extends TestCase
         $service = new ReportService($repo, $events);
 
         $cmd = new CreateReportCommand(
-            type: ReportType::Rsst,
+            type: ReportType::Rsst->value,
             objet: 'Event Test',
             description: 'Test',
             dateEvenement: '2026-01-15',
@@ -172,7 +172,7 @@ class ReportServiceTest extends TestCase
     public function testCreateEnforcesPublicVisibilityForRSST(): void
     {
         $cmd = new CreateReportCommand(
-            type: ReportType::Rsst,
+            type: ReportType::Rsst->value,
             objet: 'Visibility Test',
             description: 'Test',
             dateEvenement: '2026-01-15',

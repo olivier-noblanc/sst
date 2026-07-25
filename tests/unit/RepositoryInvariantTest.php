@@ -50,7 +50,7 @@ class RepositoryInvariantTest extends TestCase
         return (int) $this->pdo->lastInsertId();
     }
 
-    private function seedReport(int $siteId, int $userId, string $etat = 'nouveau', ReportType $type = ReportType::Rsst): string
+    private function seedReport(int $siteId, int $userId, string $etat = 'nouveau', string $type = 'rsst'): string
     {
         $cmd = new CreateReportCommand(
             type: $type, objet: 'Test', description: 'Desc',

@@ -58,6 +58,15 @@ class SiteRepository
         return is_array($row) ? $row : null;
     }
 
+    /** @return array<mixed, mixed>|null */
+    public function findByName(string $nom): ?array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE nom = :nom');
+        $stmt->execute([':nom' => $nom]);
+        $row = $stmt->fetch();
+        return is_array($row) ? $row : null;
+    }
+
     public function create(string $code, string $nom, string $departement = ''): int
     {
         $stmt = $this->pdo->prepare('INSERT INTO sites (code, nom, departement) VALUES (:code, :nom, :departement)');

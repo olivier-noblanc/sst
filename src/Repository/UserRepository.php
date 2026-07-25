@@ -183,6 +183,15 @@ class UserRepository
         return $stmt->rowCount() > 0;
     }
 
+    public function updateRole(int $id, string $role): bool
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE users SET role = :role, updated_at = datetime('now')
+            WHERE id = :id
+        ");
+        $stmt->execute([':role' => $role, ':id' => $id]);
+        return $stmt->rowCount() > 0;
+    }
 
     public function updateSite(int $id, int $siteId): bool
     {

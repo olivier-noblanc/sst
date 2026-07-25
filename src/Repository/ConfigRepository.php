@@ -38,4 +38,9 @@ class ConfigRepository
             ON CONFLICT(cle) DO UPDATE SET valeur = :valeur2, updated_at = datetime("now")');
         $stmt->execute([':cle' => $cle, ':valeur' => $valeur, ':valeur2' => $valeur]);
     }
+
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
 }

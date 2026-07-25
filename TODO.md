@@ -500,3 +500,112 @@ rtk php vendor/bin/infection --show-mutations --no-progress --threads=4 --git-di
 Un seul wrapper : `renderEmailBody()` dans `src/mail/email_renderer.php`.
 Helpers : `renderEmailField()`, `renderEmailButton()`, `renderEmailLink()` (même fichier).
 `app_brand_color` configurable dans Settings > Global.
+
+---
+
+## Audit CTO 2026-07-26 — 98 bugs identifiés + 8 refactorings
+
+Suite à l'audit CTO DDD/TDD complet (commit de réf `64bd9a4`), **98 bugs fonctionnels** identifiés sur 5 périmètres :
+- ReportService + Repository + Handlers (19 bugs)
+- Auth/User/Access Control (19 bugs)
+- Cron/RGPD/Backup (18 bugs)
+- Stats/Synthesis/Export (18 bugs)
+- Routing/Validation/Templates/Pages (24 bugs)
+
+Répartition : **9 Critical**, **13 High**, **36 Medium**, **40 Low**.
+
+Rapport complet : `download/AUDIT_CTO_SST.md` (post-audit). Worklog détaillé : `worklog.md`.
+
+### État après pull `f67545d` (équipe a fait A3-A7 entre-temps)
+
+| Bug | Statut post-pull |
+|-----|------------------|
+| #2 (anonymisation RGPD jamais exécutée) | ✅ Corrigé par A7 (cron SQL migré vers ReportRepository, fetch array) |
+| #3 (notifications de retard groupées sur siteId=0) | ✅ Corrigé par A7 (même cause racine) |
+| #1 (notifyNewReport jamais appelée sur create) | ❌ Toujours là — EventDispatcher dispatche `report.created` mais 0 listener wire |
+| #4 (workflow réouvrir→répondre cassé) | ❌ Toujours là — `requireReportEditable` rejette `Reouvert` |
+| #5 (page `report_reopen.php` affiche du code PHP comme texte) | ❌ Toujours là |
+| #6 (page `report_abandon.php` même bug, copy-paste) | ❌ Toujours là |
+| #7 (export CSV DREETS : 5 colonnes vides + consentement syndicat faux) | ❌ Toujours là |
+| #8 (anonymize utilisateur échoue en NOT NULL sur report_responses.user_id) | ❌ Toujours là |
+| #9 (utilisateur désactivé garde sa session active 24h) | ❌ Toujours là (cache session non re-validé) |
+
+### Plan de résolution (commit/push point par point)
+
+#### Batch 1 — Bugs critiques HTML triviaux (#5, #6)
+- Fix `pages/report_reopen.php:55-57` — supprimer le code PHP mort rendu comme texte
+- Fix `pages/report_abandon.php:45-47` — idem
+- Test : `PageRenderingTest` doit asserter "pas de texte PHP source dans le rendu"
+
+#### Batch 2 — Export CSV DREETS (#7)
+- Fix `StatsRepository::getExportData` — SELECT doit inclure `pole`, `service_affectation`, `telephone_mobile`, `site_text`, `consent_syndicat`
+- Test : `ExportCsvColumnsTest` vérifie que les 5 colonnes ont des valeurs réelles
+
+#### Batch 3 — Anonymize NOT NULL (#8, #20, #24, #25, #44, #45, #46)
+- Fix `UserRepository::anonymize` — `report_responses.user_id` est NOT NULL → soit DELETE la ligne, soit SET `user_id = 0` (sentinelle), soit changer le schema
+- Unifier la politique avec `lazyCronAnonymize` (même valeurs d'anonymisation, même critère `date_reponse` au lieu de `date_evenement`)
+- Fix `username` également anonymisé (RGPD)
+- Handler doit tester le retour et afficher une erreur visible si échec
+
+#### Batch 4 — Workflow réouvrir→répondre (#4)
+- Extraire `requireReportRespondable()` qui accepte `[Nouveau, EnCours, Reouvert]`
+- L'utiliser dans `pages/report_respond.php` au lieu de `requireReportEditable`
+- Test : superviseur peut atteindre le formulaire de réponse sur un signalement `Reouvert`
+
+#### Batch 5 — Wire EventDispatcher listeners (#1, #9, #22, #23, #38, #12, #83)
+- Dans `bootstrap_services.php` : enregistrer les listeners
+  - `report.created` → `NotificationService::notifyNewReport`
+  - `report.created` (DGI) → `NotificationService::notifyDgiChsct` (L4131-2)
+  - `report.responded` → `NotificationService::notifyReportResponse`
+  - `report.reopened` → `NotificationService::notifyReopen`
+  - `user.deactivated` / `user.role_changed` → `SessionService::invalidateAllSessions`
+- Ne pas dispatcher si opération échoue (status=concurrent/false)
+
+#### Batch 6 — Re-validation session (#9, #22, #23, #38)
+- `AuthService::getAuthenticatedUser` doit re-vérifier `is_active` en DB à chaque appel (ou au moins toutes les N minutes)
+- Ajouter colonne `users.sessions_invalid_before DATETIME` (R4)
+- Bump le marqueur dans `UserService::deactivate/anonymize/update (si role change)`
+- Test : user désactivé déconnecté à la prochaine requête
+
+#### Batch 7 — Bugs High restants
+- #2-High : `ReportService::update` ré-applique `enforceVisibility`
+- #3-High : `findPaginated` AgentChoice — `force_site_id` doit être respecté même quand `linked_agent_id` set
+- #4-High : `UpdateReportCommand::toArray` doit préserver les null pour `remove_attachment=1`
+- #21 : `choose_site_handler` écrit `site_chosen_at`
+- #41 : `runLazyCronTask` verrou atomic (UPDATE ... WHERE valeur='' OR valeur < cutoff)
+- #42 : `migration_columns.php` DROP/CREATE triggers FTS5 (rebuild)
+- #43 : test INSERT ne doit pas échouer pour FK violation (user 1 absent)
+- #58 : `pages/export.php` autorise CHSCT
+- #59 : `settings_handler_registres` — `color_theme` valide (pas `'agent_choice'`)
+
+#### Batch 8 — Bugs Medium (36)
+Voir détail dans le rapport d'audit. Sera traité par theme.
+
+#### Batch 9 — Bugs Low (40)
+Voir détail dans le rapport d'audit.
+
+#### Batch 10 — Refactorings R1-R8
+- R1 : `ReportStateMachine` centralisée
+- R2 : wire EventDispatcher listeners (clos Batch 5)
+- R3 : `AnonymizationPolicy` unifiée (clos Batch 3 + #44, #45, #46)
+- R4 : `SessionInvalidator` avec marqueur DB (clos Batch 6)
+- R5 : `ExportService` déclaratif
+- R6 : `CronService` avec verrou atomic (clos #41)
+- R7 : `SitesStatsView`
+- R8 : Nettoyage code mort HTML (clos #5, #6, #78)
+
+### Tests TDD spec-first à écrire pour chaque bug
+
+Top 12 prioritaires (clos les 9 critiques + 3 High) :
+1. `notifyNewReport` est appelée après `report_create_handler`
+2. `lazyCronAnonymize` anonymize réellement les reports (déjà corrigé par A7 — ajouter test)
+3. `lazyCronCheckDelays` envoie un email au superviseur du bon site (déjà corrigé par A7 — ajouter test)
+4. Superviseur peut répondre à un signalement `Réouvert`
+5. `report_reopen.php` rendu ne contient pas de code PHP source
+6. `report_abandon.php` rendu ne contient pas de code PHP source
+7. Export CSV contient pole/service_affectation/telephone_mobile/site_text/consent_syndicat
+8. `anonymize` échoue proprement quand user a des responses (ou DELETE rows)
+9. User désactivé est déconnecté à la prochaine requête
+10. Edit RSST public ne peut pas flip `is_confidential`
+11. `findPaginated` AgentChoice cross-site
+12. `remove_attachment=1` efface réellement la PJ

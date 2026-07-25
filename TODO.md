@@ -300,7 +300,7 @@ Les échecs CI n'étaient pas techniques mais liés à la **facturation GitHub A
 | 1 | Architecture Layers (deptrac) | ✅ | Ruleset complet : Handler/Page/Template, 0 violation |
 | 2 | Separation of Concerns | ⚠️ | Validation métier dans handlers, appels `::instance()` directs depuis pages |
 | 3 | Repository Pattern | ⚠️ | SQL bien isolé, mais singletons `::instance()` au lieu de DI |
-| 4 | Service Pattern | ⚠️ | Stateless OK, mais ConfigService singleton + catch silencieux |
+| 4 | Service Pattern | ✅ | ConfigService migré vers DI container, singleton supprimé |
 | 5 | DTO Pattern | ✅ | 11 DTOs readonly, ReadModels pour tous les retours Repository/Service |
 | 6 | Enum Usage | ✅ | Règles actives, magic strings SQL corrigées, 0 utilisation résiduelle |
 | 7 | Error Handling | ✅ | Catch silencieux supprimé (R2), crash hard partout |

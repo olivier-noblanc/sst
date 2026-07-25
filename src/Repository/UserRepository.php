@@ -123,10 +123,13 @@ class UserRepository
 
     public function countActiveSuperviseurs(): int
     {
+        // Audit #36 — bind the enum value as a parameter instead of concatenating
+        // it into the SQL string. Same logic, but safer (defense-in-depth even
+        // though the value comes from a PHP enum and is safe).
         $stmt = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM users WHERE role = '" . UserRole::Superviseur->value . "' AND is_active = 1"
+            'SELECT COUNT(*) FROM users WHERE role = :role AND is_active = 1'
         );
-        $stmt->execute();
+        $stmt->execute([':role' => UserRole::Superviseur->value]);
         return (int) $stmt->fetchColumn();
     }
 

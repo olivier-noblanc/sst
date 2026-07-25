@@ -89,9 +89,16 @@ class FormattingService
 
     /**
      * Get the next sequence number for a report reference.
+     *
+     * Audit #9-Medium — $pdo parameter is ignored (the method uses
+     * ReportRepository::instance() which has its own PDO). Kept for BC
+     * (callers pass it) but documented as ignored.
      */
     public function getNextSequence(PDO $pdo, string $type, int $year): int
     {
+        // $pdo is intentionally ignored — ReportRepository::instance() uses
+        // its own PDO from the container. The signature is kept for BC.
+        unset($pdo);
         return ReportRepository::instance()->getNextSequence($type, $year);
     }
 

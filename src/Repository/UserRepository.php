@@ -246,9 +246,7 @@ class UserRepository
             }
             return [
                 'is_active' => (int) ($row['is_active'] ?? 0),
-                'sessions_invalid_before' => isset($row['sessions_invalid_before']) && $row['sessions_invalid_before'] !== null && $row['sessions_invalid_before'] !== ''
-                    ? (string) $row['sessions_invalid_before']
-                    : null,
+                'sessions_invalid_before' => $this->normalizeTimestamp($row['sessions_invalid_before'] ?? null),
             ];
         } catch (\Throwable $e) {
             // Pre-migration (column missing) — fail safe (session considered valid)
@@ -388,5 +386,28 @@ class UserRepository
     public function getPdo(): PDO
     {
         return $this->pdo;
+    }
+
+    /**
+     * Normalize a DB timestamp value (mixed from PDO fetch) to ?string.
+     *
+     * Audit #60 — PHPStan strict rules complain about `mixed !== null`
+     * (always true since mixed includes null but the comparison is type-unsafe).
+     * This helper centralizes the normalization with proper type checks.
+     *
+     * @param mixed $value
+     */
+    private function normalizeTimestamp($value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+        if (!is_string($value)) {
+            return null;
+        }
+        if ($value === '') {
+            return null;
+        }
+        return $value;
     }
 }

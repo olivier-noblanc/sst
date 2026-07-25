@@ -291,13 +291,82 @@ Les échecs CI n'étaient pas techniques mais liés à la **facturation GitHub A
 
 ---
 
-## Problèmes résiduels DDD (non bloquants)
+## Audit DDD — 2026-07-25
+
+### État actuel
+
+| # | Aspect | Verdict | Détail |
+|---|--------|---------|--------|
+| 1 | Architecture Layers (deptrac) | ⚠️ | Ruleset incomplet — ne couvre pas handlers/pages/templates |
+| 2 | Separation of Concerns | ⚠️ | Validation métier dans handlers, appels `::instance()` directs depuis pages |
+| 3 | Repository Pattern | ⚠️ | SQL bien isolé, mais singletons `::instance()` au lieu de DI |
+| 4 | Service Pattern | ⚠️ | Stateless OK, mais ConfigService singleton + catch silencieux |
+| 5 | DTO Pattern | ⚠️ | 7 DTOs readonly bien faits, mais `array<string, mixed>` omniprésents |
+| 6 | Enum Usage | ✅ | Règles actives, constantes legacy quasi éliminées |
+| 7 | Error Handling | ⚠️ | Catch silencieux dans ConfigService::get() |
+| 8 | Procedural vs OOP | ⚠️ | 97 appels `getDB()`, 17 `getConfig()` restants |
+| 9 | Testing | ✅ | 896 tests, couverture raisonnable |
+| 10 | Code Quality | ⚠️ | 5 règles custom, magic strings résiduelles dans reopen() |
+
+### Recommandations prioritaires
+
+#### R1 — Étendre deptrac pour couvrir handlers/pages/templates
+
+Le ruleset actuel ne couvre que `src/`. Ajouter des layers pour `handlers/`, `pages/`, `templates/` et forcer la couche Service comme intermédiaire obligatoire (interdire pages→Repository, handlers→Repository).
+
+**Fichiers** : `deptrac.yaml`
+**Impact** : Architecture DDD propre, pas de SQL hors Repository
+
+#### R2 — Éliminer catch silencieux dans ConfigService::get()
+
+`ConfigService.php:51` : `catch (Exception) { $value = $default; }` — catch silencieux qui masque les erreurs DB.
+
+**Fichiers** : `src/Services/ConfigService.php`
+**Action** : Logger l'erreur ou la laisser remonter
+
+#### R3 — Déplacer logique métier des handlers vers Services
+
+- `report_create_handler.php:60-85` : validation email domain, site validation → `ReportService`
+- `report_edit_handler.php:47-53` : validation RAMI → `ReportService`
+
+**Fichiers** : `handlers/report_create_handler.php`, `handlers/report_edit_handler.php`, `src/Services/ReportService.php`
+**Impact** : Handlers thin controllers, logique métier centralisée
+
+#### R4 — Ajouter StatisticsService
+
+Créer `StatisticsService` pour intercaler entre pages et `StatsRepository`, éliminant les 48 appels `::instance()` directs depuis les pages.
+
+**Fichiers** : `src/Services/StatisticsService.php` (nouveau), `pages/statistics.php`, `pages/synthesis.php`
+**Impact** : Pas de dépendance directe pages→Repository
+
+#### R5 — Typifier les retours avec des ReadModels
+
+Introduire des ReadModels (`ReportSummary`, `SiteStats`, `RegistryStats`) au lieu de `array<string, mixed>` pour les retours des Services/Repository.
+
+**Fichiers** : `src/DTO/` (nouveau), `src/Services/`, `src/Repository/`
+**Impact** : Moins d'erreurs runtime, autocomplétion IDE
+
+#### R6 — Nettoyer magic strings résiduelles
+
+- `ReportRepository::reopen()` ligne 625 : `'traite', 'abandonne'` → enums
+- `StatsRepository::getSynthesis()` lignes 34-38 : hardcoded strings
+
+**Fichiers** : `src/Repository/ReportRepository.php`, `src/Repository/StatsRepository.php`
+
+#### R7 — Étendre deptrac pour couvrir handlers/pages/templates
+
+Le ruleset actuel ne couvre que `src/`. Ajouter des layers pour `handlers/`, `pages/`, `templates/` et forcer la couche Service comme intermédiaire obligatoire (interdire pages→Repository, handlers→Repository).
+
+**Fichiers** : `deptrac.yaml`
+**Impact** : Architecture DDD propre, pas de SQL hors Repository
+
+### Problèmes résiduels DDD (non bloquants)
 
 1. **Fonctions procédurales legacy** — `getConfig()`, `isRegistryEnabled()`, `currentUser()`, `currentUserId()`, `setFlash()`, `redirect()`, `url()` dans `src/helpers/` et `src/user_context.php` — wrappers procéduraux autour des services OOP. À migrer vers les services quand on touche à ces fichiers.
 2. **Doublon SQL migration** — `migration_columns.php` contient du SQL qui pourrait être dans les repositories (mais c'est un fichier de migration, donc acceptable de garder le SQL là).
 3. **Constantes legacy** — ✅ TERMINÉ. 0 utilisation résiduelle — Rector a fait son job.
 4. **Queries procédurales** — ✅ TERMINÉ. 6 fichiers supprimés, ~40 appelants migrés vers Repository.
-5. **Tests anti-magic-string** — Ajouter des tests PHPStan ou unitaires qui catch les constantes legacy (`ROLE_CHSCT`, `ROLE_AGENT`, `ROLE_SUPERVISEUR`, `ETAT_*`, `TYPE_*`) utilisées en dur au lieu des enums. Pattern : étendre `NoMagicStringRule` ou test dédié qui scanne `src/`, `pages/`, `handlers/`, `templates/`.
+5. **Tests anti-magic-string** — ✅ TERMINÉ. NoLegacyConstantRule étendue + PHPStanRulesTest créée.
 
 ---
 

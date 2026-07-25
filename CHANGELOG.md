@@ -3,6 +3,39 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.47.0] — 2026-07-25
+
+### Feature — Audit DDD + améliorations architecture
+
+- **1** 🔴 **TODO.md** — Audit DDD complet ajouté (10 aspects, 7 recommandations prioritaires R1-R7).
+- **2** 🔴 **AGENTS.md** — Règle Rector ajoutée : « Étudier la possibilité d'utiliser Rector pour les refactoring conséquents (50+ fichiers) ».
+
+### Feature — Brancher méthodes P21 incomplètes
+
+- **3** 🔴 **statistics.php** — `RegistryRepository::themeClasses()` branchée : indicaturs dynamiques par registre au lieu de cartes hardcodées rsst/rami/dgi.
+- **4** 🔴 **settings_handler_registres.php** — CRUD registry_fields ajoutée : `delete_field` + `add_field` handlers.
+- **5** 🔴 **tab_registres.php** — UI admin registry_fields ajoutée : liste, ajout, suppression de champs personnalisés par registre.
+
+### Fix — Dead code shipmonk
+
+- **6** 🔴 **shipmonk/dead-code-detector** installé et configuré dans phpstan.neon.
+- **7** 🔴 **7 dead methods supprimées** : `RegistryFieldRepository::getPdo()`, `RegistryRepository::getPdo()`, `ConfigRepository::getPdo()`, `NotificationRepository::delete()`, `SiteRepository::findByName()`, `StatsRepository::countByRegistryAndSite()`, `UserRepository::updateRole()`, `ReportType::icon()`.
+- **8** 🟢 **4 méthodes test-only** gardées dans baseline : `findById`, `update`, `toggleEnabled`, `countByState`.
+
+### Fix — PHPStan rules
+
+- **9** 🔴 **NoLegacyConstantRule.php** — Étendue : `TYPE_RSST`, `TYPE_RAMI`, `TYPE_DGI` ajoutées aux constantes bloquées.
+- **10** 🔴 **PHPStanRulesTest.php** — Tests unitaires vérifiant qu'aucune constante legacy n'est utilisée dans le code prod.
+
+### Fix — Divers
+
+- **11** 🔴 **Consentement syndicat** — Texte rendu configurable via `getConfig('app_nom_organisation', 'DREETS')` au lieu du nom hardcodé.
+- **12** 🟢 **TODO.md** — P22 marqué terminé (problème facturation GitHub, pas technique).
+- **13** 🟢 **phpstan-baseline.neon** — Régénéré (78 erreurs dont 4 test-only).
+- **14** 🟢 **935 tests, 1886 assertions** — tous verts.
+
+---
+
 ## [3.46.0] — 2026-07-24
 
 ### Feature — Registres custom pleinement fonctionnels (P21 final)

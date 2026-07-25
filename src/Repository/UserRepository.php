@@ -185,8 +185,17 @@ class UserRepository
 
     public function updateSite(int $id, int $siteId): bool
     {
+        // Audit #21 — site_chosen_at wasn't set → the 7-day grace period
+        // check in choose_site_handler was always falling back to $daysSinceChoice = 999
+        // (since $siteChosenAt was always null), which would have blocked every change...
+        // except the check was guarded by $hasExistingSite which was already false on
+        // first set, so the bug was latent. Now site_chosen_at is written atomically
+        // with site_id, the grace period actually works.
         $stmt = $this->pdo->prepare("
-            UPDATE users SET site_id = :site_id, updated_at = datetime('now')
+            UPDATE users
+            SET site_id = :site_id,
+                site_chosen_at = datetime('now'),
+                updated_at = datetime('now')
             WHERE id = :id
         ");
         $stmt->execute([':site_id' => $siteId, ':id' => $id]);

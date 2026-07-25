@@ -126,6 +126,12 @@ class ReportService
             throw new RuntimeException('Accès refusé.');
         }
 
+        // Audit #2-High — enforceVisibility was only called in create(), not update().
+        // Without this, an agent could flip is_confidential=1 on an RSST public
+        // (where VisibilityMode is Public) — bypassing the visibility policy.
+        // Now we enforce it on update too.
+        $cmd = $this->enforceVisibilityOnUpdate($cmd, $report->type);
+
         $result = $this->repo->update($uuid, $cmd, $userId);
 
         // Audit #12 — ne pas dispatcher si l'UPDATE a échoué.
@@ -216,6 +222,34 @@ class ReportService
             $data = array_merge($cmd->toArray(), ['type' => $cmd->type, 'isConfidential' => true]);
             return new CreateReportCommand(...$data);
         }
+        return $cmd;
+    }
+
+    /**
+     * Audit #2-High — Apply visibility policy on update too.
+     *
+     * Same logic as enforceVisibility, but for UpdateReportCommand. Without this,
+     * an agent could flip is_confidential on a report whose VisibilityMode is
+     * 'public' or 'confidential' — bypassing the visibility policy. In AgentChoice
+     * mode, the agent keeps the right to set is_confidential as they wish.
+     */
+    private function enforceVisibilityOnUpdate(UpdateReportCommand $cmd, string $type): UpdateReportCommand
+    {
+        $mode = getReportVisibilityMode($type);
+        if ($mode === VisibilityMode::Public->value) {
+            // Public mode: never confidential
+            if ($cmd->isConfidential) {
+                $data = array_merge($cmd->toArray(), ['isConfidential' => false]);
+                return new UpdateReportCommand(...$data);
+            }
+        } elseif ($mode === VisibilityMode::Confidential->value) {
+            // Confidential mode: always confidential
+            if (!$cmd->isConfidential) {
+                $data = array_merge($cmd->toArray(), ['isConfidential' => true]);
+                return new UpdateReportCommand(...$data);
+            }
+        }
+        // AgentChoice mode: agent decides → keep $cmd->isConfidential
         return $cmd;
     }
 }

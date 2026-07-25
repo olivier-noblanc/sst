@@ -58,13 +58,20 @@ if (!empty($errors)) {
 }
 
 $cmd = UpdateReportCommand::fromPost($_POST);
-/** @var array<string, string> $cmdData */
-$cmdData = array_merge($cmd->toArray(), [
-    'attachmentBlob' => $removeAttachment ? null : ($attachment['blob'] ?? null),
-    'attachmentName' => $removeAttachment ? null : ($attachment['name'] ?? null),
-    'attachmentMime' => $removeAttachment ? null : ($attachment['mime'] ?? null),
-]);
-$cmd = new UpdateReportCommand(...$cmdData);
+
+// Audit #4-High — Si l'utilisateur a uploadé un nouveau fichier, il prime sur
+// le flag removeAttachment (logique : cocher "remove" puis changer d'avis en
+// uploadant un nouveau = on garde le nouveau). Si removeAttachment=true et
+// pas de nouveau fichier → toArray() set attachment_blob=NULL dans le UPDATE.
+if (!empty($attachment['blob'])) {
+    $cmdData = array_merge($cmd->toArray(), [
+        'attachmentBlob' => $attachment['blob'],
+        'attachmentName' => $attachment['name'],
+        'attachmentMime' => $attachment['mime'],
+        'removeAttachment' => false,
+    ]);
+    $cmd = new UpdateReportCommand(...$cmdData);
+}
 
 try {
     $service = getContainer()->get(ReportService::class);

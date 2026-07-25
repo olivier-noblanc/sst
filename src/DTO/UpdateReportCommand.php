@@ -25,6 +25,14 @@ class UpdateReportCommand
         public readonly ?string $attachmentBlob = null,
         public readonly ?string $attachmentName = null,
         public readonly ?string $attachmentMime = null,
+        /**
+         * Audit #4-High — Quand true, le UPDATE doit explicitement SET
+         * attachment_blob=NULL, attachment_name=NULL, attachment_mime=NULL
+         * pour supprimer la PJ existante. Sans ce flag, toArray() strippait
+         * les clés null → l'UPDATE ne touchait pas aux colonnes → la PJ
+         * restait en DB même après "Supprimer la pièce jointe".
+         */
+        public readonly bool $removeAttachment = false,
     ) {}
 
     /** @param array<string, string> $post */
@@ -50,23 +58,33 @@ class UpdateReportCommand
             typeActe: $typeActe !== '' ? $typeActe : null,
             pourCompteNom: $pourCompte ? trim($post['pour_compte_nom'] ?? '') : null,
             pourComptePrenom: $pourCompte ? trim($post['pour_compte_prenom'] ?? '') : null,
+            removeAttachment: isset($post['remove_attachment']) && $post['remove_attachment'] === '1',
         );
     }
 
     /**
      * Convert to snake_case array for DB.
-     * Excludes attachment fields when null so updateReport() keeps existing attachment.
+     * Excludes attachment fields when null (no new upload) so updateReport()
+     * keeps existing attachment. When $removeAttachment is true, includes
+     * them as null explicitly to clear the existing attachment (audit #4-High).
      */
     /** @return array<string, mixed> */
     public function toArray(): array
     {
         /** @var array<string, mixed> */
         $data = get_object_vars($this);
-        // Only include attachment fields if explicitly set (non-null)
-        // This preserves existing attachment when no new file/upload is provided
-        if ($data['attachmentBlob'] === null && $data['attachmentName'] === null && $data['attachmentMime'] === null) {
+
+        if ($this->removeAttachment) {
+            // Force NULL on attachment columns to delete the existing PJ.
+            $data['attachmentBlob'] = null;
+            $data['attachmentName'] = null;
+            $data['attachmentMime'] = null;
+        } elseif ($data['attachmentBlob'] === null && $data['attachmentName'] === null && $data['attachmentMime'] === null) {
+            // No new upload AND no removal request → preserve existing attachment
             unset($data['attachmentBlob'], $data['attachmentName'], $data['attachmentMime']);
         }
+
         return $data;
     }
 }
+

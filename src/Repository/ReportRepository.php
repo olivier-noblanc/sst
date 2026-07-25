@@ -224,7 +224,17 @@ class ReportRepository
         if (!empty($filters['site_id']) && $filter->seeAllSites) {
             $builder->addEqual('r.site_id', $filters['site_id']);
         }
-        if (!empty($filters['force_site_id']) && empty($filters['linked_agent_id'])) {
+        if (!empty($filters['force_site_id'])) {
+            // Audit #3-High — force_site_id must always be applied, even when
+            // linked_agent_id is set. Before this fix, the condition was
+            // `if (!empty($filters['force_site_id']) && empty($filters['linked_agent_id']))`
+            // → when linked_agent_id was set, force_site_id was bypassed, and
+            // the AgentChoice visibility clause `(linked_condition OR r.is_confidential = 0)`
+            // didn't filter by site → all non-confidential reports from ALL sites
+            // were visible to the agent.
+            // Now force_site_id applies uniformly: linked reports must also be
+            // in the agent's site. If cross-site linked reports are needed in the
+            // future, a separate explicit flag can be added.
             $forceSiteIdRaw = $filters['force_site_id'];
             $builder->addEqual('r.site_id', (int) $forceSiteIdRaw);
         }

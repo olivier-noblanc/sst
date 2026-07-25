@@ -129,7 +129,11 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             'short_label'        => $shortLabel,
             'description'        => trim((string) ($postData['new_description'] ?? '')),
             'icon'               => '📋',
-            'color_theme'        => VisibilityMode::AgentChoice->value,
+            // Audit #59 — color_theme doit être un nom de classe CSS valide
+            // ('rsst', 'vert', 'orange', etc.), pas une valeur de VisibilityMode.
+            // VisibilityMode::AgentChoice->value === 'agent_choice' n'a pas de
+            // classe CSS associée → visuel cassé pour tout nouveau registre custom.
+            'color_theme'        => 'vert',  // défaut: vert (couleur neutre)
             'is_enabled'         => 1,
             'is_system'          => 0,
             'sort_order'         => $maxOrder + 1,

@@ -144,17 +144,8 @@ class UserService
      */
     private function invalidateUserSessions(int $userId): void
     {
-        try {
-            $stmt = $this->repo->getPdo()->prepare("
-                UPDATE users
-                SET sessions_invalid_before = datetime('now')
-                WHERE id = :id
-            ");
-            $stmt->execute([':id' => $userId]);
-        } catch (\Throwable $e) {
-            // Migration may not have run yet (column missing) — log and continue.
-            error_log('[SST-USER] invalidateUserSessions failed: ' . $e->getMessage());
-        }
+        // Audit #9 — delegate SQL to UserRepository (PHPStan NoSqlOutsideRepository)
+        $this->repo->invalidateSessions($userId);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

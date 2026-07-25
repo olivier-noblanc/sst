@@ -5,13 +5,16 @@
  * Audit #9 + #22 + #23 + #38 — un user désactivé gardait sa session
  * active 24h jusqu'à expiration.
  *
- * Ce test vérifie :
+ * Ce test vérifie (via UserRepository, pas SessionInvalidator qui a été
+ * supprimé au profit d'une méthode directe sur le Repository — règle
+ * PHPStan NoSqlOutsideRepository) :
  * 1. UserService::deactivate bump le marqueur sessions_invalid_before
  * 2. UserService::update (role changed) bump le marqueur
  * 3. UserService::anonymize bump le marqueur
- * 4. AuthService::getAuthenticatedUser détecte un user désactivé via le marqueur
- *    et force le logout (return null)
- * 5. AuthService::getAuthenticatedUser re-fetch l'user si rôle a changé
+ * 4. UserRepository::findSessionState retourne false si user inactif
+ * 5. UserRepository::findSessionState détecte un marker plus récent que session_start
+ * 6. Pas de marker → session valide
+ * 7. User inexistant → null
  */
 
 use PHPUnit\Framework\TestCase;
@@ -33,7 +36,6 @@ class SessionInvalidationTest extends TestCase
         require_once __DIR__ . '/../../src/config.php';
         require_once __DIR__ . '/../../src/helpers.php';
         require_once __DIR__ . '/../../src/database.php';
-        require_once __DIR__ . '/../../src/Services/SessionInvalidator.php';
         require_once __DIR__ . '/../../src/Repository/UserRepository.php';
         require_once __DIR__ . '/../../src/Services/UserService.php';
         require_once __DIR__ . '/../../src/Event/EventDispatcher.php';
@@ -79,7 +81,6 @@ class SessionInvalidationTest extends TestCase
         $events = new \App\Event\EventDispatcher();
         $service = new \App\Services\UserService($repo, $events);
 
-        // Update user 9103 role: agent → superviseur
         $cmd = new \App\DTO\UpdateUserCommand(
             username: 'test.sess.role1',
             nom: 'Agent1',
@@ -120,43 +121,54 @@ class SessionInvalidationTest extends TestCase
         $this->assertNull($after, 'sessions_invalid_before should NOT be set when role unchanged');
     }
 
-    public function testSessionInvalidatorReturnsFalseWhenUserInactive(): void
+    public function testFindSessionStateReturnsFalseWhenUserInactive(): void
     {
+        // Audit #9 — UserRepository::findSessionState returns is_active=0
         $pdo = self::$pdo;
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9107, 'test.sess.inactive', 'Inact', 'Bob', 'agent', 1, 0)");
 
-        $invalidator = new \App\Services\SessionInvalidator($pdo);
-        $valid = $invalidator->isSessionStillValid(9107, time() - 100);
-        $this->assertFalse($valid, 'Session should be invalid when user is inactive');
+        $repo = new \App\Repository\UserRepository($pdo);
+        $state = $repo->findSessionState(9107);
+        $this->assertNotNull($state);
+        $this->assertSame(0, $state['is_active'], 'is_active should be 0 for inactive user');
     }
 
-    public function testSessionInvalidatorReturnsFalseWhenMarkerNewerThanSessionStart(): void
+    public function testFindSessionStateDetectsMarkerNewerThanSessionStart(): void
     {
         $pdo = self::$pdo;
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9108, 'test.sess.marker', 'Mark', 'Bob', 'agent', 1, 1)");
-        // Set marker to now (newer than session start 100s ago)
         $pdo->exec("UPDATE users SET sessions_invalid_before = datetime('now') WHERE id = 9108");
 
-        $invalidator = new \App\Services\SessionInvalidator($pdo);
-        $valid = $invalidator->isSessionStillValid(9108, time() - 100);
+        $repo = new \App\Repository\UserRepository($pdo);
+        $state = $repo->findSessionState(9108);
+        $this->assertNotNull($state);
+        $this->assertSame(1, $state['is_active']);
+        $this->assertNotNull($state['sessions_invalid_before'], 'Marker should be set');
+
+        // Simulate AuthService::isSessionValid logic
+        $sessionStartedAt = time() - 100; // session started 100s ago
+        $invalidBeforeTs = strtotime($state['sessions_invalid_before']);
+        $valid = $invalidBeforeTs <= $sessionStartedAt;
         $this->assertFalse($valid, 'Session should be invalid when marker is newer than session start');
     }
 
-    public function testSessionInvalidatorReturnsTrueWhenNoMarker(): void
+    public function testFindSessionStateReturnsNullMarkerWhenClean(): void
     {
         $pdo = self::$pdo;
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9109, 'test.sess.clean', 'Clean', 'Bob', 'agent', 1, 1)");
 
-        $invalidator = new \App\Services\SessionInvalidator($pdo);
-        $valid = $invalidator->isSessionStillValid(9109, time() - 100);
-        $this->assertTrue($valid, 'Session should be valid when no invalidation marker');
+        $repo = new \App\Repository\UserRepository($pdo);
+        $state = $repo->findSessionState(9109);
+        $this->assertNotNull($state);
+        $this->assertSame(1, $state['is_active']);
+        $this->assertNull($state['sessions_invalid_before'], 'Marker should be NULL initially');
     }
 
-    public function testSessionInvalidatorReturnsFalseWhenUserDoesNotExist(): void
+    public function testFindSessionStateReturnsNullWhenUserDoesNotExist(): void
     {
         $pdo = self::$pdo;
-        $invalidator = new \App\Services\SessionInvalidator($pdo);
-        $valid = $invalidator->isSessionStillValid(99999, time());
-        $this->assertFalse($valid, 'Session should be invalid when user no longer exists');
+        $repo = new \App\Repository\UserRepository($pdo);
+        $state = $repo->findSessionState(99999);
+        $this->assertNull($state, 'findSessionState should return null for non-existent user');
     }
 }

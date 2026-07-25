@@ -102,37 +102,24 @@ class AuthService
      */
     private function isSessionValid(int $userId, int $sessionStartedAt): bool
     {
-        try {
-            $stmt = $this->repo->getPdo()->prepare("
-                SELECT sessions_invalid_before, is_active
-                FROM users
-                WHERE id = :id
-            ");
-            $stmt->execute([':id' => $userId]);
-            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-            if (!is_array($row)) {
-                return false; // User no longer exists
-            }
-            if ((int) $row['is_active'] !== 1) {
-                return false; // User deactivated
-            }
-
-            $invalidBefore = $row['sessions_invalid_before'] ?? null;
-            if ($invalidBefore === null || $invalidBefore === '') {
-                return true; // No invalidation marker
-            }
-            $invalidBeforeTs = strtotime((string) $invalidBefore);
-            if ($invalidBeforeTs === false) {
-                return true; // Malformed — fail open
-            }
-            // If the marker is more recent than session start → invalid
-            return $invalidBeforeTs <= $sessionStartedAt;
-        } catch (\Throwable $e) {
-            // If the column doesn't exist yet (pre-migration), fail open
-            error_log('[SST-AUTH] isSessionValid check failed: ' . $e->getMessage());
-            return true;
+        // Audit #9 — delegate SQL to UserRepository (PHPStan NoSqlOutsideRepository)
+        $state = $this->repo->findSessionState($userId);
+        if ($state === null) {
+            return false; // User no longer exists
         }
+        if ($state['is_active'] !== 1) {
+            return false; // User deactivated
+        }
+        $invalidBefore = $state['sessions_invalid_before'];
+        if ($invalidBefore === null) {
+            return true; // No invalidation marker
+        }
+        $invalidBeforeTs = strtotime($invalidBefore);
+        if ($invalidBeforeTs === false) {
+            return true; // Malformed — fail open
+        }
+        // If the marker is more recent than session start → invalid
+        return $invalidBeforeTs <= $sessionStartedAt;
     }
 
     /**

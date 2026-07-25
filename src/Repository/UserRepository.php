@@ -202,6 +202,58 @@ class UserRepository
         return $stmt->rowCount() > 0;
     }
 
+    /**
+     * Audit #9 + #22 + #23 + #38 — invalidate all active sessions of a user
+     * by bumping the sessions_invalid_before marker. Called from
+     * UserService::deactivate/anonymize/update (if role changed).
+     */
+    public function invalidateSessions(int $userId): void
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+                UPDATE users
+                SET sessions_invalid_before = datetime('now')
+                WHERE id = :id
+            ");
+            $stmt->execute([':id' => $userId]);
+        } catch (\Throwable $e) {
+            // Migration may not have run yet (column missing) — log and continue.
+            error_log('[SST-USER] invalidateSessions failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Audit #9 — fetch the session invalidation state for a user.
+     * Returns ['is_active' => int, 'sessions_invalid_before' => ?string] or null if user not found.
+     *
+     * @return array{is_active: int, sessions_invalid_before: ?string}|null
+     */
+    public function findSessionState(int $userId): ?array
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT is_active, sessions_invalid_before
+                FROM users
+                WHERE id = :id
+            ");
+            $stmt->execute([':id' => $userId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!is_array($row)) {
+                return null;
+            }
+            return [
+                'is_active' => (int) ($row['is_active'] ?? 0),
+                'sessions_invalid_before' => isset($row['sessions_invalid_before']) && $row['sessions_invalid_before'] !== null && $row['sessions_invalid_before'] !== ''
+                    ? (string) $row['sessions_invalid_before']
+                    : null,
+            ];
+        } catch (\Throwable $e) {
+            // Pre-migration (column missing) — fail safe (session considered valid)
+            error_log('[SST-USER] findSessionState failed: ' . $e->getMessage());
+            return ['is_active' => 1, 'sessions_invalid_before' => null];
+        }
+    }
+
     public function deactivate(int $id): bool
     {
         $stmt = $this->pdo->prepare("

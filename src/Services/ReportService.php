@@ -180,7 +180,7 @@ class ReportService
             $cmd->lieu ?? '',
             $cmd->heureEvenement ?? ''
         );
-        if ($cmd->type === ReportType::Rami->value) {
+        if ($cmd->type === ReportType::Rami) {
             $errors = array_merge($errors, validatePourCompte(
                 $cmd->pourCompteNom !== null,
                 $cmd->pourCompteNom ?? '',
@@ -194,13 +194,13 @@ class ReportService
 
     private function enforceVisibility(CreateReportCommand $cmd): CreateReportCommand
     {
-        $mode = getReportVisibilityMode($cmd->type);
+        $mode = getReportVisibilityMode($cmd->type->value);
         if ($mode === VisibilityMode::Public->value) {
-            $data = array_merge($cmd->toArray(), ['isConfidential' => false]);
+            $data = array_merge($cmd->toArray(), ['type' => $cmd->type, 'isConfidential' => false]);
             return new CreateReportCommand(...$data);
         }
         if ($mode === VisibilityMode::Confidential->value) {
-            $data = array_merge($cmd->toArray(), ['isConfidential' => true]);
+            $data = array_merge($cmd->toArray(), ['type' => $cmd->type, 'isConfidential' => true]);
             return new CreateReportCommand(...$data);
         }
         return $cmd;

@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.52.0] — 2026-07-25
+
+### Refactoring — Type enum + AuditRepository
+
+- **1** 🔴 **`CreateReportCommand.type`** : `string` → `ReportType` (enum). Factory `fromPost()` utilise `ReportType::from()`, `toArray()` sérialise en string pour SQL. Comparaisons directes sans `->value`.
+- **2** 🔴 **`ReportService`** : `$cmd->type === ReportType::Rami` (plus de `->value`).
+- **3** 🔴 **`ReportRepository`** : 3 nouvelles méthodes — `findOverdue()`, `findAnonymizable()`, `anonymize()` — extraient le SQL de `cron.php`/`cron_anonymize.php`.
+- **4** 🔴 **`cron.php`** + **`cron_anonymize.php`** : SQL procedural remplacé par `ReportRepository` + `AuditRepository`. 0 SQL brut restant.
+- **5** 🔴 **11 fichiers de tests** migrés vers `ReportType::Rsst` + booléens.
+- **6** 🔴 **PHPStan 0 erreur**, tous les tests passent.
+
+
 ## [3.51.0] — 2026-07-25
 
 ### Refactoring — DI + AuditRepository

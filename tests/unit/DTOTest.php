@@ -21,7 +21,7 @@ class DTOTest extends TestCase
         ];
         $user = ['id' => 42, 'nom' => 'Martin', 'prenom' => 'Jean', 'email' => 'jean@gouv.fr'];
         $cmd = CreateReportCommand::fromPost($post, $user);
-        $this->assertEquals('rsst', $cmd->type);
+        $this->assertEquals(ReportType::Rsst, $cmd->type);
         $this->assertEquals('Test', $cmd->objet);
         $this->assertEquals(42, $cmd->declarantId);
         $this->assertEquals(true, $cmd->isConfidential);

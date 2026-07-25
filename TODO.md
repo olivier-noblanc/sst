@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-25 (v3.51.0)
+Dernière mise à jour : 2026-07-25 (v3.52.0)
 
 ---
 
@@ -414,7 +414,7 @@ public function __construct(private readonly PDO $pdo) {}
 **Fichiers** : `src/audit.php` → créer `src/Repository/AuditRepository.php`
 **Impact** : Conformité NoSqlOutsideRepositoryRule (déjà whitelisté mais pas idéal)
 
-### A7 — Migrer SQL de `cron.php` et `cron_anonymize.php` vers des repositories
+### A7 — ✅ Migrer SQL de `cron.php` et `cron_anonymize.php` vers des repositories
 
 `src/cron.php` (214 lignes) et `src/cron_anonymize.php` (118 lignes) contiennent du SQL procedural pour les delay notifications et l'anonymisation.
 

@@ -77,8 +77,9 @@ try {
     $errors = [];
     $attachment = validateReportAttachment($errors);
     $cmd = CreateReportCommand::fromPost($_POST, $user ?? []);
-    /** @var array<string, string> $cmdData */
+    /** @var array<string, mixed> $cmdData */
     $cmdData = array_merge($cmd->toArray(), [
+        'type' => $cmd->type,
         'attachmentBlob' => $attachment['blob'],
         'attachmentName' => $attachment['name'],
         'attachmentMime' => $attachment['mime'],

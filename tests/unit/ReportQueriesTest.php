@@ -18,6 +18,7 @@
 
 use App\DTO\CreateReportCommand;
 use App\DTO\UpdateReportCommand;
+use App\Enum\ReportType;
 use App\Repository\ReportRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -60,7 +61,7 @@ class ReportQueriesTest extends TestCase
     private static function makeCreateCommand(array $overrides = []): CreateReportCommand
     {
         $defaults = [
-            'type' => 'rsst', 'objet' => 'Test', 'description' => 'Desc',
+            'type' => ReportType::Rsst, 'objet' => 'Test', 'description' => 'Desc',
             'dateEvenement' => '2025-03-15', 'heureEvenement' => null, 'lieu' => null,
             'declarantId' => self::$userId, 'declarantNom' => 'Martin', 'declarantPrenom' => 'Jean',
             'siteId' => self::$siteId, 'siteText' => null, 'pole' => null,

@@ -974,4 +974,69 @@ class ReportRepository
             ':role'        => $role,
         ]);
     }
+
+    /**
+     * Find overdue reports (nouveau state, older than cutoff) for delay alerts.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function findOverdue(string $cutoffDate): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT r.uuid, r.reference, r.type, r.objet, r.created_at,
+                   r.site_id, s.code as site_code, s.nom as site_nom,
+                   d.nom as declarant_nom, d.prenom as declarant_prenom
+            FROM reports r
+            LEFT JOIN sites s ON r.site_id = s.id
+            LEFT JOIN users d ON r.declarant_id = d.id
+            WHERE r.etat = '" . ReportState::Nouveau->value . "'
+              AND r.created_at < :cutoff_date
+            ORDER BY r.created_at ASC
+        ");
+        $stmt->execute([':cutoff_date' => $cutoffDate]);
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll();
+        return $rows;
+    }
+
+    /**
+     * Find reports eligible for RGPD anonymization (final state, older than cutoff, not yet anonymized).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function findAnonymizable(string $cutoffDate): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT uuid, reference, type, declarant_nom, declarant_prenom, date_evenement, etat
+            FROM reports
+            WHERE etat IN ('" . ReportState::Traite->value . "', '" . ReportState::Abandonne->value . "')
+              AND date_evenement < :cutoff_date
+              AND declarant_nom != 'Anonymisé'
+        ");
+        $stmt->execute([':cutoff_date' => $cutoffDate]);
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll();
+        return $rows;
+    }
+
+    /**
+     * Anonymize a single report (RGPD).
+     */
+    public function anonymize(string $uuid): bool
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE reports
+            SET declarant_nom = 'Anonymisé',
+                declarant_prenom = 'Anonymé',
+                pour_compte_nom = NULL,
+                pour_compte_prenom = NULL,
+                telephone_mobile = NULL,
+                updated_at = datetime('now')
+            WHERE uuid = :uuid
+              AND etat IN ('" . ReportState::Traite->value . "', '" . ReportState::Abandonne->value . "')
+              AND declarant_nom != 'Anonymisé'
+        ");
+        $stmt->execute([':uuid' => $uuid]);
+        return $stmt->rowCount() > 0;
+    }
 }

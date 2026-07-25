@@ -9,7 +9,7 @@ use App\Enum\ReportType;
 class CreateReportCommand
 {
     public function __construct(
-        public readonly string $type,
+        public readonly ReportType $type,
         public readonly string $objet,
         public readonly string $description,
         public readonly string $dateEvenement,
@@ -41,10 +41,10 @@ class CreateReportCommand
     public static function fromPost(array $post, array $user): self
     {
         $pourCompte = isset($post['pour_compte']) && $post['pour_compte'] === '1';
-        $type = $post['type'] ?? '';
+        $type = ReportType::from($post['type'] ?? '');
         $natureAuteur = trim($post['nature_auteur'] ?? '');
         $typeActe = trim($post['type_acte'] ?? '');
-        if ($type === ReportType::Rami->value) {
+        if ($type === ReportType::Rami) {
             $ramiFields = validateRamiFields($natureAuteur, $typeActe);
             $natureAuteur = $ramiFields['nature_auteur'];
             $typeActe = $ramiFields['type_acte'];
@@ -55,7 +55,7 @@ class CreateReportCommand
         $declarantIdStr = $user['id'] ?? '0';
 
         return new self(
-            type: $post['type'],
+            type: $type,
             objet: trim($post['objet'] ?? ''),
             description: trim($post['description'] ?? ''),
             dateEvenement: trim($post['date_evenement'] ?? ''),
@@ -84,7 +84,8 @@ class CreateReportCommand
     /** @return array<string, mixed> */
     public function toArray(): array
     {
-        /** @var array<string, mixed> */
-        return get_object_vars($this);
+        $data = get_object_vars($this);
+        $data['type'] = $this->type->value;
+        return $data;
     }
 }

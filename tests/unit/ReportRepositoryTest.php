@@ -2,6 +2,7 @@
 use PHPUnit\Framework\TestCase;
 use App\Repository\ReportRepository;
 use App\DTO\CreateReportCommand;
+use App\Enum\ReportType;
 
 class ReportRepositoryTest extends TestCase
 {
@@ -30,12 +31,12 @@ class ReportRepositoryTest extends TestCase
     public function testCreateAndFindById(): void
     {
         $cmd = new CreateReportCommand(
-            type: 'rsst', objet: 'Test', description: 'Desc',
+            type: ReportType::Rsst, objet: 'Test', description: 'Desc',
             dateEvenement: '2026-01-15', heureEvenement: '10:30',
             lieu: 'Bureau', declarantId: $this->userId, declarantNom: 'Martin',
             declarantPrenom: 'Jean', siteId: $this->siteId, siteText: null,
             pole: null, serviceAffectation: null, telephoneMobile: null,
-            isConfidential: 1, consentSyndicat: 0,
+            isConfidential: true, consentSyndicat: false,
             natureAuteur: null, typeActe: null,
             pourCompteNom: null, pourComptePrenom: null,
             attachmentBlob: null, attachmentName: null, attachmentMime: null,
@@ -63,12 +64,12 @@ class ReportRepositoryTest extends TestCase
     public function testCreateWithSiteIdZeroSucceeds(): void
     {
         $cmd = new CreateReportCommand(
-            type: 'rsst', objet: 'Sans site', description: 'Desc',
+            type: ReportType::Rsst, objet: 'Sans site', description: 'Desc',
             dateEvenement: '2026-01-15', heureEvenement: null,
             lieu: null, declarantId: $this->userId, declarantNom: 'Martin',
             declarantPrenom: 'Jean', siteId: 0, siteText: null,
             pole: null, serviceAffectation: null, telephoneMobile: null,
-            isConfidential: 1, consentSyndicat: 0,
+            isConfidential: true, consentSyndicat: false,
             natureAuteur: null, typeActe: null,
             pourCompteNom: null, pourComptePrenom: null,
             attachmentBlob: null, attachmentName: null, attachmentMime: null,
@@ -138,7 +139,7 @@ class ReportRepositoryTest extends TestCase
     private function makeCommand(string $objet, array $overrides = []): CreateReportCommand
     {
         $defaults = [
-            'type' => 'rsst', 'objet' => $objet, 'description' => 'Desc',
+            'type' => ReportType::Rsst, 'objet' => $objet, 'description' => 'Desc',
             'dateEvenement' => '2026-01-15', 'heureEvenement' => null,
             'lieu' => null, 'declarantId' => $this->userId, 'declarantNom' => 'Martin',
             'declarantPrenom' => 'Jean', 'siteId' => $this->siteId, 'siteText' => null,

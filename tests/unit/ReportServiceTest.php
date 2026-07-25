@@ -58,7 +58,7 @@ class ReportServiceTest extends TestCase
         $this->supervisorId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'svc.sup'")->fetchColumn();
     }
 
-    private function createReport(string $type = 'rsst', int $declarantId = 0, ?int $siteId = null): array
+    private function createReport(ReportType $type = ReportType::Rsst, int $declarantId = 0, ?int $siteId = null): array
     {
         $cmd = new CreateReportCommand(
             type: $type,
@@ -75,8 +75,8 @@ class ReportServiceTest extends TestCase
             pole: null,
             serviceAffectation: null,
             telephoneMobile: null,
-            isConfidential: 0,
-            consentSyndicat: 0,
+            isConfidential: false,
+            consentSyndicat: false,
             natureAuteur: null,
             typeActe: null,
             pourCompteNom: null,
@@ -102,7 +102,7 @@ class ReportServiceTest extends TestCase
     public function testCreateWithInvalidDataThrows(): void
     {
         $cmd = new CreateReportCommand(
-            type: 'rsst',
+            type: ReportType::Rsst,
             objet: '',
             description: '',
             dateEvenement: '',
@@ -116,8 +116,8 @@ class ReportServiceTest extends TestCase
             pole: null,
             serviceAffectation: null,
             telephoneMobile: null,
-            isConfidential: 0,
-            consentSyndicat: 0,
+            isConfidential: false,
+            consentSyndicat: false,
             natureAuteur: null,
             typeActe: null,
             pourCompteNom: null,
@@ -141,7 +141,7 @@ class ReportServiceTest extends TestCase
         $service = new ReportService($repo, $events);
 
         $cmd = new CreateReportCommand(
-            type: 'rsst',
+            type: ReportType::Rsst,
             objet: 'Event Test',
             description: 'Test',
             dateEvenement: '2026-01-15',
@@ -155,8 +155,8 @@ class ReportServiceTest extends TestCase
             pole: null,
             serviceAffectation: null,
             telephoneMobile: null,
-            isConfidential: 0,
-            consentSyndicat: 0,
+            isConfidential: false,
+            consentSyndicat: false,
             natureAuteur: null,
             typeActe: null,
             pourCompteNom: null,
@@ -172,7 +172,7 @@ class ReportServiceTest extends TestCase
     public function testCreateEnforcesPublicVisibilityForRSST(): void
     {
         $cmd = new CreateReportCommand(
-            type: 'rsst',
+            type: ReportType::Rsst,
             objet: 'Visibility Test',
             description: 'Test',
             dateEvenement: '2026-01-15',
@@ -186,8 +186,8 @@ class ReportServiceTest extends TestCase
             pole: null,
             serviceAffectation: null,
             telephoneMobile: null,
-            isConfidential: 1, // Agent wants confidential
-            consentSyndicat: 0,
+            isConfidential: true, // Agent wants confidential
+            consentSyndicat: false,
             natureAuteur: null,
             typeActe: null,
             pourCompteNom: null,

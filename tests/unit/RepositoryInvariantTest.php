@@ -7,6 +7,7 @@ use App\Repository\StatsRepository;
 use App\Container\Container;
 use App\DTO\CreateReportCommand;
 use App\DTO\ReportFilter;
+use App\Enum\ReportType;
 
 class RepositoryInvariantTest extends TestCase
 {
@@ -49,7 +50,7 @@ class RepositoryInvariantTest extends TestCase
         return (int) $this->pdo->lastInsertId();
     }
 
-    private function seedReport(int $siteId, int $userId, string $etat = 'nouveau', string $type = 'rsst'): string
+    private function seedReport(int $siteId, int $userId, string $etat = 'nouveau', ReportType $type = ReportType::Rsst): string
     {
         $cmd = new CreateReportCommand(
             type: $type, objet: 'Test', description: 'Desc',
@@ -57,7 +58,7 @@ class RepositoryInvariantTest extends TestCase
             lieu: 'Bureau', declarantId: $userId, declarantNom: 'Martin',
             declarantPrenom: 'Jean', siteId: $siteId, siteText: null,
             pole: null, serviceAffectation: null, telephoneMobile: null,
-            isConfidential: 1, consentSyndicat: 0,
+            isConfidential: true, consentSyndicat: false,
             natureAuteur: null, typeActe: null,
             pourCompteNom: null, pourComptePrenom: null,
             attachmentBlob: null, attachmentName: null, attachmentMime: null,

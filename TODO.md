@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-25
+Dernière mise à jour : 2026-07-25 (v3.49.0)
 
 ---
 
@@ -14,7 +14,7 @@ Dernière mise à jour : 2026-07-25
 | Tests | **901** (1886 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
-| DTOs readonly | **11** (IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult, ReportListItem, PaginatedReports, ReportStateCounts, AdjacentUuids, ReportData, RegistryCard) |
+| DTOs readonly | **17** (CreateReportCommand, UpdateReportCommand, RespondToReportCommand, ReopenReportCommand, CreateUserCommand, UpdateUserCommand, ReportData, ReportFilter, ReportListItem, PaginatedReports, ReportStateCounts, AdjacentUuids, IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult) |
 | CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + PHPArkitect + Rector + Deptrac + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
 | Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |
@@ -292,71 +292,138 @@ Les échecs CI n'étaient pas techniques mais liés à la **facturation GitHub A
 
 ---
 
-## Audit DDD — 2026-07-25
+## Audit DDD — 2026-07-25 (réaudit complet)
 
 ### État actuel
 
-| # | Aspect | Verdict | Détail |
-|---|--------|---------|--------|
-| 1 | Architecture Layers (deptrac) | ✅ | Ruleset complet : Handler/Page/Template, 0 violation |
-| 2 | Separation of Concerns | ⚠️ | Validation métier dans handlers, appels `::instance()` directs depuis pages |
-| 3 | Repository Pattern | ⚠️ | SQL bien isolé, mais singletons `::instance()` au lieu de DI |
-| 4 | Service Pattern | ✅ | ConfigService migré vers DI container, singleton supprimé |
-| 5 | DTO Pattern | ✅ | 11 DTOs readonly, ReadModels pour tous les retours Repository/Service |
-| 6 | Enum Usage | ✅ | Règles actives, magic strings SQL corrigées, 0 utilisation résiduelle |
-| 7 | Error Handling | ✅ | Catch silencieux supprimé (R2), crash hard partout |
-| 8 | Procedural vs OOP | ⚠️ | Fonctions procédurales legacy (`getConfig()`, `currentUser()`, etc.) à migrer |
-| 9 | Testing | ✅ | 901 tests, couverture raisonnable |
-| 10 | Code Quality | ✅ | 5 règles custom, 0 magic strings, PHPStan 0 erreur |
+| # | Aspect | Verdict | Score | Détail |
+|---|--------|---------|-------|--------|
+| 1 | Architecture Layers (deptrac) | ✅ | 9/10 | Ruleset complet : Handler/Page/Template, 0 violation |
+| 2 | Separation of Concerns | ✅ | 9/10 | Validation métier dans services, handlers thin controllers |
+| 3 | Repository Pattern | ⚠️ | 8/10 | SQL isolé, mais 3 fichiers legacy (cron.php, cron_anonymize.php, audit.php) hors repo |
+| 4 | Service Pattern | ⚠️ | 8/10 | DI container complet, mais NotificationService construit son propre PDO |
+| 5 | DTO Pattern | ⚠️ | 7/10 | 17 DTOs readonly, mais type-safety incomplète (string au lieu d'enum dans les constructeurs) |
+| 6 | Enum Usage | ⚠️ | 7/10 | 4 enums bien faits, mais 1 magic string résiduelle (help.php:14) + DTOs pas typés avec enums |
+| 7 | Error Handling | ✅ | 9/10 | Crash hard partout, catch silencieux supprimé |
+| 8 | Procedural vs OOP | ⚠️ | 8/10 | Helpers = délégués propres, mais wrappers procéduraux encore présents |
+| 9 | Event System | ✅ | 8/10 | EventDispatcher fonctionne, dispatch dans 3 services |
+| 10 | Infrastructure | ✅ | 9/10 | PHPStan 0 erreur, Rector, Deptrac, 6 règles custom |
 
-### Recommandations prioritaires
+**Score global : 8.2/10** — Architecture DDD fonctionnelle, couche métier bien séparée, gaps résiduels sur la type-safety et les legacy files.
+
+### Recommandations prioritaires (terminées)
 
 #### R1 — ✅ Étendre deptrac pour couvrir handlers/pages/templates — TERMINÉ
 
-Layers `Handler`, `Page`, `Template` ajoutés au ruleset deptrac. Router autorisé à dépendre de Service. Templates autorisés à dépendre de Service (mail_templates). 0 violation.
+Layers `Handler`, `Page`, `Template` ajoutés au ruleset deptrac. 0 violation.
 
-#### R2 — Éliminer catch silencieux dans ConfigService::get()
+#### R2 — ✅ Éliminer catch silencieux — TERMINÉ
 
-`ConfigService.php:51` : `catch (Exception) { $value = $default; }` — catch silencieux qui masque les erreurs DB.
-
-**Fichiers** : `src/Services/ConfigService.php`
-**Action** : Logger l'erreur ou la laisser remonter
-
-#### R3 — Déplacer logique métier des handlers vers Services
-
-- `report_create_handler.php:60-85` : validation email domain, site validation → `ReportService`
-- `report_edit_handler.php:47-53` : validation RAMI → `ReportService`
-
-**Fichiers** : `handlers/report_create_handler.php`, `handlers/report_edit_handler.php`, `src/Services/ReportService.php`
-**Impact** : Handlers thin controllers, logique métier centralisée
+#### R3 — ✅ Déplacer logique métier des handlers vers Services — TERMINÉ
 
 #### R4 — ✅ Ajouter StatisticsService — TERMINÉ
 
-`StatisticsService` créé avec `getAvailableYears()` et `getStatistics()`. Branché dans `statistics.php`. Enregistré dans le DI container.
+#### R5 — ✅ Typifier les retours avec des ReadModels — TERMINÉ
 
-#### R5 — Typifier les retours avec des ReadModels — ✅ TERMINÉ
+#### R6 — ✅ Nettoyer magic strings résiduelles — TERMINÉ
 
-Phase 1 : 5 ReadModels pour les statistiques (`IndicateursData`, `SiteStatsRow`, `SynthesisRow`, `RamiStats`, `StatisticsResult`).
-Phase 2 : 4 ReadModels pour les listes (`ReportListItem`, `PaginatedReports`, `ReportStateCounts`, `AdjacentUuids`).
-Phase 3 : 2 ReadModels pour les signalements (`ReportData`, `RegistryCard`). `ReportRepository::findById()` retourne `?ReportData`. Pages, templates, handlers, services, tests migrés. `fetchReportOrRedirect()`, `requireReportOwnership()`, `requireReportEditable()`, `canAccessReport()`, `logConfidentialReportAccess()` acceptent `ReportData`. 11 DTOs readonly au total dans `src/DTO/`.
-
-#### R6 — Nettoyer magic strings résiduelles — ✅ TERMINÉ
-
-- `StatsRepository::getSynthesis/Indicateurs/getBySite/RamiStats` — SQL dynamique via `ReportState::cases()` + `$this->pdo->quote()`
-- `ReportRepository::countByState()` — `$this->pdo->quote(ReportState::Abandonne->value)`
-- `ReportRepository::reopen()` — `WHERE etat IN ('traite', 'abandonne')` → `$this->pdo->quote()`
-
-#### R7 — Étendre deptrac pour couvrir handlers/pages/templates — ✅ TERMINÉ
-
-Layers `Handler`, `Page`, `Template` ajoutés au ruleset deptrac (vérifié avec R1). Ruleset complet : Handler → Enum/DTO/Service/Repository, Page → Enum/DTO/Service/Repository, Template → Enum/Helpers/Service. 0 violation.
+#### R7 — ✅ Étendre deptrac — TERMINÉ
 
 ### Problèmes résiduels DDD (non bloquants)
 
-1. **Fonctions procédurales legacy** — `getConfig()`, `isRegistryEnabled()`, `currentUser()`, `currentUserId()`, `setFlash()`, `redirect()`, `url()` dans `src/helpers/` et `src/user_context.php` — wrappers procéduraux autour des services OOP. À migrer vers les services quand on touche à ces fichiers.
-2. **Doublon SQL migration** — `migration_columns.php` contient du SQL qui pourrait être dans les repositories (mais c'est un fichier de migration, donc acceptable de garder le SQL là).
-3. **Constantes legacy** — ✅ TERMINÉ. 0 utilisation résiduelle — Rector a fait son job.
-4. **Queries procédurales** — ✅ TERMINÉ. 6 fichiers supprimés, ~40 appelants migrés vers Repository.
-5. **Tests anti-magic-string** — ✅ TERMINÉ. NoLegacyConstantRule étendue + PHPStanRulesTest créée.
+1. **Fonctions procédurales legacy** — `getConfig()`, `isRegistryEnabled()`, `currentUser()`, etc. — wrappers procéduraux autour des services OOP.
+2. **Doublon SQL migration** — `migration_columns.php` contient du SQL (acceptable, c'est un fichier de migration).
+3. **Constantes legacy** — ✅ TERMINÉ.
+4. **Queries procédurales** — ✅ TERMINÉ.
+5. **Tests anti-magic-string** — ✅ TERMINÉ.
+
+---
+
+## Audit DDD 2026-07-25 — Actions à faire
+
+### A1 — ✅ Supprimer `RegistryCard.php` (dead code confirmé)
+
+**Preuve** :
+- Créé dans le commit `71b2c75` (feat: R5 — ReadModels) — le DTO a été créé en même temps que 11 autres DTOs
+- `RegistryCardService::buildRegistryCards()` retourne `list<array>` (tableaux plats), jamais des objets `RegistryCard`
+- `renderRegistryCard()` / `renderRegistryCards()` acceptent `array` en paramètre, pas `RegistryCard`
+- `pages/home.php:19` appelle `buildRegistryCards()` qui retourne des arrays
+- Grep de `new RegistryCard(` dans tout le code : **0 résultat** — jamais instancié nulle part
+- Le DTO lui-même est annoté `@deprecated Dead code` + annotations PHPStan `shipmonk.deadMethod` / `shipmonk.deadProperty.neverRead`
+- Le `RegistryCardService` fonctionne parfaitement avec des arrays — le DTO n'a jamais été branché
+
+**Fichiers** : `src/DTO/RegistryCard.php` (supprimer)
+**Impact** : Aucun — le code fonctionne déjà sans ce DTO
+
+### A2 — ✅ Corriger magic string dans `pages/help.php:14`
+
+```php
+// AVANT
+$isAgent = ($userRole === 'agent');
+
+// APRÈS
+$isAgent = ($userRole === UserRole::Agent->value);
+```
+
+**Fichiers** : `pages/help.php`
+**Impact** : Conformité NoMagicStringRule
+
+### A3 — Extraire validation email de `report_edit_handler.php` vers `ReportService`
+
+La validation du domaine email (lignes 82-91) est dupliquée depuis `report_create_handler.php`. `ReportService::validateLinkedEmails()` existe déjà — l'utiliser dans le handler edit au lieu de dupliquer la logique.
+
+**Fichiers** : `handlers/report_edit_handler.php` → appeler `ReportService::validateLinkedEmails()`
+**Impact** : Éliminer la duplication, centraliser la validation métier
+
+### A4 — Typser les DTOs avec des enums
+
+Remplacer les `string` par des types enum dans les constructeurs DTO :
+- `CreateReportCommand.type` : `string` → `ReportType`
+- `CreateReportCommand.isConfidential` : `int` → `bool`
+- `CreateReportCommand.consentSyndicat` : `int` → `bool`
+- `UpdateReportCommand.isConfidential` : `int` → `bool`
+- `UpdateReportCommand.consentSyndicat` : `int` → `bool`
+- `RespondToReportCommand.nouvelEtat` : `string` → `ReportState`
+
+**Fichiers** : 3 DTOs + tous les appelants (handlers, services, tests)
+**Impact** : Type-safety au niveau compilation, impossible de passer une string invalide
+**Risque** : Moyen — toucher les DTOs affecte tous les appelants
+
+### A5 — Injecter PDO dans `NotificationService`
+
+`NotificationService` construit son propre `PDO` via `getDB()` dans le constructeur au lieu d'utiliser l'injection de dépendances du Container.
+
+```php
+// AVANT
+public function __construct()
+{
+    $this->pdo = getDB();
+}
+
+// APRÈS
+public function __construct(private readonly PDO $pdo) {}
+```
+
+**Fichiers** : `src/Services/NotificationService.php`, `src/bootstrap_services.php`
+**Impact** : Conformité DI, testabilité
+
+### A6 — Migrer SQL de `audit.php` vers `AuditRepository`
+
+`src/audit.php` (155 lignes) contient du SQL procedural (INSERT, SELECT, pagination). Devrait être encapsulé dans un repository.
+
+**Fichiers** : `src/audit.php` → créer `src/Repository/AuditRepository.php`
+**Impact** : Conformité NoSqlOutsideRepositoryRule (déjà whitelisté mais pas idéal)
+
+### A7 — Migrer SQL de `cron.php` et `cron_anonymize.php` vers des repositories
+
+`src/cron.php` (214 lignes) et `src/cron_anonymize.php` (118 lignes) contiennent du SQL procedural pour les delay notifications et l'anonymisation.
+
+**Fichiers** : `src/cron.php`, `src/cron_anonymize.php` → migrer le SQL vers les repositories existants
+**Impact** : Conformité architecture DDD
+
+### A8 — ✅ Compteur DTOs mis à jour (17 au lieu de 11)
+
+Fait en même temps que l'audit. `RegistryCard` retiré de la liste, compteur corrigé.
 
 ---
 

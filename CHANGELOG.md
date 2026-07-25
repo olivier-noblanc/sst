@@ -3,6 +3,22 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.49.0] — 2026-07-25
+
+### Audit DDD complet — Score 8.2/10
+
+Réaudit complet de l'architecture DDD avec notation par couche.
+
+- **1** 🔴 **RegistryCard.php supprimé** : dead code confirmé — créé dans R5 ReadModels mais jamais branché dans `RegistryCardService` (qui retourne des arrays). 0 instanciation dans tout le codebase.
+- **2** 🔴 **Magic string corrigée** : `pages/help.php` — `'agent'` → `UserRole::Agent->value` (2 occurrences).
+- **3** 🔴 **Score global 8.2/10** : Enum 7/10, DTO 7/10, Repository 8/10, Service 8/10, Infrastructure 9/10.
+- **4** 🟡 **8 actions identifiées** dans TODO.md : A1 (RegistryCard) ✅, A2 (magic string) ✅, A3-A8 (type-safety DTOs, DI NotificationService, migration audit/cron).
+
+### Refactoring
+
+- **5** 🔴 **DTO compteur corrigé** : 17 DTOs readonly au total (11 initiaux + 5 command DTOs + UpdateUserCommand).
+
+
 ## [3.48.0] — 2026-07-25
 
 ### Feature — R5 ReadModels : Typification complète des retours

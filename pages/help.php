@@ -8,10 +8,10 @@
  * Navigation par ancres — contenu toujours visible, rien de pliable.
  */
 $pageTitle = 'Documentation';
-$userRole = currentUserRole() !== '' ? currentUserRole() : 'agent';
+$userRole = currentUserRole() !== '' ? currentUserRole() : \App\Enum\UserRole::Agent->value;
 $labelUnite = new \App\Services\FormattingService()->e(getConfigService()->get('app_label_unite', 'UR'));
 $screenshotBase = 'asset.php?f=screenshots';
-$isAgent = ($userRole === 'agent');
+$isAgent = ($userRole === \App\Enum\UserRole::Agent->value);
 $ramiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
 $dgiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 $registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);

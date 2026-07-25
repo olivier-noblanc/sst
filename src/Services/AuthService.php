@@ -28,7 +28,34 @@ class AuthService
     public function getAuthenticatedUser(): ?array
     {
         if (\isUserLoggedIn()) {
-            return \getUserSession();
+            // Audit #9 + #22 + #23 + #38 — re-validate session periodically.
+            // Before this fix, a deactivated user (or a user whose role had
+            // changed) kept their session active 24h until expiration.
+            // Now we check sessions_invalid_before marker every 5 minutes.
+            $user = \getUserSession();
+            if (is_array($user) && $this->shouldRevalidateSession($user)) {
+                $userId = (int) ($user['id'] ?? 0);
+                if ($userId > 0) {
+                    $sessionStartedAt = (int) ($_SESSION['session_started_at'] ?? 0);
+                    // session_started_at may be missing for legacy sessions — treat as 0 (force check)
+                    $valid = $this->isSessionValid($userId, $sessionStartedAt);
+                    if (!$valid) {
+                        // Force logout
+                        \clearSession();
+                        return null;
+                    }
+                    // Re-fetch the user (role may have changed)
+                    $freshUser = $this->repo->findById($userId);
+                    if ($freshUser === null || (int) $freshUser['is_active'] !== 1) {
+                        \clearSession();
+                        return null;
+                    }
+                    \setUserSession($freshUser);
+                    $_SESSION['last_session_check'] = time();
+                    return $freshUser;
+                }
+            }
+            return $user;
         }
 
         if (!DEV_MODE) {
@@ -45,11 +72,67 @@ class AuthService
             $user = $this->findOrCreateUser($username);
             if ($user !== null) {
                 \setUserSession($user);
+                $_SESSION['session_started_at'] = time();
+                $_SESSION['last_session_check'] = time();
                 return $user;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Throttle DB check — only re-validate every N seconds (default 5 min).
+     *
+     * @param array<string, mixed> $user
+     */
+    private function shouldRevalidateSession(array $user): bool
+    {
+        $lastCheck = (int) ($_SESSION['last_session_check'] ?? 0);
+        if ($lastCheck === 0) {
+            return true; // Never checked — first page load after login
+        }
+        // Default 5 min, configurable via config_app
+        $interval = (int) (getConfigService()->get('app_session_check_interval', '300'));
+        return (time() - $lastCheck) >= $interval;
+    }
+
+    /**
+     * Check if the session is still valid via the sessions_invalid_before marker.
+     */
+    private function isSessionValid(int $userId, int $sessionStartedAt): bool
+    {
+        try {
+            $stmt = $this->repo->getPdo()->prepare("
+                SELECT sessions_invalid_before, is_active
+                FROM users
+                WHERE id = :id
+            ");
+            $stmt->execute([':id' => $userId]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!is_array($row)) {
+                return false; // User no longer exists
+            }
+            if ((int) $row['is_active'] !== 1) {
+                return false; // User deactivated
+            }
+
+            $invalidBefore = $row['sessions_invalid_before'] ?? null;
+            if ($invalidBefore === null || $invalidBefore === '') {
+                return true; // No invalidation marker
+            }
+            $invalidBeforeTs = strtotime((string) $invalidBefore);
+            if ($invalidBeforeTs === false) {
+                return true; // Malformed — fail open
+            }
+            // If the marker is more recent than session start → invalid
+            return $invalidBeforeTs <= $sessionStartedAt;
+        } catch (\Throwable $e) {
+            // If the column doesn't exist yet (pre-migration), fail open
+            error_log('[SST-AUTH] isSessionValid check failed: ' . $e->getMessage());
+            return true;
+        }
     }
 
     /**
@@ -91,6 +174,9 @@ class AuthService
         $user = $this->findOrCreateUser($username);
         if ($user !== null) {
             \setUserSession($user);
+            // Audit #9 — track session start for periodic re-validation.
+            $_SESSION['session_started_at'] = time();
+            $_SESSION['last_session_check'] = time();
             return $user;
         }
 

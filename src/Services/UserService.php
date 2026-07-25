@@ -67,6 +67,10 @@ class UserService
             ]);
 
             if ($roleChanged) {
+                // Audit #23 — invalidate the user's other active sessions so
+                // they don't keep their old role for 24h.
+                $this->invalidateUserSessions($id);
+
                 $this->events->dispatch('user.role_changed', [
                     'user' => $user,
                     'oldRole' => $user['role'],
@@ -98,6 +102,9 @@ class UserService
 
         // Audit #12 — ne dispatcher que si la désactivation a réussi.
         if ($result) {
+            // Audit #9 + #22 — invalidate all the user's active sessions immediately.
+            $this->invalidateUserSessions($id);
+
             $this->events->dispatch('user.deactivated', [
                 'user' => $user,
                 'pdo' => $this->repo->getPdo(),
@@ -126,6 +133,28 @@ class UserService
         }
 
         return $result;
+    }
+
+    /**
+     * Invalidate all active sessions of the given user.
+     *
+     * Audit #9 + #22 + #23 + #38 — bump the sessions_invalid_before marker
+     * so the next request from that user forces a re-validation (and logout
+     * if they're now inactive or their role changed).
+     */
+    private function invalidateUserSessions(int $userId): void
+    {
+        try {
+            $stmt = $this->repo->getPdo()->prepare("
+                UPDATE users
+                SET sessions_invalid_before = datetime('now')
+                WHERE id = :id
+            ");
+            $stmt->execute([':id' => $userId]);
+        } catch (\Throwable $e) {
+            // Migration may not have run yet (column missing) — log and continue.
+            error_log('[SST-USER] invalidateUserSessions failed: ' . $e->getMessage());
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -283,6 +312,11 @@ class UserService
             throw new RuntimeException('Impossible d\'anonymiser le dernier superviseur actif.');
         }
 
-        return $this->repo->anonymize($id);
+        $result = $this->repo->anonymize($id);
+
+        // Audit #9 + #22 — invalidate all the user's active sessions.
+        $this->invalidateUserSessions($id);
+
+        return $result;
     }
 }

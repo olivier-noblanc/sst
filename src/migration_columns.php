@@ -261,4 +261,25 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
         error_log('[SST-MIGRATION] report_responses.user_id is now nullable (RGPD anonymization support).');
     }
+
+    // ── Add sessions_invalid_before column to users (R4 — SessionInvalidator) ──
+    // Audit #9 + #22 + #23 + #38 — avant ce fix, un user désactivé (ou dont
+    // le role avait changé) gardait sa session active 24h. Maintenant le
+    // AuthService re-vérifie ce marqueur toutes les 5 min et force un re-fetch
+    // (ou logout si is_active=0) quand le marqueur est plus récent que le
+    // début de session.
+    $userColStmt = $pdo->query('PRAGMA table_info(users)');
+    $userColumns = ($userColStmt !== false) ? $userColStmt->fetchAll() : [];
+    $userColStmt = null;
+    $sessionsInvalidBeforeExists = false;
+    foreach ($userColumns as $col) {
+        if (is_array($col) && ($col['name'] ?? '') === 'sessions_invalid_before') {
+            $sessionsInvalidBeforeExists = true;
+            break;
+        }
+    }
+    if (!$sessionsInvalidBeforeExists) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN sessions_invalid_before DATETIME");
+        error_log('[SST-MIGRATION] Added users.sessions_invalid_before column (R4 — session invalidation support).');
+    }
 }

@@ -106,20 +106,7 @@ define('ETAT_TRAITE', ReportState::Traite->value);
 define('ETAT_ABANDONNE', ReportState::Abandonne->value);
 define('ETAT_REOUVERT', ReportState::Reouvert->value);
 
-// Registry type labels — derived from ReportType enum (kept for templates/helpers)
-if (!defined('REGISTRY_LABELS')) {
-    define('REGISTRY_LABELS', array_combine(
-        array_map(fn($c) => $c->value, ReportType::cases()),
-        array_map(fn($c) => $c->label(), ReportType::cases())
-    ));
-}
-
-if (!defined('REGISTRY_SHORT_LABELS')) {
-    define('REGISTRY_SHORT_LABELS', array_combine(
-        array_map(fn($c) => $c->value, ReportType::cases()),
-        array_map(fn($c) => $c->shortLabel(), ReportType::cases())
-    ));
-}
+// Registry labels — NO LONGER constants. Use getRegistryLabel() / getRegistryShortLabel() instead.
 
 // Role labels — defaults derived from UserRole enum (overridden by DB config app_role_label_*)
 define('ROLE_LABELS_DEFAULT', array_combine(
@@ -151,28 +138,69 @@ if (!defined('ETAT_LABELS')) {
     ));
 }
 
+// Registry label helpers — read from DB
+function getRegistryLabel(string $type): string {
+    static $cache = null;
+    if ($cache === null) {
+        $cache = [];
+        if (function_exists('getDB')) {
+            $repo = \App\Repository\RegistryRepository::instance();
+            foreach ($repo->findAll() as $reg) {
+                $cache[(string) $reg['code']] = (string) $reg['label'];
+            }
+        }
+    }
+    return $cache[$type] ?? strtoupper($type);
+}
+
+function getRegistryShortLabel(string $type): string {
+    static $cache = null;
+    if ($cache === null) {
+        $cache = [];
+        if (function_exists('getDB')) {
+            $repo = \App\Repository\RegistryRepository::instance();
+            foreach ($repo->findAll() as $reg) {
+                $cache[(string) $reg['code']] = (string) $reg['short_label'];
+            }
+        }
+    }
+    return $cache[$type] ?? strtoupper($type);
+}
+
+function getEtatLabel(string $etat): string {
+    return ReportState::tryFrom($etat)?->label() ?? $etat;
+}
+
+/** @return array<string, string> */
+function getRegistryFieldOptions(string $registryCode, string $fieldCode): array {
+    static $cache = [];
+    $key = $registryCode . ':' . $fieldCode;
+    if (!isset($cache[$key])) {
+        $cache[$key] = [];
+        if (function_exists('getDB')) {
+            $registryRepo = \App\Repository\RegistryRepository::instance();
+            $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
+            $registry = $registryRepo->findByCode($registryCode);
+            if ($registry !== null) {
+                $field = $fieldRepo->findByCode((int) $registry['id'], $fieldCode);
+                if ($field !== null) {
+                    $cache[$key] = json_decode((string) ($field['options'] ?? '{}'), true) ?? [];
+                }
+            }
+        }
+    }
+    return $cache[$key];
+}
+
+/** @return list<string> */
+function getRegistryFieldKeys(string $registryCode, string $fieldCode): array {
+    return array_keys(getRegistryFieldOptions($registryCode, $fieldCode));
+}
+
 // Registry toggle defaults (overridden by DB config app_registry_*_enabled)
 // RSST is always active. RAMI and DGI are disabled by default —
 // the supervisor can enable them in Settings > Application.
 define('REGISTRY_RAMI_ENABLED_DEFAULT', false);
 define('REGISTRY_DGI_ENABLED_DEFAULT', false);
 
-// RAMI structured field labels (shared by statistics, export, and validation)
-if (!defined('RAMI_NATURE_AUTEUR_LABELS')) {
-    define('RAMI_NATURE_AUTEUR_LABELS', [
-        'usager'    => 'Usager',
-        'collegue'  => 'Collègue',
-        'hierarchie' => 'Hiérarchie',
-        'tiers'     => 'Tiers',
-    ]);
-}
-
-if (!defined('RAMI_TYPE_ACTE_LABELS')) {
-    define('RAMI_TYPE_ACTE_LABELS', [
-        'verbal'  => 'Verbal',
-        'physique' => 'Physique',
-        'moral'   => 'Moral',
-        'sexiste' => 'Sexiste',
-        'autre'   => 'Autre',
-    ]);
-}
+// RAMI structured field labels — NO LONGER constants. Use getRegistryFieldOptions() instead.

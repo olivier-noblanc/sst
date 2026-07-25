@@ -37,7 +37,7 @@ $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
 
 <?php echo $fmt->renderBreadcrumb([
     ['url' => $http->url('home'), 'label' => 'Accueil'],
-    ['url' => $http->url('report_list', ['type' => $type]), 'label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type)],
+    ['url' => $http->url('report_list', ['type' => $type]), 'label' => getRegistryShortLabel($type)],
     ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
     ['label' => 'Abandonner'],
 ]); ?>

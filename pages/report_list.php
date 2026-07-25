@@ -27,7 +27,7 @@ if (!$config->isRegistryEnabled($type)) {
     $http->redirect($http->url('home'));
 }
 
-$pageTitle = 'Liste des fiches du registre — ' . (REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type));
+$pageTitle = 'Liste des fiches du registre — ' . getRegistryShortLabel($type);
 
 $pdo = getContainer()->get(\PDO::class);
 /** @var PDO $pdo */
@@ -109,7 +109,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
 ?>
 
 <h1 class="page-title">
-    Liste des fiches — <?php echo $fmt->e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)); ?>
+    Liste des fiches — <?php echo $fmt->e(getRegistryShortLabel($type)); ?>
     <a href="<?php echo $http->url('report_create', ['type' => $type]); ?>" class="btn btn--sm btn--primary btn-float-right">+ Nouveau signalement</a>
 </h1>
 
@@ -119,7 +119,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
 
 <?php echo $fmt->renderBreadcrumb([
     ['url' => $http->url('home'), 'label' => 'Accueil'],
-    ['label' => REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)],
+    ['label' => getRegistryShortLabel($type)],
 ]); ?>
 
 
@@ -164,7 +164,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
 
 <div class="card">
     <div class="table-wrapper table-wrapper--responsive">
-        <table aria-label="Liste des signalements <?php echo $fmt->e(REGISTRY_SHORT_LABELS[$type] ?? strtoupper((string) $type)); ?>">
+        <table aria-label="Liste des signalements <?php echo $fmt->e(getRegistryShortLabel($type)); ?>">
             <thead>
                 <tr>
                     <th>Référence</th>

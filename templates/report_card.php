@@ -55,7 +55,7 @@ $registryForTheme = \App\Repository\RegistryRepository::instance()->findByCode($
 $colorTheme = (string) ($registryForTheme['color_theme'] ?? $type);
 $cardClass = 'card--' . $colorTheme;
 
-$registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+$registryLabel = getRegistryShortLabel($type);
 $user = new \App\Services\SessionService()->getUserSession() ?? [];
 /** @var array{role: string, site_id: int|string, id: int|string} $user */
 $userRole = (string) ($user['role'] ?? \App\Enum\UserRole::Agent->value);

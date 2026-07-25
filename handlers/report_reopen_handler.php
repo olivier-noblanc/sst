@@ -36,7 +36,7 @@ try {
         // Notify declarant + linked agents (non-blocking)
         require_once __DIR__ . '/../src/mail.php';
         $pdo = getDB();
-        $registryLabel = REGISTRY_SHORT_LABELS[(string) ($report['type'] ?? '')] ?? strtoupper((string) ($report['type'] ?? ''));
+        $registryLabel = getRegistryShortLabel((string) ($report['type'] ?? ''));
         $declarant = UserRepository::instance()->findById((int) ($report['declarant_id'] ?? 0));
         if ($declarant !== null && !empty($declarant['email']) && (int) ($report['declarant_id'] ?? 0) !== $userId) {
             /** @var array<string, string> $declarant */

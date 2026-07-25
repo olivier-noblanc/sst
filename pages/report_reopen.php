@@ -47,7 +47,7 @@ $flash = new \App\Services\SessionService()->getFlash();
 
 <?php echo $fmt->renderBreadcrumb([
     ['url' => $http->url('home'), 'label' => 'Accueil'],
-    ['url' => $http->url('report_list', ['type' => $type]), 'label' => REGISTRY_SHORT_LABELS[$typeStr] ?? strtoupper($typeStr)],
+    ['url' => $http->url('report_list', ['type' => $type]), 'label' => getRegistryShortLabel($typeStr)],
     ['url' => $http->url('report_view', ['uuid' => $uuid]), 'label' => $report['reference']],
     ['label' => 'Réouvrir'],
 ]); ?>

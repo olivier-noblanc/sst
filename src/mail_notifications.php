@@ -31,7 +31,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         return;
     }
     /** @var array<string, mixed> $report */
-    $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+    $registryLabel = getRegistryShortLabel($type);
     $subject = "Nouveau signalement $registryLabel — {$report['reference']}";
     $reportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
     $body = '<html><body>';
@@ -90,7 +90,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     }
     /** @var string */
     $reportType = $report['type'] ?? '';
-    $registryLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
+    $registryLabel = getRegistryShortLabel($reportType);
     $subject = "Réponse à votre signalement $registryLabel — {$report['reference']}";
     $respondent = UserRepository::instance()->findById($respondentId);
     if ($respondent === null) {

@@ -79,12 +79,12 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
  */
 function validateRamiFields(string $natureAuteur, string $typeActe): array
 {
-    $allowedNatureAuteur = array_keys(RAMI_NATURE_AUTEUR_LABELS);
+    $allowedNatureAuteur = getRegistryFieldKeys(\App\Enum\ReportType::Rami->value, 'nature_auteur');
     if (!empty($natureAuteur) && !in_array($natureAuteur, $allowedNatureAuteur, true)) {
         $natureAuteur = '';
     }
 
-    $allowedTypeActe = array_keys(RAMI_TYPE_ACTE_LABELS);
+    $allowedTypeActe = getRegistryFieldKeys(\App\Enum\ReportType::Rami->value, 'type_acte');
     if (!empty($typeActe) && !in_array($typeActe, $allowedTypeActe, true)) {
         $typeActe = '';
     }

@@ -59,7 +59,7 @@ class NotificationService
 
         /** @var string */
         $type = $report['type'] ?? '';
-        $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+        $registryLabel = getRegistryShortLabel($type);
         $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
         $body = '<html><body>';
         $body .= '<h2>Signalement abandonné</h2>';
@@ -89,7 +89,7 @@ class NotificationService
 
         /** @var string */
         $type = $report['type'] ?? '';
-        $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+        $registryLabel = getRegistryShortLabel($type);
 
         // Notify declarant
         /** @var int */

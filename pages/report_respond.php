@@ -31,7 +31,7 @@ $pageTitle = 'Répondre au signalement — ' . $fmt->e($report['reference']);
 /** @var string */
 $registryType = $report['type'];
 $registryTypeStr = $registryType;
-$registryLabel = REGISTRY_SHORT_LABELS[$registryTypeStr] ?? strtoupper($registryTypeStr);
+$registryLabel = getRegistryShortLabel($registryTypeStr);
 
 // Get form errors and data from session
 $formErrors = $session->getFormErrors();

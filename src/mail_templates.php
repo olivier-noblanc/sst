@@ -32,7 +32,7 @@ function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string
     foreach ($siteData['reports'] as $report) {
         /** @var array{type: string, reference: string, objet: string, created_at: string, declarant_prenom: string, declarant_nom: string} $report */
         $reportType = $report['type'] ?? '';
-        $registryLabel = REGISTRY_SHORT_LABELS[$reportType] ?? strtoupper($reportType);
+        $registryLabel = getRegistryShortLabel($reportType);
         $reference = $report['reference'] ?? '';
         $objet = $report['objet'] ?? '';
         $createdAt = $report['created_at'] ?? '';

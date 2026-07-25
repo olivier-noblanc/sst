@@ -48,8 +48,8 @@ $val = function(string $field, string $default = '') use ($formData, $report, $i
     return $default;
 };
 
-$registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
-$registryFullLabel = (string) (REGISTRY_LABELS[$type] ?? $type);
+$registryLabel = getRegistryShortLabel($type);
+$registryFullLabel = getRegistryLabel($type);
 
 // Determine card accent class from registries.color_theme
 $registryForTheme = \App\Repository\RegistryRepository::instance()->findByCode($type);
@@ -272,7 +272,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
                            <?php echo ((bool) $val('consent_syndicat') || ($isEdit && !empty($report['consent_syndicat'] ?? ''))) ? 'checked' : ''; ?>>
-                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la DREETS
+                    J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(getConfig('app_nom_organisation', 'DREETS')); ?>
                 </label>
             </div>
             <div class="form-group">

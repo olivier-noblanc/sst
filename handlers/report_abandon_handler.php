@@ -38,7 +38,7 @@ try {
         $siteId = (int) ($report['site_id'] ?? 0);
         $recipients = getNotificationRecipients($pdo, $siteId);
         if (!empty($recipients)) {
-            $registryLabel = REGISTRY_SHORT_LABELS[$type] ?? strtoupper($type);
+            $registryLabel = getRegistryShortLabel($type);
             $subject = "Signalement abandonné $registryLabel — {$report['reference']}";
             $body = '<html><body>';
             $body .= '<h2>Signalement abandonné</h2>';

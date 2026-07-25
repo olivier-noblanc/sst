@@ -187,7 +187,7 @@ $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
                     <tbody>
                         <?php foreach ($ramiStats['by_nature_auteur'] as $row): ?>
                         <tr>
-                            <td><?php echo $fmt->e(RAMI_NATURE_AUTEUR_LABELS[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
+                            <td><?php echo $fmt->e(getRegistryFieldOptions('rami', 'nature_auteur')[$row['nature_auteur']] ?? $row['nature_auteur']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
                         </tr>
                         <?php endforeach; ?>
@@ -210,7 +210,7 @@ $dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
                     <tbody>
                         <?php foreach ($ramiStats['by_type_acte'] as $row): ?>
                         <tr>
-                            <td><?php echo $fmt->e(RAMI_TYPE_ACTE_LABELS[$row['type_acte']] ?? $row['type_acte']); ?></td>
+                            <td><?php echo $fmt->e(getRegistryFieldOptions('rami', 'type_acte')[$row['type_acte']] ?? $row['type_acte']); ?></td>
                             <td class="text-center"><?php echo (int) $row['count']; ?></td>
                         </tr>
                         <?php endforeach; ?>

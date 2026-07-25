@@ -47,7 +47,7 @@ $pageTitle = 'Confirmer mon rattachement';
         </tr>
         <tr>
             <th>Registre</th>
-            <td><?php echo new \App\Services\FormattingService()->e(REGISTRY_LABELS[$report['type']] ?? $report['type']); ?></td>
+            <td><?php echo new \App\Services\FormattingService()->e(getRegistryLabel((string) ($report['type'] ?? ''))); ?></td>
         </tr>
         <tr>
             <th>Objet</th>

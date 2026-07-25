@@ -32,35 +32,12 @@ if (!defined('ALLOWED_ATTACHMENT_MIMES')) define('ALLOWED_ATTACHMENT_MIMES', [
     'image/jpeg', 'image/png', 'image/gif', 'application/pdf',
 ]);
 if (!defined('REGISTRY_TYPES')) define('REGISTRY_TYPES', array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()));
-if (!defined('REGISTRY_SHORT_LABELS')) define('REGISTRY_SHORT_LABELS', array_combine(
-    array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
-    array_map(fn($c) => $c->shortLabel(), \App\Enum\ReportType::cases())
-));
-if (!defined('REGISTRY_LABELS')) define('REGISTRY_LABELS', array_combine(
-    array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
-    array_map(fn($c) => $c->label(), \App\Enum\ReportType::cases())
-));
-if (!defined('ETAT_LABELS')) define('ETAT_LABELS', array_combine(
-    array_map(fn($c) => $c->value, \App\Enum\ReportState::cases()),
-    array_map(fn($c) => $c->label(), \App\Enum\ReportState::cases())
-));
+// Registry labels are now loaded from DB via getRegistryLabel() / getRegistryShortLabel()
+// Role labels
 if (!defined('ROLE_LABELS')) define('ROLE_LABELS', array_combine(
     array_map(fn($c) => $c->value, \App\Enum\UserRole::cases()),
     array_map(fn($c) => $c->defaultLabel(), \App\Enum\UserRole::cases())
 ));
-if (!defined('RAMI_NATURE_AUTEUR_LABELS')) define('RAMI_NATURE_AUTEUR_LABELS', [
-    'usager'    => 'Usager',
-    'collegue'  => 'Collègue',
-    'hierarchie'=> 'Hiérarchie',
-    'tiers'     => 'Tiers',
-]);
-if (!defined('RAMI_TYPE_ACTE_LABELS')) define('RAMI_TYPE_ACTE_LABELS', [
-    'verbal'  => 'Verbal',
-    'physique'=> 'Physique',
-    'moral'   => 'Moral',
-    'sexiste' => 'Sexiste',
-    'autre'   => 'Autre',
-]);
 
 // Mock $_SERVER for CLI
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';

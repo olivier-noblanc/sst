@@ -125,8 +125,8 @@ foreach ($reports as $row) {
     }
 
     // Build RAMI structured fields labels
-    $natureAuteurLabel = RAMI_NATURE_AUTEUR_LABELS[(string) ($row['nature_auteur'] ?? '')] ?? '';
-    $typeActeLabel = RAMI_TYPE_ACTE_LABELS[(string) ($row['type_acte'] ?? '')] ?? '';
+    $natureAuteurLabel = getRegistryFieldOptions(\App\Enum\ReportType::Rami->value, 'nature_auteur')[(string) ($row['nature_auteur'] ?? '')] ?? '';
+    $typeActeLabel = getRegistryFieldOptions(\App\Enum\ReportType::Rami->value, 'type_acte')[(string) ($row['type_acte'] ?? '')] ?? '';
 
     // Build response history as structured text
     // Format: [Date] Répondant (État) : Réponse | [Date] ...

@@ -37,6 +37,14 @@ function migrateConfigKeys(PDO $pdo): void
         'app_alert_delay_days' => ['0', 'number', 'app', 'Délai d\'alerte en jours pour les signalements restés à l\'état « Nouveau ». 0 = désactivé. Si > 0, un e-mail est envoyé aux superviseurs du site lorsqu\'un signalement dépasse ce délai (via lazy cron au login).', 1],
         'last_lazy_cron_check_delays' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron check_delays. Ne pas modifier manuellement.', 0],
         'last_lazy_cron_anonymize' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron anonymize. Ne pas modifier manuellement.', 0],
+        // Audit #54 — 4 other last_lazy_cron_* keys were missing from pre-seed
+        // (cleanup, session_gc, audit_purge, access_purge). They are created on
+        // first run by claimLazyCronLock, but pre-seeding them ensures they show
+        // up in the settings UI as system entries (consistent with the 2 above).
+        'last_lazy_cron_cleanup' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron cleanup (purge invitations agent expirées). Ne pas modifier manuellement.', 0],
+        'last_lazy_cron_session_gc' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron session_gc (purge sessions expirées). Ne pas modifier manuellement.', 0],
+        'last_lazy_cron_audit_purge' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron audit_purge (purge logs d\'audit > 180 jours). Ne pas modifier manuellement.', 0],
+        'last_lazy_cron_access_purge' => ['', 'text', 'system', 'Timestamp de la dernière exécution du lazy cron access_purge (purge logs de consultation > 2 ans). Ne pas modifier manuellement.', 0],
         'app_report_preamble' => ['Pour toute inscription d\'un fait, vous devez être objectif et factuel. Ne pas mentionner de noms de personnes. Vous pouvez joindre un document ou une photo.', 'text', 'app', 'Texte d\'information affiché en haut du formulaire de signalement (zone readonly). Modifiable via l\'administration.', 1],
         'app_rsst_description' => ['Risques liés aux locaux, équipements, ergonomie, conditions environnementales', 'text', 'app', 'Description du registre RSST affichée sur la page d\'accueil. Modifiable via l\'administration.', 1],
         'app_report_create_label' => ['Signaler un événement', 'text', 'app', 'Libellé du bouton et du titre de la page de création de signalement (page d\'accueil, liste des signalements, formulaire, titre d\'onglet). Modifiable via l\'administration.', 1],

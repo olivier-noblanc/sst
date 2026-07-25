@@ -288,7 +288,8 @@ class FormattingService
         $html .= '<p class="text-muted text-small mb-2">Nuage de mots — Mots les plus fréquents</p>';
         $html .= '<noscript>';
         foreach ($randomized as $entry) {
-            $size = 0.65 + ($entry['p'] * 0.05);
+            // Audit #87 — $size was calculated but never used (the noscript fallback
+            // just renders spans without font-size). Removed the dead calculation.
             $html .= '<span class="word-cloud__word word-cloud__word--noscript">' . $this->e($entry['w']) . '</span> ';
         }
         $html .= '</noscript>';

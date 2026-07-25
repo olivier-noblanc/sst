@@ -85,6 +85,8 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
+        // Audit #55 — Drop any leftover reports_new from a previously failed migration.
+        $pdo->exec('DROP TABLE IF EXISTS reports_new');
         $pdo->exec($createSql);
         $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
         $pdo->exec('DROP TABLE IF EXISTS reports');
@@ -183,6 +185,8 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
+        // Audit #55 — Drop any leftover reports_new from a previously failed migration.
+        $pdo->exec('DROP TABLE IF EXISTS reports_new');
         $pdo->exec($createSql);
         $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
         $pdo->exec('DROP TABLE IF EXISTS reports');
@@ -278,6 +282,8 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS report_responses_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
+        // Audit #55 — Drop any leftover reports_new from a previously failed migration.
+        $pdo->exec('DROP TABLE IF EXISTS reports_new');
         $pdo->exec($createSql);
         $pdo->exec('INSERT OR IGNORE INTO report_responses_new SELECT * FROM report_responses');
         $pdo->exec('DROP TABLE IF EXISTS report_responses');

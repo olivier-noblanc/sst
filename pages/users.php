@@ -177,7 +177,10 @@ $pageTitle = 'Gestion des utilisateurs';
     $editEmail = $formData['email'] ?? '';
     $editUsername = $formData['username'] ?? '';
     $editRole = $formData['role'] ?? \App\Enum\UserRole::Agent->value;
-    $editSiteId = $formData['site_id'] ?? 1;
+    // Audit #95 — default site_id was hard-coded to 1. In no-site mode or with
+    // a fresh install (no sites seeded), this would pre-select a non-existent
+    // site → FK violation on user create. Now defaults to 0 (no site selected).
+    $editSiteId = $formData['site_id'] ?? 0;
     $usernameHint = 'Identifiant de connexion Windows (ex: jean.martin)';
     require __DIR__ . '/../templates/user_form_fields.php';
     ?>

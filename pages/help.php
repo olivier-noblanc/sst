@@ -34,11 +34,17 @@ function helpScreenshot(string $src, string $alt): string
 {
     $id = 'ss-' . substr(md5($src), 0, 8);
     $imgSrc = preg_replace('/\.html$/', '.png', $src);
+    // Audit #92 — escape $alt and $imgSrc for HTML context. Before this fix,
+    // they were interpolated raw in the heredoc → XSS risk if alt/src contain
+    // special chars (e.g. quotes, angle brackets).
+    $idEsc = e($id);
+    $altEsc = e($alt);
+    $imgSrcEsc = e((string) $imgSrc);
     return <<<HTML
-    <div class="help-screenshot-block" id="{$id}">
-        <p class="help-screenshot-label">{$alt}</p>
+    <div class="help-screenshot-block" id="{$idEsc}">
+        <p class="help-screenshot-label">{$altEsc}</p>
         <div class="help-screenshot-wrapper">
-            <img src="{$imgSrc}" alt="{$alt}" class="help-screenshot-img" loading="lazy" />
+            <img src="{$imgSrcEsc}" alt="{$altEsc}" class="help-screenshot-img" loading="lazy" />
         </div>
     </div>
     HTML;

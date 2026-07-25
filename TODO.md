@@ -273,9 +273,9 @@ Tous les `try/catch` qui avalaient une erreur et continuaient (migrations, e-mai
 
 ---
 
-## Priorité 22 — Fix CI définitif
+## Priorité 22 — ✅ Fix CI — TERMINÉ (problème facturation GitHub)
 
-Le run `30086453658` est en cours. Vérifier qu'il passe. Si non, diagnostiquer le vrai problème (le phar ne charge pas les extensions vendor, `php vendor/bin/phpstan` devrait fonctionner).
+Les échecs CI n'étaient pas techniques mais liés à la **facturation GitHub Actions** ("recent account payments have failed"). Le workflow CI est correct (`php vendor/bin/phpstan` charge bien les extensions). Il suffit de vérifier la section Billing & plans dans les settings GitHub.
 
 ---
 

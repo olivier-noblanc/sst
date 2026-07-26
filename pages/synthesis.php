@@ -83,14 +83,17 @@ $totals = array_combine(
 foreach ($siteData as $sId => $sd) {
     foreach ($registryCodes as $code) {
         foreach ([ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Traite->value, ReportState::Abandonne->value, ReportState::Reouvert->value, 'total'] as $state) {
-            $totals[$code][$state] += $sd[$code][$state];
+            // Modular-audit P2.4 — defensive access (PHPStan offset safety)
+            $siteTypeRow = is_array($sd[$code] ?? null) ? $sd[$code] : [];
+            $totals[$code][$state] += $siteTypeRow[$state] ?? 0;
         }
     }
 }
 
 $grandTotal = 0;
 foreach ($registryCodes as $code) {
-    $grandTotal += $totals[$code]['total'];
+    $totalsRow = is_array($totals[$code] ?? null) ? $totals[$code] : [];
+    $grandTotal += $totalsRow['total'] ?? 0;
 }
 
 $pageTitle = 'Synthèse des signalements';

@@ -19,7 +19,7 @@
             $regShortLabel = (string) $reg['short_label'];
             $regDescription = (string) ($reg['description'] ?? '');
             $regIcon = (string) ($reg['icon'] ?? '📋');
-            $colorTheme = (string) ($reg['color_theme'] ?? 'rsst');
+            $colorTheme = (string) ($reg['color_theme'] ?? \App\Enum\ReportType::Rsst->value);
         ?>
         <div class="help-profile-card help-profile-card--<?php echo e($colorTheme); ?>">
             <h3><?php echo e($regShortLabel); ?></h3>

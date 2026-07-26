@@ -137,7 +137,8 @@ function seedDefaultData(PDO $pdo): void
     \App\Repository\RegistryRepository::instance()->seedDefaults();
 
     // Seed RAMI-specific fields (matches seed/_registries.php for CLI seed)
-    $rami = \App\Repository\RegistryRepository::instance()->findByCode('rami');
+    // Modular-audit P1.5 — use ReportType enum value instead of magic string
+    $rami = \App\Repository\RegistryRepository::instance()->findByCode(\App\Enum\ReportType::Rami->value);
     if ($rami !== null) {
         $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
         $ramiFields = [

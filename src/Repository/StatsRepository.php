@@ -224,6 +224,8 @@ class StatsRepository
             totalNouveau: (int) ($result['total_' . ReportState::Nouveau->value] ?? 0),
             totalEnCours: (int) ($result['total_' . ReportState::EnCours->value] ?? 0),
             totalTraite: (int) ($result['total_' . ReportState::Traite->value] ?? 0),
+            totalAbandonne: (int) ($result['total_' . ReportState::Abandonne->value] ?? 0),
+            totalReouvert: (int) ($result['total_' . ReportState::Reouvert->value] ?? 0),
             registryTotals: $registryTotals,
         );
     }

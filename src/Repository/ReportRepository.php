@@ -340,10 +340,16 @@ class ReportRepository
         $prev = null;
         $next = null;
 
+        // Audit #63 — La liste des signalements est triée par created_at DESC.
+        // "Précédent" = plus récent (au-dessus dans la liste) = created_at > current.
+        // "Suivant" = plus ancien (en-dessous) = created_at < current.
+        // Avant ce fix, les sens étaient inversés.
+
+        // prev = newer report (appears above current in DESC list)
         $stmt = $this->pdo->prepare('
             SELECT uuid, created_at FROM reports
-            WHERE type = :type AND (created_at < :created_at OR (created_at = :created_at AND uuid < :uuid))
-            ORDER BY created_at DESC, uuid DESC LIMIT 1
+            WHERE type = :type AND (created_at > :created_at OR (created_at = :created_at AND uuid > :uuid))
+            ORDER BY created_at ASC, uuid ASC LIMIT 1
         ');
         $stmt->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
         $row = $stmt->fetch();
@@ -351,10 +357,11 @@ class ReportRepository
             $prev = $row['uuid'];
         }
 
+        // next = older report (appears below current in DESC list)
         $stmt2 = $this->pdo->prepare('
             SELECT uuid, created_at FROM reports
-            WHERE type = :type AND (created_at > :created_at OR (created_at = :created_at AND uuid > :uuid))
-            ORDER BY created_at ASC, uuid ASC LIMIT 1
+            WHERE type = :type AND (created_at < :created_at OR (created_at = :created_at AND uuid < :uuid))
+            ORDER BY created_at DESC, uuid DESC LIMIT 1
         ');
         $stmt2->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
         $row2 = $stmt2->fetch();

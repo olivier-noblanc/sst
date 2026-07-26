@@ -106,6 +106,21 @@ try {
     // Delete in correct order (respect FK constraints)
     echo "\n";
 
+    // Audit #51 — Vidage complet de toutes les tables liées aux signalements.
+    // Avant ce fix, report_agents, report_access_log, report_state_history
+    // et report_agent_invites n'étaient pas vidés → données orphelines.
+    $pdo->exec('DELETE FROM report_agent_invites');
+    echo "  ✓ report_agent_invites vidé\n";
+
+    $pdo->exec('DELETE FROM report_access_log');
+    echo "  ✓ report_access_log vidé\n";
+
+    $pdo->exec('DELETE FROM report_state_history');
+    echo "  ✓ report_state_history vidé\n";
+
+    $pdo->exec('DELETE FROM report_agents');
+    echo "  ✓ report_agents vidé\n";
+
     $pdo->exec('DELETE FROM report_responses');
     echo "  ✓ report_responses vidé\n";
 
@@ -119,7 +134,7 @@ try {
     echo "  ✓ audit_log vidé\n";
 
     // Reset auto-increment counters
-    $pdo->exec('DELETE FROM sqlite_sequence WHERE name IN ("reports", "report_responses", "report_sequence", "audit_log")');
+    $pdo->exec('DELETE FROM sqlite_sequence WHERE name IN ("reports", "report_responses", "report_sequence", "audit_log", "report_agents", "report_access_log", "report_state_history", "report_agent_invites")');
     echo "  ✓ Compteurs auto-increment réinitialisés\n";
 
     // Optimize

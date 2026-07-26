@@ -75,19 +75,22 @@ if ($action === 'start') {
 
 // === STOP IMPERSONATION (restore real role) ===
 if ($action === 'stop') {
-    $impersonatedRole = $session->getImpersonatedRole() ?? 'inconnu';
+    $impersonatedRole = $session->getImpersonatedRole();
     $realRole = $session->stopImpersonation();
     if ($realRole === null) {
-        // Not impersonating — nothing to do
+        // Audit #31 — Not impersonating — flash info instead of silent redirect
+        $sessionService->setFlash('info', 'Vous n\'étiez pas en train d\'incarner un autre rôle.');
         $http->redirect($http->url('home'));
     }
 
     // Audit log
     $pdo = getDB();
     /** @var string $realRole */
-    auditLog($pdo, 'auth', 'impersonate_stop', 'Fin d\'incarnation du rôle ' . (ROLE_LABELS[$impersonatedRole] ?? $impersonatedRole) . ' — retour au rôle ' . (ROLE_LABELS[$realRole] ?? $realRole), null, 'user', [
+    // Audit #34 — use empty string fallback instead of 'inconnu' (which is misleading)
+    $impLabel = $impersonatedRole !== null ? (ROLE_LABELS[$impersonatedRole] ?? $impersonatedRole) : '(rôle inconnu)';
+    auditLog($pdo, 'auth', 'impersonate_stop', 'Fin d\'incarnation du rôle ' . $impLabel . ' — retour au rôle ' . (ROLE_LABELS[$realRole] ?? $realRole), null, 'user', [
         'real_role'  => $realRole,
-        'impersonated_role' => $impersonatedRole,
+        'impersonated_role' => $impersonatedRole ?? '',
     ]);
 
     $sessionService->setFlash('success', 'Vous avez repris votre rôle de ' . (ROLE_LABELS[$realRole] ?? $realRole) . '.');

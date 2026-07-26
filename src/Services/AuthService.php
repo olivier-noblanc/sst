@@ -389,9 +389,25 @@ class AuthService
 
     /**
      * Handle logout: clear session, destroy cookie, redirect.
+     *
+     * Audit #38 — Bump sessions_invalid_before so all OTHER sessions of this
+     * user are also invalidated (logout everywhere). This is the expected
+     * behavior for a security-conscious application — when a user logs out,
+     * they probably want all their sessions closed, not just the current one.
      */
     public function handleLogout(): void
     {
+        // Audit #38 — invalidate all sessions of this user before clearing
+        $userId = (int) (\getUserSession()['id'] ?? 0);
+        if ($userId > 0) {
+            try {
+                $this->repo->invalidateSessions($userId);
+            } catch (\Throwable $e) {
+                // Pre-migration (column missing) — fail silently, logout still works
+                error_log('[SST-AUTH] handleLogout: invalidateSessions failed: ' . $e->getMessage());
+            }
+        }
+
         \clearSession();
         if (ini_get('session.use_cookies') !== false) {
             $params = session_get_cookie_params();

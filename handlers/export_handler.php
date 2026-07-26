@@ -154,11 +154,18 @@ foreach ($reports as $row) {
     $historyText = implode(' | ', $historyParts);
 
     // CSV formula injection prevention: prefix cells starting with =+@-
+    // Audit #72 — Avant ce fix, les caractères \t, \r, \n n'étaient pas
+    // échappés. fputcsv gère les enclosures automatiquement, mais les
+    // valeurs contenant ces chars pouvaient casser l'analyse CSV dans
+    // certains lecteurs Excel edge-case. Maintenant on les sanitize.
     $csvEscape = function ($value): string {
-        $safe = $value;
-        if (preg_match('/^[=+\-@]/', (string) $safe) > 0) {
-            return "'" . $safe;
+        $safe = (string) $value;
+        // Formula injection prevention
+        if (preg_match('/^[=+\-@]/', $safe) > 0) {
+            $safe = "'" . $safe;
         }
+        // Audit #72 — sanitize tab/newline chars that could break CSV parsing
+        $safe = str_replace(["\t", "\r", "\n"], [' ', ' ', ' '], $safe);
         return $safe;
     };
 

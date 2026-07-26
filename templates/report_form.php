@@ -75,7 +75,7 @@ $cardClass = 'card--' . $colorTheme;
 // Determine submit button class based on mode and registry color_theme
 $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
 ?>
-<div class="card <?php echo $cardClass; ?>">
+<div class="card <?php echo e($cardClass); ?>">
     <?php echo renderBreadcrumb([
         ['url' => new \App\Services\HttpService()->url('home'), 'label' => 'Accueil'],
         ['url' => new \App\Services\HttpService()->url('report_list', ['type' => $type]), 'label' => $registryLabel],
@@ -376,7 +376,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
         <?php require __DIR__ . '/report_form_linked_agents.php'; ?>
 
         <div class="form-actions">
-            <button type="submit" class="btn <?php echo $submitBtnClass; ?>">
+            <button type="submit" class="btn <?php echo e($submitBtnClass); ?>">
                 <?php echo $isEdit ? 'Enregistrer' : 'Envoyer le signalement'; ?>
             </button>
             <a href="<?php echo $isEdit && $report !== null ? new \App\Services\HttpService()->url('report_view', ['uuid' => $report->uuid]) : new \App\Services\HttpService()->url('home'); ?>"

@@ -316,6 +316,39 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec("ALTER TABLE users ADD COLUMN sessions_invalid_before DATETIME");
         error_log('[SST-MIGRATION] Added users.sessions_invalid_before column (R4 — session invalidation support).');
     }
+
+    // ── Add RegistryPolicy columns to registries (P2.1) ───────────────────────
+    // Modular-audit P2.1 — make the registry business logic configurable.
+    // Before this fix, RAMI-specific (pour_compte) and DGI-specific (warning
+    // panel, lieu label) behaviors were hardcoded with `=== ReportType::Rami->value`
+    // etc. Now any registry can opt-in to these behaviors via the DB.
+    $policyCols = [
+        'requires_pour_compte' => 'INTEGER NOT NULL DEFAULT 0',
+        'has_dgi_warning'      => 'INTEGER NOT NULL DEFAULT 0',
+        'lieu_label_override'  => 'TEXT',
+    ];
+    foreach ($policyCols as $colName => $colDef) {
+        $exists = false;
+        $regColStmt = $pdo->query('PRAGMA table_info(registries)');
+        $regCols = ($regColStmt !== false) ? $regColStmt->fetchAll() : [];
+        $regColStmt = null;
+        foreach ($regCols as $col) {
+            if (is_array($col) && ($col['name'] ?? '') === $colName) {
+                $exists = true;
+                break;
+            }
+        }
+        if (!$exists) {
+            $pdo->exec("ALTER TABLE registries ADD COLUMN $colName $colDef");
+            error_log("[SST-MIGRATION] Added registries.$colName column (P2.1 — RegistryPolicy).");
+        }
+    }
+
+    // Backfill the historical system registries with their historical behavior
+    // so the RegistryPolicy behaves identically to the hardcoded version.
+    // (No-op if already set — using UPDATE with WHERE is idempotent.)
+    $pdo->exec("UPDATE registries SET requires_pour_compte = 1 WHERE code = 'rami' AND requires_pour_compte = 0");
+    $pdo->exec("UPDATE registries SET has_dgi_warning = 1, lieu_label_override = 'Lieu / Mesures de protection' WHERE code = 'dgi' AND has_dgi_warning = 0");
 }
 
 /**

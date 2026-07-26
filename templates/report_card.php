@@ -49,7 +49,7 @@ if (!isset($csrfToken)) {
 ?>
 
 <div class="card <?php echo e($cardClass); ?>">
-    <?php if ($type === \App\Enum\ReportType::Dgi->value): ?>
+    <?php if ((new \App\Services\RegistryPolicy())->hasDgiWarningPanel($type)): ?>
     <div class="danger-panel">
         &#9888;&#65039; <strong>Procédure prioritaire :</strong> Ce signalement relève du registre DGI (Danger Grave et Imminent). Conformément aux articles L4131-1 et L4132-5 du Code du travail, l'agent a le droit de se retirer de la situation de danger. Le registre DGI doit être tenu à disposition de l'inspecteur du travail et du CHSCT/CSA.
     </div>
@@ -82,7 +82,7 @@ if (!isset($csrfToken)) {
                     <td><?php echo $fmt->e($report->heureEvenement ?: '—'); ?></td>
                 </tr>
                 <tr>
-                    <th><?php echo $type === \App\Enum\ReportType::Dgi->value ? 'Lieu / Mesures de protection' : 'Lieu'; ?></th>
+                    <th><?php echo e((new \App\Services\RegistryPolicy())->getLieuLabel($type)); ?></th>
                     <td><?php echo $fmt->e($report->lieu ?: '—'); ?></td>
                 </tr>
                 <?php if (!empty($report->pole)): ?>

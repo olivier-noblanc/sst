@@ -24,6 +24,7 @@ use App\Services\HttpService;
 use App\Services\AssetService;
 use App\Services\RegistryCardService;
 use App\Services\StatisticsService;
+use App\Services\RegistryPolicy;
 use App\Event\EventDispatcher;
 
 require_once __DIR__ . '/Event/event_listeners.php';
@@ -84,6 +85,7 @@ function createContainer(): Container
     $container->set(HttpService::class, fn() => new HttpService());
     $container->set(AssetService::class, fn() => new AssetService());
     $container->set(SessionManager::class, fn() => new SessionManager());
+    $container->set(RegistryPolicy::class, fn() => new RegistryPolicy());
 
 
     // ═══════════════════════════════════════════════════════════════════════════════

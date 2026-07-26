@@ -228,7 +228,11 @@ class ReportService
             $cmd->lieu ?? '',
             $cmd->heureEvenement ?? ''
         );
-        if ($cmd->type === ReportType::Rami->value) {
+        // Modular-audit P2.1 — use RegistryPolicy instead of hardcoded type check.
+        // Before: if ($cmd->type === ReportType::Rami->value) { validatePourCompte }
+        // Now: any registry with requires_pour_compte=1 triggers pour_compte validation.
+        $policy = new RegistryPolicy();
+        if ($policy->requiresPourCompte($cmd->type)) {
             $errors = array_merge($errors, validatePourCompte(
                 $cmd->pourCompteNom !== null,
                 $cmd->pourCompteNom ?? '',

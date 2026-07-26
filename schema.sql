@@ -195,6 +195,10 @@ CREATE TABLE IF NOT EXISTS registries (
     default_visibility  TEXT NOT NULL DEFAULT 'agent_choice',
     notify_chsct        INTEGER NOT NULL DEFAULT 0,      -- DGI-style CHSCT notification
     legal_note          TEXT,
+    -- Modular-audit P2.1 — RegistryPolicy columns (business logic is now configurable)
+    requires_pour_compte INTEGER NOT NULL DEFAULT 0,      -- 1 = requires pour_compte_nom/prenom fields (RAMI-style)
+    has_dgi_warning     INTEGER NOT NULL DEFAULT 0,      -- 1 = shows L4131-2 warning panel (DGI-style)
+    lieu_label_override TEXT,                            -- override the "Lieu" label (e.g. "Lieu / Mesures de protection" for DGI)
     created_at          TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
 );

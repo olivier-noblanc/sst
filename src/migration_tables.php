@@ -52,6 +52,23 @@ function migrateTables(PDO $pdo): void
         UNIQUE(registry_id, field_code)
     )");
 
+    // ── Report field values table (modular field storage) ──────────────────
+    // Modular-audit Batch 1 — Stores actual values of registry_fields per report.
+    // Replaces hardcoded columns (nature_auteur, type_acte, pour_compte_*) in reports.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS report_field_values (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        report_uuid     TEXT NOT NULL,
+        field_id        INTEGER NOT NULL,
+        value           TEXT,
+        created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+        FOREIGN KEY (field_id) REFERENCES registry_fields(id) ON DELETE CASCADE,
+        UNIQUE(report_uuid, field_id)
+    )");
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_rfv_report_uuid ON report_field_values(report_uuid)");
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_rfv_field_id ON report_field_values(field_id)");
+
     // ── Sessions table (SQLite-backed session handler) ──────────────────────
     $pdo->exec("CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,

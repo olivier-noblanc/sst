@@ -223,6 +223,26 @@ CREATE TABLE IF NOT EXISTS registry_fields (
 );
 
 -- ============================================================
+-- Table: report_field_values
+-- Stores the actual values of registry_fields for each report.
+-- Replaces the hardcoded columns (nature_auteur, type_acte, pour_compte_*)
+-- in the reports table — makes registries 100% modular.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS report_field_values (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_uuid     TEXT NOT NULL,
+    field_id        INTEGER NOT NULL,
+    value           TEXT,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+    FOREIGN KEY (field_id) REFERENCES registry_fields(id) ON DELETE CASCADE,
+    UNIQUE(report_uuid, field_id)
+);
+CREATE INDEX IF NOT EXISTS idx_rfv_report_uuid ON report_field_values(report_uuid);
+CREATE INDEX IF NOT EXISTS idx_rfv_field_id ON report_field_values(field_id);
+
+-- ============================================================
 -- Table: schema_version
 -- Tracks which migration versions have been applied.
 -- Prevents re-running migrations and provides auditability.

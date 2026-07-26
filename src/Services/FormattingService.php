@@ -124,7 +124,7 @@ class FormattingService
             // Pre-migration or registry not found — fall back to enum
         }
         // Fallback for the 3 historical system registries
-        $enumType = ReportType::tryFrom($type);
+        $enumType = ReportType::fromCode($type);
         return match ($enumType) {
             ReportType::Rsst => 'var(--rsst-color)',
             ReportType::Rami => 'var(--rami-color)',
@@ -167,7 +167,7 @@ class FormattingService
             // Fall back to enum
         }
         // Fallback for the 3 historical system registries
-        $enumType = ReportType::tryFrom($typeStr);
+        $enumType = ReportType::fromCode($typeStr);
         return $enumType !== null ? $enumType->badgeClass() : 'badge--rsst';
     }
 

@@ -127,9 +127,11 @@ auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . 
 $successMsg = 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' mis à jour avec succès.';
 if ($notifyRoleChange && $emailSent) {
     $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($cmd->email) . '.';
-} elseif ($notifyRoleChange && !$emailSent) {
+} elseif ($notifyRoleChange) {
+    // $emailSent is false here (if it were true, the if above would have matched)
     $successMsg .= " ⚠ Le rôle a changé mais l'e-mail de notification a échoué (" . e($emailError) . "). L'utilisateur devra être informé manuellement.";
-} elseif ($roleChanged && empty($cmd->email)) {
+} elseif ($roleChanged) {
+    // $notifyRoleChange is false here, which means $cmd->email is empty
     $successMsg .= " ⚠ Le rôle a changé mais aucun e-mail n'a été envoyé (adresse manquante).";
 }
 $flashType = 'success';

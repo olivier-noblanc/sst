@@ -109,7 +109,7 @@ if ($notifyRoleChange) {
     try {
         notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
         $emailSent = true;
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         $emailError = $e->getMessage();
         error_log('[SST-MAIL] notifyRoleChange failed: ' . $emailError);
     }

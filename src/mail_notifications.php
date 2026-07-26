@@ -257,7 +257,7 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
             sendMail($email, $subject, $body);
             // Email sent successfully — NOW persist the invite in DB
             ReportRepository::instance()->createAgentInviteWithToken($reportUuid, $email, $token);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             error_log('[SST-MAIL] sendAgentInviteEmails failed for ' . $email . ': ' . $e->getMessage());
         }
     }

@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS reports (
     declarant_nom   TEXT NOT NULL,                   -- Denormalized last name for speed
     declarant_prenom TEXT NOT NULL,                  -- Denormalized first name
     -- "Pour le compte de" (RAMI only — report filed for another agent)
-    pour_compte_de  INTEGER,                         -- FK to users (nullable, RAMI only)
+    pour_compte_de  INTEGER,                         -- FK to users (nullable, RAMI only). Audit #16: currently unused — pour_compte_nom/prenom are free-text, not linked to a user ID. Kept for future enhancement (auto-link agent via email).
     pour_compte_nom TEXT,                            -- Denormalized name of the other agent
     pour_compte_prenom TEXT,                         -- Denormalized first name
     -- RAMI structured fields (optional — for statistics by nature/type)

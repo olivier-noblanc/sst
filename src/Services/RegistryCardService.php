@@ -18,8 +18,17 @@ class RegistryCardService
 
     public function getRegistryIcon(string $type): string
     {
+        // Audit #71 — Cache registry data within a single request to avoid
+        // repeated DB queries. Before this fix, each call to getRegistryIcon
+        // (called multiple times per page load) hit the DB separately.
+        static $cache = [];
+        if (isset($cache[$type])) {
+            return $cache[$type];
+        }
         $reg = $this->registryRepo->findByCode($type);
-        return $reg !== null ? ($reg['icon'] ?? '📋') : '📋';
+        $icon = $reg !== null ? ($reg['icon'] ?? '📋') : '📋';
+        $cache[$type] = $icon;
+        return $icon;
     }
 
     /**

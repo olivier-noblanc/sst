@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use Exception;
+use Throwable;
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
@@ -402,7 +403,7 @@ class AuthService
         if ($userId > 0) {
             try {
                 $this->repo->invalidateSessions($userId);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 // Pre-migration (column missing) — fail silently, logout still works
                 error_log('[SST-AUTH] handleLogout: invalidateSessions failed: ' . $e->getMessage());
             }

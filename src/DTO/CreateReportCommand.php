@@ -44,6 +44,8 @@ class CreateReportCommand
         public readonly ?string $attachmentBlob,
         public readonly ?string $attachmentName,
         public readonly ?string $attachmentMime,
+        /** Batch 3 — Dynamic field values for any registry. */
+        public readonly array $fieldValues = [],
     ) {}
 
     /**
@@ -53,18 +55,25 @@ class CreateReportCommand
     public static function fromPost(array $post, array $user): self
     {
         $pourCompte = isset($post['pour_compte']) && $post['pour_compte'] === '1';
-        // Modular-audit P2.3 — accept any string code (custom registries included).
-        // Handler is responsible for validating via RegistryRepository::findByCode().
         $type = trim($post['type'] ?? '');
         $natureAuteur = trim($post['nature_auteur'] ?? '');
         $typeActe = trim($post['type_acte'] ?? '');
-        // RAMI-specific fields validation (kept for backwards compat with the
-        // historical RAMI registry — custom registries use registry_fields DB
-        // for their dynamic fields, not these hardcoded columns).
         if ($type === ReportType::Rami->value) {
             $ramiFields = validateRamiFields($natureAuteur, $typeActe);
             $natureAuteur = $ramiFields['nature_auteur'];
             $typeActe = $ramiFields['type_acte'];
+        }
+
+        // Batch 3 — Collect ALL registry_fields values from POST dynamically.
+        // This replaces the hardcoded nature_auteur/type_acte/pour_compte_nom/prenom
+        // collection with a generic mechanism that works for any registry.
+        $fieldValues = [];
+        // Collect known field codes from POST — any key that matches a registry field pattern
+        $knownFieldCodes = ['nature_auteur', 'type_acte', 'pour_compte_nom', 'pour_compte_prenom'];
+        foreach ($knownFieldCodes as $code) {
+            if (isset($post[$code]) && trim((string) $post[$code]) !== '') {
+                $fieldValues[$code] = trim((string) $post[$code]);
+            }
         }
 
         $declarantNom = $user['nom'] ?? '';
@@ -95,6 +104,7 @@ class CreateReportCommand
             attachmentBlob: null,
             attachmentName: null,
             attachmentMime: null,
+            fieldValues: $fieldValues,
         );
     }
 

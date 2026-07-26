@@ -33,6 +33,8 @@ class UpdateReportCommand
          * restait en DB même après "Supprimer la pièce jointe".
          */
         public readonly bool $removeAttachment = false,
+        /** Batch 3 — Dynamic field values for any registry. */
+        public readonly array $fieldValues = [],
     ) {}
 
     /** @param array<string, string> $post */
@@ -41,6 +43,15 @@ class UpdateReportCommand
         $natureAuteur = trim($post['nature_auteur'] ?? '');
         $typeActe = trim($post['type_acte'] ?? '');
         $pourCompte = isset($post['pour_compte']) && $post['pour_compte'] === '1';
+
+        // Batch 3 — Collect field values dynamically
+        $fieldValues = [];
+        $knownFieldCodes = ['nature_auteur', 'type_acte', 'pour_compte_nom', 'pour_compte_prenom'];
+        foreach ($knownFieldCodes as $code) {
+            if (isset($post[$code]) && trim((string) $post[$code]) !== '') {
+                $fieldValues[$code] = trim((string) $post[$code]);
+            }
+        }
 
         return new self(
             objet: trim($post['objet'] ?? ''),
@@ -59,6 +70,7 @@ class UpdateReportCommand
             pourCompteNom: $pourCompte ? trim($post['pour_compte_nom'] ?? '') : null,
             pourComptePrenom: $pourCompte ? trim($post['pour_compte_prenom'] ?? '') : null,
             removeAttachment: isset($post['remove_attachment']) && $post['remove_attachment'] === '1',
+            fieldValues: $fieldValues,
         );
     }
 

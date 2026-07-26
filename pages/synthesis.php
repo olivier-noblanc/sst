@@ -35,12 +35,25 @@ $sites = \App\Repository\SiteRepository::instance()->findAll();
 // Get synthesis data
 $synthesisData = \App\Repository\StatsRepository::instance()->getSynthesis($year, $siteId);
 
+// Modular-audit P2.4 — iterate over enabled registries dynamically instead of
+// hardcoding ReportType::cases(). Custom registries now appear automatically.
+$enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled();
+$registryCodes = array_map(fn($r) => (string) $r['code'], $enabledRegistries);
+$emptyStateRow = [
+    ReportState::Nouveau->value => 0,
+    ReportState::EnCours->value => 0,
+    ReportState::Traite->value => 0,
+    ReportState::Abandonne->value => 0,
+    ReportState::Reouvert->value => 0,
+    'total' => 0,
+];
+
 // Organize data by site
 $siteData = [];
 foreach ($sites as $site) {
     $typeData = array_combine(
-        array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
-        array_fill(0, count(ReportType::cases()), [ReportState::Nouveau->value => 0, ReportState::EnCours->value => 0, ReportState::Traite->value => 0, ReportState::Abandonne->value => 0, ReportState::Reouvert->value => 0, 'total' => 0])
+        $registryCodes,
+        array_fill(0, count($registryCodes), $emptyStateRow)
     );
     $siteData[$site['id']] = array_merge(['code' => $site['code'], 'nom' => $site['nom']], $typeData);
 }
@@ -63,35 +76,30 @@ foreach ($synthesisData as $row) {
 
 // Calculate totals
 $totals = array_combine(
-    array_map(fn(ReportType $t) => $t->value, ReportType::cases()),
-    array_fill(0, count(ReportType::cases()), [ReportState::Nouveau->value => 0, ReportState::EnCours->value => 0, ReportState::Traite->value => 0, ReportState::Abandonne->value => 0, ReportState::Reouvert->value => 0, 'total' => 0])
+    $registryCodes,
+    array_fill(0, count($registryCodes), $emptyStateRow)
 );
 
 foreach ($siteData as $sId => $sd) {
-    foreach (ReportType::cases() as $type) {
+    foreach ($registryCodes as $code) {
         foreach ([ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Traite->value, ReportState::Abandonne->value, ReportState::Reouvert->value, 'total'] as $state) {
-            $totals[$type->value][$state] += $sd[$type->value][$state];
+            $totals[$code][$state] += $sd[$code][$state];
         }
     }
 }
 
 $grandTotal = 0;
-foreach (ReportType::cases() as $type) {
-    $grandTotal += $totals[$type->value]['total'];
+foreach ($registryCodes as $code) {
+    $grandTotal += $totals[$code]['total'];
 }
 
 $pageTitle = 'Synthèse des signalements';
 
-$ramiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
-
-// Build list of active registry types for the table columns
-$activeTypes = [ReportType::Rsst->value => 'RSST'];
-if ($ramiEnabled) {
-    $activeTypes[ReportType::Rami->value] = 'RAMI';
-}
-if ($dgiEnabled) {
-    $activeTypes[ReportType::Dgi->value] = 'DGI';
+// Modular-audit P2.4 — build activeTypes dynamically from enabled registries
+// (was hardcoded ReportType::Rsst/Rami/Dgi with $ramiEnabled/$dgiEnabled flags)
+$activeTypes = [];
+foreach ($enabledRegistries as $reg) {
+    $activeTypes[(string) $reg['code']] = (string) $reg['short_label'];
 }
 $colSpan = count($activeTypes) * 4;
 ?>

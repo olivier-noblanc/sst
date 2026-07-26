@@ -31,25 +31,26 @@ $ramiStats = $stats->ramiStats;
 // Build table data by site
 /** @var list<array{id: int, code: string, nom: string}> $sites */
 $sites = \App\Repository\SiteRepository::instance()->findAll();
+// Modular-audit P2.4 — iterate over enabled registries dynamically instead of
+// hardcoding RSST/RAMI/DGI columns. Custom registries now appear automatically.
+$enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled();
+$registryCodes = array_map(fn($r) => (string) $r['code'], $enabledRegistries);
 $tableData = [];
 foreach ($sites as $site) {
-    $tableData[$site['id']] = [
-        'code' => $site['code'],
-        'nom'  => $site['nom'],
-        ReportType::Rsst->value => 0,
-        ReportType::Dgi->value  => 0,
-        ReportType::Rami->value => 0,
-        'total' => 0,
-    ];
+    $row = ['code' => $site['code'], 'nom'  => $site['nom'], 'total' => 0];
+    foreach ($registryCodes as $code) {
+        $row[$code] = 0;
+    }
+    $tableData[$site['id']] = $row;
 }
 
 foreach ($statsBySite as $row) {
     // Find matching site
     foreach ($tableData as $sId => &$td) {
         if ($td['code'] === $row->code) {
-            $td[ReportType::Rsst->value]  = $row->getCount(ReportType::Rsst->value);
-            $td[ReportType::Rami->value]  = $row->getCount(ReportType::Rami->value);
-            $td[ReportType::Dgi->value]   = $row->getCount(ReportType::Dgi->value);
+            foreach ($registryCodes as $code) {
+                $td[$code] = $row->getCount($code);
+            }
             $td['total'] = $row->total;
             break;
         }
@@ -58,21 +59,16 @@ foreach ($statsBySite as $row) {
 unset($td);
 
 // Calculate totals
-$totalRsst = 0;
-$totalRami = 0;
-$totalDgi = 0;
+$registryTotals = array_fill_keys($registryCodes, 0);
 $totalAll = 0;
 foreach ($tableData as $td) {
-    $totalRsst += $td[ReportType::Rsst->value];
-    $totalRami += $td[ReportType::Rami->value];
-    $totalDgi  += $td[ReportType::Dgi->value];
+    foreach ($registryCodes as $code) {
+        $registryTotals[$code] += $td[$code];
+    }
     $totalAll  += $td['total'];
 }
 
 $pageTitle = 'Statistiques';
-
-$ramiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = $config->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
 ?>
 
 <h1 class="page-title">Statistiques</h1>
@@ -123,9 +119,9 @@ foreach ($registryRepo->findEnabled() as $reg):
             <thead>
                 <tr>
                     <th><?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?></th>
-                    <th class="text-center">RSST</th>
-                    <?php if ($dgiEnabled): ?><th class="text-center">DGI</th><?php endif; ?>
-                    <?php if ($ramiEnabled): ?><th class="text-center">RAMI</th><?php endif; ?>
+                    <?php foreach ($enabledRegistries as $reg): ?>
+                        <th class="text-center"><?php echo $fmt->e((string) $reg['short_label']); ?></th>
+                    <?php endforeach; ?>
                     <th class="text-center">Total</th>
                 </tr>
             </thead>
@@ -133,18 +129,18 @@ foreach ($registryRepo->findEnabled() as $reg):
                 <?php foreach ($tableData as $td): ?>
                 <tr>
                     <td><strong><?php echo $fmt->e($td['code']); ?></strong> — <?php echo $fmt->e($td['nom']); ?></td>
-                    <td class="text-center <?php echo $td[ReportType::Rsst->value] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td[ReportType::Rsst->value]; ?></td>
-                    <?php if ($dgiEnabled): ?><td class="text-center <?php echo $td[ReportType::Dgi->value] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td[ReportType::Dgi->value]; ?></td><?php endif; ?>
-                    <?php if ($ramiEnabled): ?><td class="text-center <?php echo $td[ReportType::Rami->value] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td[ReportType::Rami->value]; ?></td><?php endif; ?>
+                    <?php foreach ($registryCodes as $code): ?>
+                        <td class="text-center <?php echo $td[$code] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td[$code]; ?></td>
+                    <?php endforeach; ?>
                     <td class="text-center synthesis-cell-value"><strong><?php echo $td['total']; ?></strong></td>
                 </tr>
                 <?php endforeach; ?>
                 <!-- Totals row -->
                 <tr class="row--totals">
                     <td><strong>Total</strong></td>
-                    <td class="text-center synthesis-cell-value"><?php echo $totalRsst; ?></td>
-                    <?php if ($dgiEnabled): ?><td class="text-center synthesis-cell-value"><?php echo $totalDgi; ?></td><?php endif; ?>
-                    <?php if ($ramiEnabled): ?><td class="text-center synthesis-cell-value"><?php echo $totalRami; ?></td><?php endif; ?>
+                    <?php foreach ($registryCodes as $code): ?>
+                        <td class="text-center synthesis-cell-value"><?php echo $registryTotals[$code]; ?></td>
+                    <?php endforeach; ?>
                     <td class="text-center synthesis-cell-value"><strong><?php echo $totalAll; ?></strong></td>
                 </tr>
             </tbody>

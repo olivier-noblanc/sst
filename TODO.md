@@ -666,3 +666,34 @@ La P25 (TODO.md) prétendait « TERMINÉ » pour les registres customs, mais un 
 ### Worklog détaillé
 
 Voir `worklog.md` Task ID `modular-audit` (210 lignes) pour l'audit complet.
+
+### Phase 2 — ✅ TERMINÉE (commit c69e058)
+
+| # | Fix | Statut |
+|---|-----|--------|
+| P2.1 | `RegistryPolicy` (requires_pour_compte, has_dgi_warning, lieu_label_override) | ✅ |
+| P2.2 | `FormattingService::getRegistryColor/getRegistryBadgeClass` dynamiques | ✅ |
+| P2.3 | `CreateReportCommand::$type` : `ReportType` → `string` | ✅ |
+| P2.4 | `pages/statistics.php` et `pages/synthesis.php` dynamiques | ✅ |
+| P2.5 | `pages/help/_registres.php` dynamique | ✅ |
+
+### Bugs E2E pré-existants — partiellement corrigés
+
+| Fix | Statut |
+|-----|--------|
+| Sélecteurs E2E obsolètes (radio → color-dot/select) | ✅ |
+| Seed RAMI fields manquant (pour_compte, nature_auteur, type_acte) | ✅ |
+| seedDefaultData() ne seedait pas les registres | ✅ |
+| 14 failures → estimation 4-6 restantes (liées à d'autres soucis) | En cours |
+
+### CI Status — commit c69e058
+
+| Gate | Status |
+|------|--------|
+| Lint | ✅ |
+| PHPStan | ✅ |
+| PHPUnit | ✅ |
+| PHPArkitect | ✅ |
+| Rector | ✅ |
+| Deptrac | ✅ |
+| E2E | ⏳ (en cours) |

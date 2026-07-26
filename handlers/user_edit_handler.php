@@ -128,9 +128,9 @@ $successMsg = 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' mis à jour
 if ($notifyRoleChange && $emailSent) {
     $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($cmd->email) . '.';
 } elseif ($notifyRoleChange && !$emailSent) {
-    $successMsg .= ' ⚠ Le rôle a changé mais l\\'e-mail de notification a échoué (' . e($emailError) . '). L\\'utilisateur devra être informé manuellement.';
+    $successMsg .= " ⚠ Le rôle a changé mais l'e-mail de notification a échoué (" . e($emailError) . "). L'utilisateur devra être informé manuellement.";
 } elseif ($roleChanged && empty($cmd->email)) {
-    $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\\'a été envoyé (adresse manquante).';
+    $successMsg .= " ⚠ Le rôle a changé mais aucun e-mail n'a été envoyé (adresse manquante).";
 }
 $session->setFlash($emailSent || !$notifyRoleChange ? 'success' : 'warning', $successMsg);
 

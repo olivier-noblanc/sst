@@ -161,24 +161,7 @@ class ReportRepository
             siteNom: (string) ($row['site_nom'] ?? ''),
             repondantNom: $row['repondant_nom'] ?? null,
             repondantPrenom: $row['repondant_prenom'] ?? null,
-            // Batch 3 — fetch field values from report_field_values table
-            fieldValues: $this->fetchFieldValues((string) $row['uuid']),
         );
-    }
-
-    /**
-     * Batch 3 — Fetch field values from report_field_values for a report UUID.
-     * @return array<string, string>
-     */
-    private function fetchFieldValues(string $uuid): array
-    {
-        try {
-            require_once __DIR__ . '/RegistryFieldRepository.php';
-            return \App\Repository\RegistryFieldRepository::instance()->findValuesForReport($uuid);
-        } catch (\Throwable $e) {
-            // Pre-migration (table doesn't exist yet) — return empty
-            return [];
-        }
     }
 
     /**
@@ -649,23 +632,6 @@ class ReportRepository
             // trigger on reports (see schema.sql) — no manual sync needed
             // here anymore.
 
-            // Batch 3 — Dual-write: also save field values to report_field_values
-            // This mirrors the legacy columns (nature_auteur, type_acte, etc.)
-            // into the modular table. Once all callers read from report_field_values
-            // (Batch 4+), the legacy columns can be dropped (Batch 7).
-            if (!empty($data['field_values'])) {
-                require_once __DIR__ . '/RegistryFieldRepository.php';
-                $registryRepo = \App\Repository\RegistryRepository::instance();
-                $registry = $registryRepo->findByCode($data['type']);
-                if ($registry !== null) {
-                    \App\Repository\RegistryFieldRepository::instance()->saveValues(
-                        $uuid,
-                        (int) $registry['id'],
-                        $data['field_values']
-                    );
-                }
-            }
-
             $this->pdo->commit();
             return $uuid;
         } catch (Exception $e) {
@@ -740,26 +706,6 @@ class ReportRepository
             // reports_fts stays in sync automatically via the AFTER UPDATE
             // trigger on reports (see schema.sql) — no manual sync needed
             // here anymore.
-
-            // Batch 3 — Dual-write: also save field values to report_field_values
-            if ($updated && !empty($data['field_values'])) {
-                require_once __DIR__ . '/RegistryFieldRepository.php';
-                $registryRepo = \App\Repository\RegistryRepository::instance();
-                // Look up registry by the report's type
-                $typeStmt = $this->pdo->prepare('SELECT type FROM reports WHERE uuid = :uuid');
-                $typeStmt->execute([':uuid' => $uuid]);
-                $reportType = $typeStmt->fetchColumn();
-                if ($reportType !== false) {
-                    $registry = $registryRepo->findByCode((string) $reportType);
-                    if ($registry !== null) {
-                        \App\Repository\RegistryFieldRepository::instance()->saveValues(
-                            $uuid,
-                            (int) $registry['id'],
-                            $data['field_values']
-                        );
-                    }
-                }
-            }
 
             $this->pdo->commit();
             return $updated;

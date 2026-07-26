@@ -40,8 +40,6 @@ class ReportData
         public readonly string $siteNom,
         public readonly ?string $repondantNom,
         public readonly ?string $repondantPrenom,
-        /** Batch 3 — Dynamic field values from report_field_values table. */
-        public readonly array $fieldValues = [],
     ) {}
 
     /** @return array<string, mixed> */
@@ -83,8 +81,6 @@ class ReportData
             'site_nom' => $this->siteNom,
             'repondant_nom' => $this->repondantNom,
             'repondant_prenom' => $this->repondantPrenom,
-            // Batch 3 — include field values in toArray for template access
-            'field_values' => $this->fieldValues,
         ];
     }
 }

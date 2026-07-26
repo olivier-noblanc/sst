@@ -47,10 +47,6 @@ $val = function(string $field, string $default = '') use ($formData, $reportArra
         $v = $reportArray[$field];
         return (string) $v;
     }
-    // Batch 3 — Also check fieldValues (from report_field_values table)
-    if ($isEdit && isset($reportArray['field_values'][$field])) {
-        return (string) $reportArray['field_values'][$field];
-    }
     return $default;
 };
 

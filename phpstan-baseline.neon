@@ -383,3 +383,28 @@ parameters:
 			identifier: greater.alwaysFalse
 			count: 2
 			path: tools/tests/test_can_access_report.php
+
+		# Modular-audit Batch 1 — new methods not yet wired up (will be called in Batch 3+)
+		-
+			message: '#^Unused App\\Repository\\RegistryFieldRepository::findValuesForReport$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/Repository/RegistryFieldRepository.php
+
+		-
+			message: '#^Unused App\\Repository\\RegistryFieldRepository::findValuesForUuids$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/Repository/RegistryFieldRepository.php
+
+		-
+			message: '#^Unused App\\Repository\\RegistryFieldRepository::saveValues$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/Repository/RegistryFieldRepository.php
+
+		-
+			message: '#^Unused App\\Repository\\RegistryFieldRepository::findStructuredStatsForRegistry$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/Repository/RegistryFieldRepository.php

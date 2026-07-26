@@ -276,18 +276,19 @@ class ReportRepository
                     $hasFts = false;
                 }
             }
-            if ($hasFts) {
+            // Audit #17 — Build WHERE conditionally instead of str_replace on the
+            // WHERE string (brittle — could break if the SQL fragment changed).
+            // Now we decide upfront which search clause to use.
+            $searchTerm = is_string($filters['q']) ? $filters['q'] : '';
+            $ftsQuery = trim((string) preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $searchTerm));
+            if ($hasFts && $ftsQuery !== '') {
+                // FTS5 search (fast, indexed) — only when we have a valid FTS query
                 $where .= ' AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)';
-                $ftsQuery = trim((string) preg_replace('/[^\p{L}\p{N}\s]/u', ' ', is_string($filters['q']) ? $filters['q'] : ''));
-                if ($ftsQuery === '') {
-                    $where = str_replace('AND r.uuid IN (SELECT uuid FROM reports_fts WHERE reports_fts MATCH :q_fts)', 'AND (r.objet LIKE :q OR r.description LIKE :q2)', $where);
-                    $params[':q'] = $params[':q2'] = '%' . $filters['q'] . '%';
-                } else {
-                    $params[':q_fts'] = $ftsQuery;
-                }
+                $params[':q_fts'] = $ftsQuery;
             } else {
+                // Fallback: LIKE search (slower, but works without FTS5 or for special-char queries)
                 $where .= ' AND (r.objet LIKE :q OR r.description LIKE :q2)';
-                $params[':q'] = $params[':q2'] = '%' . $filters['q'] . '%';
+                $params[':q'] = $params[':q2'] = '%' . $searchTerm . '%';
             }
         }
 

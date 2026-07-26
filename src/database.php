@@ -124,6 +124,48 @@ function seedDefaultData(PDO $pdo): void
             ':site_id'  => $user[5],
         ]);
     }
+
+    // Modular-audit P1.5 — Seed default registries (RSST, RAMI, DGI) and their
+    // RAMI-specific registry_fields (pour_compte, pour_compte_nom, pour_compte_prenom,
+    // nature_auteur, type_acte). Before this fix, only seed.php (CLI) called
+    // RegistryRepository::seedDefaults(). E2E tests in CI create a fresh DB via
+    // getDB() → seedDefaultData() but never ran seed.php → registries and
+    // registry_fields were empty → forms.spec.js, registres.spec.js, reports.spec.js
+    // all failed (RAMI fields not visible, registre labels not found).
+    require_once __DIR__ . '/Repository/RegistryRepository.php';
+    require_once __DIR__ . '/Repository/RegistryFieldRepository.php';
+    \App\Repository\RegistryRepository::instance()->seedDefaults();
+
+    // Seed RAMI-specific fields (matches seed/_registries.php for CLI seed)
+    $rami = \App\Repository\RegistryRepository::instance()->findByCode('rami');
+    if ($rami !== null) {
+        $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
+        $ramiFields = [
+            ['pour_compte', 'Signaler pour le compte d\'un autre agent', 'checkbox', null, 0],
+            ['pour_compte_nom', 'Nom de l\'agent pour le compte de qui vous signalez', 'text', null, 3],
+            ['pour_compte_prenom', 'Prénom de l\'agent pour le compte de qui vous signalez', 'text', null, 4],
+            ['nature_auteur', 'Nature de l\'auteur', 'select', json_encode([
+                'usager' => 'Usager', 'collegue' => 'Collègue',
+                'hierarchie' => 'Hiérarchie', 'tiers' => 'Tiers',
+            ]), 1],
+            ['type_acte', 'Type d\'acte', 'select', json_encode([
+                'verbal' => 'Verbal', 'physique' => 'Physique',
+                'moral' => 'Moral', 'sexiste' => 'Sexiste', 'autre' => 'Autre',
+            ]), 2],
+        ];
+        foreach ($ramiFields as [$code, $label, $type, $options, $sortOrder]) {
+            if ($fieldRepo->findByCode((int) $rami['id'], $code) === null) {
+                $fieldRepo->create((int) $rami['id'], [
+                    'field_code' => $code,
+                    'label' => $label,
+                    'field_type' => $type,
+                    'options' => $options,
+                    'is_required' => 0,
+                    'sort_order' => $sortOrder,
+                ]);
+            }
+        }
+    }
 }
 
 /**

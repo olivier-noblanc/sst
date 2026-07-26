@@ -45,19 +45,22 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
     await expect(page.locator('h2:has-text("Gestion des registres")')).toBeVisible();
 
     // Le registre VIOL devrait être visible
-    const violCard = page.locator('div.card:has(h3:has-text("Registre des Violences"))');
+    // Modular-audit P1.5 — use first() to avoid strict mode violation when 2 cards
+    // match (the registre card itself + a child section that also contains the label).
+    const violCard = page.locator('div.card:has(h3:has-text("Registre des Violences"))').first();
     await expect(violCard).toBeVisible();
 
     // ═══════════════════════════════════════════════════════════════
     // ÉTAPE 3 : Personnaliser couleur et icône
     // ═══════════════════════════════════════════════════════════════
-    const violCard2 = page.locator('div.card:has(h3:has-text("Registre des Violences"))');
+    const violCard2 = page.locator('div.card:has(h3:has-text("Registre des Violences"))').first();
 
-    // Choisir la couleur "violet"
-    await violCard2.locator('input[type="radio"][name*="color_theme"][value="violet"]').check();
+    // Choisir la couleur "violet" — UI uses <span class="color-dot" data-theme="violet">
+    // (not radio buttons). Click the dot to select.
+    await violCard2.locator('.color-dot[data-theme="violet"]').click();
 
-    // Choisir l'icône "🚨"
-    await violCard2.locator('input[type="radio"][name*="icon"][value="🚨"]').check();
+    // Choisir l'icône "🚨" via <select> dropdown (not radio buttons)
+    await violCard2.locator('select[name*="[icon]"]').selectOption('🚨');
 
     // Enregistrer
     await page.locator('button:has-text("Enregistrer les modifications")').click();

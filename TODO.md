@@ -609,3 +609,60 @@ Top 12 prioritaires (clos les 9 critiques + 3 High) :
 10. Edit RSST public ne peut pas flip `is_confidential`
 11. `findPaginated` AgentChoice cross-site
 12. `remove_attachment=1` efface réellement la PJ
+
+---
+
+## Modular-audit — Registres 100% modulaires (2026-07-26)
+
+L'utilisateur a soulevé un point fondamental : la BDD avait des CHECK constraints hardcodant 'rsst','rami','dgi' alors que les registres doivent être **100% modulaires** (création/suppression à la volée selon les lois qui passent). Audit dédié lancé — voir `worklog.md` Task ID `modular-audit`.
+
+### Constat initial
+
+La P25 (TODO.md) prétendait « TERMINÉ » pour les registres customs, mais un registre custom créé via l'admin **crashait** à la soumission (`ReportType::from()` → `ValueError`) ET à l'affichage (`FormattingService::getRegistryColor()` → `ValueError`). Le projet n'était PAS réellement modulaire.
+
+### Phase 1 — ✅ TERMINÉE (commit `5ef4603`)
+
+| # | Fix | Fichier | Impact |
+|---|-----|---------|--------|
+| P1.1 | Supprimer `CHECK (type IN ('rsst','rami','dgi'))` résiduelle | `migration_columns.php:72` | Empêchait l'insertion de types custom en DB |
+| P1.2 | Dropdown `export.php` dynamique via `findEnabled()` | `pages/export.php:23-47` | Registres custom enfin visibles dans le filtre |
+| P1.2b | `pages/help.php` calcule `$registryCount` dynamiquement | `pages/help.php:17` | Registres custom comptabilisés dans la doc |
+| P1.3 | `notifyNewReport()` lit `registries.notify_chsct` (au lieu de `=== Dgi->value`) | `mail_notifications.php:51` | N'importe quel registre custom peut déclencher la notif CSA |
+| P1.4 | Réécrire `testRegistryLabelsMatchEnum` et `testRegistryShortLabelsMatchEnum` | `tests/unit/ReportTypeTest.php:78-97` | Tests cassés en silence depuis P25d (référençaient constante supprimée) |
+
+### Phase 2 — 🟡 EN COURS
+
+| # | Fix | Fichier | Statut |
+|---|-----|---------|--------|
+| P2.1 | Extraire `RegistryPolicy` (1 service ~50 lignes + 3 colonnes DB `lieu_label`, `warning_panel`, `requires_pour_compte`) | à créer | ⏳ À faire |
+| P2.2 | `FormattingService::getRegistryColor/getRegistryBadgeClass` dynamiques via `color_theme` | `src/Services/FormattingService.php` | ✅ Terminé |
+| P2.3 | `CreateReportCommand::$type` : `ReportType` → `string` (validé par handler via `findByCode()`) | `src/DTO/CreateReportCommand.php` | ✅ Terminé |
+| P2.4 | `pages/statistics.php` et `pages/synthesis.php` : remplacer `ReportType::cases()` par `findEnabled()` | à migrer | ⏳ À faire |
+| P2.5 | `pages/help/_registres.php` : 3 cartes hardcodées → itération dynamique | à migrer | ⏳ À faire |
+
+### Phase 3 — ⏳ À FAIRE
+
+| # | Fix | Fichier |
+|---|-----|---------|
+| P3.1 | `ReportType` réduit à un rôle purement sémantique : `fromCode()`, déprécier `from()` direct, migrer 11 sites critiques | `src/Enum/ReportType.php` |
+| P3.2 | `getRamiStructuredStats()` → `getStructuredStatsForRegistry(int $registryId)` générique | `src/Repository/StatsRepository.php` |
+| P3.3 | Export CSV incluant dynamiquement les champs `registry_fields` | `handlers/export_handler.php` |
+
+### Bugs E2E pré-existants (14 failures sur baseline `f67545d`)
+
+À investiguer — pas liés à mes changements mais le user veut du code sans bug.
+
+| Test | Cause probable | Fix à appliquer |
+|------|----------------|-----------------|
+| `e2e/forms.spec.js:117` (pour_compte not visible) | Seed RAMI fields manquant en DB | Vérifier `seed.php` + `migration_tables.php` pré-seed |
+| `e2e/forms.spec.js:133` (nature_auteur/type_acte not visible) | Idem | Idem |
+| `e2e/navigation-flows.spec.js:13` (timeout 30s) | Crash navigation | Investiguer |
+| `e2e/navigation-flows.spec.js:115` (URL mismatch après submit RAMI) | Submit RAMI échoue → redirect vers create | Vérifier validation |
+| `e2e/registre-custom-lifecycle.spec.js:18` (strict mode 2 elements) | Sélecteur `div.card:has(...)` trop large | Affiner sélecteur |
+| `e2e/registres.spec.js:37/46/58/74/87/100/147` (labels et badges not visible) | Seed labels ne matchent pas | Vérifier labels seed vs attendus |
+| `e2e/reports.spec.js:128` (RAMI fields not visible) | Idem forms.spec.js | Idem |
+| `e2e/wordcloud.spec.js:107` | ? | Investiguer |
+
+### Worklog détaillé
+
+Voir `worklog.md` Task ID `modular-audit` (210 lignes) pour l'audit complet.

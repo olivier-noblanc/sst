@@ -94,7 +94,7 @@ $pageTitle = 'Statistiques';
     <div class="indicateur-card">
         <div class="indicateur-card__value"><?php echo $indicateurs->totalReports; ?></div>
         <div class="indicateur-card__label">Total signalements</div>
-        <div class="indicateur-card__detail"><?php echo $indicateurs->totalNouveau; ?> nouveaux · <?php echo $indicateurs->totalEnCours; ?> en cours · <?php echo $indicateurs->totalTraite; ?> traités</div>
+        <div class="indicateur-card__detail"><?php echo $indicateurs->totalNouveau; ?> nouveaux · <?php echo $indicateurs->totalEnCours; ?> en cours · <?php echo $indicateurs->totalTraite; ?> traités · <?php echo $indicateurs->totalReouvert; ?> réouverts · <?php echo $indicateurs->totalAbandonne; ?> abandonnés</div>
     </div>
     <?php
     $registryRepo = \App\Repository\RegistryRepository::instance();

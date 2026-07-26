@@ -2,7 +2,8 @@ name: CI
 
 # Filet de sécurité en amont du gate local (update_sst.ps1). Couvre ce
 # qui est reproductible sur un runner cloud : lint, PHPStan, PHPUnit,
-# PHPArkitect, Rector, et Playwright avec Firefox (mode DEV_MODE / mock login).
+# PHPArkitect, Rector, Deptrac, Infection, checkers custom, et Playwright
+# avec Firefox (mode DEV_MODE / mock login).
 #
 # NE couvre PAS le projet Playwright "msedge" (authentification Windows
 # intégrée contre IIS) : un runner GitHub Actions est une VM éphémère
@@ -25,6 +26,7 @@ jobs:
   quality:
     name: Lint + PHPStan + PHPUnit + PHPArkitect + Rector + Deptrac
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -34,6 +36,13 @@ jobs:
           php-version: '8.5'
           extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
           coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php85-
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist
@@ -74,9 +83,16 @@ jobs:
       - name: Deptrac
         run: php vendor/bin/deptrac analyse --no-progress
 
+      - name: Check inline styles (CSP compliance)
+        run: php tools/check_inline_styles.php
+
+      - name: Check CSS classes (no undefined classes)
+        run: php tools/check_css_classes.php
+
   e2e:
     name: E2E (Playwright, Firefox)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -87,6 +103,13 @@ jobs:
           extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
           coverage: none
 
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php85-
+
       - name: Composer install
         run: composer install --no-interaction --prefer-dist
 
@@ -94,6 +117,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: npm install
         run: npm install

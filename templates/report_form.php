@@ -317,7 +317,17 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     $errId = $hasError ? ' id="err_' . e($fieldCode) . '"' : '';
                     $errAttr = $hasError ? ' aria-describedby="err_' . e($fieldCode) . '" aria-invalid="true"' : '';
             ?>
-            <div class="form-group<?php echo $fieldType === 'textarea' ? ' form-grid__full' : ''; ?>">
+            <?php
+            // Modular-audit P1.5 — pour_compte_nom/prenom are conditionally visible
+            // depending on #pour_compte checkbox state. We wrap them in a div with
+            // class 'pour-compte-dependent' and use CSS :has() to show/hide.
+            // No JavaScript needed.
+            $wrapperClass = '';
+            if (str_starts_with($fieldCode, 'pour_compte_')) {
+                $wrapperClass = ' pour-compte-dependent';
+            }
+            ?>
+            <div class="form-group<?php echo $fieldType === 'textarea' ? ' form-grid__full' : ''; ?><?php echo $wrapperClass; ?>">
                 <?php if ($fieldType === 'checkbox'): ?>
                     <label class="label--checkbox">
                         <input type="checkbox" name="<?php echo e($fieldCode); ?>" id="<?php echo e($fieldCode); ?>" value="1"

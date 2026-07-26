@@ -3875,3 +3875,8 @@ tr:hover td {
 }
 .wordcloud-row .input:first-child { flex: 1; }
 .wordcloud-row .input--small { width: 70px; flex: none; }
+
+/* Modular-audit P1.5 — pour_compte_nom/prenom conditionally visible
+   based on #pour_compte checkbox state. No JS — pure CSS :has(). */
+.pour-compte-dependent { display: none; }
+form:has(#pour_compte:checked) .pour-compte-dependent { display: block; }

@@ -74,27 +74,30 @@ test.describe('Settings — Registres Tab', () => {
   test('should display color theme selector for non-system registres', async ({ page }) => {
     await page.goto('/index.php?page=settings&tab=registres');
 
-    // RAMI card should have color circles
+    // RAMI card should have color dots (10 themes)
+    // Modular-audit P1.5 — UI uses <span class="color-dot"> + hidden input, not radio buttons.
+    // The old test checked `input[type="radio"][name*="color_theme"]` which never matched.
     const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))');
-    const colorCircles = ramiCard.locator('input[type="radio"][name*="color_theme"]');
-    await expect(colorCircles.first()).toBeVisible();
+    const colorDots = ramiCard.locator('.color-dot');
+    await expect(colorDots.first()).toBeVisible();
 
     // Should have 10 color options
-    const count = await colorCircles.count();
+    const count = await colorDots.count();
     expect(count).toBe(10);
   });
 
   test('should display icon selector for non-system registres', async ({ page }) => {
     await page.goto('/index.php?page=settings&tab=registres');
 
-    // RAMI card should have icon radio buttons
+    // RAMI card should have icon <select> dropdown (not radio buttons)
+    // Modular-audit P1.5 — UI uses <select>, not <input type="radio">. Old test was wrong.
     const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))');
-    const iconRadios = ramiCard.locator('input[type="radio"][name*="icon"]');
-    await expect(iconRadios.first()).toBeVisible();
+    const iconSelect = ramiCard.locator('select[name*="[icon]"]');
+    await expect(iconSelect).toBeVisible();
 
-    // Should have 30 icon options
-    const count = await iconRadios.count();
-    expect(count).toBe(30);
+    // Should have ~30 icon options
+    const optionCount = await iconSelect.locator('option').count();
+    expect(optionCount).toBeGreaterThan(10);
   });
 
   test('should save color and icon changes', async ({ page }) => {

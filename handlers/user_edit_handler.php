@@ -132,6 +132,10 @@ if ($notifyRoleChange && $emailSent) {
 } elseif ($roleChanged && empty($cmd->email)) {
     $successMsg .= " ⚠ Le rôle a changé mais aucun e-mail n'a été envoyé (adresse manquante).";
 }
-$session->setFlash($emailSent || !$notifyRoleChange ? 'success' : 'warning', $successMsg);
+$flashType = 'success';
+if ($notifyRoleChange && !$emailSent) {
+    $flashType = 'warning';
+}
+$session->setFlash($flashType, $successMsg);
 
 $http->redirect($http->url('users'));

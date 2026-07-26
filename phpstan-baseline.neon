@@ -383,3 +383,10 @@ parameters:
 			identifier: greater.alwaysFalse
 			count: 2
 			path: tools/tests/test_can_access_report.php
+
+		# Bug #10 — createAgentInvite kept for test compat, replaced by createAgentInviteWithToken in prod
+		-
+			message: '#^Unused App\\Repository\\ReportRepository::createAgentInvite$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/Repository/ReportRepository.php

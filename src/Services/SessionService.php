@@ -234,6 +234,12 @@ class SessionService
 
     /**
      * Generate a unique per-form CSRF token and store it in the session.
+     *
+     * Audit #28 — Before this fix, the limit was 20 tokens. If a user had
+     * multiple tabs open (e.g. report_create, report_edit, settings), the
+     * oldest CSRF tokens were silently evicted → "Erreur de sécurité" on
+     * submit with no explanation. Now the limit is 50 (enough for ~25 tabs
+     * with 2 forms each) and a warning is logged when eviction happens.
      */
     public function generateCsrfToken(): string
     {
@@ -242,8 +248,11 @@ class SessionService
         /** @var array<string, int> $tokens */
         $tokens = is_array($_SESSION['csrf_tokens'] ?? null) ? $_SESSION['csrf_tokens'] : [];
         $tokens[$token] = time();
-        if (count($tokens) > 20) {
-            $tokens = array_slice($tokens, -20, null, true);
+        $limit = 50;
+        if (count($tokens) > $limit) {
+            $evicted = count($tokens) - $limit;
+            error_log("[SST-CSRF] Evicting {$evicted} old CSRF token(s) — limit={$limit}. User may have many tabs open.");
+            $tokens = array_slice($tokens, -$limit, null, true);
         }
         $_SESSION['csrf_tokens'] = $tokens;
         return $token;

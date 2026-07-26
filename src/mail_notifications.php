@@ -236,21 +236,30 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
         if (empty($email)) {
             continue;
         }
-        // Create invite token
-        $token = ReportRepository::instance()->createAgentInvite($reportUuid, $email);
-        // Build confirmation link
-        $confirmUrl = absoluteUrl('agent_confirm', ['token' => $token]);
-        $subject = 'Vous avez été rattaché(e) au signalement ' . $report->reference;
-        $body = renderEmailBody(
-            'Confirmation de rattachement',
-            '<p>Bonjour,</p>'
-            . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report->reference) . '</strong> par le déclarant.</p>'
-            . renderEmailField('Objet', $report->objet)
-            . '<p>Pour confirmer votre rattachement, cliquez sur le bouton ci-dessous :</p>'
-            . renderEmailButton($confirmUrl, 'Confirmer mon rattachement')
-            . '<p style="font-size:13px; color:#888;">Si vous ne souhaitez pas être rattaché(e), ignorez cet e-mail. Aucune action ne sera effectuée.</p>'
-        );
-        sendMail($email, $subject, $body);
+        // Bug #10 — Avant ce fix, l'invite était insérée en DB AVANT l'envoi de l'email.
+        // Si sendMail échouait (SMTP down), la ligne restait en DB avec un token qui
+        // n'arrivait jamais à l'utilisateur → invite orpheline, impossible à retrigger.
+        // Maintenant on envoie l'email d'abord, et on n'insère l'invite que si l'email part.
+        try {
+            // Generate token first (without persisting)
+            $token = bin2hex(random_bytes(32));
+            $confirmUrl = absoluteUrl('agent_confirm', ['token' => $token]);
+            $subject = 'Vous avez été rattaché(e) au signalement ' . $report->reference;
+            $body = renderEmailBody(
+                'Confirmation de rattachement',
+                '<p>Bonjour,</p>'
+                . '<p>Vous avez été rattaché(e) au signalement <strong>' . e($report->reference) . '</strong> par le déclarant.</p>'
+                . renderEmailField('Objet', $report->objet)
+                . '<p>Pour confirmer votre rattachement, cliquez sur le bouton ci-dessous :</p>'
+                . renderEmailButton($confirmUrl, 'Confirmer mon rattachement')
+                . '<p style="font-size:13px; color:#888;">Si vous ne souhaitez pas être rattaché(e), ignorez cet e-mail. Aucune action ne sera effectuée.</p>'
+            );
+            sendMail($email, $subject, $body);
+            // Email sent successfully — NOW persist the invite in DB
+            ReportRepository::instance()->createAgentInviteWithToken($reportUuid, $email, $token);
+        } catch (\Throwable $e) {
+            error_log('[SST-MAIL] sendAgentInviteEmails failed for ' . $email . ': ' . $e->getMessage());
+        }
     }
 }
 

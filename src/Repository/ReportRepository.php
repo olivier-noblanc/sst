@@ -931,6 +931,18 @@ class ReportRepository
         return $token;
     }
 
+    /**
+     * Bug #10 — Insert invite with a pre-generated token (after email sent successfully).
+     */
+    public function createAgentInviteWithToken(string $reportUuid, string $email, string $token): void
+    {
+        $stmt = $this->pdo->prepare('
+            INSERT INTO report_agent_invites (report_uuid, email, token)
+            VALUES (:uuid, :email, :token)
+        ');
+        $stmt->execute([':uuid' => $reportUuid, ':email' => $email, ':token' => $token]);
+    }
+
     public function confirmAgentInvite(string $token, int $userId): bool
     {
         $invite = $this->getAgentInviteByToken($token);

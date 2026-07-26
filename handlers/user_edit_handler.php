@@ -100,19 +100,38 @@ $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !em
 
 $service->update($userId, $cmd, (int)($session->getUserSession()['id'] ?? 0));
 
-auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, $userId, 'user', ['role' => $cmd->role, 'role_changed' => $roleChanged, 'notified' => $notifyRoleChange]);
-
+// Bug #30 — Audit log écrit AVANT l'envoi de l'email. Si sendMail échoue,
+// l'audit log ment (notified=true). Maintenant on track le résultat réel.
+$emailSent = false;
+$emailError = '';
 if ($notifyRoleChange) {
     require_once __DIR__ . '/../src/mail.php';
-    notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
+    try {
+        notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
+        $emailSent = true;
+    } catch (\Throwable $e) {
+        $emailError = $e->getMessage();
+        error_log('[SST-MAIL] notifyRoleChange failed: ' . $emailError);
+    }
 }
 
+// Audit log APRÈS l'envoi — reflète l'état réel
+auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . $cmd->nom, $userId, 'user', [
+    'role' => $cmd->role,
+    'role_changed' => $roleChanged,
+    'notified' => $notifyRoleChange,
+    'email_sent' => $emailSent,
+    'email_error' => $emailError !== '' ? $emailError : null,
+]);
+
 $successMsg = 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' mis à jour avec succès.';
-if ($notifyRoleChange) {
+if ($notifyRoleChange && $emailSent) {
     $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($cmd->email) . '.';
+} elseif ($notifyRoleChange && !$emailSent) {
+    $successMsg .= ' ⚠ Le rôle a changé mais l\\'e-mail de notification a échoué (' . e($emailError) . '). L\\'utilisateur devra être informé manuellement.';
 } elseif ($roleChanged && empty($cmd->email)) {
-    $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\'a été envoyé (adresse manquante).';
+    $successMsg .= ' ⚠ Le rôle a changé mais aucun e-mail n\\'a été envoyé (adresse manquante).';
 }
-$session->setFlash('success', $successMsg);
+$session->setFlash($emailSent || !$notifyRoleChange ? 'success' : 'warning', $successMsg);
 
 $http->redirect($http->url('users'));

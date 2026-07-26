@@ -237,7 +237,17 @@ sort($missing);
 // 4. Output
 // ═══════════════════════════════════════════════════════════════
 
-$hasIssues = count($unused) > 0 || count($missing) > 0;
+// When --missing flag is used, only fail on missing classes (not unused)
+// When --unused flag is used, only fail on unused classes (not missing)
+// When neither flag is used, fail on both
+$hasIssues = false;
+if ($filterMissing) {
+    $hasIssues = count($missing) > 0;
+} elseif ($filterUnused) {
+    $hasIssues = count($unused) > 0;
+} else {
+    $hasIssues = count($unused) > 0 || count($missing) > 0;
+}
 
 if ($outputJson) {
     $result = [

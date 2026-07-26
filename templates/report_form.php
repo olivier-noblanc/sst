@@ -1,6 +1,5 @@
 <?php
 
-use App\Enum\ReportType;
 
 /**
  * Report Form Template — Application SST DREETS BFC

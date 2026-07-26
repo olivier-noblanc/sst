@@ -60,7 +60,7 @@ class RegistryPolicy
      */
     public function getLieuLabel(string $type): string
     {
-        if ($type === \App\Enum\ReportType::Dgi->value) {
+        if ($type === ReportType::Dgi->value) {
             return 'Lieu / Mesures de protection';
         }
         $override = $this->getRegistryStringFlag($type, 'lieu_label_override');

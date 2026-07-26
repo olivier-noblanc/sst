@@ -6,7 +6,6 @@
  * Access: superviseur, chsct
  */
 use App\Enum\ReportState;
-use App\Enum\ReportType;
 
 requireRole([\App\Enum\UserRole::Superviseur->value]);
 

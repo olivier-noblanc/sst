@@ -5,7 +5,6 @@
 namespace App\Services;
 
 use App\Enum\ReportState;
-use App\Enum\ReportType;
 use App\Enum\UserRole;
 use App\Enum\VisibilityMode;
 use RuntimeException;

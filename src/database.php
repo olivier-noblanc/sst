@@ -1,5 +1,9 @@
 <?php
 
+use App\Repository\RegistryRepository;
+use App\Repository\RegistryFieldRepository;
+use App\Enum\ReportType;
+
 /**
  * Database — Application SST DREETS BFC
  *
@@ -135,13 +139,13 @@ function seedDefaultData(PDO $pdo): void
     require_once __DIR__ . '/Repository/RegistryRepository.php';
     require_once __DIR__ . '/Repository/RegistryFieldRepository.php';
     require_once __DIR__ . '/Enum/ReportType.php';
-    \App\Repository\RegistryRepository::instance()->seedDefaults();
+    RegistryRepository::instance()->seedDefaults();
 
     // Seed RAMI-specific fields (matches seed/_registries.php for CLI seed)
     // Modular-audit P1.5 — use ReportType enum value instead of magic string
-    $rami = \App\Repository\RegistryRepository::instance()->findByCode(\App\Enum\ReportType::Rami->value);
+    $rami = RegistryRepository::instance()->findByCode(ReportType::Rami->value);
     if ($rami !== null) {
-        $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
+        $fieldRepo = RegistryFieldRepository::instance();
         $ramiFields = [
             ['pour_compte', 'Signaler pour le compte d\'un autre agent', 'checkbox', null, 0],
             ['pour_compte_nom', 'Nom de l\'agent pour le compte de qui vous signalez', 'text', null, 3],

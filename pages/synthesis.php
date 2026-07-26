@@ -82,11 +82,13 @@ $totals = array_combine(
 
 foreach ($siteData as $sId => $sd) {
     foreach ($registryCodes as $code) {
+        $siteTypeRow = is_array($sd[$code] ?? null) ? $sd[$code] : [];
+        $totalsRow = is_array($totals[$code] ?? null) ? $totals[$code] : [];
         foreach ([ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Traite->value, ReportState::Abandonne->value, ReportState::Reouvert->value, 'total'] as $state) {
             // Modular-audit P2.4 — defensive access (PHPStan offset safety)
-            $siteTypeRow = is_array($sd[$code] ?? null) ? $sd[$code] : [];
-            $totals[$code][$state] += $siteTypeRow[$state] ?? 0;
+            $totalsRow[$state] = ($totalsRow[$state] ?? 0) + ($siteTypeRow[$state] ?? 0);
         }
+        $totals[$code] = $totalsRow;
     }
 }
 

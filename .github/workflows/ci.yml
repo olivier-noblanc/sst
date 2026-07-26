@@ -87,7 +87,7 @@ jobs:
         run: php tools/check_inline_styles.php
 
       - name: Check CSS classes (no undefined classes)
-        run: php tools/check_css_classes.php
+        run: php tools/check_css_classes.php --missing
 
   e2e:
     name: E2E (Playwright, Firefox)

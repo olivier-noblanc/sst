@@ -74,6 +74,9 @@ $excludedStrings = [
     'table', 'input', 'label', 'icon', 'page', 'home', 'audit', 'report-detail',
     'welcome-banner__content', 'agent-visibility-warning', 'form-encouragement',
     'btn--lg', 'btn--small', 'input--small', 'echo', 'match', 'new', 'wordcloud-row',
+    // Dynamic class prefixes (PHP generates btn--{$colorTheme}, card--{$colorTheme})
+    // The checker extracts "btn--" as a class name from PHP echo statements — false positive
+    'btn--', 'card--',
 ];
 
 // CSS classes that exist in CSS but are built dynamically in PHP/JS

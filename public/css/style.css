@@ -3880,3 +3880,12 @@ tr:hover td {
    based on #pour_compte checkbox state. No JS — pure CSS :has(). */
 .pour-compte-dependent { display: none; }
 form:has(#pour_compte:checked) .pour-compte-dependent { display: block; }
+
+/* Missing CSS classes detected by check_css_classes.php — added for CI compliance */
+.form-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.form-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.form-grid--4 { grid-template-columns: repeat(4, 1fr); }
+.tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 1.5rem; }
+.tabs__item { padding: 0.75rem 1.5rem; text-decoration: none; color: #6b7280; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+.tabs__item:hover { color: #1f2937; background-color: #f9fafb; }
+.tabs__item--active { color: var(--theme-rsst, #2E5C8A); border-bottom-color: var(--theme-rsst, #2E5C8A); font-weight: 600; }

@@ -121,7 +121,7 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
     // ═══════════════════════════════════════════════════════════════
     await page.goto('/index.php?page=settings&tab=registres');
 
-    const violCard3 = page.locator('div.card:has(h3:has-text("Registre des Violences"))');
+    const violCard3 = page.locator('div.card:has(h3:has-text("Registre des Violences"))').first();
     await expect(violCard3).toBeVisible();
 
     // Le bouton supprimer ne devrait pas être disabled (pas système)
@@ -140,7 +140,7 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
     // ÉTAPE 9 : Vérifier qu'il n'apparaît plus
     // ═══════════════════════════════════════════════════════════════
     await page.goto('/index.php?page=settings&tab=registres');
-    const violCardGone = page.locator('div.card:has(h3:has-text("Registre des Violences"))');
+    const violCardGone = page.locator('div.card:has(h3:has-text("Registre des Violences"))').first();
     await expect(violCardGone).toHaveCount(0);
 
     // Plus sur le dashboard

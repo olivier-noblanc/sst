@@ -125,7 +125,9 @@ test.describe('Settings — Word Cloud Tab', () => {
     // Reload and verify persistence
     await page.goto('/index.php?page=settings&tab=wordcloud&registry=rsst');
     const savedRow = page.locator('.wordcloud-row').first();
-    await expect(savedRow.locator('input[type="text"]')).toHaveValue('Chantier');
+    // Fix E2E: the handler normalizes words to lowercase via mb_strtolower.
+    // The test should expect the lowercased value.
+    await expect(savedRow.locator('input[type="text"]')).toHaveValue('chantier');
   });
 
   test('should have hidden inputs for tab and registry_code', async ({ page }) => {

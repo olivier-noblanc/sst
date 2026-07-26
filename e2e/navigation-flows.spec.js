@@ -30,7 +30,7 @@ test.describe('Full Report Lifecycle Navigation', () => {
     await page.locator('#telephone_mobile').fill('0601020304');
     const siteSelect = page.locator('#site_id');
     if (await siteSelect.isVisible()) {
-      await siteSelect.selectOption({ index: 0 });
+      await siteSelect.selectOption({ index: 1 });
     }
     await page.locator('.card button[type="submit"]').click();
     await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
@@ -119,6 +119,13 @@ test.describe('Sidebar Active State', () => {
     await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Sidebar Active RAMI');
     await page.locator('#description').fill('Test de l\'état actif du sidebar pour RAMI.');
+    // Fix E2E: fill required fields (pole, telephone, site) so submit succeeds
+    await page.locator('#pole').fill('Pôle Test');
+    await page.locator('#telephone_mobile').fill('0601020304');
+    const siteSelect = page.locator('#site_id');
+    if (await siteSelect.isVisible()) {
+      await siteSelect.selectOption({ index: 1 });
+    }
     await page.locator('.card button[type="submit"]').click();
     await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });
 
@@ -150,7 +157,7 @@ test.describe('Browser Back/Forward Navigation', () => {
     await page.locator('#telephone_mobile').fill('0601020304');
     const siteSelect = page.locator('#site_id');
     if (await siteSelect.isVisible()) {
-      await siteSelect.selectOption({ index: 0 });
+      await siteSelect.selectOption({ index: 1 });
     }
     await page.locator('.card button[type="submit"]').click();
     await expect(page).toHaveURL(/page=(report_view|home)/, { timeout: 10000 });

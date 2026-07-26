@@ -37,30 +37,33 @@ test.describe('Settings — Registres Tab', () => {
   test('should display all 3 default registres (RSST, RAMI, DGI)', async ({ page }) => {
     await page.goto('/index.php?page=settings&tab=registres');
 
-    // Each registre should have a card with its label
-    await expect(page.locator('h3:has-text("Registre de Santé")')).toBeVisible();
-    await expect(page.locator('h3:has-text("Registre des Actes")')).toBeVisible();
-    await expect(page.locator('h3:has-text("Registre de signalement")')).toBeVisible();
+    // Each registre should have a card with its label.
+    // Use .first() to avoid strict mode violation — the label also appears
+    // in the "custom fields" section below each card.
+    await expect(page.locator('h3:has-text("Registre de Santé")').first()).toBeVisible();
+    await expect(page.locator('h3:has-text("Registre des Actes")').first()).toBeVisible();
+    await expect(page.locator('h3:has-text("Registre de signalement")').first()).toBeVisible();
   });
 
   test('should show RSST as system registre (cannot be disabled)', async ({ page }) => {
     await page.goto('/index.php?page=settings&tab=registres');
 
     // RSST card should have the "Système" badge
-    const rsstCard = page.locator('div.card:has(h3:has-text("Registre de Santé"))');
+    const rsstCard = page.locator('div.card:has(h3:has-text("Registre de Santé"))').first();
     await expect(rsstCard.locator('.badge:has-text("Système")')).toBeVisible();
 
-    // RSST toggle should be disabled
-    const rsstToggle = rsstCard.locator('input[type="checkbox"][name*="registres"]');
+    // RSST toggle should be disabled — use [name*="[is_enabled]"] to be specific
+    const rsstToggle = rsstCard.locator('input[type="checkbox"][name*="[is_enabled]"]');
     await expect(rsstToggle).toBeDisabled();
   });
 
   test('should toggle RAMI enabled/disabled', async ({ page }) => {
     await page.goto('/index.php?page=settings&tab=registres');
 
-    // Find the RAMI card
-    const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))');
-    const ramiToggle = ramiCard.locator('input[type="checkbox"][name*="registres"]');
+    // Find the RAMI card — use .first() to avoid strict mode violation
+    const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))').first();
+    // Use [name*="[is_enabled]"] to match only the is_enabled toggle, not notify_chsct
+    const ramiToggle = ramiCard.locator('input[type="checkbox"][name*="[is_enabled]"]');
 
     // Toggle and save
     await ramiToggle.check();
@@ -103,13 +106,14 @@ test.describe('Settings — Registres Tab', () => {
   test('should save color and icon changes', async ({ page }) => {
     await page.goto('/index.php?page=settings&tab=registres');
 
-    const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))');
+    // Fix E2E: use .first() and the correct selectors (color-dot + select, not radio)
+    const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))').first();
 
-    // Select a different color (vert)
-    await ramiCard.locator('input[type="radio"][name*="color_theme"][value="vert"]').check();
+    // Select a different color (vert) — UI uses <span class="color-dot" data-theme="vert">
+    await ramiCard.locator('.color-dot[data-theme="vert"]').click();
 
-    // Select a different icon (🚨)
-    await ramiCard.locator('input[type="radio"][name*="icon"][value="🚨"]').check();
+    // Select a different icon via <select> dropdown
+    await ramiCard.locator('select[name*="[icon]"]').selectOption('🚨');
 
     // Save
     await page.locator('button:has-text("Enregistrer")').click();
@@ -150,7 +154,9 @@ test.describe('Report Creation — Dynamic Registry Types', () => {
   test('should access RSST report creation form', async ({ page }) => {
     await page.goto('/index.php?page=report_create&type=rsst');
     await expect(page.locator('#objet')).toBeVisible();
-    await expect(page.locator('h2')).toContainText('RSST');
+    // Fix E2E: the h2 contains the full label "Signaler un événement — Registre de Santé et de Sécurité au Travail"
+    // not the short label "RSST". Check for the full registry name instead.
+    await expect(page.locator('h2')).toContainText('Santé');
   });
 
   test('should display registry-specific form fields based on registry config', async ({ page }) => {

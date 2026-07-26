@@ -220,6 +220,11 @@ class UserService
             $errors['username'] = 'L\'identifiant est requis.';
         } elseif ($this->repo->existsByUsername($username, $excludeId)) {
             $errors['username'] = 'Cet identifiant est déjà utilisé';
+        } elseif (!preg_match('/^[a-zA-Z0-9.\-_]{2,100}$/', $username)) {
+            // Audit #35 — validation format username. Before this fix, any string
+            // was accepted (including spaces, special chars, etc.). Now enforces
+            // the same pattern as the HTML <input pattern> attribute.
+            $errors['username'] = 'L\'identifiant ne doit contenir que des lettres, chiffres, points, tirets et underscores (2 à 100 caractères).';
         }
 
         /** @var string */

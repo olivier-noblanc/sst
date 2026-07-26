@@ -8,6 +8,21 @@ enum ReportType: string
     case Rami = 'rami';
     case Dgi  = 'dgi';
 
+    /**
+     * Modular-audit P3.1 — Safe factory that returns null for custom registry codes.
+     *
+     * ReportType::from() throws ValueError on unknown values (e.g. custom registry
+     * codes like 'violences', 'harassment'). This method returns null instead,
+     * allowing callers to gracefully fall back to DB-driven configuration.
+     *
+     * @deprecated Use tryFrom() directly in new code — this method is kept for
+     *             backwards compatibility and semantic clarity.
+     */
+    public static function fromCode(string $code): ?self
+    {
+        return self::tryFrom($code);
+    }
+
     public function label(): string
     {
         return match ($this) {

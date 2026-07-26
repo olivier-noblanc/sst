@@ -24,7 +24,7 @@ function auditLog(PDO $pdo, string $category, string $action, string $details, ?
 {
     try {
         AuditRepository::instance()->log($category, $action, $details, $targetId, $targetType, $context, $targetUuid);
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
         // Audit logging must NEVER break the application
         error_log('[SST-AUDIT] Failed to write audit log: ' . $e->getMessage());
     }

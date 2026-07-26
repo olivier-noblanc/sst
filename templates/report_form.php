@@ -124,14 +124,14 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 <span class="form-hint">Rempli automatiquement au moment du dépôt.</span>
             </div>
             <div class="form-group">
-                <label for="lieu"><?php echo e((new \App\Services\RegistryPolicy())->getLieuLabel($type)); ?></label>
+                <label for="lieu"><?php echo e(new \App\Services\RegistryPolicy()->getLieuLabel($type)); ?></label>
                 <input type="text" id="lieu" name="lieu"
                        value="<?php echo e($val('lieu')); ?>"
                        maxlength="200"
                        autocomplete="off"
                        placeholder="Ex : Bâtiment B, 2e étage, couloir principal"
                        aria-describedby="hint_lieu">
-                <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo (new \App\Services\RegistryPolicy())->hasDgiWarningPanel($type) ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
+                <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo new \App\Services\RegistryPolicy()->hasDgiWarningPanel($type) ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
             </div>
             <div class="form-group">
                 <label for="pole">Pôle <span class="required">*</span></label>

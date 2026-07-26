@@ -19,6 +19,8 @@
 
 namespace App\Services;
 
+use Throwable;
+
 use App\Repository\RegistryRepository;
 use App\Enum\ReportType;
 
@@ -75,7 +77,7 @@ class RegistryPolicy
             if ($registry !== null && isset($registry[$column])) {
                 return (int) $registry[$column] === 1;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Pre-migration (column missing) — fail safe (false)
         }
         return false;
@@ -92,7 +94,7 @@ class RegistryPolicy
                 $value = $registry[$column];
                 return is_string($value) ? $value : '';
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Pre-migration (column missing) — fail safe ('')
         }
         return '';

@@ -82,7 +82,7 @@ $etat = $report->etat;
         </tr>
         <?php endif; ?>
         <tr>
-            <th><?php echo e((new \App\Services\RegistryPolicy())->getLieuLabel($registryType)); ?></th>
+            <th><?php echo e(new \App\Services\RegistryPolicy()->getLieuLabel($registryType)); ?></th>
             <td><?php echo $fmt->e($report->lieu ?: '—'); ?></td>
         </tr>
         <?php if (!empty($report->pole)): ?>

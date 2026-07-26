@@ -134,6 +134,7 @@ function seedDefaultData(PDO $pdo): void
     // all failed (RAMI fields not visible, registre labels not found).
     require_once __DIR__ . '/Repository/RegistryRepository.php';
     require_once __DIR__ . '/Repository/RegistryFieldRepository.php';
+    require_once __DIR__ . '/Enum/ReportType.php';
     \App\Repository\RegistryRepository::instance()->seedDefaults();
 
     // Seed RAMI-specific fields (matches seed/_registries.php for CLI seed)

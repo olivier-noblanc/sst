@@ -20,6 +20,7 @@
 namespace App\Services;
 
 use App\Repository\RegistryRepository;
+use App\Enum\ReportType;
 
 class RegistryPolicy
 {
@@ -31,7 +32,7 @@ class RegistryPolicy
     {
         // For backwards compat: RAMI always requires pour_compte (hardcoded
         // historical behavior, would be too disruptive to migrate to DB).
-        if ($type === \App\Enum\ReportType::Rami->value) {
+        if ($type === ReportType::Rami->value) {
             return true;
         }
         // For custom registries: check the registries.requires_pour_compte column
@@ -45,7 +46,7 @@ class RegistryPolicy
      */
     public function hasDgiWarningPanel(string $type): bool
     {
-        if ($type === \App\Enum\ReportType::Dgi->value) {
+        if ($type === ReportType::Dgi->value) {
             return true;
         }
         return $this->getRegistryBoolFlag($type, 'has_dgi_warning');

@@ -34,12 +34,13 @@
     <?php
     // Screenshots — only show for the 3 historical registres (RSST, RAMI, DGI)
     // since custom registres don't have screenshots bundled.
+    // Modular-audit P2.5 — use ReportType enum values instead of magic strings.
     foreach ($enabledRegistries as $reg):
         $regCode = (string) $reg['code'];
         $screenshotFile = match ($regCode) {
-            'rsst' => '/cu2-creation-rsst.html',
-            'rami' => '/cu3-creation-rami.html',
-            'dgi'  => '/cu4-creation-dgi.html',
+            \App\Enum\ReportType::Rsst->value => '/cu2-creation-rsst.html',
+            \App\Enum\ReportType::Rami->value => '/cu3-creation-rami.html',
+            \App\Enum\ReportType::Dgi->value  => '/cu4-creation-dgi.html',
             default => null,
         };
         if ($screenshotFile !== null):

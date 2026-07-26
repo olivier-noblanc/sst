@@ -150,6 +150,11 @@ foreach ($registryRepo->findEnabled() as $reg):
 <?php endif; ?>
 
 <!-- RAMI: Répartition par nature de l'auteur et type d'acte -->
+<?php
+// Modular-audit P2.4 — check if RAMI is enabled dynamically (was $ramiEnabled
+// variable that no longer exists after removing hardcoded flags)
+$ramiEnabled = in_array(\App\Enum\ReportType::Rami->value, $registryCodes, true);
+?>
 <?php if ($ramiEnabled && $ramiStats->hasData()): ?>
 <div class="card card--mt">
     <h2 class="card__title">RAMI — Répartition par nature de l'auteur et type d'acte</h2>

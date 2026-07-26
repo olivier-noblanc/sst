@@ -141,15 +141,15 @@ $colSpan = count($activeTypes) * 4;
             <thead>
                 <tr>
                     <th rowspan="2"><?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?></th>
-                    <th colspan="4" class="synthesis-th-rsst">RSST</th>
-                    <?php if ($ramiEnabled): ?><th colspan="4" class="synthesis-th-rami">RAMI</th><?php endif; ?>
-                    <?php if ($dgiEnabled): ?><th colspan="4" class="synthesis-th-dgi">DGI</th><?php endif; ?>
+                    <?php foreach ($activeTypes as $type => $typeLabel): ?>
+                        <th colspan="4" class="synthesis-th--<?php echo e($type); ?>"><?php echo e($typeLabel); ?></th>
+                    <?php endforeach; ?>
                     <th rowspan="2">Total</th>
                 </tr>
                 <tr>
-                    <th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th>
-                    <?php if ($ramiEnabled): ?><th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th><?php endif; ?>
-                    <?php if ($dgiEnabled): ?><th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th><?php endif; ?>
+                    <?php foreach ($activeTypes as $type => $typeLabel): ?>
+                        <th>Nouv.</th><th>En cours</th><th>Traité</th><th>Total</th>
+                    <?php endforeach; ?>
                 </tr>
             </thead>
             <tbody>
@@ -158,15 +158,22 @@ $colSpan = count($activeTypes) * 4;
                     <td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><strong><?php echo $fmt->e($sd['code']); ?></strong></td>
                     <?php foreach ($activeTypes as $type => $typeLabel): ?>
                         <?php foreach ([ReportState::Nouveau->value => 'Nouv.', ReportState::EnCours->value => 'En cours', ReportState::Traite->value => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
-                            <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="<?php echo $sd[$type][$state] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>">
-                                <?php echo $sd[$type][$state]; ?>
+                            <?php
+                            // Modular-audit P2.4 — $sd[$type] is an array{nouveau, en_cours, traite, abandonne, reouvert, total}
+                            // but PHPStan infers it as a union with string. Cast to array for safety.
+                            $typeRow = is_array($sd[$type] ?? null) ? $sd[$type] : [];
+                            $cellValue = $typeRow[$state] ?? 0;
+                            ?>
+                            <td data-label="<?php echo e($typeLabel . ' ' . $stateLabel); ?>" class="<?php echo $cellValue > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>">
+                                <?php echo (int) $cellValue; ?>
                             </td>
                         <?php endforeach; ?>
                     <?php endforeach; ?>
                     <td data-label="Total" class="synthesis-cell-value"><strong><?php
                         $rowTotal = 0;
                     foreach ($activeTypes as $type => $_) {
-                        $rowTotal += $sd[$type]['total'];
+                        $typeRow = is_array($sd[$type] ?? null) ? $sd[$type] : [];
+                        $rowTotal += (int) ($typeRow['total'] ?? 0);
                     }
                     echo $rowTotal;
                     ?></strong></td>
@@ -177,7 +184,11 @@ $colSpan = count($activeTypes) * 4;
                     <td data-label="<?php echo $fmt->e($config->get('app_label_unite', 'UR')); ?>"><strong>Total</strong></td>
                     <?php foreach ($activeTypes as $type => $typeLabel): ?>
                         <?php foreach ([ReportState::Nouveau->value => 'Nouv.', ReportState::EnCours->value => 'En cours', ReportState::Traite->value => 'Traité', 'total' => 'Total'] as $state => $stateLabel): ?>
-                            <td data-label="<?php echo $typeLabel . ' ' . $stateLabel; ?>" class="synthesis-cell-value"><?php echo $totals[$type][$state]; ?></td>
+                            <?php
+                            $typeTotals = is_array($totals[$type] ?? null) ? $totals[$type] : [];
+                            $totalCell = $typeTotals[$state] ?? 0;
+                            ?>
+                            <td data-label="<?php echo e($typeLabel . ' ' . $stateLabel); ?>" class="synthesis-cell-value"><?php echo (int) $totalCell; ?></td>
                         <?php endforeach; ?>
                     <?php endforeach; ?>
                     <td data-label="Total" class="synthesis-cell-value"><strong><?php echo $grandTotal; ?></strong></td>

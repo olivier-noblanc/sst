@@ -1,7 +1,6 @@
 <?php
 
 use App\Services\ConfigService;
-use Throwable;
 
 /**
  * Error Notification & Throttle — Application SST DREETS BFC
@@ -84,7 +83,7 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
     if (function_exists('sendMail')) {
         try {
             sendMail($adminEmail, $subject, $body);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             error_log('[SST-ERROR-MAIL] sendMail failed: ' . $e->getMessage() . " — would have sent: $levelName — $message in $file:$line");
         }
     } else {

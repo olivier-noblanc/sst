@@ -9,9 +9,17 @@
  * CSS served via css.php with proper HTTP caching (ETag, 304).
  */
 $pageTitle = 'Guide rapide';
-$ramiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Rami->value);
-$dgiEnabled = getConfigService()->isRegistryEnabled(\App\Enum\ReportType::Dgi->value);
-$registryCount = 1 + ($ramiEnabled ? 1 : 0) + ($dgiEnabled ? 1 : 0);
+// Modular-audit P2.5 — dynamic registry count + flags
+$enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled();
+$registryCount = count($enabledRegistries);
+// Compat flags pour le template existant (sera rendu dynamique en Phase 3)
+$ramiEnabled = false;
+$dgiEnabled = false;
+foreach ($enabledRegistries as $reg) {
+    $code = (string) $reg['code'];
+    if ($code === \App\Enum\ReportType::Rami->value) { $ramiEnabled = true; }
+    if ($code === \App\Enum\ReportType::Dgi->value) { $dgiEnabled = true; }
+}
 $noSiteMode = getConfigService()->isNoSiteMode();
 $labelUnite = getConfigService()->get('app_label_unite', 'UR');
 ?>

@@ -12,12 +12,62 @@ use PHPUnit\Framework\TestCase;
 
 class RegistryCardRendererTest extends TestCase
 {
+    private PDO $pdo;
+
+    protected function setUp(): void
+    {
+        $this->pdo = getDB();
+        $this->pdo->exec('DELETE FROM reports');
+        // Audit #80 — buildRegistryCards() no longer takes parameters; it
+        // reads registries.is_enabled + real report counts from the DB.
+        // Start every test from a known-clean state: all 3 system registries
+        // enabled, no reports.
+        foreach (['rsst', 'rami', 'dgi'] as $code) {
+            $this->setRegistryEnabled($code, true);
+        }
+        $this->pdo->exec("INSERT OR IGNORE INTO sites (id, code, nom) VALUES (9001, 'TEST-RCR', 'Site Test RCR')");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id) VALUES (9001, 'test.rcr', 'Test', 'RCR', 'agent', 9001)");
+    }
+
     protected function tearDown(): void
     {
         unset($_SESSION['user']);
         $configService = \getConfigService();
         $configService->set('app_report_visibility_rsst', 'public');
         $configService->clearCache();
+        // getDB() is a process-wide singleton shared by the whole PHPUnit
+        // run (see tests/bootstrap.php) — every other test class that
+        // touches `registries` expects rsst/rami/dgi enabled by default.
+        // Restore it, don't just set it at the start of THIS test.
+        foreach (['rsst', 'rami', 'dgi'] as $code) {
+            $this->setRegistryEnabled($code, true);
+        }
+        $this->pdo->exec('DELETE FROM reports');
+    }
+
+    private function setRegistryEnabled(string $code, bool $enabled): void
+    {
+        $registry = \App\Repository\RegistryRepository::instance()->findByCode($code);
+        if ($registry !== null) {
+            \App\Repository\RegistryRepository::instance()->toggleEnabled((int) $registry['id'], $enabled);
+        }
+    }
+
+    /** Seeds $count active, public (non-confidential) reports of $type at the test site. */
+    private function seedReports(string $type, int $count): void
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO reports (uuid, reference, type, objet, description, date_evenement,
+                declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential)
+            VALUES (:uuid, :reference, :type, 'Test', 'Test', '2026-01-01', 9001, 'RCR', 'Test', 9001, 'nouveau', 0)
+        ");
+        for ($i = 0; $i < $count; $i++) {
+            $stmt->execute([
+                ':uuid' => 'test-rcr-' . $type . '-' . $i . '-' . uniqid(),
+                ':reference' => strtoupper($type) . '-TEST-' . $i . '-' . uniqid(),
+                ':type' => $type,
+            ]);
+        }
     }
 
     // ─── getRegistryIcon() ──────────────────────────────────────────────────
@@ -183,7 +233,11 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildRegistryCardsRsstOnly(): void
     {
-        $cards = buildRegistryCards(3, 0, 0, false, false);
+        $this->setRegistryEnabled('rami', false);
+        $this->setRegistryEnabled('dgi', false);
+        $this->seedReports('rsst', 3);
+
+        $cards = buildRegistryCards();
 
         $this->assertCount(1, $cards);
         $this->assertSame('rsst', $cards[0]['type']);
@@ -192,7 +246,11 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildRegistryCardsAllEnabled(): void
     {
-        $cards = buildRegistryCards(1, 2, 3, true, true);
+        $this->seedReports('rsst', 1);
+        $this->seedReports('rami', 2);
+        $this->seedReports('dgi', 3);
+
+        $cards = buildRegistryCards();
 
         $this->assertCount(3, $cards);
         $this->assertSame('rsst', $cards[0]['type']);
@@ -208,8 +266,9 @@ class RegistryCardRendererTest extends TestCase
         $configService->set('app_report_visibility_rsst', 'confidential');
         $configService->clearCache();
         $_SESSION['user'] = ['role' => ROLE_AGENT];
+        $this->seedReports('rsst', 1);
 
-        $cards = buildRegistryCards(1, 0, 0, false, false);
+        $cards = buildRegistryCards();
 
         $this->assertSame('Voir mes signalements', $cards[0]['listLabel'], 'An agent restricted to their own reports (confidential mode) must see "Voir mes signalements", not "Voir les signalements".');
     }
@@ -220,8 +279,9 @@ class RegistryCardRendererTest extends TestCase
         $configService->set('app_report_visibility_rsst', 'public');
         $configService->clearCache();
         $_SESSION['user'] = ['role' => ROLE_AGENT];
+        $this->seedReports('rsst', 1);
 
-        $cards = buildRegistryCards(1, 0, 0, false, false);
+        $cards = buildRegistryCards();
 
         $this->assertSame('Voir les signalements', $cards[0]['listLabel']);
     }
@@ -234,15 +294,21 @@ class RegistryCardRendererTest extends TestCase
         $configService->set('app_report_visibility_rsst', 'confidential');
         $configService->clearCache();
         $_SESSION['user'] = ['role' => ROLE_SUPERVISEUR];
+        $this->seedReports('rsst', 1);
 
-        $cards = buildRegistryCards(1, 0, 0, false, false);
+        $cards = buildRegistryCards();
 
         $this->assertSame('Voir les signalements', $cards[0]['listLabel']);
     }
 
     public function testBuildRegistryCardsRamiOnly(): void
     {
-        $cards = buildRegistryCards(0, 5, 0, true, false);
+        // "RamiOnly" (original name) meant: rsst (always on) + rami enabled,
+        // dgi disabled — matching the old buildRegistryCards(0, 5, 0, true, false).
+        $this->setRegistryEnabled('dgi', false);
+        $this->seedReports('rami', 5);
+
+        $cards = buildRegistryCards();
 
         $this->assertCount(2, $cards);
         $this->assertSame('rsst', $cards[0]['type']);
@@ -251,7 +317,10 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildRegistryCardsDgiOnly(): void
     {
-        $cards = buildRegistryCards(0, 0, 7, false, true);
+        $this->setRegistryEnabled('rami', false);
+        $this->seedReports('dgi', 7);
+
+        $cards = buildRegistryCards();
 
         $this->assertCount(2, $cards);
         $this->assertSame('rsst', $cards[0]['type']);
@@ -260,7 +329,11 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildRegistryCardsPreservesCounts(): void
     {
-        $cards = buildRegistryCards(10, 20, 30, true, true);
+        $this->seedReports('rsst', 10);
+        $this->seedReports('rami', 20);
+        $this->seedReports('dgi', 30);
+
+        $cards = buildRegistryCards();
 
         $this->assertSame(10, $cards[0]['count']);
         $this->assertSame(20, $cards[1]['count']);
@@ -269,7 +342,8 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildRegistryCardsHasRequiredKeys(): void
     {
-        $cards = buildRegistryCards(0, 0, 0, true, true);
+        $this->seedReports('rsst', 1);
+        $cards = buildRegistryCards();
         $requiredKeys = ['type', 'cardClass', 'title', 'subtitle', 'desc', 'count', 'btnLabel', 'btnUrl', 'listUrl', 'listLabel'];
 
         foreach ($cards as $card) {
@@ -294,7 +368,11 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildAndRenderPipeline(): void
     {
-        $cards = buildRegistryCards(5, 3, 1, true, true);
+        $this->seedReports('rsst', 5);
+        $this->seedReports('rami', 3);
+        $this->seedReports('dgi', 1);
+
+        $cards = buildRegistryCards();
         $html = renderRegistryCards($cards, 'large');
 
         $this->assertStringContainsString('registry-cards--large', $html);

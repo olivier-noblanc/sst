@@ -203,20 +203,38 @@ class ReportRepository
             // linked_agent_id replaces both own_only and confidential_filter:
             // the agent sees reports they declared + reports they are linked to
             $lid = (int) $filters['linked_agent_id'];
+            $linkedParams = [':linked_agent_id' => $lid];
             $linkedCondition = 'r.declarant_id = :linked_agent_id OR r.uuid IN (SELECT report_uuid FROM report_agents WHERE user_id = :linked_agent_id)';
             $visibility = $filters['linked_agent_visibility'] ?? VisibilityMode::Confidential->value;
             if ($visibility === VisibilityMode::AgentChoice->value) {
-                // In agent_choice: linked reports + all non-confidential reports from the site
-                $builder->addRaw(
-                    "($linkedCondition OR r.is_confidential = 0)",
-                    [':linked_agent_id' => $lid]
-                );
+                // Audit #80 — force_site_id must restrict the "everyone else's
+                // public reports" fallback (r.is_confidential = 0) — that's the
+                // actual cross-site leak #3-High (c965c0c) fixed — but must NOT
+                // restrict $linkedCondition: an agent explicitly linked to a
+                // report (as declarant, or listed in report_agents) must see it
+                // regardless of which site it was filed under. That's exactly
+                // what 67037c4 fixed a day earlier; #3-High applied
+                // force_site_id unconditionally to the whole OR and silently
+                // undid it. Both bugs were real — fix is to split the site
+                // restriction between the two branches instead of ANDing it
+                // onto both.
+                if (!empty($filters['force_site_id'])) {
+                    $linkedParams[':force_site_id'] = (int) $filters['force_site_id'];
+                    $builder->addRaw(
+                        "($linkedCondition OR (r.is_confidential = 0 AND r.site_id = :force_site_id))",
+                        $linkedParams
+                    );
+                } else {
+                    $builder->addRaw(
+                        "($linkedCondition OR r.is_confidential = 0)",
+                        $linkedParams
+                    );
+                }
             } else {
-                // In confidential: only declarant's own + linked reports
-                $builder->addRaw(
-                    "($linkedCondition)",
-                    [':linked_agent_id' => $lid]
-                );
+                // In confidential mode: only declarant's own + linked reports —
+                // no site restriction here either, being linked IS the
+                // authorization (same reasoning as above).
+                $builder->addRaw("($linkedCondition)", $linkedParams);
             }
         } else {
             if (!empty($filters['confidential_filter'])) {
@@ -243,17 +261,12 @@ class ReportRepository
         if (!empty($filters['site_id']) && $filter->seeAllSites) {
             $builder->addEqual('r.site_id', $filters['site_id']);
         }
-        if (!empty($filters['force_site_id'])) {
-            // Audit #3-High — force_site_id must always be applied, even when
-            // linked_agent_id is set. Before this fix, the condition was
-            // `if (!empty($filters['force_site_id']) && empty($filters['linked_agent_id']))`
-            // → when linked_agent_id was set, force_site_id was bypassed, and
-            // the AgentChoice visibility clause `(linked_condition OR r.is_confidential = 0)`
-            // didn't filter by site → all non-confidential reports from ALL sites
-            // were visible to the agent.
-            // Now force_site_id applies uniformly: linked reports must also be
-            // in the agent's site. If cross-site linked reports are needed in the
-            // future, a separate explicit flag can be added.
+        if (!empty($filters['force_site_id']) && empty($filters['linked_agent_id'])) {
+            // Audit #80 — when linked_agent_id is set, the site restriction is
+            // already applied above (scoped only to the non-linked fallback).
+            // Applying it again here, unconditionally, would AND it onto
+            // $linkedCondition too and reintroduce the invisible-rattaché-
+            // reports bug (67037c4) that #3-High (c965c0c) accidentally undid.
             $forceSiteIdRaw = $filters['force_site_id'];
             $builder->addEqual('r.site_id', (int) $forceSiteIdRaw);
         }

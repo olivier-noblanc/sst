@@ -18,6 +18,7 @@ class LinkedAgentVisibilityTest extends TestCase
     private PDO $pdo;
     private ReportRepository $repo;
     private int $siteId;
+    private int $siteId2;
     private int $agentId1;
     private int $agentId2;
 
@@ -47,14 +48,17 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote-d-Or', 1)");
         $this->siteId = (int) $this->pdo->lastInsertId();
 
+        $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD25', 'Doubs', 1)");
+        $this->siteId2 = (int) $this->pdo->lastInsertId();
+
         $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Agent', 'Un', 'agent1', 'agent', {$this->siteId}, 1)");
         $this->agentId1 = (int) $this->pdo->lastInsertId();
 
-        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Agent', 'Deux', 'agent2', 'agent', {$this->siteId}, 1)");
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Agent', 'Deux', 'agent2', 'agent', {$this->siteId2}, 1)");
         $this->agentId2 = (int) $this->pdo->lastInsertId();
     }
 
-    private function createReport(int $declarantId, string $objet, int $isConfidential = 0): string
+    private function createReport(int $declarantId, string $objet, int $isConfidential = 0, ?int $siteId = null): string
     {
         $uuid = 'test-' . uniqid();
         $this->pdo->prepare('
@@ -67,7 +71,7 @@ class LinkedAgentVisibilityTest extends TestCase
             ':objet' => $objet, ':description' => 'Test',
             ':date_evenement' => '2026-01-15', ':lieu' => 'Bureau',
             ':declarant_id' => $declarantId, ':declarant_nom' => 'Agent',
-            ':declarant_prenom' => 'Un', ':site_id' => $this->siteId,
+            ':declarant_prenom' => 'Un', ':site_id' => $siteId ?? $this->siteId,
             ':is_confidential' => $isConfidential, ':etat' => ReportState::Nouveau->value,
         ]);
         return $uuid;
@@ -183,5 +187,76 @@ class LinkedAgentVisibilityTest extends TestCase
         $uuids = array_map(fn($r) => $r->uuid, $result->reports);
         $this->assertContains($uuidConfidential, $uuids);
         $this->assertContains($uuidPublic, $uuids);
+    }
+
+    // ─── findPaginated with linkedAgentId AND forceSiteId together ────
+    //
+    // Audit #80 — none of the tests above ever set forceSiteId, so the
+    // interaction between the two filters was never exercised. That's
+    // exactly why this flip-flopped twice without anyone noticing:
+    // 67037c4 (24/07) fixed "linked reports from another site invisible"
+    // by skipping force_site_id when linked_agent_id was set. c965c0c /
+    // Audit #3-High (25/07) fixed a real cross-site leak (unlinked public
+    // reports from every site visible in AgentChoice mode) by applying
+    // force_site_id unconditionally — which silently undid 67037c4's fix,
+    // since it ANDed the site restriction onto the linked-reports
+    // condition too. report_list.php always sets both together for a
+    // logged-in agent, so this is the actual production code path.
+
+    public function testFindPaginated_Confidential_ForceSiteId_IncludesLinkedReportFromOtherSite(): void
+    {
+        // agent1 is at $this->siteId. The report is filed at $this->siteId2
+        // (by agent2, who happens to be based there) and agent1 is linked
+        // to it. force_site_id is agent1's own site ($this->siteId) — the
+        // report must still be visible: being linked is the authorization,
+        // regardless of which site the report itself belongs to.
+        $uuid = $this->createReport($this->agentId2, 'Linked, filed at another site', 1, $this->siteId2);
+        $this->linkAgent($uuid, $this->agentId1);
+
+        $filter = new ReportFilter(type: ReportType::Rsst->value, linkedAgentId: $this->agentId1, forceSiteId: $this->siteId);
+        $result = $this->repo->findPaginated($filter);
+
+        $this->assertEquals(1, $result->total, 'A report linked to the agent must be visible even when filed at a different site.');
+        $this->assertEquals($uuid, $result->reports[0]->uuid);
+    }
+
+    public function testFindPaginated_AgentChoice_ForceSiteId_IncludesLinkedReportFromOtherSite(): void
+    {
+        $uuid = $this->createReport($this->agentId2, 'Linked, filed at another site', 1, $this->siteId2);
+        $this->linkAgent($uuid, $this->agentId1);
+
+        $filter = new ReportFilter(type: ReportType::Rsst->value, linkedAgentId: $this->agentId1, linkedAgentVisibility: VisibilityMode::AgentChoice->value, forceSiteId: $this->siteId);
+        $result = $this->repo->findPaginated($filter);
+
+        $this->assertEquals(1, $result->total, 'A report linked to the agent must be visible even when filed at a different site.');
+        $this->assertEquals($uuid, $result->reports[0]->uuid);
+    }
+
+    public function testFindPaginated_AgentChoice_ForceSiteId_ExcludesUnlinkedPublicReportFromOtherSite(): void
+    {
+        // The actual leak #3-High (c965c0c) fixed: an unlinked public
+        // report filed at a DIFFERENT site must NOT leak into agent1's
+        // list just because AgentChoice mode shows public reports. This
+        // must keep passing — the fix for the case above must not
+        // reopen this one.
+        $this->createReport($this->agentId2, 'Public, filed at another site, not linked', 0, $this->siteId2);
+
+        $filter = new ReportFilter(type: ReportType::Rsst->value, linkedAgentId: $this->agentId1, linkedAgentVisibility: VisibilityMode::AgentChoice->value, forceSiteId: $this->siteId);
+        $result = $this->repo->findPaginated($filter);
+
+        $this->assertEquals(0, $result->total, 'An unlinked public report from another site must not be visible — cross-site leak (Audit #3-High).');
+    }
+
+    public function testFindPaginated_AgentChoice_ForceSiteId_IncludesPublicReportFromOwnSite(): void
+    {
+        // Sanity check the fallback still works at all: an unlinked public
+        // report filed at the AGENT'S OWN site must still show up.
+        $uuid = $this->createReport($this->agentId2, 'Public, filed at own site, not linked', 0, $this->siteId);
+
+        $filter = new ReportFilter(type: ReportType::Rsst->value, linkedAgentId: $this->agentId1, linkedAgentVisibility: VisibilityMode::AgentChoice->value, forceSiteId: $this->siteId);
+        $result = $this->repo->findPaginated($filter);
+
+        $this->assertEquals(1, $result->total);
+        $this->assertEquals($uuid, $result->reports[0]->uuid);
     }
 }

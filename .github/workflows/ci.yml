@@ -58,6 +58,9 @@ jobs:
       - name: PHPStan
         run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress 2>&1 | tee phpstan-output.txt
 
+      - name: PHPStan (tests/)
+        run: php vendor/bin/phpstan analyse --configuration=phpstan-tests.neon --memory-limit=1G --no-progress 2>&1 | tee phpstan-tests-output.txt
+
       - name: PHPUnit
         run: php vendor/bin/phpunit --no-coverage --debug 2>&1 | tee phpunit-output.txt
 
@@ -99,7 +102,7 @@ jobs:
           set +e
           {
             echo "### ❌ CI \"quality\" a échoué — commit \`${GITHUB_SHA::8}\`"
-            for f in lint-output.txt phpstan-output.txt phpunit-output.txt; do
+            for f in lint-output.txt phpstan-output.txt phpstan-tests-output.txt phpunit-output.txt; do
               if [ -s "$f" ]; then
                 echo ""
                 if [ "$f" = "phpunit-output.txt" ] && grep -qE "Premature end|Fatal error" "$f"; then

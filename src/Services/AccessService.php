@@ -129,6 +129,15 @@ class AccessService
 
     /**
      * Get the raw report visibility mode from config (role-agnostic).
+     *
+     * Custom registries (any code outside the fixed rsst/rami/dgi ReportType
+     * enum) have no entry in Paramètres > Signalements (that tab only lists
+     * the 3 ReportType cases), so an 'app_report_visibility_{code}' config key
+     * is never created for them via any admin screen. Their only real visibility control is "Visibilité par
+     * défaut" (registries.default_visibility), set in Paramètres > Registres.
+     * Without the fallback below, that setting was silently ignored and every
+     * custom registry always inherited the global default regardless of what
+     * the admin configured there — including "confidentiel".
      */
     public function getReportVisibilityMode(?string $type = null): string
     {
@@ -138,9 +147,32 @@ class AccessService
             if ($value !== '') {
                 return $this->normalizeVisibilityValue($value);
             }
+
+            $registry = $this->findCustomRegistry($type);
+            if ($registry !== null && !empty($registry['default_visibility'])) {
+                return $this->normalizeVisibilityValue((string) $registry['default_visibility']);
+            }
         }
         $value = getConfigService()->get('app_report_visibility', VisibilityMode::AgentChoice->value);
         return $this->normalizeVisibilityValue($value);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function findCustomRegistry(string $type): ?array
+    {
+        static $cache = [];
+        if (array_key_exists($type, $cache)) {
+            return $cache[$type];
+        }
+        if (\App\Enum\ReportType::tryFrom($type) !== null) {
+            $cache[$type] = null; // rsst/rami/dgi: always governed by Paramètres > Signalements
+            return null;
+        }
+        $registry = \App\Repository\RegistryRepository::instance()->findByCode($type);
+        $cache[$type] = $registry;
+        return $registry;
     }
 
     /**

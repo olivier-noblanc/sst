@@ -234,4 +234,49 @@ class AccessServiceTest extends TestCase
         $service = new AccessService();
         $this->assertInstanceOf(AccessService::class, $service);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // getReportVisibilityMode() — custom registries
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Regression test — custom registries have no entry in Paramètres >
+     * Signalements (that tab only lists the 3 ReportType cases), so their
+     * 'app_report_visibility_{code}' config key is never set via any admin
+     * screen. Before this fix, getReportVisibilityMode() ignored the
+     * registry's own "Visibilité par défaut" (registries.default_visibility)
+     * entirely and silently fell back to the global default — so setting a
+     * custom registry to "confidentiel" in Paramètres > Registres had zero
+     * effect: the "signalement confidentiel" checkbox still showed on
+     * report_create instead of being forced.
+     */
+    public function testCustomRegistryUsesItsOwnDefaultVisibility(): void
+    {
+        $pdo = getDB();
+        $pdo->exec("INSERT INTO registries (code, label, short_label, icon, color_theme, is_enabled, is_system, sort_order, default_visibility) VALUES ('test.confidential-registry', 'Test Confidentiel', 'TC', '📋', 'violet', 0, 0, 999, 'confidential')");
+
+        $this->assertTrue($this->service->reportVisibilityIsConfidential('test.confidential-registry'));
+        $this->assertSame('confidential', $this->service->getReportVisibilityMode('test.confidential-registry'));
+    }
+
+    /**
+     * Guard: the fallback above must only apply to genuinely custom registry
+     * codes (outside the rsst/rami/dgi ReportType enum). System registries
+     * must keep being governed exclusively by Paramètres > Signalements
+     * (app_report_visibility_{type} config / global default), regardless of
+     * whatever value happens to sit in their own registries.default_visibility
+     * row — that column is a seed-time default, not a live override, for
+     * rsst/rami/dgi.
+     */
+    public function testSystemRegistryIgnoresItsOwnDefaultVisibilityColumn(): void
+    {
+        $configService = \App\Services\getConfigService();
+        $configService->set('app_report_visibility_rami', '');
+        $configService->set('app_report_visibility', 'public');
+        $configService->clearCache();
+
+        // registries.default_visibility for 'rami' is seeded as 'agent_choice'
+        // (see RegistryRepository::seedDefaults()) — must be ignored here.
+        $this->assertSame('public', $this->service->getReportVisibilityMode('rami'));
+    }
 }

@@ -118,14 +118,33 @@ jobs:
             for f in lint-output.txt phpstan-output.txt phpstan-tests-output.txt phpunit-output.txt rector-output.txt; do
               if [ -s "$f" ]; then
                 echo ""
-                if [ "$f" = "phpunit-output.txt" ] && grep -qE "Premature end|Fatal error" "$f"; then
+                if [ "$f" = "phpunit-output.txt" ] && grep -qE "Premature end|PHP Fatal error" "$f"; then
                   echo "<details><summary>$f — contexte autour du crash (200 lignes avant/après)</summary>"
                   echo ""
                   echo '```'
-                  CRASH_LINE=$(grep -nE "Premature end|Fatal error" "$f" | head -1 | cut -d: -f1)
+                  # Audit #82 — head -1 on a bare "Fatal error" grep can match
+                  # CHANGELOG.md text quoted inside a test's own output (not a
+                  # real crash), truncating the extraction window long before
+                  # the actual PHPUnit summary further down. Anchor on the
+                  # more specific "PHP Fatal error" (the real crash marker)
+                  # and prefer the LAST occurrence — closer to where the
+                  # process actually died.
+                  CRASH_LINE=$(grep -nE "Premature end|PHP Fatal error" "$f" | tail -1 | cut -d: -f1)
                   START=$((CRASH_LINE - 200)); [ $START -lt 1 ] && START=1
                   END=$((CRASH_LINE + 30))
                   sed -n "${START},${END}p" "$f"
+                  echo '```'
+                  echo "</details>"
+                  echo ""
+                fi
+                # Audit #82 — always show the tail too: that's where PHPUnit's
+                # own summary (OK / FAILURES! / Tests: N, Assertions: N) lives,
+                # regardless of whether a crash pattern was found above.
+                if [ "$f" = "phpunit-output.txt" ]; then
+                  echo "<details><summary>$f (dernières 150 lignes — résumé)</summary>"
+                  echo ""
+                  echo '```'
+                  tail -n 150 "$f"
                   echo '```'
                   echo "</details>"
                 else

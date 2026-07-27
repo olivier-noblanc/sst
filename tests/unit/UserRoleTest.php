@@ -72,7 +72,7 @@ class UserRoleTest extends TestCase
      */
     public function testGetRoleLabelPrefersDbValue(): void
     {
-        $configService = \App\Services\getConfigService();
+        $configService = \getConfigService();
         // Set a custom label
         $configService->set('app_role_label_chsct', 'Custom CHSCT Label');
         $this->assertEquals('Custom CHSCT Label', $configService->getRoleLabel('chsct'));
@@ -86,7 +86,7 @@ class UserRoleTest extends TestCase
      */
     public function testGetRoleLabelFallsBackToDefault(): void
     {
-        $configService = \App\Services\getConfigService();
+        $configService = \getConfigService();
         $configService->set('app_role_label_chsct', '');
         $configService->clearCache();
         $this->assertEquals('Membre FS/CSA', $configService->getRoleLabel('chsct'));
@@ -97,7 +97,7 @@ class UserRoleTest extends TestCase
      */
     public function testGetRoleLabelHandlesInvalidRole(): void
     {
-        $configService = \App\Services\getConfigService();
+        $configService = \getConfigService();
         $this->assertEquals('Invalid', $configService->getRoleLabel('invalid'));
     }
 

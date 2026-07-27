@@ -270,7 +270,7 @@ class AccessServiceTest extends TestCase
      */
     public function testSystemRegistryIgnoresItsOwnDefaultVisibilityColumn(): void
     {
-        $configService = \App\Services\getConfigService();
+        $configService = \getConfigService();
         $configService->set('app_report_visibility_rami', '');
         $configService->set('app_report_visibility', 'public');
         $configService->clearCache();

@@ -102,12 +102,24 @@ jobs:
             for f in lint-output.txt phpstan-output.txt phpunit-output.txt; do
               if [ -s "$f" ]; then
                 echo ""
-                echo "<details><summary>$f (dernières 200 lignes)</summary>"
-                echo ""
-                echo '```'
-                tail -n 200 "$f"
-                echo '```'
-                echo "</details>"
+                if [ "$f" = "phpunit-output.txt" ] && grep -qE "Premature end|Fatal error" "$f"; then
+                  echo "<details><summary>$f — contexte autour du crash (200 lignes avant/après)</summary>"
+                  echo ""
+                  echo '```'
+                  CRASH_LINE=$(grep -nE "Premature end|Fatal error" "$f" | head -1 | cut -d: -f1)
+                  START=$((CRASH_LINE - 200)); [ $START -lt 1 ] && START=1
+                  END=$((CRASH_LINE + 30))
+                  sed -n "${START},${END}p" "$f"
+                  echo '```'
+                  echo "</details>"
+                else
+                  echo "<details><summary>$f (dernières 200 lignes)</summary>"
+                  echo ""
+                  echo '```'
+                  tail -n 200 "$f"
+                  echo '```'
+                  echo "</details>"
+                fi
               fi
             done
             echo ""

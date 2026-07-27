@@ -110,33 +110,33 @@ class MailHelperUrlTest extends TestCase
         // a real HTTP request, or reflecting an internal hostname behind a
         // reverse proxy) — without an explicit override, every recipient
         // gets a link that only resolves on the server itself.
-        \App\Services\getConfigService()->set('app_base_url', 'https://sst.dreets-bfc.gouv.fr');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_base_url', 'https://sst.dreets-bfc.gouv.fr');
+        \getConfigService()->clearCache();
 
         $_SERVER['HTTPS'] = '';
         unset($_SERVER['HTTP_HOST']);
 
         $this->assertEquals('https://sst.dreets-bfc.gouv.fr', getBaseUrl());
 
-        \App\Services\getConfigService()->set('app_base_url', '');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_base_url', '');
+        \getConfigService()->clearCache();
     }
 
     public function testGetBaseUrlStripsTrailingSlashFromConfig(): void
     {
-        \App\Services\getConfigService()->set('app_base_url', 'https://sst.dreets-bfc.gouv.fr/');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_base_url', 'https://sst.dreets-bfc.gouv.fr/');
+        \getConfigService()->clearCache();
 
         $this->assertEquals('https://sst.dreets-bfc.gouv.fr', getBaseUrl());
 
-        \App\Services\getConfigService()->set('app_base_url', '');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_base_url', '');
+        \getConfigService()->clearCache();
     }
 
     public function testGetBaseUrlFallsBackToRequestWhenConfigEmpty(): void
     {
-        \App\Services\getConfigService()->set('app_base_url', '');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_base_url', '');
+        \getConfigService()->clearCache();
 
         $_SERVER['HTTPS'] = 'on';
         $_SERVER['HTTP_HOST'] = 'example.com';
@@ -155,21 +155,21 @@ class MailHelperUrlTest extends TestCase
         // domain, meaningless in an email client (there's no "current
         // page" to resolve a relative URL against). absoluteUrl() exists
         // specifically so a caller can't make that mistake again.
-        \App\Services\getConfigService()->set('app_base_url', 'https://sst.dreets-bfc.gouv.fr');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_base_url', 'https://sst.dreets-bfc.gouv.fr');
+        \getConfigService()->clearCache();
 
         $result = absoluteUrl('agent_confirm', ['token' => 'abc123']);
 
         $this->assertEquals('https://sst.dreets-bfc.gouv.fr/index.php?page=agent_confirm&token=abc123', $result);
 
-        \App\Services\getConfigService()->set('app_base_url', '');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_base_url', '');
+        \getConfigService()->clearCache();
     }
 
     public function testAbsoluteUrlNeverReturnsARelativePath(): void
     {
-        \App\Services\getConfigService()->set('app_base_url', '');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_base_url', '');
+        \getConfigService()->clearCache();
         $_SERVER['HTTPS'] = 'on';
         $_SERVER['HTTP_HOST'] = 'example.com';
 

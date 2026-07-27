@@ -51,8 +51,8 @@ class RouterPageTitleTest extends TestCase
         // createRouter() directly to get a fresh instance that actually
         // re-reads config, matching what happens on every real HTTP
         // request in production (a new PHP process each time).
-        \App\Services\getConfigService()->set('app_report_create_label', 'Signaler un événement');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_report_create_label', 'Signaler un événement');
+        \getConfigService()->clearCache();
 
         $freshRouter = createRouter();
 
@@ -61,16 +61,16 @@ class RouterPageTitleTest extends TestCase
 
     public function testReportCreateTitleReflectsCustomConfigValue(): void
     {
-        \App\Services\getConfigService()->set('app_report_create_label', 'Déclarer un incident');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_report_create_label', 'Déclarer un incident');
+        \getConfigService()->clearCache();
 
         $freshRouter = createRouter();
 
         $this->assertEquals('Déclarer un incident', $freshRouter->getPageTitle('report_create'));
 
         // Reset for any test running after this one in the same process.
-        \App\Services\getConfigService()->set('app_report_create_label', 'Signaler un événement');
-        \App\Services\getConfigService()->clearCache();
+        \getConfigService()->set('app_report_create_label', 'Signaler un événement');
+        \getConfigService()->clearCache();
     }
 
     public function testGetPageTitleReportView(): void

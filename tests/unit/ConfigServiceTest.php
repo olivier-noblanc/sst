@@ -41,6 +41,17 @@ class ConfigServiceTest extends TestCase
         // We rely on fresh process per test class or test ordering.
     }
 
+    protected function tearDown(): void
+    {
+        // getDB() is a process-wide singleton DB shared by the whole PHPUnit
+        // run (see tests/bootstrap.php). setUp() above deletes every row from
+        // `registries`; without restoring it here, every test class that
+        // runs after this one (alphabetically, in the same process) finds
+        // `registries` permanently empty. See reseedDefaultRegistries() for
+        // the concrete crash this caused (PageRenderingTest).
+        reseedDefaultRegistries($this->pdo);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // get()
     // ═══════════════════════════════════════════════════════════════════════════════

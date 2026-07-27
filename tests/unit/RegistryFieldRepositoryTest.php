@@ -23,6 +23,14 @@ class RegistryFieldRepositoryTest extends TestCase
         $this->fields = new RegistryFieldRepository($pdo);
     }
 
+    protected function tearDown(): void
+    {
+        // getDB() is a process-wide singleton shared by the whole PHPUnit
+        // run — restore what setUp() wiped so later test classes don't find
+        // `registries` empty. See reseedDefaultRegistries() in bootstrap.php.
+        reseedDefaultRegistries(getDB());
+    }
+
     private function createRegistry(string $code): int
     {
         return $this->registries->create([

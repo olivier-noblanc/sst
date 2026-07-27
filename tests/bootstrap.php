@@ -79,3 +79,39 @@ require_once __DIR__ . '/../src/mail/email_renderer.php';
 
 // Bootstrap the DI Container for tests
 $testContainer = getContainer();
+
+/**
+ * Restore the 3 default registries (rsst/rami/dgi) after a test that wiped
+ * the `registries` table (e.g. `DELETE FROM registries` in setUp()).
+ *
+ * getDB() above is a process-wide singleton (one shared in-memory SQLite DB
+ * for the whole PHPUnit run — no process isolation configured in
+ * phpunit.xml). migrateTables() seeds these rows once, lazily, on the very
+ * first getDB() call — but only "if the table is empty". Any test class
+ * that deletes from `registries` without restoring it (ConfigServiceTest,
+ * RegistryRepositoryTest, RegistryFieldRepositoryTest at the time of this
+ * comment) leaves it empty for every test class that runs afterward in the
+ * same process, for the rest of the suite.
+ *
+ * Concretely this caused PageRenderingTest::testAllLayoutPagesRenderValidHtml
+ * to kill the whole PHP CLI process ("Premature end of PHP process"):
+ * pages/report_list.php calls RegistryRepository::findByCode('rsst'), gets
+ * null because the row is gone, and falls into
+ * HttpService::redirect() -> exit — which terminates PHPUnit mid-run rather
+ * than failing the single test.
+ *
+ * Call this from tearDown() in any test that deletes from `registries`.
+ * Content kept in sync with the seed in src/migration_tables.php — not
+ * reusing migrateTables() itself because its seed is conditional on
+ * `COUNT(*) = 0`, which no longer holds once a test has inserted its own
+ * rows into the table.
+ */
+function reseedDefaultRegistries(PDO $pdo): void
+{
+    $pdo->exec("DELETE FROM registries WHERE code IN ('rsst', 'rami', 'dgi')");
+    $pdo->exec("INSERT INTO registries (code, label, short_label, description, icon, color_theme, is_enabled, is_system, sort_order, default_visibility, notify_chsct) VALUES
+        ('rsst', 'Santé et Sécurité au Travail', 'RSST', 'Signalements généraux SST', '📋', 'rsst', 1, 1, 1, 'agent_choice', 0),
+        ('rami', 'Agressions, Menaces et Incivilités', 'RAMI', 'Agressions verbales et physiques', '🚨', 'rami', 1, 0, 2, 'agent_choice', 0),
+        ('dgi', 'Danger Grave et Imminent', 'DGI', 'Dangers immédiats pour la santé', '🔴', 'dgi', 1, 0, 3, 'agent_choice', 1)
+    ");
+}

@@ -56,7 +56,9 @@ jobs:
             | xargs -0 -n1 php -l) 2>&1 | tee lint-output.txt
 
       - name: PHPStan
-        run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress 2>&1 | tee phpstan-output.txt
+        run: |
+          php vendor/bin/phpstan analyse --memory-limit=1G --no-progress 2>&1 | tee phpstan-output.txt
+          echo "DIAGNOSTIC: PIPESTATUS[0]=${PIPESTATUS[0]}"
 
       - name: PHPStan (tests/)
         run: php vendor/bin/phpstan analyse --configuration=phpstan-tests.neon --memory-limit=1G --no-progress 2>&1 | tee phpstan-tests-output.txt

@@ -5,11 +5,13 @@
 namespace App\Services;
 
 use App\Enum\ReportState;
+use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 use App\Enum\UserRole;
 use PDO;
 use Exception;
 use App\Repository\ReportRepository;
+use App\Repository\RegistryRepository;
 
 class AccessService
 {
@@ -166,11 +168,11 @@ class AccessService
         if (array_key_exists($type, $cache)) {
             return $cache[$type];
         }
-        if (\App\Enum\ReportType::tryFrom($type) !== null) {
+        if (ReportType::tryFrom($type) !== null) {
             $cache[$type] = null; // rsst/rami/dgi: always governed by Paramètres > Signalements
             return null;
         }
-        $registry = \App\Repository\RegistryRepository::instance()->findByCode($type);
+        $registry = RegistryRepository::instance()->findByCode($type);
         $cache[$type] = $registry;
         return $registry;
     }

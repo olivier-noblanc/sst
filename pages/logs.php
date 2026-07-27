@@ -22,12 +22,17 @@ $logFile = ini_get('error_log') !== false && ini_get('error_log') !== '' ? ini_g
 $maxLines = 5000;
 
 // Handle clear action
+// Bug #84 — Before this fix, CSRF validation failure was silent (no flash,
+// no redirect). The user would click "Effacer" and nothing would happen
+// with no explanation. Now we flash an error on failure.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'clear_logs') {
     if ($session->validateCsrfToken($_POST['csrf_token'] ?? '')) {
         file_put_contents($logFile, '');
         $session->setFlash('success', 'Journal d\'erreurs effacé avec succès.');
-        $http->redirect($http->url('logs', ['tab' => 'errors']));
+    } else {
+        $session->setFlash('error', 'Erreur de sécurité. Le journal n\'a pas été effacé.');
     }
+    $http->redirect($http->url('logs', ['tab' => 'errors']));
 }
 
 require_once __DIR__ . '/logs/_error_log_reader.php';

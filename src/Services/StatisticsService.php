@@ -13,6 +13,12 @@ class StatisticsService
         private readonly StatsRepository $statsRepo,
     ) {}
 
+    // Bug #66 — Cache statistics within a single request to avoid 3 SQL
+    // queries per page load. The /statistics page calls getStatistics() once,
+    // but if other components also need stats, they share the cache.
+    /** @var array<string, StatisticsResult> */
+    private array $cache = [];
+
     /**
      * Get available years for statistics filtering.
      *
@@ -20,19 +26,27 @@ class StatisticsService
      */
     public function getAvailableYears(): array
     {
-        $years = $this->statsRepo->getAvailableYears();
-        if (empty($years)) {
-            return [date('Y')];
+        static $yearsCache = null;
+        if ($yearsCache === null) {
+            $yearsCache = $this->statsRepo->getAvailableYears();
+            if (empty($yearsCache)) {
+                $yearsCache = [date('Y')];
+            }
         }
-        return $years;
+        return $yearsCache;
     }
 
     public function getStatistics(string $year): StatisticsResult
     {
-        return new StatisticsResult(
+        if (isset($this->cache[$year])) {
+            return $this->cache[$year];
+        }
+        $result = new StatisticsResult(
             indicateurs: $this->statsRepo->getIndicateurs($year),
             statsBySite: $this->statsRepo->getBySite($year),
             ramiStats: $this->statsRepo->getRamiStructuredStats($year),
         );
+        $this->cache[$year] = $result;
+        return $result;
     }
 }

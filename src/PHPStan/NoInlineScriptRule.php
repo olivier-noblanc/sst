@@ -11,11 +11,11 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Bloque les balises <script> inline dans le code PHP.
+ * Bloque les balises <script> inline ET les attributs onclick= dans le code PHP.
  *
  * Le JS doit aller dans des fichiers .js externes dans public/js/.
- * Les scripts inline dans les templates sont interdits (bonne pratique
- * de sécurité, même si le CSP autorise unsafe-inline pour l'instant).
+ * Les scripts inline et les handlers onclick dans les templates sont interdits
+ * (bonne pratique de sécurité, même si le CSP autorise unsafe-inline pour l'instant).
  *
  * @implements Rule<Echo_>
  */
@@ -55,14 +55,22 @@ final class NoInlineScriptRule implements Rule
             $content .= $expr->getAttribute('rawText') ?? '';
         }
 
+        $errors = [];
+
+        // Bug #97 — Also detect onclick= and other inline event handlers
+        // (onload, onchange, onsubmit, onfocus, onblur, onmouseover, etc.)
         if (preg_match('/<script[\s>]/i', $content)) {
-            return [
-                RuleErrorBuilder::message('Balise <script> inline détectée — utiliser un fichier .js externe (public/js/).')
-                    ->identifier('app.inlineScript')
-                    ->build(),
-            ];
+            $errors[] = RuleErrorBuilder::message('Balise <script> inline détectée — utiliser un fichier .js externe (public/js/).')
+                ->identifier('app.inlineScript')
+                ->build();
         }
 
-        return [];
+        if (preg_match('/\bon(click|load|change|submit|focus|blur|mouseover|mouseout|keyup|keydown|keypress)=/i', $content)) {
+            $errors[] = RuleErrorBuilder::message('Handler d\'événement inline (onclick=, etc.) détecté — utiliser addEventListener dans un fichier .js externe (public/js/).')
+                ->identifier('app.inlineEventHandler')
+                ->build();
+        }
+
+        return $errors;
     }
 }

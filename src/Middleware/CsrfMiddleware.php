@@ -14,6 +14,7 @@ class CsrfMiddleware
             if (!validateCsrfToken($token)) {
                 SessionService::getInstance()->setFlash('error', 'Erreur de sécurité.');
                 new HttpService()->redirect(new HttpService()->url('home'));
+                return; // Bug #26 — defense-in-depth
             }
         }
         $next();

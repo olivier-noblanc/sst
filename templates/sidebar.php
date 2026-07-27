@@ -35,7 +35,7 @@ $supRoles = [UserRole::Superviseur->value, UserRole::Chsct->value];
 $supOnly  = [UserRole::Superviseur->value];
 
 $menuItems = [
-    ['label' => 'Accueil', 'icon' => '&#127968;', 'page' => 'home', 'params' => [], 'roles' => $allRoles],
+    ['label' => 'Accueil', 'icon' => '🏠', 'page' => 'home', 'params' => [], 'roles' => $allRoles],
 ];
 
 // Add registry types from database (dynamic, includes custom registres)
@@ -51,12 +51,12 @@ foreach ($enabledRegistries as $reg) {
 }
 
 $menuItems = array_merge($menuItems, [
-    ['label' => 'Synthèse',       'icon' => '&#128202;', 'page' => 'synthesis',           'params' => [],  'roles' => $supRoles],
-    ['label' => 'Export',         'icon' => '&#128229;', 'page' => 'export',              'params' => [],  'roles' => $supRoles],
-    ['label' => 'Statistiques',   'icon' => '&#128200;', 'page' => 'statistics',          'params' => [],  'roles' => $supRoles],
-    ['label' => 'Utilisateurs',   'icon' => '&#128101;', 'page' => 'users',               'params' => [],  'roles' => $supOnly],
-    ['label' => 'Paramètres',     'icon' => '&#9881;',   'page' => 'settings',            'params' => [],  'roles' => $supOnly],
-    ['label' => 'Journal',        'icon' => '&#128220;', 'page' => 'logs',                'params' => [],  'roles' => $supOnly],
+    ['label' => 'Synthèse',       'icon' => '📊', 'page' => 'synthesis',           'params' => [],  'roles' => $supRoles],
+    ['label' => 'Export',         'icon' => '📥', 'page' => 'export',              'params' => [],  'roles' => $supRoles],
+    ['label' => 'Statistiques',   'icon' => '📈', 'page' => 'statistics',          'params' => [],  'roles' => $supRoles],
+    ['label' => 'Utilisateurs',   'icon' => '👥', 'page' => 'users',               'params' => [],  'roles' => $supOnly],
+    ['label' => 'Paramètres',     'icon' => '⚙️', 'page' => 'settings',            'params' => [],  'roles' => $supOnly],
+    ['label' => 'Journal',        'icon' => '📜', 'page' => 'logs',                'params' => [],  'roles' => $supOnly],
 ]);
 ?>
 <!-- Hidden checkbox for CSS-only sidebar toggle (mobile) — tabindex="-1" prevents focus since hidden attr is not always sufficient -->

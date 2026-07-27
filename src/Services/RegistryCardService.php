@@ -32,7 +32,7 @@ class RegistryCardService
     }
 
     /**
-     * @return list<array{type: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
+     * @return list<array{type: string, colorTheme: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
      */
     public function buildRegistryCards(): array
     {
@@ -65,7 +65,8 @@ class RegistryCardService
             }
 
             $cards[] = [
-                'type'     => $code,
+                'type'       => $code,
+                'colorTheme' => $reg['color_theme'] ?? $code,
                 'title'    => $reg['label'],
                 'subtitle' => $reg['short_label'],
                 'desc'     => $reg['description'] ?? '',

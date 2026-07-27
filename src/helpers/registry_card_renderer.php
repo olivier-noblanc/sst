@@ -19,7 +19,9 @@ function getRegistryIcon(string $type): string
  */
 function renderRegistryCard(array $card, string $extraClass = '', string $extraContent = ''): string
 {
-    $cssClass = 'registry-card registry-card--' . e($card['type']);
+    $colorTheme = (string) ($card['colorTheme'] ?? $card['type']);
+    $themeClasses = \App\Repository\RegistryRepository::themeClasses($colorTheme);
+    $cssClass = 'registry-card ' . $themeClasses['registry_card'];
     if ($extraClass !== '') {
         $cssClass .= ' ' . e($extraClass);
     }
@@ -65,7 +67,7 @@ function renderRegistryCards(array $cards, string $layout = 'compact', array $ex
 /**
  * Build registry cards from the database — works for all registres (core + custom).
  *
- * @return list<array{type: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
+ * @return list<array{type: string, colorTheme: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
  */
 function buildRegistryCards(): array
 {

@@ -13,6 +13,27 @@ use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
 use PDO;
 
+// Audit #79 — NotificationService délègue chaque méthode à une fonction
+// globale de mail_notifications.php (notifyNewReport, notifyReportResponse,
+// etc.), qui elles-mêmes appellent sendMail()/sendViaSMTP() définies dans
+// mail.php. Rien ici ne garantissait que mail.php soit chargé avant qu'un
+// listener d'event (event_listeners.php, enregistré dans
+// bootstrap_services.php dès le démarrage de la requête) n'appelle une de
+// ces méthodes. Chaque handler faisait son propre `require_once mail.php`,
+// mais toujours APRÈS avoir appelé le Service qui déclenche l'event
+// (report_create_handler.php, report_respond_handler.php,
+// report_reopen_handler.php, user_edit_handler.php) — donc toujours trop
+// tard pour le listener. Résultat en production : notifyNewReport()
+// (notification légale L4131-2 pour les DGI), notifyReportResponse(),
+// notifyReportReopen() et notifyRoleChange() échouaient silencieusement à
+// CHAQUE appel ("Call to undefined function App\Services\notifyNewReport()"
+// — PHP essaie d'abord App\Services\notifyNewReport avant le fallback
+// global, et sans mail.php chargé, le fallback ne trouve rien non plus),
+// avalées par le try/catch de event_listeners.php et juste loggées.
+// Fix : charger la dépendance ici, au niveau du Service lui-même, plutôt
+// que de compter sur chaque appelant pour le faire au bon moment.
+require_once __DIR__ . '/../mail.php';
+
 class NotificationService
 {
     public function __construct(

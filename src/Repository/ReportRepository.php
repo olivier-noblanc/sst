@@ -319,6 +319,16 @@ class ReportRepository
                     type: (string) $row['type'],
                     objet: (string) ($row['objet'] ?? ''),
                     dateEvenement: (string) ($row['date_evenement'] ?? ''),
+                    // Audit #79 — was missing entirely: report_list.php's
+                    // $canEdit = $access->canEditReport($reportArr, $userId)
+                    // needs declarant_id to know whether the current user IS
+                    // the declarant. Without it, canEditReport() read an
+                    // undefined array key (warning in prod), (int) null = 0,
+                    // and no declarant ever saw "Modifier" on the list page —
+                    // the same user-facing symptom as the report_card.php
+                    // (array) cast bug fixed earlier this session, different
+                    // root cause (DTO missing the field, not a bad cast).
+                    declarantId: (int) ($row['declarant_id'] ?? 0),
                     declarantNom: (string) ($row['declarant_nom'] ?? ''),
                     declarantPrenom: (string) ($row['declarant_prenom'] ?? ''),
                     siteCode: (string) ($row['site_code'] ?? ''),

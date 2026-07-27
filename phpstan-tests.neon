@@ -5,7 +5,8 @@ parameters:
     # tomber la CI : classe/fonction/méthode inconnue, mauvaise arité d'appel,
     # variable non définie. Toutes détectées dès le niveau 0-1.
     # À remonter une fois ce niveau propre (voir TODO.md).
-    level: 1
+    # Remonté à 2 le 27/07/2026 — prochaine étape du remontage progressif.
+    level: 2
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: false
     paths:

@@ -323,4 +323,36 @@ class PageRenderingTest extends TestCase
             '(not (array) $report) to AccessService::canEditReport().'
         );
     }
+
+    /**
+     * Regression test — Audit #79. Same user-facing symptom as
+     * testReportViewShowsEditButtonForDeclarant above (declarant never sees
+     * "Modifier"), different root cause: ReportListItem — the lighter DTO
+     * used by report_list.php's paginated list — never had a declarantId
+     * property at all, so its toArray() had no 'declarant_id' key.
+     * AccessService::canEditReport() read an undefined array key (PHP
+     * warning in prod), (int) null cast to 0, and $isDeclarant was always
+     * false. Fixed by adding declarantId to the DTO's constructor and
+     * toArray(), and passing $row['declarant_id'] when ReportRepository
+     * builds it in findPaginated().
+     */
+    public function testReportListShowsEditButtonForDeclarant(): void
+    {
+        // self::$agentUserId (1) is the declarant of self::$reportUuid, etat=nouveau (editable).
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_list';
+        $_GET['type'] = 'rsst';
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_list', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringContainsString(
+            '>Modifier<',
+            $output,
+            'The declarant of an editable report must see the "Modifier" button ' .
+            'on the report list too. If this fails, check that ReportListItem ' .
+            'carries declarantId through to toArray().'
+        );
+    }
 }

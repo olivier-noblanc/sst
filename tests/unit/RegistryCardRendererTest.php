@@ -92,6 +92,30 @@ class RegistryCardRendererTest extends TestCase
         $this->assertStringContainsString('home-action--large', $html);
     }
 
+    /**
+     * Regression test — renderRegistryCard() used to build the card's CSS class
+     * from the registry's own code ('registry-card--{code}') instead of its
+     * configured color_theme. For the 3 system registries (rsst/rami/dgi) the
+     * code happens to match a theme, hiding the bug. For any custom registry
+     * (code != theme, e.g. code 'incident-electrique' with theme 'violet'
+     * chosen in the admin color picker), the generated class didn't exist in
+     * CSS and no color was applied on the home page.
+     */
+    public function testRenderRegistryCardUsesCardClassNotType(): void
+    {
+        $card = [
+            'type' => 'incident-electrique', 'cardClass' => 'registry-card--violet',
+            'title' => 'Incident électrique', 'subtitle' => 'IE',
+            'desc' => 'D', 'count' => 0,
+            'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements',
+        ];
+
+        $html = renderRegistryCard($card);
+
+        $this->assertStringContainsString('registry-card registry-card--violet', $html);
+        $this->assertStringNotContainsString('registry-card--incident-electrique', $html);
+    }
+
     public function testRenderRegistryCardEscapesHtml(): void
     {
         $card = [
@@ -246,7 +270,7 @@ class RegistryCardRendererTest extends TestCase
     public function testBuildRegistryCardsHasRequiredKeys(): void
     {
         $cards = buildRegistryCards(0, 0, 0, true, true);
-        $requiredKeys = ['type', 'title', 'subtitle', 'desc', 'count', 'btnLabel', 'btnUrl', 'listUrl', 'listLabel'];
+        $requiredKeys = ['type', 'cardClass', 'title', 'subtitle', 'desc', 'count', 'btnLabel', 'btnUrl', 'listUrl', 'listLabel'];
 
         foreach ($cards as $card) {
             foreach ($requiredKeys as $key) {

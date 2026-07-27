@@ -222,6 +222,11 @@ class PageRenderingTest extends TestCase
             $this->assertStringNotContainsString('default => ', $output, "[$page] output contains leaked match default arm");
             $this->assertStringNotContainsString('}; ?>', $output, "[$page] output contains leaked PHP closing bracket+tag");
 
+            // 1.c. No double-escaped HTML entity (audit — sidebar icons stored as
+            // '&#12345;' and re-escaped via e()/htmlspecialchars() produced literal
+            // '&amp;#12345;' text instead of rendering the emoji. See templates/sidebar.php.
+            $this->assertStringNotContainsString('&amp;#', $output, "[$page] output contains a double-escaped HTML entity (regression: sidebar icons must be raw UTF-8 emoji, not '&#...;' strings passed through e())");
+
             // 2. Valid HTML structure
             $this->assertStringContainsString('<!DOCTYPE html>', $output, "[$page] missing <!DOCTYPE html>");
             $this->assertStringContainsString('<html', $output, "[$page] missing <html> tag");
@@ -287,6 +292,35 @@ class PageRenderingTest extends TestCase
         $this->assertEmpty(
             $missing,
             'Valid pages without a page file: ' . implode(', ', $missing)
+        );
+    }
+
+    /**
+     * Regression test — templates/report_card.php used to build $canEdit from
+     * a naive (array) cast of the ReportData DTO instead of $report->toArray().
+     * DTO properties are camelCase (declarantId) but AccessService::canEditReport()
+     * expects a snake_case 'declarant_id' key, so the cast silently produced an
+     * "Undefined array key" PHP warning in production and $canEdit was always
+     * false — the declarant could never see the "Modifier" button on their own
+     * editable report.
+     */
+    public function testReportViewShowsEditButtonForDeclarant(): void
+    {
+        // self::$agentUserId (1) is the declarant of self::$reportUuid, etat=nouveau (editable).
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_view';
+        $_GET['uuid'] = self::$reportUuid;
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringContainsString(
+            '>Modifier<',
+            $output,
+            'The declarant of an editable report must see the "Modifier" button. ' .
+            'If this fails, check that report_card.php passes $report->toArray() ' .
+            '(not (array) $report) to AccessService::canEditReport().'
         );
     }
 }

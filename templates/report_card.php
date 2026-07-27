@@ -33,9 +33,9 @@ $userRole = (string) ($user['role'] ?? \App\Enum\UserRole::Agent->value);
 $userSiteId = (int) ($user['site_id'] ?? 0);
 $userId = (int) ($user['id'] ?? 0);
 $isDeclarant = ((int) $report->declarantId === $userId);
-$canEdit = new \App\Services\AccessService()->canEditReport((array) $report, $userId);
+$canEdit = new \App\Services\AccessService()->canEditReport($report->toArray(), $userId);
 $canAbandon = $isDeclarant && !in_array($report->etat, [\App\Enum\ReportState::Abandonne->value, \App\Enum\ReportState::Traite->value], true);
-$canRespondToReport = new \App\Services\AccessService()->canRespondToReport((array) $report, $userRole);
+$canRespondToReport = new \App\Services\AccessService()->canRespondToReport($report->toArray(), $userRole);
 $canReopen = in_array($report->etat, [\App\Enum\ReportState::Traite->value, \App\Enum\ReportState::Abandonne->value], true) && in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true);
 
 // Ensure $csrfToken is available (set by index.php but may not be in scope)

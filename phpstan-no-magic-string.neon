@@ -23,3 +23,7 @@ services:
         class: App\PHPStan\NoTodoCommentRule
         tags:
             - phpstan.rules.rule
+    -
+        class: App\PHPStan\NoMixedArrayRule
+        tags:
+            - phpstan.rules.rule

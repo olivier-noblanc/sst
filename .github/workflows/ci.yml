@@ -95,7 +95,7 @@ jobs:
         run: php tools/check_css_classes.php --missing
 
       - name: Report failure as commit comment
-        if: failure()
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

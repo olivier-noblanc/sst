@@ -88,6 +88,7 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
+        $pdo->beginTransaction();
         // Audit #55 — Drop any leftover reports_new from a previously failed migration.
         $pdo->exec('DROP TABLE IF EXISTS reports_new');
         $pdo->exec($createSql);
@@ -112,6 +113,7 @@ function migrateColumns(PDO $pdo): void
         // (and reports_fts itself was orphaned). Without this, future INSERTs on
         // reports would not be reflected in reports_fts → full-text search broken.
         recreateReportsFts5($pdo);
+        $pdo->commit();
         error_log('[SST-MIGRATION] reports.site_id is now nullable (no-site mode support).');
     }
 
@@ -188,6 +190,7 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
+        $pdo->beginTransaction();
         // Audit #55 — Drop any leftover reports_new from a previously failed migration.
         $pdo->exec('DROP TABLE IF EXISTS reports_new');
         $pdo->exec($createSql);
@@ -209,6 +212,7 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
         // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
         recreateReportsFts5($pdo);
+        $pdo->commit();
         error_log('[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
     }
 
@@ -285,14 +289,16 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS report_responses_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
-        // Audit #55 — Drop any leftover reports_new from a previously failed migration.
-        $pdo->exec('DROP TABLE IF EXISTS reports_new');
+        $pdo->beginTransaction();
+        // Audit #55 — Drop any leftover report_responses_new from a previously failed migration.
+        $pdo->exec('DROP TABLE IF EXISTS report_responses_new');
         $pdo->exec($createSql);
         $pdo->exec('INSERT OR IGNORE INTO report_responses_new SELECT * FROM report_responses');
         $pdo->exec('DROP TABLE IF EXISTS report_responses');
         $pdo->exec('ALTER TABLE report_responses_new RENAME TO report_responses');
         // Recreate indexes (SQLite drops them with the table)
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
+        $pdo->commit();
         error_log('[SST-MIGRATION] report_responses.user_id is now nullable (RGPD anonymization support).');
     }
 

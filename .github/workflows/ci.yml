@@ -29,6 +29,19 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+    defaults:
+      run:
+        # Audit #81 — every failure-detecting step here pipes into `tee` for
+        # the commit-comment mechanism (cmd 2>&1 | tee file). Without
+        # pipefail, bash's pipeline exit status is that of the LAST command
+        # (tee, which almost never fails) — not cmd's. Confirmed empirically:
+        # the PHPStan step reported "success" on a run whose own
+        # phpstan-output.txt read "[ERROR] Found 96 errors". set -e alone
+        # does not fix this — it only aborts on a pipeline's own exit status,
+        # which was already the (wrong) success from tee. Explicit here
+        # rather than relying on the runner's default shell flags, which
+        # turned out not to behave as assumed.
+        shell: bash --noprofile --norc -eo pipefail {0}
     steps:
       - uses: actions/checkout@v4
 

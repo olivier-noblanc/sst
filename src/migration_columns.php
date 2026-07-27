@@ -89,6 +89,7 @@ function migrateColumns(PDO $pdo): void
         $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
         $pdo->beginTransaction();
+        try {
         // Audit #55 — Drop any leftover reports_new from a previously failed migration.
         $pdo->exec('DROP TABLE IF EXISTS reports_new');
         $pdo->exec($createSql);
@@ -113,7 +114,18 @@ function migrateColumns(PDO $pdo): void
         // (and reports_fts itself was orphaned). Without this, future INSERTs on
         // reports would not be reflected in reports_fts → full-text search broken.
         recreateReportsFts5($pdo);
-        $pdo->commit();
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            // Audit — never leave the cached PDO connection (static across
+            // requests under a persistent FastCGI worker) mid-transaction:
+            // an unrolled-back transaction here would make every subsequent
+            // beginTransaction() on this worker fatal with "There is already
+            // an active transaction", breaking unrelated requests until the
+            // worker is recycled. Roll back, then re-throw unchanged — the
+            // migration failure must stay loud, not be silently swallowed.
+            $pdo->rollBack();
+            throw $e;
+        }
         error_log('[SST-MIGRATION] reports.site_id is now nullable (no-site mode support).');
     }
 
@@ -191,6 +203,7 @@ function migrateColumns(PDO $pdo): void
         $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
         $pdo->beginTransaction();
+        try {
         // Audit #55 — Drop any leftover reports_new from a previously failed migration.
         $pdo->exec('DROP TABLE IF EXISTS reports_new');
         $pdo->exec($createSql);
@@ -212,7 +225,18 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
         // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
         recreateReportsFts5($pdo);
-        $pdo->commit();
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            // Audit — never leave the cached PDO connection (static across
+            // requests under a persistent FastCGI worker) mid-transaction:
+            // an unrolled-back transaction here would make every subsequent
+            // beginTransaction() on this worker fatal with "There is already
+            // an active transaction", breaking unrelated requests until the
+            // worker is recycled. Roll back, then re-throw unchanged — the
+            // migration failure must stay loud, not be silently swallowed.
+            $pdo->rollBack();
+            throw $e;
+        }
         error_log('[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
     }
 
@@ -290,6 +314,7 @@ function migrateColumns(PDO $pdo): void
         $createSql = 'CREATE TABLE IF NOT EXISTS report_responses_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
         $pdo->beginTransaction();
+        try {
         // Audit #55 — Drop any leftover report_responses_new from a previously failed migration.
         $pdo->exec('DROP TABLE IF EXISTS report_responses_new');
         $pdo->exec($createSql);
@@ -298,7 +323,18 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('ALTER TABLE report_responses_new RENAME TO report_responses');
         // Recreate indexes (SQLite drops them with the table)
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
-        $pdo->commit();
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            // Audit — never leave the cached PDO connection (static across
+            // requests under a persistent FastCGI worker) mid-transaction:
+            // an unrolled-back transaction here would make every subsequent
+            // beginTransaction() on this worker fatal with "There is already
+            // an active transaction", breaking unrelated requests until the
+            // worker is recycled. Roll back, then re-throw unchanged — the
+            // migration failure must stay loud, not be silently swallowed.
+            $pdo->rollBack();
+            throw $e;
+        }
         error_log('[SST-MIGRATION] report_responses.user_id is now nullable (RGPD anonymization support).');
     }
 

@@ -1,0 +1,22 @@
+parameters:
+    # Niveau volontairement bas au démarrage — tests/ n'a jamais été scanné avant
+    # ce soir. L'objectif immédiat n'est pas la rigueur de typage (comme pour
+    # src/ au niveau 8) mais d'attraper les erreurs "existence" qui ont fait
+    # tomber la CI : classe/fonction/méthode inconnue, mauvaise arité d'appel,
+    # variable non définie. Toutes détectées dès le niveau 0-1.
+    # À remonter une fois ce niveau propre (voir TODO.md).
+    level: 1
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    paths:
+        - tests/
+    excludePaths:
+        - vendor/
+    bootstrapFiles:
+        - vendor/autoload.php
+        - phpstan-bootstrap.php
+    scanDirectories:
+        - src/
+        - handlers/
+        - pages/
+        - templates/

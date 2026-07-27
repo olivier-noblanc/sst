@@ -27,7 +27,7 @@ class PHPStanRulesTest extends TestCase
 
             foreach ($blockedConstants as $constant) {
                 // Match constant usage but not in comments, strings, or definitions
-                $pattern = '/(?<!\/\/\s)(?<!\/\*\s)(?<!\*\s)(?<!define\()(?<!define\( )\b' . preg_quote($constant) . '\b/';
+                $pattern = '/(?<!\/\/\s)(?<!\/\*\s)(?<!\*\s)(?<!define\()(?<!define\( )(?<!define\(\')(?<!define\(")\b' . preg_quote($constant) . '\b/';
                 if (preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE)) {
                     foreach ($matches[0] as $match) {
                         $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
@@ -56,7 +56,7 @@ class PHPStanRulesTest extends TestCase
             }
 
             foreach ($blockedConstants as $constant) {
-                $pattern = '/(?<!\/\/\s)(?<!\/\*\s)(?<!\*\s)(?<!define\()(?<!define\( )\b' . preg_quote($constant) . '\b/';
+                $pattern = '/(?<!\/\/\s)(?<!\/\*\s)(?<!\*\s)(?<!define\()(?<!define\( )(?<!define\(\')(?<!define\(")\b' . preg_quote($constant) . '\b/';
                 if (preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE)) {
                     foreach ($matches[0] as $match) {
                         $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
@@ -85,7 +85,7 @@ class PHPStanRulesTest extends TestCase
             }
 
             foreach ($blockedConstants as $constant) {
-                $pattern = '/(?<!\/\/\s)(?<!\/\*\s)(?<!\*\s)(?<!define\()(?<!define\( )\b' . preg_quote($constant) . '\b/';
+                $pattern = '/(?<!\/\/\s)(?<!\/\*\s)(?<!\*\s)(?<!define\()(?<!define\( )(?<!define\(\')(?<!define\(")\b' . preg_quote($constant) . '\b/';
                 if (preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE)) {
                     foreach ($matches[0] as $match) {
                         $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
@@ -128,8 +128,10 @@ class PHPStanRulesTest extends TestCase
                 $relativePath = str_replace(str_replace(['\\', '/'], '/', __DIR__ . '/../../') . '/', '', $relativePath);
 
                 $skip = false;
+                $segments = explode('/', $relativePath);
+                array_pop($segments); // remove filename, keep only directory segments
                 foreach ($excludeDirs as $exc) {
-                    if (str_starts_with($relativePath, $exc . '/') || str_starts_with($relativePath, $exc . '\\')) {
+                    if (in_array($exc, $segments, true)) {
                         $skip = true;
                         break;
                     }

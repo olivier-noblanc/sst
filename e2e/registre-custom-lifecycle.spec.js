@@ -74,7 +74,7 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
     await expect(page.locator('.registry-cards')).toBeVisible();
 
     // La carte VIOL devrait être visible
-    const violDashboardCard = page.locator('.registry-card--violences');
+    const violDashboardCard = page.locator('.registry-card:has-text("VIOL")');
     await expect(violDashboardCard).toBeVisible();
 
     // ═══════════════════════════════════════════════════════════════
@@ -145,7 +145,7 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
 
     // Plus sur le dashboard
     await page.goto('/index.php?page=home');
-    const violDashboardGone = page.locator('.registry-card--violences');
+    const violDashboardGone = page.locator('.registry-card:has-text("VIOL")');
     await expect(violDashboardGone).toHaveCount(0);
 
     // Plus dans le sidebar

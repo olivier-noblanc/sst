@@ -1,5 +1,6 @@
 <?php
 
+use App\Repository\RegistryRepository;
 use App\Services\RegistryCardService;
 
 /** Registry Card Renderer — HTML unifié pour les cartes de registre. */
@@ -20,7 +21,7 @@ function getRegistryIcon(string $type): string
 function renderRegistryCard(array $card, string $extraClass = '', string $extraContent = ''): string
 {
     $colorTheme = (string) ($card['colorTheme'] ?? $card['type']);
-    $themeClasses = \App\Repository\RegistryRepository::themeClasses($colorTheme);
+    $themeClasses = RegistryRepository::themeClasses($colorTheme);
     $cssClass = 'registry-card ' . $themeClasses['registry_card'];
     if ($extraClass !== '') {
         $cssClass .= ' ' . e($extraClass);

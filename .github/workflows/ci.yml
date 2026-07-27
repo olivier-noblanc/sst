@@ -83,7 +83,7 @@ jobs:
         run: php vendor/bin/phparkitect check --config=phparkitect.php
 
       - name: Rector (dry-run)
-        run: php vendor/bin/rector process --dry-run --no-progress-bar --config=rector.php
+        run: php vendor/bin/rector process --dry-run --no-progress-bar --config=rector.php 2>&1 | tee rector-output.txt
 
       - name: Deptrac
         run: php vendor/bin/deptrac analyse --no-progress
@@ -102,7 +102,7 @@ jobs:
           set +e
           {
             echo "### ❌ CI \"quality\" a échoué — commit \`${GITHUB_SHA::8}\`"
-            for f in lint-output.txt phpstan-output.txt phpstan-tests-output.txt phpunit-output.txt; do
+            for f in lint-output.txt phpstan-output.txt phpstan-tests-output.txt phpunit-output.txt rector-output.txt; do
               if [ -s "$f" ]; then
                 echo ""
                 if [ "$f" = "phpunit-output.txt" ] && grep -qE "Premature end|Fatal error" "$f"; then

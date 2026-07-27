@@ -32,7 +32,7 @@ class RegistryCardService
     }
 
     /**
-     * @return list<array{type: string, colorTheme: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
+     * @return list<array{type: string, cardClass: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
      */
     public function buildRegistryCards(): array
     {
@@ -64,9 +64,10 @@ class RegistryCardService
                 $reportCount = $this->reportRepo->countActive($code, $siteIdFilter);
             }
 
+            $colorTheme = $reg['color_theme'] ?? $code;
             $cards[] = [
                 'type'       => $code,
-                'colorTheme' => $reg['color_theme'] ?? $code,
+                'cardClass'  => RegistryRepository::themeClasses($colorTheme)['registry_card'],
                 'title'    => $reg['label'],
                 'subtitle' => $reg['short_label'],
                 'desc'     => $reg['description'] ?? '',

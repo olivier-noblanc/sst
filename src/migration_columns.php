@@ -88,6 +88,21 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
+        // Audit #78 — DROP TABLE reports, a few lines below, needs foreign_keys
+        // OFF. With it ON, SQLite performs an implicit row-by-row DELETE before
+        // dropping the table; report_state_history references reports(uuid)
+        // without ON DELETE CASCADE (unlike report_responses/report_access_log/
+        // report_agents/report_agent_invites, which all have it), so any
+        // database with at least one row in report_state_history fails the
+        // whole rebuild with "FOREIGN KEY constraint failed" — every single
+        // time migrateColumns() runs, forever, since nothing here ever
+        // resolves that row. Toggling the pragma is a no-op inside a
+        // transaction (SQLite requirement), so it must happen outside the
+        // beginTransaction()/commit() below — restored in finally so a
+        // worker's PDO connection never ends up with foreign_keys left OFF.
+        $fkWasEnabled = (bool) $pdo->query('PRAGMA foreign_keys')->fetchColumn();
+        $pdo->exec('PRAGMA foreign_keys = OFF');
+        try {
         $pdo->beginTransaction();
         try {
         // Audit #55 — Drop any leftover reports_new from a previously failed migration.
@@ -125,6 +140,17 @@ function migrateColumns(PDO $pdo): void
             // migration failure must stay loud, not be silently swallowed.
             $pdo->rollBack();
             throw $e;
+        }
+        } finally {
+            $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
+        }
+        // Audit #78 — verify the rebuild didn't leave any dangling reference
+        // (report_state_history and friends) now that enforcement is back ON.
+        // A rebuild that "succeeds" but leaves orphaned FKs is worse than one
+        // that fails loudly.
+        $orphans = $pdo->query('PRAGMA foreign_key_check(reports)')->fetchAll();
+        if (!empty($orphans)) {
+            throw new \RuntimeException('reports rebuild (site_id nullable) left dangling foreign keys: ' . json_encode($orphans));
         }
         error_log('[SST-MIGRATION] reports.site_id is now nullable (no-site mode support).');
     }
@@ -202,6 +228,17 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
+        // Audit #78 — same reasoning as the site_id rebuild above: DROP TABLE
+        // reports with foreign_keys ON fails with "FOREIGN KEY constraint
+        // failed" as soon as any row exists in report_state_history (the one
+        // child table without ON DELETE CASCADE to reports(uuid)). This was
+        // the actual reason this migration never completed on a real
+        // production database — it wasn't a deploy-lag issue, it failed the
+        // same way on every single run. See PR discussion / commit message
+        // for the concrete repro against a production DB export.
+        $fkWasEnabled = (bool) $pdo->query('PRAGMA foreign_keys')->fetchColumn();
+        $pdo->exec('PRAGMA foreign_keys = OFF');
+        try {
         $pdo->beginTransaction();
         try {
         // Audit #55 — Drop any leftover reports_new from a previously failed migration.
@@ -236,6 +273,13 @@ function migrateColumns(PDO $pdo): void
             // migration failure must stay loud, not be silently swallowed.
             $pdo->rollBack();
             throw $e;
+        }
+        } finally {
+            $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
+        }
+        $orphans = $pdo->query('PRAGMA foreign_key_check(reports)')->fetchAll();
+        if (!empty($orphans)) {
+            throw new \RuntimeException('reports rebuild (type CHECK removal) left dangling foreign keys: ' . json_encode($orphans));
         }
         error_log('[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
     }

@@ -35,7 +35,6 @@ class EventListenersTest extends TestCase
 
         require_once __DIR__ . '/../../src/config.php';
         require_once __DIR__ . '/../../src/helpers.php';
-        require_once __DIR__ . '/../../src/database.php';
         require_once __DIR__ . '/../../src/Event/EventDispatcher.php';
         require_once __DIR__ . '/../../src/Event/event_listeners.php';
     }

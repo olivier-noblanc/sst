@@ -30,7 +30,6 @@ class ExportCsvColumnsTest extends TestCase
 
         require_once __DIR__ . '/../../src/config.php';
         require_once __DIR__ . '/../../src/helpers.php';
-        require_once __DIR__ . '/../../src/database.php';
         require_once __DIR__ . '/../../src/Repository/StatsRepository.php';
 
         $pdo = getDB();

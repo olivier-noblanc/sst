@@ -31,7 +31,6 @@ class ReportRespondWorkflowTest extends TestCase
 
         require_once __DIR__ . '/../../src/config.php';
         require_once __DIR__ . '/../../src/helpers.php';
-        require_once __DIR__ . '/../../src/database.php';
         require_once __DIR__ . '/../../src/Enum/ReportState.php';
         require_once __DIR__ . '/../../src/DTO/ReportData.php';
         require_once __DIR__ . '/../../src/Services/SessionService.php';

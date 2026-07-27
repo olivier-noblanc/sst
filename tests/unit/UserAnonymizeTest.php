@@ -32,7 +32,6 @@ class UserAnonymizeTest extends TestCase
 
         require_once __DIR__ . '/../../src/config.php';
         require_once __DIR__ . '/../../src/helpers.php';
-        require_once __DIR__ . '/../../src/database.php';
         require_once __DIR__ . '/../../src/Repository/UserRepository.php';
 
         self::$pdo = getDB();

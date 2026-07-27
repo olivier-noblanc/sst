@@ -5,6 +5,7 @@ use App\DTO\ReportFilter;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
 use App\Enum\ReportState;
+use App\Enum\ReportType;
 
 class DTOTest extends TestCase
 {

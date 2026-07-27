@@ -7,7 +7,7 @@ namespace App\PHPStan;
 use PhpParser\Node;
 use PhpParser\Node\FunctionLike;
 use PHPStan\Analyser\Scope;
-use PHPStan\Rules\RuleError;
+use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
@@ -90,7 +90,7 @@ trait NoMixedArrayTrait
 
     /**
      * @param FunctionLike $node
-     * @return list<RuleError>
+     * @return list<IdentifierRuleError>
      */
     private function checkFunctionLike(Node $node, Scope $scope): array
     {

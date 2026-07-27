@@ -56,7 +56,7 @@ jobs:
             | xargs -0 -n1 php -l) 2>&1 | tee lint-output.txt
 
       - name: PHPStan
-        run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress --error-format=raw 2>&1 | tee phpstan-output.txt
+        run: php vendor/bin/phpstan analyse --memory-limit=1G --no-progress 2>&1 | tee phpstan-output.txt
 
       - name: PHPStan (tests/)
         run: php vendor/bin/phpstan analyse --configuration=phpstan-tests.neon --memory-limit=1G --no-progress 2>&1 | tee phpstan-tests-output.txt
@@ -95,7 +95,7 @@ jobs:
         run: php tools/check_css_classes.php --missing
 
       - name: Report failure as commit comment
-        if: always()
+        if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

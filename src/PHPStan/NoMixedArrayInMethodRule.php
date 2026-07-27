@@ -7,6 +7,7 @@ namespace App\PHPStan;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Analyser\Scope;
+use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 
 /**
@@ -25,6 +26,7 @@ final class NoMixedArrayInMethodRule implements Rule
         return ClassMethod::class;
     }
 
+    /** @return list<IdentifierRuleError> */
     public function processNode(Node $node, Scope $scope): array
     {
         return $this->checkFunctionLike($node, $scope);

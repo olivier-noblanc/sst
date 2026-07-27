@@ -100,7 +100,11 @@ function migrateColumns(PDO $pdo): void
         // transaction (SQLite requirement), so it must happen outside the
         // beginTransaction()/commit() below — restored in finally so a
         // worker's PDO connection never ends up with foreign_keys left OFF.
-        $fkWasEnabled = (bool) $pdo->query('PRAGMA foreign_keys')->fetchColumn();
+        $fkStmt = $pdo->query('PRAGMA foreign_keys');
+        if ($fkStmt === false) {
+            throw new \RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
+        }
+        $fkWasEnabled = (bool) $fkStmt->fetchColumn();
         $pdo->exec('PRAGMA foreign_keys = OFF');
         try {
         $pdo->beginTransaction();
@@ -148,7 +152,11 @@ function migrateColumns(PDO $pdo): void
         // (report_state_history and friends) now that enforcement is back ON.
         // A rebuild that "succeeds" but leaves orphaned FKs is worse than one
         // that fails loudly.
-        $orphans = $pdo->query('PRAGMA foreign_key_check(reports)')->fetchAll();
+        $orphanStmt = $pdo->query('PRAGMA foreign_key_check(reports)');
+        if ($orphanStmt === false) {
+            throw new \RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
+        }
+        $orphans = $orphanStmt->fetchAll();
         if (!empty($orphans)) {
             throw new \RuntimeException('reports rebuild (site_id nullable) left dangling foreign keys: ' . json_encode($orphans));
         }
@@ -236,7 +244,11 @@ function migrateColumns(PDO $pdo): void
         // production database — it wasn't a deploy-lag issue, it failed the
         // same way on every single run. See PR discussion / commit message
         // for the concrete repro against a production DB export.
-        $fkWasEnabled = (bool) $pdo->query('PRAGMA foreign_keys')->fetchColumn();
+        $fkStmt = $pdo->query('PRAGMA foreign_keys');
+        if ($fkStmt === false) {
+            throw new \RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
+        }
+        $fkWasEnabled = (bool) $fkStmt->fetchColumn();
         $pdo->exec('PRAGMA foreign_keys = OFF');
         try {
         $pdo->beginTransaction();
@@ -277,7 +289,11 @@ function migrateColumns(PDO $pdo): void
         } finally {
             $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
         }
-        $orphans = $pdo->query('PRAGMA foreign_key_check(reports)')->fetchAll();
+        $orphanStmt = $pdo->query('PRAGMA foreign_key_check(reports)');
+        if ($orphanStmt === false) {
+            throw new \RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
+        }
+        $orphans = $orphanStmt->fetchAll();
         if (!empty($orphans)) {
             throw new \RuntimeException('reports rebuild (type CHECK removal) left dangling foreign keys: ' . json_encode($orphans));
         }

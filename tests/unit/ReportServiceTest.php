@@ -18,6 +18,7 @@ use App\DTO\CreateReportCommand;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
 use App\Enum\ReportState;
+use App\Enum\ReportType;
 
 class ReportServiceTest extends TestCase
 {

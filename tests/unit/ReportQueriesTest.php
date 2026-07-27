@@ -103,12 +103,12 @@ class ReportQueriesTest extends TestCase
 
     public function testGetReportByUuidReturnsNullForInvalidUuid(): void
     {
-        $this->assertNull(getReportByUuid(self::$pdo, 'not-a-uuid'));
+        $this->assertNull(self::$reports->findById('not-a-uuid'));
     }
 
     public function testGetReportByUuidReturnsNullForNonexistentUuid(): void
     {
-        $this->assertNull(getReportByUuid(self::$pdo, '00000000-0000-0000-0000-000000000000'));
+        $this->assertNull(self::$reports->findById('00000000-0000-0000-0000-000000000000'));
     }
 
     // ─── update() ──────────────────────────────────────────────────────────

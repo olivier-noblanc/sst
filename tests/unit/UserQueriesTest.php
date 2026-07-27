@@ -86,7 +86,7 @@ class UserQueriesTest extends TestCase
 
     public function testGetUserByIdReturnsNullForNonexistent(): void
     {
-        $user = getUserById($this->pdo, 99999);
+        $user = $this->users->findById(99999);
         $this->assertNull($user);
     }
 
@@ -199,8 +199,22 @@ class UserQueriesTest extends TestCase
 
     public function testUpdateUserRole(): void
     {
+        // Audit #80 — UserRepository::updateRole() never existed; the real
+        // production flow (handlers/user_edit_handler.php) always goes
+        // through the full update() with every field, never a role-only
+        // shortcut. This test called a method that doesn't exist — caught
+        // by phpstan-tests.neon level 2, invisible at level 1.
         $id = $this->users->create(['username' => 'promo', 'nom' => 'Promo', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        $result = $this->users->updateRole($id, 'superviseur');
+        $user = $this->users->findById($id);
+        $this->assertNotNull($user);
+        $result = $this->users->update($id, [
+            'nom' => $user['nom'],
+            'prenom' => $user['prenom'],
+            'email' => $user['email'],
+            'username' => $user['username'],
+            'role' => 'superviseur',
+            'site_id' => $user['site_id'],
+        ]);
         $this->assertTrue($result);
         $user = $this->users->findById($id);
         $this->assertEquals('superviseur', $user['role']);

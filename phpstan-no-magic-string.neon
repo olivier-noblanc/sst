@@ -24,6 +24,14 @@ services:
         tags:
             - phpstan.rules.rule
     -
-        class: App\PHPStan\NoMixedArrayRule
+        class: App\PHPStan\NoMixedArrayInMethodRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: App\PHPStan\NoMixedArrayInFunctionRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: App\PHPStan\NoMixedArrayInClosureRule
         tags:
             - phpstan.rules.rule

@@ -7,42 +7,28 @@ namespace App\PHPStan;
 use PhpParser\Node;
 use PhpParser\Node\FunctionLike;
 use PHPStan\Analyser\Scope;
-use PHPStan\Rules\Rule;
+use PHPStan\Rules\RuleError;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Bloque l'utilisation de `array<..., mixed>` dans les @param/@return du code
- * de production.
+ * Logique partagée par NoMixedArrayInMethodRule / NoMixedArrayInFunctionRule /
+ * NoMixedArrayInClosureRule.
  *
- * `mixed` est un type-attrape-tout qui désactive la vérification de type
- * pour toutes les valeurs du tableau. C'est la cause racine de nombreux bugs :
- * accès à des clés inexistantes, valeurs de type inattendu, impossibilité de
- * refactorer sans casser des contrats implicites.
- *
- * Alternative : utiliser un DTO typé, ou au minimum `array<string, string>`,
- * `array<string, int>`, `array<string, mixed>` uniquement dans les couches
- * d'I/O (PDO fetch, $_POST, $_SESSION) qui sont whitelistées.
- *
- * Audit #80 — v1 de cette règle ciblait Param::getDocComment(), qui n'est
- * renseigné que pour un commentaire collé directement devant CE paramètre
- * dans la signature (style que ce projet n'utilise nulle part). Les vrais
- * @param/@return vivent dans le docblock de la méthode/fonction elle-même.
- * Résultat : la règle ne s'est jamais déclenchée une seule fois, y compris
- * sur des cas non whitelistés (src/DTO/CreateReportCommand.php,
- * src/DTO/ReportFilter.php) — le CI est passé vert sur du code qu'elle est
- * censée interdire. Cette version cible FunctionLike (ClassMethod, Function_,
- * Closure, ArrowFunction) et lit son propre docblock, en distinguant @param
- * et @return. Ne couvre pas encore les @var locaux en cours de méthode
- * (ex. RegistryRepository.php) — hors périmètre de cette passe.
- *
- * @implements Rule<FunctionLike>
+ * Audit #80 — la v1 (une seule classe NoMixedArrayRule ciblant
+ * Node\Param) ne s'est jamais déclenchée : Param::getDocComment() n'est
+ * renseigné que pour un commentaire collé devant CE paramètre précis dans
+ * la signature, pas pour le docblock de la méthode. La v2 (une seule classe
+ * ciblant l'interface Node\FunctionLike) ne s'est pas déclenchée non plus —
+ * empiriquement confirmé en CI (commit ad979d4, vert sur des violations
+ * connues de src/DTO/) : le dispatch de règles de PHPStan ne matche pas de
+ * façon fiable sur une interface passée à getNodeType(), seulement sur des
+ * classes concrètes. D'où 3 petites classes concrètes (ClassMethod,
+ * Function_, Closure/ArrowFunction) partageant cette même logique, à
+ * l'image de comment PHPStan structure ses propres règles "toutes les
+ * déclarations de fonction".
  */
-final class NoMixedArrayRule implements Rule
+trait NoMixedArrayTrait
 {
-    // Pas de @var ici : sur un `private const = [litéral]`, PHPStan infère
-    // déjà le type le plus précis possible depuis le littéral lui-même —
-    // un @var list<string> ne fait que le réélargir sans rien vérifier de
-    // plus.
     private const WHITELIST_PATHS = [
         '/PHPStan/',
         '/Rector/',
@@ -102,12 +88,11 @@ final class NoMixedArrayRule implements Rule
 
     private const MIXED_ARRAY_TAG_PATTERN = '/@(param|return)\b[^\n]*\barray<[^>\n]*\bmixed\b[^>\n]*>[^\n]*/i';
 
-    public function getNodeType(): string
-    {
-        return FunctionLike::class;
-    }
-
-    public function processNode(Node $node, Scope $scope): array
+    /**
+     * @param FunctionLike $node
+     * @return list<RuleError>
+     */
+    private function checkFunctionLike(Node $node, Scope $scope): array
     {
         $file = str_replace('\\', '/', $scope->getFile());
 

@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace App\PHPStan;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr\ArrayItem;
-use PhpParser\Node\Stmt\Property;
-use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Param;
+use PhpParser\Node\FunctionLike;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Bloque l'utilisation de `array<string, mixed>` dans le code de production.
+ * Bloque l'utilisation de `array<..., mixed>` dans les @param/@return du code
+ * de production.
  *
  * `mixed` est un type-attrape-tout qui désactive la vérification de type
  * pour toutes les valeurs du tableau. C'est la cause racine de nombreux bugs :
@@ -25,11 +23,26 @@ use PHPStan\Rules\RuleErrorBuilder;
  * `array<string, int>`, `array<string, mixed>` uniquement dans les couches
  * d'I/O (PDO fetch, $_POST, $_SESSION) qui sont whitelistées.
  *
- * @implements Rule<Param>
+ * Audit #80 — v1 de cette règle ciblait Param::getDocComment(), qui n'est
+ * renseigné que pour un commentaire collé directement devant CE paramètre
+ * dans la signature (style que ce projet n'utilise nulle part). Les vrais
+ * @param/@return vivent dans le docblock de la méthode/fonction elle-même.
+ * Résultat : la règle ne s'est jamais déclenchée une seule fois, y compris
+ * sur des cas non whitelistés (src/DTO/CreateReportCommand.php,
+ * src/DTO/ReportFilter.php) — le CI est passé vert sur du code qu'elle est
+ * censée interdire. Cette version cible FunctionLike (ClassMethod, Function_,
+ * Closure, ArrowFunction) et lit son propre docblock, en distinguant @param
+ * et @return. Ne couvre pas encore les @var locaux en cours de méthode
+ * (ex. RegistryRepository.php) — hors périmètre de cette passe.
+ *
+ * @implements Rule<FunctionLike>
  */
 final class NoMixedArrayRule implements Rule
 {
-    /** @var list<string> Chemins whitelistés — mixed est acceptable ici */
+    // Pas de @var ici : sur un `private const = [litéral]`, PHPStan infère
+    // déjà le type le plus précis possible depuis le littéral lui-même —
+    // un @var list<string> ne fait que le réélargir sans rien vérifier de
+    // plus.
     private const WHITELIST_PATHS = [
         '/PHPStan/',
         '/Rector/',
@@ -40,7 +53,6 @@ final class NoMixedArrayRule implements Rule
         '/seed/',
     ];
 
-    /** @var list<string> Fichiers spécifiques whitelistés (I/O boundaries) */
     private const WHITELIST_FILES = [
         'src/database.php',           // PDO fetch
         'src/audit.php',              // audit log context
@@ -88,52 +100,54 @@ final class NoMixedArrayRule implements Rule
         'src/Middleware/require_role.php',
     ];
 
+    private const MIXED_ARRAY_TAG_PATTERN = '/@(param|return)\b[^\n]*\barray<[^>\n]*\bmixed\b[^>\n]*>[^\n]*/i';
+
     public function getNodeType(): string
     {
-        return Param::class;
+        return FunctionLike::class;
     }
 
     public function processNode(Node $node, Scope $scope): array
     {
         $file = str_replace('\\', '/', $scope->getFile());
 
-        // Whitelist by path
         foreach (self::WHITELIST_PATHS as $path) {
             if (str_contains($file, $path)) {
                 return [];
             }
         }
 
-        // Whitelist by specific file
         foreach (self::WHITELIST_FILES as $wf) {
             if (str_contains($file, $wf)) {
                 return [];
             }
         }
 
-        // Check the param type for array<string, mixed>
-        $typeNode = $node->type;
-        if ($typeNode === null) {
+        $docComment = $node->getDocComment();
+        if ($docComment === null) {
             return [];
         }
 
-        // Get the PHPDoc type string
-        $docComment = $node->getDocComment();
-        if ($docComment !== null) {
-            $docText = $docComment->getText();
-            if (preg_match('/array<[^>]*mixed[^>]*>/i', $docText)) {
-                return [
-                    RuleErrorBuilder::message(
-                        'Type array<string, mixed> interdit — utiliser un DTO typé ou un array avec type de valeur précis '
-                        . '(array<string, string>, array<string, int>, etc.). '
-                        . 'mixed désactive la vérification de type et est la cause racine de nombreux bugs.'
-                    )
-                        ->identifier('app.noMixedArray')
-                        ->build(),
-                ];
-            }
+        $docText = $docComment->getText();
+        if (!preg_match_all(self::MIXED_ARRAY_TAG_PATTERN, $docText, $matches, PREG_OFFSET_CAPTURE)) {
+            return [];
         }
 
-        return [];
+        $errors = [];
+        foreach ($matches[0] as $i => [, $offset]) {
+            $tag = strtolower((string) $matches[1][$i][0]);
+            $line = $docComment->getStartLine() + substr_count(substr($docText, 0, (int) $offset), "\n");
+            $errors[] = RuleErrorBuilder::message(sprintf(
+                'Type array<..., mixed> interdit dans un tag @%s — utiliser un DTO typé ou un array avec type de '
+                . 'valeur précis (array<string, string>, array<string, int>, etc.). mixed désactive la vérification '
+                . 'de type et est la cause racine de nombreux bugs.',
+                $tag
+            ))
+                ->identifier('app.noMixedArray')
+                ->line($line)
+                ->build();
+        }
+
+        return $errors;
     }
 }

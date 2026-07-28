@@ -19,7 +19,7 @@ $session = SessionService::getInstance();
  * Handle the 'app' tab of settings.
  *
  * @param PDO   $pdo       Database connection
- * @param array<string, mixed> $postData  The $_POST data
+ * @param array<string, string> $postData  The $_POST data
  */
 function handleSettingsAppTab(PDO $pdo, array $postData): void
 {

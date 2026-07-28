@@ -404,7 +404,7 @@ class UserRepository
      * (always true since mixed includes null but the comparison is type-unsafe).
      * This helper centralizes the normalization with proper type checks.
      *
-     * @param mixed $value
+     * @param string|int|null $value
      */
     private function normalizeTimestamp($value): ?string
     {

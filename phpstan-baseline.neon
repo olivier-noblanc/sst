@@ -1,33 +1,9 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: handlers/settings_handler_app.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: handlers/settings_handler_registres.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: handlers/settings_handler_sites.php
-
-		-
 			message: '#^Property SSTPDF\:\:\$footerOrgName is never read$#'
 			identifier: shipmonk.deadProperty.neverRead
 			count: 1
-			path: pages/report_print_helpers.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 2
 			path: pages/report_print_helpers.php
 
 		-
@@ -129,18 +105,6 @@ parameters:
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 1
-			path: src/Query/QueryFilterBuilder.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: src/Query/QueryFilterBuilder.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
 			count: 2
 			path: src/Repository/AuditRepository.php
 
@@ -167,8 +131,6 @@ parameters:
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Repository/RegistryFieldRepository.php
-
-
 
 		-
 			message: '#^Unused App\\Repository\\RegistryRepository\:\:toggleEnabled$#'
@@ -213,15 +175,9 @@ parameters:
 			path: src/Repository/StatsRepository.php
 
 		-
-			message: '#^Method App\\Repository\\UserRepository\:\:exportData\(\) should return array\{user\: array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\}, reports_count\: int, reports\: list<array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string\|null, lieu\: string\|null, \.\.\.\}>, responses_count\: int, responses\: list<array\{report_uuid\: string, reponse\: string\|null, nouvel_etat\: string\|null, created_at\: string\}>\} but returns array\{user\: array\{\}, reports_count\: 0, reports\: array\{\}, responses_count\: 0, responses\: array\{\}\}\.$#'
+			message: '#^Method App\\Repository\\UserRepository\:\:exportData\(\) should return array\{user\: array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\}, reports_count\: int, reports\: list\<array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string\|null, lieu\: string\|null, \.\.\.\}\>, responses_count\: int, responses\: list\<array\{report_uuid\: string, reponse\: string\|null, nouvel_etat\: string\|null, created_at\: string\}\>\} but returns array\{user\: array\{\}, reports_count\: 0, reports\: array\{\}, responses_count\: 0, responses\: array\{\}\}\.$#'
 			identifier: return.type
 			count: 1
-			path: src/Repository/UserRepository.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 2
 			path: src/Repository/UserRepository.php
 
 		-
@@ -233,7 +189,7 @@ parameters:
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 6
+			count: 4
 			path: src/Services/AccessService.php
 
 		-
@@ -241,24 +197,6 @@ parameters:
 			identifier: app.noMixedArray
 			count: 1
 			path: src/Services/AccessService.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 2
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 5
-			path: src/Services/AuthService.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 3
-			path: src/Services/AuthService.php
 
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
@@ -291,12 +229,6 @@ parameters:
 			path: src/Services/NotificationService.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: src/Services/ReportService.php
-
-		-
 			message: '#^Unused App\\Services\\ReportService\:\:findById$#'
 			identifier: shipmonk.deadMethod
 			count: 1
@@ -305,13 +237,13 @@ parameters:
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 2
+			count: 1
 			path: src/Services/SessionManager.php
 
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 2
+			count: 1
 			path: src/Services/SessionManager.php
 
 		-
@@ -419,37 +351,31 @@ parameters:
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 2
+			count: 1
 			path: src/Services/SessionService.php
 
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 2
+			count: 1
 			path: src/Services/SessionService.php
 
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 2
+			count: 1
 			path: src/Services/SessionService.php
 
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 2
+			count: 1
 			path: src/Services/UserService.php
 
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 4
-			path: src/Services/UserService.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 4
+			count: 1
 			path: src/Services/UserService.php
 
 		-

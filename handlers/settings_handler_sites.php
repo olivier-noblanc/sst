@@ -14,7 +14,7 @@ use App\Repository\SiteRepository;
  * Handle the 'manage_sites' tab of settings.
  *
  * @param PDO   $pdo       Database connection
- * @param array<string, mixed> $postData  The $_POST data
+ * @param array<string, string> $postData  The $_POST data
  */
 function handleSettingsManageSitesTab(PDO $pdo, array $postData): void
 {

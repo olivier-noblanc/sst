@@ -249,7 +249,7 @@ function drawEmbeddedImage(SSTPDF $pdf, ?string $attachmentMime, ?string $attach
 
 /**
  * Draw response history table with auto page-break and repeated headers.
- * @param list<array<string, mixed>> $responses
+ * @param list<array<string, string|int|null>> $responses
  * @param array{int, int, int} $blueDark
  */
 function drawResponseTable(SSTPDF $pdf, array $responses, array $blueDark): void

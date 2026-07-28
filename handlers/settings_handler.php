@@ -122,7 +122,7 @@ if ($tab === 'registres') {
 
 if ($tab === 'wordcloud') {
     $registryCode = trim((string) ($_POST['registry_code'] ?? ''));
-    /** @var array<int, mixed> $rawWords */
+    /** @var list<array{word: string, weight: int}> $rawWords */
     $rawWords = is_array($_POST['words'] ?? null) ? $_POST['words'] : [];
     $cleanWords = [];
     if (!empty($rawWords)) {

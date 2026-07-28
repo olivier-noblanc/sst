@@ -17,7 +17,7 @@ use App\Enum\VisibilityMode;
  * Handle the 'registres' settings tab.
  *
  * @param PDO    $pdo      Database connection
- * @param array<string, mixed> $postData POST data
+ * @param array<string, string> $postData POST data
  */
 function handleSettingsRegistresTab(PDO $pdo, array $postData): void
 {
@@ -145,7 +145,7 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
     }
 
     // ── Save all registres ────────────────────────────────────────────────
-    /** @var array<int, array<string, mixed>> $registres */
+    /** @var list<array<string, string|int|bool|null>> $registres */
     $registres = is_array($postData['registres'] ?? null) ? $postData['registres'] : [];
 
     foreach ($registres as $regId => $data) {

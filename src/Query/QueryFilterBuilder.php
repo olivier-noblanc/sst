@@ -7,7 +7,7 @@ namespace App\Query;
 class QueryFilterBuilder
 {
     private string $where = '1=1';
-    /** @var array<string, mixed> */
+    /** @var array<string, string|int|null> */
     private array $params = [];
     private int $paramIndex = 0;
 
@@ -22,7 +22,7 @@ class QueryFilterBuilder
         return $this;
     }
 
-    /** @param array<string, mixed> $params */
+    /** @param array<string, string|int|null> $params */
     public function addRaw(string $sqlFragment, array $params = []): self
     {
         $this->where .= " AND $sqlFragment";
@@ -30,7 +30,7 @@ class QueryFilterBuilder
         return $this;
     }
 
-    /** @return array{where: string, params: array<string, mixed>} */
+    /** @return array{where: string, params: array<string, string|int|null>} */
     public function build(): array
     {
         return ['where' => $this->where, 'params' => $this->params];

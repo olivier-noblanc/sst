@@ -23,24 +23,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Lint + PHPStan + PHPUnit + PHPArkitect + Rector + Deptrac
+  lint-phpstan:
+    name: Lint + PHPStan
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
       contents: write
     defaults:
       run:
-        # Audit #81 — every failure-detecting step here pipes into `tee` for
-        # the commit-comment mechanism (cmd 2>&1 | tee file). Without
-        # pipefail, bash's pipeline exit status is that of the LAST command
-        # (tee, which almost never fails) — not cmd's. Confirmed empirically:
-        # the PHPStan step reported "success" on a run whose own
-        # phpstan-output.txt read "[ERROR] Found 96 errors". set -e alone
-        # does not fix this — it only aborts on a pipeline's own exit status,
-        # which was already the (wrong) success from tee. Explicit here
-        # rather than relying on the runner's default shell flags, which
-        # turned out not to behave as assumed.
+        # Audit #81 — voir commit e29d2e3 : sans pipefail explicite,
+        # `cmd | tee fichier` remonte le exit code de tee (~toujours 0),
+        # pas celui de cmd. Répété sur chaque job depuis le split (Audit
+        # #84) — ce n'est pas hérité automatiquement d'un job à l'autre.
         shell: bash --noprofile --norc -eo pipefail {0}
     steps:
       - uses: actions/checkout@v4
@@ -74,6 +68,72 @@ jobs:
       - name: PHPStan (tests/)
         run: php vendor/bin/phpstan analyse --configuration=phpstan-tests.neon --memory-limit=1G --no-progress 2>&1 | tee phpstan-tests-output.txt
 
+      - name: Report failure as commit comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          {
+            echo "### ❌ CI \"Lint + PHPStan\" a échoué — commit \`${GITHUB_SHA::8}\`"
+            for f in lint-output.txt phpstan-output.txt phpstan-tests-output.txt; do
+              if [ -s "$f" ]; then
+                echo ""
+                echo "<details><summary>$f (dernières 200 lignes)</summary>"
+                echo ""
+                echo '```'
+                tail -n 200 "$f"
+                echo '```'
+                echo "</details>"
+              fi
+            done
+            echo ""
+            echo "[Run complet]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > /tmp/comment_body.md
+
+          python3 -c "
+          import json
+          body = open('/tmp/comment_body.md').read()
+          if len(body) > 65000:
+              body = body[:65000] + '\n\n...(tronqué)'
+          print(json.dumps({'body': body}))
+          " > /tmp/comment_payload.json
+
+          curl -s -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -d @/tmp/comment_payload.json
+
+  phpunit:
+    name: PHPUnit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash --noprofile --norc -eo pipefail {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php85-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
       - name: PHPUnit
         run: php vendor/bin/phpunit --no-coverage --debug 2>&1 | tee phpunit-output.txt
 
@@ -92,20 +152,95 @@ jobs:
             echo "::notice::FTS5 malformed: 0 occurrences this run."
           fi
 
+      - name: Report failure as commit comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          {
+            echo "### ❌ CI \"PHPUnit\" a échoué — commit \`${GITHUB_SHA::8}\`"
+            f=phpunit-output.txt
+            if [ -s "$f" ]; then
+              echo ""
+              if grep -qE "Premature end|PHP Fatal error" "$f"; then
+                echo "<details><summary>$f — contexte autour du crash (200 lignes avant/après)</summary>"
+                echo ""
+                echo '```'
+                # Audit #82 — voir commit historique : ancrer sur "PHP Fatal
+                # error" (marqueur réel) et prendre la DERNIÈRE occurrence,
+                # pas la première (qui peut matcher du texte de CHANGELOG.md
+                # cité dans un test, loin du vrai crash).
+                CRASH_LINE=$(grep -nE "Premature end|PHP Fatal error" "$f" | tail -1 | cut -d: -f1)
+                START=$((CRASH_LINE - 200)); [ $START -lt 1 ] && START=1
+                END=$((CRASH_LINE + 30))
+                sed -n "${START},${END}p" "$f"
+                echo '```'
+                echo "</details>"
+                echo ""
+              fi
+              echo "<details><summary>$f (dernières 150 lignes — résumé)</summary>"
+              echo ""
+              echo '```'
+              tail -n 150 "$f"
+              echo '```'
+              echo "</details>"
+            fi
+            echo ""
+            echo "[Run complet]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > /tmp/comment_body.md
+
+          python3 -c "
+          import json
+          body = open('/tmp/comment_body.md').read()
+          if len(body) > 65000:
+              body = body[:65000] + '\n\n...(tronqué)'
+          print(json.dumps({'body': body}))
+          " > /tmp/comment_payload.json
+
+          curl -s -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -d @/tmp/comment_payload.json
+
+  static-analysis:
+    name: PHPArkitect + Rector + Deptrac
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash --noprofile --norc -eo pipefail {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php85-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
       - name: PHPArkitect
-        run: php vendor/bin/phparkitect check --config=phparkitect.php
+        run: php vendor/bin/phparkitect check --config=phparkitect.php 2>&1 | tee phparkitect-output.txt
 
       - name: Rector (dry-run)
         run: php vendor/bin/rector process --dry-run --no-progress-bar --config=rector.php 2>&1 | tee rector-output.txt
 
       - name: Deptrac
-        run: php vendor/bin/deptrac analyse --no-progress
-
-      - name: Check inline styles (CSP compliance)
-        run: php tools/check_inline_styles.php
-
-      - name: Check CSS classes (no undefined classes)
-        run: php tools/check_css_classes.php --missing
+        run: php vendor/bin/deptrac analyse --no-progress 2>&1 | tee deptrac-output.txt
 
       - name: Report failure as commit comment
         if: failure()
@@ -114,47 +249,88 @@ jobs:
         run: |
           set +e
           {
-            echo "### ❌ CI \"quality\" a échoué — commit \`${GITHUB_SHA::8}\`"
-            for f in lint-output.txt phpstan-output.txt phpstan-tests-output.txt phpunit-output.txt rector-output.txt; do
+            echo "### ❌ CI \"PHPArkitect + Rector + Deptrac\" a échoué — commit \`${GITHUB_SHA::8}\`"
+            for f in phparkitect-output.txt rector-output.txt deptrac-output.txt; do
               if [ -s "$f" ]; then
                 echo ""
-                if [ "$f" = "phpunit-output.txt" ] && grep -qE "Premature end|PHP Fatal error" "$f"; then
-                  echo "<details><summary>$f — contexte autour du crash (200 lignes avant/après)</summary>"
-                  echo ""
-                  echo '```'
-                  # Audit #82 — head -1 on a bare "Fatal error" grep can match
-                  # CHANGELOG.md text quoted inside a test's own output (not a
-                  # real crash), truncating the extraction window long before
-                  # the actual PHPUnit summary further down. Anchor on the
-                  # more specific "PHP Fatal error" (the real crash marker)
-                  # and prefer the LAST occurrence — closer to where the
-                  # process actually died.
-                  CRASH_LINE=$(grep -nE "Premature end|PHP Fatal error" "$f" | tail -1 | cut -d: -f1)
-                  START=$((CRASH_LINE - 200)); [ $START -lt 1 ] && START=1
-                  END=$((CRASH_LINE + 30))
-                  sed -n "${START},${END}p" "$f"
-                  echo '```'
-                  echo "</details>"
-                  echo ""
-                fi
-                # Audit #82 — always show the tail too: that's where PHPUnit's
-                # own summary (OK / FAILURES! / Tests: N, Assertions: N) lives,
-                # regardless of whether a crash pattern was found above.
-                if [ "$f" = "phpunit-output.txt" ]; then
-                  echo "<details><summary>$f (dernières 150 lignes — résumé)</summary>"
-                  echo ""
-                  echo '```'
-                  tail -n 150 "$f"
-                  echo '```'
-                  echo "</details>"
-                else
-                  echo "<details><summary>$f (dernières 200 lignes)</summary>"
-                  echo ""
-                  echo '```'
-                  tail -n 200 "$f"
-                  echo '```'
-                  echo "</details>"
-                fi
+                echo "<details><summary>$f (dernières 200 lignes)</summary>"
+                echo ""
+                echo '```'
+                tail -n 200 "$f"
+                echo '```'
+                echo "</details>"
+              fi
+            done
+            echo ""
+            echo "[Run complet]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > /tmp/comment_body.md
+
+          python3 -c "
+          import json
+          body = open('/tmp/comment_body.md').read()
+          if len(body) > 65000:
+              body = body[:65000] + '\n\n...(tronqué)'
+          print(json.dumps({'body': body}))
+          " > /tmp/comment_payload.json
+
+          curl -s -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -d @/tmp/comment_payload.json
+
+  csp-checks:
+    name: CSP compliance (inline styles + CSS classes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash --noprofile --norc -eo pipefail {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php85-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Check inline styles (CSP compliance)
+        run: php tools/check_inline_styles.php 2>&1 | tee inline-styles-output.txt
+
+      - name: Check CSS classes (no undefined classes)
+        run: php tools/check_css_classes.php --missing 2>&1 | tee css-classes-output.txt
+
+      - name: Report failure as commit comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          {
+            echo "### ❌ CI \"CSP compliance\" a échoué — commit \`${GITHUB_SHA::8}\`"
+            for f in inline-styles-output.txt css-classes-output.txt; do
+              if [ -s "$f" ]; then
+                echo ""
+                echo "<details><summary>$f (dernières 200 lignes)</summary>"
+                echo ""
+                echo '```'
+                tail -n 200 "$f"
+                echo '```'
+                echo "</details>"
               fi
             done
             echo ""

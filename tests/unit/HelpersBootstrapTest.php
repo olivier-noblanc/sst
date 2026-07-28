@@ -26,6 +26,9 @@ class HelpersBootstrapTest extends TestCase
     private const WHITELIST = [
         // Add entries here for files intentionally excluded from helpers.php.
         // Each entry MUST have a comment explaining why.
+        'uuid.php', // Audit #85 — pure, dependency-free (no DB), loaded from
+                    // src/autoload.php instead (required by public/index.php,
+                    // just as reliably always-loaded on every real request).
     ];
 
     protected function setUp(): void

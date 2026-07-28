@@ -102,7 +102,7 @@ function migrateColumns(PDO $pdo): void
         // worker's PDO connection never ends up with foreign_keys left OFF.
         $fkStmt = $pdo->query('PRAGMA foreign_keys');
         if ($fkStmt === false) {
-            throw new \RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
+            throw new RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
         }
         $fkWasEnabled = (bool) $fkStmt->fetchColumn();
         $pdo->exec('PRAGMA foreign_keys = OFF');
@@ -134,7 +134,7 @@ function migrateColumns(PDO $pdo): void
         // reports would not be reflected in reports_fts → full-text search broken.
         recreateReportsFts5($pdo);
             $pdo->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Audit — never leave the cached PDO connection (static across
             // requests under a persistent FastCGI worker) mid-transaction:
             // an unrolled-back transaction here would make every subsequent
@@ -154,11 +154,11 @@ function migrateColumns(PDO $pdo): void
         // that fails loudly.
         $orphanStmt = $pdo->query('PRAGMA foreign_key_check(reports)');
         if ($orphanStmt === false) {
-            throw new \RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
+            throw new RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
         }
         $orphans = $orphanStmt->fetchAll();
         if (!empty($orphans)) {
-            throw new \RuntimeException('reports rebuild (site_id nullable) left dangling foreign keys: ' . json_encode($orphans));
+            throw new RuntimeException('reports rebuild (site_id nullable) left dangling foreign keys: ' . json_encode($orphans));
         }
         error_log('[SST-MIGRATION] reports.site_id is now nullable (no-site mode support).');
     }
@@ -246,7 +246,7 @@ function migrateColumns(PDO $pdo): void
         // for the concrete repro against a production DB export.
         $fkStmt = $pdo->query('PRAGMA foreign_keys');
         if ($fkStmt === false) {
-            throw new \RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
+            throw new RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
         }
         $fkWasEnabled = (bool) $fkStmt->fetchColumn();
         $pdo->exec('PRAGMA foreign_keys = OFF');
@@ -275,7 +275,7 @@ function migrateColumns(PDO $pdo): void
         // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
         recreateReportsFts5($pdo);
             $pdo->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Audit — never leave the cached PDO connection (static across
             // requests under a persistent FastCGI worker) mid-transaction:
             // an unrolled-back transaction here would make every subsequent
@@ -291,11 +291,11 @@ function migrateColumns(PDO $pdo): void
         }
         $orphanStmt = $pdo->query('PRAGMA foreign_key_check(reports)');
         if ($orphanStmt === false) {
-            throw new \RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
+            throw new RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
         }
         $orphans = $orphanStmt->fetchAll();
         if (!empty($orphans)) {
-            throw new \RuntimeException('reports rebuild (type CHECK removal) left dangling foreign keys: ' . json_encode($orphans));
+            throw new RuntimeException('reports rebuild (type CHECK removal) left dangling foreign keys: ' . json_encode($orphans));
         }
         error_log('[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
     }
@@ -384,7 +384,7 @@ function migrateColumns(PDO $pdo): void
         // Recreate indexes (SQLite drops them with the table)
         $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
             $pdo->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Audit — never leave the cached PDO connection (static across
             // requests under a persistent FastCGI worker) mid-transaction:
             // an unrolled-back transaction here would make every subsequent

@@ -25,49 +25,51 @@ class RegistryRepository
         return $instance;
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}> */
     public function findAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM registries ORDER BY sort_order ASC, code ASC');
         if ($stmt === false) {
             return [];
         }
-        /** @var list<array<string, mixed>> $rows */
+        /** @var list<array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}> $rows */
         $rows = $stmt->fetchAll();
         return $rows;
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}> */
     public function findEnabled(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM registries WHERE is_enabled = 1 ORDER BY sort_order ASC, code ASC');
         if ($stmt === false) {
             return [];
         }
-        /** @var list<array<string, mixed>> $rows */
+        /** @var list<array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}> $rows */
         $rows = $stmt->fetchAll();
         return $rows;
     }
 
-    /** @return array<string, mixed>|null */
+    /** @return array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}|null */
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM registries WHERE id = :id');
         $stmt->execute([':id' => $id]);
+        /** @var array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}|null $row */
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
     }
 
-    /** @return array<string, mixed>|null */
+    /** @return array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}|null */
     public function findByCode(string $code): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM registries WHERE code = :code');
         $stmt->execute([':code' => $code]);
+        /** @var array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}|null $row */
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param array{code: string, label: string, short_label: string, description?: string, icon?: string, color_theme?: string, is_enabled?: int, is_system?: int, sort_order?: int, default_visibility?: string, notify_chsct?: int, legal_note?: string} $data */
     public function create(array $data): int
     {
         $stmt = $this->pdo->prepare('
@@ -93,7 +95,7 @@ class RegistryRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param array{label?: string, short_label?: string, description?: string, icon?: string, color_theme?: string, is_enabled?: int, is_system?: int, sort_order?: int, default_visibility?: string, notify_chsct?: int, legal_note?: string} $data */
     public function update(int $id, array $data): bool
     {
         $sets = [];

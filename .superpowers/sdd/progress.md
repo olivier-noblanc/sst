@@ -13,13 +13,13 @@
 | 7. Fix RespondToReportCommand | DONE | 99f2f3a | batched with Tasks 3-9 | |
 | 8. Fix UpdateReportCommand | DONE | 99f2f3a | batched with Tasks 3-9 | |
 | 9. Fix UpdateUserCommand | DONE | 99f2f3a | batched with Tasks 3-9 | |
-| 10. Fix AuditRepository | pending | | |
-| 11. Fix NotificationRepository | pending | | |
-| 12. Fix RegistryFieldRepository | pending | | |
+| 10. Fix AuditRepository | DONE (partial - log() kept) | 17a0a4f | batched with 11,15,16 | |
+| 11. Fix NotificationRepository | DONE | 17a0a4f | batched with 10,15,16 | |
+| 12. Fix RegistryFieldRepository | DONE | 17a0a4f | batched with 10,11,15,16 | |
 | 13. Fix RegistryRepository | pending | | |
 | 14. Fix ReportRepository | pending | | |
-| 15. Fix SiteRepository | pending | | |
-| 16. Fix StatsRepository | pending | | |
+| 15. Fix SiteRepository | DONE | 17a0a4f | batched with 10,11,12,16 | |
+| 16. Fix StatsRepository | DONE | 17a0a4f | batched with 10,11,12,15 | |
 | 17. Fix UserRepository | pending | | |
 | 18. Fix AccessService | pending | | |
 | 19. Fix AuthService | pending | | |
@@ -37,6 +37,7 @@
 | 31. Fix pages/templates @var | pending | | |
 | 32. Empty baseline | pending | | |
 | 33. Final validation | pending | | |
+
 
 
 

@@ -2,11 +2,14 @@
 
 use App\DTO\ReportData;
 use App\Services\AccessService;
+use App\Repository\UserRepository;
 
 /**
  * Access Control Helpers — Application SST DREETS BFC
  *
  * Delegates to App\Services\AccessService.
+ *
+ * @phpstan-import-type UserArray from \App\Repository\UserRepository
  */
 
 function getAccessService(): AccessService
@@ -18,7 +21,7 @@ function getAccessService(): AccessService
 }
 
 /**
- * @param array<string, mixed> $user
+ * @param UserArray $user
  */
 function canAccessReport(ReportData $report, array $user, ?string $forcedVisibility = null): bool
 {
@@ -26,7 +29,7 @@ function canAccessReport(ReportData $report, array $user, ?string $forcedVisibil
 }
 
 /**
- * @param array<string, mixed> $user
+ * @param UserArray $user
  */
 function logConfidentialReportAccess(PDO $pdo, ReportData $report, array $user): void
 {

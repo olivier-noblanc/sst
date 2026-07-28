@@ -1,11 +1,14 @@
 <?php
 
 use App\Services\SessionService;
+use App\Repository\UserRepository;
 
 /**
  * Session Management — Application SST DREETS BFC
  *
  * Delegates to App\Services\SessionService.
+ *
+ * @phpstan-import-type UserArray from \App\Repository\UserRepository
  */
 
 require_once __DIR__ . '/session_form.php';
@@ -21,7 +24,7 @@ function isUserLoggedIn(): bool
 }
 
 /**
- * @param array<string, mixed> $user
+ * @param UserArray $user
  */
 function setUserSession(array $user): void
 {
@@ -29,7 +32,7 @@ function setUserSession(array $user): void
 }
 
 /**
- * @return array<string, mixed>|null
+ * @return UserArray|null
  */
 function getUserSession(): ?array
 {

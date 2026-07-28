@@ -15,7 +15,7 @@ use App\Services\FormattingService;
  * Before this function, the same ~20 lines of inline-styled HTML table
  * were duplicated between the two files.
  *
- * @param array{site_code: string, site_nom: string, reports: array<int, mixed>} $siteData
+ * @param array{site_code: string|null, site_nom: string|null, reports: list<array{uuid: string, reference: string, type: string, objet: string, created_at: string, declarant_nom: string|null, declarant_prenom: string|null}>} $siteData
  * @param int    $alertDelayDays Configured delay in days
  * @return string  Complete HTML email body
  */

@@ -179,19 +179,13 @@ parameters:
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 3
+			count: 1
 			path: src/Repository/ReportRepository.php
 
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 			identifier: app.noMixedArray
-			count: 8
-			path: src/Repository/ReportRepository.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 2
+			count: 1
 			path: src/Repository/ReportRepository.php
 
 		-

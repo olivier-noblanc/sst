@@ -500,7 +500,7 @@ class ReportRepository
     // Read — Responses
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /** @return array<mixed, mixed> */
+    /** @return list<array{id: int, report_uuid: string, user_id: int|null, reponse: string|null, nouvel_etat: string|null, attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, created_at: string, nom: string|null, prenom: string|null}> */
     public function getResponses(string $reportUuid): array
     {
         $stmt = $this->pdo->prepare('
@@ -512,12 +512,13 @@ class ReportRepository
         ');
         $stmt->execute([':report_uuid' => $reportUuid]);
         $rows = $stmt->fetchAll();
+        /** @var list<array{id: int, report_uuid: string, user_id: int|null, reponse: string|null, nouvel_etat: string|null, attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, created_at: string, nom: string|null, prenom: string|null}> $rows */
         return is_array($rows) ? $rows : [];
     }
 
     /**
      * @param list<string> $uuids
-     * @return array<string, list<array<mixed>>>
+     * @return array<string, list<array{id: int, report_uuid: string, user_id: int|null, reponse: string|null, nouvel_etat: string|null, attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, created_at: string, nom: string|null, prenom: string|null}>>
      */
     public function getResponsesForUuids(array $uuids): array
     {
@@ -540,6 +541,7 @@ class ReportRepository
             }
             $uuidValue = $resp['report_uuid'] ?? null;
             if (is_string($uuidValue) && $uuidValue !== '') {
+                /** @var array{id: int, report_uuid: string, user_id: int|null, reponse: string|null, nouvel_etat: string|null, attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, created_at: string, nom: string|null, prenom: string|null} $resp */
                 $result[$uuidValue][] = $resp;
             }
         }
@@ -579,7 +581,7 @@ class ReportRepository
         return is_array($rows) ? $rows : [];
     }
 
-    /** @return array<mixed, mixed>|null */
+    /** @return array{id: int, report_uuid: string, email: string, token: string, confirmed: int, confirmed_at: string|null, created_at: string}|null */
     public function getAgentInviteByToken(string $token): ?array
     {
         $stmt = $this->pdo->prepare('
@@ -587,6 +589,7 @@ class ReportRepository
         ');
         $stmt->execute([$token]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        /** @var array{id: int, report_uuid: string, email: string, token: string, confirmed: int, confirmed_at: string|null, created_at: string}|null $row */
         return is_array($row) ? $row : null;
     }
 
@@ -838,7 +841,7 @@ class ReportRepository
     }
 
     /**
-     * @param array<mixed, mixed> $attachment
+     * @param array{blob?: string|null, name?: string|null, mime?: string|null} $attachment
      * @return array{status: string, message?: string}
      */
     public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, array $attachment = []): array
@@ -994,8 +997,8 @@ class ReportRepository
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @param array<string, mixed> $filters
-     * @return array<mixed, mixed>
+     * @param array{type?: string, site_id?: int, date_debut?: string, date_fin?: string, etat?: string} $filters
+     * @return list<array{uuid: string, reference: string, type: string, objet: string, date_evenement: string, etat: string, declarant_nom: string, declarant_prenom: string, site_nom: string|null, pole: string|null, service_affectation: string|null, telephone_mobile: string|null, consent_syndicat: int, site_text: string|null}>
      */
     public function getExportData(array $filters = []): array
     {
@@ -1026,7 +1029,7 @@ class ReportRepository
     /**
      * Get response attachment by response ID.
      *
-     * @return array<string, mixed>|null
+     * @return array{attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, report_uuid: string}|null
      */
     public function getResponseAttachmentById(int $responseId): ?array
     {
@@ -1037,6 +1040,7 @@ class ReportRepository
         ');
         $stmt->execute([':id' => $responseId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        /** @var array{attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, report_uuid: string}|null $row */
         return is_array($row) ? $row : null;
     }
 
@@ -1083,7 +1087,7 @@ class ReportRepository
     /**
      * Find overdue reports (nouveau state, older than cutoff) for delay alerts.
      *
-     * @return list<array<string, mixed>>
+     * @return list<array{uuid: string, reference: string, type: string, objet: string, created_at: string, site_id: int|null, site_code: string|null, site_nom: string|null, declarant_nom: string|null, declarant_prenom: string|null}>
      */
     public function findOverdue(string $cutoffDate): array
     {
@@ -1099,7 +1103,7 @@ class ReportRepository
             ORDER BY r.created_at ASC
         ");
         $stmt->execute([':cutoff_date' => $cutoffDate]);
-        /** @var list<array<string, mixed>> $rows */
+        /** @var list<array{uuid: string, reference: string, type: string, objet: string, created_at: string, site_id: int|null, site_code: string|null, site_nom: string|null, declarant_nom: string|null, declarant_prenom: string|null}> $rows */
         $rows = $stmt->fetchAll();
         return $rows;
     }
@@ -1107,7 +1111,7 @@ class ReportRepository
     /**
      * Find reports eligible for RGPD anonymization (final state, older than cutoff, not yet anonymized).
      *
-     * @return list<array<string, mixed>>
+     * @return list<array{uuid: string, reference: string, type: string, declarant_nom: string, declarant_prenom: string, date_evenement: string, etat: string}>
      */
     public function findAnonymizable(string $cutoffDate): array
     {
@@ -1128,7 +1132,7 @@ class ReportRepository
               AND declarant_nom != 'Anonymisé'
         ");
         $stmt->execute([':cutoff_date' => $cutoffDate]);
-        /** @var list<array<string, mixed>> $rows */
+        /** @var list<array{uuid: string, reference: string, type: string, declarant_nom: string, declarant_prenom: string, date_evenement: string, etat: string}> $rows */
         $rows = $stmt->fetchAll();
         return $rows;
     }

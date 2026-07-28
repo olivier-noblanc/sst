@@ -29,7 +29,7 @@ if ($siteId <= 0) {
 $siteRepo = getContainer()->get(SiteRepository::class);
 $userRepo = getContainer()->get(UserRepository::class);
 
-$userId = (int)($session->getUserSession()['id'] ?? 0);
+$userId = (int) ($session->getUserSession()['id'] ?? 0);
 $user = $session->getUserSession();
 /** @var array<string, mixed> $user */
 $hasExistingSite = !empty($user['site_id']);
@@ -66,8 +66,7 @@ if ($site === null || empty($site['is_active'])) {
     session_write_close();
     $http->redirect($http->url('choose_site'));
 }
-/** @var array{code: string, nom: string} $site */
-
+assert($site !== null);
 $updated = $userRepo->updateSite($userId, $siteId);
 
 if ($updated) {

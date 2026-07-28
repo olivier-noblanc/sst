@@ -87,8 +87,8 @@ class StatsRepository
     }
 
     /**
-     * @param array<string, mixed> $filters
-     * @return array<mixed, mixed>
+     * @param array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: list<string>} $filters
+     * @return list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: ?string, lieu: string, declarant_id: int, declarant_nom: string, declarant_prenom: string, pour_compte_de: ?string, pour_compte_nom: ?string, pour_compte_prenom: ?string, nature_auteur: ?string, type_acte: ?string, site_id: ?int, site_text: ?string, pole: ?string, service_affectation: ?string, telephone_mobile: ?string, is_confidential: int, consent_syndicat: int, etat: string, repondant_id: ?int, date_reponse: ?string, reponse: ?string, attachment_name: ?string, attachment_mime: ?string, created_at: string, updated_at: string, site_code: ?string, site_nom: ?string, repondant_nom: ?string, repondant_prenom: ?string}>
      */
     public function getExportData(array $filters = []): array
     {
@@ -152,6 +152,7 @@ class StatsRepository
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
+        /** @var list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: ?string, lieu: string, declarant_id: int, declarant_nom: string, declarant_prenom: string, pour_compte_de: ?string, pour_compte_nom: ?string, pour_compte_prenom: ?string, nature_auteur: ?string, type_acte: ?string, site_id: ?int, site_text: ?string, pole: ?string, service_affectation: ?string, telephone_mobile: ?string, is_confidential: int, consent_syndicat: int, etat: string, repondant_id: ?int, date_reponse: ?string, reponse: ?string, attachment_name: ?string, attachment_mime: ?string, created_at: string, updated_at: string, site_code: ?string, site_nom: ?string, repondant_nom: ?string, repondant_prenom: ?string}> $rows */
         $rows = $stmt->fetchAll();
         return is_array($rows) ? $rows : [];
     }
@@ -311,7 +312,7 @@ class StatsRepository
         return $result;
     }
 
-    /** @return list<mixed> */
+    /** @return list<array{year: string}> */
     public function getAvailableYears(): array
     {
         // Audit #74 — convert created_at (UTC) to Europe/Paris before extracting

@@ -6,13 +6,13 @@
 |------|--------|---------|--------|
 | 1. Create NoMixedArrayInVarRule | DONE | d1363ff..c5db9d0 | review clean | |
 | 2. Fix CreateReportCommand | DONE | cf82ad8 | |
-| 3. Fix CreateUserCommand | pending | | |
-| 4. Fix ReportData | pending | | |
-| 5. Fix ReportFilter | pending | | |
-| 6. Fix ReportListItem | pending | | |
-| 7. Fix RespondToReportCommand | pending | | |
-| 8. Fix UpdateReportCommand | pending | | |
-| 9. Fix UpdateUserCommand | pending | | |
+| 3. Fix CreateUserCommand | DONE | 99f2f3a | batched with Tasks 3-9 | |
+| 4. Fix ReportData | DONE | 99f2f3a | batched with Tasks 3-9 | |
+| 5. Fix ReportFilter | DONE | 99f2f3a | batched with Tasks 3-9 | |
+| 6. Fix ReportListItem | DONE | 99f2f3a | batched with Tasks 3-9 | |
+| 7. Fix RespondToReportCommand | DONE | 99f2f3a | batched with Tasks 3-9 | |
+| 8. Fix UpdateReportCommand | DONE | 99f2f3a | batched with Tasks 3-9 | |
+| 9. Fix UpdateUserCommand | DONE | 99f2f3a | batched with Tasks 3-9 | |
 | 10. Fix AuditRepository | pending | | |
 | 11. Fix NotificationRepository | pending | | |
 | 12. Fix RegistryFieldRepository | pending | | |
@@ -37,5 +37,6 @@
 | 31. Fix pages/templates @var | pending | | |
 | 32. Empty baseline | pending | | |
 | 33. Final validation | pending | | |
+
 
 

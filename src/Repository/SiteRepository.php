@@ -24,36 +24,40 @@ class SiteRepository
         return $instance;
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}> */
     public function findAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM sites ORDER BY code ASC');
+        /** @var list<array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}> $rows */
         $rows = $stmt !== false ? $stmt->fetchAll() : [];
         return is_array($rows) ? $rows : [];
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}> */
     public function findActive(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM sites WHERE is_active = 1 ORDER BY code ASC');
+        /** @var list<array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}> $rows */
         $rows = $stmt !== false ? $stmt->fetchAll() : [];
         return is_array($rows) ? $rows : [];
     }
 
-    /** @return array<mixed, mixed>|null */
+    /** @return array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}|null */
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE id = :id');
         $stmt->execute([':id' => $id]);
+        /** @var array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}|null $row */
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
     }
 
-    /** @return array<mixed, mixed>|null */
+    /** @return array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}|null */
     public function findByCode(string $code): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM sites WHERE code = :code');
         $stmt->execute([':code' => $code]);
+        /** @var array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}|null $row */
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
     }

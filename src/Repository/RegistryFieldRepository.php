@@ -23,35 +23,37 @@ class RegistryFieldRepository
         return $instance;
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}> */
     public function findByRegistry(int $registryId): array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM registry_fields WHERE registry_id = :id ORDER BY sort_order ASC, field_code ASC');
         $stmt->execute([':id' => $registryId]);
-        /** @var list<array<string, mixed>> $rows */
+        /** @var list<array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}> $rows */
         $rows = $stmt->fetchAll();
         return $rows;
     }
 
-    /** @return array<string, mixed>|null */
+    /** @return array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}|null */
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM registry_fields WHERE id = :id');
         $stmt->execute([':id' => $id]);
+        /** @var array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}|null $row */
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
     }
 
-    /** @return array<string, mixed>|null */
+    /** @return array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}|null */
     public function findByCode(int $registryId, string $fieldCode): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM registry_fields WHERE registry_id = :rid AND field_code = :fc');
         $stmt->execute([':rid' => $registryId, ':fc' => $fieldCode]);
+        /** @var array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}|null $row */
         $row = $stmt->fetch();
         return is_array($row) ? $row : null;
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param array{field_code: string, label: string, field_type: string, options?: string|false|null, is_required?: int, sort_order?: int} $data */
     public function create(int $registryId, array $data): int
     {
         $stmt = $this->pdo->prepare('
@@ -70,7 +72,7 @@ class RegistryFieldRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param array{label?: string, field_type?: string, options?: string, is_required?: int, sort_order?: int} $data */
     public function update(int $id, array $data): bool
     {
         $sets = [];

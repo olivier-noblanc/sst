@@ -23,7 +23,7 @@ class NotificationRepository
         return $instance;
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<array{id: int, site_id: int, type: string, registry: ?string, email: string, created_at: string, site_code: ?string, site_nom: ?string}> */
     public function findAll(): array
     {
         $stmt = $this->pdo->query('
@@ -32,7 +32,9 @@ class NotificationRepository
             LEFT JOIN sites s ON ns.site_id = s.id
             ORDER BY ns.type, s.code, ns.registry
         ');
-        return $stmt !== false ? $stmt->fetchAll() : [];
+        /** @var list<array{id: int, site_id: int, type: string, registry: ?string, email: string, created_at: string, site_code: ?string, site_nom: ?string}> $rows */
+        $rows = $stmt !== false ? $stmt->fetchAll() : [];
+        return $rows;
     }
 
     public function save(?int $siteId, string $type, string $registry, string $email): int
@@ -65,7 +67,7 @@ class NotificationRepository
         return $stmt->rowCount();
     }
 
-    /** @return list<mixed> */
+    /** @return list<array{email: string}> */
     public function findSiteEmails(int $siteId): array
     {
         $stmt = $this->pdo->prepare("SELECT email FROM notification_settings WHERE site_id = :site_id AND type = 'site'");
@@ -73,7 +75,7 @@ class NotificationRepository
         return array_column($stmt->fetchAll(), 'email');
     }
 
-    /** @return list<mixed> */
+    /** @return list<array{email: string}> */
     public function findGlobalEmails(): array
     {
         $stmt = $this->pdo->query("SELECT email FROM notification_settings WHERE type = 'global'");

@@ -26,6 +26,12 @@ class FormattingServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->service = new FormattingService();
+        // Audit #85 — sans ça, getRegistryColor() dépend de l'ordre
+        // d'exécution : elle lit d'abord registries.color_theme en DB
+        // (support des registres personnalisés), et ne retombe sur le
+        // fallback hardcodé que si la table est vide. reseedDefaultRegistries()
+        // garantit que le chemin DB est toujours pris, comme en vraie prod.
+        reseedDefaultRegistries(getDB());
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -139,23 +145,32 @@ class FormattingServiceTest extends TestCase
 
     public function testGetRegistryColorRsst(): void
     {
-        $this->assertEquals('var(--rsst-color)', $this->service->getRegistryColor('rsst'));
+        // Audit #85 — getRegistryColor() lit registries.color_theme en DB
+        // depuis le "Modular-audit P2.2" (support des registres
+        // personnalisés) — var(--theme-X), pas l'ancien var(--X-color)
+        // hardcodé qui n'existe plus dans public/css/style.css.
+        $this->assertEquals('var(--theme-rsst)', $this->service->getRegistryColor('rsst'));
     }
 
     public function testGetRegistryColorRami(): void
     {
-        $this->assertEquals('var(--rami-color)', $this->service->getRegistryColor('rami'));
+        $this->assertEquals('var(--theme-rami)', $this->service->getRegistryColor('rami'));
     }
 
     public function testGetRegistryColorDgi(): void
     {
-        $this->assertEquals('var(--dgi-color)', $this->service->getRegistryColor('dgi'));
+        $this->assertEquals('var(--theme-dgi)', $this->service->getRegistryColor('dgi'));
     }
 
-    public function testGetRegistryColorUnknownThrowsValueError(): void
+    public function testGetRegistryColorUnknownFallsBackToRsstTheme(): void
     {
-        $this->expectException(ValueError::class);
-        $this->service->getRegistryColor('unknown');
+        // Audit #85 — le commentaire de getRegistryColor() documente
+        // explicitement que match(ReportType::from($type)) (qui levait un
+        // ValueError) a été remplacé par fromCode()/tryFrom() (jamais
+        // d'exception) précisément pour ne plus planter sur un code
+        // personnalisé inconnu. Ce test attendait encore l'ancien
+        // comportement — jamais mis à jour après le refactor.
+        $this->assertEquals('var(--theme-rsst)', $this->service->getRegistryColor('unknown'));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

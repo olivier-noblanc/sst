@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.53.0] — 2026-07-28
+
+### Fix — PHPStan : élimination progressive de `array<string, mixed>`
+
+- **1** 🔴 **Nouvelle règle `NoMixedArrayInVarRule`** : détecte les `@var array<..., mixed>` dans les corps de méthodes/fonctions/closures (gap dans les 3 règles existantes qui ne couvraient que les tags docblock de déclaration).
+- **2** 🔴 **DTOs** : `CreateReportCommand`, `CreateUserCommand`, `ReportData`, `ReportFilter`, `ReportListItem`, `RespondToReportCommand`, `UpdateReportCommand`, `UpdateUserCommand` — toutes les annotations `array<string, mixed>` remplacées par des shapes précises.
+- **3** 🔴 **Repositories** : `SiteRepository`, `NotificationRepository`, `StatsRepository`, `RegistryFieldRepository`, `RegistryRepository` — shapes SQL précises avec assertions `@var` sur les résultats PDO.
+- **4** 🔴 **Cascading fixes** : `report_create_handler.php`, `choose_site_handler.php`, `mail_notifications.php`, `report_respond_handler.php` — corrections rendues nécessaires par les types plus stricts.
+- **5** 🔴 **Baseline** : 8+ entrées `app.noMixedArray` supprimées (DTOs + repos corrigés).
+- **6** 🔴 PHPStan 0 erreur.
+
+
 ## [3.52.0] — 2026-07-25
 
 ### Refactoring — Type enum + AuditRepository

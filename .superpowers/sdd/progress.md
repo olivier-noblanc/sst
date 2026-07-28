@@ -16,7 +16,7 @@
 | 10. Fix AuditRepository | DONE (partial - log() kept) | 17a0a4f | batched with 11,15,16 | |
 | 11. Fix NotificationRepository | DONE | 17a0a4f | batched with 10,15,16 | |
 | 12. Fix RegistryFieldRepository | DONE | 17a0a4f | batched with 10,11,15,16 | |
-| 13. Fix RegistryRepository | pending | | |
+| 13. Fix RegistryRepository | DONE | be00cbc | | |
 | 14. Fix ReportRepository | pending | | |
 | 15. Fix SiteRepository | DONE | 17a0a4f | batched with 10,11,12,16 | |
 | 16. Fix StatsRepository | DONE | 17a0a4f | batched with 10,11,12,15 | |
@@ -37,6 +37,7 @@
 | 31. Fix pages/templates @var | pending | | |
 | 32. Empty baseline | pending | | |
 | 33. Final validation | pending | | |
+
 
 
 

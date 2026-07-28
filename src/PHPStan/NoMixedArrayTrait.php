@@ -12,7 +12,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 
 /**
  * Logique partagée par NoMixedArrayInMethodRule / NoMixedArrayInFunctionRule /
- * NoMixedArrayInClosureRule.
+ * NoMixedArrayInClosureRule / NoMixedArrayInVarRule.
  *
  * Audit #80 — la v1 (une seule classe NoMixedArrayRule ciblant
  * Node\Param) ne s'est jamais déclenchée : Param::getDocComment() n'est
@@ -88,7 +88,7 @@ trait NoMixedArrayTrait
 
     private const MIXED_ARRAY_TAG_PATTERN = '/@(param|return)\b[^\n]*\barray<[^>\n]*\bmixed\b[^>\n]*>[^\n]*/i';
 
-    private const VAR_ARRAY_TAG_PATTERN = '/@var\b[^\n]*\barray<[^>\n]*\bmixed\b[^\n]*>[^\n]*/i';
+    private const VAR_ARRAY_TAG_PATTERN = '/@var\b[^\n]*\barray<[^>\n]*\bmixed\b[^>\n]*>[^\n]*/i';
 
     /**
      * @param FunctionLike $node

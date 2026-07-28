@@ -111,7 +111,7 @@ function reseedDefaultRegistries(PDO $pdo): void
     $pdo->exec("DELETE FROM registries WHERE code IN ('rsst', 'rami', 'dgi')");
     $pdo->exec("INSERT INTO registries (code, label, short_label, description, icon, color_theme, is_enabled, is_system, sort_order, default_visibility, notify_chsct) VALUES
         ('rsst', 'Santé et Sécurité au Travail', 'RSST', 'Signalements généraux SST', '📋', 'rsst', 1, 1, 1, 'agent_choice', 0),
-        ('rami', 'Agressions, Menaces et Incivilités', 'RAMI', 'Agressions verbales et physiques', '🚨', 'rami', 1, 0, 2, 'agent_choice', 0),
-        ('dgi', 'Danger Grave et Imminent', 'DGI', 'Dangers immédiats pour la santé', '🔴', 'dgi', 1, 0, 3, 'agent_choice', 1)
+        ('rami', 'Agressions, Menaces et Incivilités', 'RAMI', 'Agressions verbales et physiques', '🚨', 'rami', 0, 0, 2, 'agent_choice', 0),
+        ('dgi', 'Danger Grave et Imminent', 'DGI', 'Dangers immédiats pour la santé', '🔴', 'dgi', 0, 0, 3, 'agent_choice', 1)
     ");
 }

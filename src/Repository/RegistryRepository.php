@@ -156,13 +156,13 @@ class RegistryRepository
             [
                 'code' => ReportType::Rami->value, 'label' => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
                 'short_label' => 'RAMI', 'description' => 'Agressions physiques ou verbales, menaces, incivilités, harcèlement',
-                'icon' => '⚠️', 'color_theme' => ReportType::Rami->value, 'is_system' => 0, 'sort_order' => 2,
+                'icon' => '⚠️', 'color_theme' => ReportType::Rami->value, 'is_system' => 0, 'is_enabled' => 0, 'sort_order' => 2,
                 'default_visibility' => VisibilityMode::AgentChoice->value, 'legal_note' => 'Données sensibles (art. 9 RGPD) : le mode confidentiel ou choix de l\'agent est recommandé.',
             ],
             [
                 'code' => ReportType::Dgi->value, 'label' => 'Registre de signalement d\'un Danger Grave et Imminent',
                 'short_label' => 'DGI', 'description' => 'Danger nécessitant une action immédiate, droit de retrait',
-                'icon' => '🔴', 'color_theme' => ReportType::Dgi->value, 'is_system' => 0, 'sort_order' => 3,
+                'icon' => '🔴', 'color_theme' => ReportType::Dgi->value, 'is_system' => 0, 'is_enabled' => 0, 'sort_order' => 3,
                 'default_visibility' => VisibilityMode::AgentChoice->value, 'notify_chsct' => 1,
                 'legal_note' => 'Articles L4131-1 et D4132-1 du Code du travail.',
             ],

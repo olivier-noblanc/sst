@@ -1,0 +1,105 @@
+name: Mutation Testing (Infection)
+
+# Déclenchement manuel volontairement : Infection relance la suite de
+# tests une fois par mutant généré, potentiellement des centaines de
+# fois — pas adapté à un gate sur chaque push tant qu'on n'a pas une
+# mesure réelle du temps que ça prend sur ce projet. Premier run pour
+# avoir un MSI (Mutation Score Indicator) de référence et la liste des
+# mutants survivants par fichier, avant de décider d'une cadence
+# (nightly/weekly) ou d'un scope réduit (fichiers touchés dans une PR).
+on:
+  workflow_dispatch:
+
+jobs:
+  infection:
+    name: Infection (mutation testing)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash --noprofile --norc -eo pipefail {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: pcov
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php85-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Infection
+        run: mkdir -p data && php vendor/bin/infection --threads=4 --no-progress 2>&1 | tee infection-output.txt
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infection-logs
+          path: |
+            data/infection.log
+            data/infection-summary.log
+            data/infection-mutations.log
+          retention-days: 30
+
+      - name: Report result as commit comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          {
+            if [ -f infection-output.txt ] && grep -q "FinishedRunning\|Metrics:" infection-output.txt 2>/dev/null; then
+              echo "### 🧬 Mutation testing (Infection) — commit \`${GITHUB_SHA::8}\`"
+            else
+              echo "### ⚠️ Mutation testing (Infection) — n'a pas terminé normalement — commit \`${GITHUB_SHA::8}\`"
+            fi
+            echo ""
+            if [ -s data/infection-summary.log ]; then
+              echo "<details><summary>Résumé (MSI, mutants tués/survécus)</summary>"
+              echo ""
+              echo '```'
+              cat data/infection-summary.log
+              echo '```'
+              echo "</details>"
+              echo ""
+            fi
+            if [ -s infection-output.txt ]; then
+              echo "<details><summary>infection-output.txt (dernières 150 lignes)</summary>"
+              echo ""
+              echo '```'
+              tail -n 150 infection-output.txt
+              echo '```'
+              echo "</details>"
+            fi
+            echo ""
+            echo "Logs complets (par mutateur, par mutant) en artifact sur ce run."
+            echo ""
+            echo "[Run complet]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > /tmp/comment_body.md
+
+          python3 -c "
+          import json
+          body = open('/tmp/comment_body.md').read()
+          if len(body) > 65000:
+              body = body[:65000] + '\n\n...(tronqué, voir artifact)'
+          print(json.dumps({'body': body}))
+          " > /tmp/comment_payload.json
+
+          curl -s -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -d @/tmp/comment_payload.json

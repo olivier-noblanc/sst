@@ -1,8 +1,254 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Offset ''email'' on array\{id\: int\|string, email\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 4
+			path: handlers/agent_confirm_handler.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int\|string, email\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/agent_confirm_handler.php
+
+		-
+			message: '#^Offset ''date_from'' on non\-empty\-array\<string, string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Offset ''date_to'' on non\-empty\-array\<string, string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Offset ''declarant_id'' on non\-empty\-array\<string, string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Offset ''site_id'' on non\-empty\-array\<string, string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Offset ''type'' on non\-empty\-array\<string, string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 1
+			path: handlers/export_handler.php
+
+		-
+			message: '#^Offset ''site_id'' on array\{id\: int\|string, nom\: string, prenom\: string, site_id\: int\|string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/report_create_handler.php
+
+		-
+			message: '#^Variable \$user on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 2
+			path: handlers/report_create_handler.php
+
+		-
+			message: '#^Variable \$user on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: handlers/report_edit_handler.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\{status\: string, message\?\: string\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: handlers/report_respond_handler.php
+
+		-
+			message: '#^Offset ''status'' on array\{status\: string, message\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: handlers/report_respond_handler.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\{word\: string, weight\: int\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: handlers/settings_handler.php
+
+		-
+			message: '#^Call to function is_array\(\) with string\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
+			path: handlers/settings_handler.php
+
+		-
+			message: '#^Offset ''weight'' on array\{word\: string, weight\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/settings_handler.php
+
+		-
+			message: '#^Offset ''word'' on array\{word\: string, weight\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/settings_handler.php
+
+		-
+			message: '#^Call to function is_array\(\) with string\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: handlers/settings_handler_registres.php
+
+		-
+			message: '#^Offset ''sort_order'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: handlers/settings_handler_registres.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between array\<string, string\> and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: handlers/site_edit_handler.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, string\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: handlers/user_delete_handler.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\{role\: string\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: handlers/user_edit_handler.php
+
+		-
+			message: '#^Offset ''role'' on array\{role\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: handlers/user_edit_handler.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, string\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: handlers/user_reactivate_handler.php
+
+		-
+			message: '#^Variable \$csrfToken on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: pages/agent_confirm.php
+
+		-
+			message: '#^Offset ''code'' on array\{id\: int, code\: string, nom\: string, departement\: string\|null, is_active\: int, created_at\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/choose_site.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, code\: string, nom\: string, departement\: string\|null, is_active\: int, created_at\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/choose_site.php
+
+		-
+			message: '#^Offset ''nom'' on array\{id\: int, code\: string, nom\: string, departement\: string\|null, is_active\: int, created_at\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/choose_site.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between 0\|float and 1 will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: pages/choose_site.php
+
+		-
+			message: '#^Offset ''etats'' on non\-empty\-array\<string, mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/export.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, code\: string, nom\: string, departement\: string\|null, is_active\: int, created_at\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: pages/export.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: pages/export.php
+
+		-
+			message: '#^Offset ''code'' on array\{id\: int, code\: string, nom\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/report_list.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, code\: string, nom\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: pages/report_list.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, site_id\: int, role\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/report_list.php
+
+		-
+			message: '#^Offset ''nom'' on array\{id\: int, code\: string, nom\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/report_list.php
+
+		-
+			message: '#^Offset ''role'' on array\{id\: int, site_id\: int, role\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/report_list.php
+
+		-
+			message: '#^Offset ''site_id'' on array\{id\: int, site_id\: int, role\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/report_list.php
+
+		-
+			message: '#^Parameter \#1 \$report of method App\\Services\\AccessService\:\:canEditReport\(\) expects array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\}, array\{uuid\: string, reference\: string, type\: string, objet\: string, date_evenement\: string, declarant_id\: int, declarant_nom\: string, declarant_prenom\: string, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: pages/report_list.php
+
+		-
+			message: '#^Parameter \#1 \$report of method App\\Services\\AccessService\:\:canRespondToReport\(\) expects array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\}, array\{uuid\: string, reference\: string, type\: string, objet\: string, date_evenement\: string, declarant_id\: int, declarant_nom\: string, declarant_prenom\: string, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: pages/report_list.php
+
+		-
 			message: '#^Property SSTPDF\:\:\$footerOrgName is never read$#'
 			identifier: shipmonk.deadProperty.neverRead
+			count: 1
+			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and false will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: pages/report_print_helpers.php
 
@@ -17,6 +263,102 @@ parameters:
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: pages/report_print_helpers.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\{id\: int, report_uuid\: string, user_id\: int\|null, reponse\: string\|null, nouvel_etat\: string\|null, attachment_blob\: string\|null, attachment_name\: string\|null, attachment_mime\: string\|null, \.\.\.\} will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: pages/report_respond.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/report_view.php
+
+		-
+			message: '#^Offset ''role'' on array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/report_view.php
+
+		-
+			message: '#^Offset ''site_id'' on array\{id\: int, site_id\: int, type\: string, registry\: string\|null, email\: string, created_at\: string, site_code\: string\|null, site_nom\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings.php
+
+		-
+			message: '#^Offset ''departement'' on array\{id\: int, code\: string, nom\: string, departement\: string, is_active\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_manage_sites.php
+
+		-
+			message: '#^Offset ''is_active'' on array\{id\: int, code\: string, nom\: string, departement\: string, is_active\: int\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: pages/settings/tab_manage_sites.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int\<min, 0\>\|int\<2, max\> and ''1'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: pages/settings/tab_manage_sites.php
+
+		-
+			message: '#^Offset ''default_visibility'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_registres.php
+
+		-
+			message: '#^Offset ''description'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_registres.php
+
+		-
+			message: '#^Offset ''legal_note'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_registres.php
+
+		-
+			message: '#^Offset ''notify_chsct'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_registres.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, code\: string, nom\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_sites.php
+
+		-
+			message: '#^Offset ''icon'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_wordcloud.php
+
+		-
+			message: '#^Offset ''short_label'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_wordcloud.php
+
+		-
+			message: '#^Offset ''weight'' on array\{word\: string, weight\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_wordcloud.php
+
+		-
+			message: '#^Offset ''word'' on array\{word\: string, weight\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: pages/settings/tab_wordcloud.php
 
 		-
 			message: '#^Parameter \#1 \$num of function dechex expects int, int\<0, max\>\|false given\.$#'
@@ -61,6 +403,30 @@ parameters:
 			path: seed/_users.php
 
 		-
+			message: '#^Offset ''id'' on array\{id\: int\|string, nom\: string, prenom\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/DTO/CreateReportCommand.php
+
+		-
+			message: '#^Offset ''nom'' on array\{id\: int\|string, nom\: string, prenom\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/DTO/CreateReportCommand.php
+
+		-
+			message: '#^Offset ''prenom'' on array\{id\: int\|string, nom\: string, prenom\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/DTO/CreateReportCommand.php
+
+		-
+			message: '#^Offset ''q'' on non\-empty\-array\<string, string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/DTO/ReportFilter.php
+
+		-
 			message: '#^Unused App\\DTO\\ReportFilter\:\:fromGet$#'
 			identifier: shipmonk.deadMethod
 			count: 1
@@ -77,6 +443,12 @@ parameters:
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Enum/ReportState.php
+
+		-
+			message: '#^Instanceof between PhpParser\\Node\\Name and PhpParser\\Node\\Name will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/PHPStan/NoLegacyConstantRule.php
 
 		-
 			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInClosureRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
@@ -103,22 +475,36 @@ parameters:
 			path: src/PHPStan/NoMixedArrayInVarRule.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 2
+			message: '#^Method App\\Repository\\AuditRepository\:\:findByTarget\(\) should return list\<array\{id\: int, user_id\: int\|null, username\: string, category\: string, action\: string, target_id\: int\|null, target_type\: string\|null, target_uuid\: string\|null, \.\.\.\}\> but returns array\.$#'
+			identifier: return.type
+			count: 1
 			path: src/Repository/AuditRepository.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 2
+			message: '#^Method App\\Repository\\AuditRepository\:\:findPaginated\(\) should return array\{entries\: list\<array\{id\: int, user_id\: int\|null, username\: string, category\: string, action\: string, target_id\: int\|null, target_type\: string\|null, target_uuid\: string\|null, \.\.\.\}\>, total\: int\} but returns array\{entries\: array, total\: int\}\.$#'
+			identifier: return.type
+			count: 1
 			path: src/Repository/AuditRepository.php
 
+		-
+			message: '#^Offset ''user_id'' on non\-empty\-array\<string, int\|string\|null\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Repository/AuditRepository.php
+
+		-
+			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 		-
 			message: '#^Unused App\\Repository\\NotificationRepository\:\:getPdo$#'
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Repository/NotificationRepository.php
+
+		-
+			message: '#^Offset ''field_type'' on array\{field_code\: string, label\: string, field_type\: string, options\?\: string\|false\|null, is_required\?\: int, sort_order\?\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Repository/RegistryFieldRepository.php
 
 		-
 			message: '#^Unused App\\Repository\\RegistryFieldRepository\:\:findById$#'
@@ -139,17 +525,139 @@ parameters:
 			path: src/Repository/RegistryRepository.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 3
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Call to function is_array\(\) with list\<array\{email\: string, created_at\: string\}\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Repository/ReportRepository.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
+			message: '#^Call to function is_array\(\) with list\<array\{id\: int, report_uuid\: string, user_id\: int\|null, reponse\: string\|null, nouvel_etat\: string\|null, attachment_blob\: string\|null, attachment_name\: string\|null, attachment_mime\: string\|null, \.\.\.\}\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Repository/ReportRepository.php
 
+		-
+			message: '#^Method App\\Repository\\ReportRepository\:\:toSnakeCase\(\) should return array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''attachment_blob'' does not exist on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''attachment_blob'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''consent_syndicat'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''heure_evenement'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''is_confidential'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''lieu'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''nature_auteur'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''own_only'' on array\{etat\: string, site_id\: int, q\: string\|null, confidential_filter\: int\|null, own_only\: null, force_site_id\: int\|null, declarant_id\: int\|null, chsct_consent_only\: bool, \.\.\.\} in empty\(\) always exists and is always falsy\.$#'
+			identifier: empty.offset
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''pole'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''pour_compte_de'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''pour_compte_nom'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''pour_compte_prenom'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''service_affectation'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''site_text'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''telephone_mobile'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Offset ''type_acte'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between int and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 4
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Repository/ReportRepository.php
+
+		-
+			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
 		-
 			message: '#^Unused App\\Repository\\ReportRepository\:\:countByState$#'
 			identifier: shipmonk.deadMethod
@@ -163,16 +671,64 @@ parameters:
 			path: src/Repository/ReportRepository.php
 
 		-
+			message: '#^Call to function is_array\(\) with list\<array\{id\: int, code\: string, nom\: string, departement\: string\|null, is_active\: int, created_at\: string\}\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Repository/SiteRepository.php
+
+		-
 			message: '#^Unused App\\Repository\\SiteRepository\:\:getPdo$#'
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Repository/SiteRepository.php
 
 		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 3
+			path: src/Repository/StatsRepository.php
+
+		-
+			message: '#^Call to function is_array\(\) with list\<array\{nature_auteur\: string, count\: int\}\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Repository/StatsRepository.php
+
+		-
+			message: '#^Call to function is_array\(\) with list\<array\{type_acte\: string, count\: int\}\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Repository/StatsRepository.php
+
+		-
+			message: '#^Call to function is_array\(\) with list\<array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string\|null, lieu\: string, \.\.\.\}\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Repository/StatsRepository.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: src/Repository/StatsRepository.php
+
+		-
 			message: '#^Unused App\\Repository\\StatsRepository\:\:getPdo$#'
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Repository/StatsRepository.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Call to function is_array\(\) with list\<array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\}\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Repository/UserRepository.php
 
 		-
 			message: '#^Method App\\Repository\\UserRepository\:\:exportData\(\) should return array\{user\: array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\}, reports_count\: int, reports\: list\<array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string\|null, lieu\: string\|null, \.\.\.\}\>, responses_count\: int, responses\: list\<array\{report_uuid\: string, reponse\: string\|null, nouvel_etat\: string\|null, created_at\: string\}\>\} but returns array\{user\: array\{\}, reports_count\: 0, reports\: array\{\}, responses_count\: 0, responses\: array\{\}\}\.$#'
@@ -187,22 +743,76 @@ parameters:
 			path: src/Router/Router.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 4
-			path: src/Services/AccessService.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
+			message: '#^Offset ''consent_syndicat'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
 			count: 1
 			path: src/Services/AccessService.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
+			message: '#^Offset ''declarant_id'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Services/AccessService.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, role\: ''chsct''\|''superviseur'', \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
 			count: 1
-			path: src/Services/FormattingService.php
+			path: src/Services/AccessService.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, role\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/AccessService.php
+
+		-
+			message: '#^Offset ''is_confidential'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Services/AccessService.php
+
+		-
+			message: '#^Offset ''type'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/AccessService.php
+
+		-
+			message: '#^Offset ''uuid'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Services/AccessService.php
+
+		-
+			message: '#^Call to function is_int\(\) with int will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Offset ''id'' on array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between int and false will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Services/AuthService.php
+
+		-
+			message: '#^Offset ''DOCUMENT_ROOT'' on non\-empty\-array\<mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/ConfigService.php
+
+		-
+			message: '#^Offset ''SCRIPT_FILENAME'' on non\-empty\-array\<mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/ConfigService.php
 
 		-
 			message: '#^Unused App\\Services\\FormattingService\:\:formatTime$#'
@@ -211,10 +821,10 @@ parameters:
 			path: src/Services/FormattingService.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
+			message: '#^Offset ''prenom'' on array\{id\: int, nom\: string, prenom\: string, email\: non\-falsy\-string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
 			count: 1
-			path: src/Services/HttpService.php
+			path: src/Services/NotificationService.php
 
 		-
 			message: '#^Unused App\\Services\\NotificationService\:\:notifyReportAbandon$#'
@@ -229,22 +839,34 @@ parameters:
 			path: src/Services/NotificationService.php
 
 		-
-			message: '#^Unused App\\Services\\ReportService\:\:findById$#'
-			identifier: shipmonk.deadMethod
+			message: '#^Offset ''color_theme'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/RegistryCardService.php
+
+		-
+			message: '#^Offset ''description'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/RegistryCardService.php
+
+		-
+			message: '#^Offset ''icon'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Services/RegistryCardService.php
+
+		-
+			message: '#^Offset ''status'' on array\{status\: string, message\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
 			count: 1
 			path: src/Services/ReportService.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
+			message: '#^Unused App\\Services\\ReportService\:\:findById$#'
+			identifier: shipmonk.deadMethod
 			count: 1
-			path: src/Services/SessionManager.php
-
-		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: src/Services/SessionManager.php
+			path: src/Services/ReportService.php
 
 		-
 			message: '#^Unused App\\Services\\SessionManager\:\:clear$#'
@@ -350,31 +972,19 @@ parameters:
 
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: src/Services/SessionService.php
-
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: src/Services/SessionService.php
-
 		-
 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
-			count: 1
-			path: src/Services/SessionService.php
-
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
+			message: '#^Method App\\Services\\UserService\:\:exportData\(\) should return array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\} but returns array\{user\: array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\}, reports_count\: int, reports\: list\<array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string\|null, lieu\: string\|null, \.\.\.\}\>, responses_count\: int, responses\: list\<array\{report_uuid\: string, reponse\: string\|null, nouvel_etat\: string\|null, created_at\: string\}\>\}\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Services/UserService.php
 
 		-
-			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return — utiliser un DTO typé ou un array avec type de valeur précis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed désactive la vérification de type et est la cause racine de nombreux bugs\.$#'
-			identifier: app.noMixedArray
+			message: '#^PHPDoc tag @return with type array\<string, int\|string\|null\>\|null is not subtype of native type array\.$#'
+			identifier: return.phpDocType
 			count: 1
 			path: src/Services/UserService.php
 
@@ -395,6 +1005,132 @@ parameters:
 			identifier: shipmonk.deadMethod
 			count: 1
 			path: src/Services/UserService.php
+
+		-
+			message: '#^Parameter \#1 \$report of method App\\Services\\AccessService\:\:canEditReport\(\) expects array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\}, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/helpers/access.php
+
+		-
+			message: '#^Parameter \#1 \$report of method App\\Services\\AccessService\:\:canRespondToReport\(\) expects array\{uuid\: string, reference\: string, type\: string, objet\: string, description\: string, date_evenement\: string, heure_evenement\: string, lieu\: string, \.\.\.\}, array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/helpers/access.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/helpers/config.php
+
+		-
+			message: '#^Offset ''notify_chsct'' on array\{id\: int, code\: string, label\: string, short_label\: string, description\: string, icon\: string, color_theme\: string, btn_label\: string\|null, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/mail_notifications.php
+
+		-
+			message: '#^Offset ''prenom'' on array\{id\: int, nom\: string, prenom\: string, email\: non\-falsy\-string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/mail_notifications.php
+
+		-
+			message: '#^Offset ''created_at'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, created_at\: string, declarant_nom\: string\|null, declarant_prenom\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/mail_templates.php
+
+		-
+			message: '#^Offset ''objet'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, created_at\: string, declarant_nom\: string\|null, declarant_prenom\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/mail_templates.php
+
+		-
+			message: '#^Offset ''reference'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, created_at\: string, declarant_nom\: string\|null, declarant_prenom\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/mail_templates.php
+
+		-
+			message: '#^Offset ''type'' on array\{uuid\: string, reference\: string, type\: string, objet\: string, created_at\: string, declarant_nom\: string\|null, declarant_prenom\: string\|null\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/mail_templates.php
+
+		-
+			message: '#^Offset ''role'' on array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/user_context.php
+
+		-
+			message: '#^Offset ''username'' on array\{id\: int, username\: string, nom\: string, prenom\: string, email\: string\|null, role\: string, site_id\: int\|null, is_active\: int, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/user_context.php
+
+		-
+			message: '#^Offset ''name'' on array\{error\: 0, name\: string, tmp_name\: string, size\: int\<min, 10485760\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/validation.php
+
+		-
+			message: '#^Offset ''message'' on array\{type\: string, message\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/alert.php
+
+		-
+			message: '#^Offset ''type'' on array\{type\: string, message\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/alert.php
+
+		-
+			message: '#^Offset ''id'' on array\{role\: string, site_id\: int\|string, id\: int\|string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/report_card.php
+
+		-
+			message: '#^Offset ''role'' on array\{role\: string, site_id\: int\|string, id\: int\|string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/report_card.php
+
+		-
+			message: '#^Offset ''site_id'' on array\{role\: string, site_id\: int\|string, id\: int\|string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/report_card.php
+
+		-
+			message: '#^Offset ''is_required'' on array\{id\: int, registry_id\: int, field_code\: string, label\: string, field_type\: string, options\: string\|null, is_required\: int, sort_order\: int, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/report_form.php
+
+		-
+			message: '#^Offset ''params'' on array\{label\: ''Accueil'', icon\: ''🏠'', page\: ''home'', params\: array\{\}, roles\: array\{''agent'', ''superviseur'', ''chsct''\}\}\|array\{label\: ''Export'', icon\: ''📥'', page\: ''export'', params\: array\{\}, roles\: array\{''superviseur'', ''chsct''\}\}\|array\{label\: ''Journal'', icon\: ''📜'', page\: ''logs'', params\: array\{\}, roles\: array\{''superviseur''\}\}\|array\{label\: ''Paramètres'', icon\: ''⚙️'', page\: ''settings'', params\: array\{\}, roles\: array\{''superviseur''\}\}\|array\{label\: ''Statistiques'', icon\: ''📈'', page\: ''statistics'', params\: array\{\}, roles\: array\{''superviseur'', ''chsct''\}\}\|array\{label\: ''Synthèse'', icon\: ''📊'', page\: ''synthesis'', params\: array\{\}, roles\: array\{''superviseur'', ''chsct''\}\}\|array\{label\: ''Utilisateurs'', icon\: ''👥'', page\: ''users'', params\: array\{\}, roles\: array\{''superviseur''\}\}\|array\{label\: string, icon\: string, page\: ''report_list'', params\: array\{type\: string\}, roles\: array\{''agent'', ''superviseur'', ''chsct''\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/sidebar.php
+
+		-
+			message: '#^Offset ''uuid'' on non\-empty\-array\<mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: templates/sidebar.php
+
+		-
+			message: '#^Variable \$usernameHint in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: templates/user_form_fields.php
 
 		-
 			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'

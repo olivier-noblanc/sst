@@ -10,7 +10,7 @@ class HttpService
      * Build an internal application URL.
      *
      * @param string $page   Page name (e.g. 'home', 'report_view')
-     * @param array<string, mixed> $params Additional query parameters
+     * @param array<string, string|int|null> $params Additional query parameters
      * @return string
      */
     public function url(string $page, array $params = []): string

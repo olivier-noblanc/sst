@@ -234,7 +234,7 @@ class FormattingService
     /**
      * Render a breadcrumb navigation bar.
      *
-     * @param array<int, array{url?: string, label: mixed}> $items
+     * @param list<array{url?: string, label: string}> $items
      * @return string HTML for the breadcrumb nav
      */
     public function renderBreadcrumb(array $items): string

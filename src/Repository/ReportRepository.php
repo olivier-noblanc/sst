@@ -60,8 +60,8 @@ class ReportRepository
     }
 
     /**
-     * @param array<string, mixed> $data
-     * @return array<string, mixed>
+     * @param array<string, mixed> $data  // INSERT/UPDATE data — inherently mixed
+     * @return ReportArray
      */
     private function toSnakeCase(array $data): array
     {

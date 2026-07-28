@@ -25,7 +25,7 @@ class AuditRepository
         return $instance;
     }
 
-    /** @param array<string, mixed> $context */
+    /** @param array<string, mixed> $context  // audit context — inherently mixed */
     public function log(
         string $category,
         string $action,
@@ -65,8 +65,8 @@ class AuditRepository
     }
 
     /**
-     * @param array<string, mixed> $filters
-     * @return array{entries: array<int, array<string, mixed>>, total: int}
+     * @param array<string, string|int|null> $filters
+     * @return array{entries: list<AuditLogArray>, total: int}
      */
     public function findPaginated(array $filters = [], int $page = 1, int $perPage = 50): array
     {
@@ -119,7 +119,7 @@ class AuditRepository
 
     /**
      * @param int|string $targetId
-     * @return array<int, array<string, mixed>>
+     * @return list<AuditLogArray>
      */
     public function findByTarget(string $targetType, int|string $targetId): array
     {

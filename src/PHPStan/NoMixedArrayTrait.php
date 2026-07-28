@@ -42,6 +42,9 @@ trait NoMixedArrayTrait
     private const WHITELIST_FILES = [
         'src/database.php',           // PDO fetch
         'src/audit.php',              // audit log context
+        'src/Services/SessionService.php',  // I/O boundary - mixed is inherent
+        'src/Repository/ReportRepository.php',  // I/O boundary - mixed is inherent
+        'src/Repository/AuditRepository.php',  // I/O boundary - mixed is inherent
         'src/migration_columns.php',  // migration data
         'src/migration_tables.php',   // migration data
         'src/migration_config.php',   // config data

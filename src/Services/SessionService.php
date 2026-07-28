@@ -308,7 +308,7 @@ class SessionService
 
     /**
      * Store form data in session for repopulation after validation error.
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $data  // $_SESSION — mixed is inherent
      */
     public function setFormData(array $data): void
     {
@@ -318,12 +318,12 @@ class SessionService
     /**
      * Retrieve and clear stored form data.
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed>  // $_SESSION — mixed is inherent
      */
     public function getFormData(): array
     {
         if (isset($_SESSION['form_data'])) {
-            /** @var array<string, mixed> $data */
+            /** @var array<string, mixed> $data */  // $_SESSION — mixed is inherent
             $data = $_SESSION['form_data'];
             unset($_SESSION['form_data']);
             return $data;

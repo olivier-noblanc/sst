@@ -39,7 +39,7 @@ class AccessService
      * Centralize access control for a report.
      * Combines role, site, visibility mode and confidentiality checks.
      *
-     * @param array<string, mixed> $report  Row from `reports`
+     * @param ReportArray $report  Row from `reports`
      * @param array{id: int, role: string, ...} $user    $_SESSION['user'] — only id/role are read, deliberately not UserArray (see Audit #82: forcing the full shape here made tools/tests/test_can_access_report.php, which only needs id/site_id/role, construct a fake full user for no reason)
      */
     public function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool
@@ -78,7 +78,7 @@ class AccessService
     /**
      * Log access to a confidential report by supervisor/CSA/CHSCT.
      *
-     * @param array<string, mixed> $report
+     * @param ReportArray $report
      * @param array{id: int, role: string, ...} $user
      */
     public function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
@@ -160,7 +160,7 @@ class AccessService
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return RegistryArray|null
      */
     private function findCustomRegistry(string $type): ?array
     {
@@ -216,7 +216,7 @@ class AccessService
     /**
      * Check if a user can edit a report (must be the declarant AND report must be editable).
      *
-     * @param array<string, mixed> $report
+     * @param ReportArray $report
      */
     public function canEditReport(array $report, int $userId): bool
     {
@@ -227,7 +227,7 @@ class AccessService
     /**
      * Check if a user can respond to a report (must be superviseur AND report must be editable).
      *
-     * @param array<string, mixed> $report
+     * @param ReportArray $report
      */
     public function canRespondToReport(array $report, string $role): bool
     {

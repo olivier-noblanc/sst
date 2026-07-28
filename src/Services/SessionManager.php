@@ -207,7 +207,7 @@ class SessionManager
     /**
      * Store form data in session for repopulation after validation error.
      *
-     * @param array<string, mixed> $data Associative array of form field values
+     * @param array<string, string> $data Associative array of form field values
      */
     public function setFormData(array $data): void
     {
@@ -217,7 +217,7 @@ class SessionManager
     /**
      * Retrieve and clear stored form data.
      *
-     * @return array<string, mixed>
+     * @return array<string, string>
      */
     public function getFormData(): array
     {

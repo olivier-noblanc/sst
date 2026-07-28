@@ -190,7 +190,7 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @param array<string, mixed> $input
+     * @param array<string, string> $input
      * @return array<string, string>
      */
     public function validate(array $input, int $excludeId = 0): array
@@ -284,7 +284,7 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @return array<string, mixed>
+     * @return UserArray|null
      */
     public function exportData(int $id): array
     {

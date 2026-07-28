@@ -7,7 +7,7 @@ includes:
 
 parameters:
     level: 8
-    treatPhpDocTypesAsCertain: false
+    treatPhpDocTypesAsCertain: true
     reportUnmatchedIgnoredErrors: false
     typeAliases:
         # Audit #82 — @phpstan-import-type ne fonctionne que depuis un
@@ -21,6 +21,9 @@ parameters:
         # continuent de fonctionner normalement (l'alias local d'une
         # classe prime sur le global dans son propre scope).
         UserArray: 'array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null, site_chosen_at: string|null, sessions_invalid_before: string|null}'
+        ReportArray: 'array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string, lieu: string, declarant_id: int, declarant_nom: string, declarant_prenom: string, pour_compte_de: string, pour_compte_nom: string, pour_compte_prenom: string, nature_auteur: string, type_acte: string, site_id: int, site_text: string, pole: string, service_affectation: string, telephone_mobile: string, is_confidential: int, consent_syndicat: int, etat: string, repondant_id: int|null, date_reponse: string|null, reponse: string|null, attachment_name: string|null, attachment_mime: string|null, created_at: string, updated_at: string, site_code: string, site_nom: string, repondant_nom: string|null, repondant_prenom: string|null}'
+        RegistryArray: 'array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: string|null, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: string|null, created_at: string, updated_at: string|null}'
+        AuditLogArray: 'array{id: int, user_id: int|null, username: string, category: string, action: string, target_id: int|null, target_type: string|null, target_uuid: string|null, details: string, context: string|null, ip_address: string|null, created_at: string}'
     paths:
         - src/
         - pages/

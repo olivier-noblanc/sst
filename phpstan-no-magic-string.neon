@@ -35,3 +35,7 @@ services:
         class: App\PHPStan\NoMixedArrayInClosureRule
         tags:
             - phpstan.rules.rule
+    -
+        class: App\PHPStan\NoMixedArrayInVarRule
+        tags:
+            - phpstan.rules.rule

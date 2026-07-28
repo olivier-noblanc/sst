@@ -88,6 +88,8 @@ trait NoMixedArrayTrait
 
     private const MIXED_ARRAY_TAG_PATTERN = '/@(param|return)\b[^\n]*\barray<[^>\n]*\bmixed\b[^>\n]*>[^\n]*/i';
 
+    private const VAR_ARRAY_TAG_PATTERN = '/@var\b[^\n]*\barray<[^>\n]*\bmixed\b[^\n]*>[^\n]*/i';
+
     /**
      * @param FunctionLike $node
      * @return list<IdentifierRuleError>
@@ -134,5 +136,76 @@ trait NoMixedArrayTrait
         }
 
         return $errors;
+    }
+
+    /**
+     * Check @var annotations inside the method body (statements).
+     *
+     * Recursively walks $node->stmts to find @var annotations with
+     * array<..., mixed> in inline doc comments inside the method body.
+     *
+     * @return list<IdentifierRuleError>
+     */
+    private function checkVarAnnotations(Node $node, Scope $scope): array
+    {
+        $file = str_replace('\\', '/', $scope->getFile());
+
+        foreach (self::WHITELIST_PATHS as $path) {
+            if (str_contains($file, $path)) {
+                return [];
+            }
+        }
+
+        foreach (self::WHITELIST_FILES as $wf) {
+            if (str_contains($file, $wf)) {
+                return [];
+            }
+        }
+
+        if (!property_exists($node, 'stmts') || !is_array($node->stmts)) {
+            return [];
+        }
+
+        $errors = [];
+        $this->walkStatementsForVarAnnotations($node->stmts, $errors);
+
+        return $errors;
+    }
+
+    /**
+     * Recursively collect @var array<..., mixed> errors from statements.
+     *
+     * @param list<\PhpParser\Node\Stmt> $stmts
+     * @param list<IdentifierRuleError> $errors
+     * @return void
+     */
+    private function walkStatementsForVarAnnotations(array $stmts, array &$errors): void
+    {
+        foreach ($stmts as $stmt) {
+            $docComment = $stmt->getDocComment();
+            if ($docComment !== null) {
+                $docText = $docComment->getText();
+                if (preg_match_all(self::VAR_ARRAY_TAG_PATTERN, $docText, $matches, PREG_OFFSET_CAPTURE)) {
+                    foreach ($matches[0] as $i => [, $offset]) {
+                        $line = $docComment->getStartLine() + substr_count(substr($docText, 0, (int) $offset), "\n");
+                        $errors[] = RuleErrorBuilder::message(
+                            'Type array<..., mixed> interdit dans un tag @var — utiliser un DTO typé ou un array avec type de '
+                            . 'valeur précis (array<string, string>, array<string, int>, etc.). mixed désactive la vérification '
+                            . 'de type et est la cause racine de nombreux bugs.'
+                        )
+                            ->identifier('app.noMixedArray')
+                            ->line($line)
+                            ->build();
+                    }
+                }
+            }
+
+            // Recurse into nested statements (if/for/foreach/while/try/etc.)
+            foreach (['stmts', 'cases', 'catches', 'finallyStmts', 'elseifs', 'else'] as $property) {
+                if (property_exists($stmt, $property) && is_array($stmt->$property)) {
+                    $this->walkStatementsForVarAnnotations($stmt->$property, $errors);
+                }
+            }
+        }
     }
 }

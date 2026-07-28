@@ -54,7 +54,8 @@ class AccessHelperVisibilityTest extends TestCase
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (99, 'declarant.test', 'Declarant', 'Test', 'agent', 1, 1)");
         $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, etat) VALUES ('test-uuid-123', 'rsst-26-001', 'rsst', 'Objet', 'Desc', '2026-01-01', 99, 'Declarant', 'Test', 1, 1, 'nouveau')");
 
-        $report = ['uuid' => 'test-uuid-123', 'is_confidential' => 1, 'declarant_id' => '99'];
+        $report = \App\Repository\ReportRepository::instance()->findById('test-uuid-123');
+        $this->assertNotNull($report, 'setup failed: report not found after insert');
         $user = ['id' => 5, 'role' => 'superviseur'];
         logConfidentialReportAccess($pdo, $report, $user);
 

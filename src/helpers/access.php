@@ -2,14 +2,11 @@
 
 use App\DTO\ReportData;
 use App\Services\AccessService;
-use App\Repository\UserRepository;
 
 /**
  * Access Control Helpers — Application SST DREETS BFC
  *
  * Delegates to App\Services\AccessService.
- *
- * @phpstan-import-type UserArray from \App\Repository\UserRepository
  */
 
 function getAccessService(): AccessService

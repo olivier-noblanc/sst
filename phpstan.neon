@@ -9,6 +9,18 @@ parameters:
     level: 8
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: false
+    typeAliases:
+        # Audit #82 — @phpstan-import-type ne fonctionne que depuis un
+        # docblock de CLASSE (class/interface/trait). session.php et
+        # helpers/access.php sont de simples fichiers de fonctions
+        # globales : un @phpstan-import-type là-dedans fait que PHPStan
+        # traite "UserArray" comme une classe introuvable
+        # (class.notFound), pas comme un alias. Alias global ici pour
+        # ces cas — les fichiers avec classe gardent @phpstan-type dans
+        # UserRepository.php + @phpstan-import-type ailleurs, qui
+        # continuent de fonctionner normalement (l'alias local d'une
+        # classe prime sur le global dans son propre scope).
+        UserArray: 'array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null, site_chosen_at: string|null, sessions_invalid_before: string|null}'
     paths:
         - src/
         - pages/

@@ -24,7 +24,7 @@ class AuthService
     /**
      * Get the currently authenticated user.
      * In PROD: reads IIS AUTH_USER. In DEV: returns null (login form).
-     * @return array<string, mixed>|null
+     * @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null
      */
     public function getAuthenticatedUser(): ?array
     {
@@ -56,6 +56,7 @@ class AuthService
                     return $freshUser;
                 }
             }
+            /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null $user */
             return $user;
         }
 
@@ -125,18 +126,18 @@ class AuthService
 
     /**
      * Find existing user or auto-create from Windows login.
-     * @return array<string, mixed>|null
+     * @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null
      */
     public function findOrCreateUser(string $username): ?array
     {
-        /** @var array<string, mixed>|null $user */
+        /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null $user */
         $user = $this->repo->findByUsernameOrAny($username);
 
         if ($user !== null) {
             if ($user['is_active'] === false || $user['is_active'] === 0) {
                 return null;
             }
-            /** @var array<string, mixed> $user */
+            /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null} $user */
             $user = $this->checkAndPromote($user, $username);
             return $user;
         }
@@ -146,7 +147,7 @@ class AuthService
 
     /**
      * Attempt mock login (DEV_MODE only).
-     * @return array<string, mixed>|null
+     * @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null
      */
     public function mockLogin(string $username): ?array
     {
@@ -177,7 +178,7 @@ class AuthService
 
     /**
      * Auto-provision a new user from their Windows login.
-     * @return array<string, mixed>|null
+     * @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null
      */
     public function autoProvision(string $username): ?array
     {
@@ -199,7 +200,7 @@ class AuthService
             'site_id'  => null,
         ]);
 
-        /** @var array<string, mixed>|null $user */
+        /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null $user */
         $user = $this->repo->findById($userId);
 
         $this->events->dispatch('user.provisioned', [

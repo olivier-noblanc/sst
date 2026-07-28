@@ -160,7 +160,7 @@ class AccessService
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return array{id: int, code: string, label: string, short_label: string, description: string, icon: string, color_theme: string, btn_label: ?string, is_enabled: int, is_system: int, sort_order: int, default_visibility: string, notify_chsct: int, legal_note: string, requires_pour_compte: int, has_dgi_warning: int, lieu_label_override: ?string, created_at: string, updated_at: ?string}|null
      */
     private function findCustomRegistry(string $type): ?array
     {
@@ -220,7 +220,7 @@ class AccessService
      */
     public function canEditReport(array $report, int $userId): bool
     {
-        $isDeclarant = ((int) $report['declarant_id'] === $userId);
+        $isDeclarant = ($report['declarant_id'] === $userId);
         return $isDeclarant && in_array($report['etat'], [ReportState::Nouveau->value, ReportState::EnCours->value], true);
     }
 

@@ -12,6 +12,7 @@
  */
 
 $projectDir = dirname(__DIR__);
+$argv = $argv ?? [];
 $outputJson = in_array('--json', $argv);
 $filterUnused = in_array('--unused', $argv);
 $filterMissing = in_array('--missing', $argv);
@@ -34,8 +35,12 @@ foreach ($cssFiles as $cssFile) {
         continue;
     }
     $css = file_get_contents($cssFile);
-    // Remove comments
-    $css = preg_replace('#/\*.*?\*/#s', '', $css);
+    if ($css === false) {
+        continue;
+    }
+    // Remove comments — preg_replace returns null on regex error, fall back to original.
+    $stripped = preg_replace('#/\*.*?\*/#s', '', $css);
+    $css = is_string($stripped) ? $stripped : $css;
     // Remove @import, @keyframes, @media content is kept for context
     // Match class selectors: .classname (but not .123start or pseudo-classes)
     if (preg_match_all('/\.([a-zA-Z][\w-]*)/', $css, $matches)) {
@@ -141,6 +146,10 @@ $htmlDirs = [
 $htmlClasses = [];
 $filesScanned = 0;
 
+/**
+ * @param array<string, bool> $htmlClasses
+ * @param list<string> $excludedStrings
+ */
 function scanDirForClasses(string $dir, array &$htmlClasses, int &$filesScanned, array $excludedStrings): void {
     if (!is_dir($dir)) {
         return;
@@ -155,16 +164,24 @@ function scanDirForClasses(string $dir, array &$htmlClasses, int &$filesScanned,
         }
         $filesScanned++;
         $content = file_get_contents($file->getPathname());
+        if ($content === false) {
+            continue; // file_get_contents can fail on permission/race — skip silently
+        }
 
-        // Remove PHP comments
-        $content = preg_replace('#/\*.*?\*/#s', '', $content);
-        $content = preg_replace('#//.*$#m', '', $content);
+        // Remove PHP comments — preg_replace returns null on regex error, fall back to original.
+        $stripped = preg_replace('#/\*.*?\*/#s', '', $content);
+        $content = is_string($stripped) ? $stripped : $content;
+        $stripped = preg_replace('#//.*$#m', '', $content);
+        $content = is_string($stripped) ? $stripped : $content;
 
         // Extract class="..." attributes
         if (preg_match_all('/class\s*=\s*["\']([^"\']*)["\']/', $content, $matches)) {
             foreach ($matches[1] as $classString) {
                 // Split by whitespace and extract individual classes
                 $classes = preg_split('/\s+/', trim($classString));
+                if ($classes === false) {
+                    continue;
+                }
                 foreach ($classes as $class) {
                     $class = trim($class);
                     if ($class !== '' && preg_match('/^[a-zA-Z][\w-]*$/', $class)) {
@@ -201,10 +218,19 @@ foreach ([$projectDir . '/public/index.php', $projectDir . '/public/asset.php'] 
     if (file_exists($file)) {
         $filesScanned++;
         $content = file_get_contents($file);
-        $content = preg_replace('#/\*.*?\*/#s', '', $content);
+        if ($content === false) {
+            continue;
+        }
+        $stripped = preg_replace('#/\*.*?\*/#s', '', $content);
+        if (is_string($stripped)) {
+            $content = $stripped;
+        }
         if (preg_match_all('/class\s*=\s*["\']([^"\']*)["\']/', $content, $matches)) {
             foreach ($matches[1] as $classString) {
                 $classes = preg_split('/\s+/', trim($classString));
+                if ($classes === false) {
+                    continue;
+                }
                 foreach ($classes as $class) {
                     $class = trim($class);
                     if ($class !== '' && preg_match('/^[a-zA-Z][\w-]*$/', $class)) {

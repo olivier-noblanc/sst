@@ -81,9 +81,4 @@ class NotificationRepository
         $stmt = $this->pdo->query("SELECT email FROM notification_settings WHERE type = 'global'");
         return $stmt !== false ? array_column($stmt->fetchAll(), 'email') : [];
     }
-
-    public function getPdo(): PDO
-    {
-        return $this->pdo;
-    }
 }

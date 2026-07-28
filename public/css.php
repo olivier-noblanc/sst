@@ -76,10 +76,10 @@ if (!file_exists($filePath) || !is_file($filePath)) {
 }
 
 // === Generate strong ETag from file content ===
-// Audit #90 — file_get_contents can return false on read errors (permission,
-// race with file deletion, etc.). Before this fix, the result was passed
-// directly to crc32() which would throw a TypeError on false. Now we handle
-// the failure with a 500 response.
+// Audit #90 — file_get_contents/filesize/filemtime can return false on read
+// errors (permissions, race with file deletion, etc.). Before this fix, the
+// result was passed directly to crc32()/dechex() which would throw a TypeError
+// on false. Now we handle each failure with a 500 response.
 $content = file_get_contents($filePath);
 if ($content === false) {
     http_response_code(500);
@@ -87,7 +87,15 @@ if ($content === false) {
     echo 'Failed to read CSS file.';
     exit;
 }
-$etag = '"' . dechex(crc32($content)) . '-' . dechex(filesize($filePath)) . '-' . dechex(filemtime($filePath)) . '"';
+$fileSize = filesize($filePath);
+$fileMtime = filemtime($filePath);
+if ($fileSize === false || $fileMtime === false) {
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo 'Failed to stat CSS file.';
+    exit;
+}
+$etag = '"' . dechex(crc32($content)) . '-' . dechex($fileSize) . '-' . dechex($fileMtime) . '"';
 
 // === Check conditional requests ===
 
@@ -100,7 +108,6 @@ if ($clientEtag !== null && trim($clientEtag, " \t\n\r\0\x0B\"") === trim($etag,
 }
 
 // If-Modified-Since
-$fileMtime = filemtime($filePath);
 $clientLastModified = $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? null;
 if ($clientLastModified !== null && strtotime($clientLastModified) >= $fileMtime) {
     http_response_code(304);

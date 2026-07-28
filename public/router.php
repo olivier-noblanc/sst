@@ -18,7 +18,13 @@ header_remove('Server');
 header_remove('Expires');
 header_remove('Pragma');
 
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+// Audit: parse_url can return false on malformed URLs. Fall back to '/' so
+// the rest of the router treats it as the homepage instead of crashing on
+// str_starts_with($uri, ...) with $uri === false (TypeError on PHP 8.x).
+$uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+if (!is_string($uri) || $uri === '') {
+    $uri = '/';
+}
 $publicPath = __DIR__;
 
 // Legacy: asset.php?f=...&v=... (kept for attachment downloads, exports)

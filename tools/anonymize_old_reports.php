@@ -69,8 +69,14 @@ if ($retentionYears <= 0) {
     exit(0);
 }
 
-// Calculate cutoff date
-$cutoffDate = date('Y-m-d', strtotime("-{$retentionYears} years"));
+// Calculate cutoff date — strtotime can return false on parse error, in which
+// case date() would emit a warning and return 1970-01-01 (silently wrong).
+$cutoffTimestamp = strtotime("-{$retentionYears} years");
+if ($cutoffTimestamp === false) {
+    echo "ERREUR : impossible de calculer la date de coupure (retention_years={$retentionYears}).\n\n";
+    exit(1);
+}
+$cutoffDate = date('Y-m-d', $cutoffTimestamp);
 echo "Période de conservation : {$retentionYears} an(s)\n";
 echo "Date de coupure : les signalements traités/abandonnés avant le {$cutoffDate} seront anonymisés.\n\n";
 
@@ -118,8 +124,13 @@ if ($dryRun) {
 echo "Voulez-vous procéder à l'anonymisation de ces " . count($reports) . " signalement(s) ?\n";
 echo "Tapez OUI pour confirmer : ";
 $handle = fopen('php://stdin', 'r');
-$confirm = trim(fgets($handle));
+if ($handle === false) {
+    echo "ERREUR : impossible de lire l'entrée standard.\n\n";
+    exit(1);
+}
+$line = fgets($handle);
 fclose($handle);
+$confirm = is_string($line) ? trim($line) : '';
 
 if ($confirm !== 'OUI') {
     echo "Anonymisation annulée.\n\n";

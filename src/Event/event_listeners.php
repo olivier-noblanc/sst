@@ -90,6 +90,25 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         }
     });
 
+    // ── report.abandoned → notifyReportAbandon ──────────────────────────────
+    // Audit: was previously dead code (method existed but no dispatch wired).
+    $events->addListener('report.abandoned', function (array $data) use ($notifications): void {
+        /** @var array<string, mixed> $report */
+        $report = $data['report'] ?? [];
+        $reportUuid = (string) ($report['uuid'] ?? '');
+        $userId = (int) ($data['userId'] ?? 0);
+
+        if ($reportUuid === '') {
+            return;
+        }
+
+        try {
+            $notifications->notifyReportAbandon($reportUuid, $userId);
+        } catch (Throwable $e) {
+            error_log('[SST-EVENT] notifyReportAbandon failed: ' . $e->getMessage());
+        }
+    });
+
     // ── report.updated → no listener (silent) ───────────────────────────────
     // Updates are not notified by default — supervisors see them in the dashboard.
 

@@ -368,9 +368,4 @@ class StatsRepository
             byTypeActe: is_array($byType) ? $byType : [],
         );
     }
-
-    public function getPdo(): PDO
-    {
-        return $this->pdo;
-    }
 }

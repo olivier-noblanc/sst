@@ -168,7 +168,19 @@ class ReportService
         if (!canEditReport($report->toArray(), $userId)) {
             throw new RuntimeException('Accès refusé.');
         }
-        return $this->repo->abandon($uuid, $userId);
+        $result = $this->repo->abandon($uuid, $userId);
+
+        // Audit: dispatch report.abandoned so listeners can notify supervisors
+        // (parallels report.reopened). Skipped on failure — no spurious email.
+        if ($result) {
+            $this->events->dispatch('report.abandoned', [
+                'report' => $report->toArray(),
+                'userId' => $userId,
+                'pdo'    => $this->repo->getPdo(),
+            ]);
+        }
+
+        return $result;
     }
 
     public function reopen(string $uuid, ReopenReportCommand $cmd, int $userId): bool

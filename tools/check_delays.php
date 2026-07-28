@@ -61,8 +61,15 @@ if ($alertDelayDays <= 0) {
 echo "Délai d'alerte configuré : {$alertDelayDays} jour(s)\n";
 echo "Recherche des signalements en état « Nouveau » depuis plus de {$alertDelayDays} jour(s)...\n\n";
 
-// Find overdue reports
-$cutoffDate = gmdate('Y-m-d H:i:s', strtotime("-{$alertDelayDays} days"));
+// Find overdue reports — strtotime can return false on parse error; in that
+// case gmdate() would silently emit 1970-01-01 (wrong cutoff = no reports
+// ever flagged). Bail out early instead.
+$cutoffTimestamp = strtotime("-{$alertDelayDays} days");
+if ($cutoffTimestamp === false) {
+    echo "ERREUR : impossible de calculer la date de coupure (alert_delay_days={$alertDelayDays}).\n\n";
+    exit(1);
+}
+$cutoffDate = gmdate('Y-m-d H:i:s', $cutoffTimestamp);
 
 $sql = "SELECT r.uuid, r.reference, r.type, r.objet, r.created_at,
                r.site_id, s.code as site_code, s.nom as site_nom,

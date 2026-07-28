@@ -174,7 +174,7 @@ if (!empty($report->attachmentName)) {
 }
 
 // --- Embed image attachment in PDF ---
-drawEmbeddedImage($pdf, $report->toArray(), $blueDark);
+drawEmbeddedImage($pdf, $report->attachmentMime, $attachmentBlob, $blueDark);
 
 // État badge (special rendering)
 $pdf->Ln(1);

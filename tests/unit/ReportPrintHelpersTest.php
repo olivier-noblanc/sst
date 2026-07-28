@@ -84,4 +84,46 @@ class ReportPrintHelpersTest extends TestCase
         $this->assertIsString($output);
         $this->assertStringStartsWith('%PDF', $output);
     }
+
+    /**
+     * Regression test — Audit #82. report_print.php passed $report->toArray()
+     * to drawEmbeddedImage(), but ReportData::toArray() never includes
+     * attachment_blob (excluded from findById() on purpose, fetched
+     * separately via getAttachmentBlob() for this exact page) — so no image
+     * was ever embedded, even though the caption right above it said
+     * "image embarquée ci-dessous". Fixed by passing the mime/blob as
+     * explicit typed params instead of a loose array. These tests exercise
+     * drawEmbeddedImage() directly with a real (tiny) PNG so a future
+     * regression where the blob silently doesn't reach this function would
+     * show up as "Image jointe" missing from the PDF stream, not just as
+     * "didn't throw".
+     */
+    public function testDrawEmbeddedImageDrawsSectionWhenBlobPresent(): void
+    {
+        $pdf = $this->newPdf();
+        // 1x1 transparent PNG, well-known minimal fixture.
+        $pngBlob = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+        drawEmbeddedImage($pdf, 'image/png', $pngBlob, [0, 51, 102]);
+        $output = $pdf->Output('S');
+        $this->assertIsString($output);
+        // The section title drawn right before the image — proof the image
+        // branch actually ran, not just that nothing threw.
+        $this->assertStringContainsString('Image jointe', $output);
+    }
+
+    public function testDrawEmbeddedImageDoesNothingWhenBlobIsNull(): void
+    {
+        $pdf = $this->newPdf();
+        drawEmbeddedImage($pdf, 'image/png', null, [0, 51, 102]);
+        $output = $pdf->Output('S');
+        $this->assertStringNotContainsString('Image jointe', $output);
+    }
+
+    public function testDrawEmbeddedImageDoesNothingForNonImageMime(): void
+    {
+        $pdf = $this->newPdf();
+        drawEmbeddedImage($pdf, 'application/pdf', 'not-actually-an-image', [0, 51, 102]);
+        $output = $pdf->Output('S');
+        $this->assertStringNotContainsString('Image jointe', $output);
+    }
 }

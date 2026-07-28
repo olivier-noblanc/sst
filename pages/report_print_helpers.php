@@ -186,13 +186,26 @@ function drawHR(SSTPDF $pdf): void
 
 /**
  * Embed an image attachment via data:// URI (no temp file).
- * @param array<string, mixed> $report
+ *
+ * Audit #82 — was `array $report` (loosely `array<string, mixed>`), reading
+ * $report['attachment_blob']/['attachment_mime']. report_print.php passed
+ * $report->toArray() here — but ReportData::toArray() never includes
+ * attachment_blob (the blob is intentionally excluded from findById() for
+ * performance and fetched separately via getAttachmentBlob(), specifically
+ * for this print page). The blob WAS correctly fetched into $attachmentBlob
+ * in report_print.php, and even used to pick the caption text ("image
+ * embarquée ci-dessous" vs "jointe au signalement") — but never actually
+ * passed to this function, so no image was ever embedded even when the
+ * caption said it would be. Explicit typed params instead of a loose array
+ * make this kind of "the caller has the value but never routes it in"
+ * mismatch impossible to reintroduce silently.
+ *
  * @param array{int, int, int} $blueDark
  */
-function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
+function drawEmbeddedImage(SSTPDF $pdf, ?string $attachmentMime, ?string $attachmentBlob, array $blueDark): void
 {
-    $attachmentMime = $report['attachment_mime'] ?? '';
-    if (empty($report['attachment_blob']) || $attachmentMime === ''
+    $attachmentMime ??= '';
+    if (empty($attachmentBlob) || $attachmentMime === ''
         || !in_array($attachmentMime, ['image/jpeg', 'image/png', 'image/gif'], true)) {
         return;
     }
@@ -200,8 +213,7 @@ function drawEmbeddedImage(SSTPDF $pdf, array $report, array $blueDark): void
         $typeStr = match ($attachmentMime) {
             'image/jpeg' => 'jpg', 'image/png' => 'png', default => 'gif',
         };
-        $attachmentBlob = $report['attachment_blob'];
-        $dataUri = 'data://' . $attachmentMime . ';base64,' . base64_encode((string) $attachmentBlob);
+        $dataUri = 'data://' . $attachmentMime . ';base64,' . base64_encode($attachmentBlob);
         $imageInfo = @getimagesize($dataUri);
         $pageW = $pdf->GetPageWidth();
         $pageWidth = $pageW - $pdf->getLeftMargin() - $pdf->getRightMargin();

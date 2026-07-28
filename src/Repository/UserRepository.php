@@ -37,16 +37,17 @@ class UserRepository
                 LEFT JOIN sites s ON u.site_id = s.id';
     }
 
-    /** @return array<mixed, mixed>|null */
+    /** @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null */
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare($this->baseQuery() . ' WHERE u.id = :id');
         $stmt->execute([':id' => $id]);
         $row = $stmt->fetch();
+        /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null $row */
         return is_array($row) ? $row : null;
     }
 
-    /** @return array<mixed, mixed>|null */
+    /** @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null */
     public function findByUsername(string $username): ?array
     {
         $stmt = $this->pdo->prepare(
@@ -54,10 +55,11 @@ class UserRepository
         );
         $stmt->execute([':username' => $username]);
         $row = $stmt->fetch();
+        /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null $row */
         return is_array($row) ? $row : null;
     }
 
-    /** @return array<mixed, mixed>|null */
+    /** @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null */
     public function findByUsernameOrAny(string $username): ?array
     {
         $stmt = $this->pdo->prepare(
@@ -65,10 +67,11 @@ class UserRepository
         );
         $stmt->execute([':username' => $username]);
         $row = $stmt->fetch();
+        /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null $row */
         return is_array($row) ? $row : null;
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}> */
     public function findByRole(string $role): array
     {
         $stmt = $this->pdo->prepare(
@@ -76,10 +79,11 @@ class UserRepository
         );
         $stmt->execute([':role' => $role]);
         $rows = $stmt->fetchAll();
+        /** @var list<array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}> $rows */
         return is_array($rows) ? $rows : [];
     }
 
-    /** @return array<mixed, mixed> */
+    /** @return list<array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}> */
     public function findAll(int $siteId = 0, bool $active = true): array
     {
         $sql = $this->baseQuery() . ' WHERE 1=1';
@@ -97,6 +101,7 @@ class UserRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
+        /** @var list<array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}> $rows */
         return is_array($rows) ? $rows : [];
     }
 
@@ -138,7 +143,7 @@ class UserRepository
     // Writes
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /** @param array<string, mixed> $data */
+    /** @param array{username: string, nom: string, prenom: string, email?: string|null, role?: string, site_id?: int|null} $data */
     public function create(array $data): int
     {
         $stmt = $this->pdo->prepare('
@@ -160,7 +165,7 @@ class UserRepository
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param array{nom: string, prenom: string, email: string|null, username: string, role: string, site_id?: int} $data */
     public function update(int $id, array $data): bool
     {
         $stmt = $this->pdo->prepare("
@@ -345,12 +350,12 @@ class UserRepository
         }
     }
 
-    /** @return array<string, mixed> */
+    /** @return array{user: array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string}, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>} */
     public function exportData(int $id): array
     {
         $user = $this->findById($id);
         if ($user === null) {
-            return [];
+            return ['user' => [], 'reports_count' => 0, 'reports' => [], 'responses_count' => 0, 'responses' => []];
         }
 
         $stmt = $this->pdo->prepare('
@@ -368,7 +373,9 @@ class UserRepository
         $stmt->execute([':id' => $id]);
         $responses = $stmt->fetchAll();
 
+        /** @var list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}> $reports */
         $reports = is_array($reports) ? $reports : [];
+        /** @var list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}> $responses */
         $responses = is_array($responses) ? $responses : [];
 
         return [

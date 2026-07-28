@@ -153,32 +153,32 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null
+     * @return array<string, mixed>|null
      */
     public function findById(int $id): ?array
     {
         $result = $this->repo->findById($id);
-        /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null $result */
+        /** @var array<string, mixed>|null $result */
         return $result;
     }
 
     /**
-     * @return array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null
+     * @return array<string, mixed>|null
      */
     public function findByUsername(string $username): ?array
     {
         $result = $this->repo->findByUsername($username);
-        /** @var array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}|null $result */
+        /** @var array<string, mixed>|null $result */
         return $result;
     }
 
     /**
-     * @return list<array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}>
+     * @return list<array<string, mixed>>
      */
     public function findAll(int $siteId = 0, bool $active = true): array
     {
         $result = $this->repo->findAll($siteId, $active);
-        /** @var list<array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null}> $result */
+        /** @var list<array<string, mixed>> $result */
         return $result;
     }
 
@@ -286,7 +286,7 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @return array{user: array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string}, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>}
+     * @return array<string, mixed>
      */
     public function exportData(int $id): array
     {

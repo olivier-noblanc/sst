@@ -45,6 +45,7 @@ $daysRemaining = 0;
 if ($hasExistingSite) {
     $siteChosenAt = $user['site_chosen_at'] ?? null;
     if ($siteChosenAt !== null) {
+        /** @var string */
         $siteChosenAtStr = $siteChosenAt;
         $chosenTime = strtotime($siteChosenAtStr);
         if ($chosenTime === false) {

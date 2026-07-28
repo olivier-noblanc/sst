@@ -35,7 +35,7 @@ if (!$config->isRegistryEnabled($type)) {
 $pdo = getDB();
 $user = $session->getUserSession();
 
-/** @var array<string, string> $user */
+/** @var array{id: int|string, nom: string, prenom: string, site_id: int|string} $user */
 
 // Site validation (skipped in noSiteMode)
 $siteId = (int) ($_POST['site_id'] ?? 0);

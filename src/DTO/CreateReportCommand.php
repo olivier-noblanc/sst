@@ -48,7 +48,7 @@ class CreateReportCommand
 
     /**
      * @param array<string, string> $post
-     * @param array<string, mixed> $user
+     * @param array{id: int|string, nom: string, prenom: string} $user
      */
     public static function fromPost(array $post, array $user): self
     {
@@ -98,12 +98,38 @@ class CreateReportCommand
         );
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array{
+     *     type: string,
+     *     objet: string,
+     *     description: string,
+     *     dateEvenement: string,
+     *     heureEvenement: ?string,
+     *     lieu: ?string,
+     *     declarantId: int,
+     *     declarantNom: string,
+     *     declarantPrenom: string,
+     *     siteId: int,
+     *     siteText: ?string,
+     *     pole: ?string,
+     *     serviceAffectation: ?string,
+     *     telephoneMobile: ?string,
+     *     isConfidential: bool,
+     *     consentSyndicat: bool,
+     *     natureAuteur: ?string,
+     *     typeActe: ?string,
+     *     pourCompteNom: ?string,
+     *     pourComptePrenom: ?string,
+     *     attachmentBlob: ?string,
+     *     attachmentName: ?string,
+     *     attachmentMime: ?string
+     * }
+     */
     public function toArray(): array
     {
+        /** @var array{type: string, objet: string, description: string, dateEvenement: string, heureEvenement: ?string, lieu: ?string, declarantId: int, declarantNom: string, declarantPrenom: string, siteId: int, siteText: ?string, pole: ?string, serviceAffectation: ?string, telephoneMobile: ?string, isConfidential: bool, consentSyndicat: bool, natureAuteur: ?string, typeActe: ?string, pourCompteNom: ?string, pourComptePrenom: ?string, attachmentBlob: ?string, attachmentName: ?string, attachmentMime: ?string} $data */
         $data = get_object_vars($this);
         // type is already a string (since P2.3), no need to convert
         return $data;
     }
 }
-

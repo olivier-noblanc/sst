@@ -18,7 +18,7 @@ function getAccessService(): AccessService
 }
 
 /**
- * @param UserArray $user
+ * @param array{id: int, role: string, ...} $user
  */
 function canAccessReport(ReportData $report, array $user, ?string $forcedVisibility = null): bool
 {
@@ -26,7 +26,7 @@ function canAccessReport(ReportData $report, array $user, ?string $forcedVisibil
 }
 
 /**
- * @param UserArray $user
+ * @param array{id: int, role: string, ...} $user
  */
 function logConfidentialReportAccess(PDO $pdo, ReportData $report, array $user): void
 {

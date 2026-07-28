@@ -13,9 +13,6 @@ use Exception;
 use App\Repository\ReportRepository;
 use App\Repository\RegistryRepository;
 
-/**
- * @phpstan-import-type UserArray from \App\Repository\UserRepository
- */
 class AccessService
 {
     /**
@@ -43,7 +40,7 @@ class AccessService
      * Combines role, site, visibility mode and confidentiality checks.
      *
      * @param array<string, mixed> $report  Row from `reports`
-     * @param UserArray $user    $_SESSION['user']
+     * @param array{id: int, role: string, ...} $user    $_SESSION['user'] — only id/role are read, deliberately not UserArray (see Audit #82: forcing the full shape here made tools/tests/test_can_access_report.php, which only needs id/site_id/role, construct a fake full user for no reason)
      */
     public function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool
     {
@@ -82,7 +79,7 @@ class AccessService
      * Log access to a confidential report by supervisor/CSA/CHSCT.
      *
      * @param array<string, mixed> $report
-     * @param UserArray $user
+     * @param array{id: int, role: string, ...} $user
      */
     public function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
     {

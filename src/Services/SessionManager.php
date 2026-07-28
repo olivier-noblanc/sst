@@ -9,8 +9,6 @@ namespace App\Services;
  * to provide a clean, injectable service interface.
  *
  * The global functions remain as thin wrappers for backward compatibility.
- *
- * @phpstan-import-type UserArray from \App\Repository\UserRepository
  */
 class SessionManager
 {

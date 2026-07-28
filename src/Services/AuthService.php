@@ -10,9 +10,6 @@ use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 
-/**
- * @phpstan-import-type UserArray from \App\Repository\UserRepository
- */
 class AuthService
 {
     public function __construct(

@@ -4,9 +4,6 @@
 
 namespace App\Services;
 
-/**
- * @phpstan-import-type UserArray from \App\Repository\UserRepository
- */
 class SessionService
 {
     private static ?self $instance = null;

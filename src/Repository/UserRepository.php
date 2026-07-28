@@ -9,8 +9,6 @@ use Throwable;
 
 /**
  * UserRepository — Couche d'accès aux données pour les utilisateurs.
- *
- * @phpstan-type UserArray array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string, updated_at: string|null, site_code: string|null, site_nom: string|null, site_chosen_at: string|null, sessions_invalid_before: string|null}
  */
 class UserRepository
 {

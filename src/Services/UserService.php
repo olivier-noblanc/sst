@@ -10,9 +10,6 @@ use App\Event\EventDispatcher;
 use App\DTO\CreateUserCommand;
 use App\DTO\UpdateUserCommand;
 
-/**
- * @phpstan-import-type UserArray from \App\Repository\UserRepository
- */
 class UserService
 {
     public function __construct(

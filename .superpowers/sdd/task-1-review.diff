@@ -1,0 +1,693 @@
+phpstan-baseline.neon                 | 66 +++++++++++++++++++++++++++++++
+ phpstan-no-magic-string.neon          |  4 ++
+ src/PHPStan/NoMixedArrayInVarRule.php | 33 ++++++++++++++++
+ src/PHPStan/NoMixedArrayTrait.php     | 73 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 176 insertions(+)
+
+diff --git a/phpstan-baseline.neon b/phpstan-baseline.neon
+index 9ecf6d5..62cb924 100755
+--- a/phpstan-baseline.neon
++++ b/phpstan-baseline.neon
+@@ -143,32 +143,62 @@ parameters:
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+ 			path: src/DTO/RespondToReportCommand.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 1
+ 			path: src/DTO/UpdateReportCommand.php
+ 
++		-
++			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
++			identifier: app.noMixedArray
++			count: 1
++			path: src/DTO/UpdateReportCommand.php
++
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 1
+ 			path: src/DTO/UpdateUserCommand.php
+ 
+ 		-
+ 			message: '#^Unused App\\Enum\\ReportState\:\:badgeClass$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+ 			path: src/Enum/ReportState.php
+ 
++		-
++			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInClosureRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
++			identifier: argument.type
++			count: 2
++			path: src/PHPStan/NoMixedArrayInClosureRule.php
++
++		-
++			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInFunctionRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
++			identifier: argument.type
++			count: 2
++			path: src/PHPStan/NoMixedArrayInFunctionRule.php
++
++		-
++			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInMethodRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
++			identifier: argument.type
++			count: 2
++			path: src/PHPStan/NoMixedArrayInMethodRule.php
++
++		-
++			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInVarRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
++			identifier: argument.type
++			count: 2
++			path: src/PHPStan/NoMixedArrayInVarRule.php
++
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 1
+ 			path: src/Query/QueryFilterBuilder.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 1
+@@ -203,20 +233,26 @@ parameters:
+ 			identifier: app.noMixedArray
+ 			count: 2
+ 			path: src/Repository/RegistryFieldRepository.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 3
+ 			path: src/Repository/RegistryFieldRepository.php
+ 
++		-
++			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
++			identifier: app.noMixedArray
++			count: 1
++			path: src/Repository/RegistryFieldRepository.php
++
+ 		-
+ 			message: '#^Unused App\\Repository\\RegistryFieldRepository\:\:findById$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+ 			path: src/Repository/RegistryFieldRepository.php
+ 
+ 		-
+ 			message: '#^Unused App\\Repository\\RegistryFieldRepository\:\:update$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+@@ -227,38 +263,50 @@ parameters:
+ 			identifier: app.noMixedArray
+ 			count: 2
+ 			path: src/Repository/RegistryRepository.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 4
+ 			path: src/Repository/RegistryRepository.php
+ 
++		-
++			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
++			identifier: app.noMixedArray
++			count: 2
++			path: src/Repository/RegistryRepository.php
++
+ 		-
+ 			message: '#^Unused App\\Repository\\RegistryRepository\:\:toggleEnabled$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+ 			path: src/Repository/RegistryRepository.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 3
+ 			path: src/Repository/ReportRepository.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 8
+ 			path: src/Repository/ReportRepository.php
+ 
++		-
++			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
++			identifier: app.noMixedArray
++			count: 2
++			path: src/Repository/ReportRepository.php
++
+ 		-
+ 			message: '#^Unused App\\Repository\\ReportRepository\:\:countByState$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+ 			path: src/Repository/ReportRepository.php
+ 
+ 		-
+ 			message: '#^Unused App\\Repository\\ReportRepository\:\:createAgentInvite$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+@@ -329,20 +377,26 @@ parameters:
+ 			identifier: app.noMixedArray
+ 			count: 2
+ 			path: src/Services/AuthService.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 5
+ 			path: src/Services/AuthService.php
+ 
++		-
++			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
++			identifier: app.noMixedArray
++			count: 3
++			path: src/Services/AuthService.php
++
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 1
+ 			path: src/Services/FormattingService.php
+ 
+ 		-
+ 			message: '#^Unused App\\Services\\FormattingService\:\:formatTime$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+@@ -497,32 +551,44 @@ parameters:
+ 			identifier: app.noMixedArray
+ 			count: 2
+ 			path: src/Services/SessionService.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 2
+ 			path: src/Services/SessionService.php
+ 
++		-
++			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
++			identifier: app.noMixedArray
++			count: 2
++			path: src/Services/SessionService.php
++
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 2
+ 			path: src/Services/UserService.php
+ 
+ 		-
+ 			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+ 			identifier: app.noMixedArray
+ 			count: 4
+ 			path: src/Services/UserService.php
+ 
++		-
++			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
++			identifier: app.noMixedArray
++			count: 4
++			path: src/Services/UserService.php
++
+ 		-
+ 			message: '#^Unused App\\Services\\UserService\:\:countActive$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+ 			path: src/Services/UserService.php
+ 
+ 		-
+ 			message: '#^Unused App\\Services\\UserService\:\:findAll$#'
+ 			identifier: shipmonk.deadMethod
+ 			count: 1
+diff --git a/phpstan-no-magic-string.neon b/phpstan-no-magic-string.neon
+index 86f78a8..7b5844e 100644
+--- a/phpstan-no-magic-string.neon
++++ b/phpstan-no-magic-string.neon
+@@ -28,10 +28,14 @@ services:
+         tags:
+             - phpstan.rules.rule
+     -
+         class: App\PHPStan\NoMixedArrayInFunctionRule
+         tags:
+             - phpstan.rules.rule
+     -
+         class: App\PHPStan\NoMixedArrayInClosureRule
+         tags:
+             - phpstan.rules.rule
++    -
++        class: App\PHPStan\NoMixedArrayInVarRule
++        tags:
++            - phpstan.rules.rule
+diff --git a/src/PHPStan/NoMixedArrayInVarRule.php b/src/PHPStan/NoMixedArrayInVarRule.php
+new file mode 100644
+index 0000000..bbfcf8d
+--- /dev/null
++++ b/src/PHPStan/NoMixedArrayInVarRule.php
+@@ -0,0 +1,33 @@
++<?php
++
++declare(strict_types=1);
++
++namespace App\PHPStan;
++
++use PhpParser\Node;
++use PhpParser\Node\Stmt\ClassMethod;
++use PHPStan\Analyser\Scope;
++use PHPStan\Rules\IdentifierRuleError;
++use PHPStan\Rules\Rule;
++
++/**
++ * Bloque array<..., mixed> dans les @var inline dans le corps dÔÇÖune m├®thode
++ * de classe. Voir NoMixedArrayTrait pour le d├®tail (whitelist, pattern).
++ *
++ * @implements Rule<ClassMethod>
++ */
++final class NoMixedArrayInVarRule implements Rule
++{
++    use NoMixedArrayTrait;
++
++    public function getNodeType(): string
++    {
++        return ClassMethod::class;
++    }
++
++    /** @return list<IdentifierRuleError> */
++    public function processNode(Node $node, Scope $scope): array
++    {
++        return $this->checkVarAnnotations($node, $scope);
++    }
++}
+diff --git a/src/PHPStan/NoMixedArrayTrait.php b/src/PHPStan/NoMixedArrayTrait.php
+index c676871..0d1f2fe 100644
+--- a/src/PHPStan/NoMixedArrayTrait.php
++++ b/src/PHPStan/NoMixedArrayTrait.php
+@@ -81,20 +81,22 @@ trait NoMixedArrayTrait
+         'src/Router/Renderer.php',    // render params
+         'src/Router/routes.php',      // route config
+         'src/validation.php',         // validation data
+         'src/Middleware/bootstrap.php', // middleware data
+         'src/Middleware/require_auth.php',
+         'src/Middleware/require_role.php',
+     ];
+ 
+     private const MIXED_ARRAY_TAG_PATTERN = '/@(param|return)\b[^\n]*\barray<[^>\n]*\bmixed\b[^>\n]*>[^\n]*/i';
+ 
++    private const VAR_ARRAY_TAG_PATTERN = '/@var\b[^\n]*\barray<[^>\n]*\bmixed\b[^\n]*>[^\n]*/i';
++
+     /**
+      * @param FunctionLike $node
+      * @return list<IdentifierRuleError>
+      */
+     private function checkFunctionLike(Node $node, Scope $scope): array
+     {
+         $file = str_replace('\\', '/', $scope->getFile());
+ 
+         foreach (self::WHITELIST_PATHS as $path) {
+             if (str_contains($file, $path)) {
+@@ -128,11 +130,82 @@ trait NoMixedArrayTrait
+                 . 'de type et est la cause racine de nombreux bugs.',
+                 $tag
+             ))
+                 ->identifier('app.noMixedArray')
+                 ->line($line)
+                 ->build();
+         }
+ 
+         return $errors;
+     }
++
++    /**
++     * Check @var annotations inside the method body (statements).
++     *
++     * Recursively walks $node->stmts to find @var annotations with
++     * array<..., mixed> in inline doc comments inside the method body.
++     *
++     * @return list<IdentifierRuleError>
++     */
++    private function checkVarAnnotations(Node $node, Scope $scope): array
++    {
++        $file = str_replace('\\', '/', $scope->getFile());
++
++        foreach (self::WHITELIST_PATHS as $path) {
++            if (str_contains($file, $path)) {
++                return [];
++            }
++        }
++
++        foreach (self::WHITELIST_FILES as $wf) {
++            if (str_contains($file, $wf)) {
++                return [];
++            }
++        }
++
++        if (!property_exists($node, 'stmts') || !is_array($node->stmts)) {
++            return [];
++        }
++
++        $errors = [];
++        $this->walkStatementsForVarAnnotations($node->stmts, $errors);
++
++        return $errors;
++    }
++
++    /**
++     * Recursively collect @var array<..., mixed> errors from statements.
++     *
++     * @param list<\PhpParser\Node\Stmt> $stmts
++     * @param list<IdentifierRuleError> $errors
++     * @return void
++     */
++    private function walkStatementsForVarAnnotations(array $stmts, array &$errors): void
++    {
++        foreach ($stmts as $stmt) {
++            $docComment = $stmt->getDocComment();
++            if ($docComment !== null) {
++                $docText = $docComment->getText();
++                if (preg_match_all(self::VAR_ARRAY_TAG_PATTERN, $docText, $matches, PREG_OFFSET_CAPTURE)) {
++                    foreach ($matches[0] as $i => [, $offset]) {
++                        $line = $docComment->getStartLine() + substr_count(substr($docText, 0, (int) $offset), "\n");
++                        $errors[] = RuleErrorBuilder::message(
++                            'Type array<..., mixed> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de '
++                            . 'valeur pr├®cis (array<string, string>, array<string, int>, etc.). mixed d├®sactive la v├®rification '
++                            . 'de type et est la cause racine de nombreux bugs.'
++                        )
++                            ->identifier('app.noMixedArray')
++                            ->line($line)
++                            ->build();
++                    }
++                }
++            }
++
++            // Recurse into nested statements (if/for/foreach/while/try/etc.)
++            foreach (['stmts', 'cases', 'catches', 'finallyStmts', 'elseifs', 'else'] as $property) {
++                if (property_exists($stmt, $property) && is_array($stmt->$property)) {
++                    $this->walkStatementsForVarAnnotations($stmt->$property, $errors);
++                }
++            }
++        }
++    }
+ }
+
+Changes:
+
+phpstan-baseline.neon
+  @@ -143,32 +143,62 @@ parameters:
+  +		-
+  +			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+  +			identifier: app.noMixedArray
+  +			count: 1
+  +			path: src/DTO/UpdateReportCommand.php
+  +
+   		-
+   			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+   			identifier: app.noMixedArray
+   			count: 1
+   			path: src/DTO/UpdateUserCommand.php
+   
+   		-
+   			message: '#^Unused App\\Enum\\ReportState\:\:badgeClass$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+   			path: src/Enum/ReportState.php
+   
+  +		-
+  +			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInClosureRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
+  +			identifier: argument.type
+  +			count: 2
+  +			path: src/PHPStan/NoMixedArrayInClosureRule.php
+  +
+  +		-
+  +			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInFunctionRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
+  +			identifier: argument.type
+  +			count: 2
+  +			path: src/PHPStan/NoMixedArrayInFunctionRule.php
+  +
+  +		-
+  +			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInMethodRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
+  +			identifier: argument.type
+  +			count: 2
+  +			path: src/PHPStan/NoMixedArrayInMethodRule.php
+  +
+  +		-
+  +			message: '#^Parameter \#1 \$stmts of method App\\PHPStan\\NoMixedArrayInVarRule\:\:walkStatementsForVarAnnotations\(\) expects list\<PhpParser\\Node\\Stmt\>, array\<mixed, mixed\> given\.$#'
+  +			identifier: argument.type
+  +			count: 2
+  +			path: src/PHPStan/NoMixedArrayInVarRule.php
+  +
+   		-
+   			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+   			identifier: app.noMixedArray
+   			count: 1
+   			path: src/Query/QueryFilterBuilder.php
+   
+   		-
+   			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+   			identifier: app.noMixedArray
+   			count: 1
+  @@ -203,20 +233,26 @@ parameters:
+  +		-
+  +			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+  +			identifier: app.noMixedArray
+  +			count: 1
+  +			path: src/Repository/RegistryFieldRepository.php
+  +
+   		-
+   			message: '#^Unused App\\Repository\\RegistryFieldRepository\:\:findById$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+   			path: src/Repository/RegistryFieldRepository.php
+   
+   		-
+   			message: '#^Unused App\\Repository\\RegistryFieldRepository\:\:update$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+  @@ -227,38 +263,50 @@ parameters:
+  +		-
+  +			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+  +			identifier: app.noMixedArray
+  +			count: 2
+  +			path: src/Repository/RegistryRepository.php
+  +
+   		-
+   			message: '#^Unused App\\Repository\\RegistryRepository\:\:toggleEnabled$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+   			path: src/Repository/RegistryRepository.php
+   
+   		-
+   			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+   			identifier: app.noMixedArray
+   			count: 3
+   			path: src/Repository/ReportRepository.php
+   
+   		-
+   			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+   			identifier: app.noMixedArray
+   			count: 8
+   			path: src/Repository/ReportRepository.php
+   
+  +		-
+  +			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+  +			identifier: app.noMixedArray
+  +			count: 2
+  +			path: src/Repository/ReportRepository.php
+  +
+   		-
+   			message: '#^Unused App\\Repository\\ReportRepository\:\:countByState$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+   			path: src/Repository/ReportRepository.php
+   
+   		-
+   			message: '#^Unused App\\Repository\\ReportRepository\:\:createAgentInvite$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+  @@ -329,20 +377,26 @@ parameters:
+  +		-
+  +			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+  +			identifier: app.noMixedArray
+  +			count: 3
+  +			path: src/Services/AuthService.php
+  +
+   		-
+   			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+   			identifier: app.noMixedArray
+   			count: 1
+   			path: src/Services/FormattingService.php
+   
+   		-
+   			message: '#^Unused App\\Services\\FormattingService\:\:formatTime$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+  @@ -497,32 +551,44 @@ parameters:
+  +		-
+  +			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+  +			identifier: app.noMixedArray
+  +			count: 2
+  +			path: src/Services/SessionService.php
+  +
+   		-
+   			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @param ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+   			identifier: app.noMixedArray
+   			count: 2
+   			path: src/Services/UserService.php
+   
+   		-
+   			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @return ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+   			identifier: app.noMixedArray
+   			count: 4
+   			path: src/Services/UserService.php
+   
+  +		-
+  +			message: '#^Type array\<\.\.\., mixed\> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de valeur pr├®cis \(array\<string, string\>, array\<string, int\>, etc\.\)\. mixed d├®sactive la v├®rification de type et est la cause racine de nombreux bugs\.$#'
+  +			identifier: app.noMixedArray
+  +			count: 4
+  +			path: src/Services/UserService.php
+  +
+   		-
+   			message: '#^Unused App\\Services\\UserService\:\:countActive$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+   			path: src/Services/UserService.php
+   
+   		-
+   			message: '#^Unused App\\Services\\UserService\:\:findAll$#'
+   			identifier: shipmonk.deadMethod
+   			count: 1
+  +66 -0
+
+phpstan-no-magic-string.neon
+  @@ -28,10 +28,14 @@ services:
+  +    -
+  +        class: App\PHPStan\NoMixedArrayInVarRule
+  +        tags:
+  +            - phpstan.rules.rule
+  +4 -0
+
+src/PHPStan/NoMixedArrayInVarRule.php
+  @@ -0,0 +1,33 @@
+  +<?php
+  +
+  +declare(strict_types=1);
+  +
+  +namespace App\PHPStan;
+  +
+  +use PhpParser\Node;
+  +use PhpParser\Node\Stmt\ClassMethod;
+  +use PHPStan\Analyser\Scope;
+  +use PHPStan\Rules\IdentifierRuleError;
+  +use PHPStan\Rules\Rule;
+  +
+  +/**
+  + * Bloque array<..., mixed> dans les @var inline dans le corps dÔÇÖune m├®thode
+  + * de classe. Voir NoMixedArrayTrait pour le d├®tail (whitelist, pattern).
+  + *
+  + * @implements Rule<ClassMethod>
+  + */
+  +final class NoMixedArrayInVarRule implements Rule
+  +{
+  +    use NoMixedArrayTrait;
+  +
+  +    public function getNodeType(): string
+  +    {
+  +        return ClassMethod::class;
+  +    }
+  +
+  +    /** @return list<IdentifierRuleError> */
+  +    public function processNode(Node $node, Scope $scope): array
+  +    {
+  +        return $this->checkVarAnnotations($node, $scope);
+  +    }
+  +}
+  +33 -0
+
+src/PHPStan/NoMixedArrayTrait.php
+  @@ -81,20 +81,22 @@ trait NoMixedArrayTrait
+  +    private const VAR_ARRAY_TAG_PATTERN = '/@var\b[^\n]*\barray<[^>\n]*\bmixed\b[^\n]*>[^\n]*/i';
+  +
+       /**
+        * @param FunctionLike $node
+        * @return list<IdentifierRuleError>
+        */
+       private function checkFunctionLike(Node $node, Scope $scope): array
+       {
+           $file = str_replace('\\', '/', $scope->getFile());
+   
+           foreach (self::WHITELIST_PATHS as $path) {
+               if (str_contains($file, $path)) {
+  @@ -128,11 +130,82 @@ trait NoMixedArrayTrait
+  +
+  +    /**
+  +     * Check @var annotations inside the method body (statements).
+  +     *
+  +     * Recursively walks $node->stmts to find @var annotations with
+  +     * array<..., mixed> in inline doc comments inside the method body.
+  +     *
+  +     * @return list<IdentifierRuleError>
+  +     */
+  +    private function checkVarAnnotations(Node $node, Scope $scope): array
+  +    {
+  +        $file = str_replace('\\', '/', $scope->getFile());
+  +
+  +        foreach (self::WHITELIST_PATHS as $path) {
+  +            if (str_contains($file, $path)) {
+  +                return [];
+  +            }
+  +        }
+  +
+  +        foreach (self::WHITELIST_FILES as $wf) {
+  +            if (str_contains($file, $wf)) {
+  +                return [];
+  +            }
+  +        }
+  +
+  +        if (!property_exists($node, 'stmts') || !is_array($node->stmts)) {
+  +            return [];
+  +        }
+  +
+  +        $errors = [];
+  +        $this->walkStatementsForVarAnnotations($node->stmts, $errors);
+  +
+  +        return $errors;
+  +    }
+  +
+  +    /**
+  +     * Recursively collect @var array<..., mixed> errors from statements.
+  +     *
+  +     * @param list<\PhpParser\Node\Stmt> $stmts
+  +     * @param list<IdentifierRuleError> $errors
+  +     * @return void
+  +     */
+  +    private function walkStatementsForVarAnnotations(array $stmts, array &$errors): void
+  +    {
+  +        foreach ($stmts as $stmt) {
+  +            $docComment = $stmt->getDocComment();
+  +            if ($docComment !== null) {
+  +                $docText = $docComment->getText();
+  +                if (preg_match_all(self::VAR_ARRAY_TAG_PATTERN, $docText, $matches, PREG_OFFSET_CAPTURE)) {
+  +                    foreach ($matches[0] as $i => [, $offset]) {
+  +                        $line = $docComment->getStartLine() + substr_count(substr($docText, 0, (int) $offset), "\n");
+  +                        $errors[] = RuleErrorBuilder::message(
+  +                            'Type array<..., mixed> interdit dans un tag @var ÔÇö utiliser un DTO typ├® ou un array avec type de '
+  +                            . 'valeur pr├®cis (array<string, string>, array<string, int>, etc.). mixed d├®sactive la v├®rification '
+  +                            . 'de type et est la cause racine de nombreux bugs.'
+  +                        )
+  +                            ->identifier('app.noMixedArray')
+  +                            ->line($line)
+  +                            ->build();
+  +                    }
+  +                }
+  +            }
+  +
+  +            // Recurse into nested statements (if/for/foreach/while/try/etc.)
+  +            foreach (['stmts', 'cases', 'catches', 'finallyStmts', 'elseifs', 'else'] as $property) {
+  +                if (property_exists($stmt, $property) && is_array($stmt->$property)) {
+  +                    $this->walkStatementsForVarAnnotations($stmt->$property, $errors);
+  +                }
+  +            }
+  +        }
+  +    }
+   }
+  +73 -0

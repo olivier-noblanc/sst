@@ -64,27 +64,57 @@ class UpdateReportCommand
 
     /**
      * Convert to snake_case array for DB.
-     * Excludes attachment fields when null (no new upload) so updateReport()
-     * keeps existing attachment. When $removeAttachment is true, includes
-     * them as null explicitly to clear the existing attachment (audit #4-High).
+     * When $removeAttachment is true, includes attachment fields as null
+     * to clear the existing attachment (audit #4-High).
+     *
+     * @return array{
+     *     objet: string,
+     *     description: string,
+     *     dateEvenement: string,
+     *     heureEvenement: ?string,
+     *     lieu: ?string,
+     *     siteText: ?string,
+     *     pole: ?string,
+     *     serviceAffectation: ?string,
+     *     telephoneMobile: ?string,
+     *     isConfidential: bool,
+     *     consentSyndicat: bool,
+     *     natureAuteur: ?string,
+     *     typeActe: ?string,
+     *     pourCompteNom: ?string,
+     *     pourComptePrenom: ?string,
+     *     attachmentBlob: ?string,
+     *     attachmentName: ?string,
+     *     attachmentMime: ?string,
+     *     removeAttachment: bool
+     * }
      */
-    /** @return array<string, mixed> */
     public function toArray(): array
     {
-        /** @var array<string, mixed> */
-        $data = get_object_vars($this);
+        $attachmentBlob = $this->removeAttachment ? null : $this->attachmentBlob;
+        $attachmentName = $this->removeAttachment ? null : $this->attachmentName;
+        $attachmentMime = $this->removeAttachment ? null : $this->attachmentMime;
 
-        if ($this->removeAttachment) {
-            // Force NULL on attachment columns to delete the existing PJ.
-            $data['attachmentBlob'] = null;
-            $data['attachmentName'] = null;
-            $data['attachmentMime'] = null;
-        } elseif ($data['attachmentBlob'] === null && $data['attachmentName'] === null && $data['attachmentMime'] === null) {
-            // No new upload AND no removal request → preserve existing attachment
-            unset($data['attachmentBlob'], $data['attachmentName'], $data['attachmentMime']);
-        }
-
-        return $data;
+        return [
+            'objet' => $this->objet,
+            'description' => $this->description,
+            'dateEvenement' => $this->dateEvenement,
+            'heureEvenement' => $this->heureEvenement,
+            'lieu' => $this->lieu,
+            'siteText' => $this->siteText,
+            'pole' => $this->pole,
+            'serviceAffectation' => $this->serviceAffectation,
+            'telephoneMobile' => $this->telephoneMobile,
+            'isConfidential' => $this->isConfidential,
+            'consentSyndicat' => $this->consentSyndicat,
+            'natureAuteur' => $this->natureAuteur,
+            'typeActe' => $this->typeActe,
+            'pourCompteNom' => $this->pourCompteNom,
+            'pourComptePrenom' => $this->pourComptePrenom,
+            'attachmentBlob' => $attachmentBlob,
+            'attachmentName' => $attachmentName,
+            'attachmentMime' => $attachmentMime,
+            'removeAttachment' => $this->removeAttachment,
+        ];
     }
 }
-

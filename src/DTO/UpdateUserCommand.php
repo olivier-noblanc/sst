@@ -30,7 +30,16 @@ class UpdateUserCommand
         );
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array{
+     *     username: string,
+     *     nom: string,
+     *     prenom: string,
+     *     role: string,
+     *     site_id: int,
+     *     email: ?string
+     * }
+     */
     public function toArray(): array
     {
         return [

@@ -18,7 +18,21 @@ class ReportListItem
         public readonly int $isConfidential,
     ) {}
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array{
+     *     uuid: string,
+     *     reference: string,
+     *     type: string,
+     *     objet: string,
+     *     date_evenement: string,
+     *     declarant_id: int,
+     *     declarant_nom: string,
+     *     declarant_prenom: string,
+     *     site_code: string,
+     *     etat: string,
+     *     is_confidential: int
+     * }
+     */
     public function toArray(): array
     {
         return [

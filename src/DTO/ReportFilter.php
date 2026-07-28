@@ -22,7 +22,7 @@ class ReportFilter
 
     /**
      * @param array<string, string> $get
-     * @param array<string, mixed> $user
+     * @param array<string, string> $user
      */
     public static function fromGet(array $get, array $user): self
     {
@@ -34,7 +34,20 @@ class ReportFilter
         );
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array{
+     *     etat: string,
+     *     site_id: int,
+     *     q: ?string,
+     *     confidential_filter: ?int,
+     *     own_only: null,
+     *     force_site_id: ?int,
+     *     declarant_id: ?int,
+     *     chsct_consent_only: bool,
+     *     linked_agent_id: ?int,
+     *     linked_agent_visibility: ?string
+     * }
+     */
     public function toArray(): array
     {
         return [

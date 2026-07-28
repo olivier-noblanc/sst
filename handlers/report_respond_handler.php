@@ -53,7 +53,7 @@ if (!in_array($report->etat, [ReportState::Nouveau->value, ReportState::EnCours-
 }
 
 // Handle optional attachment
-$attachment = [];
+$attachment = ['blob' => null, 'name' => null, 'mime' => null];
 if (isset($_FILES['response_attachment']) && is_array($_FILES['response_attachment']) && !empty($_FILES['response_attachment']['tmp_name'])) {
     $fakeErrors = [];
     $att = validateReportAttachment($fakeErrors, 'response_attachment');

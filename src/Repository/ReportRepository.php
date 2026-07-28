@@ -705,7 +705,7 @@ class ReportRepository
             ':consent_syndicat'  => $consentSyndicat,
             ':site_text'         => $data['site_text'] ?? null,
         ];
-        if (array_key_exists('attachment_blob', $data)) {
+        if ($cmd->removeAttachment || $data['attachment_blob'] !== null) {
             $setClauses[] = 'attachment_blob = :attachment_blob';
             $setClauses[] = 'attachment_name = :attachment_name';
             $setClauses[] = 'attachment_mime = :attachment_mime';
@@ -748,8 +748,8 @@ class ReportRepository
     {
         try {
             $stmt = $this->pdo->prepare(
-                "SELECT COUNT(*) FROM report_state_history
-                 WHERE report_uuid = :uuid AND etat_suivant = :etat_reouvert"
+                'SELECT COUNT(*) FROM report_state_history
+                 WHERE report_uuid = :uuid AND etat_suivant = :etat_reouvert'
             );
             $stmt->execute([
                 ':uuid' => $uuid,
@@ -801,8 +801,8 @@ class ReportRepository
             $updateStmt = $this->pdo->prepare("
                 UPDATE reports
                 SET etat = :nouvel_etat, updated_at = datetime('now')
-                WHERE uuid = :uuid AND etat IN (" . $this->pdo->quote(ReportState::Traite->value) . ", " . $this->pdo->quote(ReportState::Abandonne->value) . ")
-            ");
+                WHERE uuid = :uuid AND etat IN (" . $this->pdo->quote(ReportState::Traite->value) . ', ' . $this->pdo->quote(ReportState::Abandonne->value) . ')
+            ');
             $updateStmt->execute([':nouvel_etat' => ReportState::Reouvert->value, ':uuid' => $uuid]);
             if ($updateStmt->rowCount() === 0) {
                 $this->pdo->rollBack();

@@ -90,13 +90,20 @@ class SessionHelperTest extends TestCase
 
     public function testGenerateCsrfTokenGarbageCollection(): void
     {
+        // Audit #85 — cette limite était testée à 20, mais le vrai code
+        // (SessionService::generateCsrfToken()) l'a depuis relevée à 50
+        // (voir le message de log "User may have many tabs open") — le test
+        // n'avait jamais été mis à jour. Avec seulement 25 tokens (comme
+        // avant), aucune éviction ne se déclenche jamais côté code réel :
+        // ce test échouait déjà indépendamment de tout ordre d'exécution,
+        // simplement invisible tant que rien ne le lançait en isolation.
         $tokens = [];
-        for ($i = 0; $i < 25; $i++) {
+        for ($i = 0; $i < 60; $i++) {
             $tokens[] = generateCsrfToken();
         }
-        $this->assertLessThanOrEqual(20, count($_SESSION['csrf_tokens']));
-        $last20 = array_slice($tokens, -20);
-        foreach ($last20 as $token) {
+        $this->assertLessThanOrEqual(50, count($_SESSION['csrf_tokens']));
+        $last50 = array_slice($tokens, -50);
+        foreach ($last50 as $token) {
             $this->assertArrayHasKey($token, $_SESSION['csrf_tokens']);
         }
     }

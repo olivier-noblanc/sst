@@ -4,6 +4,9 @@
 
 namespace App\Services;
 
+/**
+ * @phpstan-import-type UserArray from \App\Repository\UserRepository
+ */
 class SessionService
 {
     private static ?self $instance = null;
@@ -104,7 +107,7 @@ class SessionService
 
     /**
      * Store the full user data array in session.
-     * @param array<string, mixed> $user
+     * @param UserArray $user
      */
     public function setUserSession(array $user): void
     {
@@ -114,11 +117,11 @@ class SessionService
     /**
      * Get the current user's full data array from session.
      *
-     * @return array<string, mixed>|null
+     * @return UserArray|null
      */
     public function getUserSession(): ?array
     {
-        /** @var array<string, mixed>|null $user */
+        /** @var UserArray|null $user */
         $user = $_SESSION['user'] ?? null;
         return $user;
     }

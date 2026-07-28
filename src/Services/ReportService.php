@@ -27,7 +27,7 @@ class ReportService
     /**
      * Validate linked agent emails: format + same domain as declarant.
      *
-     * @param array<string, mixed> $user
+     * @param array{email?: string|null} $user
      * @return list<string> valid emails
      */
     public function validateLinkedEmails(string $linkedEmailsRaw, array $user): array

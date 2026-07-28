@@ -10,6 +10,9 @@ use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 
+/**
+ * @phpstan-import-type UserArray from \App\Repository\UserRepository
+ */
 class AuthService
 {
     public function __construct(
@@ -24,7 +27,7 @@ class AuthService
     /**
      * Get the currently authenticated user.
      * In PROD: reads IIS AUTH_USER. In DEV: returns null (login form).
-     * @return array<string, mixed>|null
+     * @return UserArray|null
      */
     public function getAuthenticatedUser(): ?array
     {
@@ -85,7 +88,7 @@ class AuthService
     /**
      * Throttle DB check — only re-validate every N seconds (default 5 min).
      *
-     * @param array<string, mixed> $user
+     * @param UserArray $user
      */
     private function shouldRevalidateSession(array $user): bool
     {
@@ -125,18 +128,18 @@ class AuthService
 
     /**
      * Find existing user or auto-create from Windows login.
-     * @return array<string, mixed>|null
+     * @return UserArray|null
      */
     public function findOrCreateUser(string $username): ?array
     {
-        /** @var array<string, mixed>|null $user */
+        /** @var UserArray|null $user */
         $user = $this->repo->findByUsernameOrAny($username);
 
         if ($user !== null) {
             if ($user['is_active'] === false || $user['is_active'] === 0) {
                 return null;
             }
-            /** @var array<string, mixed> $user */
+            /** @var UserArray $user */
             $user = $this->checkAndPromote($user, $username);
             return $user;
         }
@@ -146,7 +149,7 @@ class AuthService
 
     /**
      * Attempt mock login (DEV_MODE only).
-     * @return array<string, mixed>|null
+     * @return UserArray|null
      */
     public function mockLogin(string $username): ?array
     {
@@ -177,7 +180,7 @@ class AuthService
 
     /**
      * Auto-provision a new user from their Windows login.
-     * @return array<string, mixed>|null
+     * @return UserArray|null
      */
     public function autoProvision(string $username): ?array
     {
@@ -199,7 +202,7 @@ class AuthService
             'site_id'  => null,
         ]);
 
-        /** @var array<string, mixed>|null $user */
+        /** @var UserArray|null $user */
         $user = $this->repo->findById($userId);
 
         $this->events->dispatch('user.provisioned', [
@@ -228,8 +231,8 @@ class AuthService
 
     /**
      * Check if existing user should be auto-promoted to superviseur.
-     * @param array<string, mixed> $user
-     * @return array<string, mixed>
+     * @param UserArray $user
+     * @return UserArray
      */
     public function checkAndPromote(array $user, string $username): array
     {

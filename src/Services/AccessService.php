@@ -13,6 +13,9 @@ use Exception;
 use App\Repository\ReportRepository;
 use App\Repository\RegistryRepository;
 
+/**
+ * @phpstan-import-type UserArray from \App\Repository\UserRepository
+ */
 class AccessService
 {
     /**
@@ -40,7 +43,7 @@ class AccessService
      * Combines role, site, visibility mode and confidentiality checks.
      *
      * @param array<string, mixed> $report  Row from `reports`
-     * @param array<string, mixed> $user    $_SESSION['user']
+     * @param UserArray $user    $_SESSION['user']
      */
     public function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool
     {
@@ -79,7 +82,7 @@ class AccessService
      * Log access to a confidential report by supervisor/CSA/CHSCT.
      *
      * @param array<string, mixed> $report
-     * @param array<string, mixed> $user
+     * @param UserArray $user
      */
     public function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
     {

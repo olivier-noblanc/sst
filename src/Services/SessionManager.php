@@ -9,6 +9,8 @@ namespace App\Services;
  * to provide a clean, injectable service interface.
  *
  * The global functions remain as thin wrappers for backward compatibility.
+ *
+ * @phpstan-import-type UserArray from \App\Repository\UserRepository
  */
 class SessionManager
 {
@@ -39,7 +41,7 @@ class SessionManager
     /**
      * Store the full user data array in session.
      *
-     * @param array<string, mixed> $user User data from DB
+     * @param UserArray $user User data from DB
      */
     public function setUser(array $user): void
     {
@@ -49,7 +51,7 @@ class SessionManager
     /**
      * Get the current user's full data array from session.
      *
-     * @return array<string, mixed>|null The user array or null if not authenticated
+     * @return UserArray|null The user array or null if not authenticated
      */
     public function getUser(): ?array
     {

@@ -1,7 +1,5 @@
 <?php
 
-/** UserService — Couche métier pour la gestion des utilisateurs. */
-
 namespace App\Services;
 
 use App\Repository\SiteRepository;
@@ -12,6 +10,9 @@ use App\Event\EventDispatcher;
 use App\DTO\CreateUserCommand;
 use App\DTO\UpdateUserCommand;
 
+/**
+ * @phpstan-import-type UserArray from \App\Repository\UserRepository
+ */
 class UserService
 {
     public function __construct(
@@ -43,7 +44,7 @@ class UserService
         if ($user === null) {
             throw new RuntimeException('Utilisateur introuvable.');
         }
-        /** @var array<string, mixed> $user */
+        /** @var UserArray $user */
 
         $demoteErrors = $this->canDemote($id, $cmd->role, $user);
         if (!empty($demoteErrors)) {
@@ -153,32 +154,32 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @return array<string, mixed>|null
+     * @return UserArray|null
      */
     public function findById(int $id): ?array
     {
         $result = $this->repo->findById($id);
-        /** @var array<string, mixed>|null $result */
+        /** @var UserArray|null $result */
         return $result;
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return UserArray|null
      */
     public function findByUsername(string $username): ?array
     {
         $result = $this->repo->findByUsername($username);
-        /** @var array<string, mixed>|null $result */
+        /** @var UserArray|null $result */
         return $result;
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @return list<UserArray>
      */
     public function findAll(int $siteId = 0, bool $active = true): array
     {
         $result = $this->repo->findAll($siteId, $active);
-        /** @var list<array<string, mixed>> $result */
+        /** @var list<UserArray> $result */
         return $result;
     }
 
@@ -267,7 +268,7 @@ class UserService
     }
 
     /**
-     * @param array<string, mixed> $user
+     * @param array{role: string} $user
      * @return array<string, string>
      */
     public function canDemote(int $id, string $newRole, array $user): array

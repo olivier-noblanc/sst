@@ -70,7 +70,7 @@ if ($user === null) {
     $http->redirect($http->url('users'));
 }
 
-/** @var array<string, string> $user */
+/** @var array{role: string} $user */
 
 // Validate
 $errors = $service->validate($_POST, $userId);

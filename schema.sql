@@ -34,7 +34,12 @@ CREATE TABLE IF NOT EXISTS users (
     sessions_invalid_before DATETIME,                -- R4 (SessionInvalidator): sessions started before this are force-logged-out
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (site_id) REFERENCES sites(id)
+    FOREIGN KEY (site_id) REFERENCES sites(id),
+    -- Audit #85 — 0 est un sentinel de la couche entrée (DTO), jamais une
+    -- vraie valeur de site_id. UserRepository::update() le convertit déjà
+    -- en NULL avant écriture ; cette contrainte protège tout chemin
+    -- d'écriture futur qui l'oublierait (SQL brut, nouveau repository).
+    CHECK (site_id IS NULL OR site_id > 0)
 );
 
 -- ============================================================
@@ -89,7 +94,9 @@ CREATE TABLE IF NOT EXISTS reports (
     FOREIGN KEY (declarant_id) REFERENCES users(id),
     FOREIGN KEY (pour_compte_de) REFERENCES users(id),
     FOREIGN KEY (repondant_id) REFERENCES users(id),
-    FOREIGN KEY (site_id) REFERENCES sites(id)
+    FOREIGN KEY (site_id) REFERENCES sites(id),
+    -- Audit #85 — voir le même CHECK sur users.site_id
+    CHECK (site_id IS NULL OR site_id > 0)
 );
 
 -- ============================================================
@@ -121,7 +128,9 @@ CREATE TABLE IF NOT EXISTS notification_settings (
     registry        TEXT NOT NULL,                   -- 'rsst'|'rami'|'dgi'|'all'
     email           TEXT NOT NULL,                   -- Email address
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (site_id) REFERENCES sites(id)
+    FOREIGN KEY (site_id) REFERENCES sites(id),
+    -- Audit #85 — voir le même CHECK sur users.site_id
+    CHECK (site_id IS NULL OR site_id > 0)
 );
 
 -- ============================================================

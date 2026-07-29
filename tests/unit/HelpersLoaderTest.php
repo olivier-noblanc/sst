@@ -30,6 +30,13 @@ class HelpersLoaderTest extends TestCase
         $missing = [];
         foreach ($helperFiles as $file) {
             $basename = basename($file);
+            // Audit #85 — uuid.php est volontairement chargé depuis
+            // src/autoload.php (requis par public/index.php, tout aussi
+            // fiable), pas helpers.php : pur, sans dépendance DB. Même
+            // exception que HelpersBootstrapTest::WHITELIST.
+            if ($basename === 'uuid.php') {
+                continue;
+            }
             $expected = "require_once __DIR__ . '/helpers/$basename';";
             if (strpos($loaderContent, $expected) === false) {
                 $missing[] = $basename;

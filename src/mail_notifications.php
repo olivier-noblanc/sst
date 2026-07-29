@@ -159,16 +159,14 @@ function getNotificationRecipients(PDO $pdo, int $siteId): array
     $seen = [];
     // Per-site
     $siteEmails = NotificationRepository::instance()->findSiteEmails($siteId);
-    foreach ($siteEmails as $row) {
-        $email = $row['email'];
+    foreach ($siteEmails as $email) {
         $lower = strtolower($email);
         $seen[] = $lower;
         $emails[] = $email;
     }
     // Global
     $globalEmails = NotificationRepository::instance()->findGlobalEmails();
-    foreach ($globalEmails as $row) {
-        $email = $row['email'];
+    foreach ($globalEmails as $email) {
         $lower = strtolower($email);
         if (!in_array($lower, $seen, true)) {
             $seen[] = $lower;

@@ -67,7 +67,7 @@ class NotificationRepository
         return $stmt->rowCount();
     }
 
-    /** @return list<array{email: string}> */
+    /** @return list<string> */
     public function findSiteEmails(int $siteId): array
     {
         $stmt = $this->pdo->prepare("SELECT email FROM notification_settings WHERE site_id = :site_id AND type = 'site'");
@@ -75,7 +75,7 @@ class NotificationRepository
         return array_column($stmt->fetchAll(), 'email');
     }
 
-    /** @return list<array{email: string}> */
+    /** @return list<string> */
     public function findGlobalEmails(): array
     {
         $stmt = $this->pdo->query("SELECT email FROM notification_settings WHERE type = 'global'");

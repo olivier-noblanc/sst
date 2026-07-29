@@ -835,7 +835,7 @@ class ReportRepository
         }
     }
 
-    /** @return array{status: string, message?: string} */
+    /** @return array{status: RespondStatus, message?: string} */
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array
     {
         return $this->respondToReport($uuid, $userId, $cmd->reponse, $cmd->nouvelEtat->value, $cmd->attachment);

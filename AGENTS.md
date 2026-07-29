@@ -29,6 +29,13 @@
 - **Nouveaux développements** : introduire les enums dès le départ, ne jamais créer de constantes string pour des valeurs métier
 - **DTO typés** : préférer `public readonly VisibilityMode $visibility` à `public readonly string $visibility` quand le DTO porte une valeur d'enum — impossible de passer une string, le bug est éliminé à la compilation
 
+### Mode sans site — convention `site_id` : 0 en entrée, NULL en vérité DB
+- **En base** : `sites` est optionnelle pour un `user`/`report` — `site_id` peut être `NULL` (mode sans site). C'est la vérité, jamais `0` en colonne.
+- **En entrée** (formulaires, `UpdateUserCommand`, `CreateReportCommand`, etc.) : ces DTOs déclarent `int $siteId` (non nullable, car un select HTML ne soumet jamais `null`) — `0` y sert de sentinel pour « aucun site sélectionné ».
+- **Au repository** : c'est lui qui fait le pont, en convertissant explicitement `0`/vide → `NULL` juste avant l'écriture SQL (voir `UserRepository::update()`, `!empty($data['site_id']) ? $data['site_id'] : null`). Ne jamais écrire `0` littéralement en colonne `site_id`.
+- **En lecture** (DTOs hydratés depuis la DB, ex. `ReportData`) : `?int $siteId` nullable, reflète la vraie valeur — ne jamais coercer un `NULL` lu en `0` (`(int) ($row['site_id'] ?? 0)` est le bug classique ici, écrase l'information réelle).
+- **Dans les tests** : insérer `site_id = NULL` en SQL brut si le test n'a pas besoin d'un site précis — pas la peine de seeder une ligne `sites` juste pour satisfaire une FK. Réserver `INSERT INTO sites (...)` aux tests qui exercent vraiment une logique liée au site (filtrage par site, visibilité, etc.).
+
 ### Patterns DDD — Architecture et couche métier
 
 **Règle : la logique métier ne vit que dans `src/Services/` ou `src/Repository/`**, jamais dans `pages/` ni `handlers/`.

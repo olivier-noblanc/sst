@@ -100,9 +100,9 @@ class ReportDataToArrayMutationTest extends TestCase
 
     public function testToArrayKeyCountExact(): void
     {
-        // Total keys = 34 (one per property). Removing any key breaks this count.
+        // Total keys = 35 (one per property). Removing any key breaks this count.
         $arr = $this->sample()->toArray();
-        $this->assertCount(34, $arr, 'toArray() must return exactly 34 keys (one per ReportData property)');
+        $this->assertCount(35, $arr, 'toArray() must return exactly 35 keys (one per ReportData property)');
     }
 
     public function testToArrayWithAllNullablesNull(): void
@@ -131,6 +131,6 @@ class ReportDataToArrayMutationTest extends TestCase
         $this->assertNull($arr['attachment_mime']);
         $this->assertNull($arr['repondant_nom']);
         $this->assertNull($arr['repondant_prenom']);
-        $this->assertCount(34, $arr, 'Even with all nulls, key count must be 34');
+        $this->assertCount(35, $arr, 'Even with all nulls, key count must be 35');
     }
 }

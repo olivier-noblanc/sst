@@ -14,6 +14,7 @@ use App\Repository\ReportRepository;
 use App\Event\EventDispatcher;
 use App\DTO\CreateReportCommand;
 use App\DTO\ReportData;
+use App\DTO\SiteId;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
 use App\DTO\ReopenReportCommand;
@@ -262,10 +263,12 @@ class ReportService
         $mode = getReportVisibilityMode($cmd->type);
         if ($mode === VisibilityMode::Public->value) {
             $data = array_merge($cmd->toArray(), ['type' => $cmd->type, 'isConfidential' => false]);
+            $data['siteId'] = SiteId::fromInput((int) ($data['siteId'] ?? 0));
             return new CreateReportCommand(...$data);
         }
         if ($mode === VisibilityMode::Confidential->value) {
             $data = array_merge($cmd->toArray(), ['type' => $cmd->type, 'isConfidential' => true]);
+            $data['siteId'] = SiteId::fromInput((int) ($data['siteId'] ?? 0));
             return new CreateReportCommand(...$data);
         }
         return $cmd;

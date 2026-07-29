@@ -13,6 +13,7 @@ use App\Services\UserService;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 use App\DTO\CreateUserCommand;
+use App\DTO\SiteId;
 use App\DTO\UpdateUserCommand;
 
 class UserServiceTest extends TestCase
@@ -51,7 +52,7 @@ class UserServiceTest extends TestCase
             nom: 'Dupont',
             prenom: 'Jean',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: 'test@test.fr',
         );
         $userId = $this->service->create($cmd);
@@ -66,7 +67,7 @@ class UserServiceTest extends TestCase
             nom: 'Martin',
             prenom: 'Sophie',
             role: ROLE_SUPERVISEUR,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -91,7 +92,7 @@ class UserServiceTest extends TestCase
             nom: 'Event',
             prenom: 'Test',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $this->service->create($cmd);
@@ -109,7 +110,7 @@ class UserServiceTest extends TestCase
             nom: 'Original',
             prenom: 'User',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -119,7 +120,7 @@ class UserServiceTest extends TestCase
             nom: 'Updated',
             prenom: 'User',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $result = $this->service->update($userId, $updateCmd, $userId);
@@ -142,7 +143,7 @@ class UserServiceTest extends TestCase
             nom: 'Original',
             prenom: 'User',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -152,7 +153,7 @@ class UserServiceTest extends TestCase
             nom: 'Original',
             prenom: 'User',
             role: ROLE_CHSCT,
-            siteId: 0,
+            siteId: SiteId::none(),
             email: null,
         );
         $result = $this->service->update($userId, $updateCmd, 999999);
@@ -170,7 +171,7 @@ class UserServiceTest extends TestCase
             nom: 'New',
             prenom: 'User',
             role: ROLE_AGENT,
-            siteId: 0,
+            siteId: SiteId::none(),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -187,7 +188,7 @@ class UserServiceTest extends TestCase
             nom: 'Ghost',
             prenom: 'User',
             role: ROLE_AGENT,
-            siteId: 0,
+            siteId: SiteId::none(),
             email: null,
         );
         $this->expectException(\RuntimeException::class);
@@ -206,7 +207,7 @@ class UserServiceTest extends TestCase
             nom: 'Update',
             prenom: 'Event',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -216,7 +217,7 @@ class UserServiceTest extends TestCase
             nom: 'Updated',
             prenom: 'Event',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $this->service->update($userId, $updateCmd, $userId);
@@ -239,7 +240,7 @@ class UserServiceTest extends TestCase
             nom: 'Role',
             prenom: 'Change',
             role: ROLE_SUPERVISEUR,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -249,7 +250,7 @@ class UserServiceTest extends TestCase
             nom: 'Role',
             prenom: 'Change',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $this->service->update($userId, $updateCmd, $userId);
@@ -267,7 +268,7 @@ class UserServiceTest extends TestCase
             nom: 'Deact',
             prenom: 'User',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -285,7 +286,7 @@ class UserServiceTest extends TestCase
             nom: 'Self',
             prenom: 'Deact',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -300,7 +301,7 @@ class UserServiceTest extends TestCase
             nom: 'Last',
             prenom: 'Sup',
             role: ROLE_SUPERVISEUR,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -320,7 +321,7 @@ class UserServiceTest extends TestCase
             nom: 'Deact',
             prenom: 'Event',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -339,7 +340,7 @@ class UserServiceTest extends TestCase
             nom: 'React',
             prenom: 'User',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -358,7 +359,7 @@ class UserServiceTest extends TestCase
             nom: 'Already',
             prenom: 'Active',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -378,7 +379,7 @@ class UserServiceTest extends TestCase
             nom: 'React',
             prenom: 'Event',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -507,7 +508,7 @@ class UserServiceTest extends TestCase
             nom: 'Can',
             prenom: 'Deact',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -521,7 +522,7 @@ class UserServiceTest extends TestCase
             nom: 'Last',
             prenom: 'Sup',
             role: ROLE_SUPERVISEUR,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -544,7 +545,7 @@ class UserServiceTest extends TestCase
             nom: 'Can',
             prenom: 'Demote',
             role: ROLE_SUPERVISEUR,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -563,7 +564,7 @@ class UserServiceTest extends TestCase
             nom: 'Can',
             prenom: 'Demote',
             role: ROLE_SUPERVISEUR,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -579,7 +580,7 @@ class UserServiceTest extends TestCase
             nom: 'Can',
             prenom: 'Demote',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -599,7 +600,7 @@ class UserServiceTest extends TestCase
             nom: 'Find',
             prenom: 'Me',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $userId = $this->service->create($cmd);
@@ -620,7 +621,7 @@ class UserServiceTest extends TestCase
             nom: 'Find',
             prenom: 'User',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $this->service->create($cmd);
@@ -641,7 +642,7 @@ class UserServiceTest extends TestCase
             nom: 'Find',
             prenom: 'All',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $this->service->create($cmd);
@@ -657,7 +658,7 @@ class UserServiceTest extends TestCase
             nom: 'Count',
             prenom: 'Me',
             role: ROLE_AGENT,
-            siteId: $this->siteId,
+            siteId: SiteId::fromInput($this->siteId),
             email: null,
         );
         $this->service->create($cmd);

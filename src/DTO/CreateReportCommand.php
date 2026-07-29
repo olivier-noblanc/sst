@@ -30,7 +30,7 @@ class CreateReportCommand
         public readonly int $declarantId,
         public readonly string $declarantNom,
         public readonly string $declarantPrenom,
-        public readonly int $siteId,
+        public readonly SiteId $siteId,
         public readonly ?string $siteText,
         public readonly ?string $pole,
         public readonly ?string $serviceAffectation,
@@ -81,7 +81,7 @@ class CreateReportCommand
             declarantId: (int) $declarantIdStr,
             declarantNom: $declarantNom,
             declarantPrenom: $declarantPrenom,
-            siteId: (int) ($post['site_id'] ?? 0),
+            siteId: SiteId::fromInput((int) ($post['site_id'] ?? 0)),
             siteText: trim($post['site_text'] ?? ''),
             pole: trim($post['pole'] ?? ''),
             serviceAffectation: trim($post['service_affectation'] ?? ''),
@@ -109,7 +109,7 @@ class CreateReportCommand
      *     declarantId: int,
      *     declarantNom: string,
      *     declarantPrenom: string,
-     *     siteId: int,
+     *     siteId: ?int,
      *     siteText: ?string,
      *     pole: ?string,
      *     serviceAffectation: ?string,
@@ -127,9 +127,10 @@ class CreateReportCommand
      */
     public function toArray(): array
     {
-        /** @var array{type: string, objet: string, description: string, dateEvenement: string, heureEvenement: ?string, lieu: ?string, declarantId: int, declarantNom: string, declarantPrenom: string, siteId: int, siteText: ?string, pole: ?string, serviceAffectation: ?string, telephoneMobile: ?string, isConfidential: bool, consentSyndicat: bool, natureAuteur: ?string, typeActe: ?string, pourCompteNom: ?string, pourComptePrenom: ?string, attachmentBlob: ?string, attachmentName: ?string, attachmentMime: ?string} $data */
+        /** @var array{type: string, objet: string, description: string, dateEvenement: string, heureEvenement: ?string, lieu: ?string, declarantId: int, declarantNom: string, declarantPrenom: string, siteId: ?int, siteText: ?string, pole: ?string, serviceAffectation: ?string, telephoneMobile: ?string, isConfidential: bool, consentSyndicat: bool, natureAuteur: ?string, typeActe: ?string, pourCompteNom: ?string, pourComptePrenom: ?string, attachmentBlob: ?string, attachmentName: ?string, attachmentMime: ?string} $data */
         $data = get_object_vars($this);
-        // type is already a string (since P2.3), no need to convert
+        // SiteId is a value object — convert to ?int for downstream consumers
+        $data['siteId'] = $this->siteId->toSql();
         return $data;
     }
 }

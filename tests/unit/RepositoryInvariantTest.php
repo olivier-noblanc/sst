@@ -7,6 +7,7 @@ use App\Repository\StatsRepository;
 use App\Container\Container;
 use App\DTO\CreateReportCommand;
 use App\DTO\ReportFilter;
+use App\DTO\SiteId;
 use App\Enum\ReportType;
 
 class RepositoryInvariantTest extends TestCase
@@ -52,7 +53,7 @@ class RepositoryInvariantTest extends TestCase
             type: $type, objet: 'Test', description: 'Desc',
             dateEvenement: '2026-01-15', heureEvenement: '10:30',
             lieu: 'Bureau', declarantId: $userId, declarantNom: 'Martin',
-            declarantPrenom: 'Jean', siteId: $siteId, siteText: null,
+            declarantPrenom: 'Jean', siteId: SiteId::fromInput($siteId), siteText: null,
             pole: null, serviceAffectation: null, telephoneMobile: null,
             isConfidential: true, consentSyndicat: false,
             natureAuteur: null, typeActe: null,

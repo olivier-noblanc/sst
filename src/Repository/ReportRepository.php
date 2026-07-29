@@ -17,6 +17,7 @@ use App\DTO\ReportData;
 use App\DTO\ReportFilter;
 use App\DTO\ReportListItem;
 use App\DTO\ReportStateCounts;
+use App\DTO\SiteId;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
 use App\Query\QueryFilterBuilder;
@@ -143,7 +144,7 @@ class ReportRepository
             pourComptePrenom: (string) ($row['pour_compte_prenom'] ?? ''),
             natureAuteur: (string) ($row['nature_auteur'] ?? ''),
             typeActe: (string) ($row['type_acte'] ?? ''),
-            siteId: $row['site_id'] !== null ? (int) $row['site_id'] : null,
+            siteId: SiteId::fromDatabase($row['site_id'] !== null ? (int) $row['site_id'] : null)->toSql(),
             siteText: (string) ($row['site_text'] ?? ''),
             pole: (string) ($row['pole'] ?? ''),
             serviceAffectation: (string) ($row['service_affectation'] ?? ''),
@@ -643,7 +644,7 @@ class ReportRepository
                 // forced empty in no-site-mode, or the explicit "— Aucun —" option
                 // elsewhere) — 0 is never a real site id, and the FOREIGN KEY on
                 // site_id rejects it. Must bind NULL (nullable column, see schema.sql).
-                ':site_id' => !empty($data['site_id']) ? $data['site_id'] : null,
+                ':site_id' => SiteId::fromInput((int) $data['site_id'])->toSql(),
                 ':site_text' => $data['site_text'] ?? null,
                 ':pole' => $data['pole'] ?? null,
                 ':service_affectation' => $data['service_affectation'] ?? null,

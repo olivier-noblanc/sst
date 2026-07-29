@@ -86,7 +86,7 @@ class SessionInvalidationTest extends TestCase
             nom: 'Agent1',
             prenom: 'Tom',
             role: 'superviseur',
-            siteId: 0,
+            siteId: \App\DTO\SiteId::none(),
             email: '',
         );
         $service->update(9103, $cmd, 9104);
@@ -112,7 +112,7 @@ class SessionInvalidationTest extends TestCase
             nom: 'Updated Name',
             prenom: 'Updated Pre',
             role: 'agent',
-            siteId: 0,
+            siteId: \App\DTO\SiteId::none(),
             email: '',
         );
         $service->update(9105, $cmd, 9106);

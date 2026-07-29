@@ -17,6 +17,7 @@
  */
 
 use App\DTO\CreateReportCommand;
+use App\DTO\SiteId;
 use App\DTO\UpdateReportCommand;
 use App\Enum\ReportType;
 use App\Repository\ReportRepository;
@@ -68,7 +69,7 @@ class ReportQueriesTest extends TestCase
             'type' => ReportType::Rsst->value, 'objet' => 'Test', 'description' => 'Desc',
             'dateEvenement' => '2025-03-15', 'heureEvenement' => null, 'lieu' => null,
             'declarantId' => self::$userId, 'declarantNom' => 'Martin', 'declarantPrenom' => 'Jean',
-            'siteId' => self::$siteId, 'siteText' => null, 'pole' => null,
+            'siteId' => SiteId::fromInput(self::$siteId), 'siteText' => null, 'pole' => null,
             'serviceAffectation' => null, 'telephoneMobile' => null,
             'isConfidential' => false, 'consentSyndicat' => false,
             'natureAuteur' => null, 'typeActe' => null,

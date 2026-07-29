@@ -13,7 +13,7 @@ class UpdateUserCommand
         public readonly string $nom,
         public readonly string $prenom,
         public readonly string $role,
-        public readonly int $siteId,
+        public readonly SiteId $siteId,
         public readonly ?string $email,
     ) {}
 
@@ -25,7 +25,7 @@ class UpdateUserCommand
             nom: trim($post['nom'] ?? ''),
             prenom: trim($post['prenom'] ?? ''),
             role: trim($post['role'] ?? UserRole::Agent->value),
-            siteId: (int) ($post['site_id'] ?? 0),
+            siteId: SiteId::fromInput((int) ($post['site_id'] ?? 0)),
             email: !empty(trim($post['email'] ?? '')) ? trim((string) $post['email']) : null,
         );
     }
@@ -36,7 +36,7 @@ class UpdateUserCommand
      *     nom: string,
      *     prenom: string,
      *     role: string,
-     *     site_id: int,
+     *     site_id: ?int,
      *     email: ?string
      * }
      */
@@ -47,7 +47,7 @@ class UpdateUserCommand
             'nom' => $this->nom,
             'prenom' => $this->prenom,
             'role' => $this->role,
-            'site_id' => $this->siteId,
+            'site_id' => $this->siteId->toSql(),
             'email' => $this->email,
         ];
     }

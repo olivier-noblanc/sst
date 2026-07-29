@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\SiteId;
 use App\Enum\UserRole;
 use Exception;
 use PDO;
@@ -161,12 +162,12 @@ class UserRepository
             // and the hidden field forced empty in no-site-mode) — 0 is never a real
             // site id (SQLite autoincrement starts at 1), and the FOREIGN KEY on
             // site_id rejects it. Must bind NULL, which the FK accepts (nullable column).
-            ':site_id'  => !empty($data['site_id']) ? $data['site_id'] : null,
+            ':site_id'  => SiteId::fromInput((int) ($data['site_id'] ?? 0))->toSql(),
         ]);
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array{nom: string, prenom: string, email: string|null, username: string, role: string, site_id?: int} $data */
+    /** @param array{nom: string, prenom: string, email: string|null, username: string, role: string, site_id?: int|null} $data */
     public function update(int $id, array $data): bool
     {
         $stmt = $this->pdo->prepare("
@@ -187,7 +188,7 @@ class UserRepository
             // violation whenever site_id came through as 0 (no-site-mode, or the
             // explicit "— Aucun —" option), silently reported as a generic error and
             // leaving the role (and every other field) unchanged.
-            ':site_id'  => !empty($data['site_id']) ? $data['site_id'] : null,
+            ':site_id'  => SiteId::fromInput((int) ($data['site_id'] ?? 0))->toSql(),
             ':id'       => $id,
         ]);
         return $stmt->rowCount() > 0;
@@ -208,7 +209,7 @@ class UserRepository
                 updated_at = datetime('now')
             WHERE id = :id
         ");
-        $stmt->execute([':site_id' => $siteId, ':id' => $id]);
+        $stmt->execute([':site_id' => SiteId::fromInput($siteId)->toSql(), ':id' => $id]);
         return $stmt->rowCount() > 0;
     }
 
@@ -241,11 +242,11 @@ class UserRepository
     public function findSessionState(int $userId): ?array
     {
         try {
-            $stmt = $this->pdo->prepare("
+            $stmt = $this->pdo->prepare('
                 SELECT is_active, sessions_invalid_before
                 FROM users
                 WHERE id = :id
-            ");
+            ');
             $stmt->execute([':id' => $userId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!is_array($row)) {

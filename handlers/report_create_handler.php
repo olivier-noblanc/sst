@@ -8,6 +8,7 @@ use App\Services\SessionService;
 use App\Repository\RegistryRepository;
 use App\Repository\SiteRepository;
 use App\DTO\CreateReportCommand;
+use App\DTO\SiteId;
 use App\Services\ReportService;
 
 /** @var array<string, string> $_POST */
@@ -83,6 +84,7 @@ try {
         'attachmentName' => $attachment['name'],
         'attachmentMime' => $attachment['mime'],
     ]);
+    $cmdData['siteId'] = SiteId::fromInput((int) ($cmdData['siteId'] ?? 0));
     $cmd = new CreateReportCommand(...$cmdData);
 
     $service = getContainer()->get(ReportService::class);

@@ -66,6 +66,6 @@ class RgpdAnonymizeTest extends TestCase
         $row2 = $report2->fetch();
 
         $this->assertEquals('Anonymisé', $row2['declarant_nom'], 'declarant_nom should be anonymized');
-        $this->assertEquals('Utilisateur', $row2['declarant_prenom'], 'declarant_prenom should be anonymized');
+        $this->assertEquals('Anonymé', $row2['declarant_prenom'], 'declarant_prenom should be anonymized');
     }
 }

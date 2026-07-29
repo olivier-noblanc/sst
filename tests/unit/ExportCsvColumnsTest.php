@@ -20,6 +20,7 @@ class ExportCsvColumnsTest extends TestCase
 {
     private static bool $bootstrapped = false;
     private static string $testUuid = 'cccccccc-dddd-eeee-ffff-111111111111';
+    private static int $siteId = 0;
 
     public static function setUpBeforeClass(): void
     {
@@ -33,8 +34,9 @@ class ExportCsvColumnsTest extends TestCase
         require_once __DIR__ . '/../../src/Repository/StatsRepository.php';
 
         $pdo = getDB();
-        $pdo->exec("INSERT OR IGNORE INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'UR Test', 1)");
-        $pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'test.agent', 'Dupont', 'Jean', 'agent', 1, 1)");
+        $pdo->exec("INSERT OR IGNORE INTO sites (code, nom, is_active) VALUES ('UR21_EXPORT', 'UR Export Test', 1)");
+        self::$siteId = (int) $pdo->query("SELECT id FROM sites WHERE code = 'UR21_EXPORT'")->fetchColumn();
+        $pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'test.agent.export', 'Dupont', 'Jean', 'agent', " . self::$siteId . ", 1)");
     }
 
     protected function setUp(): void
@@ -46,7 +48,7 @@ class ExportCsvColumnsTest extends TestCase
     public function testGetExportDataContainsAllExpectedColumns(): void
     {
         $pdo = getDB();
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, site_text, pole, service_affectation, telephone_mobile, consent_syndicat, is_confidential, etat) VALUES ('" . self::$testUuid . "', 'RSST-25-001', 'rsst', 'Objet test', 'Desc', '2025-01-01', 1, 'Dupont', 'Jean', 1, 'Site text val', 'Pole S', 'Service X', '0601020304', 1, 0, 'nouveau')");
+        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, site_text, pole, service_affectation, telephone_mobile, consent_syndicat, is_confidential, etat) VALUES ('" . self::$testUuid . "', 'RSST-25-001', 'rsst', 'Objet test', 'Desc', '2025-01-01', 1, 'Dupont', 'Jean', " . self::$siteId . ", 'Site text val', 'Pole S', 'Service X', '0601020304', 1, 0, 'nouveau')");
 
         $repo = new \App\Repository\StatsRepository($pdo);
         $rows = $repo->getExportData([]);
@@ -91,7 +93,7 @@ class ExportCsvColumnsTest extends TestCase
         // the handler always displayed 'Refusée'.
 
         $pdo = getDB();
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, consent_syndicat, is_confidential, etat) VALUES ('" . self::$testUuid . "', 'RSST-25-002', 'rsst', 'Objet', 'Desc', '2025-01-01', 1, 'Dupont', 'Jean', 1, 1, 0, 'nouveau')");
+        $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, consent_syndicat, is_confidential, etat) VALUES ('" . self::$testUuid . "', 'RSST-25-002', 'rsst', 'Objet', 'Desc', '2025-01-01', 1, 'Dupont', 'Jean', " . self::$siteId . ", 1, 0, 'nouveau')");
 
         $repo = new \App\Repository\StatsRepository($pdo);
         $rows = $repo->getExportData([]);
@@ -113,7 +115,7 @@ class ExportCsvColumnsTest extends TestCase
     public function testConsentSyndicatValueIsAccurateWhenRefused(): void
     {
         $pdo = getDB();
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, consent_syndicat, is_confidential, etat) VALUES ('" . self::$testUuid . "', 'RSST-25-003', 'rsst', 'Objet', 'Desc', '2025-01-01', 1, 'Dupont', 'Jean', 1, 0, 0, 'nouveau')");
+        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, consent_syndicat, is_confidential, etat) VALUES ('" . self::$testUuid . "', 'RSST-25-003', 'rsst', 'Objet', 'Desc', '2025-01-01', 1, 'Dupont', 'Jean', " . self::$siteId . ", 0, 0, 'nouveau')");
 
         $repo = new \App\Repository\StatsRepository($pdo);
         $rows = $repo->getExportData([]);

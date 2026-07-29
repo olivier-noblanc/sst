@@ -9,7 +9,6 @@ use App\Repository\ReportRepository;
 use App\Enum\ReportType;
 use App\DTO\UpdateReportCommand;
 use App\Services\ReportService;
-use InvalidArgumentException;
 
 /** @var array<string, string> $_POST */
 

@@ -374,6 +374,8 @@ class SessionService
      */
     public function safeSessionRegenerate(): void
     {
-        session_regenerate_id(!DEV_MODE);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(!DEV_MODE);
+        }
     }
 }

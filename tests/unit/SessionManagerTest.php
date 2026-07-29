@@ -19,6 +19,12 @@ class SessionManagerTest extends TestCase
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        $_SESSION = [];
+    }
+
+    protected function tearDown(): void
+    {
+        $_SESSION = [];
     }
 
     public function testServiceCanBeInstantiated(): void

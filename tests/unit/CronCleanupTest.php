@@ -99,6 +99,9 @@ class CronCleanupTest extends TestCase
     public function testPurgesExpiredSessions(): void
     {
         $maxLifetime = 86400; // 24h, same as SessionService default
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
         ini_set('session.gc_maxlifetime', (string) $maxLifetime);
 
         $this->seedSession('purge-expired', time() - $maxLifetime - 100);
@@ -112,6 +115,9 @@ class CronCleanupTest extends TestCase
 
     public function testKeepsRecentSessions(): void
     {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
         ini_set('session.gc_maxlifetime', '86400');
 
         $this->seedSession('keep-s1', time() - 3600);
@@ -125,6 +131,9 @@ class CronCleanupTest extends TestCase
 
     public function testSessionPurgeWritesAuditLog(): void
     {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
         ini_set('session.gc_maxlifetime', '86400');
         $this->seedSession('audit-expired', time() - 86500);
 
@@ -138,6 +147,9 @@ class CronCleanupTest extends TestCase
 
     public function testSessionPurgeSkipsAuditLogWhenNothingToDelete(): void
     {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
         ini_set('session.gc_maxlifetime', '86400');
         $this->seedSession('noaudit-fresh', time() - 3600);
 

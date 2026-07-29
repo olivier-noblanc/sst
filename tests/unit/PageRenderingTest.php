@@ -53,12 +53,12 @@ class PageRenderingTest extends TestCase
         // dépendent des valeurs exactes ('Dupont'/'Jean') — IGNORE
         // garderait silencieusement les données d'un autre test.
         cleanupAllForTest($pdo);
-        $pdo->exec("DELETE FROM sites WHERE id = 1");
+        $pdo->exec("DELETE FROM sites WHERE code = 'UR21'");
         $pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'UR Test', 1)");
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'test.agent', 'Dupont', 'Jean', 'agent', 1, 1)");
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (2, 'test.sup', 'Martin', 'Pierre', 'superviseur', 1, 1)");
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential) VALUES ('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', 'RSST-25-001', 'rsst', 'Test nouveau', 'Description test', '2025-01-01', 1, 'Dupont', 'Jean', 1, 'nouveau', 1)");
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential) VALUES ('11111111-2222-3333-4444-555555555555', 'RSST-25-002', 'rsst', 'Test traite', 'Description test', '2025-01-01', 1, 'Dupont', 'Jean', 1, 'traite', 1)");
+        $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential) VALUES ('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', 'RSST-25-001', 'rsst', 'Test nouveau', 'Description test', '2025-01-01', 1, 'Dupont', 'Jean', 1, 'nouveau', 1)");
+        $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential) VALUES ('11111111-2222-3333-4444-555555555555', 'RSST-25-002', 'rsst', 'Test traite', 'Description test', '2025-01-01', 1, 'Dupont', 'Jean', 1, 'traite', 1)");
 
         // Tables created by migrations (not in schema.sql)
         $pdo->exec("CREATE TABLE IF NOT EXISTS report_agents (report_uuid TEXT NOT NULL, user_id INTEGER NOT NULL, PRIMARY KEY (report_uuid, user_id))");

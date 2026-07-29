@@ -21,7 +21,9 @@ class RegistryCardRendererTest extends TestCase
         // Audit #80 — buildRegistryCards() no longer takes parameters; it
         // reads registries.is_enabled + real report counts from the DB.
         // Start every test from a known-clean state: all 3 system registries
-        // enabled, no reports.
+        // enabled, no reports, no custom registries from other test classes.
+        reseedDefaultRegistries($this->pdo);
+        $this->pdo->exec("DELETE FROM registries WHERE code NOT IN ('rsst', 'rami', 'dgi')");
         foreach (['rsst', 'rami', 'dgi'] as $code) {
             $this->setRegistryEnabled($code, true);
         }

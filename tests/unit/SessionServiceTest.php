@@ -237,6 +237,102 @@ class SessionServiceTest extends TestCase
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // Impersonation edge cases — kill Infection mutants #14, #17
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testStartImpersonationDoesNotUpdateRoleWhenUserNotArray(): void
+    {
+        $_SESSION['user'] = 'not-an-array';
+        $this->service->startImpersonation('superviseur', 'agent');
+        $this->assertSame('not-an-array', $_SESSION['user']);
+    }
+
+    public function testStopImpersonationDoesNotUpdateRoleWhenUserNotArray(): void
+    {
+        $_SESSION['real_role'] = 'superviseur';
+        $_SESSION['impersonated_role'] = 'agent';
+        $_SESSION['user'] = 'not-an-array';
+        $this->service->stopImpersonation();
+        $this->assertSame('not-an-array', $_SESSION['user']);
+    }
+
+    public function testStartImpersonationSkipsRoleUpdateWhenUserNotSet(): void
+    {
+        unset($_SESSION['user']);
+        $this->service->startImpersonation('superviseur', 'agent');
+        $this->assertArrayNotHasKey('user', $_SESSION);
+    }
+
+    public function testStopImpersonationSkipsRoleUpdateWhenUserNotSet(): void
+    {
+        $_SESSION['real_role'] = 'superviseur';
+        $_SESSION['impersonated_role'] = 'agent';
+        unset($_SESSION['user']);
+        $this->service->stopImpersonation();
+        $this->assertArrayNotHasKey('user', $_SESSION);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // CSRF token eviction boundary — kill Infection mutant #19
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testCsrfTokenEvictionKeepsMaxFiftyTokens(): void
+    {
+        for ($i = 0; $i < 55; $i++) {
+            $this->service->generateCsrfToken();
+        }
+        $this->assertCount(50, $_SESSION['csrf_tokens']);
+    }
+
+    public function testCsrfTokenNoEvictionBelowLimit(): void
+    {
+        for ($i = 0; $i < 49; $i++) {
+            $this->service->generateCsrfToken();
+        }
+        $this->assertCount(49, $_SESSION['csrf_tokens']);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // HTTPS detection — kill Infection mutant #5
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testStartSessionWorksWithHttpsOn(): void
+    {
+        if (session_status() !== PHP_SESSION_NONE) {
+            session_write_close();
+        }
+        $original = $_SERVER['HTTPS'] ?? null;
+        $_SERVER['HTTPS'] = 'on';
+        $this->service->startSession();
+        $this->assertSame(PHP_SESSION_ACTIVE, session_status());
+        $_SERVER['HTTPS'] = $original;
+    }
+
+    public function testStartSessionWorksWithHttpsOff(): void
+    {
+        if (session_status() !== PHP_SESSION_NONE) {
+            session_write_close();
+        }
+        $original = $_SERVER['HTTPS'] ?? null;
+        $_SERVER['HTTPS'] = 'off';
+        $this->service->startSession();
+        $this->assertSame(PHP_SESSION_ACTIVE, session_status());
+        $_SERVER['HTTPS'] = $original;
+    }
+
+    public function testStartSessionWorksWithoutHttps(): void
+    {
+        if (session_status() !== PHP_SESSION_NONE) {
+            session_write_close();
+        }
+        $original = $_SERVER['HTTPS'] ?? null;
+        unset($_SERVER['HTTPS']);
+        $this->service->startSession();
+        $this->assertSame(PHP_SESSION_ACTIVE, session_status());
+        $_SERVER['HTTPS'] = $original;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // startSession() — legacy cookie cleanup
     // ═══════════════════════════════════════════════════════════════════════════════
 

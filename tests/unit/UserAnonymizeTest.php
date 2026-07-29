@@ -104,7 +104,7 @@ class UserAnonymizeTest extends TestCase
 
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9004, 'test.anon.sup2', 'Smith', 'Anna', 'superviseur', NULL, 1)");
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9005, 'test.anon.agent2', 'Brown', 'Bob', 'agent', NULL, 1)");
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('bbbb-2222-test', 'RSST-25-002', 'rsst', 'Test 2', 'Desc 2', '2025-01-02', 9005, 'Brown', 'Bob', NULL, 'traite')");
+        $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('bbbb-2222-test', 'RSST-25-002', 'rsst', 'Test 2', 'Desc 2', '2025-01-02', 9005, 'Brown', 'Bob', NULL, 'traite')");
         $pdo->exec("INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat) VALUES ('bbbb-2222-test', 9004, 'Ma réponse préservée', 'traite')");
 
         $repo = new \App\Repository\UserRepository($pdo);

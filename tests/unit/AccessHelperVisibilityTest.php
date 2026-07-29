@@ -81,7 +81,14 @@ class AccessHelperVisibilityTest extends TestCase
     {
         $pdo = getDB();
         $pdo->exec('DELETE FROM report_access_log');
-        $report = ['uuid' => 'test-uuid-789', 'is_confidential' => 1, 'declarant_id' => '99'];
+        $pdo->exec('DELETE FROM reports');
+        $pdo->exec('DELETE FROM users');
+        $pdo->exec('DELETE FROM sites');
+        $pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'UR Test', 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (99, 'declarant.test', 'Declarant', 'Test', 'agent', 1, 1)");
+        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, etat) VALUES ('test-uuid-789', 'rsst-26-002', 'rsst', 'Objet', 'Desc', '2026-01-01', 99, 'Declarant', 'Test', 1, 1, 'nouveau')");
+        $report = \App\Repository\ReportRepository::instance()->findById('test-uuid-789');
+        $this->assertNotNull($report, 'setup failed: report not found after insert');
         $user = ['id' => 5, 'role' => 'agent'];
         logConfidentialReportAccess($pdo, $report, $user);
         $stmt = $pdo->query("SELECT COUNT(*) FROM report_access_log");
@@ -92,7 +99,14 @@ class AccessHelperVisibilityTest extends TestCase
     {
         $pdo = getDB();
         $pdo->exec('DELETE FROM report_access_log');
-        $report = ['uuid' => 'test-uuid-own', 'is_confidential' => 1, 'declarant_id' => '5'];
+        $pdo->exec('DELETE FROM reports');
+        $pdo->exec('DELETE FROM users');
+        $pdo->exec('DELETE FROM sites');
+        $pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'UR Test', 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (5, 'sup.test', 'Sup', 'Test', 'superviseur', 1, 1)");
+        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, etat) VALUES ('test-uuid-own', 'rsst-26-003', 'rsst', 'Objet', 'Desc', '2026-01-01', 5, 'Sup', 'Test', 1, 1, 'nouveau')");
+        $report = \App\Repository\ReportRepository::instance()->findById('test-uuid-own');
+        $this->assertNotNull($report, 'setup failed: report not found after insert');
         $user = ['id' => 5, 'role' => 'superviseur'];
         logConfidentialReportAccess($pdo, $report, $user);
         $stmt = $pdo->query("SELECT COUNT(*) FROM report_access_log");

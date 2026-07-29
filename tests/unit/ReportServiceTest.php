@@ -291,7 +291,7 @@ class ReportServiceTest extends TestCase
         $this->assertTrue($result);
 
         $updated = $this->service->findById($report->uuid);
-        $this->assertEquals('Updated Object', $updated['objet']);
+        $this->assertEquals('Updated Object', $updated->objet);
     }
 
     public function testUpdateThrowsForUnknownReport(): void

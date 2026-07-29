@@ -118,7 +118,7 @@ class ReportService
         // répondu). Avant ce fix, l'event 'report.responded' était dispatché
         // même en cas d'échec → ghost events → notifications email mentant
         // sur l'état réel du signalement.
-        if (($result['status'] ?? null) === RespondStatus::Ok) {
+        if ($result['status'] === RespondStatus::Ok) {
             $this->events->dispatch('report.responded', [
                 'report' => $report->toArray(),
                 'cmd' => $cmd,

@@ -72,7 +72,7 @@ class AccessHelperVisibilityTest extends TestCase
         $pdo = getDB();
         $declarant = $pdo->query("SELECT site_id FROM users WHERE id = $declarantId")->fetch();
         $siteId = (int) $declarant['site_id'];
-        $uuid = 'test-' . uniqid('', true);
+        $uuid = generateUuid();
         $ref = 'rsst-test-' . substr(uniqid('', true), -8);
         $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, etat) VALUES ("
             . $pdo->quote($uuid) . ", " . $pdo->quote($ref) . ", 'rsst', 'Objet', 'Desc', '2026-01-01', "

@@ -217,10 +217,16 @@ class PageRenderingTest extends TestCase
             $this->assertStringNotContainsString('allowed memory size', $output, "[$page] output contains memory exhausted");
 
             // 1.b. No leaked PHP source code (audit #5/#6 — pages must not show ReportType::Xsrt => 'card--rsst' etc.)
-            $this->assertStringNotContainsString('ReportType::', $output, "[$page] output contains leaked PHP source code (ReportType::)");
-            $this->assertStringNotContainsString("=> 'card--", $output, "[$page] output contains leaked match() arm");
-            $this->assertStringNotContainsString('default => ', $output, "[$page] output contains leaked match default arm");
-            $this->assertStringNotContainsString('}; ?>', $output, "[$page] output contains leaked PHP closing bracket+tag");
+            // Audit #85 — 'changelog' excluded: CHANGELOG.md legitimately
+            // documents past refactors in prose using these exact strings
+            // as examples (e.g. "ReportType::Rami (plus de ->value)") —
+            // real content, not a leak.
+            if ($page !== 'changelog') {
+                $this->assertStringNotContainsString('ReportType::', $output, "[$page] output contains leaked PHP source code (ReportType::)");
+                $this->assertStringNotContainsString("=> 'card--", $output, "[$page] output contains leaked match() arm");
+                $this->assertStringNotContainsString('default => ', $output, "[$page] output contains leaked match default arm");
+                $this->assertStringNotContainsString('}; ?>', $output, "[$page] output contains leaked PHP closing bracket+tag");
+            }
 
             // 1.c. No double-escaped HTML entity (audit — sidebar icons stored as
             // '&#12345;' and re-escaped via e()/htmlspecialchars() produced literal

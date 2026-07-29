@@ -1095,3 +1095,22 @@ parameters:
 			identifier: greater.alwaysFalse
 			count: 2
 			path: tools/tests/test_can_access_report.php
+
+		# SiteId value object — test-only methods (used in tests/unit/SiteIdTest, UserServiceTest, ReportRepositoryTest, SessionInvalidationTest)
+		-
+			message: '#^Unused App\\DTO\\SiteId\:\:none$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/DTO/SiteId.php
+
+		-
+			message: '#^Unused App\\DTO\\SiteId\:\:isNone$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/DTO/SiteId.php
+
+		-
+			message: '#^Unused App\\DTO\\SiteId\:\:toNullableInt$#'
+			identifier: shipmonk.deadMethod
+			count: 1
+			path: src/DTO/SiteId.php

@@ -66,8 +66,11 @@ class NotificationService
             return;
         }
 
-        /** @var int */
-        $siteId = $report->siteId;
+        // ReportData::siteId est ?int (nullable pour le mode sans site).
+        // getNotificationRecipients() attend un int — on coalesce null vers 0,
+        // ce qui retourne uniquement les destinataires globaux (comportement
+        // voulu pour les signalements sans site rattaché).
+        $siteId = $report->siteId ?? 0;
         $recipients = getNotificationRecipients($this->pdo, $siteId);
         if (empty($recipients)) {
             return;

@@ -139,7 +139,7 @@ class ReportRepositoryTest extends TestCase
     private function makeCommand(string $objet, array $overrides = []): CreateReportCommand
     {
         $defaults = [
-            'type' => ReportType::Rsst, 'objet' => $objet, 'description' => 'Desc',
+            'type' => ReportType::Rsst->value, 'objet' => $objet, 'description' => 'Desc',
             'dateEvenement' => '2026-01-15', 'heureEvenement' => null,
             'lieu' => null, 'declarantId' => $this->userId, 'declarantNom' => 'Martin',
             'declarantPrenom' => 'Jean', 'siteId' => $this->siteId, 'siteText' => null,

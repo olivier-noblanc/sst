@@ -61,7 +61,7 @@ class ReportQueriesTest extends TestCase
     private static function makeCreateCommand(array $overrides = []): CreateReportCommand
     {
         $defaults = [
-            'type' => ReportType::Rsst, 'objet' => 'Test', 'description' => 'Desc',
+            'type' => ReportType::Rsst->value, 'objet' => 'Test', 'description' => 'Desc',
             'dateEvenement' => '2025-03-15', 'heureEvenement' => null, 'lieu' => null,
             'declarantId' => self::$userId, 'declarantNom' => 'Martin', 'declarantPrenom' => 'Jean',
             'siteId' => self::$siteId, 'siteText' => null, 'pole' => null,

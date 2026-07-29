@@ -79,7 +79,7 @@ class RegistryCardRendererTest extends TestCase
 
     public function testGetRegistryIconRami(): void
     {
-        $this->assertSame('⚠️', getRegistryIcon('rami'));
+        $this->assertSame('🚨', getRegistryIcon('rami'));
     }
 
     public function testGetRegistryIconDgi(): void

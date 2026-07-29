@@ -64,7 +64,7 @@ class EventListenersTest extends TestCase
     {
         $events = new \App\Event\EventDispatcher();
 
-        $calls = [];
+        $calls = ['notifyNewReport' => [], 'notifyReportResponse' => [], 'notifyReportReopen' => [], 'notifyRoleChange' => []];
         $container = $this->createContainerWithTrackedNotifications($calls);
 
         registerEventListeners($events, $container);
@@ -87,7 +87,7 @@ class EventListenersTest extends TestCase
     {
         // L4131-2 — DGI reports must notify CHSCT (obligation légale)
         $events = new \App\Event\EventDispatcher();
-        $calls = [];
+        $calls = ['notifyNewReport' => [], 'notifyReportResponse' => [], 'notifyReportReopen' => [], 'notifyRoleChange' => []];
         $container = $this->createContainerWithTrackedNotifications($calls);
 
         registerEventListeners($events, $container);
@@ -107,7 +107,7 @@ class EventListenersTest extends TestCase
     public function testReportCreatedListenerDoesNotCrashOnMissingData(): void
     {
         $events = new \App\Event\EventDispatcher();
-        $calls = [];
+        $calls = ['notifyNewReport' => [], 'notifyReportResponse' => [], 'notifyReportReopen' => [], 'notifyRoleChange' => []];
         $container = $this->createContainerWithTrackedNotifications($calls);
 
         registerEventListeners($events, $container);
@@ -150,7 +150,7 @@ class EventListenersTest extends TestCase
     public function testReportRespondedListenerCallsNotifyReportResponse(): void
     {
         $events = new \App\Event\EventDispatcher();
-        $calls = [];
+        $calls = ['notifyNewReport' => [], 'notifyReportResponse' => [], 'notifyReportReopen' => [], 'notifyRoleChange' => []];
         $container = $this->createContainerWithTrackedNotifications($calls);
 
         registerEventListeners($events, $container);
@@ -168,7 +168,7 @@ class EventListenersTest extends TestCase
     public function testUserRoleChangedListenerCallsNotifyRoleChange(): void
     {
         $events = new \App\Event\EventDispatcher();
-        $calls = [];
+        $calls = ['notifyNewReport' => [], 'notifyReportResponse' => [], 'notifyReportReopen' => [], 'notifyRoleChange' => []];
         $container = $this->createContainerWithTrackedNotifications($calls);
 
         registerEventListeners($events, $container);

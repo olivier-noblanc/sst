@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use App\Enum\ReportState;
+use App\Enum\RespondStatus;
 use App\Enum\UserRole;
 use App\Enum\VisibilityMode;
 use RuntimeException;
@@ -84,7 +85,7 @@ class ReportService
     }
 
     /**
-     * @return array{status: string, message?: string}
+     * @return array{status: RespondStatus, message?: string}
      */
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array
     {
@@ -117,7 +118,7 @@ class ReportService
         // répondu). Avant ce fix, l'event 'report.responded' était dispatché
         // même en cas d'échec → ghost events → notifications email mentant
         // sur l'état réel du signalement.
-        if (($result['status'] ?? '') === 'ok') {
+        if (($result['status'] ?? null) === RespondStatus::Ok) {
             $this->events->dispatch('report.responded', [
                 'report' => $report->toArray(),
                 'cmd' => $cmd,

@@ -163,7 +163,7 @@ class ReportQueriesTest extends TestCase
         $supId = (int) self::$pdo->lastInsertId();
 
         $result = self::$reports->respondToReport($uuid, $supId, 'Prise en charge du signalement.', 'en_cours');
-        $this->assertEquals('ok', $result['status']);
+        $this->assertEquals(\App\Enum\RespondStatus::Ok, $result['status']);
 
         $report = self::$reports->findById($uuid);
         $this->assertEquals('en_cours', $report->etat);

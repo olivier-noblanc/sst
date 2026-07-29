@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Enum\ReportState;
 use App\Enum\ReportType;
+use App\Enum\RespondStatus;
 use App\Enum\VisibilityMode;
 use Exception;
 use Throwable;
@@ -842,7 +843,7 @@ class ReportRepository
 
     /**
      * @param array{blob?: string|null, name?: string|null, mime?: string|null} $attachment
-     * @return array{status: string, message?: string}
+     * @return array{status: RespondStatus, message?: string}
      */
     public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, array $attachment = []): array
     {
@@ -885,7 +886,7 @@ class ReportRepository
 
             if ($stmt->rowCount() === 0) {
                 $this->pdo->rollBack();
-                return ['status' => 'concurrent'];
+                return ['status' => RespondStatus::Concurrent];
             }
 
             $stmt = $this->pdo->prepare('
@@ -903,11 +904,11 @@ class ReportRepository
             ]);
 
             $this->pdo->commit();
-            return ['status' => 'ok'];
+            return ['status' => RespondStatus::Ok];
         } catch (Exception $e) {
             $this->pdo->rollBack();
             error_log('[SST-DB] respondToReport transaction failed: ' . $e->getMessage());
-            return ['status' => 'error', 'message' => $e->getMessage()];
+            return ['status' => RespondStatus::Error, 'message' => $e->getMessage()];
         }
     }
 

@@ -3,6 +3,7 @@
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Enum\ReportState;
+use App\Enum\RespondStatus;
 
 /**
  * Report Respond Handler — Application SST DREETS BFC
@@ -78,7 +79,7 @@ try {
     $service = getContainer()->get(ReportService::class);
     $result = $service->respond($reportUuid, $cmd, $userId);
 
-    if (is_array($result) && ($result['status'] ?? '') === 'ok') {
+    if (is_array($result) && ($result['status'] ?? null) === RespondStatus::Ok) {
         auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report->reference . ' — état : ' . $nouvelEtat, null, 'report', ['reference' => $report->reference, 'nouvel_etat' => $nouvelEtat], $reportUuid);
 
         require_once __DIR__ . '/../src/mail.php';
@@ -86,8 +87,8 @@ try {
 
         $session->setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report->reference) . '.');
     } else {
-        $status = $result['status'] ?? '';
-        if ($status === 'concurrent') {
+        $status = $result['status'] ?? null;
+        if ($status === RespondStatus::Concurrent) {
             $session->setFlash('error', 'Ce signalement a été modifié par un autre superviseur pendant votre saisie. Veuillez recommencer.');
         } else {
             $errorMsg = $result['message'] ?? 'Erreur inconnue';

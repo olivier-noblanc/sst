@@ -334,6 +334,14 @@ class UserRepository
             ');
             $stmt->execute([':id' => $id]);
 
+            // RGPD gap — report_agents (agents rattachés à un signalement) was never
+            // touched by anonymize(): user_id is NOT NULL with no ON DELETE CASCADE/SET
+            // NULL, and the table has no payload beyond the link itself (report_uuid,
+            // user_id) — unlike report_responses/report_access_log, nulling user_id
+            // would leave a meaningless row, so the link is deleted outright instead.
+            $stmt = $this->pdo->prepare('DELETE FROM report_agents WHERE user_id = :id');
+            $stmt->execute([':id' => $id]);
+
             try {
                 $this->pdo->exec('DELETE FROM reports_fts');
                 $this->pdo->exec('INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL');

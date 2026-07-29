@@ -65,4 +65,34 @@ class RgpdAnonymizeTest extends TestCase
         $this->assertEquals('Anonymisé', $row2['declarant_nom'], 'declarant_nom should be anonymized');
         $this->assertEquals('Anonymé', $row2['declarant_prenom'], 'declarant_prenom should be anonymized');
     }
+
+    public function testAnonymizeRemovesReportAgentsLink(): void
+    {
+        // A second agent, distinct from the declarant, linked ("rattaché") to a
+        // report belonging to someone else — this is the report_agents scenario:
+        // the linked agent's own account gets anonymized later.
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('rgpd_linked', 'Linked', 'Agent', 'agent', {$this->siteId}, 1)");
+        $linkedAgentId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'rgpd_linked'")->fetchColumn();
+
+        $uuid = 'test-rgpd-linked-' . uniqid();
+        $this->pdo->prepare('
+            INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, lieu, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat)
+            VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :site_id, 0, 0, :etat)
+        ')->execute([
+            ':uuid' => $uuid, ':reference' => 'RAMI-25-901', ':type' => 'rami',
+            ':objet' => 'Test RGPD rattachement', ':description' => 'Test',
+            ':date_evenement' => '2025-01-15', ':lieu' => 'Bureau',
+            ':declarant_id' => $this->agentId, ':declarant_nom' => 'Agent',
+            ':declarant_prenom' => 'RGPD', ':site_id' => $this->siteId, ':etat' => 'nouveau',
+        ]);
+        $this->pdo->prepare('INSERT INTO report_agents (report_uuid, user_id) VALUES (:uuid, :uid)')
+            ->execute([':uuid' => $uuid, ':uid' => $linkedAgentId]);
+
+        \App\Repository\UserRepository::instance()->anonymize($linkedAgentId);
+
+        $count = $this->pdo->prepare('SELECT COUNT(*) FROM report_agents WHERE user_id = :uid');
+        $count->execute([':uid' => $linkedAgentId]);
+
+        $this->assertSame(0, (int) $count->fetchColumn(), 'report_agents link should be removed once the linked agent is anonymized');
+    }
 }

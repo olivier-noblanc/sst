@@ -3,6 +3,14 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.56.0] — 2026-07-30
+
+### Fix — RGPD : `report_agents` (agents rattachés) jamais anonymisé
+
+- **1** 🔴 **`UserRepository::anonymize()`** — `report_agents.user_id` (`NOT NULL`, sans `ON DELETE CASCADE`/`SET NULL`) n'était touché par aucun des deux chemins d'anonymisation existants. Un agent rattaché à un signalement d'un tiers restait identifiable indéfiniment après anonymisation de son propre compte. Fix : `DELETE FROM report_agents WHERE user_id = :id` dans la même transaction (suppression plutôt que `NULL` — contrairement à `report_responses`/`report_access_log`, la table n'a aucun payload propre : la ligne entière n'a de sens que par l'identité qu'elle porte).
+- **2** 🔴 **`RgpdAnonymizeTest::testAnonymizeRemovesReportAgentsLink`** — nouveau test : seed un agent distinct du déclarant, rattaché via `report_agents`, anonymise ce second agent, vérifie que le lien a disparu.
+
+
 ## [3.55.0] — 2026-07-29
 
 ### Refactoring — SiteId value object câblé + CHECK constraint migration

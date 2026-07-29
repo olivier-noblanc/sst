@@ -62,7 +62,7 @@ class ReportServiceTest extends TestCase
     private function createReport(ReportType $type = ReportType::Rsst, int $declarantId = 0, ?int $siteId = null): array
     {
         $cmd = new CreateReportCommand(
-            type: $type,
+            type: $type->value,
             objet: 'Test Report ' . uniqid(),
             description: 'A test report for unit testing',
             dateEvenement: '2026-01-15',

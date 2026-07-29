@@ -65,8 +65,11 @@ test.describe('Settings — Registres Tab', () => {
     // Use [name*="[is_enabled]"] to match only the is_enabled toggle, not notify_chsct
     const ramiToggle = ramiCard.locator('input[type="checkbox"][name*="[is_enabled]"]');
 
-    // Toggle and save
-    await ramiToggle.check();
+    // The checkbox is visually hidden (opacity:0, width:0, height:0, pointer-events:none)
+    // via .toggle-switch__input CSS — Playwright's check() auto-waits for visibility
+    // and times out. Click the visible .toggle-switch span instead, which toggles
+    // the underlying checkbox via the <label> wrapper.
+    await ramiCard.locator('.toggle-switch').first().click();
     await page.locator('button:has-text("Enregistrer")').click();
 
     // Should show success message

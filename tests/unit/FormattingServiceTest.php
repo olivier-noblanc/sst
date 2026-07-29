@@ -170,7 +170,14 @@ class FormattingServiceTest extends TestCase
         // d'exception) précisément pour ne plus planter sur un code
         // personnalisé inconnu. Ce test attendait encore l'ancien
         // comportement — jamais mis à jour après le refactor.
-        $this->assertEquals('var(--theme-rsst)', $this->service->getRegistryColor('unknown'));
+        //
+        // Correction de ma propre erreur (trouvée par Infection) : le
+        // fallback ULTIME de getRegistryColor() (quand même le lookup DB
+        // échoue) est 'var(--rsst-color)' en dur — pas 'var(--theme-rsst)',
+        // qui est le format du chemin DB principal uniquement. Deux formats
+        // différents, pas d'incohérence dans le code, juste ma lecture trop
+        // rapide la première fois.
+        $this->assertEquals('var(--rsst-color)', $this->service->getRegistryColor('unknown'));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

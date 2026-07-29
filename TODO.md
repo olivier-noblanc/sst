@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-25 (v3.52.0)
+Dernière mise à jour : 2026-07-29 (v3.54.0)
 
 ---
 
@@ -9,9 +9,9 @@ Dernière mise à jour : 2026-07-25 (v3.52.0)
 | Métrique | Valeur |
 |----------|--------|
 | PHPStan erreurs | **0** |
-| PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule) |
+| PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule + NoBareDeleteInTestsRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
-| Tests | **901** (1886 assertions) |
+| Tests | **994** (2258 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
 | DTOs readonly | **17** (CreateReportCommand, UpdateReportCommand, RespondToReportCommand, ReopenReportCommand, CreateUserCommand, UpdateUserCommand, ReportData, ReportFilter, ReportListItem, PaginatedReports, ReportStateCounts, AdjacentUuids, IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult) |
@@ -773,3 +773,33 @@ Voir `worklog.md` Task ID `modular-audit` (210 lignes) pour l'audit complet.
 | Rector | ✅ |
 | Deptrac | ✅ |
 | E2E | ⏳ (en cours) |
+
+---
+
+## Priorité 27 — ✅ Nettoyage infrastructure tests — TERMINÉ
+
+### Contexte
+
+Les tests partagent une seule DB SQLite en mémoire (`getDB()` singleton) sur toute la durée du run PHPUnit. Les classes de test qui s'exécutent en premier insèrent des données qui survivent aux tests suivants via `INSERT OR IGNORE`, provoquant des FK violations et des comportements non-déterministes selon l'ordre d'exécution.
+
+### Fait
+
+**Bootstrap (`tests/bootstrap.php`) :**
+- `cleanupForTest($pdo, 'pattern')` — supprime report_responses → reports → users en respectant l'ordre FK, filtré par pattern username
+- `cleanupAllForTest($pdo)` — supprime tout sauf sites (pour les tests global count)
+- Triggers `_test_validate_site_on_user` / `_test_validate_site_on_report` — error clair quand un INSERT utilise un `site_id` inexistant
+
+**DTO `ReportData::$siteId` :** `int` → `?int` (nullable). `ReportRepository::findById()` préserve null depuis la DB.
+
+**Tests corrigés :**
+- `AccessHelperIntegrationTest` — agent3 au lieu de `declarant_id=999`, `makeReport()` param `etat` overridable, `->toArray()` pour `canEditReport()`/`canRespondToReport()`
+- `SessionInvalidationTest` — `site_id=NULL`, `siteId: 0` (sentinel), `date()` au lieu de `datetime('now')`
+- `UserAnonymizeTest` — `site_id=NULL`, `cleanupForTest()`
+- `ReportQueriesTest` — `cleanupAllForTest()` + re-seed user
+
+**PHPStan (`NoBareDeleteInTestsRule`) :**
+- Détecte `DELETE FROM users`/`DELETE FROM reports`/`DELETE FROM report_responses` dans tests/
+- Suggère `cleanupForTest()`/`cleanupAllForTest()`
+- 62 violations existantes flaggées (nettoyage futur)
+
+**Résultat :** 994 tests, 2258 assertions — tous verts. GrumPHP passe en entier.

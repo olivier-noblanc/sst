@@ -96,7 +96,7 @@ deptrac analyse
 
 | Suite | Tests | Fichiers | Portée |
 |-------|-------|----------|--------|
-| **PHPUnit** | 896 (1874 assertions) | 25+ | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting, services, repositories |
+| **PHPUnit** | 994 (2258 assertions) | 25+ | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting, services, repositories |
 | **Playwright E2E** | ~208 cas (16 specs) | 16 | Navigation, auth, formulaires, rôles, incarnation, onboarding, version, export, settings, agent_confirm |
 
 ## Visibilité des signalements — 3 modes (configurable par le superviseur)
@@ -140,7 +140,7 @@ C:\inetpub\sst\
 ├── pages/           ← Pages de l'application
 ├── handlers/        ← Traitements des formulaires POST
 ├── templates/       ← Templates réutilisables (header, sidebar, footer, user_form_fields...)
-├── tests/           ← Tests unitaires PHPUnit (860 tests, 1804 assertions)
+├── tests/           ← Tests unitaires PHPUnit (994 tests, 2258 assertions)
 ├── e2e/             ← Tests E2E Playwright (15 specs, ~207 cas)
 ├── tools/           ← Scripts CLI (capture_screenshots.py, check_delays, anonymize...)
 ├── docs/            ← Documentation et captures HTML source

@@ -3,6 +3,20 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.54.0] — 2026-07-29
+
+### Fix — Nettoyage infrastructure tests (FK, site_id, PHPStan)
+
+- **1** 🔴 **`bootstrap.php`** — `cleanupForTest($pdo, 'prefix%')` et `cleanupAllForTest($pdo)` ajoutés : suppression respectant l'ordre FK (report_responses → reports → users). Triggers `_test_validate_site_on_user` / `_test_validate_site_on_report` : error clair quand un INSERT utilise un `site_id` inexistant.
+- **2** 🔴 **`AccessHelperIntegrationTest`** — `declarant_id => 999` (FK violée) remplacé par `agentId3` sur site2. `makeReport()` accepte le paramètre `etat`. `canEditReport()`/`canRespondToReport()` reçoivent `->toArray()` (types array requis).
+- **3** 🔴 **`SessionInvalidationTest`** — `site_id=NULL` + `siteId: 0` (sentinel) + `date()` au lieu de `datetime('now')` pour cohérence timezone.
+- **4** 🔴 **`UserAnonymizeTest`** — `site_id=NULL` + `cleanupForTest()`.
+- **5** 🔴 **`ReportQueriesTest`** — `cleanupAllForTest()` + re-seed user dans setUp.
+- **6** 🔴 **`ReportData::$siteId`** — `int` → `?int` (nullable). `ReportRepository::findById()` préserve null depuis la DB.
+- **7** 🔴 **`NoBareDeleteInTestsRule`** — Nouvelle règle PHPStan qui détecte `DELETE FROM users`/`DELETE FROM reports`/`DELETE FROM report_responses` dans les fichiers tests/ et suggère `cleanupForTest()`/`cleanupAllForTest()`. Enregistrée dans `phpstan-tests.neon`.
+- **8** 🟢 **994 tests, 2258 assertions** — tous verts. 62 violations existantes flaggées par la nouvelle règle (nettoyage futur).
+
+
 ## [3.53.0] — 2026-07-28
 
 ### Fix — PHPStan : élimination progressive de `array<string, mixed>`

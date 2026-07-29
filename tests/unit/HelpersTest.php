@@ -173,9 +173,16 @@ class HelpersTest extends TestCase
 
     public function testGetRegistryColor(): void
     {
-        $this->assertEquals('var(--rsst-color)', getRegistryColor('rsst'));
-        $this->assertEquals('var(--rami-color)', getRegistryColor('rami'));
-        $this->assertEquals('var(--dgi-color)', getRegistryColor('dgi'));
+        // Audit #85 — même refactor "Modular-audit P2.2" que
+        // getRegistryColor()/getRegistryBadgeClass() corrigés plus tôt ce
+        // soir : lecture DB-first (registries.color_theme), var(--theme-X)
+        // au lieu des anciennes var(--X-color) mortes (n'existent plus dans
+        // public/css/style.css). Seed explicite : sans registries en base,
+        // le résultat dépend de l'ordre d'exécution (fallback vs DB).
+        reseedDefaultRegistries(getDB());
+        $this->assertEquals('var(--theme-rsst)', getRegistryColor('rsst'));
+        $this->assertEquals('var(--theme-rami)', getRegistryColor('rami'));
+        $this->assertEquals('var(--theme-dgi)', getRegistryColor('dgi'));
     }
 
     public function testGetEtatBadgeClass(): void

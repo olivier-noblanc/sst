@@ -15,11 +15,8 @@ class SiteQueriesTest extends TestCase
     protected function setUp(): void
     {
         $pdo = getDB();
-        $pdo->exec('DELETE FROM report_access_log');
-        $pdo->exec('DELETE FROM report_responses');
-        $pdo->exec('DELETE FROM reports');
+        cleanupAllForTest($pdo);
         $pdo->exec('DELETE FROM notification_settings');
-        $pdo->exec('DELETE FROM users');
         $pdo->exec('DELETE FROM sites');
         $pdo->exec('DELETE FROM config_app');
 

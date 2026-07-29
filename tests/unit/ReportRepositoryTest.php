@@ -16,11 +16,7 @@ class ReportRepositoryTest extends TestCase
         $this->pdo = getDB();
         $this->repo = new ReportRepository($this->pdo);
         // Clean and seed (getDB() is a singleton, so we must reset)
-        $this->pdo->exec('DELETE FROM report_access_log');
-        $this->pdo->exec('DELETE FROM report_state_history');
-        $this->pdo->exec('DELETE FROM report_responses');
-        $this->pdo->exec('DELETE FROM reports');
-        $this->pdo->exec('DELETE FROM users');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote-d-Or', 1)");
         $this->siteId = (int) $this->pdo->lastInsertId();

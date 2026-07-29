@@ -37,12 +37,8 @@ class LinkedAgentVisibilityTest extends TestCase
         )");
 
         $this->pdo->exec('DELETE FROM report_agents');
-        $this->pdo->exec('DELETE FROM report_access_log');
-        $this->pdo->exec('DELETE FROM report_state_history');
-        $this->pdo->exec('DELETE FROM report_responses');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM report_agent_invites');
-        $this->pdo->exec('DELETE FROM reports');
-        $this->pdo->exec('DELETE FROM users');
         $this->pdo->exec('DELETE FROM sites');
 
         $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote-d-Or', 1)");

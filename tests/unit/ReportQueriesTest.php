@@ -37,11 +37,7 @@ class ReportQueriesTest extends TestCase
 
         // Clean tables to avoid UNIQUE constraint conflicts with shared in-memory DB
         self::$pdo->exec('PRAGMA foreign_keys = OFF');
-        self::$pdo->exec('DELETE FROM report_access_log');
-        self::$pdo->exec('DELETE FROM report_state_history');
-        self::$pdo->exec('DELETE FROM report_responses');
-        self::$pdo->exec('DELETE FROM reports');
-        self::$pdo->exec('DELETE FROM users');
+        cleanupAllForTest(self::$pdo);
         self::$pdo->exec('DELETE FROM sites');
         self::$pdo->exec('DELETE FROM config_app');
         self::$pdo->exec('PRAGMA foreign_keys = ON');

@@ -17,7 +17,7 @@ class RegistryCardRendererTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = getDB();
-        $this->pdo->exec('DELETE FROM reports');
+        cleanupAllForTest($this->pdo);
         // Audit #80 — buildRegistryCards() no longer takes parameters; it
         // reads registries.is_enabled + real report counts from the DB.
         // Start every test from a known-clean state: all 3 system registries
@@ -42,7 +42,7 @@ class RegistryCardRendererTest extends TestCase
         foreach (['rsst', 'rami', 'dgi'] as $code) {
             $this->setRegistryEnabled($code, true);
         }
-        $this->pdo->exec('DELETE FROM reports');
+        cleanupAllForTest($this->pdo);
     }
 
     private function setRegistryEnabled(string $code, bool $enabled): void

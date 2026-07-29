@@ -16,12 +16,8 @@ class RepositoryInvariantTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = getDB();
-        $this->pdo->exec('DELETE FROM report_access_log');
-        $this->pdo->exec('DELETE FROM report_state_history');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM report_agent_invites');
-        $this->pdo->exec('DELETE FROM report_responses');
-        $this->pdo->exec('DELETE FROM reports');
-        $this->pdo->exec('DELETE FROM users');
         $this->pdo->exec('DELETE FROM sites');
         // Ensure report_agents table exists (may not be in schema.sql yet)
         $this->pdo->exec("CREATE TABLE IF NOT EXISTS report_agents (

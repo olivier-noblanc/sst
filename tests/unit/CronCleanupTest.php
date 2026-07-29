@@ -15,13 +15,9 @@ class CronCleanupTest extends TestCase
     {
         $this->pdo = getDB();
         $this->pdo->exec('DELETE FROM sessions');
-        $this->pdo->exec('DELETE FROM report_access_log');
         $this->pdo->exec('DELETE FROM report_agent_invites');
-        $this->pdo->exec('DELETE FROM report_state_history');
-        $this->pdo->exec('DELETE FROM report_responses');
         $this->pdo->exec('DELETE FROM report_agents');
-        $this->pdo->exec('DELETE FROM reports');
-        $this->pdo->exec('DELETE FROM users');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec('DELETE FROM audit_log');
         $this->pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'Test', 1)");

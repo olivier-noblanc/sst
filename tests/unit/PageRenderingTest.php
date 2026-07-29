@@ -52,8 +52,7 @@ class PageRenderingTest extends TestCase
         // INSERT OR IGNORE : ce fichier a des dizaines de tests qui
         // dépendent des valeurs exactes ('Dupont'/'Jean') — IGNORE
         // garderait silencieusement les données d'un autre test.
-        $pdo->exec("DELETE FROM reports WHERE site_id = 1 OR declarant_id IN (1, 2)");
-        $pdo->exec("DELETE FROM users WHERE id IN (1, 2)");
+        cleanupAllForTest($pdo);
         $pdo->exec("DELETE FROM sites WHERE id = 1");
         $pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'UR Test', 1)");
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'test.agent', 'Dupont', 'Jean', 'agent', 1, 1)");

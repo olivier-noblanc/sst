@@ -27,7 +27,7 @@ final class NoBareDeleteInTestsRule implements Rule
      * Détecte DELETE FROM users / DELETE FROM reports / DELETE FROM report_responses
      * (les 3 tables les plus souvent supprimées sans respecter l'ordre FK).
      */
-    private const BARE_DELETE_PATTERN = '/^\s*DELETE\s+FROM\s+(users|reports|report_responses)\b/is';
+    private const BARE_DELETE_PATTERN = '/^\s*DELETE\s+FROM\s+(users|reports|report_responses)\s*$/is';
 
     public function getNodeType(): string
     {

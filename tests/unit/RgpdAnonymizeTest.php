@@ -19,11 +19,8 @@ class RgpdAnonymizeTest extends TestCase
         $this->pdo = getDB();
 
         // Clean up
-        $this->pdo->exec('DELETE FROM report_access_log');
-        $this->pdo->exec('DELETE FROM report_state_history');
-        $this->pdo->exec('DELETE FROM report_responses');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM report_agent_invites');
-        $this->pdo->exec('DELETE FROM reports');
 
         // Seed site
         $this->pdo->exec("INSERT OR IGNORE INTO sites (code, nom, is_active) VALUES ('UD_RGPD', 'RGPD Test', 1)");

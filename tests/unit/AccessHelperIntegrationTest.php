@@ -37,11 +37,8 @@ class AccessHelperIntegrationTest extends TestCase
         $this->pdo->exec('DELETE FROM report_agents');
 
         // Clean up
-        $this->pdo->exec('DELETE FROM report_access_log');
-        $this->pdo->exec('DELETE FROM report_state_history');
-        $this->pdo->exec('DELETE FROM report_responses');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM report_agent_invites');
-        $this->pdo->exec('DELETE FROM reports');
 
         // Seed sites
         $this->pdo->exec("INSERT OR IGNORE INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote d Or', 1)");

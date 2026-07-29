@@ -19,11 +19,8 @@ class MailHelperBodyTest extends TestCase
     {
         $this->pdo = getDB();
         // Clean tables
-        $this->pdo->exec('DELETE FROM report_access_log');
-        $this->pdo->exec('DELETE FROM report_responses');
-        $this->pdo->exec('DELETE FROM reports');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM notification_settings');
-        $this->pdo->exec('DELETE FROM users');
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec('DELETE FROM config_app');
         clearConfigCache();

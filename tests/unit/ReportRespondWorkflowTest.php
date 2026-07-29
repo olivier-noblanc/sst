@@ -135,54 +135,48 @@ class ReportRespondWorkflowTest extends TestCase
         }
     }
 
+    /**
+     * Audit #85 — requireReportRespondable()/requireReportEditable() appellent
+     * HttpService::redirect() pour un état invalide, qui fait un exit() brut,
+     * jamais rattrapable par un try/catch (confirmé cette nuit sur
+     * pages/report_list.php — même piège, exactement le même symptôme :
+     * "Premature end of PHP process" tuant tout le process PHPUnit partagé,
+     * pas juste ce test). tests/validation_runner.php exécute l'appel dans
+     * un vrai sous-processus et capture le flash via
+     * register_shutdown_function() (qui s'exécute même après exit()) —
+     * même mécanisme déjà en place pour les handlers (tests/handler_runner.php).
+     *
+     * @return array{redirect: string|null, flash: array{type?: string}|null}
+     */
+    private function runValidation(string $functionName, string $etat): array
+    {
+        $cmd = 'php ' . escapeshellarg(__DIR__ . '/validation_runner.php')
+            . ' ' . escapeshellarg($functionName) . ' ' . escapeshellarg($etat);
+        exec($cmd . ' 2>&1', $output, $exitCode);
+        $result = json_decode(implode("\n", $output), true);
+        $this->assertIsArray($result, 'validation_runner.php did not return valid JSON: ' . implode("\n", $output));
+        return $result;
+    }
+
     public function testRequireReportRespondableRejectsTraite(): void
     {
-        $report = $this->buildReport(\App\Enum\ReportState::Traite->value);
-        ob_start();
-        try {
-            requireReportRespondable($report, 'test-uuid', 'répondu');
-            $output = ob_get_clean();
-            // Should redirect (output the redirect headers/location)
-            $flash = \App\Services\SessionService::getInstance()->getFlash();
-            $this->assertNotNull($flash, 'A flash error should be set for traite');
-            $this->assertSame('error', $flash['type']);
-        } catch (\Throwable $e) {
-            ob_end_clean();
-            // redirect exit was caught — also OK
-            $flash = \App\Services\SessionService::getInstance()->getFlash();
-            $this->assertNotNull($flash, 'A flash error should be set for traite (via exit)');
-            $this->assertSame('error', $flash['type']);
-        }
+        $result = $this->runValidation('requireReportRespondable', \App\Enum\ReportState::Traite->value);
+        $this->assertNotNull($result['flash'], 'A flash error should be set for traite');
+        $this->assertSame('error', $result['flash']['type']);
     }
 
     public function testRequireReportRespondableRejectsAbandonne(): void
     {
-        $report = $this->buildReport(\App\Enum\ReportState::Abandonne->value);
-        ob_start();
-        try {
-            requireReportRespondable($report, 'test-uuid', 'répondu');
-            ob_end_clean();
-        } catch (\Throwable $e) {
-            ob_end_clean();
-        }
-        $flash = \App\Services\SessionService::getInstance()->getFlash();
-        $this->assertNotNull($flash, 'A flash error should be set for abandonne');
-        $this->assertSame('error', $flash['type']);
+        $result = $this->runValidation('requireReportRespondable', \App\Enum\ReportState::Abandonne->value);
+        $this->assertNotNull($result['flash'], 'A flash error should be set for abandonne');
+        $this->assertSame('error', $result['flash']['type']);
     }
 
     public function testRequireReportEditableStillRejectsReouvert(): void
     {
         // requireReportEditable doit rester stricte — edit/abandon sur 'reouvert' interdit
-        $report = $this->buildReport(\App\Enum\ReportState::Reouvert->value);
-        ob_start();
-        try {
-            requireReportEditable($report, 'test-uuid', 'modifié');
-            ob_end_clean();
-        } catch (\Throwable $e) {
-            ob_end_clean();
-        }
-        $flash = \App\Services\SessionService::getInstance()->getFlash();
-        $this->assertNotNull($flash, 'requireReportEditable should reject reouvert');
-        $this->assertSame('error', $flash['type']);
+        $result = $this->runValidation('requireReportEditable', \App\Enum\ReportState::Reouvert->value);
+        $this->assertNotNull($result['flash'], 'requireReportEditable should reject reouvert');
+        $this->assertSame('error', $result['flash']['type']);
     }
 }

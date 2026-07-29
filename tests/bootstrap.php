@@ -68,32 +68,20 @@ function getDB(): PDO {
         // tests already manage explicitly via config_app resets.
         require_once __DIR__ . '/../src/migration_tables.php';
         migrateTables($db);
-        // Validate site_id FK with a clear error before the INSERT.
-        // Catches tests inserting users/reports with a non-existent site_id
-        // (e.g. site_id=1 when no site has been seeded) — the raw FK error
-        // "Integrity constraint violation: 19" gives no hint about the root cause.
+        // NOTE — Validation site_id :
+        // Historiquement, deux triggers BEFORE INSERT (_test_validate_site_on_user
+        // et _test_validate_site_on_report) donnaient un message d'erreur plus
+        // parlant que la FK brute quand un test insérait un site_id inexistant.
+        // Mais ils utilisaient `RAISE(ABORT, 'text' || NEW.site_id || '...')`,
+        // expression illégale en SQLite (RAISE n'accepte qu'un string literal)
+        // — casser toute la CI PHPUnit + Infection pendant plusieurs runs.
         //
-        // NOTE SQLite: RAISE(ABORT, ...) n'accepte qu'un STRING LITERAL, pas une
-        // expression `'text' || NEW.col`. Tenter de concaténer NEW.site_id dans
-        // le message déclenche "SQLSTATE[HY000]: General error: 1 near '||':
-        // syntax error" — ce qui a cassé toute la CI PHPUnit + Infection pendant
-        // plusieurs runs. Le site_id fautif est loggé côté PHP via error_log()
-        // dans un trigger BEFORE INSERT séparé si besoin ; ici on garde un message
-        // statique pour rester conforme à la grammaire SQLite.
-        $db->exec("CREATE TRIGGER IF NOT EXISTS _test_validate_site_on_user
-            BEFORE INSERT ON users
-            WHEN NEW.site_id IS NOT NULL
-            BEGIN
-                SELECT RAISE(ABORT, 'site_id does not exist in sites — seed it first or use NULL')
-                WHERE (SELECT COUNT(*) FROM sites WHERE id = NEW.site_id) = 0;
-            END");
-        $db->exec("CREATE TRIGGER IF NOT EXISTS _test_validate_site_on_report
-            BEFORE INSERT ON reports
-            WHEN NEW.site_id IS NOT NULL
-            BEGIN
-                SELECT RAISE(ABORT, 'site_id does not exist in sites — seed it first or use NULL')
-                WHERE (SELECT COUNT(*) FROM sites WHERE id = NEW.site_id) = 0;
-            END");
+        // Conformément à AGENTS.md §"Mode sans site", la validation site_id est
+        // désormais applicative : le DTO SiteId (fromDatabase/toSql) garantit
+        // qu'on écrit soit NULL soit un int > 0, jamais 0. La FK SQLite
+        // `REFERENCES sites(id)` rejette déjà les site_id inexistants. Un test
+        // qui insère un site_id inexistant est un bug de test, pas un bug de
+        // prod — il mérite le message FK brut, pas une couche SQL complexe.
     }
     return $db;
 }

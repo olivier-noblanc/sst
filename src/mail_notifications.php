@@ -149,22 +149,28 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
 /**
  * Get all notification recipients for a given site.
  *
- * @param PDO $pdo     Database connection
- * @param int $siteId  Site ID
- * @return array<int, string>       Array of email strings
+ * Mode sans site (AGENTS.md §"Mode sans site") : si $siteId est null, on saute
+ * la requête per-site et on retourne uniquement les destinataires globaux.
+ * Ne jamais coercer null → 0 ici — c'est le bug classique documenté.
+ *
+ * @param PDO     $pdo     Database connection
+ * @param int|null $siteId Site ID, ou null pour le mode sans site
+ * @return array<int, string>  Array of email strings
  */
-function getNotificationRecipients(PDO $pdo, int $siteId): array
+function getNotificationRecipients(PDO $pdo, ?int $siteId): array
 {
     $emails = [];
     $seen = [];
-    // Per-site
-    $siteEmails = NotificationRepository::instance()->findSiteEmails($siteId);
-    foreach ($siteEmails as $email) {
-        $lower = strtolower($email);
-        $seen[] = $lower;
-        $emails[] = $email;
+    // Per-site — seulement si un vrai site est rattaché.
+    if ($siteId !== null && $siteId > 0) {
+        $siteEmails = NotificationRepository::instance()->findSiteEmails($siteId);
+        foreach ($siteEmails as $email) {
+            $lower = strtolower($email);
+            $seen[] = $lower;
+            $emails[] = $email;
+        }
     }
-    // Global
+    // Global — toujours, même en mode sans site.
     $globalEmails = NotificationRepository::instance()->findGlobalEmails();
     foreach ($globalEmails as $email) {
         $lower = strtolower($email);

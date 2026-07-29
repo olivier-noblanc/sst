@@ -38,11 +38,10 @@ try {
 
         // Notify supervisors of the site
         require_once __DIR__ . '/../src/mail.php';
-        // ReportData::siteId est ?int (nullable pour le mode sans site).
-        // getNotificationRecipients() attend un int — on coalesce null vers 0,
-        // ce qui retourne uniquement les destinataires globaux.
-        $siteId = $report->siteId ?? 0;
-        $recipients = getNotificationRecipients($pdo, $siteId);
+        // AGENTS.md §"Mode sans site" : ne jamais coercer null → 0.
+        // getNotificationRecipients accepte ?int et skipe la requête per-site
+        // quand null (retourne les destinataires globaux uniquement).
+        $recipients = getNotificationRecipients($pdo, $report->siteId);
         if (!empty($recipients)) {
             $registryLabel = getRegistryShortLabel($type);
             $subject = "Signalement abandonné $registryLabel — {$report->reference}";

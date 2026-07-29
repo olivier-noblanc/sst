@@ -45,6 +45,16 @@ class PageRenderingTest extends TestCase
 
         // Seed the in-memory SQLite database with minimal test data
         $pdo = getDB();
+        // Audit #85 — sous ordre aléatoire (Infection), un autre test peut
+        // déjà avoir créé un site/user avec ces IDs précis (ex.
+        // SessionInvalidationTest utilise aussi site_id=1) — UNIQUE
+        // constraint violation sinon. DELETE explicite plutôt que
+        // INSERT OR IGNORE : ce fichier a des dizaines de tests qui
+        // dépendent des valeurs exactes ('Dupont'/'Jean') — IGNORE
+        // garderait silencieusement les données d'un autre test.
+        $pdo->exec("DELETE FROM reports WHERE site_id = 1 OR declarant_id IN (1, 2)");
+        $pdo->exec("DELETE FROM users WHERE id IN (1, 2)");
+        $pdo->exec("DELETE FROM sites WHERE id = 1");
         $pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'UR Test', 1)");
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'test.agent', 'Dupont', 'Jean', 'agent', 1, 1)");
         $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (2, 'test.sup', 'Martin', 'Pierre', 'superviseur', 1, 1)");

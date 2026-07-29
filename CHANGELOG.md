@@ -3,6 +3,26 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.55.0] — 2026-07-29
+
+### Refactoring — SiteId value object câblé + CHECK constraint migration
+
+- **1** 🔴 **`UpdateUserCommand`** — `int $siteId` → `SiteId $siteId`. `fromPost()` utilise `SiteId::fromInput()`, `toArray()` retourne `?int` via `toSql()`.
+- **2** 🔴 **`CreateUserCommand`** — même pattern.
+- **3** 🔴 **`CreateReportCommand`** — même pattern. `toArray()` surchargé pour convertir `SiteId` en `?int` avant `get_object_vars()`.
+- **4** 🔴 **`UserRepository::create()`/`update()`** — `!empty($data['site_id']) ? ... : null` remplacé par `SiteId::fromInput()->toSql()`.
+- **5** 🔴 **`UserRepository::updateSite()`** — `SiteId::fromInput()` appliqué avant l'écriture DB.
+- **6** 🔴 **`ReportRepository::create()`** — idem.
+- **7** 🔴 **`ReportRepository::hydrateReportData()`** — `SiteId::fromDatabase()` pour l'hydratation depuis DB.
+- **8** 🔴 **Migration CHECK constraint** — `migration_columns.php` : rebuild de `users` et `notification_settings` avec `CHECK (site_id IS NULL OR site_id > 0)`. Les deux rebuilds `reports` existants incluent aussi la CHECK idempotamment. Correction des `site_id = 0` existants avant ajout de la contrainte.
+- **9** 🟢 **1001 tests, 2271 assertions** — tous verts.
+
+### Fix — 62 violations PHPStan bare-delete résolues
+
+- **10** 🔴 **23 fichiers de tests** — `DELETE FROM users`/`reports`/`report_responses` remplacés par `cleanupAllForTest($this->pdo)`. Les DELETEs ciblés avec WHERE (ex: ExportCsvColumnsTest) conservés.
+- **11** 🟢 PHPStan `phpstan-tests.neon` : 62→0 violations.
+
+
 ## [3.54.0] — 2026-07-29
 
 ### Fix — Nettoyage infrastructure tests (FK, site_id, PHPStan)

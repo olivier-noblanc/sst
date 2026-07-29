@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-29 (v3.54.0)
+Dernière mise à jour : 2026-07-29 (v3.55.0)
 
 ---
 
@@ -11,7 +11,7 @@ Dernière mise à jour : 2026-07-29 (v3.54.0)
 | PHPStan erreurs | **0** |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule + NoBareDeleteInTestsRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
-| Tests | **994** (2258 assertions) |
+| Tests | **1001** (2271 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
 | DTOs readonly | **17** (CreateReportCommand, UpdateReportCommand, RespondToReportCommand, ReopenReportCommand, CreateUserCommand, UpdateUserCommand, ReportData, ReportFilter, ReportListItem, PaginatedReports, ReportStateCounts, AdjacentUuids, IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult) |
@@ -802,4 +802,32 @@ Les tests partagent une seule DB SQLite en mémoire (`getDB()` singleton) sur to
 - Suggère `cleanupForTest()`/`cleanupAllForTest()`
 - 62 violations existantes flaggées (nettoyage futur)
 
-**Résultat :** 994 tests, 2258 assertions — tous verts. GrumPHP passe en entier.
+**Résultat :** 1001 tests, 2271 assertions — tous verts. GrumPHP passe en entier.
+
+---
+
+## Priorité 28 — ✅ SiteId wiring + CHECK migration + bare-delete cleanup — TERMINÉ
+
+### Contexte
+
+Après la création du value object `SiteId` (commit `5749b95`), celui-ci n'était pas encore câblé dans les DTOs et repositories. Les 62 violations PHPStan du règle `NoBareDeleteInTestsRule` restaient aussi à résoudre.
+
+### Fait
+
+**Task 0 — 62 violations PHPStan bare-delete :**
+- 23 fichiers de tests migrés : `DELETE FROM users`/`reports`/`report_responses` remplacés par `cleanupAllForTest($this->pdo)`
+- Les DELETEs ciblés avec WHERE (ex: ExportCsvColumnsTest) conservés
+- PHPStan `phpstan-tests.neon` : 62→0 violations
+
+**Task A — SiteId wiring :**
+- `UpdateUserCommand`, `CreateUserCommand`, `CreateReportCommand` : `int $siteId` → `SiteId $siteId`
+- `UserRepository::create()`/`update()`/`updateSite()` : `SiteId::fromInput()->toSql()`
+- `ReportRepository::create()`/`hydrateReportData()` : `SiteId::fromInput()`/`SiteId::fromDatabase()`
+
+**Task B — CHECK constraint migration :**
+- `migration_columns.php` : rebuild de `users` et `notification_settings` avec `CHECK (site_id IS NULL OR site_id > 0)`
+- Les deux rebuilds `reports` existants incluent aussi la CHECK idempotamment
+- Correction des `site_id = 0` existants avant ajout de la contrainte
+- Pattern PRAGMA FK identique aux migrations existantes
+
+**Résultat :** 1001 tests, 2271 assertions — tous verts. GrumPHP passe en entier.

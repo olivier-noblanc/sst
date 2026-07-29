@@ -150,7 +150,7 @@ class ReportRespondWorkflowTest extends TestCase
      */
     private function runValidation(string $functionName, string $etat): array
     {
-        $cmd = 'php ' . escapeshellarg(__DIR__ . '/validation_runner.php')
+        $cmd = 'php ' . escapeshellarg(__DIR__ . '/../validation_runner.php')
             . ' ' . escapeshellarg($functionName) . ' ' . escapeshellarg($etat);
         exec($cmd . ' 2>&1', $output, $exitCode);
         $result = json_decode(implode("\n", $output), true);

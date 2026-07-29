@@ -12,6 +12,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use App\Services\AccessService;
 use App\Enum\ReportState;
 use App\Enum\UserRole;
@@ -29,9 +30,7 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     // canEditReport() — truth table
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * @dataProvider provideCanEditCases
-     */
+    #[DataProvider('provideCanEditCases')]
     public function testCanEditReportTruthTable(bool $isDeclarant, string $etat, bool $expected): void
     {
         $report = [
@@ -105,9 +104,7 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     // canRespondToReport() — truth table
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * @dataProvider provideCanRespondCases
-     */
+    #[DataProvider('provideCanRespondCases')]
     public function testCanRespondToReportTruthTable(string $role, string $etat, bool $expected): void
     {
         $report = ['etat' => $etat];
@@ -192,9 +189,7 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     // normalizeVisibilityValue() — exhaustive mapping
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * @dataProvider provideNormalizeVisibilityCases
-     */
+    #[DataProvider('provideNormalizeVisibilityCases')]
     public function testNormalizeVisibilityValueMapping(string $input, string $expected): void
     {
         $this->assertSame($expected, $this->service->normalizeVisibilityValue($input));

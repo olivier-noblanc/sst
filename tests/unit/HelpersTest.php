@@ -10,11 +10,37 @@ use PHPUnit\Framework\TestCase;
 
 class HelpersTest extends TestCase
 {
+    /**
+     * Audit #85 — canAccessReport() attend un objet ReportData en natif
+     * (typage strict), pas un array<string, mixed>. Les 8 tests de ce
+     * fichier construisaient un array à la main avec seulement 4-5 clés
+     * (site_id, declarant_id, is_confidential, type, consent_syndicat) —
+     * ça plantait (TypeError) dès que ce fichier était lancé seul, jamais
+     * remarqué jusqu'à ce qu'Infection le fasse (ordre aléatoire).
+     */
+    private function makeReport(int $siteId, int $declarantId, bool $isConfidential, string $type = 'rsst', bool $consentSyndicat = false): \App\DTO\ReportData
+    {
+        return new \App\DTO\ReportData(
+            uuid: 'test-uuid', reference: 'RSST-25-001', type: $type,
+            objet: 'Objet test', description: 'Description test',
+            dateEvenement: '2025-01-01', heureEvenement: '', lieu: '',
+            declarantId: $declarantId, declarantNom: 'Dupont', declarantPrenom: 'Jean',
+            pourCompteDe: '', pourCompteNom: '', pourComptePrenom: '',
+            natureAuteur: '', typeActe: '', siteId: $siteId, siteText: '',
+            pole: '', serviceAffectation: '', telephoneMobile: '',
+            isConfidential: $isConfidential ? 1 : 0, consentSyndicat: $consentSyndicat ? 1 : 0,
+            etat: 'nouveau', repondantId: null, dateReponse: null, reponse: null,
+            attachmentName: null, attachmentMime: null,
+            createdAt: '2025-01-01 10:00:00', updatedAt: '2025-01-01 10:00:00',
+            siteCode: 'UR21', siteNom: 'UR Test', repondantNom: null, repondantPrenom: null,
+        );
+    }
+
     // ─── canAccessReport() ────────────────────────────────────────────────────
 
     public function testSuperviseurCanAccessAnyReport(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 1, 'type' => 'rsst'];
+        $report = $this->makeReport(1, 99, (bool) 1, 'rsst');
         $user   = ['id' => 1, 'site_id' => 2, 'role' => 'superviseur'];
 
         $this->assertTrue(canAccessReport($report, $user));
@@ -22,7 +48,7 @@ class HelpersTest extends TestCase
 
     public function testChsctCanAccessReportWithConsent(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 1, 'type' => 'rsst', 'consent_syndicat' => 1];
+        $report = $this->makeReport(1, 99, (bool) 1, 'rsst', (bool) 1);
         $user   = ['id' => 1, 'site_id' => 2, 'role' => 'chsct'];
 
         $this->assertTrue(canAccessReport($report, $user));
@@ -30,7 +56,7 @@ class HelpersTest extends TestCase
 
     public function testChsctCannotAccessReportWithoutConsent(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 1, 'type' => 'rsst', 'consent_syndicat' => 0];
+        $report = $this->makeReport(1, 99, (bool) 1, 'rsst', (bool) 0);
         $user   = ['id' => 1, 'site_id' => 2, 'role' => 'chsct'];
 
         $this->assertFalse(canAccessReport($report, $user));
@@ -38,7 +64,7 @@ class HelpersTest extends TestCase
 
     public function testAgentCanAccessOtherSiteReport(): void
     {
-        $report = ['site_id' => 2, 'declarant_id' => 99, 'is_confidential' => 0, 'type' => 'rsst'];
+        $report = $this->makeReport(2, 99, (bool) 0, 'rsst');
         $user   = ['id' => 1, 'site_id' => 1, 'role' => 'agent'];
 
         $this->assertTrue(canAccessReport($report, $user, 'public'));
@@ -46,7 +72,7 @@ class HelpersTest extends TestCase
 
     public function testAgentCanAccessOwnConfidentialReport(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 1, 'is_confidential' => 1, 'type' => 'rsst'];
+        $report = $this->makeReport(1, 1, (bool) 1, 'rsst');
         $user   = ['id' => 1, 'site_id' => 1, 'role' => 'agent'];
 
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
@@ -54,7 +80,7 @@ class HelpersTest extends TestCase
 
     public function testAgentCannotAccessOtherAgentConfidentialReport(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 1, 'type' => 'rsst'];
+        $report = $this->makeReport(1, 99, (bool) 1, 'rsst');
         $user   = ['id' => 1, 'site_id' => 1, 'role' => 'agent'];
 
         $this->assertFalse(canAccessReport($report, $user, 'confidential'));
@@ -62,7 +88,7 @@ class HelpersTest extends TestCase
 
     public function testAgentCanAccessPublicReportOnSameSite(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 0, 'type' => 'rsst'];
+        $report = $this->makeReport(1, 99, (bool) 0, 'rsst');
         $user   = ['id' => 1, 'site_id' => 1, 'role' => 'agent'];
 
         $this->assertTrue(canAccessReport($report, $user, 'public'));
@@ -71,7 +97,7 @@ class HelpersTest extends TestCase
     public function testAgentChoiceModeRespectsIsConfidential(): void
     {
         // Agent can see other agent's non-confidential report in agent_choice mode
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'is_confidential' => 0, 'type' => 'rsst'];
+        $report = $this->makeReport(1, 99, (bool) 0, 'rsst');
         $user   = ['id' => 1, 'site_id' => 1, 'role' => 'agent'];
         $this->assertTrue(canAccessReport($report, $user, 'agent_choice'));
 

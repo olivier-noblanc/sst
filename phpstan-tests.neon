@@ -21,3 +21,9 @@ parameters:
         - handlers/
         - pages/
         - templates/
+
+services:
+    -
+        class: App\PHPStan\NoBareDeleteInTestsRule
+        tags:
+            - phpstan.rules.rule

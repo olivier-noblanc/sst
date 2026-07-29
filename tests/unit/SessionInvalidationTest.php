@@ -41,18 +41,12 @@ class SessionInvalidationTest extends TestCase
         require_once __DIR__ . '/../../src/DTO/UpdateUserCommand.php';
 
         self::$pdo = getDB();
-        // Audit #85 — les users de ce fichier référencent site_id=1 en dur
-        // sans jamais le seeder eux-mêmes, comptant sur l'état laissé par un
-        // autre test. Sous ordre aléatoire, sans site id=1 déjà créé,
-        // l'INSERT INTO users échoue sur la contrainte FK. INSERT OR IGNORE :
-        // idempotent, ne casse rien si le site existe déjà avec un id
-        // différent (auto-increment) ailleurs dans la suite.
-        self::$pdo->exec("INSERT OR IGNORE INTO sites (id, code, nom, is_active) VALUES (1, 'UR21-SESSTEST', 'Site Test SessionInvalidation', 1)");
     }
 
     protected function setUp(): void
     {
-        self::$pdo->exec("DELETE FROM users WHERE username LIKE 'test.sess%' OR username LIKE 'anonymized_%'");
+        cleanupForTest(self::$pdo, 'test.sess%');
+        cleanupForTest(self::$pdo, 'anonymized_%');
         $_SESSION = [];
     }
 
@@ -60,8 +54,8 @@ class SessionInvalidationTest extends TestCase
     {
         // Audit #9 + #22 — bump the marker on user deactivation
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9101, 'test.sess.sup', 'Sup', 'Anna', 'superviseur', 1, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9102, 'test.sess.admin', 'Admin', 'Bob', 'superviseur', 1, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9101, 'test.sess.sup', 'Sup', 'Anna', 'superviseur', NULL, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9102, 'test.sess.admin', 'Admin', 'Bob', 'superviseur', NULL, 1)");
 
         $before = $pdo->query("SELECT sessions_invalid_before FROM users WHERE id = 9101")->fetchColumn();
         $this->assertNull($before, 'Marker should be NULL initially');
@@ -80,8 +74,8 @@ class SessionInvalidationTest extends TestCase
     {
         // Audit #23 — bump the marker on role change
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9103, 'test.sess.role1', 'Agent1', 'Tom', 'agent', 1, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9104, 'test.sess.role2', 'Agent2', 'Bob', 'superviseur', 1, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9103, 'test.sess.role1', 'Agent1', 'Tom', 'agent', NULL, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9104, 'test.sess.role2', 'Agent2', 'Bob', 'superviseur', NULL, 1)");
 
         $repo = new \App\Repository\UserRepository($pdo);
         $events = new \App\Event\EventDispatcher();
@@ -92,7 +86,7 @@ class SessionInvalidationTest extends TestCase
             nom: 'Agent1',
             prenom: 'Tom',
             role: 'superviseur',
-            siteId: 1,
+            siteId: 0,
             email: '',
         );
         $service->update(9103, $cmd, 9104);
@@ -105,8 +99,8 @@ class SessionInvalidationTest extends TestCase
     {
         // Safety check — only role changes should bump the marker
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9105, 'test.sess.same', 'Same', 'User', 'agent', 1, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9106, 'test.sess.admin3', 'Admin', 'User', 'superviseur', 1, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9105, 'test.sess.same', 'Same', 'User', 'agent', NULL, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9106, 'test.sess.admin3', 'Admin', 'User', 'superviseur', NULL, 1)");
 
         $repo = new \App\Repository\UserRepository($pdo);
         $events = new \App\Event\EventDispatcher();
@@ -118,7 +112,7 @@ class SessionInvalidationTest extends TestCase
             nom: 'Updated Name',
             prenom: 'Updated Pre',
             role: 'agent',
-            siteId: 1,
+            siteId: 0,
             email: '',
         );
         $service->update(9105, $cmd, 9106);
@@ -131,7 +125,7 @@ class SessionInvalidationTest extends TestCase
     {
         // Audit #9 — UserRepository::findSessionState returns is_active=0
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9107, 'test.sess.inactive', 'Inact', 'Bob', 'agent', 1, 0)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9107, 'test.sess.inactive', 'Inact', 'Bob', 'agent', NULL, 0)");
 
         $repo = new \App\Repository\UserRepository($pdo);
         $state = $repo->findSessionState(9107);
@@ -142,8 +136,12 @@ class SessionInvalidationTest extends TestCase
     public function testFindSessionStateDetectsMarkerNewerThanSessionStart(): void
     {
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9108, 'test.sess.marker', 'Mark', 'Bob', 'agent', 1, 1)");
-        $pdo->exec("UPDATE users SET sessions_invalid_before = datetime('now') WHERE id = 9108");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9108, 'test.sess.marker', 'Mark', 'Bob', 'agent', NULL, 1)");
+        // Use PHP time() to avoid timezone mismatch: SQLite datetime('now')
+        // returns UTC, but strtotime() interprets strings in PHP's local
+        // timezone — in UTC+2 this shifts the marker 2h into the past.
+        $now = date('Y-m-d H:i:s');
+        $pdo->exec("UPDATE users SET sessions_invalid_before = '$now' WHERE id = 9108");
 
         $repo = new \App\Repository\UserRepository($pdo);
         $state = $repo->findSessionState(9108);
@@ -161,7 +159,7 @@ class SessionInvalidationTest extends TestCase
     public function testFindSessionStateReturnsNullMarkerWhenClean(): void
     {
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9109, 'test.sess.clean', 'Clean', 'Bob', 'agent', 1, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9109, 'test.sess.clean', 'Clean', 'Bob', 'agent', NULL, 1)");
 
         $repo = new \App\Repository\UserRepository($pdo);
         $state = $repo->findSessionState(9109);

@@ -143,7 +143,7 @@ class ReportRepository
             pourComptePrenom: (string) ($row['pour_compte_prenom'] ?? ''),
             natureAuteur: (string) ($row['nature_auteur'] ?? ''),
             typeActe: (string) ($row['type_acte'] ?? ''),
-            siteId: (int) ($row['site_id'] ?? 0),
+            siteId: $row['site_id'] !== null ? (int) $row['site_id'] : null,
             siteText: (string) ($row['site_text'] ?? ''),
             pole: (string) ($row['pole'] ?? ''),
             serviceAffectation: (string) ($row['service_affectation'] ?? ''),

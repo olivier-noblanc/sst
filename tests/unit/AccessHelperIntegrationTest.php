@@ -18,6 +18,7 @@ class AccessHelperIntegrationTest extends TestCase
     private int $siteId2;
     private int $agentId1;
     private int $agentId2;
+    private int $agentId3;
     private int $superviseurId;
     private int $chsctId;
 
@@ -56,6 +57,9 @@ class AccessHelperIntegrationTest extends TestCase
         $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('agent2', 'Agent', 'Deux', 'agent', {$this->siteId1}, 1)");
         $this->agentId2 = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'agent2'")->fetchColumn();
 
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('agent3', 'Agent', 'Trois', 'agent', {$this->siteId2}, 1)");
+        $this->agentId3 = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'agent3'")->fetchColumn();
+
         $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('superv1', 'Super', 'Visor', 'superviseur', {$this->siteId1}, 1)");
         $this->superviseurId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'superv1'")->fetchColumn();
 
@@ -72,15 +76,30 @@ class AccessHelperIntegrationTest extends TestCase
         ], $overrides);
     }
 
-    private function makeReport(array $overrides = []): array
+    private function makeReport(array $overrides = []): \App\DTO\ReportData
     {
-        return array_merge([
+        $data = array_merge([
             'site_id' => $this->siteId1,
             'declarant_id' => $this->agentId1,
             'is_confidential' => 0,
             'consent_syndicat' => 0,
             'type' => 'rsst',
+            'etat' => 'nouveau',
         ], $overrides);
+
+        $uuid = generateUuid();
+        $ref = strtoupper($data['type']) . '-TEST-' . substr(uniqid('', true), -8);
+        $this->pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement,
+            declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat)
+            VALUES (" . $this->pdo->quote($uuid) . ", " . $this->pdo->quote($ref) . ", "
+            . $this->pdo->quote($data['type']) . ", 'Test', 'Desc', '2026-01-01', "
+            . $data['declarant_id'] . ", 'Test', 'User', "
+            . ($data['site_id'] ?? 'NULL') . ", "
+            . $data['is_confidential'] . ", " . $data['consent_syndicat'] . ", " . $this->pdo->quote($data['etat']) . ")");
+
+        $report = \App\Repository\ReportRepository::instance()->findById($uuid);
+        $this->assertNotNull($report, 'setup failed: report not found after insert');
+        return $report;
     }
 
     // ─── Superviseur access ──────────────────────────────────────────────
@@ -88,14 +107,14 @@ class AccessHelperIntegrationTest extends TestCase
     public function testSuperviseurCanAccessAnyReport(): void
     {
         $user = $this->makeUser(['id' => $this->superviseurId, 'role' => 'superviseur']);
-        $report = $this->makeReport(['is_confidential' => 1, 'declarant_id' => 999, 'site_id' => $this->siteId2]);
+        $report = $this->makeReport(['is_confidential' => 1, 'declarant_id' => $this->agentId3, 'site_id' => $this->siteId2]);
         $this->assertTrue(canAccessReport($report, $user));
     }
 
     public function testSuperviseurCanAccessConfidentialReportFromOtherSite(): void
     {
         $user = $this->makeUser(['id' => $this->superviseurId, 'role' => 'superviseur', 'site_id' => $this->siteId2]);
-        $report = $this->makeReport(['is_confidential' => 1, 'site_id' => $this->siteId1, 'declarant_id' => 999]);
+        $report = $this->makeReport(['is_confidential' => 1, 'site_id' => $this->siteId1, 'declarant_id' => $this->agentId3]);
         $this->assertTrue(canAccessReport($report, $user));
     }
 
@@ -151,14 +170,14 @@ class AccessHelperIntegrationTest extends TestCase
     public function testAgentCanAccessReportFromOtherSite(): void
     {
         $user = $this->makeUser(['id' => $this->agentId1, 'site_id' => $this->siteId1]);
-        $report = $this->makeReport(['site_id' => $this->siteId2, 'declarant_id' => 999]);
+        $report = $this->makeReport(['site_id' => $this->siteId2, 'declarant_id' => $this->agentId3]);
         $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCanAccessOtherSiteReportWhenNotConfidential(): void
     {
         $user = $this->makeUser(['id' => $this->agentId1, 'site_id' => $this->siteId1]);
-        $report = $this->makeReport(['site_id' => $this->siteId2, 'is_confidential' => 0, 'declarant_id' => 999]);
+        $report = $this->makeReport(['site_id' => $this->siteId2, 'is_confidential' => 0, 'declarant_id' => $this->agentId3]);
         $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
@@ -190,19 +209,19 @@ class AccessHelperIntegrationTest extends TestCase
     public function testDeclarantCanEditNewReportInDb(): void
     {
         $report = $this->makeReport(['declarant_id' => $this->agentId1, 'etat' => 'nouveau']);
-        $this->assertTrue(canEditReport($report, $this->agentId1));
+        $this->assertTrue(canEditReport($report->toArray(), $this->agentId1));
     }
 
     public function testNonDeclarantCannotEditReportInDb(): void
     {
         $report = $this->makeReport(['declarant_id' => $this->agentId1, 'etat' => 'nouveau']);
-        $this->assertFalse(canEditReport($report, $this->agentId2));
+        $this->assertFalse(canEditReport($report->toArray(), $this->agentId2));
     }
 
     public function testDeclarantCannotEditTreatedReportInDb(): void
     {
         $report = $this->makeReport(['declarant_id' => $this->agentId1, 'etat' => 'traite']);
-        $this->assertFalse(canEditReport($report, $this->agentId1));
+        $this->assertFalse(canEditReport($report->toArray(), $this->agentId1));
     }
 
     // ─── canRespondToReport with DB data ─────────────────────────────────
@@ -210,25 +229,25 @@ class AccessHelperIntegrationTest extends TestCase
     public function testSuperviseurCanRespondToNewReportInDb(): void
     {
         $report = $this->makeReport(['etat' => 'nouveau']);
-        $this->assertTrue(canRespondToReport($report, 'superviseur'));
+        $this->assertTrue(canRespondToReport($report->toArray(), 'superviseur'));
     }
 
     public function testAgentCannotRespondToReportInDb(): void
     {
         $report = $this->makeReport(['etat' => 'nouveau']);
-        $this->assertFalse(canRespondToReport($report, 'agent'));
+        $this->assertFalse(canRespondToReport($report->toArray(), 'agent'));
     }
 
     public function testSuperviseurCanRespondToReouvertReportInDb(): void
     {
         $report = $this->makeReport(['etat' => 'reouvert']);
-        $this->assertTrue(canRespondToReport($report, 'superviseur'));
+        $this->assertTrue(canRespondToReport($report->toArray(), 'superviseur'));
     }
 
     public function testSuperviseurCannotRespondToTreatedReportInDb(): void
     {
         $report = $this->makeReport(['etat' => 'traite']);
-        $this->assertFalse(canRespondToReport($report, 'superviseur'));
+        $this->assertFalse(canRespondToReport($report->toArray(), 'superviseur'));
     }
 
     // ─── Linked agent access (report_agents) ───────────────────────────
@@ -236,7 +255,7 @@ class AccessHelperIntegrationTest extends TestCase
     public function testLinkedAgentCanAccessConfidentialReport(): void
     {
         // Create a report by agent2
-        $uuid = 'test-linked-agent-' . uniqid();
+        $uuid = generateUuid();
         $this->pdo->prepare('
             INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, lieu, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat)
             VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :site_id, 1, 0, :etat)
@@ -252,17 +271,15 @@ class AccessHelperIntegrationTest extends TestCase
         $this->pdo->prepare('INSERT INTO report_agents (report_uuid, user_id) VALUES (:uuid, :user_id)')
             ->execute([':uuid' => $uuid, ':user_id' => $this->agentId1]);
 
-        $report = $this->pdo->prepare('SELECT * FROM reports WHERE uuid = :uuid');
-        $report->execute([':uuid' => $uuid]);
-        $reportRow = $report->fetch();
+        $report = \App\Repository\ReportRepository::instance()->findById($uuid);
 
         $user = $this->makeUser(['id' => $this->agentId1]);
-        $this->assertTrue(canAccessReport($reportRow, $user, 'confidential'));
+        $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testLinkedAgentCanAccessAgentChoiceConfidentialReport(): void
     {
-        $uuid = 'test-linked-agent-choice-' . uniqid();
+        $uuid = generateUuid();
         $this->pdo->prepare('
             INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, lieu, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat)
             VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :site_id, 1, 0, :etat)
@@ -277,17 +294,15 @@ class AccessHelperIntegrationTest extends TestCase
         $this->pdo->prepare('INSERT INTO report_agents (report_uuid, user_id) VALUES (:uuid, :user_id)')
             ->execute([':uuid' => $uuid, ':user_id' => $this->agentId1]);
 
-        $report = $this->pdo->prepare('SELECT * FROM reports WHERE uuid = :uuid');
-        $report->execute([':uuid' => $uuid]);
-        $reportRow = $report->fetch();
+        $report = \App\Repository\ReportRepository::instance()->findById($uuid);
 
         $user = $this->makeUser(['id' => $this->agentId1]);
-        $this->assertTrue(canAccessReport($reportRow, $user, 'agent_choice'));
+        $this->assertTrue(canAccessReport($report, $user, 'agent_choice'));
     }
 
     public function testNonLinkedAgentCannotAccessConfidentialReport(): void
     {
-        $uuid = 'test-non-linked-' . uniqid();
+        $uuid = generateUuid();
         $this->pdo->prepare('
             INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, lieu, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat)
             VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :site_id, 1, 0, :etat)
@@ -300,12 +315,10 @@ class AccessHelperIntegrationTest extends TestCase
         ]);
 
         // agent1 is NOT linked to this report
-        $report = $this->pdo->prepare('SELECT * FROM reports WHERE uuid = :uuid');
-        $report->execute([':uuid' => $uuid]);
-        $reportRow = $report->fetch();
+        $report = \App\Repository\ReportRepository::instance()->findById($uuid);
 
         $user = $this->makeUser(['id' => $this->agentId1]);
-        $this->assertFalse(canAccessReport($reportRow, $user, 'confidential'));
+        $this->assertFalse(canAccessReport($report, $user, 'confidential'));
     }
 
     // ─── normalizeVisibilityValue ────────────────────────────────────────

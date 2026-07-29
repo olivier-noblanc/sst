@@ -57,6 +57,14 @@ class ReportQueriesTest extends TestCase
         self::$reports = ReportRepository::instance();
     }
 
+    protected function setUp(): void
+    {
+        cleanupAllForTest(self::$pdo);
+        // Restore the seed user deleted by cleanupAllForTest.
+        // Site is preserved (cleanupAllForTest doesn't touch sites).
+        self::$pdo->exec("INSERT OR IGNORE INTO users (id, nom, prenom, username, role, site_id, is_active) VALUES (" . self::$userId . ", 'Martin', 'Jean', 'jean.martin', 'agent', " . self::$siteId . ", 1)");
+    }
+
     /** @param array<string, mixed> $overrides */
     private static function makeCreateCommand(array $overrides = []): CreateReportCommand
     {

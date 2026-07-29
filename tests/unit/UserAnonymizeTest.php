@@ -39,10 +39,8 @@ class UserAnonymizeTest extends TestCase
 
     protected function setUp(): void
     {
-        // Clean test data
-        self::$pdo->exec("DELETE FROM report_responses WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test.anon%')");
-        self::$pdo->exec("DELETE FROM reports WHERE declarant_id IN (SELECT id FROM users WHERE username LIKE 'test.anon%')");
-        self::$pdo->exec("DELETE FROM users WHERE username LIKE 'test.anon%' OR username LIKE 'anonymized_%'");
+        cleanupForTest(self::$pdo, 'test.anon%');
+        cleanupForTest(self::$pdo, 'anonymized_%');
     }
 
     public function testAnonymizeSucceedsWhenUserHasResponses(): void
@@ -52,9 +50,9 @@ class UserAnonymizeTest extends TestCase
         $pdo = self::$pdo;
 
         // Insert a supervisor with one response on a report
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9001, 'test.anon.sup', 'Dupont', 'Pierre', 'superviseur', 1, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9002, 'test.anon.agent', 'Martin', 'Jean', 'agent', 1, 1)");
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('aaaa-1111-test', 'RSST-25-001', 'rsst', 'Test', 'Desc', '2025-01-01', 9002, 'Martin', 'Jean', 1, 'traite')");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9001, 'test.anon.sup', 'Dupont', 'Pierre', 'superviseur', NULL, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9002, 'test.anon.agent', 'Martin', 'Jean', 'agent', NULL, 1)");
+        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('aaaa-1111-test', 'RSST-25-001', 'rsst', 'Test', 'Desc', '2025-01-01', 9002, 'Martin', 'Jean', NULL, 'traite')");
         $pdo->exec("INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat) VALUES ('aaaa-1111-test', 9001, 'Réponse test', 'traite')");
 
         $repo = new \App\Repository\UserRepository($pdo);
@@ -91,7 +89,7 @@ class UserAnonymizeTest extends TestCase
 
         // Simpler: test that anonymize returns true for a user without responses
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9003, 'test.anon.clean', 'Clean', 'User', 'agent', 1, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9003, 'test.anon.clean', 'Clean', 'User', 'agent', NULL, 1)");
 
         $repo = new \App\Repository\UserRepository($pdo);
         $result = $repo->anonymize(9003);
@@ -104,9 +102,9 @@ class UserAnonymizeTest extends TestCase
         // (audit trail integrity)
         $pdo = self::$pdo;
 
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9004, 'test.anon.sup2', 'Smith', 'Anna', 'superviseur', 1, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9005, 'test.anon.agent2', 'Brown', 'Bob', 'agent', 1, 1)");
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('bbbb-2222-test', 'RSST-25-002', 'rsst', 'Test 2', 'Desc 2', '2025-01-02', 9005, 'Brown', 'Bob', 1, 'traite')");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9004, 'test.anon.sup2', 'Smith', 'Anna', 'superviseur', NULL, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9005, 'test.anon.agent2', 'Brown', 'Bob', 'agent', NULL, 1)");
+        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('bbbb-2222-test', 'RSST-25-002', 'rsst', 'Test 2', 'Desc 2', '2025-01-02', 9005, 'Brown', 'Bob', NULL, 'traite')");
         $pdo->exec("INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat) VALUES ('bbbb-2222-test', 9004, 'Ma réponse préservée', 'traite')");
 
         $repo = new \App\Repository\UserRepository($pdo);

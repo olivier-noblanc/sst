@@ -68,6 +68,24 @@ function getDB(): PDO {
         // tests already manage explicitly via config_app resets.
         require_once __DIR__ . '/../src/migration_tables.php';
         migrateTables($db);
+        // Validate site_id FK with a clear error before the INSERT.
+        // Catches tests inserting users/reports with a non-existent site_id
+        // (e.g. site_id=1 when no site has been seeded) — the raw FK error
+        // "Integrity constraint violation: 19" gives no hint about the root cause.
+        $db->exec("CREATE TRIGGER IF NOT EXISTS _test_validate_site_on_user
+            BEFORE INSERT ON users
+            WHEN NEW.site_id IS NOT NULL
+            BEGIN
+                SELECT RAISE(ABORT, 'site_id=' || NEW.site_id || ' does not exist in sites — seed it first or use NULL')
+                WHERE (SELECT COUNT(*) FROM sites WHERE id = NEW.site_id) = 0;
+            END");
+        $db->exec("CREATE TRIGGER IF NOT EXISTS _test_validate_site_on_report
+            BEFORE INSERT ON reports
+            WHEN NEW.site_id IS NOT NULL
+            BEGIN
+                SELECT RAISE(ABORT, 'site_id=' || NEW.site_id || ' does not exist in sites — seed it first or use NULL')
+                WHERE (SELECT COUNT(*) FROM sites WHERE id = NEW.site_id) = 0;
+            END");
     }
     return $db;
 }
@@ -106,6 +124,44 @@ $testContainer = getContainer();
  * `COUNT(*) = 0`, which no longer holds once a test has inserted its own
  * rows into the table.
  */
+/**
+ * Delete test data respecting FK dependency order.
+ *
+ * getDB() is a process-wide singleton (one shared in-memory SQLite DB for the
+ * whole PHPUnit run). When test classes clean up with bare DELETE FROM users,
+ * FK constraints on reports.declarant_id / report_responses.user_id cause
+ * "Integrity constraint violation: 19 FOREIGN KEY constraint failed".
+ *
+ * Call this from setUp() in any test that inserts users/reports/responses:
+ *
+ *     cleanupForTest(self::$pdo, 'test.myprefix%');
+ *
+ * The pattern must match the usernames your test inserts.  Default 'test.%'
+ * catches every test prefix.
+ */
+function cleanupForTest(PDO $pdo, string $pattern = 'test.%'): void
+{
+    $safe = addslashes($pattern);
+    $pdo->exec("DELETE FROM report_responses WHERE user_id IN (SELECT id FROM users WHERE username LIKE '$safe')");
+    $pdo->exec("DELETE FROM reports WHERE declarant_id IN (SELECT id FROM users WHERE username LIKE '$safe')");
+    $pdo->exec("DELETE FROM users WHERE username LIKE '$safe'");
+}
+
+/**
+ * Delete ALL test-crafted data (reports, responses, users).
+ * Use when countByState(seeAllSites=true) or similar "global" queries
+ * would leak data from other test classes.
+ */
+function cleanupAllForTest(PDO $pdo): void
+{
+    $pdo->exec('DELETE FROM report_responses');
+    $pdo->exec('DELETE FROM report_access_log');
+    $pdo->exec('DELETE FROM report_state_history');
+    $pdo->exec('DELETE FROM reports');
+    $pdo->exec('DELETE FROM users');
+    // Do NOT delete from sites — seeds in setUpBeforeClass depend on it.
+}
+
 function reseedDefaultRegistries(PDO $pdo): void
 {
     $pdo->exec("DELETE FROM registries WHERE code IN ('rsst', 'rami', 'dgi')");

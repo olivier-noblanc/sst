@@ -26,6 +26,13 @@ class ReportPrintHelpersTest extends TestCase
         $pdf->AddFont('DejaVu', '', 'DejaVuSans.json', $fontDir);
         $pdf->AddFont('DejaVu', 'B', 'DejaVuSans-Bold.json', $fontDir);
         $pdf->SetMargins(15, 15, 15);
+        // Audit #85 — sans ça, les assertions plus bas qui cherchent une
+        // sous-chaîne lisible ("Image jointe") dans $pdf->Output('S') ne
+        // sont fiables que si FPDF ne compresse pas le flux — observé
+        // intermittent sous Infection (ordre aléatoire). Désactiver la
+        // compression pour les tests élimine l'incertitude, peu importe
+        // la cause exacte côté FPDF.
+        $pdf->SetCompression(false);
         return $pdf;
     }
 

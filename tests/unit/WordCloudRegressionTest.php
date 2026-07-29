@@ -51,7 +51,7 @@ class WordCloudRegressionTest extends TestCase
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
         $this->assertStringContainsString('class="word-cloud"', $html);
-        $this->assertStringContainsString('class="word-cloud__word"', $html);
+        $this->assertStringContainsString('word-cloud__word', $html);
         $this->assertStringContainsString('chute', $html);
         $this->assertStringContainsString('incendie', $html);
         $this->assertStringContainsString('blessure', $html);

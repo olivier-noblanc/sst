@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS users (
     site_id         INTEGER,                         -- FK to sites (NULL until agent chooses on first login)
     site_chosen_at  TEXT,                            -- When the agent first chose their site (for 7-day grace period)
     is_active       INTEGER NOT NULL DEFAULT 1,      -- Soft delete: 0 = deactivated
+    sessions_invalid_before DATETIME,                -- R4 (SessionInvalidator): sessions started before this are force-logged-out
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (site_id) REFERENCES sites(id)

@@ -74,6 +74,10 @@ function migrateColumns(PDO $pdo): void
         // dynamique selon les lois). La table `registries` est la source de
         // vérité pour les codes valides, pas une CHECK constraint hardcodée.
         $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
+        $hasSiteIdCheck = array_any($colDefs, fn($existingDef) => str_contains((string) $existingDef, 'CHECK (site_id IS NULL OR site_id > 0)'));
+        if (!$hasSiteIdCheck) {
+            $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
+        }
         $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
         $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
         $fkStmt = null;
@@ -107,44 +111,44 @@ function migrateColumns(PDO $pdo): void
         $fkWasEnabled = (bool) $fkStmt->fetchColumn();
         $pdo->exec('PRAGMA foreign_keys = OFF');
         try {
-        $pdo->beginTransaction();
-        try {
-        // Audit #55 — Drop any leftover reports_new from a previously failed migration.
-        $pdo->exec('DROP TABLE IF EXISTS reports_new');
-        $pdo->exec($createSql);
-        $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
-        $pdo->exec('DROP TABLE IF EXISTS reports');
-        $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
-        // Recreate indexes (SQLite drops them with the table)
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
-        $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
-        // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
-        // DROP TABLE reports silently dropped the triggers reports_fts_ai/ad/au
-        // (and reports_fts itself was orphaned). Without this, future INSERTs on
-        // reports would not be reflected in reports_fts → full-text search broken.
-        recreateReportsFts5($pdo);
-            $pdo->commit();
-        } catch (Throwable $e) {
-            // Audit — never leave the cached PDO connection (static across
-            // requests under a persistent FastCGI worker) mid-transaction:
-            // an unrolled-back transaction here would make every subsequent
-            // beginTransaction() on this worker fatal with "There is already
-            // an active transaction", breaking unrelated requests until the
-            // worker is recycled. Roll back, then re-throw unchanged — the
-            // migration failure must stay loud, not be silently swallowed.
-            $pdo->rollBack();
-            throw $e;
-        }
+            $pdo->beginTransaction();
+            try {
+                // Audit #55 — Drop any leftover reports_new from a previously failed migration.
+                $pdo->exec('DROP TABLE IF EXISTS reports_new');
+                $pdo->exec($createSql);
+                $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
+                $pdo->exec('DROP TABLE IF EXISTS reports');
+                $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
+                // Recreate indexes (SQLite drops them with the table)
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
+                $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+                // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
+                // DROP TABLE reports silently dropped the triggers reports_fts_ai/ad/au
+                // (and reports_fts itself was orphaned). Without this, future INSERTs on
+                // reports would not be reflected in reports_fts → full-text search broken.
+                recreateReportsFts5($pdo);
+                $pdo->commit();
+            } catch (Throwable $e) {
+                // Audit — never leave the cached PDO connection (static across
+                // requests under a persistent FastCGI worker) mid-transaction:
+                // an unrolled-back transaction here would make every subsequent
+                // beginTransaction() on this worker fatal with "There is already
+                // an active transaction", breaking unrelated requests until the
+                // worker is recycled. Roll back, then re-throw unchanged — the
+                // migration failure must stay loud, not be silently swallowed.
+                $pdo->rollBack();
+                throw $e;
+            }
         } finally {
             $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
         }
@@ -222,6 +226,10 @@ function migrateColumns(PDO $pdo): void
         }
         // NOT adding CHECK (type IN (...)) — that's the whole point
         $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
+        $hasSiteIdCheck = array_any($colDefs, fn($existingDef) => str_contains((string) $existingDef, 'CHECK (site_id IS NULL OR site_id > 0)'));
+        if (!$hasSiteIdCheck) {
+            $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
+        }
         $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
         $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
         $fkStmt = null;
@@ -251,41 +259,41 @@ function migrateColumns(PDO $pdo): void
         $fkWasEnabled = (bool) $fkStmt->fetchColumn();
         $pdo->exec('PRAGMA foreign_keys = OFF');
         try {
-        $pdo->beginTransaction();
-        try {
-        // Audit #55 — Drop any leftover reports_new from a previously failed migration.
-        $pdo->exec('DROP TABLE IF EXISTS reports_new');
-        $pdo->exec($createSql);
-        $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
-        $pdo->exec('DROP TABLE IF EXISTS reports');
-        $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
-        // Recreate indexes (SQLite drops them with the table)
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
-        $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
-        // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
-        recreateReportsFts5($pdo);
-            $pdo->commit();
-        } catch (Throwable $e) {
-            // Audit — never leave the cached PDO connection (static across
-            // requests under a persistent FastCGI worker) mid-transaction:
-            // an unrolled-back transaction here would make every subsequent
-            // beginTransaction() on this worker fatal with "There is already
-            // an active transaction", breaking unrelated requests until the
-            // worker is recycled. Roll back, then re-throw unchanged — the
-            // migration failure must stay loud, not be silently swallowed.
-            $pdo->rollBack();
-            throw $e;
-        }
+            $pdo->beginTransaction();
+            try {
+                // Audit #55 — Drop any leftover reports_new from a previously failed migration.
+                $pdo->exec('DROP TABLE IF EXISTS reports_new');
+                $pdo->exec($createSql);
+                $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
+                $pdo->exec('DROP TABLE IF EXISTS reports');
+                $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
+                // Recreate indexes (SQLite drops them with the table)
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
+                $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+                // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
+                recreateReportsFts5($pdo);
+                $pdo->commit();
+            } catch (Throwable $e) {
+                // Audit — never leave the cached PDO connection (static across
+                // requests under a persistent FastCGI worker) mid-transaction:
+                // an unrolled-back transaction here would make every subsequent
+                // beginTransaction() on this worker fatal with "There is already
+                // an active transaction", breaking unrelated requests until the
+                // worker is recycled. Roll back, then re-throw unchanged — the
+                // migration failure must stay loud, not be silently swallowed.
+                $pdo->rollBack();
+                throw $e;
+            }
         } finally {
             $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
         }
@@ -312,7 +320,7 @@ function migrateColumns(PDO $pdo): void
         }
     }
     if (!$btnLabelExists) {
-        $pdo->exec("ALTER TABLE registries ADD COLUMN btn_label TEXT");
+        $pdo->exec('ALTER TABLE registries ADD COLUMN btn_label TEXT');
         // Backfill default labels for the 3 system registres
         $pdo->exec("UPDATE registries SET btn_label = 'Déposer un signalement' WHERE code = 'rsst'");
         $pdo->exec("UPDATE registries SET btn_label = 'Signaler une agression' WHERE code = 'rami'");
@@ -375,14 +383,14 @@ function migrateColumns(PDO $pdo): void
         backupBeforeMigration($pdo);
         $pdo->beginTransaction();
         try {
-        // Audit #55 — Drop any leftover report_responses_new from a previously failed migration.
-        $pdo->exec('DROP TABLE IF EXISTS report_responses_new');
-        $pdo->exec($createSql);
-        $pdo->exec('INSERT OR IGNORE INTO report_responses_new SELECT * FROM report_responses');
-        $pdo->exec('DROP TABLE IF EXISTS report_responses');
-        $pdo->exec('ALTER TABLE report_responses_new RENAME TO report_responses');
-        // Recreate indexes (SQLite drops them with the table)
-        $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
+            // Audit #55 — Drop any leftover report_responses_new from a previously failed migration.
+            $pdo->exec('DROP TABLE IF EXISTS report_responses_new');
+            $pdo->exec($createSql);
+            $pdo->exec('INSERT OR IGNORE INTO report_responses_new SELECT * FROM report_responses');
+            $pdo->exec('DROP TABLE IF EXISTS report_responses');
+            $pdo->exec('ALTER TABLE report_responses_new RENAME TO report_responses');
+            // Recreate indexes (SQLite drops them with the table)
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_report_responses_report_uuid ON report_responses(report_uuid)');
             $pdo->commit();
         } catch (Throwable $e) {
             // Audit — never leave the cached PDO connection (static across
@@ -415,7 +423,7 @@ function migrateColumns(PDO $pdo): void
         }
     }
     if (!$sessionsInvalidBeforeExists) {
-        $pdo->exec("ALTER TABLE users ADD COLUMN sessions_invalid_before DATETIME");
+        $pdo->exec('ALTER TABLE users ADD COLUMN sessions_invalid_before DATETIME');
         error_log('[SST-MIGRATION] Added users.sessions_invalid_before column (R4 — session invalidation support).');
     }
 
@@ -451,6 +459,165 @@ function migrateColumns(PDO $pdo): void
     // (No-op if already set — using UPDATE with WHERE is idempotent.)
     $pdo->exec("UPDATE registries SET requires_pour_compte = 1 WHERE code = 'rami' AND requires_pour_compte = 0");
     $pdo->exec("UPDATE registries SET has_dgi_warning = 1, lieu_label_override = 'Lieu / Mesures de protection' WHERE code = 'dgi' AND has_dgi_warning = 0");
+
+    // ── Add CHECK (site_id IS NULL OR site_id > 0) on users/notification_settings ──
+    // This CHECK is already in schema.sql for fresh installs, but existing databases
+    // created before the CHECK was added need it applied via table rebuild.
+    $checkStmt = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users' AND sql LIKE '%CHECK (site_id IS NULL OR site_id > 0)%'");
+    $checkApplied = ($checkStmt !== false) ? $checkStmt->fetchColumn() : false;
+    if (!$checkApplied) {
+        // Fix any existing site_id = 0 rows before adding constraint
+        $pdo->exec('UPDATE users SET site_id = NULL WHERE site_id = 0');
+        $pdo->exec('UPDATE notification_settings SET site_id = NULL WHERE site_id = 0');
+
+        // Rebuild users table with CHECK constraint
+        $colStmt = $pdo->query('PRAGMA table_info(users)');
+        $columns = ($colStmt !== false) ? $colStmt->fetchAll() : [];
+        $colStmt = null;
+        $colDefs = [];
+        foreach ($columns as $col) {
+            if (!is_array($col)) {
+                continue;
+            }
+            /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
+            $def = $col['name'] . ' ' . $col['type'];
+            if ($col['pk']) {
+                $def .= ' PRIMARY KEY';
+            }
+            if ($col['notnull'] && !$col['pk']) {
+                $def .= ' NOT NULL';
+            }
+            if ($col['dflt_value'] !== null) {
+                /** @var string $dfltValue */
+                $dfltValue = $col['dflt_value'];
+                $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
+                $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
+            }
+            $colDefs[] = $def;
+        }
+        $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
+        $fkStmt = $pdo->query('PRAGMA foreign_key_list(users)');
+        $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
+        $fkStmt = null;
+        $fkClauses = [];
+        foreach ($fks as $fk) {
+            if (!is_array($fk)) {
+                continue;
+            }
+            /** @var array{from: string, table: string, to: string} $fk */
+            $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
+        }
+        $allDefs = array_merge($colDefs, $fkClauses);
+        $createSql = 'CREATE TABLE IF NOT EXISTS users_new (' . implode(', ', $allDefs) . ')';
+        backupBeforeMigration($pdo);
+        $fkStmt = $pdo->query('PRAGMA foreign_keys');
+        if ($fkStmt === false) {
+            throw new RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
+        }
+        $fkWasEnabled = (bool) $fkStmt->fetchColumn();
+        $pdo->exec('PRAGMA foreign_keys = OFF');
+        try {
+            $pdo->beginTransaction();
+            try {
+                $pdo->exec('DROP TABLE IF EXISTS users_new');
+                $pdo->exec($createSql);
+                $pdo->exec('INSERT OR IGNORE INTO users_new SELECT * FROM users');
+                $pdo->exec('DROP TABLE IF EXISTS users');
+                $pdo->exec('ALTER TABLE users_new RENAME TO users');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id)');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
+                $pdo->commit();
+            } catch (Throwable $e) {
+                $pdo->rollBack();
+                throw $e;
+            }
+        } finally {
+            $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
+        }
+        $orphanStmt = $pdo->query('PRAGMA foreign_key_check(users)');
+        if ($orphanStmt === false) {
+            throw new RuntimeException('PRAGMA foreign_key_check(users) query failed unexpectedly.');
+        }
+        $orphans = $orphanStmt->fetchAll();
+        if (!empty($orphans)) {
+            throw new RuntimeException('users rebuild (site_id CHECK) left dangling foreign keys: ' . json_encode($orphans));
+        }
+        error_log('[SST-MIGRATION] users.site_id CHECK constraint applied (site_id IS NULL OR site_id > 0).');
+
+        // Rebuild notification_settings table with CHECK constraint
+        $colStmt = $pdo->query('PRAGMA table_info(notification_settings)');
+        $columns = ($colStmt !== false) ? $colStmt->fetchAll() : [];
+        $colStmt = null;
+        $colDefs = [];
+        foreach ($columns as $col) {
+            if (!is_array($col)) {
+                continue;
+            }
+            /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
+            $def = $col['name'] . ' ' . $col['type'];
+            if ($col['pk']) {
+                $def .= ' PRIMARY KEY';
+            }
+            if ($col['notnull'] && !$col['pk']) {
+                $def .= ' NOT NULL';
+            }
+            if ($col['dflt_value'] !== null) {
+                /** @var string $dfltValue */
+                $dfltValue = $col['dflt_value'];
+                $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
+                $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
+            }
+            $colDefs[] = $def;
+        }
+        $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
+        $fkStmt = $pdo->query('PRAGMA foreign_key_list(notification_settings)');
+        $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
+        $fkStmt = null;
+        $fkClauses = [];
+        foreach ($fks as $fk) {
+            if (!is_array($fk)) {
+                continue;
+            }
+            /** @var array{from: string, table: string, to: string} $fk */
+            $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
+        }
+        $allDefs = array_merge($colDefs, $fkClauses);
+        $createSql = 'CREATE TABLE IF NOT EXISTS notification_settings_new (' . implode(', ', $allDefs) . ')';
+        backupBeforeMigration($pdo);
+        $fkStmt = $pdo->query('PRAGMA foreign_keys');
+        if ($fkStmt === false) {
+            throw new RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
+        }
+        $fkWasEnabled = (bool) $fkStmt->fetchColumn();
+        $pdo->exec('PRAGMA foreign_keys = OFF');
+        try {
+            $pdo->beginTransaction();
+            try {
+                $pdo->exec('DROP TABLE IF EXISTS notification_settings_new');
+                $pdo->exec($createSql);
+                $pdo->exec('INSERT OR IGNORE INTO notification_settings_new SELECT * FROM notification_settings');
+                $pdo->exec('DROP TABLE IF EXISTS notification_settings');
+                $pdo->exec('ALTER TABLE notification_settings_new RENAME TO notification_settings');
+                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_notification_settings_site_id ON notification_settings(site_id)');
+                $pdo->commit();
+            } catch (Throwable $e) {
+                $pdo->rollBack();
+                throw $e;
+            }
+        } finally {
+            $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
+        }
+        $orphanStmt = $pdo->query('PRAGMA foreign_key_check(notification_settings)');
+        if ($orphanStmt === false) {
+            throw new RuntimeException('PRAGMA foreign_key_check(notification_settings) query failed unexpectedly.');
+        }
+        $orphans = $orphanStmt->fetchAll();
+        if (!empty($orphans)) {
+            throw new RuntimeException('notification_settings rebuild (site_id CHECK) left dangling foreign keys: ' . json_encode($orphans));
+        }
+        error_log('[SST-MIGRATION] notification_settings.site_id CHECK constraint applied (site_id IS NULL OR site_id > 0).');
+    }
 }
 
 /**
@@ -474,19 +641,19 @@ function recreateReportsFts5(PDO $pdo): void
         error_log('[SST-MIGRATION] recreateReportsFts5: could not drop reports_fts: ' . $e->getMessage());
     }
 
-    $pdo->exec("CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid)");
+    $pdo->exec('CREATE VIRTUAL TABLE IF NOT EXISTS reports_fts USING fts5(uuid, objet, description, content=reports, content_rowid=rowid)');
 
     // Rebuild the FTS5 index from current reports data
     try {
-        $pdo->exec("INSERT INTO reports_fts(rowid, uuid, objet, description) SELECT rowid, uuid, objet, description FROM reports");
+        $pdo->exec('INSERT INTO reports_fts(rowid, uuid, objet, description) SELECT rowid, uuid, objet, description FROM reports');
     } catch (Exception $e) {
         error_log('[SST-MIGRATION] recreateReportsFts5: rebuild failed: ' . $e->getMessage());
     }
 
     // Recreate the triggers (mirrors schema.sql)
-    $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_ai AFTER INSERT ON reports BEGIN
+    $pdo->exec('CREATE TRIGGER IF NOT EXISTS reports_fts_ai AFTER INSERT ON reports BEGIN
         INSERT INTO reports_fts(rowid, uuid, objet, description) VALUES (new.rowid, new.uuid, new.objet, new.description);
-    END");
+    END');
     $pdo->exec("CREATE TRIGGER IF NOT EXISTS reports_fts_ad AFTER DELETE ON reports BEGIN
         INSERT INTO reports_fts(reports_fts, rowid, uuid, objet, description) VALUES ('delete', old.rowid, old.uuid, old.objet, old.description);
     END");

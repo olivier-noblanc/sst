@@ -44,9 +44,31 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **1** 🔴 **Nouvelle règle `NoMixedArrayInVarRule`** : détecte les `@var array<..., mixed>` dans les corps de méthodes/fonctions/closures (gap dans les 3 règles existantes qui ne couvraient que les tags docblock de déclaration).
 - **2** 🔴 **DTOs** : `CreateReportCommand`, `CreateUserCommand`, `ReportData`, `ReportFilter`, `ReportListItem`, `RespondToReportCommand`, `UpdateReportCommand`, `UpdateUserCommand` — toutes les annotations `array<string, mixed>` remplacées par des shapes précises.
 - **3** 🔴 **Repositories** : `SiteRepository`, `NotificationRepository`, `StatsRepository`, `RegistryFieldRepository`, `RegistryRepository` — shapes SQL précises avec assertions `@var` sur les résultats PDO.
-- **4** 🔴 **Cascading fixes** : `report_create_handler.php`, `choose_site_handler.php`, `mail_notifications.php`, `report_respond_handler.php` — corrections rendues nécessaires par les types plus stricts.
-- **5** 🔴 **Baseline** : 8+ entrées `app.noMixedArray` supprimées (DTOs + repos corrigés).
-- **6** 🔴 PHPStan 0 erreur.
+- **4** 🔴 **Services** : `AccessService`, `AuthService`, `FormattingService`, `HttpService`, `ReportService`, `SessionManager`, `SessionService`, `UserService` — shapes précises pour les retours.
+- **5** 🔴 **Cascading fixes** : `report_create_handler.php`, `choose_site_handler.php`, `mail_notifications.php`, `report_respond_handler.php` — corrections rendues nécessaires par les types plus stricts.
+- **6** 🔴 **Baseline** : 8+ entrées `app.noMixedArray` supprimées (DTOs + repos corrigés).
+- **7** 🔴 PHPStan 0 erreur.
+
+### Refactoring — RespondStatus enum + ReportService fixes
+
+- **8** 🔴 **RespondStatus enum** — Nouvel enum `App\Enum\RespondStatus` remplaçant la string libre qui causait le bug `'success'` vs `'ok'`. `ReportService::respond()` comparait `'success'` à un status qui vaut toujours `'ok'`.
+- **9** 🔴 **ReportRepository::respond()** — Docblock manqué corrigé (alias de `respondToReport`).
+
+### CI/Quality — Parallélisation + Infection + GrumPHP
+
+- **10** 🔴 **CI parallélisé** — Le job quality GitHub Actions splité en 4 jobs parallèles (PHPStan, PHPUnit, PHP-CS-Fixer, PHPArkitect/Rector/Deptrac) au lieu d'un seul job séquentiel. (`ci.yml`)
+- **11** 🔴 **Infection câblé** — Mutation testing activé en CI (minMsi=85, minCoveredMsi=90). MSI actuel : 51%. (`ci.yml`, `infection.json`)
+- **12** 🔴 **Rector timeout** — Timeout PHPUnit augmenté après le split (les tests prennent plus de temps en CI parallèle).
+- **13** 🟡 **PHPUnit timeout** — Timeout du pre-push hook augmenté pour accommoder les tests qui s'exécutent après le split CI.
+
+### Fix — Batch corrections tests (28-29 juillet)
+
+- **14** 🔴 **28 fichiers de tests** — Corrections systématiques : array-vs-ReportData (`canEditReport()`/`canRespondToReport()` attendent `array`), enum `ReportType` vs string, seuil CSRF obsolète (20→50), `uuid.php` faux positif, `getRegistryColor`/`getRegistryBadgeClass` périmés, `logConfidentialReportAccess()` avec array brut, `ReportType::label()` dérivé du vrai label, `PageRenderingTest` collision d'IDs, `WordCloudRegressionTest` assertion CSS, `EventListenersTest` initialisation, `SessionInvalidationTest` site_id.
+- **15** 🔴 **`ReportData` accès array** — 3 fichiers accédaient `ReportData` en array (`['uuid']`, `['type']`) au lieu de en objet. Corrigé.
+- **16** 🔴 **`DTOTest`** — Comparait `$cmd->type` (string) à l'enum `ReportType` directement. Corrigé avec `->value`.
+- **17** 🔴 **`migration_columns.php`** — `sessions_invalid_before` manquant de `schema.sql` — même défaut que `reports.type` CHECK.
+- **18** 🔴 **`getNotificationRecipients()`** — Plantait en vrai prod, pas juste en test. Corrigé.
+- **19** 🔴 **`UserRepository::anonymize()`** — Effaçait les données d'un tiers sans rapport (bug RGPD). Corrigé.
 
 
 ## [3.52.0] — 2026-07-25
@@ -171,10 +193,12 @@ Réaudit complet de l'architecture DDD avec notation par couche.
 - **5** 🔴 **schema.sql** — Colonne `btn_label` ajoutée à `registries`.
 - **6** 🔴 **migration_columns.php** — Migration `btn_label` + backfill des 3 systèmes.
 
-### Feature — PHPStan NoTodoCommentRule
+### Feature — PHPStan NoTodoCommentRule + NoInlineStyle/Script
 
 - **7** 🔴 **NoTodoCommentRule.php** — Nouvelle règle PHPStan : interdit TODO/FIXME/HACK/XXX dans le code source avec message clair « utiliser TODO.md ».
-- **8** 🟢 **phpstan-no-magic-string.neon** — Règle enregistrée.
+- **8** 🔴 **NoInlineStyleRule.php** — Nouvelle règle PHPStan + outil `check_inline_styles.php` intégré à GrumPHP. Interdit les attributs `style=""` dans le PHP (CSP compliance). 9 violations supprimées, styles migrés vers `public/css/style.css`.
+- **9** 🔴 **NoInlineScriptRule.php** — Nouvelle règle PHPStan qui interdit les balises `<script>` inline dans le PHP.
+- **10** 🟢 **phpstan-no-magic-string.neon** — Règles enregistrées.
 
 ### Fix — Constantes legacy remplacées par des enums (Rector)
 
@@ -223,20 +247,25 @@ Réaudit complet de l'architecture DDD avec notation par couche.
 
 ## [3.44.5] — 2026-07-22
 
+### Fix critique — PDF + emails cassés
+
+- **1** 🔴 **PDF label écrasé** — Le libellé « Transmission aux Membre FS/CSAs » écrasait la colonne valeur dans le PDF. Correction du positionnement dans `report_print_helpers.php`. (`pages/report_print_helpers.php`)
+- **2** 🔴 **URL casse dans emails** — `getBaseUrl()` configuré en repli pour les déploiements sous-dossier. Séparateur `http_build_query()` ne dépendait plus du `php.ini` serveur. 5 handlers corrigés (agent_confirm, report_create, report_respond, report_reopen, user_edit). (`src/helpers/http.php`, `handlers/*.php`)
+- **3** 🔴 **CSRF manquant agent_confirm** — Champ `csrf_token` ajouté au formulaire de confirmation d'agent (manquant depuis toujours — chaque soumission échouait en "Erreur de sécurité"). 2 tests unitaires de non-régression ajoutés. (`handlers/agent_confirm.php`)
+
 ### Fix — Texte d'aide abandon + 4 tests pré-existants corrigés
 
-- **1** 🟢 **report_card.php** — Texte d'aide abandon passé au présent (« est marqué » / « reste consultable »).
-- **2** 🔴 **ConfigService.php** — `get()` traite les chaînes vides comme « pas de valeur » et retourne le fallback.
-- **3** 🔴 **router_runner.php** — `error_reporting(E_ALL)` + `display_errors = 'stderr'` (erreurs visibles en stderr, JSON propre en stdout). Les erreurs du test runner sont affichées, pas supprimées.
-- **4** 🔴 **RouterCsrfIntegrationTest.php** — Retiré le `2>/dev/null` (syntaxe Unix incompatible Windows). 876 tests OK, 0 échec.
-- **5** 🔴 **ConfigServiceTest.php** — 6 tests edge cases ajoutés (fallback vide, null brut, whitespace, overwrite, valeur valide). 882 tests, 1851 assertions.
-- **6** 🔴 **nuclear-reset.php** / **seed.php** / **ConfigService.php** — 12 erreurs PHPStan corrigées (PDOStatement|false, realpath|false). Scope PHPStan élargi (`nuclear-reset.php`, `seed.php`). GrumPHP passe en entier.
-- **7** 🔴 **agent_confirm.php** — Champ `csrf_token` ajouté au formulaire de confirmation (manquant depuis toujours — chaque soumission échouait en "Erreur de sécurité"). 2 tests unitaires de non-régression ajoutés. 896 tests, 1874 assertions.
-- **8** 🟢 **.gitattributes** — `* text=auto eol=lf` ajouté. 145 fichiers CRLF normalisés en LF via php-cs-fixer.
-- **9** 🟢 **grumphp.yml** — phparkitect et rector ajoutés aux tâches GrumPHP (5/5 passent).
-- **10** 🟢 **ci.yml** — phparkitect et rector ajoutés au job quality GitHub Actions.
-- **11** 🟢 **16 fichiers** — Rector modernise : imports FQN → use, parenthèses inutiles, null coalescing, constructor promotion (SQLiteSessionHandler).
-- **12** 🟢 **e2e/agent-confirm.spec.js** — 3 tests E2E pour la page de confirmation d'agent (token valide, token invalide, token vide).
+- **4** 🟢 **report_card.php** — Texte d'aide abandon passé au présent (« est marqué » / « reste consultable »).
+- **5** 🔴 **ConfigService.php** — `get()` traite les chaînes vides comme « pas de valeur » et retourne le fallback.
+- **6** 🔴 **router_runner.php** — `error_reporting(E_ALL)` + `display_errors = 'stderr'` (erreurs visibles en stderr, JSON propre en stdout). Les erreurs du test runner sont affichées, pas supprimées.
+- **7** 🔴 **RouterCsrfIntegrationTest.php** — Retiré le `2>/dev/null` (syntaxe Unix incompatible Windows). 876 tests OK, 0 échec.
+- **8** 🔴 **ConfigServiceTest.php** — 6 tests edge cases ajoutés (fallback vide, null brut, whitespace, overwrite, valeur valide). 882 tests, 1851 assertions.
+- **9** 🔴 **nuclear-reset.php** / **seed.php** / **ConfigService.php** — 12 erreurs PHPStan corrigées (PDOStatement|false, realpath|false). Scope PHPStan élargi (`nuclear-reset.php`, `seed.php`). GrumPHP passe en entier.
+- **10** 🟢 **.gitattributes** — `* text=auto eol=lf` ajouté. 145 fichiers CRLF normalisés en LF via php-cs-fixer.
+- **11** 🟢 **grumphp.yml** — phparkitect et rector ajoutés aux tâches GrumPHP (5/5 passent).
+- **12** 🟢 **ci.yml** — phparkitect et rector ajoutés au job quality GitHub Actions.
+- **13** 🟢 **16 fichiers** — Rector modernise : imports FQN → use, parenthèses inutiles, null coalescing, constructor promotion (SQLiteSessionHandler).
+- **14** 🟢 **e2e/agent-confirm.spec.js** — 3 tests E2E pour la page de confirmation d'agent (token valide, token invalide, token vide).
 
 ## [3.44.4] — 2026-07-21
 
@@ -274,18 +303,30 @@ Réaudit complet de l'architecture DDD avec notation par couche.
 
 ## [3.44.0] — 2026-07-20
 
-### Fix critique — JS servant
+### Fix critique — JS servant + Autoload
 
 - **1** 🔴 **js.php** — Création de `public/js.php` (même modèle que `css.php`) pour servir les fichiers JavaScript via PHP. IIS bloque l'accès direct au dossier `js/` via `hiddenSegments` dans `web.config`. Le wordcloud.js ne se chargeait jamais. (`public/js.php`, `templates/footer.php`)
+- **2** 🔴 **Autoload order** — `public/index.php` charge maintenant `autoload.php` AVANT `config.php`, corrigeant le fatal error `Class 'App\Enum\UserRole' not found` en prod. (`public/index.php`)
+
+### Refactoring — Email renderer unifié
+
+- **3** 🔴 **`email_renderer.php`** — Nouveau fichier `src/helpers/email_renderer.php` centralisant le rendu HTML des emails. `renderEmailBody()` est le wrapper unique. CSS des emails dédupliquée (une seule copie au lieu de 5). (`src/helpers/email_renderer.php`)
+- **4** 🔴 **`app_brand_color`** — Nouvelle config `app_brand_color` ajoutée aux settings admin pour personnaliser la couleur des emails. (`handlers/settings_handler_app.php`, `pages/settings/tab_app.php`)
+- **5** 🔴 **mail_notifications.php** — Tous les appels de rendu email migrés vers `email_renderer.php`. (`src/mail_notifications.php`)
+
+### Pipeline qualité — GrumPHP PHAR
+
+- **6** 🔴 **GrumPHP PHAR** — Installation de GrumPHP v2.22.0 via PHAR. Hook `pre-commit` avec phpstan + phpunit + phpcsfixer en parallèle. (`tools/grumphp.phar`, `tools/grumphp.bat`, `.git/hooks/pre-commit`)
 
 ### Migration — CHECK constraints (sans skip)
 
-- **2** 🔴 **CHECK constraints sans guard** — La migration `reports.type/etat` ne skippe plus : aucune guard `schema_version`, échec loud sur violation de données (RuntimeException au lieu de return silencieux). (`src/migration_columns.php`)
+- **7** 🔴 **CHECK constraints sans guard** — La migration `reports.type/etat` ne skippe plus : aucune guard `schema_version`, échec loud sur violation de données (RuntimeException au lieu de return silencieux). (`src/migration_columns.php`)
 
 ### Nettoyage
 
-- **3** 🟡 **TODO P18** — Suppression du concept Sites/UR ajoutée au TODO (non prioritaire, chantier majeur ~8-12h).
-- **4** 🟡 **Playwright** — E2E non-bloquant pour la gate de prod. Playwright retiré des prerequis obligatoires. (`update_sst.ps1`)
+- **8** 🟡 **TODO P18** — Suppression du concept Sites/UR ajoutée au TODO (non prioritaire, chantier majeur ~8-12h).
+- **9** 🟡 **Playwright** — E2E non-bloquant pour la gate de prod. Playwright retiré des prerequis obligatoires. (`update_sst.ps1`)
+- **10** 🟡 **README** — Mise à jour structurelle (PHP 8.5, 860 tests, Enum/Repository/Services/DTO). (`README.md`)
 
 
 ## [3.43.0] — 2026-07-20
@@ -388,6 +429,21 @@ Baseline PHPStan : **950 → 669 erreurs** (-281, -29.6%). 857 tests, 1542 asser
 - **10** 🟡 **Templates + Help + Pages `@var`** — Annotations scope sur ~20 fichiers. (`templates/*.php`, `pages/help/*.php`, `pages/*.php`)
 - **11** 🟡 **Services/Helpers annotations** — `missingType.iterableValue` sur ~40 fichiers. (`src/**/*.php`)
 - **12** 🟡 **Tests invariant** — 22 tests vérifiant les types de retour. (`tests/unit/RepositoryInvariantTest.php`)
+- **13** 🔴 **Word cloud intégré** — Feature word cloud mergée avec la branche main (admin configurable + tous profils). (`pages/home.php`)
+
+### Pipeline qualité — PHPStan + CSS checker + GrumPHP
+
+- **14** 🔴 **PHPStan level 10→8** — Niveau d'analyse relevé de 10 à 8 pour réduire le bruit. Baseline : **234→44 erreurs** (-81%). (`phpstan.neon`)
+- **15** 🔴 **Type safety 15 fichiers** — Corrections de typage dans `FormattingService`, `AccessService`, `SessionService`, et 12 autres. (`src/**/*.php`)
+- **16** 🔴 **Baseline 44→25 erreurs** — 26 fichiers corrigés. (`phpstan-baseline.neon`)
+- **17** 🔴 **CSS checker** — Nouvel outil `check_css_classes.php` intégré au gate + pre-push hook (bloquant). Vérifie que chaque classe CSS référencée dans le PHP existe dans `style.css`. (`tools/check_css_classes.php`, `update_sst.ps1`)
+- **18** 🟡 **CSS checker faux positifs** — Exclusion list + classes dynamiques ajoutées. (`tools/check_css_classes.php`)
+
+### Fix — Tests E2E login refactoring
+
+- **19** 🔴 **Login 3 formulaires** — Les helpers E2E `loginAs()` unifiés pour le nouveau login multi-formulaires (agent, superviseur, CHSCT). (`e2e/helpers.js`)
+- **20** 🔴 **Impersonate test** — Test agent.dev corrigé pour le nouveau flux d'incarnation. (`e2e/impersonate.spec.js`)
+- **21** 🟡 **Workers=1 CI** — `workers=1` uniquement en CI (course concurrente SQLite). (`playwright.config.js`)
 
 
 ## [3.40.0] — 2026-07-17
@@ -409,34 +465,51 @@ Réduction de la dette technique `mixed` sur le pipeline d'analyse statique. Le 
 
 - **1** 🔴 **helpers.php require manquant** — Ajout de `require_once` pour `registry_card_renderer.php` dans `src/helpers.php`. Le fichier existait mais n'était jamais chargé en production (les tests le voyaient car `tests/bootstrap.php` le chargeait manuellement). (`src/helpers.php`)
 
+### Feature — Word cloud amélioré
+
+- **2** 🔴 **Word cloud tous profils** — Suppression du gate `if ($rsstCount > 0)`. Le nuage de mots s'affiche pour tous les rôles, pas seulement RSST. (`pages/home.php`)
+- **3** 🔴 **Barre accès rapide supprimée** — La barre d'accès rapide superviseur (doublon de la sidebar) retirée de la page d'accueil. (`pages/home.php`)
+- **4** 🔴 **Word cloud admin configurable** — Nouvelle config `app_wordcloud_enabled` pour activer/désactiver le nuage de mots depuis l'admin. CSS optimisé (zero cache). (`pages/home.php`, `pages/settings/tab_app.php`)
+
 ### Prévention — Gate qualité + tests structurels
 
-- **2** 🔴 **HelpersBootstrapTest** — Nouveau test qui vérifie que chaque fichier dans `src/helpers/` est requis par `src/helpers.php`. Empêche les fichiers orphelins d'arriver en prod. (`tests/unit/HelpersBootstrapTest.php`)
-- **3** 🔴 **RegistryCardRendererTest** — 20 tests pour `buildRegistryCards()`, `renderRegistryCards()`, `renderRegistryCard()`, `getRegistryIcon()`. Teste le pipeline complet build→render, le pluriel/singulier, l'escaping HTML, et la présence des clés requises. (`tests/unit/RegistryCardRendererTest.php`)
-- **4** 🟡 **update_sst.ps1 gate** — Ajout de la gate qualité au script de mise à jour : lint PHP (incremental, parallèle PS7+), PHPStan niveau 10, PHPUnit. Rollback automatique si la gate échoue. Hook pre-push inline. (`update_sst.ps1`)
-- **5** 🟡 **Nettoyage bootstrap tests** — Suppression du `require_once` manuel de `registry_card_renderer.php` dans `tests/bootstrap.php` (le fichier est maintenant chargé via `helpers.php`).
+- **5** 🔴 **HelpersBootstrapTest** — Nouveau test qui vérifie que chaque fichier dans `src/helpers/` est requis par `src/helpers.php`. Empêche les fichiers orphelins d'arriver en prod. (`tests/unit/HelpersBootstrapTest.php`)
+- **6** 🔴 **RegistryCardRendererTest** — 20 tests pour `buildRegistryCards()`, `renderRegistryCards()`, `renderRegistryCard()`, `getRegistryIcon()`. Teste le pipeline complet build→render, le pluriel/singulier, l'escaping HTML, et la présence des clés requises. (`tests/unit/RegistryCardRendererTest.php`)
+- **7** 🟡 **update_sst.ps1 gate** — Ajout de la gate qualité au script de mise à jour : lint PHP (incremental, parallèle PS7+), PHPStan niveau 10, PHPUnit. Rollback automatique si la gate échoue. Hook pre-push inline. (`update_sst.ps1`)
+- **8** 🟡 **Nettoyage bootstrap tests** — Suppression du `require_once` manuel de `registry_card_renderer.php` dans `tests/bootstrap.php` (le fichier est maintenant chargé via `helpers.php`).
 
 ### Nettoyage — Code mort supprimé
 
-- **5** 🟡 **Fichiers orphelins** — Suppression de `src/helpers/rendering.php` (doublon de formatting.php), `src/helpers_bootstrap.php` (jamais requis), `templates/confirm_dialog.php` (remplacé par inline), `tools/_fix_repo.py` (chemin hardcodé autre dev), `fix_choose_site.py`, `fix_user_repo.py`, `diff.patch`.
-- **6** 🟡 **phpstan-baseline.neon** — Nettoyage des entries pour les fichiers supprimés.
-- **7** 🟡 **.gitignore** — Ajout de `data/infection-tmp/` (fichiers temporaires Infection PHP).
+- **9** 🟡 **Fichiers orphelins** — Suppression de `src/helpers/rendering.php` (doublon de formatting.php), `src/helpers_bootstrap.php` (jamais requis), `templates/confirm_dialog.php` (remplacé par inline), `tools/_fix_repo.py` (chemin hardcodé autre dev), `fix_choose_site.py`, `fix_user_repo.py`, `diff.patch`.
+- **10** 🟡 **phpstan-baseline.neon** — Nettoyage des entries pour les fichiers supprimés.
+- **11** 🟡 **.gitignore** — Ajout de `data/infection-tmp/` (fichiers temporaires Infection PHP).
 
 ## [3.38.0] — 2026-07-12
 
-### Corrections — Ultrareview 13 issues
+### Corrections — Ultrareview 45 issues (3 batches)
 
-- **1** 🔴 **audit_log target_uuid** — Ajout colonne `target_uuid TEXT` à la table `audit_log` pour stocker l'UUID des signalements (les entrées d'audit avaient toujours `target_id = 0` car la table `reports` utilise `uuid` comme clé primaire). 6 handlers mis à jour. (`src/audit.php`, `src/migration_columns.php`, `schema.sql`)
+Batch 1 — 22 constats (3 critiques + 5 élevés + 8 moyens + 5 dette technique) :
+
+- **1** 🔴 **`audit_log target_uuid`** — Ajout colonne `target_uuid TEXT` à la table `audit_log` pour stocker l'UUID des signalements (les entrées d'audit avaient toujours `target_id = 0` car la table `reports` utilise `uuid` comme clé primaire). 6 handlers mis à jour. (`src/audit.php`, `src/migration_columns.php`, `schema.sql`)
 - **2** 🔴 **Export CSV mémoire** — Remplacement de `stream_get_contents()` par `fpassthru()` pour un streaming O(1) au lieu de charger tout le fichier en mémoire (risque OOM avec 50k lignes). (`handlers/export_handler.php`)
 - **3** 🔴 **Requêtes DB dans template** — Déplacement de `getLinkedAgents()`/`getPendingInvites()` du template `report_card.php` vers le contrôleur `report_view.php` (élimine le risque N+1 et la violation de couche). (`templates/report_card.php`, `pages/report_view.php`)
 - **4** 🔴 **FormattingService 30x** — Un seul `$fmt` remplace 30+ instanciations de `FormattingService` par rendu de template. (`templates/report_card.php`)
 - **5** 🔴 **WAL checkpoint** — Suppression du checkpoint forcé de `getDbFingerprint()` ; fingerprint inclut maintenant le fichier `-wal` pour détecter les changements sans I/O disque par requête. (`src/backup.php`)
 - **6** 🔴 **Constantes état** — Remplacement de littéraux `'traite'`/`'abandonne'` par `ETAT_TRAITE`/`ETAT_ABANDONNE` dans `ReportService::reopen()`. (`src/Services/ReportService.php`)
-- **7** 🟡 **CSRF choose_site** — Ajout de `validatePostRequest()` au handler POST `choose_site` qui contournerait la chaîne de middleware CSRF. (`public/index.php`)
-- **8** 🟡 **Domaine email édition** — Validation du domaine des emails rattachés ajoutée au handler d'édition (fail-closed si email déclarant manquant). (`handlers/report_edit_handler.php`)
-- **9** 🟡 **Injection CRLF SMTP** — Blocage des adresses email contenant `\r\n` dans `sendViaSMTP()` + sanitisation de `$appName` dans les en-têtes. (`src/mail.php`)
+
+Batch 2 — 10 issues (6 critiques + 4 warnings) :
+
+- **7** 🔴 **CSRF choose_site** — Ajout de `validatePostRequest()` au handler POST `choose_site` qui contournerait la chaîne de middleware CSRF. (`public/index.php`)
+- **8** 🔴 **Domaine email édition** — Validation du domaine des emails rattachés ajoutée au handler d'édition (fail-closed si email déclarant manquant). (`handlers/report_edit_handler.php`)
+- **9** 🔴 **Injection CRLF SMTP** — Blocage des adresses email contenant `\r\n` dans `sendViaSMTP()` + sanitisation de `$appName` dans les en-têtes. (`src/mail.php`)
 - **10** 🟡 **Précédence opérateur** — Correction du bug de précédence `&&`/`||` dans la logique `display_errors` (`!defined('DEV_MODE') || !DEV_MODE` entre-parenthèses). (`public/index.php`)
 - **11** 🟡 **Audit UUID lookup** — `getAuditLogForTarget()` utilise `is_numeric()` pour distinguer UUIDs des IDs numériques HTTP. (`src/audit.php`)
+
+Batch 3 — 13 issues (6 critiques + 5 warnings) :
+
+- **12** 🔴 **`getSettings()` fatal error** — `NotificationRepository::getSettings()` remplacé par `findAll()`. (`pages/settings.php`)
+- **13** 🔴 **Test logConfidentialReportAccess** — Assertion toujours vraie corrigée (vérifiait `true === true`). (`tests/unit/AccessHelperIntegrationTest.php`)
+- **14** 🟡 **ConfigService bug** — `fetchColumn()` appelé 3× sur même résultat. Corrigé. (`src/Services/ConfigService.php`)
 
 
 ## [3.37.0] — 2026-07-11

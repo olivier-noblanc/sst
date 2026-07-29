@@ -26,9 +26,9 @@ enum ReportType: string
     public function label(): string
     {
         return match ($this) {
-            self::Rsst => 'Registre de Santé et de Sécurité au Travail',
-            self::Rami => 'Registre des Actes d\'Agressions, de Menaces et d\'Incivilités',
-            self::Dgi  => 'Registre de signalement d\'un Danger Grave et Imminent',
+            self::Rsst => 'Santé et Sécurité au Travail',
+            self::Rami => 'Agressions, Menaces et Incivilités',
+            self::Dgi  => 'Danger Grave et Imminent',
         };
     }
 

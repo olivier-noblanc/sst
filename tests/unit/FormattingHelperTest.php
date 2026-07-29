@@ -63,10 +63,13 @@ class FormattingHelperTest extends TestCase
         $this->assertEquals('badge--dgi', getRegistryBadgeClass('dgi'));
     }
 
-    public function testGetRegistryBadgeClassUnknownThrowsValueError(): void
+    public function testGetRegistryBadgeClassUnknownFallsBackToRsst(): void
     {
-        $this->expectException(ValueError::class);
-        getRegistryBadgeClass('unknown');
+        // Audit #85 — même refactor que getRegistryColor() (Modular-audit
+        // P2.2) : fromCode()/tryFrom() ne lève jamais, retombe sur
+        // 'badge--rsst'. Ce test attendait encore l'ancien
+        // match(ReportType::from($type)) qui levait un ValueError.
+        $this->assertEquals('badge--rsst', getRegistryBadgeClass('unknown'));
     }
 
     // ─── renderBreadcrumb ───────────────────────────────────────────────────

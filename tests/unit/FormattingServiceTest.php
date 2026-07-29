@@ -226,10 +226,9 @@ class FormattingServiceTest extends TestCase
         $this->assertEquals('badge--dgi', $this->service->getRegistryBadgeClass('dgi'));
     }
 
-    public function testGetRegistryBadgeClassUnknownThrowsValueError(): void
+    public function testGetRegistryBadgeClassUnknownFallsBackToRsst(): void
     {
-        $this->expectException(ValueError::class);
-        $this->service->getRegistryBadgeClass('unknown');
+        $this->assertEquals('badge--rsst', $this->service->getRegistryBadgeClass('unknown'));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

@@ -94,9 +94,9 @@ class ReportQueriesTest extends TestCase
         ]));
         $report = self::$reports->findById($uuid);
         $this->assertNotNull($report);
-        $this->assertMatchesRegularExpression('/^rami-\d{2}-\d{3}$/', $report['reference']);
-        $this->assertEquals('rami', $report['type']);
-        $this->assertEquals('nouveau', $report['etat']);
+        $this->assertMatchesRegularExpression('/^rami-\d{2}-\d{3}$/', $report->reference);
+        $this->assertEquals('rami', $report->type);
+        $this->assertEquals('nouveau', $report->etat);
     }
 
     // ─── getReportByUuid() ─────────────────────────────────────────────────
@@ -130,9 +130,9 @@ class ReportQueriesTest extends TestCase
         $this->assertTrue($result);
 
         $report = self::$reports->findById($uuid);
-        $this->assertEquals('DGI modifié', $report['objet']);
-        $this->assertEquals('Description modifiée', $report['description']);
-        $this->assertEquals(1, (int) $report['is_confidential']);
+        $this->assertEquals('DGI modifié', $report->objet);
+        $this->assertEquals('Description modifiée', $report->description);
+        $this->assertEquals(1, (int) $report->isConfidential);
     }
 
     // ─── abandon() ─────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ class ReportQueriesTest extends TestCase
         $this->assertTrue($result);
 
         $report = self::$reports->findById($uuid);
-        $this->assertEquals('abandonne', $report['etat']);
+        $this->assertEquals('abandonne', $report->etat);
     }
 
     // ─── respondToReport() ─────────────────────────────────────────────────
@@ -166,8 +166,8 @@ class ReportQueriesTest extends TestCase
         $this->assertEquals('ok', $result['status']);
 
         $report = self::$reports->findById($uuid);
-        $this->assertEquals('en_cours', $report['etat']);
-        $this->assertEquals('Prise en charge du signalement.', $report['reponse']);
+        $this->assertEquals('en_cours', $report->etat);
+        $this->assertEquals('Prise en charge du signalement.', $report->reponse);
     }
 
     // ─── isValidUuid() ─────────────────────────────────────────────────────

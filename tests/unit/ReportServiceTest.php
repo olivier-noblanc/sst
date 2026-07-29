@@ -59,7 +59,7 @@ class ReportServiceTest extends TestCase
         $this->supervisorId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'svc.sup'")->fetchColumn();
     }
 
-    private function createReport(ReportType $type = ReportType::Rsst, int $declarantId = 0, ?int $siteId = null): array
+    private function createReport(ReportType $type = ReportType::Rsst, int $declarantId = 0, ?int $siteId = null): \App\DTO\ReportData
     {
         $cmd = new CreateReportCommand(
             type: $type->value,
@@ -96,8 +96,8 @@ class ReportServiceTest extends TestCase
     public function testCreateReturnsReport(): void
     {
         $report = $this->createReport();
-        $this->assertNotEmpty($report['uuid']);
-        $this->assertEquals('rsst', $report['type']);
+        $this->assertNotEmpty($report->uuid);
+        $this->assertEquals('rsst', $report->type);
     }
 
     public function testCreateWithInvalidDataThrows(): void
@@ -199,7 +199,7 @@ class ReportServiceTest extends TestCase
         );
         $report = $this->service->create($cmd);
         // RSST visibility is "public" by default in config, so is_confidential should be 0
-        $this->assertEquals(0, $report['is_confidential']);
+        $this->assertEquals(0, $report->isConfidential);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -220,7 +220,7 @@ class ReportServiceTest extends TestCase
             'site_id' => $this->siteId,
             'is_active' => 1,
         ]);
-        $result = $this->service->respond($report['uuid'], $cmd, $this->supervisorId);
+        $result = $this->service->respond($report->uuid, $cmd, $this->supervisorId);
         $this->assertIsArray($result);
     }
 
@@ -263,7 +263,7 @@ class ReportServiceTest extends TestCase
             'site_id' => $this->siteId,
             'is_active' => 1,
         ]);
-        $service->respond($report['uuid'], $cmd, $this->supervisorId);
+        $service->respond($report->uuid, $cmd, $this->supervisorId);
         $this->assertTrue($dispatched);
     }
 
@@ -287,10 +287,10 @@ class ReportServiceTest extends TestCase
             isConfidential: 0,
             consentSyndicat: 0,
         );
-        $result = $this->service->update($report['uuid'], $cmd, $this->userId);
+        $result = $this->service->update($report->uuid, $cmd, $this->userId);
         $this->assertTrue($result);
 
-        $updated = $this->service->findById($report['uuid']);
+        $updated = $this->service->findById($report->uuid);
         $this->assertEquals('Updated Object', $updated['objet']);
     }
 
@@ -337,7 +337,7 @@ class ReportServiceTest extends TestCase
             isConfidential: 0,
             consentSyndicat: 0,
         );
-        $service->update($report['uuid'], $cmd, $this->userId);
+        $service->update($report->uuid, $cmd, $this->userId);
         $this->assertTrue($dispatched);
     }
 
@@ -355,7 +355,7 @@ class ReportServiceTest extends TestCase
             'site_id' => $this->siteId,
             'is_active' => 1,
         ]);
-        $result = $this->service->abandon($report['uuid'], $this->userId);
+        $result = $this->service->abandon($report->uuid, $this->userId);
         $this->assertTrue($result);
     }
 
@@ -379,9 +379,9 @@ class ReportServiceTest extends TestCase
     public function testFindByIdReturnsReport(): void
     {
         $report = $this->createReport();
-        $found = $this->service->findById($report['uuid']);
+        $found = $this->service->findById($report->uuid);
         $this->assertNotNull($found);
-        $this->assertEquals($report['uuid'], $found['uuid']);
+        $this->assertEquals($report->uuid, $found->uuid);
     }
 
     public function testFindByIdReturnsNullForUnknown(): void

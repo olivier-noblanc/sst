@@ -97,13 +97,14 @@ class HelpersTest extends TestCase
     public function testAgentChoiceModeRespectsIsConfidential(): void
     {
         // Agent can see other agent's non-confidential report in agent_choice mode
-        $report = $this->makeReport(1, 99, (bool) 0, 'rsst');
+        $report = $this->makeReport(1, 99, false, 'rsst');
         $user   = ['id' => 1, 'site_id' => 1, 'role' => 'agent'];
         $this->assertTrue(canAccessReport($report, $user, 'agent_choice'));
 
         // Agent cannot see other agent's confidential report in agent_choice mode
-        $report['is_confidential'] = 1;
-        $this->assertFalse(canAccessReport($report, $user, 'agent_choice'));
+        // (ReportData is readonly — a second object, not a mutation)
+        $confidentialReport = $this->makeReport(1, 99, true, 'rsst');
+        $this->assertFalse(canAccessReport($confidentialReport, $user, 'agent_choice'));
     }
 
     // ─── formatDateFR() ───────────────────────────────────────────────────────

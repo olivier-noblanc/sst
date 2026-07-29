@@ -46,8 +46,8 @@ class ReportRepositoryTest extends TestCase
 
         $report = $this->repo->findById($uuid);
         $this->assertNotNull($report);
-        $this->assertEquals('Test', $report['objet']);
-        $this->assertEquals('rsst', $report['type']);
+        $this->assertEquals('Test', $report->objet);
+        $this->assertEquals('rsst', $report->type);
     }
 
     public function testFindByIdReturnsNullForUnknownUuid(): void
@@ -79,7 +79,7 @@ class ReportRepositoryTest extends TestCase
 
         $report = $this->repo->findById($uuid);
         $this->assertNotNull($report);
-        $this->assertNull($report['site_id']);
+        $this->assertNull($report->siteId);
     }
 
     // findPaginated() had no test exercising more than page 1 with a

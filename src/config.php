@@ -172,12 +172,27 @@ function getEtatLabel(string $etat): string {
     return ReportState::tryFrom($etat)?->label() ?? $etat;
 }
 
+/**
+ * Audit #85 — était un `static $cache = []` local à getRegistryFieldOptions().
+ * Un static de fonction ne peut pas être réinitialisé depuis l'extérieur en
+ * PHP (contrairement à une propriété de classe), donc une fois une réponse
+ * mise en cache (y compris un résultat vide, avant que registry_fields ne
+ * soit seedé), elle restait figée pour tout le reste du process PHPUnit
+ * partagé — aucun moyen pour un test de la vider. Propriété de classe ici
+ * précisément pour pouvoir l'être, via clearRegistryFieldCache() ci-dessous
+ * (même modèle que clearConfigCache() pour ConfigService).
+ */
+final class RegistryFieldOptionsCache
+{
+    /** @var array<string, array<string, string>> */
+    public static array $cache = [];
+}
+
 /** @return array<string, string> */
 function getRegistryFieldOptions(string $registryCode, string $fieldCode): array {
-    static $cache = [];
     $key = $registryCode . ':' . $fieldCode;
-    if (!isset($cache[$key])) {
-        $cache[$key] = [];
+    if (!isset(RegistryFieldOptionsCache::$cache[$key])) {
+        RegistryFieldOptionsCache::$cache[$key] = [];
         if (function_exists('getDB')) {
             $registryRepo = RegistryRepository::instance();
             $fieldRepo = RegistryFieldRepository::instance();
@@ -185,12 +200,16 @@ function getRegistryFieldOptions(string $registryCode, string $fieldCode): array
             if ($registry !== null) {
                 $field = $fieldRepo->findByCode((int) $registry['id'], $fieldCode);
                 if ($field !== null) {
-                    $cache[$key] = json_decode((string) ($field['options'] ?? '{}'), true) ?? [];
+                    RegistryFieldOptionsCache::$cache[$key] = json_decode((string) ($field['options'] ?? '{}'), true) ?? [];
                 }
             }
         }
     }
-    return $cache[$key];
+    return RegistryFieldOptionsCache::$cache[$key];
+}
+
+function clearRegistryFieldCache(): void {
+    RegistryFieldOptionsCache::$cache = [];
 }
 
 /** @return list<string> */

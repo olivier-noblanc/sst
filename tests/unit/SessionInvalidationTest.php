@@ -41,6 +41,13 @@ class SessionInvalidationTest extends TestCase
         require_once __DIR__ . '/../../src/DTO/UpdateUserCommand.php';
 
         self::$pdo = getDB();
+        // Audit #85 — les users de ce fichier référencent site_id=1 en dur
+        // sans jamais le seeder eux-mêmes, comptant sur l'état laissé par un
+        // autre test. Sous ordre aléatoire, sans site id=1 déjà créé,
+        // l'INSERT INTO users échoue sur la contrainte FK. INSERT OR IGNORE :
+        // idempotent, ne casse rien si le site existe déjà avec un id
+        // différent (auto-increment) ailleurs dans la suite.
+        self::$pdo->exec("INSERT OR IGNORE INTO sites (id, code, nom, is_active) VALUES (1, 'UR21-SESSTEST', 'Site Test SessionInvalidation', 1)");
     }
 
     protected function setUp(): void

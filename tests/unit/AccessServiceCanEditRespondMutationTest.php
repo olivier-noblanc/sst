@@ -201,9 +201,9 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
         return [
             '0 → public' => ['0', 'public'],
             'site → public' => ['site', 'public'],
-            '1 → confidentiel' => ['1', 'confidentiel'],
-            'own → confidentiel' => ['own', 'confidentiel'],
-            'confidential → confidentiel' => ['confidential', 'confidentiel'],
+            '1 → confidential' => ['1', 'confidential'],
+            'own → confidential' => ['own', 'confidential'],
+            'confidential → confidential' => ['confidential', 'confidential'],
             'agent_choice → agent_choice' => ['agent_choice', 'agent_choice'],
             'public → public' => ['public', 'public'],
             'unknown → agent_choice (fallback)' => ['unknown_value', 'agent_choice'],

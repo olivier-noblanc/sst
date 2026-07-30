@@ -26,12 +26,8 @@ class UserServiceValidateMutationTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = getDB();
-        $this->pdo->exec('PRAGMA foreign_keys = OFF');
-        $this->pdo->exec('DELETE FROM report_responses');
-        $this->pdo->exec('DELETE FROM reports');
-        $this->pdo->exec('DELETE FROM users');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM sites');
-        $this->pdo->exec('PRAGMA foreign_keys = ON');
 
         $repo = new UserRepository($this->pdo);
         $events = new EventDispatcher();
@@ -44,12 +40,8 @@ class UserServiceValidateMutationTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->pdo->exec('PRAGMA foreign_keys = OFF');
-        $this->pdo->exec('DELETE FROM report_responses');
-        $this->pdo->exec('DELETE FROM reports');
-        $this->pdo->exec('DELETE FROM users');
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM sites');
-        $this->pdo->exec('PRAGMA foreign_keys = ON');
     }
 
     /** @return array<string, string> */

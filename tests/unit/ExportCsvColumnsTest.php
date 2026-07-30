@@ -48,7 +48,9 @@ class ExportCsvColumnsTest extends TestCase
     public function testGetExportDataContainsAllExpectedColumns(): void
     {
         $pdo = getDB();
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, site_text, pole, service_affectation, telephone_mobile, consent_syndicat, is_confidential, etat) VALUES ('" . self::$testUuid . "', 'RSST-25-001', 'rsst', 'Objet test', 'Desc', '2025-01-01', 1, 'Dupont', 'Jean', " . self::$siteId . ", 'Site text val', 'Pole S', 'Service X', '0601020304', 1, 0, 'nouveau')");
+        // Use INSERT OR IGNORE to avoid UNIQUE constraint violation on reference
+        // when tests run in random order and another test already created RSST-25-001
+        $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, site_text, pole, service_affectation, telephone_mobile, consent_syndicat, is_confidential, etat) VALUES ('" . self::$testUuid . "', 'RSST-25-001', 'rsst', 'Objet test', 'Desc', '2025-01-01', 1, 'Dupont', 'Jean', " . self::$siteId . ", 'Site text val', 'Pole S', 'Service X', '0601020304', 1, 0, 'nouveau')");
 
         $repo = new \App\Repository\StatsRepository($pdo);
         $rows = $repo->getExportData([]);

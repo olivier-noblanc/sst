@@ -169,8 +169,11 @@ class StatsRepository
         foreach ($enabledRegistries as $reg) {
             $code = (string) $reg['code'];
             $safeCode = str_replace("'", "''", $code);
-            $typeColumns[] = "SUM(CASE WHEN type = '{$safeCode}' THEN 1 ELSE 0 END) as total_" . str_replace('-', '_', $code);
-            $defaultRegistryTotals['total_' . str_replace('-', '_', $code)] = 0;
+            // Sanitize alias: only [a-zA-Z0-9_] — prevents SQL syntax errors
+            // on custom registry codes with dots, hyphens, etc.
+            $safeAlias = preg_replace('/[^a-zA-Z0-9_]/', '_', $code);
+            $typeColumns[] = "SUM(CASE WHEN type = '{$safeCode}' THEN 1 ELSE 0 END) as total_{$safeAlias}";
+            $defaultRegistryTotals['total_' . $safeAlias] = 0;
         }
         $typeColumnsSql = !empty($typeColumns) ? ",\n                " . implode(",\n                ", $typeColumns) : '';
 
@@ -216,7 +219,8 @@ class StatsRepository
 
         $registryTotals = [];
         foreach ($enabledRegistries as $reg) {
-            $key = 'total_' . str_replace('-', '_', (string) $reg['code']);
+            $safeAlias = preg_replace('/[^a-zA-Z0-9_]/', '_', (string) $reg['code']);
+            $key = 'total_' . $safeAlias;
             $registryTotals[$key] = (int) ($result[$key] ?? 0);
         }
 
@@ -241,7 +245,8 @@ class StatsRepository
         foreach ($enabledRegistries as $reg) {
             $code = (string) $reg['code'];
             $safeCode = str_replace("'", "''", $code);
-            $typeColumns[] = "SUM(CASE WHEN r.type = '{$safeCode}' THEN 1 ELSE 0 END) as " . str_replace('-', '_', $code);
+            $safeAlias = preg_replace('/[^a-zA-Z0-9_]/', '_', $code);
+            $typeColumns[] = "SUM(CASE WHEN r.type = '{$safeCode}' THEN 1 ELSE 0 END) as {$safeAlias}";
         }
         $typeColumnsSql = !empty($typeColumns) ? ",\n                " . implode(",\n                ", $typeColumns) : '';
 
@@ -301,7 +306,8 @@ class StatsRepository
             $registryCounts = [];
             foreach ($enabledRegistries as $reg) {
                 $code = (string) $reg['code'];
-                $registryCounts[$code] = (int) ($row[$code] ?? 0);
+                $safeAlias = preg_replace('/[^a-zA-Z0-9_]/', '_', $code);
+                $registryCounts[$code] = (int) ($row[$safeAlias] ?? 0);
             }
             $result[] = new SiteStatsRow(
                 code: (string) $row['code'],

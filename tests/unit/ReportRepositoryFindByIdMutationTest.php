@@ -212,9 +212,9 @@ class ReportRepositoryFindByIdMutationTest extends TestCase
         $this->assertSame('', $report->siteCode);
         $this->assertSame('', $report->siteNom);
 
-        // Int fields with ?? 0 must be 0
-        $this->assertSame(0, $report->isConfidential);
-        $this->assertSame(0, $report->consentSyndicat);
+        // Int fields — is_confidential has DB DEFAULT 1, consent_syndicat has DB DEFAULT 0
+        $this->assertSame(1, $report->isConfidential, 'DB default is_confidential=1');
+        $this->assertSame(0, $report->consentSyndicat, 'DB default consent_syndicat=0');
     }
 
     public function testFindByIdReturnsReportDataInstance(): void

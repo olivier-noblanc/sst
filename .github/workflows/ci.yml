@@ -179,6 +179,23 @@ jobs:
                 echo "</details>"
                 echo ""
               fi
+              if grep -qE "^Test (Failed|Errored) \(" "$f"; then
+                echo "<details><summary>$f — tests en échec (Test Failed/Errored, 40 lignes de contexte chacun)</summary>"
+                echo ""
+                echo '```'
+                # Pas un crash fatal — juste une/des assertions ratées, noyées
+                # dans les 1215 tests. Le fallback "dernières 150 lignes" ne les
+                # montre que si elles tombent en toute fin de run, ce qui n'est
+                # presque jamais le cas sur une suite de cette taille.
+                grep -nE "^Test (Failed|Errored) \(" "$f" | cut -d: -f1 | while read -r LINE; do
+                  END=$((LINE + 40))
+                  sed -n "${LINE},${END}p" "$f"
+                  echo "----"
+                done
+                echo '```'
+                echo "</details>"
+                echo ""
+              fi
               echo "<details><summary>$f (dernières 150 lignes — résumé)</summary>"
               echo ""
               echo '```'

@@ -154,7 +154,7 @@ class FormattingServiceMutationTest extends TestCase
         $result10 = $this->service->truncate('Hello World', 10);
         $this->assertSame(11, mb_strlen($result10, 'UTF-8'), '10 chars + 1 ellipsis = 11');
         $this->assertTrue(str_ends_with($result10, $ellipsis), 'must end with ellipsis');
-        $this->assertSame('Hello Wor', mb_substr($result10, 0, 10, 'UTF-8'), 'first 10 chars preserved');
+        $this->assertSame('Hello Worl', mb_substr($result10, 0, 10, 'UTF-8'), 'first 10 chars preserved');
     }
 
     public function testTruncateDefaultLengthIs50(): void

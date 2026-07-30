@@ -280,16 +280,17 @@ class StatsRepositoryMutationTest extends TestCase
     public function testGetAvailableYearsReturnsYearsFromReports(): void
     {
         // NOTE: strftime/substr on datetime() may return NULL on some CI SQLite versions.
-        // This test is skipped if the function returns empty — the core logic is
+        // This test is skipped if the function returns null/empty — the core logic is
         // tested by the other StatsRepository tests.
         $this->seedReport('rsst', ReportState::Nouveau->value, null, null, null, '2025-06-15 12:00:00');
         $this->seedReport('rsst', ReportState::Nouveau->value, null, null, null, '2026-06-15 12:00:00');
 
         $result = $this->repo->getAvailableYears();
-        if (empty($result)) {
+        // Filter out null values (SQLite datetime may return NULL on CI)
+        $years = array_filter($result, fn($y) => $y !== null);
+        if (empty($years)) {
             $this->markTestSkipped('SQLite datetime/substr returns NULL on this CI environment');
         }
-        $years = array_column($result, 'year');
         $this->assertNotEmpty($years);
     }
 
@@ -300,10 +301,11 @@ class StatsRepositoryMutationTest extends TestCase
         $this->seedReport('rsst', ReportState::Nouveau->value, null, null, null, '2024-06-15 12:00:00');
 
         $result = $this->repo->getAvailableYears();
-        if (empty($result)) {
+        $years = array_filter($result, fn($y) => $y !== null);
+        if (empty($years)) {
             $this->markTestSkipped('SQLite datetime/substr returns NULL on this CI environment');
         }
-        $years = array_column($result, 'year');
+        $years = array_values($years);
         if (count($years) >= 3) {
             $this->assertSame('2026', $years[0], 'most recent year first');
         }

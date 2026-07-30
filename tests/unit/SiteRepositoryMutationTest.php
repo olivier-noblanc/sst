@@ -22,20 +22,16 @@ class SiteRepositoryMutationTest extends TestCase
     protected function setUp(): void
     {
         $this->pdo = getDB();
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM notification_settings');
-        $this->pdo->exec('DELETE FROM report_responses');
-        $this->pdo->exec('DELETE FROM reports');
-        $this->pdo->exec('DELETE FROM users');
         $this->pdo->exec('DELETE FROM sites');
         $this->repo = new SiteRepository($this->pdo);
     }
 
     protected function tearDown(): void
     {
+        cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM notification_settings');
-        $this->pdo->exec('DELETE FROM report_responses');
-        $this->pdo->exec('DELETE FROM reports');
-        $this->pdo->exec('DELETE FROM users');
         $this->pdo->exec('DELETE FROM sites');
     }
 

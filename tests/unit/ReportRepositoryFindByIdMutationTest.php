@@ -58,23 +58,26 @@ class ReportRepositoryFindByIdMutationTest extends TestCase
     private function seedFullReport(): string
     {
         $uuid = '550e8400-e29b-41d4-a716-446655440000';
+        // NOTE: pour_compte_de is a FK to users(id) — we omit it here to avoid
+        // FK constraint violations. The test asserts pourCompteDe === '' (the
+        // DTO default when the DB column is NULL).
         $this->pdo->prepare('
             INSERT INTO reports (
                 uuid, reference, type, objet, description, date_evenement, heure_evenement,
                 lieu, declarant_id, declarant_nom, declarant_prenom,
-                pour_compte_de, pour_compte_nom, pour_compte_prenom,
+                pour_compte_nom, pour_compte_prenom,
                 nature_auteur, type_acte,
                 site_id, site_text, pole, service_affectation, telephone_mobile,
                 is_confidential, consent_syndicat, etat,
                 repondant_id, date_reponse, reponse,
                 attachment_name, attachment_mime
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
         ')->execute([
             $uuid, 'rsst-25-001', 'rsst', 'Test objet', 'Test description', '2026-01-15', '10:30',
             'Bureau 204', $this->declarantId, 'Dupont', 'Jean',
-            '5', 'Durant', 'Pierre',
+            'Durant', 'Pierre',
             'usager', 'verbal',
             $this->siteId, 'UR21', 'Pôle A', 'Service B', '0601020304',
             1, 1, 'traite',
@@ -115,7 +118,7 @@ class ReportRepositoryFindByIdMutationTest extends TestCase
         $this->assertSame('Bureau 204', $report->lieu);
         $this->assertSame('Dupont', $report->declarantNom);
         $this->assertSame('Jean', $report->declarantPrenom);
-        $this->assertSame('5', $report->pourCompteDe);
+        $this->assertSame('', $report->pourCompteDe, 'pourCompteDe is NULL in DB → defaults to empty string');
         $this->assertSame('Durant', $report->pourCompteNom);
         $this->assertSame('Pierre', $report->pourComptePrenom);
         $this->assertSame('usager', $report->natureAuteur);

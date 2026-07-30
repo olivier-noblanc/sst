@@ -90,6 +90,9 @@ final class VisibilityPolicy
 - **JAMAIS** modifier `git config --global` — c'est un environnement partagé.
 - Toute modification git doit se faire au niveau projet : `git config --local` ou variables d'environnement.
 
+### Rapports d'audit — jamais dans `worklog.md`/`download/`
+`worklog.md` et `download/` sont gitignorés (« artefacts d'agent internes »), et donc perdus dès la fin de la session d'un agent local. Le 26/07, un audit a identifié 98 bugs ; seuls ceux repris individuellement dans `TODO.md` ont survécu — le détail des 76 restants (Batch 8/9, Medium/Low) a disparu avec la session, sans qu'aucun commit ne le conserve. Règle : tout rapport d'audit, liste de bugs, ou tout autre document destiné à être réutilisé au-delà de la session en cours va dans un chemin suivi par git (ex. `docs/audits/`), jamais uniquement dans `worklog.md` ou `download/`. Ces deux chemins restent réservés au scratch space véritablement jetable (exports temporaires, résultats d'outils intermédiaires).
+
 ### Testing — Obligatoire avant chaque push
 - **TOUJOURS** lancer les tests (`rtk phpunit --no-coverage`) avant un `git push`.
 - **TOUJOURS** vérifier que PHPStan passe (`rtk phpstan analyse --memory-limit=1G`) avant de push.

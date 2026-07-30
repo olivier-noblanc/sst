@@ -142,16 +142,16 @@ class FormattingServiceMutationTest extends TestCase
     public function testTruncateLongStringWithEllipsis(): void
     {
         // Kill mb_substr mutant + Concat on '…'
-        // Check length and suffix separately to avoid encoding edge cases
-        // in assertSame with concatenated multibyte strings.
         $ellipsis = "\u{2026}";
 
         $result5 = $this->service->truncate('Hello World', 5);
+        // 'Hello World' has 11 chars → truncate to 5 → 'Hello' + '…' = 6 chars
         $this->assertSame(6, mb_strlen($result5, 'UTF-8'), '5 chars + 1 ellipsis = 6');
         $this->assertTrue(str_ends_with($result5, $ellipsis), 'must end with ellipsis');
         $this->assertSame('Hello', mb_substr($result5, 0, 5, 'UTF-8'), 'first 5 chars preserved');
 
         $result10 = $this->service->truncate('Hello World', 10);
+        // 'Hello World' has 11 chars → truncate to 10 → 'Hello Worl' + '…' = 11 chars
         $this->assertSame(11, mb_strlen($result10, 'UTF-8'), '10 chars + 1 ellipsis = 11');
         $this->assertTrue(str_ends_with($result10, $ellipsis), 'must end with ellipsis');
         $this->assertSame('Hello Worl', mb_substr($result10, 0, 10, 'UTF-8'), 'first 10 chars preserved');

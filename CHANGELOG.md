@@ -3,6 +3,14 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.58.0] — 2026-07-30
+
+### PHPStan — `NoInvalidSqliteRaiseRule` : empêche la réapparition du bug RAISE(...||...)
+
+- **1** 🔴 **`src/PHPStan/NoInvalidSqliteRaiseRule.php`** (nouveau) — bloque `RAISE(ABORT|FAIL|ROLLBACK, ... || ...)` dans tout string PHP. SQLite n'accepte qu'un littéral statique comme message RAISE ; une expression concaténée compile en PHP mais échoue à l'exécution du trigger avec un message peu explicite (`syntax error near '||'`). C'est exactement le bug du commit `1859fdd` qui avait cassé PHPUnit + Infection pendant 5 commits avant d'être repéré. Les triggers fautifs ont depuis été supprimés (`c125cf4`), cette règle empêche qu'un futur trigger réintroduise le même piège.
+- **2** 🔴 **`tests/unit/PHPStanRulesTest.php`** — nouveau test `testNoInvalidSqliteRaiseInProductionCode()`, même pattern que les tests existants pour cette classe de règles.
+
+
 ## [3.57.0] — 2026-07-30
 
 ### Refactoring — `AnonymizationPolicy` : consolidation RGPD + garde-fou PHPStan

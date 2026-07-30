@@ -133,6 +133,34 @@ class PHPStanRulesTest extends TestCase
     }
 
     /**
+     * Verify that NoInvalidSqliteRaiseRule blocks RAISE(ABORT|FAIL|ROLLBACK, ... || ...)
+     * — SQLite only accepts a string literal there, not a concatenated expression
+     * (historical bug, commit 1859fdd — broke CI for 5 commits).
+     */
+    public function testNoInvalidSqliteRaiseInProductionCode(): void
+    {
+        $pattern = '/RAISE\s*\(\s*(ABORT|FAIL|ROLLBACK)\s*,\s*[^)]*\|\|/i';
+        $productionFiles = $this->getProductionFiles();
+
+        $violations = [];
+        foreach ($productionFiles as $file) {
+            $content = file_get_contents($file);
+            if ($content === false) {
+                continue;
+            }
+
+            if (preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE)) {
+                foreach ($matches[0] as $match) {
+                    $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                    $violations[] = basename($file) . ':' . $line;
+                }
+            }
+        }
+
+        $this->assertEmpty($violations, 'RAISE(...) avec expression concaténée trouvé (SQLite exige un littéral) : ' . implode(', ', $violations));
+    }
+
+    /**
      * Get all production PHP files (excluding tests, vendor, seed, tools).
      *
      * @return list<string>

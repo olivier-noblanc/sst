@@ -43,3 +43,7 @@ services:
         class: App\PHPStan\NoRawAnonymizationLiteralRule
         tags:
             - phpstan.rules.rule
+    -
+        class: App\PHPStan\NoInvalidSqliteRaiseRule
+        tags:
+            - phpstan.rules.rule

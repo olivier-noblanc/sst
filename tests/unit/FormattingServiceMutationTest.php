@@ -142,10 +142,10 @@ class FormattingServiceMutationTest extends TestCase
     public function testTruncateLongStringWithEllipsis(): void
     {
         // Kill mb_substr mutant + Concat on '…'
-        // Use assertEquals (not assertSame) because the ellipsis '…' is a
-        // multi-byte UTF-8 char — assertSame can fail on encoding edge cases.
-        $this->assertEquals('Hello…', $this->service->truncate('Hello World', 5));
-        $this->assertEquals('Hello Wor…', $this->service->truncate('Hello World', 10));
+        // Use \u{2026} to ensure identical UTF-8 encoding with the source file.
+        $ellipsis = "\u{2026}";
+        $this->assertSame('Hello' . $ellipsis, $this->service->truncate('Hello World', 5));
+        $this->assertSame('Hello Wor' . $ellipsis, $this->service->truncate('Hello World', 10));
     }
 
     public function testTruncateDefaultLengthIs50(): void
@@ -153,7 +153,7 @@ class FormattingServiceMutationTest extends TestCase
         // Kill default value mutant (50 → other)
         $long = str_repeat('a', 60);
         $result = $this->service->truncate($long);
-        $this->assertSame(str_repeat('a', 50) . '…', $result, 'default length must be 50');
+        $this->assertSame(str_repeat('a', 50) . "\u{2026}", $result, 'default length must be 50');
     }
 
     public function testTruncateHandlesAccentsCorrectly(): void
@@ -161,14 +161,14 @@ class FormattingServiceMutationTest extends TestCase
         // Kill mb_strlen mutant — accents count as 1 char
         $input = str_repeat('é', 10);
         $result = $this->service->truncate($input, 5);
-        $this->assertSame(str_repeat('é', 5) . '…', $result, 'accents must count as 1 char');
+        $this->assertSame(str_repeat('é', 5) . "\u{2026}", $result, 'accents must count as 1 char');
     }
 
     public function testTruncateCastsInputToString(): void
     {
         // Kill CastString mutant on (string) $string
         $this->assertSame('42', $this->service->truncate(42, 10));
-        $this->assertSame('123…', $this->service->truncate(12345, 3));
+        $this->assertSame('123' . "\u{2026}", $this->service->truncate(12345, 3));
     }
 
     // ═══ getEtatBadgeClass() ═══

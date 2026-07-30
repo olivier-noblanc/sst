@@ -37,7 +37,7 @@ foreach ($enabledRegistries as $regCode) {
     <div class="welcome-banner__content">
         <h2 class="welcome-banner__title">Bienvenue dans l'Application SST</h2>
         <p class="welcome-banner__text">Aucun signalement n'a encore été enregistré.</p>
-        <a href="<?php echo $http->url('help'); ?>" class="welcome-banner__link">Consulter la documentation</a>
+        <a href="<?php echo $http->url('changelog'); ?>" class="welcome-banner__link">Consulter les nouveautés</a>
     </div>
 </div>
 <?php endif; ?>

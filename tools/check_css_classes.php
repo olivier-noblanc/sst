@@ -25,7 +25,6 @@ $showAll = !$filterUnused && !$filterMissing;
 $cssFiles = [
     $projectDir . '/public/css/style.css',
     $projectDir . '/public/css/login.css',
-    $projectDir . '/public/css/guide.css',
 ];
 
 $cssClasses = [];
@@ -63,8 +62,8 @@ $excludedStrings = [
     'report_list', 'report_create', 'report_edit', 'report_view', 'report_print',
     'report_respond', 'report_reopen', 'report_abandon', 'report_attachment',
     'site_edit', 'user_edit', 'user_view', 'user_create', 'user_delete', 'user_reactivate',
-    'settings', 'statistics', 'synthesis', 'export', 'changelog', 'help', 'guide',
-    'preamble', 'access_denied', 'choose_site', 'login', 'logout', 'impersonate',
+    'settings', 'statistics', 'synthesis', 'export', 'changelog',
+    'access_denied', 'choose_site', 'login', 'logout', 'impersonate',
     // Variable names (PHP identifiers, not CSS)
     'username', 'site_code', 'site_nom', 'site_id', 'site_chosen_at', 'site_text',
     'word_cloud_words', 'report_uuid', 'report_created', 'report_abandoned',
@@ -119,7 +118,6 @@ $dynamicCssClasses = [
     'breadcrumb', 'breadcrumb__item', 'breadcrumb__current', 'breadcrumb__separator',
     // Login (standalone page, not in templates/)
     'login-form', 'login-dev-info', 'login-disclaimer',
-    // Help notes (built dynamically in help pages)
     'help-note--amber', 'help-note--inline', 'help-screenshot',
     // Confirm dialog (built dynamically)
     'confirm-box', 'confirm-box__actions', 'confirm-dialog__actions',

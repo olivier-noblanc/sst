@@ -93,18 +93,4 @@ $menuItems = array_merge($menuItems, [
         <?php endforeach; ?>
     </ul>
 
-    <div class="sidebar__footer">
-        <a href="<?php echo new \App\Services\HttpService()->url('guide'); ?>" class="sidebar__item<?php echo $currentPage === 'guide' ? ' sidebar__item--active' : ''; ?>">
-            <span class="sidebar__icon" aria-hidden="true">&#128196;</span>
-            Guide rapide
-        </a>
-        <a href="<?php echo new \App\Services\HttpService()->url('help'); ?>" class="sidebar__item<?php echo $currentPage === 'help' ? ' sidebar__item--active' : ''; ?>">
-            <span class="sidebar__icon" aria-hidden="true">&#128218;</span>
-            Documentation
-        </a>
-        <a href="<?php echo new \App\Services\HttpService()->url('preamble'); ?>" class="sidebar__item<?php echo $currentPage === 'preamble' ? ' sidebar__item--active' : ''; ?>">
-            <span class="sidebar__icon" aria-hidden="true">&#128214;</span>
-            Préambule
-        </a>
-    </div>
 </nav>

@@ -40,11 +40,6 @@ test.describe('Sidebar Navigation (Superviseur)', () => {
     await expect(page.locator('#main-content h1').first()).toContainText('Historique des modifications');
   });
 
-  test('should navigate to help page', async ({ page }) => {
-    await page.goto('/index.php?page=help');
-    await expect(page).toHaveURL(/page=help/);
-  });
-
   test('should navigate to settings page', async ({ page }) => {
     await page.goto('/index.php?page=settings');
     await expect(page).toHaveURL(/page=settings/);
@@ -89,7 +84,7 @@ test.describe('Page Layout', () => {
   });
 
   test('should have footer with version on all pages', async ({ page }) => {
-    const pages = ['home', 'help', 'changelog', 'settings'];
+    const pages = ['home', 'changelog', 'settings'];
     
     for (const pageName of pages) {
       await page.goto(`/index.php?page=${pageName}`);

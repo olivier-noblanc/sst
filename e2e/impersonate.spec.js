@@ -80,7 +80,7 @@ test.describe('Impersonate — Banner', () => {
 
   test('should show impersonation banner on all pages', async ({ page }) => {
     // Check banner persists across different pages
-    const pages = ['home', 'report_list&type=rsst', 'help', 'changelog'];
+    const pages = ['home', 'report_list&type=rsst', 'changelog'];
     for (const pageParam of pages) {
       await page.goto(`/index.php?page=${pageParam}`);
       await expect(page.locator('.impersonate-banner').first()).toBeVisible();

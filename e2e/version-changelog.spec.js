@@ -45,12 +45,12 @@ test.describe('Footer Version Display', () => {
     await page.goto('/index.php?page=home');
     const homeVersion = await page.locator('.footer-version').textContent();
     
-    // Check version on settings page
-    await page.goto('/index.php?page=help');
-    const helpVersion = await page.locator('.footer-version').textContent();
-    
+    // Check version on changelog page
+    await page.goto('/index.php?page=changelog');
+    const otherVersion = await page.locator('.footer-version').textContent();
+
     // Should be the same version
-    expect(homeVersion).toBe(helpVersion);
+    expect(homeVersion).toBe(otherVersion);
   });
 
 });

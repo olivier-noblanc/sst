@@ -3,7 +3,7 @@
 Ce document liste les captures d'écran PNG annotées de l'application réelle.
 
 Les captures sont au format **PNG annoté** (numérotation + flèches + descriptions), pas HTML.
-Elles sont intégrées dans la page de Documentation (`help.php`) via des `<img>` (imprimables).
+Elles sont intégrées dans la page de Documentation via des `<img>` (imprimables).
 
 ## Captures disponibles
 
@@ -24,8 +24,6 @@ Elles sont intégrées dans la page de Documentation (`help.php`) via des `<img>
 | `cu9-parametres.png` | admin.dev | `?page=settings` | CU7 | Paramètres (Application, SMTP, Notifications) |
 | `cu10-utilisateurs.png` | admin.dev | `?page=users` | CU7 | Gestion des utilisateurs |
 | `cu11-journaux.png` | admin.dev | `?page=logs` | — | Journaux d'audit |
-| `cu12-aide.png` | agent.dev | `?page=help` | — | Page de documentation |
-| `cu13-preambule.png` | agent.dev | `?page=preamble` | — | Page Préambule RGPD |
 | `cu14-journal-modifs.png` | agent.dev | `?page=changelog` | — | Historique des modifications |
 | `cu15-choix-site.png` | agent.dev | `?page=choose_site` | CU7 | Page de choix du site (première connexion) |
 

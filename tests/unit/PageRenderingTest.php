@@ -123,9 +123,6 @@ class PageRenderingTest extends TestCase
     {
         return [
             ['home', 'agent', []],
-            ['preamble', 'agent', []],
-            ['help', 'agent', []],
-            ['guide', 'agent', []],
             ['access_denied', 'agent', []],
             ['choose_site', 'agent', []],
             ['report_list', 'agent', ['type' => 'rsst']],
@@ -164,9 +161,6 @@ class PageRenderingTest extends TestCase
     {
         $pages = [
             ['home', 'agent', []],
-            ['preamble', 'agent', []],
-            ['help', 'agent', []],
-            ['guide', 'agent', []],
             ['access_denied', 'agent', []],
             ['report_list', 'agent', ['type' => 'rsst']],
             ['report_create', 'agent', ['type' => 'rsst']],

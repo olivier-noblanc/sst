@@ -25,16 +25,6 @@ class RouterPageTitleTest extends TestCase
         $this->assertEquals('Accueil', $this->router->getPageTitle('home'));
     }
 
-    public function testGetPageTitlePreamble(): void
-    {
-        $this->assertEquals('Préambule', $this->router->getPageTitle('preamble'));
-    }
-
-    public function testGetPageTitleHelp(): void
-    {
-        $this->assertEquals('Documentation', $this->router->getPageTitle('help'));
-    }
-
     public function testGetPageTitleReportCreate(): void
     {
         $_GET['type'] = 'rsst';

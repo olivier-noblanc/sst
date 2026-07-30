@@ -117,7 +117,7 @@ C:\inetpub\sst\
 │   ├── index.php    ← Routeur principal
 │   ├── web.config   ← Configuration IIS
 │   ├── css/         ← Feuilles de style
-│   └── screenshots/ ← PNG annotés (aide en ligne)
+│   └── screenshots/ ← PNG annotés
 ├── src/             ← Logique métier
 │   ├── config.php   ← Configuration (APP_ENV, modes visibilité)
 │   ├── database.php ← Connexion SQLite + auto-migration

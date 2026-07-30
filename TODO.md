@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-29 (v3.55.0)
+Dernière mise à jour : 2026-07-30 (v3.59.0)
 
 ---
 
@@ -9,6 +9,7 @@ Dernière mise à jour : 2026-07-29 (v3.55.0)
 | Métrique | Valeur |
 |----------|--------|
 | PHPStan erreurs | **0** |
+| Pages supprimées | **guide / help / preamble** (v3.59.0) |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule + NoBareDeleteInTestsRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
 | Tests | **1001** (2271 assertions) |

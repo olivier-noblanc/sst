@@ -182,16 +182,16 @@ test.describe('Browser Back/Forward Navigation', () => {
 
   test('should handle browser forward after back', async ({ page }) => {
     await page.goto('/index.php?page=home');
-    await page.goto('/index.php?page=help');
-    await expect(page).toHaveURL(/page=help/);
+    await page.goto('/index.php?page=changelog');
+    await expect(page).toHaveURL(/page=changelog/);
 
     // Go back to home
     await page.goBack();
     await expect(page).toHaveURL(/page=home/);
 
-    // Go forward to help
+    // Go forward to changelog
     await page.goForward();
-    await expect(page).toHaveURL(/page=help/);
+    await expect(page).toHaveURL(/page=changelog/);
   });
 
   test('should preserve session after browser navigation', async ({ page }) => {
@@ -216,7 +216,7 @@ test.describe('Cross-Page Navigation Flows', () => {
 
   test('should navigate from home to all main pages and back', async ({ page }) => {
     const pages = [
-      { name: 'help', sidebarSelector: '.sidebar a[href*="page=help"]' },
+
       { name: 'changelog', sidebarSelector: '.sidebar a[href*="page=home"]' },  // no direct sidebar link
     ];
 
@@ -343,7 +343,7 @@ test.describe('Session Persistence Across Navigation', () => {
     // Navigate through many pages — session should persist
     const pagesToVisit = [
       'home', 'report_list&type=rsst',
-      'help', 'changelog', 'preamble',
+      'changelog',
       'synthesis', 'export', 'statistics', 'users', 'settings',
     ];
 

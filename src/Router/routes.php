@@ -68,9 +68,6 @@ function createRouter(): Router
     });
 
     $router->addRoute('home', 'home', ['GET'], $layout('home'));
-    $router->addRoute('preamble', 'preamble', ['GET'], $layout('preamble'));
-    $router->addRoute('help', 'help', ['GET'], $layout('help'));
-    $router->addRoute('guide', 'guide', ['GET'], $layout('guide'));
     $router->addRoute('changelog', 'changelog', ['GET'], $layout('changelog'));
     $router->addRoute('access_denied', 'access_denied', ['GET'], $layout('access_denied'));
     $router->addRoute('report_list', 'report_list', ['GET'], $layout('report_list'));
@@ -113,9 +110,6 @@ function createRouter(): Router
     // ═══════════════════════════════════════════════════════════════════════════════
 
     $router->setPageTitle('home', 'Accueil');
-    $router->setPageTitle('preamble', 'Préambule');
-    $router->setPageTitle('help', 'Documentation');
-    $router->setPageTitle('guide', 'Guide rapide — Comment signaler');
     $router->setPageTitle('changelog', 'Historique des modifications');
     $router->setPageTitle('choose_site', 'Choisir mon site');
     $router->setPageTitle('report_create', getConfigService()->get('app_report_create_label', 'Signaler un événement'));

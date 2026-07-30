@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.59.0] — 2026-07-30
+
+### Suppression pages Guide / Documentation / Préambule
+
+- **3** 🔴 **`pages/guide.php`**, **`pages/help.php`**, **`pages/help/_*.php`**, **`pages/preamble.php`** — pages supprimées
+- **1** 🔴 **`public/css/guide.css`** — CSS dédié supprimé
+- **1** 🔴 **`templates/sidebar.php`** — footer avec les 3 liens supprimé du menu latéral
+- **3** 🔴 **`src/Router/routes.php`** — routes `preamble`, `help`, `guide` retirées (GET + page titles)
+- **~10** 🟢 `pages/home.php`, `pages/settings/tab_app.php`, `tools/check_css_classes.php`, `docs/screenshots/CAPTURES.md`, 2 tests unitaires, 5 specs e2e — mises à jour des références
+- **6** 🟢 `public/screenshots/`, `docs/screenshots/` — 5 PNG + 2 HTML supprimés
+- **58/58** tests verts, **0** régression
+
 ## [3.58.0] — 2026-07-30
 
 ### PHPStan — `NoInvalidSqliteRaiseRule` : empêche la réapparition du bug RAISE(...||...)

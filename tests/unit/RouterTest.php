@@ -46,9 +46,7 @@ class RouterTest extends TestCase
         $this->assertContains('settings', $pages);
         $this->assertContains('users', $pages);
         $this->assertContains('user_edit', $pages);
-        $this->assertContains('help', $pages);
         $this->assertContains('changelog', $pages);
-        $this->assertContains('preamble', $pages);
     }
 
     public function testGetValidPagesDoesNotContainEmptyStrings(): void

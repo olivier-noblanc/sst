@@ -30,17 +30,9 @@ test.describe('Agent Role Access', () => {
     await expect(page.locator('#objet')).toBeVisible();
   });
 
-  test('should access help and changelog pages', async ({ page }) => {
-    await page.goto('/index.php?page=help');
-    await expect(page).toHaveURL(/page=help/);
-
+  test('should access changelog page', async ({ page }) => {
     await page.goto('/index.php?page=changelog');
     await expect(page).toHaveURL(/page=changelog/);
-  });
-
-  test('should access preamble page', async ({ page }) => {
-    await page.goto('/index.php?page=preamble');
-    await expect(page).toHaveURL(/page=preamble/);
   });
 
   test('should NOT access synthesis page', async ({ page }) => {
@@ -116,7 +108,7 @@ test.describe('Superviseur Role Access', () => {
     const accessiblePages = [
       'home', 'report_list&type=rsst',
       'synthesis', 'export', 'statistics', 'users', 'settings', 'logs',
-      'help', 'changelog', 'preamble'
+      'changelog'
     ];
 
     for (const pageParam of accessiblePages) {

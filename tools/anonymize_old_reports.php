@@ -49,6 +49,11 @@ $projectRoot = dirname(__DIR__);
 require_once $projectRoot . '/src/config.php';
 require_once $projectRoot . '/src/helpers.php';
 require_once $projectRoot . '/src/database.php';
+// AnonymizationPolicy — mêmes valeurs que UserRepository::anonymize()/ReportRepository::anonymize().
+// Pas d'autoload complet ici (src/autoload.php tire session/auth, hors-sujet en CLI) —
+// require ciblé, même pattern que src/database.php pour RegistryRepository/ReportType.
+require_once $projectRoot . '/src/Enum/ReportState.php';
+require_once $projectRoot . '/src/Repository/AnonymizationPolicy.php';
 
 try {
     $pdo = getDB();
@@ -84,8 +89,8 @@ echo "Date de coupure : les signalements traités/abandonnés avant le {$cutoffD
 $sql = "SELECT uuid, reference, type, declarant_nom, declarant_prenom, date_evenement, etat
         FROM reports
         WHERE etat IN ('traite', 'abandonne')
-          AND date_evenement < :cutoff_date
-          AND declarant_nom != 'Anonymisé'";
+          AND COALESCE(date_reponse, date_evenement, created_at) < :cutoff_date
+          AND declarant_nom != '" . \App\Repository\AnonymizationPolicy::ANONYMIZED_NAME . "'";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute([':cutoff_date' => $cutoffDate]);
@@ -144,22 +149,11 @@ $errors = 0;
 $pdo->beginTransaction();
 
 try {
-    $updateStmt = $pdo->prepare("
-        UPDATE reports
-        SET declarant_nom = 'Anonymisé',
-            declarant_prenom = 'Anonymé',
-            pour_compte_nom = NULL,
-            pour_compte_prenom = NULL,
-            updated_at = datetime('now')
-        WHERE uuid = :uuid
-          AND etat IN ('traite', 'abandonne')
-          AND declarant_nom != 'Anonymisé'
-    ");
+    $anonymizationPolicy = new \App\Repository\AnonymizationPolicy();
 
     foreach ($reports as $report) {
         try {
-            $updateStmt->execute([':uuid' => $report['uuid']]);
-            if ($updateStmt->rowCount() > 0) {
+            if ($anonymizationPolicy->anonymizeReport($pdo, $report['uuid'])) {
                 $anonymized++;
             }
         } catch (Exception $e) {

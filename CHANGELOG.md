@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.57.0] — 2026-07-30
+
+### Refactoring — `AnonymizationPolicy` : consolidation RGPD + garde-fou PHPStan
+
+- **1** 🔴 **`src/Repository/AnonymizationPolicy.php`** (nouveau) — seule source de vérité pour les valeurs (`ANONYMIZED_NAME`, `ANONYMIZED_FIRSTNAME`, `ANONYMIZED_USER_FIRSTNAME`) et pour la liste des tables liées à `users(id)` (`USER_ANONYMIZATION_TARGETS`). `UserRepository::anonymize()` et `ReportRepository::anonymize()` délèguent désormais à cette classe au lieu de dupliquer chacun leur SQL.
+- **2** 🔴 **`src/PHPStan/NoRawAnonymizationLiteralRule.php`** (nouveau) — bloque `'Anonymisé'`/`'Anonymé'` en dur en dehors de `AnonymizationPolicy.php`. Enregistrée dans `phpstan-no-magic-string.neon`.
+- **3** 🟡 **`tools/anonymize_old_reports.php`** — troisième duplication trouvée en écrivant la règle ci-dessus (scannée par PHPStan, `pages`/`tools` inclus). Corrigée : utilise désormais `AnonymizationPolicy::anonymizeReport()`. Corrige au passage une régression du bug #46 (cutoff sur `date_evenement` au lieu de `COALESCE(date_reponse, date_evenement, created_at)`) que ce script n'avait jamais reçue, contrairement à `ReportRepository::findAnonymizable()`.
+- **4** 🔴 **`pages/user_view.php`** — 2 comparaisons `$userNom !== 'Anonymisé'` remplacées par `AnonymizationPolicy::ANONYMIZED_NAME`.
+- **5** 🔴 **`tests/unit/PHPStanRulesTest.php`** — nouveau test `testNoRawAnonymizationLiteralsInProductionCode()`, même pattern que les tests `NoLegacyConstantRule` existants.
+
+
 ## [3.56.0] — 2026-07-30
 
 ### Fix — RGPD : `report_agents` (agents rattachés) jamais anonymisé

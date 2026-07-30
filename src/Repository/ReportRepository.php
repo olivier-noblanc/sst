@@ -1131,7 +1131,7 @@ class ReportRepository
             FROM reports
             WHERE etat IN ('" . ReportState::Traite->value . "', '" . ReportState::Abandonne->value . "')
               AND COALESCE(date_reponse, date_evenement, created_at) < :cutoff_date
-              AND declarant_nom != 'Anonymisé'
+              AND declarant_nom != '" . AnonymizationPolicy::ANONYMIZED_NAME . "'
         ");
         $stmt->execute([':cutoff_date' => $cutoffDate]);
         /** @var list<array{uuid: string, reference: string, type: string, declarant_nom: string, declarant_prenom: string, date_evenement: string, etat: string}> $rows */
@@ -1144,19 +1144,7 @@ class ReportRepository
      */
     public function anonymize(string $uuid): bool
     {
-        $stmt = $this->pdo->prepare("
-            UPDATE reports
-            SET declarant_nom = 'Anonymisé',
-                declarant_prenom = 'Anonymé',
-                pour_compte_nom = NULL,
-                pour_compte_prenom = NULL,
-                telephone_mobile = NULL,
-                updated_at = datetime('now')
-            WHERE uuid = :uuid
-              AND etat IN ('" . ReportState::Traite->value . "', '" . ReportState::Abandonne->value . "')
-              AND declarant_nom != 'Anonymisé'
-        ");
-        $stmt->execute([':uuid' => $uuid]);
-        return $stmt->rowCount() > 0;
+        // Consolidé dans AnonymizationPolicy — mêmes valeurs que UserRepository::anonymize().
+        return (new AnonymizationPolicy())->anonymizeReport($this->pdo, $uuid);
     }
 }

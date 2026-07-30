@@ -99,6 +99,40 @@ class PHPStanRulesTest extends TestCase
     }
 
     /**
+     * Verify that NoRawAnonymizationLiteralRule blocks 'Anonymisé'/'Anonymé' literals
+     * outside AnonymizationPolicy.php (single source of truth for anonymization values).
+     */
+    public function testNoRawAnonymizationLiteralsInProductionCode(): void
+    {
+        $blockedLiterals = ['Anonymisé', 'Anonymé'];
+        $productionFiles = $this->getProductionFiles();
+
+        $violations = [];
+        foreach ($productionFiles as $file) {
+            if (basename($file) === 'AnonymizationPolicy.php') {
+                continue;
+            }
+
+            $content = file_get_contents($file);
+            if ($content === false) {
+                continue;
+            }
+
+            foreach ($blockedLiterals as $literal) {
+                $pattern = '/[\'"]' . preg_quote($literal, '/') . '[\'"]/';
+                if (preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE)) {
+                    foreach ($matches[0] as $match) {
+                        $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                        $violations[] = basename($file) . ':' . $line . ' — ' . $literal;
+                    }
+                }
+            }
+        }
+
+        $this->assertEmpty($violations, "Littéraux d'anonymisation en dur trouvés hors AnonymizationPolicy.php : " . implode(', ', $violations));
+    }
+
+    /**
      * Get all production PHP files (excluding tests, vendor, seed, tools).
      *
      * @return list<string>

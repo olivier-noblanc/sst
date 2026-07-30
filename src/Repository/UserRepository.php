@@ -297,50 +297,10 @@ class UserRepository
     {
         $this->pdo->beginTransaction();
         try {
-            // Audit #8 + #24 — anonymize username (was preserved, RGPD incomplete).
-            // username is UNIQUE NOT NULL — using a per-user suffix keeps it unique
-            // even after multiple anonymization attempts.
-            $stmt = $this->pdo->prepare("
-                UPDATE users
-                SET nom = 'Anonymisé', prenom = 'Utilisateur', email = NULL,
-                    username = 'anonymized_' || CAST(:id AS TEXT),
-                    is_active = 0, updated_at = datetime('now')
-                WHERE id = :id
-            ");
-            $stmt->execute([':id' => $id]);
-
-            $stmt = $this->pdo->prepare("
-                UPDATE reports
-                SET declarant_nom = 'Anonymisé', declarant_prenom = 'Anonymé',
-                    telephone_mobile = NULL
-                WHERE declarant_id = :id
-            ");
-            $stmt->execute([':id' => $id]);
-
-            $stmt = $this->pdo->prepare('
-                UPDATE reports SET repondant_id = NULL WHERE repondant_id = :id AND repondant_id IS NOT NULL
-            ');
-            $stmt->execute([':id' => $id]);
-
-            // Audit #8 — report_responses.user_id was NOT NULL. Now nullable via
-            // migration_columns.php. SET NULL works after migration runs.
-            $stmt = $this->pdo->prepare('
-                UPDATE report_responses SET user_id = NULL WHERE user_id = :id AND user_id IS NOT NULL
-            ');
-            $stmt->execute([':id' => $id]);
-
-            $stmt = $this->pdo->prepare('
-                UPDATE report_access_log SET user_id = NULL WHERE user_id = :id AND user_id IS NOT NULL
-            ');
-            $stmt->execute([':id' => $id]);
-
-            // RGPD gap — report_agents (agents rattachés à un signalement) was never
-            // touched by anonymize(): user_id is NOT NULL with no ON DELETE CASCADE/SET
-            // NULL, and the table has no payload beyond the link itself (report_uuid,
-            // user_id) — unlike report_responses/report_access_log, nulling user_id
-            // would leave a meaningless row, so the link is deleted outright instead.
-            $stmt = $this->pdo->prepare('DELETE FROM report_agents WHERE user_id = :id');
-            $stmt->execute([':id' => $id]);
+            // Consolidé dans AnonymizationPolicy — valeurs et liste des tables
+            // liées ne vivent plus qu'à un seul endroit (voir sa docblock pour
+            // le pourquoi : c'est ce qui a laissé passer le trou report_agents).
+            (new AnonymizationPolicy())->anonymizeUser($this->pdo, $id);
 
             try {
                 $this->pdo->exec('DELETE FROM reports_fts');

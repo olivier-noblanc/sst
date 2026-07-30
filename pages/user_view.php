@@ -111,7 +111,7 @@ $pageTitle = 'Utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNom);
     <a href="<?php echo $http->url('users'); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>
 
-<?php if (!empty($user['is_active']) || $userNom !== 'Anonymisé'): ?>
+<?php if (!empty($user['is_active']) || $userNom !== \App\Repository\AnonymizationPolicy::ANONYMIZED_NAME): ?>
 <div class="card rgpd-section mt-5">
     <h3 class="card__subtitle text-muted">RGPD — Données personnelles</h3>
     <p class="rgpd-section__desc">
@@ -125,7 +125,7 @@ $pageTitle = 'Utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNom);
             <input type="hidden" name="action" value="export_data">
             <button type="submit" class="btn btn--outline text-small">&#x1F4E5; Exporter les données (droit d'accès)</button>
         </form>
-        <?php if ($userNom !== 'Anonymisé'): ?>
+        <?php if ($userNom !== \App\Repository\AnonymizationPolicy::ANONYMIZED_NAME): ?>
         <?php if (isset($_GET['confirm_anonymize'])): ?>
         <span class="section-header--danger">&#x26A0;&#xFE0F; Anonymiser définitivement ?</span>
         <form method="POST" action="<?php echo $http->url('user_edit', ['id' => $userId]); ?>" class="form--inline">

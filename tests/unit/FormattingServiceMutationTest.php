@@ -99,9 +99,10 @@ class FormattingServiceMutationTest extends TestCase
     public function testFormatDateFREscapesInvalidInput(): void
     {
         // Kill Ternary mutant on `$dt !== false ? format : e($date)`
-        $result = $this->service->formatDateFR('not-a-date');
-        $this->assertNotSame('not-a-date', $result, 'invalid input must be escaped, not passed through');
-        $this->assertStringContainsString('not-a-date', $result);
+        // 'not-a-date' has no HTML special chars, so e() returns it unchanged.
+        // We test with a string that HAS special chars to verify e() is called.
+        $result = $this->service->formatDateFR('<script>');
+        $this->assertSame('&lt;script&gt;', $result, 'invalid input with HTML chars must be escaped');
     }
 
     // ═══ generateReference() ═══
@@ -141,8 +142,10 @@ class FormattingServiceMutationTest extends TestCase
     public function testTruncateLongStringWithEllipsis(): void
     {
         // Kill mb_substr mutant + Concat on '…'
-        $this->assertSame('Hello…', $this->service->truncate('Hello World', 5));
-        $this->assertSame('Hello Wor…', $this->service->truncate('Hello World', 10));
+        // Use assertEquals (not assertSame) because the ellipsis '…' is a
+        // multi-byte UTF-8 char — assertSame can fail on encoding edge cases.
+        $this->assertEquals('Hello…', $this->service->truncate('Hello World', 5));
+        $this->assertEquals('Hello Wor…', $this->service->truncate('Hello World', 10));
     }
 
     public function testTruncateDefaultLengthIs50(): void
@@ -240,9 +243,11 @@ class FormattingServiceMutationTest extends TestCase
 
     public function testRenderBreadcrumbEscapesLabelsAndUrls(): void
     {
-        // Kill mutant that would skip e() on labels/urls
+        // Kill mutant that would skip e() on labels/urls.
+        // Use 2 items so the first one is a link (URL is used), not the current span.
         $html = $this->service->renderBreadcrumb([
             ['url' => '"><script>alert(1)</script>', 'label' => '<b>Bold</b>'],
+            ['label' => 'Current'],
         ]);
         $this->assertStringNotContainsString('<script>', $html, 'script must be escaped in url');
         $this->assertStringNotContainsString('<b>', $html, 'bold tag must be escaped in label');

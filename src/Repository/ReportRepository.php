@@ -1145,6 +1145,6 @@ class ReportRepository
     public function anonymize(string $uuid): bool
     {
         // Consolidé dans AnonymizationPolicy — mêmes valeurs que UserRepository::anonymize().
-        return (new AnonymizationPolicy())->anonymizeReport($this->pdo, $uuid);
+        return new AnonymizationPolicy()->anonymizeReport($this->pdo, $uuid);
     }
 }

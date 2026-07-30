@@ -23,9 +23,9 @@ use PDO;
  */
 final class AnonymizationPolicy
 {
-    public const ANONYMIZED_NAME = 'Anonymisé';
-    public const ANONYMIZED_FIRSTNAME = 'Anonymé';
-    public const ANONYMIZED_USER_FIRSTNAME = 'Utilisateur';
+    public const string ANONYMIZED_NAME = 'Anonymisé';
+    public const string ANONYMIZED_FIRSTNAME = 'Anonymé';
+    public const string ANONYMIZED_USER_FIRSTNAME = 'Utilisateur';
 
     /**
      * Tables (hors users/reports) portant un user_id vers un utilisateur
@@ -35,7 +35,7 @@ final class AnonymizationPolicy
      *
      * @var list<array{table: string, column: string, mode: 'set_null'|'delete'}>
      */
-    public const USER_ANONYMIZATION_TARGETS = [
+    public const array USER_ANONYMIZATION_TARGETS = [
         ['table' => 'report_responses', 'column' => 'user_id', 'mode' => 'set_null'],
         ['table' => 'report_access_log', 'column' => 'user_id', 'mode' => 'set_null'],
         ['table' => 'report_agents', 'column' => 'user_id', 'mode' => 'delete'],

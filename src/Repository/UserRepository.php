@@ -300,7 +300,7 @@ class UserRepository
             // Consolidé dans AnonymizationPolicy — valeurs et liste des tables
             // liées ne vivent plus qu'à un seul endroit (voir sa docblock pour
             // le pourquoi : c'est ce qui a laissé passer le trou report_agents).
-            (new AnonymizationPolicy())->anonymizeUser($this->pdo, $id);
+            new AnonymizationPolicy()->anonymizeUser($this->pdo, $id);
 
             try {
                 $this->pdo->exec('DELETE FROM reports_fts');

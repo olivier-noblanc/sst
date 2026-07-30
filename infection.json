@@ -9,7 +9,7 @@
         ]
     },
     "timeout": 10,
-    "testFrameworkOptions": "--testsuite=\"SST Unit Tests\" --execution-order=default",
+    "testFrameworkOptions": "--testsuite=\"SST Unit Tests\"",
     "logs": {
         "text": "data/infection.log",
         "summary": "data/infection-summary.log",

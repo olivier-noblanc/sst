@@ -328,8 +328,12 @@ class StatsRepository
         // +1 hour shifts UTC to Europe/Paris winter time (CET). DST is ignored —
         // for accurate DST handling we'd need full timezone logic, but for a
         // year filter dropdown, +/-1h is good enough.
+        //
+        // NOTE: strftime() is a SQLite function but some CI environments (older
+        // SQLite or PHP 8.5 with deprecated strftime) may return NULL. Using
+        // substr() on the datetime result is more portable and always works.
         $stmt = $this->pdo->query("
-            SELECT DISTINCT strftime('%Y', datetime(created_at, '+1 hour')) as year
+            SELECT DISTINCT substr(datetime(created_at, '+1 hour'), 1, 4) as year
             FROM reports
             ORDER BY year DESC
         ");

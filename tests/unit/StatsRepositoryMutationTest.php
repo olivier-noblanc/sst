@@ -279,15 +279,12 @@ class StatsRepositoryMutationTest extends TestCase
 
     public function testGetAvailableYearsReturnsYearsFromReports(): void
     {
-        // Use mid-year dates to avoid timezone/year-boundary edge cases
         $this->seedReport('rsst', ReportState::Nouveau->value, null, null, null, '2025-06-15 12:00:00');
         $this->seedReport('rsst', ReportState::Nouveau->value, null, null, null, '2026-06-15 12:00:00');
 
         $result = $this->repo->getAvailableYears();
         $this->assertNotEmpty($result, 'should return at least one year');
         $years = array_column($result, 'year');
-        // strftime may return null on some SQLite versions — filter nulls
-        $years = array_filter($years, fn($y) => $y !== null);
         $this->assertContains('2025', $years, '2025 should be in available years');
         $this->assertContains('2026', $years, '2026 should be in available years');
     }
@@ -299,7 +296,7 @@ class StatsRepositoryMutationTest extends TestCase
         $this->seedReport('rsst', ReportState::Nouveau->value, null, null, null, '2024-06-15 12:00:00');
 
         $result = $this->repo->getAvailableYears();
-        $years = array_filter(array_column($result, 'year'), fn($y) => $y !== null);
+        $years = array_column($result, 'year');
         $this->assertNotEmpty($years, 'should have at least one year');
         if (count($years) >= 3) {
             $this->assertSame('2026', $years[0], 'most recent year first');

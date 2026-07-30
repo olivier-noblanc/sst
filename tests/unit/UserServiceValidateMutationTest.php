@@ -23,6 +23,8 @@ class UserServiceValidateMutationTest extends TestCase
     private UserService $service;
     private PDO $pdo;
 
+    private int $siteId;
+
     protected function setUp(): void
     {
         $this->pdo = getDB();
@@ -36,6 +38,7 @@ class UserServiceValidateMutationTest extends TestCase
         // Seed a site for site_id validation tests
         $this->pdo->prepare('INSERT INTO sites (code, nom, departement) VALUES (?, ?, ?)')
             ->execute(['UR21', 'UR Test', 'Test']);
+        $this->siteId = (int) $this->pdo->lastInsertId();
     }
 
     protected function tearDown(): void
@@ -52,7 +55,7 @@ class UserServiceValidateMutationTest extends TestCase
             'prenom' => 'Jean',
             'username' => 'jean.dupont',
             'role' => 'agent',
-            'site_id' => '1',
+            'site_id' => (string) $this->siteId,
             'email' => 'jean@gouv.fr',
         ];
     }
@@ -259,7 +262,7 @@ class UserServiceValidateMutationTest extends TestCase
     public function testValidateAcceptsValidSiteId(): void
     {
         $input = $this->validInput();
-        $input['site_id'] = '1'; // seeded in setUp
+        $input['site_id'] = (string) $this->siteId;
         $errors = $this->service->validate($input);
         $this->assertArrayNotHasKey('site_id', $errors);
     }
@@ -277,7 +280,7 @@ class UserServiceValidateMutationTest extends TestCase
     {
         // Kill CastInt mutant
         $input = $this->validInput();
-        $input['site_id'] = '1'; // string
+        $input['site_id'] = (string) $this->siteId; // string
         $errors = $this->service->validate($input);
         $this->assertArrayNotHasKey('site_id', $errors);
     }

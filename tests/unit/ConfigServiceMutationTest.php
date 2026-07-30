@@ -168,15 +168,18 @@ class ConfigServiceMutationTest extends TestCase
     public function testIsRegistryEnabledHandlesStringIsEnabledValue(): void
     {
         // Kill CastInt mutant on (int) $reg['is_enabled']
-        // RSST is enabled by default — is_enabled=1 (int in DB)
+        // Seed RSST as enabled for this test
+        $this->pdo->exec("INSERT INTO registries (code, label, short_label, is_enabled, is_system, sort_order, default_visibility) VALUES ('rsst', 'RSST', 'RSST', 1, 1, 1, 'agent_choice')");
+        clearConfigCache();
         $this->assertTrue($this->service->isRegistryEnabled('rsst'));
     }
 
     public function testIsRegistryEnabledReturnsFalseWhenIsEnabledIsZero(): void
     {
         // Kill Identical mutant on === 1
-        // RAMI/DGI are disabled by default (is_enabled=0)
+        // Seed RAMI as disabled (is_enabled=0)
+        $this->pdo->exec("INSERT INTO registries (code, label, short_label, is_enabled, is_system, sort_order, default_visibility) VALUES ('rami', 'RAMI', 'RAMI', 0, 0, 2, 'agent_choice')");
+        clearConfigCache();
         $this->assertFalse($this->service->isRegistryEnabled('rami'));
-        $this->assertFalse($this->service->isRegistryEnabled('dgi'));
     }
 }

@@ -73,13 +73,13 @@ if ($user === null) {
 /** @var array{role: string} $user */
 
 // Validate
-$errors = $service->validate($_POST, $userId);
-
 $cmd = UpdateUserCommand::fromPost($_POST);
+
+$errors = $service->validate($cmd, $userId);
 
 // Guard: prevent demoting the last active superviseur
 if ((string) $user['role'] === UserRole::Superviseur->value && $cmd->role !== UserRole::Superviseur->value) {
-    $demoteErrors = $service->canDemote($userId, $cmd->role, $user);
+    $demoteErrors = $service->canDemote($userId, $cmd->role, (string) $user['role']);
     $errors = array_merge($errors, $demoteErrors);
 
     if ($cmd->role === UserRole::Agent->value && empty($_POST['confirm_demotion'])) {

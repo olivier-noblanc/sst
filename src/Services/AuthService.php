@@ -9,6 +9,8 @@ use Throwable;
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
+use App\DTO\CreateUserCommand;
+use App\DTO\SiteId;
 
 class AuthService
 {
@@ -190,14 +192,14 @@ class AuthService
             $nom = ucfirst($parts[1]) . ' ' . ucfirst($parts[2]);
         }
 
-        $userId = $this->repo->create([
-            'username' => $username,
-            'nom'      => $nom,
-            'prenom'   => $prenom,
-            'email'    => $username . '@dreets.gouv.fr',
-            'role'     => $role,
-            'site_id'  => null,
-        ]);
+        $userId = $this->repo->create(new CreateUserCommand(
+            username: $username,
+            nom: $nom,
+            prenom: $prenom,
+            email: $username . '@dreets.gouv.fr',
+            role: $role,
+            siteId: SiteId::none(),
+        ));
 
         /** @var UserArray|null $user */
         $user = $this->repo->findById($userId);

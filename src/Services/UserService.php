@@ -23,7 +23,7 @@ class UserService
 
     public function create(CreateUserCommand $cmd): int
     {
-        $userId = $this->repo->create($cmd->toArray());
+        $userId = $this->repo->create($cmd);
         $user = $this->repo->findById($userId);
 
         $this->events->dispatch('user.created', [
@@ -43,7 +43,7 @@ class UserService
         }
         /** @var UserArray $user */
 
-        $demoteErrors = $this->canDemote($id, $cmd->role, $user);
+        $demoteErrors = $this->canDemote($id, $cmd->role, $user['role']);
         if (!empty($demoteErrors)) {
             throw new RuntimeException(implode(' ', $demoteErrors));
         }
@@ -51,7 +51,7 @@ class UserService
         $roleChanged = $user['role'] !== $cmd->role;
         // Audit #29 — test le retour du repo.update. Avant ce fix, l'event
         // 'user.updated' était dispatché même si l'UPDATE était no-op.
-        $updateResult = $this->repo->update($id, $cmd->toArray());
+        $updateResult = $this->repo->update($id, $cmd);
 
         if ($currentUserId === $id) {
             refreshCurrentUser($this->repo->getPdo());
@@ -165,61 +165,42 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @param array<string, string> $input
+     * @param CreateUserCommand|UpdateUserCommand $command
      * @return array<string, string>
      */
-    public function validate(array $input, int $excludeId = 0): array
+    public function validate(CreateUserCommand|UpdateUserCommand $command, int $excludeId = 0): array
     {
         $errors = [];
 
-        /** @var string */
-        $nomVal = $input['nom'] ?? '';
-        $nom = trim($nomVal);
-        if (empty($nom)) {
+        if (empty(trim($command->nom))) {
             $errors['nom'] = 'Le nom est requis.';
         }
 
-        /** @var string */
-        $prenomVal = $input['prenom'] ?? '';
-        $prenom = trim($prenomVal);
-        if (empty($prenom)) {
+        if (empty(trim($command->prenom))) {
             $errors['prenom'] = 'Le prénom est requis.';
         }
 
-        /** @var string */
-        $usernameVal = $input['username'] ?? '';
-        $username = trim($usernameVal);
+        $username = trim($command->username);
         if (empty($username)) {
             $errors['username'] = 'L\'identifiant est requis.';
         } elseif ($this->repo->existsByUsername($username, $excludeId)) {
             $errors['username'] = 'Cet identifiant est déjà utilisé';
         } elseif (!preg_match('/^[a-zA-Z0-9.\-_]{2,100}$/', $username)) {
-            // Audit #35 — validation format username. Before this fix, any string
-            // was accepted (including spaces, special chars, etc.). Now enforces
-            // the same pattern as the HTML <input pattern> attribute.
             $errors['username'] = 'L\'identifiant ne doit contenir que des lettres, chiffres, points, tirets et underscores (2 à 100 caractères).';
         }
 
-        /** @var string */
-        $roleVal = $input['role'] ?? '';
-        $role = trim($roleVal);
-        if (UserRole::tryFrom($role) === null) {
+        if (UserRole::tryFrom(trim($command->role)) === null) {
             $errors['role'] = 'Rôle invalide.';
         }
 
-        /** @var string */
-        $siteIdVal = $input['site_id'] ?? '0';
-        $siteId = (int) $siteIdVal;
-        if (!isNoSiteMode($this->repo->getPdo()) && $siteId > 0) {
-            $site = SiteRepository::instance()->findById($siteId);
+        if (!isNoSiteMode($this->repo->getPdo()) && $command->siteId->toSql() !== null) {
+            $site = SiteRepository::instance()->findById($command->siteId->toSql());
             if ($site === null) {
                 $errors['site_id'] = 'Site invalide.';
             }
         }
 
-        /** @var string */
-        $emailVal = $input['email'] ?? '';
-        $email = trim($emailVal);
+        $email = trim((string) $command->email);
         if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             $errors['email'] = 'Adresse email invalide.';
         }
@@ -240,13 +221,12 @@ class UserService
     }
 
     /**
-     * @param array{role: string} $user
      * @return array<string, string>
      */
-    public function canDemote(int $id, string $newRole, array $user): array
+    public function canDemote(int $id, string $newRole, string $currentRole): array
     {
         $errors = [];
-        if ($user['role'] === UserRole::Superviseur->value && $newRole !== UserRole::Superviseur->value) {
+        if ($currentRole === UserRole::Superviseur->value && $newRole !== UserRole::Superviseur->value) {
             if ($this->repo->countActiveSuperviseurs() <= 1) {
                 $errors['role'] = 'Impossible de rétrograder le dernier superviseur actif.';
             }

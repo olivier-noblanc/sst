@@ -11,6 +11,8 @@
  */
 
 use App\Repository\UserRepository;
+use App\DTO\CreateUserCommand;
+use App\DTO\SiteId;
 use PHPUnit\Framework\TestCase;
 
 class UserQueriesExportTest extends TestCase
@@ -39,9 +41,9 @@ class UserQueriesExportTest extends TestCase
     public function testCountActiveUsers(): void
     {
         $this->assertEquals(0, $this->users->countActive());
-        $this->users->create(['username' => 'u1', 'nom' => 'U1', 'prenom' => 'Test', 'role' => 'agent', 'site_id' => 1]);
+        $this->users->create(new CreateUserCommand(username: 'u1', nom: 'U1', prenom: 'Test', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
         $this->assertEquals(1, $this->users->countActive());
-        $id = $this->users->create(['username' => 'u2', 'nom' => 'U2', 'prenom' => 'Test', 'role' => 'agent', 'site_id' => 1]);
+        $id = $this->users->create(new CreateUserCommand(username: 'u2', nom: 'U2', prenom: 'Test', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
         $this->assertEquals(2, $this->users->countActive());
         $this->users->deactivate($id);
         $this->assertEquals(1, $this->users->countActive());
@@ -51,10 +53,10 @@ class UserQueriesExportTest extends TestCase
 
     public function testExportUserDataReturnsFullProfile(): void
     {
-        $id = $this->users->create([
-            'username' => 'export.test', 'nom' => 'Export', 'prenom' => 'Test',
-            'email' => 'export@test.fr', 'role' => 'agent', 'site_id' => 1,
-        ]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'export.test', nom: 'Export', prenom: 'Test',
+            email: 'export@test.fr', role: ROLE_AGENT, siteId: SiteId::fromInput(1),
+        ));
         $data = $this->users->exportData($id);
         $this->assertArrayHasKey('user', $data);
         $this->assertEquals('export.test', $data['user']['username']);
@@ -67,10 +69,10 @@ class UserQueriesExportTest extends TestCase
 
     public function testAnonymizeUserRemovesPersonalData(): void
     {
-        $id = $this->users->create([
-            'username' => 'anon.test', 'nom' => 'Sensitive', 'prenom' => 'Data',
-            'email' => 'sensitive@test.fr', 'role' => 'agent', 'site_id' => 1,
-        ]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'anon.test', nom: 'Sensitive', prenom: 'Data',
+            email: 'sensitive@test.fr', role: ROLE_AGENT, siteId: SiteId::fromInput(1),
+        ));
         $result = $this->users->anonymize($id);
         $this->assertTrue($result);
         $user = $this->users->findById($id);
@@ -84,10 +86,10 @@ class UserQueriesExportTest extends TestCase
 
     public function testUserRepositoryReturnsSiteFields(): void
     {
-        $user = $this->users->create([
-            'username' => 'site.test', 'nom' => 'Site', 'prenom' => 'Test',
-            'email' => 'site@test.fr', 'role' => 'agent', 'site_id' => 1,
-        ]);
+        $user = $this->users->create(new CreateUserCommand(
+            username: 'site.test', nom: 'Site', prenom: 'Test',
+            email: 'site@test.fr', role: ROLE_AGENT, siteId: SiteId::fromInput(1),
+        ));
         $result = $this->users->findById($user);
         $this->assertNotNull($result);
         $this->assertEquals('UR21', $result['site_code']);
@@ -96,10 +98,10 @@ class UserQueriesExportTest extends TestCase
 
     public function testUserWithoutSiteReturnsNullSiteFields(): void
     {
-        $id = $this->users->create([
-            'username' => 'no.site', 'nom' => 'NoSite', 'prenom' => 'User',
-            'role' => 'agent', 'site_id' => null,
-        ]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'no.site', nom: 'NoSite', prenom: 'User',
+            role: ROLE_AGENT, siteId: SiteId::none(), email: null,
+        ));
         $user = $this->users->findById($id);
         $this->assertNull($user['site_code']);
         $this->assertNull($user['site_nom']);

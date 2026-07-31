@@ -132,7 +132,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
     {
         $uuid = $this->seedReport('rsst', ReportState::Nouveau->value);
         $report = $this->repo->findById($uuid);
-        $result = $this->repo->getAdjacentUuids($report->toArray());
+        $result = $this->repo->getAdjacentUuids($report->type, $report->createdAt, $report->uuid);
         $this->assertNull($result->prev);
         $this->assertNull($result->next);
     }
@@ -144,7 +144,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $uuid3 = $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-03-01 10:00:00');
 
         $report = $this->repo->findById($uuid2);
-        $result = $this->repo->getAdjacentUuids($report->toArray());
+        $result = $this->repo->getAdjacentUuids($report->type, $report->createdAt, $report->uuid);
         $this->assertSame($uuid3, $result->prev, 'prev = newer report');
         $this->assertSame($uuid1, $result->next, 'next = older report');
     }
@@ -155,7 +155,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $uuid2 = $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-02-01 10:00:00');
 
         $report = $this->repo->findById($uuid2);
-        $result = $this->repo->getAdjacentUuids($report->toArray());
+        $result = $this->repo->getAdjacentUuids($report->type, $report->createdAt, $report->uuid);
         $this->assertNull($result->prev, 'newest report has no prev');
         $this->assertNotNull($result->next);
     }
@@ -166,14 +166,14 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-02-01 10:00:00');
 
         $report = $this->repo->findById($uuid1);
-        $result = $this->repo->getAdjacentUuids($report->toArray());
+        $result = $this->repo->getAdjacentUuids($report->type, $report->createdAt, $report->uuid);
         $this->assertNotNull($result->prev);
         $this->assertNull($result->next, 'oldest report has no next');
     }
 
     public function testGetAdjacentUuidsReturnsNullsForEmptyArray(): void
     {
-        $result = $this->repo->getAdjacentUuids([]);
+        $result = $this->repo->getAdjacentUuids('rsst', '', '');
         $this->assertNull($result->prev);
         $this->assertNull($result->next);
     }

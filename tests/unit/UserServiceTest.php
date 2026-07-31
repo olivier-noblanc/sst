@@ -394,58 +394,72 @@ class UserServiceTest extends TestCase
 
     public function testValidateReturnsEmptyArrayForValidInput(): void
     {
-        $errors = $this->service->validate([
-            'nom' => 'Dupont',
-            'prenom' => 'Jean',
-            'username' => 'unique_username_val',
-            'role' => ROLE_AGENT,
-            'site_id' => $this->siteId,
-        ]);
+        $cmd = new CreateUserCommand(
+            username: 'unique_username_val',
+            nom: 'Dupont',
+            prenom: 'Jean',
+            role: ROLE_AGENT,
+            siteId: SiteId::fromInput($this->siteId),
+            email: null,
+        );
+        $errors = $this->service->validate($cmd);
         $this->assertEmpty($errors);
     }
 
     public function testValidateMissingNomReturnsError(): void
     {
-        $errors = $this->service->validate([
-            'nom' => '',
-            'prenom' => 'Jean',
-            'username' => 'test_val',
-            'role' => ROLE_AGENT,
-        ]);
+        $cmd = new CreateUserCommand(
+            username: 'test_val',
+            nom: '',
+            prenom: 'Jean',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('nom', $errors);
     }
 
     public function testValidateMissingPrenomReturnsError(): void
     {
-        $errors = $this->service->validate([
-            'nom' => 'Dupont',
-            'prenom' => '',
-            'username' => 'test_val',
-            'role' => ROLE_AGENT,
-        ]);
+        $cmd = new CreateUserCommand(
+            username: 'test_val',
+            nom: 'Dupont',
+            prenom: '',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('prenom', $errors);
     }
 
     public function testValidateMissingUsernameReturnsError(): void
     {
-        $errors = $this->service->validate([
-            'nom' => 'Dupont',
-            'prenom' => 'Jean',
-            'username' => '',
-            'role' => ROLE_AGENT,
-        ]);
+        $cmd = new CreateUserCommand(
+            username: '',
+            nom: 'Dupont',
+            prenom: 'Jean',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('username', $errors);
     }
 
     public function testValidateDuplicateUsernameReturnsError(): void
     {
         $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active) VALUES ('existing_user', 'Test', 'User', 'agent', 1)");
-        $errors = $this->service->validate([
-            'nom' => 'Dupont',
-            'prenom' => 'Jean',
-            'username' => 'existing_user',
-            'role' => ROLE_AGENT,
-        ]);
+        $cmd = new CreateUserCommand(
+            username: 'existing_user',
+            nom: 'Dupont',
+            prenom: 'Jean',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('username', $errors);
     }
 
@@ -453,47 +467,57 @@ class UserServiceTest extends TestCase
     {
         $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active) VALUES ('same_user', 'Test', 'User', 'agent', 1)");
         $userId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'same_user'")->fetchColumn();
-        $errors = $this->service->validate([
-            'nom' => 'Dupont',
-            'prenom' => 'Jean',
-            'username' => 'same_user',
-            'role' => ROLE_AGENT,
-        ], $userId);
+        $cmd = new CreateUserCommand(
+            username: 'same_user',
+            nom: 'Dupont',
+            prenom: 'Jean',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $errors = $this->service->validate($cmd, $userId);
         $this->assertEmpty($errors);
     }
 
     public function testValidateInvalidRoleReturnsError(): void
     {
-        $errors = $this->service->validate([
-            'nom' => 'Dupont',
-            'prenom' => 'Jean',
-            'username' => 'test_val',
-            'role' => 'invalid_role',
-        ]);
+        $cmd = new CreateUserCommand(
+            username: 'test_val',
+            nom: 'Dupont',
+            prenom: 'Jean',
+            role: 'invalid_role',
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('role', $errors);
     }
 
     public function testValidateInvalidEmailReturnsError(): void
     {
-        $errors = $this->service->validate([
-            'nom' => 'Dupont',
-            'prenom' => 'Jean',
-            'username' => 'test_val',
-            'role' => ROLE_AGENT,
-            'email' => 'not-an-email',
-        ]);
+        $cmd = new CreateUserCommand(
+            username: 'test_val',
+            nom: 'Dupont',
+            prenom: 'Jean',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: 'not-an-email',
+        );
+        $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('email', $errors);
     }
 
     public function testValidateEmptyEmailIsAllowed(): void
     {
-        $errors = $this->service->validate([
-            'nom' => 'Dupont',
-            'prenom' => 'Jean',
-            'username' => 'test_val',
-            'role' => ROLE_AGENT,
-            'email' => '',
-        ]);
+        $cmd = new CreateUserCommand(
+            username: 'test_val',
+            nom: 'Dupont',
+            prenom: 'Jean',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: '',
+        );
+        $errors = $this->service->validate($cmd);
         $this->assertArrayNotHasKey('email', $errors);
     }
 
@@ -549,8 +573,7 @@ class UserServiceTest extends TestCase
             email: null,
         );
         $userId = $this->service->create($cmd);
-        $user = $this->service->findById($userId);
-        $errors = $this->service->canDemote($userId, ROLE_AGENT, $user);
+        $errors = $this->service->canDemote($userId, ROLE_AGENT, ROLE_SUPERVISEUR);
         $this->assertNotEmpty($errors);
         $this->assertArrayHasKey('role', $errors);
     }
@@ -568,8 +591,7 @@ class UserServiceTest extends TestCase
             email: null,
         );
         $userId = $this->service->create($cmd);
-        $user = $this->service->findById($userId);
-        $errors = $this->service->canDemote($userId, ROLE_AGENT, $user);
+        $errors = $this->service->canDemote($userId, ROLE_AGENT, ROLE_SUPERVISEUR);
         $this->assertEmpty($errors);
     }
 
@@ -584,8 +606,7 @@ class UserServiceTest extends TestCase
             email: null,
         );
         $userId = $this->service->create($cmd);
-        $user = $this->service->findById($userId);
-        $errors = $this->service->canDemote($userId, ROLE_CHSCT, $user);
+        $errors = $this->service->canDemote($userId, ROLE_CHSCT, ROLE_AGENT);
         $this->assertEmpty($errors);
     }
 

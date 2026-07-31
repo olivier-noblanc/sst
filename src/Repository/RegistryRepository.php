@@ -4,6 +4,8 @@
 
 namespace App\Repository;
 
+use App\DTO\CreateRegistryCommand;
+use App\DTO\UpdateRegistryCommand;
 use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
 use PDO;
@@ -69,8 +71,7 @@ class RegistryRepository
         return is_array($row) ? $row : null;
     }
 
-    /** @param array{code: string, label: string, short_label: string, description?: string, icon?: string, color_theme?: string, is_enabled?: int, is_system?: int, sort_order?: int, default_visibility?: string, notify_chsct?: int, legal_note?: string} $data */
-    public function create(array $data): int
+    public function create(CreateRegistryCommand $command): int
     {
         $stmt = $this->pdo->prepare('
             INSERT INTO registries (code, label, short_label, description, icon, color_theme,
@@ -79,33 +80,41 @@ class RegistryRepository
                 :is_enabled, :is_system, :sort_order, :default_visibility, :notify_chsct, :legal_note)
         ');
         $stmt->execute([
-            ':code'               => $data['code'],
-            ':label'              => $data['label'],
-            ':short_label'        => $data['short_label'],
-            ':description'        => $data['description'] ?? null,
-            ':icon'               => $data['icon'] ?? '📋',
-            ':color_theme'        => $data['color_theme'] ?? ReportType::Rsst->value,
-            ':is_enabled'         => $data['is_enabled'] ?? 1,
-            ':is_system'          => $data['is_system'] ?? 0,
-            ':sort_order'         => $data['sort_order'] ?? 0,
-            ':default_visibility' => $data['default_visibility'] ?? VisibilityMode::AgentChoice->value,
-            ':notify_chsct'       => $data['notify_chsct'] ?? 0,
-            ':legal_note'         => $data['legal_note'] ?? null,
+            ':code'               => $command->code,
+            ':label'              => $command->label,
+            ':short_label'        => $command->shortLabel,
+            ':description'        => $command->description,
+            ':icon'               => $command->icon,
+            ':color_theme'        => $command->colorTheme,
+            ':is_enabled'         => $command->isEnabled,
+            ':is_system'          => $command->isSystem,
+            ':sort_order'         => $command->sortOrder,
+            ':default_visibility' => $command->defaultVisibility,
+            ':notify_chsct'       => $command->notifyChsct,
+            ':legal_note'         => $command->legalNote,
         ]);
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array{label?: string, short_label?: string, description?: string, icon?: string, color_theme?: string, is_enabled?: int, is_system?: int, sort_order?: int, default_visibility?: string, notify_chsct?: int, legal_note?: string} $data */
-    public function update(int $id, array $data): bool
+    public function update(int $id, UpdateRegistryCommand $command): bool
     {
         $sets = [];
         $params = [':id' => $id];
-        foreach (['label', 'short_label', 'description', 'icon', 'color_theme',
-            'is_enabled', 'is_system', 'sort_order', 'default_visibility',
-            'notify_chsct', 'legal_note'] as $field) {
-            if (array_key_exists($field, $data)) {
+        foreach ([
+            'label' => $command->label,
+            'short_label' => $command->shortLabel,
+            'description' => $command->description,
+            'icon' => $command->icon,
+            'color_theme' => $command->colorTheme,
+            'is_enabled' => $command->isEnabled,
+            'sort_order' => $command->sortOrder,
+            'default_visibility' => $command->defaultVisibility,
+            'notify_chsct' => $command->notifyChsct,
+            'legal_note' => $command->legalNote,
+        ] as $field => $value) {
+            if ($value !== null) {
                 $sets[] = "$field = :$field";
-                $params[":$field"] = $data[$field];
+                $params[":$field"] = $value;
             }
         }
         if (empty($sets)) {
@@ -164,7 +173,20 @@ class RegistryRepository
         ];
         foreach ($defaults as $data) {
             if ($this->countByCode($data['code']) === 0) {
-                $this->create($data);
+                $this->create(new CreateRegistryCommand(
+                    code: $data['code'],
+                    label: $data['label'],
+                    shortLabel: $data['short_label'],
+                    description: $data['description'],
+                    icon: $data['icon'],
+                    colorTheme: $data['color_theme'],
+                    isEnabled: $data['is_enabled'] ?? 1,
+                    isSystem: $data['is_system'],
+                    sortOrder: $data['sort_order'],
+                    defaultVisibility: $data['default_visibility'],
+                    notifyChsct: $data['notify_chsct'] ?? 0,
+                    legalNote: $data['legal_note'],
+                ));
             }
         }
     }

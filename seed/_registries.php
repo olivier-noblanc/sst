@@ -1,4 +1,5 @@
 <?php
+use App\DTO\CreateRegistryFieldCommand;
 use App\Repository\RegistryRepository;
 use App\Repository\RegistryFieldRepository;
 
@@ -15,14 +16,14 @@ $rami = $registryRepo->findByCode('rami');
 if ($rami !== null) {
     $fieldRepo = RegistryFieldRepository::instance();
     if ($fieldRepo->findByCode((int) $rami['id'], 'pour_compte') === null) {
-        $fieldRepo->create((int) $rami['id'], [
-            'field_code' => 'pour_compte',
-            'label' => 'Signaler pour le compte d\'un autre agent',
-            'field_type' => 'checkbox',
-            'options' => null,
-            'is_required' => 0,
-            'sort_order' => 0,
-        ]);
+        $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
+            fieldCode: 'pour_compte',
+            label: 'Signaler pour le compte d\'un autre agent',
+            fieldType: 'checkbox',
+            options: null,
+            isRequired: 0,
+            sortOrder: 0,
+        ));
     }
     // Modular-audit P1.5 — pour_compte_nom/prenom aussi via registry_fields.
     // Before this fix, these fields were rendered by the dead code in
@@ -31,55 +32,55 @@ if ($rami !== null) {
     // E2E test e2e/forms.spec.js:129 expected #pour_compte_nom to be visible
     // after clicking #pour_compte — never happened.
     if ($fieldRepo->findByCode((int) $rami['id'], 'pour_compte_nom') === null) {
-        $fieldRepo->create((int) $rami['id'], [
-            'field_code' => 'pour_compte_nom',
-            'label' => 'Nom de l\'agent pour le compte de qui vous signalez',
-            'field_type' => 'text',
-            'options' => null,
-            'is_required' => 0,
-            'sort_order' => 3,
-        ]);
+        $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
+            fieldCode: 'pour_compte_nom',
+            label: 'Nom de l\'agent pour le compte de qui vous signalez',
+            fieldType: 'text',
+            options: null,
+            isRequired: 0,
+            sortOrder: 3,
+        ));
     }
     if ($fieldRepo->findByCode((int) $rami['id'], 'pour_compte_prenom') === null) {
-        $fieldRepo->create((int) $rami['id'], [
-            'field_code' => 'pour_compte_prenom',
-            'label' => 'Prénom de l\'agent pour le compte de qui vous signalez',
-            'field_type' => 'text',
-            'options' => null,
-            'is_required' => 0,
-            'sort_order' => 4,
-        ]);
+        $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
+            fieldCode: 'pour_compte_prenom',
+            label: 'Prénom de l\'agent pour le compte de qui vous signalez',
+            fieldType: 'text',
+            options: null,
+            isRequired: 0,
+            sortOrder: 4,
+        ));
     }
     if ($fieldRepo->findByCode((int) $rami['id'], 'nature_auteur') === null) {
-        $fieldRepo->create((int) $rami['id'], [
-            'field_code' => 'nature_auteur',
-            'label' => 'Nature de l\'auteur',
-            'field_type' => 'select',
-            'options' => json_encode([
+        $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
+            fieldCode: 'nature_auteur',
+            label: 'Nature de l\'auteur',
+            fieldType: 'select',
+            options: json_encode([
                 'usager' => 'Usager',
                 'collegue' => 'Collègue',
                 'hierarchie' => 'Hiérarchie',
                 'tiers' => 'Tiers',
-            ]),
-            'is_required' => 0,
-            'sort_order' => 1,
-        ]);
+            ]) ?: null,
+            isRequired: 0,
+            sortOrder: 1,
+        ));
     }
     if ($fieldRepo->findByCode((int) $rami['id'], 'type_acte') === null) {
-        $fieldRepo->create((int) $rami['id'], [
-            'field_code' => 'type_acte',
-            'label' => 'Type d\'acte',
-            'field_type' => 'select',
-            'options' => json_encode([
+        $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
+            fieldCode: 'type_acte',
+            label: 'Type d\'acte',
+            fieldType: 'select',
+            options: json_encode([
                 'verbal' => 'Verbal',
                 'physique' => 'Physique',
                 'moral' => 'Moral',
                 'sexiste' => 'Sexiste',
                 'autre' => 'Autre',
-            ]),
-            'is_required' => 0,
-            'sort_order' => 2,
-        ]);
+            ]) ?: null,
+            isRequired: 0,
+            sortOrder: 2,
+        ));
     }
 }
 

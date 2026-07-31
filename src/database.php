@@ -161,14 +161,14 @@ function seedDefaultData(PDO $pdo): void
         ];
         foreach ($ramiFields as [$code, $label, $type, $options, $sortOrder]) {
             if ($fieldRepo->findByCode((int) $rami['id'], $code) === null) {
-                $fieldRepo->create((int) $rami['id'], [
-                    'field_code' => $code,
-                    'label' => $label,
-                    'field_type' => $type,
-                    'options' => $options,
-                    'is_required' => 0,
-                    'sort_order' => $sortOrder,
-                ]);
+                $fieldRepo->create((int) $rami['id'], new \App\DTO\CreateRegistryFieldCommand(
+                    fieldCode: $code,
+                    label: $label,
+                    fieldType: $type,
+                    options: is_string($options) ? $options : null,
+                    isRequired: 0,
+                    sortOrder: $sortOrder,
+                ));
             }
         }
     }

@@ -8,10 +8,9 @@ use App\Enum\ReportState;
 
 class RespondToReportCommand
 {
-    /** @param array{blob: ?string, name: ?string, mime: ?string} $attachment */
     public function __construct(
         public readonly string $reponse,
         public readonly ReportState $nouvelEtat,
-        public readonly array $attachment = ['blob' => null, 'name' => null, 'mime' => null],
+        public readonly ?AttachmentData $attachment = null,
     ) {}
 }

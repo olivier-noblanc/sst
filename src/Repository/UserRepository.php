@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\DTO\CreateUserCommand;
 use App\DTO\SiteId;
+use App\DTO\UpdateUserCommand;
 use App\Enum\UserRole;
 use Exception;
 use PDO;
@@ -146,30 +148,24 @@ class UserRepository
     // Writes
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /** @param array{username: string, nom: string, prenom: string, email?: string|null, role?: string, site_id?: int|null} $data */
-    public function create(array $data): int
+    public function create(CreateUserCommand $cmd): int
     {
         $stmt = $this->pdo->prepare('
             INSERT INTO users (username, nom, prenom, email, role, site_id)
             VALUES (:username, :nom, :prenom, :email, :role, :site_id)
         ');
         $stmt->execute([
-            ':username' => $data['username'],
-            ':nom'      => $data['nom'],
-            ':prenom'   => $data['prenom'],
-            ':email'    => $data['email'] ?? null,
-            ':role'     => $data['role'] ?? UserRole::Agent->value,
-            // site_id = 0 is the UI/form sentinel for "no site" ("— Aucun —" option,
-            // and the hidden field forced empty in no-site-mode) — 0 is never a real
-            // site id (SQLite autoincrement starts at 1), and the FOREIGN KEY on
-            // site_id rejects it. Must bind NULL, which the FK accepts (nullable column).
-            ':site_id'  => SiteId::fromInput((int) ($data['site_id'] ?? 0))->toSql(),
+            ':username' => $cmd->username,
+            ':nom'      => $cmd->nom,
+            ':prenom'   => $cmd->prenom,
+            ':email'    => $cmd->email,
+            ':role'     => $cmd->role,
+            ':site_id'  => $cmd->siteId->toSql(),
         ]);
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array{nom: string, prenom: string, email: string|null, username: string, role: string, site_id?: int|null} $data */
-    public function update(int $id, array $data): bool
+    public function update(int $id, UpdateUserCommand $cmd): bool
     {
         $stmt = $this->pdo->prepare("
             UPDATE users
@@ -179,17 +175,12 @@ class UserRepository
             WHERE id = :id
         ");
         $stmt->execute([
-            ':nom'      => $data['nom'],
-            ':prenom'   => $data['prenom'],
-            ':email'    => !empty($data['email']) ? $data['email'] : null,
-            ':username' => $data['username'],
-            ':role'     => $data['role'],
-            // Same NULL-vs-0 fix as create() above — this is the exact bug that made
-            // any edit (role change or otherwise) fail with a FOREIGN KEY constraint
-            // violation whenever site_id came through as 0 (no-site-mode, or the
-            // explicit "— Aucun —" option), silently reported as a generic error and
-            // leaving the role (and every other field) unchanged.
-            ':site_id'  => SiteId::fromInput((int) ($data['site_id'] ?? 0))->toSql(),
+            ':nom'      => $cmd->nom,
+            ':prenom'   => $cmd->prenom,
+            ':email'    => !empty($cmd->email) ? $cmd->email : null,
+            ':username' => $cmd->username,
+            ':role'     => $cmd->role,
+            ':site_id'  => $cmd->siteId->toSql(),
             ':id'       => $id,
         ]);
         return $stmt->rowCount() > 0;

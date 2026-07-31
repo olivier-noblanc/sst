@@ -29,26 +29,4 @@ class CreateUserCommand
             email: !empty(trim($post['email'] ?? '')) ? trim((string) $post['email']) : null,
         );
     }
-
-    /**
-     * @return array{
-     *     username: string,
-     *     nom: string,
-     *     prenom: string,
-     *     role: string,
-     *     site_id: ?int,
-     *     email: ?string
-     * }
-     */
-    public function toArray(): array
-    {
-        return [
-            'username' => $this->username,
-            'nom' => $this->nom,
-            'prenom' => $this->prenom,
-            'role' => $this->role,
-            'site_id' => $this->siteId->toSql(),
-            'email' => $this->email,
-        ];
-    }
 }

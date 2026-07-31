@@ -9,6 +9,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\CreateRegistryFieldCommand;
 use App\Repository\RegistryFieldRepository;
 
 class RegistryFieldRepositoryMutationTest extends TestCase
@@ -38,12 +39,12 @@ class RegistryFieldRepositoryMutationTest extends TestCase
 
     private function seedField(string $code = 'field1', int $sortOrder = 0): int
     {
-        return $this->repo->create($this->registryId, [
-            'field_code' => $code,
-            'label' => 'Field ' . $code,
-            'field_type' => 'text',
-            'sort_order' => $sortOrder,
-        ]);
+        return $this->repo->create($this->registryId, new CreateRegistryFieldCommand(
+            fieldCode: $code,
+            label: 'Field ' . $code,
+            fieldType: 'text',
+            sortOrder: $sortOrder,
+        ));
     }
 
     // ═══ findByRegistry ═══
@@ -74,7 +75,7 @@ class RegistryFieldRepositoryMutationTest extends TestCase
         $this->pdo->prepare('INSERT INTO registries (code, label, short_label) VALUES (?, ?, ?)')
             ->execute(['other', 'Other', 'O']);
         $otherId = (int) $this->pdo->lastInsertId();
-        $this->repo->create($otherId, ['field_code' => 'other_field', 'label' => 'Other', 'field_type' => 'text']);
+        $this->repo->create($otherId, new CreateRegistryFieldCommand(fieldCode: 'other_field', label: 'Other', fieldType: 'text'));
 
         $result = $this->repo->findByRegistry($this->registryId);
         $this->assertCount(1, $result);
@@ -103,7 +104,7 @@ class RegistryFieldRepositoryMutationTest extends TestCase
         $this->pdo->prepare('INSERT INTO registries (code, label, short_label) VALUES (?, ?, ?)')
             ->execute(['other', 'Other', 'O']);
         $otherId = (int) $this->pdo->lastInsertId();
-        $this->repo->create($otherId, ['field_code' => 'shared_code', 'label' => 'Other label', 'field_type' => 'text']);
+        $this->repo->create($otherId, new CreateRegistryFieldCommand(fieldCode: 'shared_code', label: 'Other label', fieldType: 'text'));
 
         $field = $this->repo->findByCode($this->registryId, 'shared_code');
         $this->assertSame('Field shared_code', $field['label'], 'must find the right one per registry');
@@ -120,11 +121,11 @@ class RegistryFieldRepositoryMutationTest extends TestCase
     public function testCreateAppliesDefaultsForOptionalFields(): void
     {
         // Kill Coalesce mutants on ?? defaults
-        $id = $this->repo->create($this->registryId, [
-            'field_code' => 'test',
-            'label' => 'Test Field',
-            'field_type' => 'text',
-        ]);
+        $id = $this->repo->create($this->registryId, new CreateRegistryFieldCommand(
+            fieldCode: 'test',
+            label: 'Test Field',
+            fieldType: 'text',
+        ));
         $field = $this->repo->findByCode($this->registryId, 'test');
 
         $this->assertSame('text', $field['field_type'], 'default field_type');
@@ -135,14 +136,14 @@ class RegistryFieldRepositoryMutationTest extends TestCase
 
     public function testCreateUsesProvidedValuesOverDefaults(): void
     {
-        $id = $this->repo->create($this->registryId, [
-            'field_code' => 'test',
-            'label' => 'Test',
-            'field_type' => 'select',
-            'options' => '["a","b"]',
-            'is_required' => 1,
-            'sort_order' => 5,
-        ]);
+        $id = $this->repo->create($this->registryId, new CreateRegistryFieldCommand(
+            fieldCode: 'test',
+            label: 'Test',
+            fieldType: 'select',
+            options: '["a","b"]',
+            isRequired: 1,
+            sortOrder: 5,
+        ));
         $field = $this->repo->findByCode($this->registryId, 'test');
         $this->assertSame('select', $field['field_type']);
         $this->assertSame('["a","b"]', $field['options']);

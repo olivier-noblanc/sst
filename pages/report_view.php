@@ -84,7 +84,7 @@ if ($justCreated):
 
 <?php
     // Previous/Next navigation for the same registry list
-    $adjacent = \App\Repository\ReportRepository::instance()->getAdjacentUuids($report->toArray());
+    $adjacent = \App\Repository\ReportRepository::instance()->getAdjacentUuids($report->type, $report->createdAt, $report->uuid);
 ?>
 
 <?php

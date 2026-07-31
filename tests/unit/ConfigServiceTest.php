@@ -13,6 +13,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\UpdateRegistryCommand;
 use App\Enum\ReportType;
 use App\Services\ConfigService;
 use App\Repository\RegistryRepository;
@@ -201,7 +202,7 @@ class ConfigServiceTest extends TestCase
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
         $rami = $repo->findByCode(ReportType::Rami->value);
-        $repo->update((int) $rami['id'], ['is_enabled' => 1]);
+        $repo->update((int) $rami['id'], new UpdateRegistryCommand(isEnabled: 1));
         $this->service->clearCache();
         $result = $this->service->isRegistryEnabled(ReportType::Rami->value);
         $this->assertTrue($result);
@@ -212,7 +213,7 @@ class ConfigServiceTest extends TestCase
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
         $dgi = $repo->findByCode(ReportType::Dgi->value);
-        $repo->update((int) $dgi['id'], ['is_enabled' => 1]);
+        $repo->update((int) $dgi['id'], new UpdateRegistryCommand(isEnabled: 1));
         $this->service->clearCache();
         $result = $this->service->isRegistryEnabled(ReportType::Dgi->value);
         $this->assertTrue($result);
@@ -223,7 +224,7 @@ class ConfigServiceTest extends TestCase
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
         $rami = $repo->findByCode(ReportType::Rami->value);
-        $repo->update((int) $rami['id'], ['is_enabled' => 0]);
+        $repo->update((int) $rami['id'], new UpdateRegistryCommand(isEnabled: 0));
         $this->service->clearCache();
         $result = $this->service->isRegistryEnabled(ReportType::Rami->value);
         $this->assertFalse($result);
@@ -251,7 +252,7 @@ class ConfigServiceTest extends TestCase
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
         $rami = $repo->findByCode(ReportType::Rami->value);
-        $repo->update((int) $rami['id'], ['is_enabled' => 1]);
+        $repo->update((int) $rami['id'], new UpdateRegistryCommand(isEnabled: 1));
         $this->service->clearCache();
         $result = $this->service->getEnabledRegistries();
         $this->assertContains(ReportType::Rsst->value, $result);
@@ -263,7 +264,7 @@ class ConfigServiceTest extends TestCase
         $repo = RegistryRepository::instance();
         $repo->seedDefaults();
         $dgi = $repo->findByCode(ReportType::Dgi->value);
-        $repo->update((int) $dgi['id'], ['is_enabled' => 1]);
+        $repo->update((int) $dgi['id'], new UpdateRegistryCommand(isEnabled: 1));
         $this->service->clearCache();
         $result = $this->service->getEnabledRegistries();
         $this->assertContains(ReportType::Rsst->value, $result);

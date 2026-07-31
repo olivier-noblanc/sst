@@ -16,6 +16,9 @@
 use PHPUnit\Framework\TestCase;
 use App\Repository\UserRepository;
 use App\Enum\UserRole;
+use App\DTO\CreateUserCommand;
+use App\DTO\UpdateUserCommand;
+use App\DTO\SiteId;
 
 class UserRepositoryMutationTest extends TestCase
 {
@@ -222,21 +225,44 @@ class UserRepositoryMutationTest extends TestCase
 
     public function testCreateReturnsPositiveId(): void
     {
-        $id = $this->repo->create(['username' => 'new.user', 'nom' => 'New', 'prenom' => 'User', 'role' => 'agent']);
+        $cmd = new CreateUserCommand(
+            username: 'new.user',
+            nom: 'New',
+            prenom: 'User',
+            role: ROLE_AGENT,
+            siteId: SiteId::fromInput($this->siteId),
+            email: null,
+        );
+        $id = $this->repo->create($cmd);
         $this->assertGreaterThan(0, $id);
     }
 
-    public function testCreateWithNullSiteIdWhenEmpty(): void
+    public function testCreateWithNoneSiteIdSetsNull(): void
     {
-        // Kill !empty($data['site_id']) mutant — empty site_id → NULL (not 0)
-        $id = $this->repo->create(['username' => 'nosite.user', 'nom' => 'No', 'prenom' => 'Site', 'role' => 'agent', 'site_id' => 0]);
+        $cmd = new CreateUserCommand(
+            username: 'nosite.user',
+            nom: 'No',
+            prenom: 'Site',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $id = $this->repo->create($cmd);
         $user = $this->repo->findById($id);
-        $this->assertNull($user['site_id'], 'site_id=0 in input → NULL in DB');
+        $this->assertNull($user['site_id'], 'SiteId::none() must produce NULL in DB');
     }
 
     public function testCreateDefaultsRoleToAgent(): void
     {
-        $id = $this->repo->create(['username' => 'default.role', 'nom' => 'D', 'prenom' => 'R']);
+        $cmd = new CreateUserCommand(
+            username: 'default.role',
+            nom: 'D',
+            prenom: 'R',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $id = $this->repo->create($cmd);
         $user = $this->repo->findById($id);
         $this->assertSame('agent', $user['role']);
     }
@@ -246,20 +272,35 @@ class UserRepositoryMutationTest extends TestCase
     public function testUpdateModifiesUserFields(): void
     {
         $id = $this->seedUser('update.user');
-        $result = $this->repo->update($id, ['username' => 'updated', 'nom' => 'Updated', 'prenom' => 'User', 'role' => 'superviseur', 'site_id' => $this->siteId]);
+        $cmd = new UpdateUserCommand(
+            username: 'updated',
+            nom: 'Updated',
+            prenom: 'User',
+            role: ROLE_SUPERVISEUR,
+            siteId: SiteId::fromInput($this->siteId),
+            email: null,
+        );
+        $result = $this->repo->update($id, $cmd);
         $this->assertTrue($result);
         $user = $this->repo->findById($id);
         $this->assertSame('updated', $user['username']);
         $this->assertSame('Updated', $user['nom']);
     }
 
-    public function testUpdateWithZeroSiteIdSetsNull(): void
+    public function testUpdateWithNoneSiteIdSetsNull(): void
     {
-        // Kill !empty($data['site_id']) mutant on update
         $id = $this->seedUser('update.user', 'agent', 1, $this->siteId);
-        $this->repo->update($id, ['username' => 'update.user', 'nom' => 'N', 'prenom' => 'P', 'role' => 'agent', 'site_id' => 0]);
+        $cmd = new UpdateUserCommand(
+            username: 'update.user',
+            nom: 'N',
+            prenom: 'P',
+            role: ROLE_AGENT,
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $this->repo->update($id, $cmd);
         $user = $this->repo->findById($id);
-        $this->assertNull($user['site_id'], 'site_id=0 in update → NULL in DB');
+        $this->assertNull($user['site_id'], 'SiteId::none() in update must produce NULL');
     }
 
     // ═══ updateSite ═══

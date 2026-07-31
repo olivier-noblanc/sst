@@ -13,6 +13,8 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\CreateRegistryCommand;
+use App\DTO\UpdateRegistryCommand;
 use App\Repository\RegistryRepository;
 use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
@@ -38,13 +40,13 @@ class RegistryRepositoryMutationTest extends TestCase
 
     private function seedRegistry(string $code = 'custom', int $enabled = 1, int $isSystem = 0): int
     {
-        return $this->repo->create([
-            'code' => $code,
-            'label' => 'Custom Registry',
-            'short_label' => strtoupper($code),
-            'is_enabled' => $enabled,
-            'is_system' => $isSystem,
-        ]);
+        return $this->repo->create(new CreateRegistryCommand(
+            code: $code,
+            label: 'Custom Registry',
+            shortLabel: strtoupper($code),
+            isEnabled: $enabled,
+            isSystem: $isSystem,
+        ));
     }
 
     // ═══ findAll / findEnabled ═══
@@ -120,14 +122,14 @@ class RegistryRepositoryMutationTest extends TestCase
 
     public function testCreateReturnsPositiveId(): void
     {
-        $id = $this->repo->create(['code' => 'test', 'label' => 'Test', 'short_label' => 'T']);
+        $id = $this->repo->create(new CreateRegistryCommand(code: 'test', label: 'Test', shortLabel: 'T'));
         $this->assertGreaterThan(0, $id);
     }
 
     public function testCreateAppliesDefaultsForOptionalFields(): void
     {
         // Kill Coalesce mutants on ?? defaults
-        $id = $this->repo->create(['code' => 'test', 'label' => 'Test', 'short_label' => 'T']);
+        $id = $this->repo->create(new CreateRegistryCommand(code: 'test', label: 'Test', shortLabel: 'T'));
         $reg = $this->repo->findById($id);
 
         $this->assertNull($reg['description']); // ?? null
@@ -143,13 +145,20 @@ class RegistryRepositoryMutationTest extends TestCase
 
     public function testCreateUsesProvidedValuesOverDefaults(): void
     {
-        $id = $this->repo->create([
-            'code' => 'test', 'label' => 'Test', 'short_label' => 'T',
-            'description' => 'Custom desc', 'icon' => '🚨', 'color_theme' => 'violet',
-            'is_enabled' => 0, 'is_system' => 1, 'sort_order' => 5,
-            'default_visibility' => VisibilityMode::Confidential->value, 'notify_chsct' => 1,
-            'legal_note' => 'Custom legal note',
-        ]);
+        $id = $this->repo->create(new CreateRegistryCommand(
+            code: 'test',
+            label: 'Test',
+            shortLabel: 'T',
+            description: 'Custom desc',
+            icon: '🚨',
+            colorTheme: 'violet',
+            isEnabled: 0,
+            isSystem: 1,
+            sortOrder: 5,
+            defaultVisibility: VisibilityMode::Confidential->value,
+            notifyChsct: 1,
+            legalNote: 'Custom legal note',
+        ));
         $reg = $this->repo->findById($id);
 
         $this->assertSame('Custom desc', $reg['description']);
@@ -168,7 +177,7 @@ class RegistryRepositoryMutationTest extends TestCase
     public function testUpdateModifiesSpecifiedFields(): void
     {
         $id = $this->seedRegistry('test');
-        $result = $this->repo->update($id, ['label' => 'Updated Label', 'is_enabled' => 0]);
+        $result = $this->repo->update($id, new UpdateRegistryCommand(label: 'Updated Label', isEnabled: 0));
         $this->assertTrue($result);
         $reg = $this->repo->findById($id);
         $this->assertSame('Updated Label', $reg['label']);
@@ -179,13 +188,13 @@ class RegistryRepositoryMutationTest extends TestCase
     {
         // Kill empty($sets) mutant
         $id = $this->seedRegistry('test');
-        $result = $this->repo->update($id, []);
+        $result = $this->repo->update($id, new UpdateRegistryCommand());
         $this->assertFalse($result, 'empty update must return false');
     }
 
     public function testUpdateReturnsFalseWhenRegistryNotFound(): void
     {
-        $result = $this->repo->update(99999, ['label' => 'New']);
+        $result = $this->repo->update(99999, new UpdateRegistryCommand(label: 'New'));
         $this->assertFalse($result);
     }
 
@@ -194,7 +203,7 @@ class RegistryRepositoryMutationTest extends TestCase
         $id = $this->seedRegistry('test');
         $original = $this->repo->findById($id);
         sleep(1); // ensure timestamp differs
-        $this->repo->update($id, ['label' => 'Updated']);
+        $this->repo->update($id, new UpdateRegistryCommand(label: 'Updated'));
         $updated = $this->repo->findById($id);
         $this->assertNotSame($original['updated_at'], $updated['updated_at'], 'updated_at must change');
     }
@@ -203,7 +212,7 @@ class RegistryRepositoryMutationTest extends TestCase
     {
         $id = $this->seedRegistry('test');
         $original = $this->repo->findById($id);
-        $this->repo->update($id, ['label' => 'New Label']);
+        $this->repo->update($id, new UpdateRegistryCommand(label: 'New Label'));
         $updated = $this->repo->findById($id);
         $this->assertSame('New Label', $updated['label']);
         $this->assertSame($original['short_label'], $updated['short_label'], 'other fields unchanged');

@@ -5,6 +5,8 @@
  * TDD: tests written BEFORE implementation.
  */
 
+use App\DTO\CreateRegistryCommand;
+use App\DTO\UpdateRegistryCommand;
 use App\Repository\RegistryRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -32,24 +34,24 @@ class RegistryRepositoryTest extends TestCase
 
     public function testCreateReturnsId(): void
     {
-        $id = $this->repo->create([
-            'code' => 'test_reg',
-            'label' => 'Registre Test',
-            'short_label' => 'TEST',
-            'color_theme' => 'rsst',
-        ]);
+        $id = $this->repo->create(new CreateRegistryCommand(
+            code: 'test_reg',
+            label: 'Registre Test',
+            shortLabel: 'TEST',
+            colorTheme: 'rsst',
+        ));
         $this->assertIsInt($id);
         $this->assertGreaterThan(0, $id);
     }
 
     public function testCreateAndFindByCode(): void
     {
-        $this->repo->create([
-            'code' => 'my_reg',
-            'label' => 'Mon Registre',
-            'short_label' => 'MR',
-            'color_theme' => 'vert',
-        ]);
+        $this->repo->create(new CreateRegistryCommand(
+            code: 'my_reg',
+            label: 'Mon Registre',
+            shortLabel: 'MR',
+            colorTheme: 'vert',
+        ));
         $reg = $this->repo->findByCode('my_reg');
         $this->assertNotNull($reg);
         $this->assertSame('my_reg', $reg['code']);
@@ -62,25 +64,25 @@ class RegistryRepositoryTest extends TestCase
 
     public function testCreateDuplicateCodeThrows(): void
     {
-        $this->repo->create(['code' => 'dup', 'label' => 'A', 'short_label' => 'A', 'color_theme' => 'rsst']);
+        $this->repo->create(new CreateRegistryCommand(code: 'dup', label: 'A', shortLabel: 'A', colorTheme: 'rsst'));
         $this->expectException(Exception::class);
-        $this->repo->create(['code' => 'dup', 'label' => 'B', 'short_label' => 'B', 'color_theme' => 'rami']);
+        $this->repo->create(new CreateRegistryCommand(code: 'dup', label: 'B', shortLabel: 'B', colorTheme: 'rami'));
     }
 
     // ─── READ ────────────────────────────────────────────────────────────────
 
     public function testFindAllReturnsAllRegistries(): void
     {
-        $this->repo->create(['code' => 'r1', 'label' => 'R1', 'short_label' => 'R1', 'color_theme' => 'rsst']);
-        $this->repo->create(['code' => 'r2', 'label' => 'R2', 'short_label' => 'R2', 'color_theme' => 'rami', 'is_enabled' => 0]);
+        $this->repo->create(new CreateRegistryCommand(code: 'r1', label: 'R1', shortLabel: 'R1', colorTheme: 'rsst'));
+        $this->repo->create(new CreateRegistryCommand(code: 'r2', label: 'R2', shortLabel: 'R2', colorTheme: 'rami', isEnabled: 0));
         $all = $this->repo->findAll();
         $this->assertCount(2, $all);
     }
 
     public function testFindEnabledReturnsOnlyEnabled(): void
     {
-        $this->repo->create(['code' => 'on', 'label' => 'On', 'short_label' => 'ON', 'color_theme' => 'rsst', 'is_enabled' => 1]);
-        $this->repo->create(['code' => 'off', 'label' => 'Off', 'short_label' => 'OFF', 'color_theme' => 'rami', 'is_enabled' => 0]);
+        $this->repo->create(new CreateRegistryCommand(code: 'on', label: 'On', shortLabel: 'ON', colorTheme: 'rsst', isEnabled: 1));
+        $this->repo->create(new CreateRegistryCommand(code: 'off', label: 'Off', shortLabel: 'OFF', colorTheme: 'rami', isEnabled: 0));
         $enabled = $this->repo->findEnabled();
         $this->assertCount(1, $enabled);
         $this->assertSame('on', $enabled[0]['code']);
@@ -88,8 +90,8 @@ class RegistryRepositoryTest extends TestCase
 
     public function testFindEnabledRespectsSortOrder(): void
     {
-        $this->repo->create(['code' => 'b', 'label' => 'B', 'short_label' => 'B', 'color_theme' => 'rsst', 'sort_order' => 2]);
-        $this->repo->create(['code' => 'a', 'label' => 'A', 'short_label' => 'A', 'color_theme' => 'rami', 'sort_order' => 1]);
+        $this->repo->create(new CreateRegistryCommand(code: 'b', label: 'B', shortLabel: 'B', colorTheme: 'rsst', sortOrder: 2));
+        $this->repo->create(new CreateRegistryCommand(code: 'a', label: 'A', shortLabel: 'A', colorTheme: 'rami', sortOrder: 1));
         $enabled = $this->repo->findEnabled();
         $this->assertSame('a', $enabled[0]['code']);
         $this->assertSame('b', $enabled[1]['code']);
@@ -102,7 +104,7 @@ class RegistryRepositoryTest extends TestCase
 
     public function testFindByIdReturnsRegistry(): void
     {
-        $id = $this->repo->create(['code' => 'byid', 'label' => 'By ID', 'short_label' => 'BI', 'color_theme' => 'rsst']);
+        $id = $this->repo->create(new CreateRegistryCommand(code: 'byid', label: 'By ID', shortLabel: 'BI', colorTheme: 'rsst'));
         $reg = $this->repo->findById($id);
         $this->assertNotNull($reg);
         $this->assertSame('byid', $reg['code']);
@@ -112,12 +114,12 @@ class RegistryRepositoryTest extends TestCase
 
     public function testUpdateModifiesFields(): void
     {
-        $id = $this->repo->create(['code' => 'upd', 'label' => 'Old', 'short_label' => 'OLD', 'color_theme' => 'rsst']);
-        $this->repo->update($id, [
-            'label' => 'New Label',
-            'color_theme' => 'dgi',
-            'is_enabled' => 0,
-        ]);
+        $id = $this->repo->create(new CreateRegistryCommand(code: 'upd', label: 'Old', shortLabel: 'OLD', colorTheme: 'rsst'));
+        $this->repo->update($id, new UpdateRegistryCommand(
+            label: 'New Label',
+            colorTheme: 'dgi',
+            isEnabled: 0,
+        ));
         $reg = $this->repo->findById($id);
         $this->assertSame('New Label', $reg['label']);
         $this->assertSame('dgi', $reg['color_theme']);
@@ -128,14 +130,14 @@ class RegistryRepositoryTest extends TestCase
 
     public function testDeleteNonSystemRegistry(): void
     {
-        $id = $this->repo->create(['code' => 'del', 'label' => 'Del', 'short_label' => 'DEL', 'color_theme' => 'rsst']);
+        $id = $this->repo->create(new CreateRegistryCommand(code: 'del', label: 'Del', shortLabel: 'DEL', colorTheme: 'rsst'));
         $this->assertTrue($this->repo->delete($id));
         $this->assertNull($this->repo->findById($id));
     }
 
     public function testDeleteSystemRegistryFails(): void
     {
-        $id = $this->repo->create(['code' => 'sys', 'label' => 'Sys', 'short_label' => 'SYS', 'color_theme' => 'rsst', 'is_system' => 1]);
+        $id = $this->repo->create(new CreateRegistryCommand(code: 'sys', label: 'Sys', shortLabel: 'SYS', colorTheme: 'rsst', isSystem: 1));
         $this->assertFalse($this->repo->delete($id));
         $this->assertNotNull($this->repo->findById($id));
     }
@@ -144,7 +146,7 @@ class RegistryRepositoryTest extends TestCase
 
     public function testCountByCode(): void
     {
-        $this->repo->create(['code' => 'cnt', 'label' => 'Cnt', 'short_label' => 'CNT', 'color_theme' => 'rsst']);
+        $this->repo->create(new CreateRegistryCommand(code: 'cnt', label: 'Cnt', shortLabel: 'CNT', colorTheme: 'rsst'));
         $this->assertSame(1, $this->repo->countByCode('cnt'));
         $this->assertSame(0, $this->repo->countByCode('nope'));
     }
@@ -153,7 +155,7 @@ class RegistryRepositoryTest extends TestCase
 
     public function testDefaultValuesAreSet(): void
     {
-        $id = $this->repo->create(['code' => 'def', 'label' => 'Def', 'short_label' => 'DEF', 'color_theme' => 'rsst']);
+        $id = $this->repo->create(new CreateRegistryCommand(code: 'def', label: 'Def', shortLabel: 'DEF', colorTheme: 'rsst'));
         $reg = $this->repo->findById($id);
         $this->assertSame(1, (int) $reg['is_enabled']);
         $this->assertSame(0, (int) $reg['is_system']);

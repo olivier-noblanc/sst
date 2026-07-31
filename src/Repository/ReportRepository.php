@@ -5,7 +5,6 @@
 namespace App\Repository;
 
 use App\Enum\ReportState;
-use App\Enum\ReportType;
 use App\Enum\RespondStatus;
 use App\Enum\VisibilityMode;
 use Exception;
@@ -351,14 +350,10 @@ class ReportRepository
         return new PaginatedReports(reports: $reports, total: $total);
     }
 
-    /**
-     * @param array{type?: string, created_at?: string, uuid?: string} $report
-     */
-    public function getAdjacentUuids(array $report): AdjacentUuids
+    public function getAdjacentUuids(string $type, ?string $createdAt, string $currentUuid): AdjacentUuids
     {
-        $type = $report['type'] ?? ReportType::Rsst->value;
-        $createdAt = $report['created_at'] ?? '';
-        $uuid = $report['uuid'] ?? '';
+        $createdAt = $createdAt ?? '';
+        $uuid = $currentUuid;
         $prev = null;
         $next = null;
 
@@ -794,10 +789,9 @@ class ReportRepository
     }
 
     /**
-     * @param array{blob?: string|null, name?: string|null, mime?: string|null} $attachment
      * @return array{status: RespondStatus, message?: string}
      */
-    public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, array $attachment = []): array
+    public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, ?\App\DTO\AttachmentData $attachment = null): array
     {
         $this->pdo->beginTransaction();
         try {
@@ -850,9 +844,9 @@ class ReportRepository
                 ':user_id'     => $userId,
                 ':reponse'     => $reponse,
                 ':nouvel_etat' => $nouvelEtat,
-                ':attachment_blob' => $attachment['blob'] ?? null,
-                ':attachment_name' => $attachment['name'] ?? null,
-                ':attachment_mime' => $attachment['mime'] ?? null,
+                ':attachment_blob' => $attachment?->blob,
+                ':attachment_name' => $attachment?->name,
+                ':attachment_mime' => $attachment?->mime,
             ]);
 
             $this->pdo->commit();

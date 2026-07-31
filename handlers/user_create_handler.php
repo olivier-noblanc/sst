@@ -23,7 +23,7 @@ $session = SessionService::getInstance();
 $service = getContainer()->get(UserService::class);
 $cmd = CreateUserCommand::fromPost($_POST);
 
-$errors = $service->validate($_POST);
+$errors = $service->validate($cmd);
 
 if (!empty($errors)) {
     setFormErrors($errors);

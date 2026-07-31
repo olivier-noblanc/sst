@@ -109,7 +109,7 @@ if ($tab === 'smtp') {
 }
 
 if ($tab === 'app') {
-    handleSettingsAppTab($pdo, $_POST);
+    handleSettingsAppTab($pdo, \App\DTO\UpdateAppSettingsCommand::fromPost($_POST));
 }
 
 if ($tab === 'manage_sites') {

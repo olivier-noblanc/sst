@@ -16,6 +16,9 @@
  */
 
 use App\Repository\UserRepository;
+use App\DTO\CreateUserCommand;
+use App\DTO\UpdateUserCommand;
+use App\DTO\SiteId;
 use PHPUnit\Framework\TestCase;
 
 class UserQueriesTest extends TestCase
@@ -43,20 +46,20 @@ class UserQueriesTest extends TestCase
 
     public function testCreateUserReturnsIntId(): void
     {
-        $id = $this->users->create([
-            'username' => 'jean.martin', 'nom' => 'Martin', 'prenom' => 'Jean',
-            'email' => 'jean.martin@dreets.gouv.fr', 'role' => 'agent', 'site_id' => 1,
-        ]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'jean.martin', nom: 'Martin', prenom: 'Jean',
+            email: 'jean.martin@dreets.gouv.fr', role: ROLE_AGENT, siteId: SiteId::fromInput(1),
+        ));
         $this->assertIsInt($id);
         $this->assertGreaterThan(0, $id);
     }
 
     public function testCreateUserWithMinimalData(): void
     {
-        $id = $this->users->create([
-            'username' => 'min.user', 'nom' => 'User', 'prenom' => 'Min',
-            'role' => 'agent', 'site_id' => 1,
-        ]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'min.user', nom: 'User', prenom: 'Min',
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+        ));
         $this->assertGreaterThan(0, $id);
         $user = $this->users->findById($id);
         $this->assertNull($user['email']);
@@ -66,10 +69,10 @@ class UserQueriesTest extends TestCase
 
     public function testGetUserByIdReturnsUserWithSiteInfo(): void
     {
-        $id = $this->users->create([
-            'username' => 'jean.martin', 'nom' => 'Martin', 'prenom' => 'Jean',
-            'email' => 'jean.martin@dreets.gouv.fr', 'role' => 'agent', 'site_id' => 1,
-        ]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'jean.martin', nom: 'Martin', prenom: 'Jean',
+            email: 'jean.martin@dreets.gouv.fr', role: ROLE_AGENT, siteId: SiteId::fromInput(1),
+        ));
         $user = $this->users->findById($id);
         $this->assertNotNull($user);
         $this->assertEquals('jean.martin', $user['username']);
@@ -91,10 +94,10 @@ class UserQueriesTest extends TestCase
 
     public function testGetUserByUsernameReturnsUser(): void
     {
-        $this->users->create([
-            'username' => 'sophie.dupont', 'nom' => 'Dupont', 'prenom' => 'Sophie',
-            'role' => 'superviseur', 'site_id' => 2,
-        ]);
+        $this->users->create(new CreateUserCommand(
+            username: 'sophie.dupont', nom: 'Dupont', prenom: 'Sophie',
+            role: ROLE_SUPERVISEUR, siteId: SiteId::fromInput(2), email: null,
+        ));
         $user = $this->users->findByUsername('sophie.dupont');
         $this->assertNotNull($user);
         $this->assertEquals('Dupont', $user['nom']);
@@ -104,10 +107,10 @@ class UserQueriesTest extends TestCase
 
     public function testGetUserByUsernameReturnsNullForDeactivated(): void
     {
-        $id = $this->users->create([
-            'username' => 'inactive.user', 'nom' => 'Inactive', 'prenom' => 'User',
-            'role' => 'agent', 'site_id' => 1,
-        ]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'inactive.user', nom: 'Inactive', prenom: 'User',
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+        ));
         $this->users->deactivate($id);
         $user = $this->users->findByUsername('inactive.user');
         $this->assertNull($user);
@@ -123,16 +126,16 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersReturnsAllActive(): void
     {
-        $this->users->create(['username' => 'user1', 'nom' => 'Un', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        $this->users->create(['username' => 'user2', 'nom' => 'Deux', 'prenom' => 'User', 'role' => 'superviseur', 'site_id' => 2]);
+        $this->users->create(new CreateUserCommand(username: 'user1', nom: 'Un', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
+        $this->users->create(new CreateUserCommand(username: 'user2', nom: 'Deux', prenom: 'User', role: ROLE_SUPERVISEUR, siteId: SiteId::fromInput(2), email: null));
         $users = $this->users->findAll();
         $this->assertCount(2, $users);
     }
 
     public function testGetAllUsersFiltersBySite(): void
     {
-        $this->users->create(['username' => 'user1', 'nom' => 'Un', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        $this->users->create(['username' => 'user2', 'nom' => 'Deux', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 2]);
+        $this->users->create(new CreateUserCommand(username: 'user1', nom: 'Un', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
+        $this->users->create(new CreateUserCommand(username: 'user2', nom: 'Deux', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(2), email: null));
         $users = $this->users->findAll(1);
         $this->assertCount(1, $users);
         $this->assertEquals('user1', $users[0]['username']);
@@ -140,8 +143,8 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersExcludesInactive(): void
     {
-        $id = $this->users->create(['username' => 'active', 'nom' => 'Active', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
-        $this->users->create(['username' => 'inactive', 'nom' => 'Inactive', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $id = $this->users->create(new CreateUserCommand(username: 'active', nom: 'Active', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
+        $this->users->create(new CreateUserCommand(username: 'inactive', nom: 'Inactive', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
         $this->users->deactivate($id);
         $users = $this->users->findAll(0, true);
         $this->assertCount(1, $users);
@@ -150,7 +153,7 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersIncludesInactiveWhenAsked(): void
     {
-        $id = $this->users->create(['username' => 'active', 'nom' => 'Active', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $id = $this->users->create(new CreateUserCommand(username: 'active', nom: 'Active', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
         $this->users->deactivate($id);
         $users = $this->users->findAll(0, false);
         $this->assertCount(1, $users);
@@ -160,11 +163,14 @@ class UserQueriesTest extends TestCase
 
     public function testUpdateUserChangesFields(): void
     {
-        $id = $this->users->create(['username' => 'edit.me', 'nom' => 'Old', 'prenom' => 'Name', 'role' => 'agent', 'site_id' => 1]);
-        $result = $this->users->update($id, [
-            'nom' => 'New', 'prenom' => 'Name', 'email' => 'new@test.fr',
-            'username' => 'edit.me', 'role' => 'superviseur', 'site_id' => 2,
-        ]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'edit.me', nom: 'Old', prenom: 'Name',
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+        ));
+        $result = $this->users->update($id, new UpdateUserCommand(
+            nom: 'New', prenom: 'Name', email: 'new@test.fr',
+            username: 'edit.me', role: ROLE_SUPERVISEUR, siteId: SiteId::fromInput(2),
+        ));
         $this->assertTrue($result);
         $user = $this->users->findById($id);
         $this->assertEquals('New', $user['nom']);
@@ -176,7 +182,10 @@ class UserQueriesTest extends TestCase
 
     public function testDeactivateUserSetsInactive(): void
     {
-        $id = $this->users->create(['username' => 'deac', 'nom' => 'Deac', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'deac', nom: 'Deac', prenom: 'User',
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+        ));
         $result = $this->users->deactivate($id);
         $this->assertTrue($result);
         $user = $this->users->findById($id);
@@ -185,7 +194,10 @@ class UserQueriesTest extends TestCase
 
     public function testReactivateUserSetsActive(): void
     {
-        $id = $this->users->create(['username' => 'react', 'nom' => 'React', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'react', nom: 'React', prenom: 'User',
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+        ));
         $this->users->deactivate($id);
         $this->users->reactivate($id);
         $user = $this->users->findById($id);
@@ -196,22 +208,20 @@ class UserQueriesTest extends TestCase
 
     public function testUpdateUserRole(): void
     {
-        // Audit #80 — UserRepository::updateRole() never existed; the real
-        // production flow (handlers/user_edit_handler.php) always goes
-        // through the full update() with every field, never a role-only
-        // shortcut. This test called a method that doesn't exist — caught
-        // by phpstan-tests.neon level 2, invisible at level 1.
-        $id = $this->users->create(['username' => 'promo', 'nom' => 'Promo', 'prenom' => 'User', 'role' => 'agent', 'site_id' => 1]);
+        $id = $this->users->create(new CreateUserCommand(
+            username: 'promo', nom: 'Promo', prenom: 'User',
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+        ));
         $user = $this->users->findById($id);
         $this->assertNotNull($user);
-        $result = $this->users->update($id, [
-            'nom' => $user['nom'],
-            'prenom' => $user['prenom'],
-            'email' => $user['email'],
-            'username' => $user['username'],
-            'role' => 'superviseur',
-            'site_id' => $user['site_id'],
-        ]);
+        $result = $this->users->update($id, new UpdateUserCommand(
+            nom: $user['nom'],
+            prenom: $user['prenom'],
+            email: $user['email'],
+            username: $user['username'],
+            role: ROLE_SUPERVISEUR,
+            siteId: SiteId::fromInput(1),
+        ));
         $this->assertTrue($result);
         $user = $this->users->findById($id);
         $this->assertEquals('superviseur', $user['role']);

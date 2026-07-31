@@ -4,6 +4,7 @@
 
 namespace App\Repository;
 
+use App\DTO\CreateRegistryFieldCommand;
 use PDO;
 
 class RegistryFieldRepository
@@ -43,8 +44,7 @@ class RegistryFieldRepository
         return is_array($row) ? $row : null;
     }
 
-    /** @param array{field_code: string, label: string, field_type: string, options?: string|false|null, is_required?: int, sort_order?: int} $data */
-    public function create(int $registryId, array $data): int
+    public function create(int $registryId, CreateRegistryFieldCommand $command): int
     {
         $stmt = $this->pdo->prepare('
             INSERT INTO registry_fields (registry_id, field_code, label, field_type, options, is_required, sort_order)
@@ -52,12 +52,12 @@ class RegistryFieldRepository
         ');
         $stmt->execute([
             ':rid'   => $registryId,
-            ':fc'    => $data['field_code'],
-            ':label' => $data['label'],
-            ':ft'    => $data['field_type'],
-            ':opts'  => $data['options'] ?? null,
-            ':req'   => $data['is_required'] ?? 0,
-            ':so'    => $data['sort_order'] ?? 0,
+            ':fc'    => $command->fieldCode,
+            ':label' => $command->label,
+            ':ft'    => $command->fieldType,
+            ':opts'  => $command->options,
+            ':req'   => $command->isRequired,
+            ':so'    => $command->sortOrder,
         ]);
         return (int) $this->pdo->lastInsertId();
     }

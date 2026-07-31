@@ -7,6 +7,9 @@
  * Actions: save (update all), add (create new), delete_{id} (remove).
  * Access: superviseur only (enforced by Router middleware)
  */
+use App\DTO\CreateRegistryCommand;
+use App\DTO\CreateRegistryFieldCommand;
+use App\DTO\UpdateRegistryCommand;
 use App\Repository\RegistryFieldRepository;
 use App\Services\HttpService;
 use App\Services\SessionService;
@@ -66,14 +69,14 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             }
         }
 
-        $fieldRepo->create($registryId, [
-            'field_code'  => $fieldCode,
-            'label'       => $fieldLabel,
-            'field_type'  => $fieldType,
-            'options'     => $fieldOptions !== '' ? $fieldOptions : null,
-            'is_required' => $isRequired,
-            'sort_order'  => $sortOrder,
-        ]);
+        $fieldRepo->create($registryId, new CreateRegistryFieldCommand(
+            fieldCode: $fieldCode,
+            label: $fieldLabel,
+            fieldType: $fieldType,
+            options: $fieldOptions !== '' ? $fieldOptions : null,
+            isRequired: $isRequired,
+            sortOrder: $sortOrder,
+        ));
 
         $session->setFlash('success', 'Champ « ' . $fieldLabel . ' » ajouté.');
         $http->redirect($http->url('settings', ['tab' => 'registres']));
@@ -123,22 +126,22 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             }
         }
 
-        $repo->create([
-            'code'               => $code,
-            'label'              => $label,
-            'short_label'        => $shortLabel,
-            'description'        => trim((string) ($postData['new_description'] ?? '')),
-            'icon'               => '📋',
+        $repo->create(new CreateRegistryCommand(
+            code: $code,
+            label: $label,
+            shortLabel: $shortLabel,
+            description: trim((string) ($postData['new_description'] ?? '')),
+            icon: '📋',
             // Audit #59 — color_theme doit être un nom de classe CSS valide
             // ('rsst', 'vert', 'orange', etc.), pas une valeur de VisibilityMode.
             // VisibilityMode::AgentChoice->value === 'agent_choice' n'a pas de
             // classe CSS associée → visuel cassé pour tout nouveau registre custom.
-            'color_theme'        => 'vert',  // défaut: vert (couleur neutre)
-            'is_enabled'         => 1,
-            'is_system'          => 0,
-            'sort_order'         => $maxOrder + 1,
-            'default_visibility' => VisibilityMode::AgentChoice->value,
-        ]);
+            colorTheme: 'vert',  // défaut: vert (couleur neutre)
+            isEnabled: 1,
+            isSystem: 0,
+            sortOrder: $maxOrder + 1,
+            defaultVisibility: VisibilityMode::AgentChoice->value,
+        ));
 
         $session->setFlash('success', 'Registre « ' . $label . ' » ajouté.');
         $http->redirect($http->url('settings', ['tab' => 'registres']));
@@ -162,32 +165,31 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
         $isSystem = (int) $existing['is_system'] === 1;
         $isEnabled = $isSystem ? 1 : (!empty($data['is_enabled']) ? 1 : 0);
 
-        $updateData = [
-            'is_enabled'         => $isEnabled,
-            'label'              => trim((string) ($data['label'] ?? $existing['label'])),
-            'short_label'        => trim((string) ($data['short_label'] ?? $existing['short_label'])),
-            'description'        => trim((string) ($data['description'] ?? '')),
-            'sort_order'         => (int) ($data['sort_order'] ?? $existing['sort_order']),
-            'default_visibility' => (string) ($data['default_visibility'] ?? $existing['default_visibility']),
-            'notify_chsct'       => !empty($data['notify_chsct']) ? 1 : 0,
-            'legal_note'         => trim((string) ($data['legal_note'] ?? '')),
-        ];
-
         // Color theme
+        $colorTheme = null;
         if (!empty($data['color_theme'])) {
             $theme = (string) $data['color_theme'];
             $validThemes = RegistryRepository::availableThemes();
             if (in_array($theme, $validThemes, true)) {
-                $updateData['color_theme'] = $theme;
+                $colorTheme = $theme;
             }
         }
 
         // Icon
-        if (!empty($data['icon'])) {
-            $updateData['icon'] = (string) $data['icon'];
-        }
+        $icon = !empty($data['icon']) ? (string) $data['icon'] : null;
 
-        $repo->update($id, $updateData);
+        $repo->update($id, new UpdateRegistryCommand(
+            label: trim((string) ($data['label'] ?? $existing['label'])),
+            shortLabel: trim((string) ($data['short_label'] ?? $existing['short_label'])),
+            description: trim((string) ($data['description'] ?? '')),
+            icon: $icon,
+            colorTheme: $colorTheme,
+            isEnabled: $isEnabled,
+            sortOrder: (int) ($data['sort_order'] ?? $existing['sort_order']),
+            defaultVisibility: (string) ($data['default_visibility'] ?? $existing['default_visibility']),
+            notifyChsct: !empty($data['notify_chsct']) ? 1 : 0,
+            legalNote: trim((string) ($data['legal_note'] ?? '')),
+        ));
     }
 
     $session->setFlash('success', 'Registres mis à jour avec succès.');

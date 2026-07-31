@@ -9,6 +9,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\CreateRegistryFieldCommand;
 
 require_once __DIR__ . '/../../src/validation.php';
 
@@ -38,24 +39,24 @@ class ValidationTest extends TestCase
         if ($rami !== null) {
             $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
             if ($fieldRepo->findByCode((int) $rami['id'], 'nature_auteur') === null) {
-                $fieldRepo->create((int) $rami['id'], [
-                    'field_code' => 'nature_auteur',
-                    'label' => 'Nature de l\'auteur',
-                    'field_type' => 'select',
-                    'options' => json_encode(['usager' => 'Usager', 'collegue' => 'Collègue', 'hierarchie' => 'Hiérarchie', 'tiers' => 'Tiers']),
-                    'is_required' => 0,
-                    'sort_order' => 1,
-                ]);
+                $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
+                    fieldCode: 'nature_auteur',
+                    label: 'Nature de l\'auteur',
+                    fieldType: 'select',
+                    options: json_encode(['usager' => 'Usager', 'collegue' => 'Collègue', 'hierarchie' => 'Hiérarchie', 'tiers' => 'Tiers']),
+                    isRequired: 0,
+                    sortOrder: 1,
+                ));
             }
             if ($fieldRepo->findByCode((int) $rami['id'], 'type_acte') === null) {
-                $fieldRepo->create((int) $rami['id'], [
-                    'field_code' => 'type_acte',
-                    'label' => 'Type d\'acte',
-                    'field_type' => 'select',
-                    'options' => json_encode(['verbal' => 'Verbal', 'physique' => 'Physique', 'moral' => 'Moral', 'sexiste' => 'Sexiste', 'autre' => 'Autre']),
-                    'is_required' => 0,
-                    'sort_order' => 2,
-                ]);
+                $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
+                    fieldCode: 'type_acte',
+                    label: 'Type d\'acte',
+                    fieldType: 'select',
+                    options: json_encode(['verbal' => 'Verbal', 'physique' => 'Physique', 'moral' => 'Moral', 'sexiste' => 'Sexiste', 'autre' => 'Autre']),
+                    isRequired: 0,
+                    sortOrder: 2,
+                ));
             }
         }
     }

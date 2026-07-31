@@ -15,6 +15,7 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 /** @var array<string, string> $_POST */
 
+use App\DTO\AttachmentData;
 use App\DTO\RespondToReportCommand;
 use App\Services\ReportService;
 
@@ -54,7 +55,7 @@ if (!in_array($report->etat, [ReportState::Nouveau->value, ReportState::EnCours-
 }
 
 // Handle optional attachment
-$attachment = ['blob' => null, 'name' => null, 'mime' => null];
+$attachment = null;
 if (isset($_FILES['response_attachment']) && is_array($_FILES['response_attachment']) && !empty($_FILES['response_attachment']['tmp_name'])) {
     $fakeErrors = [];
     $att = validateReportAttachment($fakeErrors, 'response_attachment');
@@ -63,7 +64,7 @@ if (isset($_FILES['response_attachment']) && is_array($_FILES['response_attachme
         setFormData($_POST);
         $http->redirect($http->url('report_respond', ['uuid' => $reportUuid]));
     }
-    $attachment = ['blob' => $att['blob'], 'name' => $att['name'], 'mime' => $att['mime']];
+    $attachment = new AttachmentData(blob: $att['blob'], name: $att['name'], mime: $att['mime']);
 }
 
 $pdo = getDB();

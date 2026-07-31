@@ -296,7 +296,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
 
         $result = $this->repo->respond($uuid, $cmd, $this->supervisorId);
         $this->assertIsArray($result);
-        $this->assertTrue($result['success'] ?? false);
+        $this->assertSame(\App\Enum\RespondStatus::Ok, $result['status']);
 
         // Verify etat was updated
         $report = $this->repo->findById($uuid);
@@ -315,7 +315,9 @@ class ReportRepositoryMethodsMutationTest extends TestCase
     {
         $cmd = new RespondToReportCommand(reponse: 'test', nouvelEtat: ReportState::EnCours);
         $result = $this->repo->respond('nonexistent-uuid', $cmd, $this->supervisorId);
-        $this->assertFalse($result['success'] ?? true);
+        // For a missing report, the UPDATE WHERE uuid = :uuid matches 0 rows
+        // → rowCount() === 0 → status = Concurrent (not Ok)
+        $this->assertNotSame(\App\Enum\RespondStatus::Ok, $result['status']);
     }
 
     // ═══ abandon() ═══

@@ -161,6 +161,91 @@ class PHPStanRulesTest extends TestCase
     }
 
     /**
+     * Verify that NoSilentCatchRule's invariant holds: every catch in production code
+     * either rethrows, exits (CLI scripts), or carries an explicit @silent-ok marker.
+     * Mirrors the rule's own logic via token_get_all() rather than the AST, as a second,
+     * independent check.
+     */
+    public function testNoSilentCatchInProductionCode(): void
+    {
+        $dirs = ['src', 'pages', 'templates', 'handlers', 'tools', 'seed', 'public'];
+        $root = __DIR__ . '/../../';
+        $files = [];
+
+        foreach ($dirs as $dir) {
+            $path = $root . $dir;
+            if (!is_dir($path)) {
+                continue;
+            }
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+            foreach ($iterator as $file) {
+                if ($file->getExtension() === 'php' && !str_contains($file->getPathname(), '/lib/')) {
+                    $files[] = $file->getPathname();
+                }
+            }
+        }
+        foreach (['nuclear-reset.php', 'seed.php'] as $rootFile) {
+            if (file_exists($root . $rootFile)) {
+                $files[] = $root . $rootFile;
+            }
+        }
+
+        $violations = [];
+        foreach ($files as $file) {
+            $tokens = token_get_all((string) file_get_contents($file));
+            $n = count($tokens);
+            for ($i = 0; $i < $n; $i++) {
+                $t = $tokens[$i];
+                if (!is_array($t) || $t[0] !== T_CATCH) {
+                    continue;
+                }
+                $j = $i;
+                while ($j < $n && !(is_string($tokens[$j]) && $tokens[$j] === '{')) {
+                    $j++;
+                }
+                if ($j >= $n) {
+                    continue;
+                }
+                $depth = 0;
+                $hasThrow = false;
+                $hasExit = false;
+                $hasMarker = false;
+                for ($k = $j; $k < $n; $k++) {
+                    $tok = $tokens[$k];
+                    if (is_string($tok)) {
+                        if ($tok === '{') {
+                            $depth++;
+                        }
+                        if ($tok === '}') {
+                            $depth--;
+                            if ($depth === 0) {
+                                break;
+                            }
+                        }
+                    } else {
+                        if ($tok[0] === T_THROW) {
+                            $hasThrow = true;
+                        }
+                        if ($tok[0] === T_EXIT) {
+                            $hasExit = true;
+                        }
+                        if (($tok[0] === T_COMMENT || $tok[0] === T_DOC_COMMENT) && str_contains($tok[1], '@silent-ok')) {
+                            $hasMarker = true;
+                        }
+                    }
+                }
+                if (!$hasThrow && !$hasExit && !$hasMarker) {
+                    $violations[] = basename($file) . ':' . $t[2];
+                }
+            }
+        }
+
+        $this->assertEmpty($violations, "Catch sans throw/exit/@silent-ok trouvé : " . implode(', ', $violations));
+    }
+
+    /**
      * Get all production PHP files (excluding tests, vendor, seed, tools).
      *
      * @return list<string>

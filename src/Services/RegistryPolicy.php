@@ -78,7 +78,7 @@ class RegistryPolicy
                 return (int) $registry[$column] === 1;
             }
         } catch (Throwable) {
-            // Pre-migration (column missing) — fail safe (false)
+            // @silent-ok: pre-migration (column missing) — fail safe (false)
         }
         return false;
     }
@@ -95,7 +95,7 @@ class RegistryPolicy
                 return is_string($value) ? $value : '';
             }
         } catch (Throwable) {
-            // Pre-migration (column missing) — fail safe ('')
+            // @silent-ok: pre-migration (column missing) — fail safe ('')
         }
         return '';
     }

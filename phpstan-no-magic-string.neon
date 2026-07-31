@@ -47,3 +47,7 @@ services:
         class: App\PHPStan\NoInvalidSqliteRaiseRule
         tags:
             - phpstan.rules.rule
+    -
+        class: App\PHPStan\NoSilentCatchRule
+        tags:
+            - phpstan.rules.rule

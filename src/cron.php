@@ -54,6 +54,8 @@ function runLazyCronTask(PDO $pdo, string $taskName, int $minInterval, callable 
 
         $callback($pdo);
     } catch (Exception $e) {
+        // @silent-ok: lazy-cron dispatcher — one task failing must not stop the others
+        // from running on this request.
         error_log("[SST-CRON] Lazy cron task '{$taskName}' failed: " . $e->getMessage());
     }
 }
@@ -118,6 +120,8 @@ function lazyCronCheckDelays(PDO $pdo): void
                     $errors++;
                 }
             } catch (Exception $e) {
+                // @silent-ok: per-recipient email failure in a batch — counted, must not
+                // stop delay notifications going out to the other recipients.
                 $errors++;
                 error_log("[SST-CRON] check_delays: failed to send to $email — " . $e->getMessage());
             }

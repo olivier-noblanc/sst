@@ -38,6 +38,7 @@ try {
     auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $label, $userId, 'user');
     $session->setFlash('success', 'Utilisateur ' . e($label) . ' désactivé avec succès.');
 } catch (RuntimeException $e) {
+    // @silent-ok: handler boundary — flash error shown to the user, standard pattern.
     $session->setFlash('error', e($e->getMessage()));
 }
 

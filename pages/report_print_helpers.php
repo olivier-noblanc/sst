@@ -243,7 +243,8 @@ function drawEmbeddedImage(SSTPDF $pdf, ?string $attachmentMime, ?string $attach
         $pdf->Image($dataUri, $x + 2, $y + 2, $displayWidth, $displayHeight, $typeStr);
         $pdf->SetY($y + $displayHeight + 8);
     } catch (Throwable) {
-        // If image embedding fails, skip — don't break PDF generation
+        // @silent-ok: if image embedding fails, skip — don't break PDF generation
+        // over one attachment thumbnail.
     }
 }
 

@@ -102,6 +102,8 @@ class ConfigRepository
         } catch (Throwable $e) {
             $this->pdo->rollBack();
             error_log('[SST-CRON] claimLazyCronLock failed for ' . $cle . ': ' . $e->getMessage());
+            // @silent-ok: locking mechanism — failing to claim the lock must not crash the
+            // caller, it just means "don't run this cron task now, someone else has it".
             return false; // Fail safe — don't run if we can't claim
         }
     }

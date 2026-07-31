@@ -63,6 +63,8 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
                     }
                 }
             } catch (RuntimeException $ex) {
+                // @silent-ok: validation error is collected into $errors and shown to the
+                // user on the form — this is the intended surfacing mechanism, not a swallow.
                 $errors['attachment'] = $ex->getMessage();
             }
         }

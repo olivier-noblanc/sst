@@ -65,7 +65,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
             $notifyChsct = getConfigService()->get('app_dgi_notify_csa', '1') === '1';
         }
     } catch (Throwable) {
-        // Pre-migration (colonne notify_chsct absente) — fallback ancien comportement
+        // @silent-ok: pre-migration (colonne notify_chsct absente) — fallback ancien comportement
         $notifyChsct = ($type === ReportType::Dgi->value && getConfigService()->get('app_dgi_notify_csa', '1') === '1');
     }
     if ($notifyChsct) {
@@ -260,6 +260,8 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
             // Email sent successfully — NOW persist the invite in DB
             ReportRepository::instance()->createAgentInviteWithToken($reportUuid, $email, $token);
         } catch (Throwable $e) {
+            // @silent-ok: best-effort per-invite in a loop — one failed invite must not
+            // stop the others from being sent.
             error_log('[SST-MAIL] sendAgentInviteEmails failed for ' . $email . ': ' . $e->getMessage());
         }
     }

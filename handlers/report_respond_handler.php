@@ -97,6 +97,7 @@ try {
         }
     }
 } catch (RuntimeException $e) {
+    // @silent-ok: handler boundary — flash error shown to the user, standard pattern.
     $session->setFlash('error', e($e->getMessage()));
     setFormData($_POST);
     $http->redirect($http->url('report_respond', ['uuid' => $reportUuid]));

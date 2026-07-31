@@ -107,6 +107,8 @@ function sstShutdownHandler(): void
         try {
             $adminDisplayErrors = (getConfigService()->get('app_display_errors', '') === '1');
         } catch (Exception) {
+            // @silent-ok: we're already inside the global error handler — rethrowing here
+            // risks a recursive/double-fault crash instead of showing any error page at all.
         }
     }
     if ((!defined('DEV_MODE') || !DEV_MODE) && !$adminDisplayErrors) {

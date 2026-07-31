@@ -67,6 +67,7 @@ if (!empty($linkedEmailsRaw)) {
         $reportService = getContainer()->get(ReportService::class);
         $linkedEmails = $reportService->validateLinkedEmails($linkedEmailsRaw, $user ?? []);
     } catch (InvalidArgumentException $e) {
+        // @silent-ok: form validation error surfaced via setFormErrors(), shown to the user.
         setFormErrors(['linked_emails' => e($e->getMessage())]);
         setFormData($_POST);
         $http->redirect($http->url('report_create', ['type' => $type]));
@@ -103,6 +104,7 @@ try {
     $http->redirect($http->url('report_view', ['uuid' => $report->uuid]));
 
 } catch (InvalidArgumentException $e) {
+    // @silent-ok: form validation error surfaced via setFormErrors(), shown to the user.
     setFormErrors(['general' => $e->getMessage()]);
     setFormData($_POST);
     $http->redirect($http->url('report_create', ['type' => $type]));

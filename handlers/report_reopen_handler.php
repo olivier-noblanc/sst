@@ -72,6 +72,7 @@ try {
         $session->setFlash('error', 'Ce signalement a été modifié entre-temps. Veuillez réessayer.');
     }
 } catch (RuntimeException $e) {
+    // @silent-ok: handler boundary — flash error shown to the user, standard pattern.
     $session->setFlash('error', e($e->getMessage()));
     $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
 }

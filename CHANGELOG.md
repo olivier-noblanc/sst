@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.60.0] — 2026-07-30
+
+### PHPStan — `NoSilentCatchRule` : impose « crash hard, jamais silencieux »
+
+- **1** 🔴 **`src/PHPStan/NoSilentCatchRule.php`** (nouveau) — bloque tout `catch` dont le corps n'aboutit ni à un `throw`, ni à un `exit()`/`die()` (scripts CLI), sauf marqueur explicite `@silent-ok: <raison>`. Impose une règle déjà écrite dans AGENTS.md (« Erreurs — Crash hard, jamais silencieux ») mais jusqu'ici non vérifiée automatiquement. `PDO::ERRMODE_EXCEPTION` est actif globalement (vérifié) — les requêtes SQL échouées lèvent déjà une exception ; le vrai trou était les ~30 `catch` qui l'avalaient ensuite sans la relancer.
+- **2** 🔴 **~30 `catch` existants passés en revue un par un** et marqués `@silent-ok: <raison>` — la grande majorité sont légitimes (logging d'audit qui ne doit jamais bloquer l'app, notifications best-effort après commit, fallback pré-migration, frontière handler HTTP → flash error visible par l'utilisateur). Un point signalé sans être changé : `UserRepository::anonymize()` retourne `false` en silence si l'appelant ne vérifie pas le retour (déjà arrivé une fois, Audit #8) — marqué comme fragile plutôt que corrigé, pour ne pas modifier son contrat sans pouvoir faire tourner la suite de tests localement.
+- **3** 🟡 Zéro violation à l'introduction — vérifié par un tokenizer PHP dédié (`token_get_all`) sur tout le périmètre scanné par `phpstan.neon` (src/, pages/, templates/, handlers/, tools/, seed/, public/, nuclear-reset.php), pas de baseline nécessaire.
+
+
 ## [3.59.0] — 2026-07-30
 
 ### Suppression pages Guide / Documentation / Préambule

@@ -157,6 +157,8 @@ foreach ($bySite as $siteId => $siteData) {
                 echo "ERREUR : échec d'envoi à $email\n";
             }
         } catch (Exception $e) {
+            // @silent-ok: per-recipient failure in a batch — printed to stdout, counted,
+            // must not stop the delay notifications going out to the other recipients.
             $errors++;
             echo "ERREUR : " . $e->getMessage() . "\n";
         }

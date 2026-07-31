@@ -84,6 +84,8 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
         try {
             sendMail($adminEmail, $subject, $body);
         } catch (Throwable $e) {
+            // @silent-ok: this IS the error-notification mailer — a failure to send the
+            // admin alert must not itself crash the error handler that's reporting it.
             error_log('[SST-ERROR-MAIL] sendMail failed: ' . $e->getMessage() . " — would have sent: $levelName — $message in $file:$line");
         }
     } else {

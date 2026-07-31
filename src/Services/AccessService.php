@@ -98,6 +98,8 @@ class AccessService
         try {
             ReportRepository::instance()->logAccess((string) $report['uuid'], $userId, (string) $user['role']);
         } catch (Exception $e) {
+            // @silent-ok: access-log entry for RGPD audit trail — same justification as
+            // src/audit.php, must never block the actual report access it's logging.
             error_log('[SST-ACCESS-LOG] Failed to log report access: ' . $e->getMessage());
         }
     }

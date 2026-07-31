@@ -228,7 +228,8 @@ class UserRepository
             ");
             $stmt->execute([':id' => $userId]);
         } catch (Throwable $e) {
-            // Migration may not have run yet (column missing) — log and continue.
+            // @silent-ok: pre-migration (column missing) — session invalidation just
+            // doesn't apply yet on a DB that hasn't run the migration.
             error_log('[SST-USER] invalidateSessions failed: ' . $e->getMessage());
         }
     }
@@ -257,7 +258,7 @@ class UserRepository
                 'sessions_invalid_before' => $this->normalizeTimestamp($row['sessions_invalid_before'] ?? null),
             ];
         } catch (Throwable $e) {
-            // Pre-migration (column missing) — fail safe (session considered valid)
+            // @silent-ok: pre-migration (column missing) — fail safe (session considered valid)
             error_log('[SST-USER] findSessionState failed: ' . $e->getMessage());
             return ['is_active' => 1, 'sessions_invalid_before' => null];
         }
@@ -306,13 +307,19 @@ class UserRepository
                 $this->pdo->exec('DELETE FROM reports_fts');
                 $this->pdo->exec('INSERT INTO reports_fts(uuid, objet, description) SELECT uuid, objet, description FROM reports WHERE uuid IS NOT NULL');
             } catch (Exception) {
-                // Non-critical
+                // @silent-ok: FTS index rebuild — secondary search index, not source-of-truth
+                // data. Non-critical.
             }
 
             $this->pdo->commit();
             return true;
         } catch (Exception $e) {
             $this->pdo->rollBack();
+            // @silent-ok: return-false-on-failure is checked by the current caller
+            // (handlers/user_edit_handler.php shows an explicit error flash + audit log
+            // entry on false) — but this contract is fragile: it was silently ignored
+            // once before (Audit #8) until someone noticed. A caller that stops checking
+            // this return value regresses to a silent RGPD-anonymization failure.
             error_log('[SST-DB] anonymize failed: ' . $e->getMessage());
             return false;
         }

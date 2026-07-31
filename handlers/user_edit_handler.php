@@ -110,6 +110,8 @@ if ($notifyRoleChange) {
         notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
         $emailSent = true;
     } catch (Throwable $e) {
+        // @silent-ok: best-effort notification email — the role change itself already
+        // committed, this must not roll it back or block the response.
         $emailError = $e->getMessage();
         error_log('[SST-MAIL] notifyRoleChange failed: ' . $emailError);
     }

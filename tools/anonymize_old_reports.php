@@ -157,6 +157,8 @@ try {
                 $anonymized++;
             }
         } catch (Exception $e) {
+            // @silent-ok: per-report failure in a batch — printed to stdout, counted,
+            // must not stop the other reports in this run from being anonymized.
             $errors++;
             echo "ERREUR sur {$report['reference']} : " . $e->getMessage() . "\n";
         }

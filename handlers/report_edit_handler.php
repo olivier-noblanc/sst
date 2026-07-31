@@ -85,6 +85,8 @@ try {
                 $service = getContainer()->get(ReportService::class);
                 $linkedEmails = $service->validateLinkedEmails($linkedEmailsRaw, $user ?? []);
             } catch (InvalidArgumentException $e) {
+                // @silent-ok: malformed linked-email input — falls back to "no linked agents"
+                // rather than blocking the whole report edit over one bad email field.
                 $linkedEmails = [];
             }
 
@@ -107,6 +109,8 @@ try {
         $session->setFlash('error', 'Impossible de modifier ce signalement. Veuillez contacter un administrateur.');
     }
 } catch (RuntimeException $e) {
+    // @silent-ok: handler boundary — converts to a user-facing flash error + redirect,
+    // the standard error-surfacing mechanism for this HTTP layer. Not silent: the user sees it.
     $session->setFlash('error', e($e->getMessage()));
     setFormData($_POST);
     $http->redirect($http->url('report_edit', ['uuid' => $reportUuid]));

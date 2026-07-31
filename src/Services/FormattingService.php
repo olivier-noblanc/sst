@@ -121,7 +121,7 @@ class FormattingService
                 return 'var(--theme-' . $theme . ')';
             }
         } catch (Throwable) {
-            // Pre-migration or registry not found — fall back to enum
+            // @silent-ok: pre-migration or registry not found — fall back to enum
         }
         // Fallback for the 3 historical system registries
         $enumType = ReportType::fromCode($type);
@@ -164,7 +164,7 @@ class FormattingService
                 return 'badge--' . (string) $registry['color_theme'];
             }
         } catch (Throwable) {
-            // Fall back to enum
+            // @silent-ok: pre-migration or registry not found — fall back to enum
         }
         // Fallback for the 3 historical system registries
         $enumType = ReportType::fromCode($typeStr);

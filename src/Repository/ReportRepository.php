@@ -288,6 +288,8 @@ class ReportRepository
                     $c = $this->pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='reports_fts'");
                     $hasFts = ($c !== false && $c->fetch() !== false);
                 } catch (Exception) {
+                    // @silent-ok: feature-detection probe (does the FTS5 table exist?),
+                    // not a real failure — sets a flag the code branches on below.
                     $hasFts = false;
                 }
             }
@@ -762,7 +764,8 @@ class ReportRepository
             ]);
             return (int) $stmt->fetchColumn();
         } catch (Throwable $e) {
-            // Pre-migration (table missing) — fail open (allow reopen)
+            // @silent-ok: pre-migration (table missing) — fails open (allow reopen) rather
+            // than blocking a legitimate action on a DB that hasn't migrated yet.
             error_log('[SST-REPORT] countReopens failed: ' . $e->getMessage());
             return 0;
         }
@@ -908,6 +911,9 @@ class ReportRepository
             return ['status' => RespondStatus::Ok];
         } catch (Exception $e) {
             $this->pdo->rollBack();
+            // @silent-ok: converted to a typed RespondStatus::Error the caller must handle
+            // (RespondStatus is a backed enum — a match on it without the Error case is a
+            // PHPStan error), not a swallow.
             error_log('[SST-DB] respondToReport transaction failed: ' . $e->getMessage());
             return ['status' => RespondStatus::Error, 'message' => $e->getMessage()];
         }

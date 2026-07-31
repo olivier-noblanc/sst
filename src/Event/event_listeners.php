@@ -48,7 +48,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyNewReport($reportUuid, $type, $siteId);
         } catch (Throwable $e) {
-            // Notifications must not break the request — log and continue.
+            // @silent-ok: notifications must not break the request — log and continue.
             // The report is already in DB, the user sees a success page.
             error_log('[SST-EVENT] notifyNewReport failed: ' . $e->getMessage());
         }
@@ -68,6 +68,8 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyReportResponse($reportUuid, $userId);
         } catch (Throwable $e) {
+            // @silent-ok: event listener, best-effort notification after the main domain
+            // action already succeeded — must not break the request that triggered it.
             error_log('[SST-EVENT] notifyReportResponse failed: ' . $e->getMessage());
         }
     });
@@ -86,6 +88,8 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyReportReopen($reportUuid, $userId);
         } catch (Throwable $e) {
+            // @silent-ok: event listener, best-effort notification after the main domain
+            // action already succeeded — must not break the request that triggered it.
             error_log('[SST-EVENT] notifyReportReopen failed: ' . $e->getMessage());
         }
     });
@@ -105,6 +109,8 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyReportAbandon($reportUuid, $userId);
         } catch (Throwable $e) {
+            // @silent-ok: event listener, best-effort notification after the main domain
+            // action already succeeded — must not break the request that triggered it.
             error_log('[SST-EVENT] notifyReportAbandon failed: ' . $e->getMessage());
         }
     });
@@ -130,6 +136,8 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyRoleChange($userId, $oldRole, $newRole);
         } catch (Throwable $e) {
+            // @silent-ok: event listener, best-effort notification after the main domain
+            // action already succeeded — must not break the request that triggered it.
             error_log('[SST-EVENT] notifyRoleChange failed: ' . $e->getMessage());
         }
     });

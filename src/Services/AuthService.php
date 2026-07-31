@@ -315,6 +315,8 @@ class AuthService
             try {
                 \runLazyCron(\getDB());
             } catch (Exception $e) {
+                // @silent-ok: lazy-cron piggybacking on IIS auto-auth requests — must not
+                // block the login itself if a background task fails.
                 error_log('[SST-CRON] Lazy cron failed on IIS auto-auth: ' . $e->getMessage());
             }
         }
@@ -404,7 +406,7 @@ class AuthService
             try {
                 $this->repo->invalidateSessions($userId);
             } catch (Throwable $e) {
-                // Pre-migration (column missing) — fail silently, logout still works
+                // @silent-ok: pre-migration (column missing) — fail silently, logout still works
                 error_log('[SST-AUTH] handleLogout: invalidateSessions failed: ' . $e->getMessage());
             }
         }

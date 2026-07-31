@@ -23,7 +23,8 @@ if ($activeRegistryType === null && in_array($currentPage, $reportSubpages, true
             $activeRegistryType = \App\Repository\ReportRepository::instance()->getTypeByUuid($reportUuidStr);
         }
     } catch (Exception) {
-        // Ignore database errors in sidebar
+        // @silent-ok: cosmetic — highlighting the active menu item, a DB error here
+        // must not break rendering of the sidebar (and the rest of the page with it).
     }
 }
 

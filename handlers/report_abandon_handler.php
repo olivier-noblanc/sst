@@ -65,6 +65,7 @@ try {
         $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
     }
 } catch (RuntimeException $e) {
+    // @silent-ok: handler boundary — flash error shown to the user, standard pattern.
     $session->setFlash('error', e($e->getMessage()));
     $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
 }

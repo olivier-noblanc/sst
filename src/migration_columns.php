@@ -189,10 +189,12 @@ function migrateColumns(PDO $pdo): void
         $hasTypeCheck = false; // No constraint — insertion succeeded
         $pdo->exec("DELETE FROM reports WHERE uuid = '00000000-0000-0000-0000-000000000000'");
     } catch (Exception) {
+        // @silent-ok: feature-detection probe — does the CHECK constraint already exist?
         $hasTypeCheck = true; // Constraint rejected the insert
         try {
             $pdo->exec("DELETE FROM reports WHERE uuid = '00000000-0000-0000-0000-000000000000'");
         } catch (Exception) {
+            // @silent-ok: cleanup of the probe row — failure here is inconsequential either way
             // ignore cleanup failure
         }
     } finally {
@@ -637,7 +639,8 @@ function recreateReportsFts5(PDO $pdo): void
     try {
         $pdo->exec('DROP TABLE IF EXISTS reports_fts');
     } catch (Exception $e) {
-        // FTS5 tables can sometimes be in a weird state after the parent table is rebuilt
+        // @silent-ok: FTS5 tables can sometimes be in a weird state after the parent table
+        // is rebuilt — dropping is best-effort, the rebuild step right after recreates it anyway.
         error_log('[SST-MIGRATION] recreateReportsFts5: could not drop reports_fts: ' . $e->getMessage());
     }
 
@@ -647,6 +650,8 @@ function recreateReportsFts5(PDO $pdo): void
     try {
         $pdo->exec('INSERT INTO reports_fts(rowid, uuid, objet, description) SELECT rowid, uuid, objet, description FROM reports');
     } catch (Exception $e) {
+        // @silent-ok: same as above — FTS index rebuild during migration, not source-of-truth
+        // data, and future writes to `reports` will keep the index in sync going forward.
         error_log('[SST-MIGRATION] recreateReportsFts5: rebuild failed: ' . $e->getMessage());
     }
 

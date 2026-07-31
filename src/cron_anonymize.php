@@ -44,6 +44,7 @@ function lazyCronAnonymize(PDO $pdo): void
                     $anonymized++;
                 }
             } catch (Exception $e) {
+                // @silent-ok: per-item failure in a batch — counted, surfaced in the audit log entry below, doesn't abort the whole cron run
                 $errors++;
                 error_log("[SST-CRON] anonymize: failed on {$report['reference']} — " . $e->getMessage());
             }
@@ -69,6 +70,7 @@ function lazyCronAnonymize(PDO $pdo): void
 
         $pdo->commit();
     } catch (Exception $e) {
+        // @silent-ok: lazy-cron task — dispatcher in cron.php already wraps every task in its own catch+log; logged here too for task-specific context
         $pdo->rollBack();
         error_log('[SST-CRON] anonymize: transaction rolled back — ' . $e->getMessage());
     }

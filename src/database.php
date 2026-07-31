@@ -68,7 +68,7 @@ function getDB(): PDO
     try {
         performBackup($pdo);
     } catch (Exception $e) {
-        // Backup failure must NOT block the application
+        // @silent-ok: Backup failure must NOT block the application
         error_log('[SST-BACKUP] Auto-backup failed: ' . $e->getMessage());
     }
 

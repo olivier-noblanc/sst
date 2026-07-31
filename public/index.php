@@ -67,7 +67,7 @@ try {
         }
     }
 } catch (Exception $e) {
-    // DB not available yet (first install) — keep default from config.php
+    // @silent-ok: DB not available yet (first install) — keep default from config.php
 }
 
 // Register custom error handler (email critical errors to admin)

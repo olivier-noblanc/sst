@@ -3,6 +3,14 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.61.0] — 2026-07-30
+
+### PHPStan — `MustCheckReturnValueRule` : ferme le trou structurel de l'Audit #8
+
+- **1** 🔴 **`src/PHPStan/MustCheckReturnValueRule.php`** (nouveau) — interdit d'appeler `UserRepository::anonymize()`, `ReportRepository::anonymize()` ou `ConfigRepository::claimLazyCronLock()` sans utiliser leur retour (ni assignation, ni condition, ni return, ni argument). Ces méthodes catch leurs exceptions et signalent l'échec via un booléen (voir `NoSilentCatchRule`) plutôt que de laisser l'exception remonter — un choix assumé pour un message d'erreur utilisateur propre, mais qui déplace la responsabilité de ne pas être silencieux vers l'appelant. Un appelant qui ignore ce booléen reproduit exactement l'Audit #8 (retour ignoré, "succès" affiché à tort après un échec réel).
+- **2** 🟡 Suite directe de `NoSilentCatchRule` (3.60.0) : celle-ci couvrait le `try/catch` lui-même, celle-ci couvre le contrat de sortie qu'il expose. Zéro violation à l'introduction — les 3 appelants actuels (`cron_anonymize.php`, `UserService::anonymize()`, `handlers/user_edit_handler.php`) vérifient déjà tous correctement le retour.
+
+
 ## [3.60.0] — 2026-07-30
 
 ### PHPStan — `NoSilentCatchRule` : impose « crash hard, jamais silencieux »

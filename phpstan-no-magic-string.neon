@@ -51,3 +51,7 @@ services:
         class: App\PHPStan\NoSilentCatchRule
         tags:
             - phpstan.rules.rule
+    -
+        class: App\PHPStan\MustCheckReturnValueRule
+        tags:
+            - phpstan.rules.rule

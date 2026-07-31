@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-31 (v3.62.0)
+Dernière mise à jour : 2026-07-31 (v3.63.0)
 
 ---
 
@@ -12,10 +12,10 @@ Dernière mise à jour : 2026-07-31 (v3.62.0)
 | Pages supprimées | **guide / help / preamble** (v3.59.0) |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule + NoBareDeleteInTestsRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
-| Tests | **1457** (3417 assertions) |
+| Tests | **1505** (3565 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
-| DTOs readonly | **16** (CreateReportCommand, UpdateReportCommand, RespondToReportCommand, ReopenReportCommand, CreateUserCommand, UpdateUserCommand, ReportData, ReportFilter, ReportListItem, PaginatedReports, AdjacentUuids, IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult) |
+| DTOs readonly | **22** (CreateReportCommand, UpdateReportCommand, RespondToReportCommand, ReopenReportCommand, CreateUserCommand, UpdateUserCommand, ReportData, ReportFilter, ReportListItem, PaginatedReports, AdjacentUuids, IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult, CreateRegistryCommand, UpdateRegistryCommand, CreateRegistryFieldCommand, AttachmentData, UpdateAppSettingsCommand, SiteId) |
 | CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + PHPArkitect + Rector + Deptrac + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
 | Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |
@@ -832,3 +832,70 @@ Après la création du value object `SiteId` (commit `5749b95`), celui-ci n'éta
 - Pattern PRAGMA FK identique aux migrations existantes
 
 **Résultat :** 1001 tests, 2271 assertions — tous verts. GrumPHP passe en entier.
+
+---
+
+## Priorité 29 — ✅ Refactoring Array → typed DTOs (10 cibles HIGH) — TERMINÉ
+
+### Fait
+
+Refactoring TDD complet en 3 phases, 10 cibles HIGH priority identifiées lors de l'audit array parameters.
+
+**Phase 1 — UserRepository + UserService :**
+- `UserRepository::create(array)` → `create(CreateUserCommand)` — le DTO existait mais était converti en array
+- `UserRepository::update(int, array)` → `update(int, UpdateUserCommand)`
+- `UserService::validate(array)` → `validate(CreateUserCommand|UpdateUserCommand)` — lit les props DTO (déjà trimées)
+- `UserService::canDemote(int, string, array)` → `canDemote(int, string, string)` — un string suffit
+- `CreateUserCommand::toArray()` / `UpdateUserCommand::toArray()` supprimées (dead code)
+
+**Phase 2 — RegistryRepository + RegistryFieldRepository :**
+- 3 nouveaux DTOs : `CreateRegistryCommand` (12 champs), `UpdateRegistryCommand` (10 champs nullable), `CreateRegistryFieldCommand` (6 champs)
+- `RegistryRepository::create(array)` → `create(CreateRegistryCommand)`
+- `RegistryRepository::update(int, array)` → `update(int, UpdateRegistryCommand)`
+- `RegistryFieldRepository::create(int, array)` → `create(int, CreateRegistryFieldCommand)`
+- `seedDefaults()` interne convertit ses arrays en DTOs
+
+**Phase 3 — Settings + Attachment + getAdjacentUuids :**
+- `UpdateAppSettingsCommand` (23 champs) — `handleSettingsAppTab(PDO, array)` → `handleSettingsAppTab(PDO, UpdateAppSettingsCommand)`
+- `AttachmentData` (blob, name, mime) — `respondToReport(..., array)` → `respondToReport(..., ?AttachmentData)`
+- `RespondToReportCommand::$attachment` : `array` → `?AttachmentData`
+- `getAdjacentUuids(array)` → `getAdjacentUuids(string, ?string, string)` — 3 scalaires
+
+**Résultat :** 1505 tests, 3565 assertions, PHPStan 0 erreur.
+
+---
+
+## Priorité 30 — 🔴 MEDIUM priority — Array → DTOs (5 cibles restantes)
+
+Cibles identifiées lors de l'audit mais classées MEDIUM (impact moindre ou refactorings plus larges).
+
+| # | Cible | Fichier | Changement |
+|---|-------|---------|------------|
+| 1 | `AccessService::canAccessReport(ReportData, array $user)` | `src/Services/AccessService.php` | `$user` = `UserArray` (14 champs) — nécessite un `SessionUser` DTO + migration session |
+| 2 | `AuthService::shouldRevalidateSession(array $user)` | `src/Services/AuthService.php` | Même `UserArray` — dépend du même `SessionUser` |
+| 3 | `SessionService::setUserSession(array $user)` / `getUserSession(): ?array` | `src/Services/SessionService.php` | Stocke `$_SESSION` — nécessite sérialisation DTO (`__serialize`/`__unserialize`) |
+| 4 | `renderRegistryCard(array $card)` | `src/helpers/registry_card_renderer.php` | 10 champs — `RegistryCardData` DTO |
+| 5 | `EventDispatcher::dispatch(string, array $data)` | `src/Event/EventDispatcher.php` | Données événement génériques — possible `UserProvisionedEvent`, `UserPromotedEvent` |
+
+**Recommandation :** Priorité 1-3 (UserArray → SessionUser) est un bloc cohérant qui améliore toute la couche auth/session. Priorité 4-5 sont indépendantes et plus simples.
+
+---
+
+## Priorité 31 — 🟢 LOW priority — Array → DTOs (acceptables)
+
+Cibles où l'usage d'array est justifié (filtres, params URL, collections simples).
+
+| # | Cible | Pourquoi c'est OK |
+|---|-------|-------------------|
+| 1 | `getAuditLog(PDO, array $filters)` | Filtre/search — `ReportFilter` existe déjà comme modèle |
+| 2 | `AuditRepository::findPaginated(array $filters)` | Idem |
+| 3 | `StatsRepository::getExportData(array $filters)` | Filtre — 6 champs simples |
+| 4 | `auditLog(..., array $context)` | Contexte JSON générique — intentionally `array<string, mixed>` |
+| 5 | `url(string, array $params)` / `absoluteUrl(string, array $params)` | Params URL — pas de structured data |
+| 6 | `renderBreadcrumb(array $items)` | Collection `{label, url?}` — simple |
+| 7 | `requireRole(array $roles)` | `list<string>` — pas de structured data |
+| 8 | `Router::addRoute(..., array $methods)` | `list<string>` — pas de structured data |
+| 9 | `setFormData(array $data)` / `setFormErrors(array $errors)` | Generic form bag — intentionally untyped |
+| 10 | `QueryFilterBuilder::addRaw(string, array $params)` | SQL params — not structured data |
+
+**Conclusion :** ces 10 cas sont des usages légitimes d'arrays. Pas de DTO nécessaire.

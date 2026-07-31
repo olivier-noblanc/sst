@@ -518,6 +518,31 @@ Helpers : `renderEmailField()`, `renderEmailButton()`, `renderEmailLink()` (mêm
 | Baseline entries `app.noMixedArray` | 35+ | **0** (baseline vidé) |
 | Règles PHPStan noMixedArray | 3 (trait) | 4 (+NoMixedArrayInVarRule) |
 
+## Priorité 32 — ✅ Terminée — SessionUser migration : handlers/pages/templates (88→0 PHPStan)
+
+Migration complète des 31 fichiers qui accédaient `$user['id']` au lieu de `$user->id` sur `SessionUser`.
+
+| Métrique | Avant | Après |
+|----------|-------|-------|
+| PHPStan errors | **88** | **0** |
+| `offsetAccess.nonOffsetAccessible` | 19 | 0 |
+| `property.nonObject` | 18 | 0 |
+| `nullsafe.neverNull` | 16 | 0 |
+| `varTag.nativeType` | 8 | 0 |
+| `argument.type` | 6 | 0 |
+| `return.type` / `return.unusedType` | 9 | 0 |
+| `noMixedArray` | 2 | 0 |
+| Fichiers modifiés | — | 31 |
+
+### Échecs tests préexistants (45 — non causés par cette session)
+
+| Cause | Tests | Détail |
+|-------|-------|--------|
+| `Cannot use object of type SessionUser as array` | ~35 (UserIdPhase1DtoTest, UserQueriesTest, UserRepositoryMutationTest) | `$user['username']` sur retour `findById()` qui retourne `SessionUser`, plus `array` |
+| `Undefined array key "site_id"` | 2 (UserRepositoryMutationTest) | `$row['site_id']` pas garanti par PDO::FETCH_ASSOC |
+
+Ces 45 échecs étaient présents avant cette session (depuis le commit `0766f80`). Non adressés ici.
+
 ---
 
 ## Audit CTO 2026-07-26 — 98 bugs identifiés + 8 refactorings

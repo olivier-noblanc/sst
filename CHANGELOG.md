@@ -20,6 +20,24 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 - **9** 🟡 **RegistryCardData DTO** — `renderRegistryCard(array)` → `renderRegistryCard(RegistryCardData)`. 10 champs typés en `final readonly class` avec factory `::create()` + fallback `cardClass` automatique. `buildRegistryCards()` retourne `list<RegistryCardData>`. `RegistryCardService::buildRegistryCards()` construit des DTOs au lieu d'arrays. 24 tests passent (65 assertions).
 
+### PHPStan 88→0 — SessionUser DTO migration complète des handlers/pages/templates
+
+- **10** 🟢 **31 fichiers migrés** — handlers, pages, templates, services, helpers qui accédaient `$user['id']` → `$user->id` sur `SessionUser`. 88 erreurs PHPStan éliminées. 3 catégories principales :
+
+  | Catégorie | Erreurs | Changement |
+  |-----------|---------|------------|
+  | `offsetAccess.nonOffsetAccessible` | 19 | `$user['id']` → `$user->id` |
+  | `property.nonObject` | 18 | `$user['nom']` sur nullable → null check + `return` |
+  | `nullsafe.neverNull` | 16 | `$user?->id ?? 0` → `$user->id ?? 0` |
+  | `varTag.nativeType` | 8 | @var erronés supprimés |
+  | `argument.type` | 6 | SessionUser passé là où array attendu |
+  | `return.type/unusedType` | 9 | `src/auth.php` return types corrigés |
+
+- **11** 🟢 **`src/auth.php`** — 3 fonctions: `getAuthenticatedUser()`, `findOrCreateUser()`, `mockLogin()` retournent `?SessionUser` au lieu de `?array`.
+- **12** 🟢 **`App\Services\HttpService::redirect()`** retourne `void` (pas `never` — `never` cassait le runtime PHP 8.5). Les handlers ajoutent `return` après redirect pour le type narrowing.
+- **13** 🟢 **`app.noMixedArray`** — **0 erreur** : les 2 dernières (`SessionUser::fromSession`, `SessionUser::fromArray`) remplacées par des shapes précises.
+- ⚠️ **45 échecs tests préexistants** (non causés par cette session) — `UserIdPhase1DtoTest`, `UserQueriesTest`, `UserRepositoryMutationTest` accèdent `$user['username']` sur retour `findById()` → `SessionUser`. À corriger séparément.
+
 - **1** 🔴 **UserRepository — DTOs directement** — `create(array)` → `create(CreateUserCommand)`, `update(int, array)` → `update(int, UpdateUserCommand)`. Les DTOs existaient déjà mais étaient convertis en arrays avant le repo. Fin du pattern « DTO → toArray() → array ».
 - **2** 🔴 **UserService — types pour validate/canDemote** — `validate(array)` → `validate(CreateUserCommand|UpdateUserCommand)`, `canDemote(int, string, array)` → `canDemote(int, string, string)`. Validation lue depuis les propriétés DTO (déjà trimées par `fromPost()`).
 - **3** 🔴 **RegistryRepository — 3 nouveaux DTOs** — `CreateRegistryCommand` (12 champs), `UpdateRegistryCommand` (10 champs nullable), `CreateRegistryFieldCommand` (6 champs). `create(array)` et `update(int, array)` typés.

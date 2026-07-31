@@ -26,15 +26,26 @@ if ($userId <= 0) {
     $http->redirect($http->url('users'));
 }
 
+$sessionUser = $session->getUserSession();
+if ($sessionUser === null) {
+    $session->setFlash('error', 'Session invalide.');
+    $http->redirect($http->url('home'));
+    return;
+}
+
 $service = getContainer()->get(UserService::class);
 
 try {
-    $service->deactivate($userId, (int) ($session->getUserSession()['id'] ?? 0));
+    $service->deactivate($userId, $sessionUser->id);
 
     $pdo = getDB();
     $user = $service->findById($userId);
-    /** @var array<string, string> $user */
-    $label = $user['prenom'] . ' ' . $user['nom'];
+    if ($user === null) {
+        $session->setFlash('error', 'Utilisateur introuvable.');
+        $http->redirect($http->url('users'));
+        return;
+    }
+    $label = $user->prenom . ' ' . $user->nom;
     auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $label, $userId, 'user');
     $session->setFlash('success', 'Utilisateur ' . e($label) . ' désactivé avec succès.');
 } catch (RuntimeException $e) {

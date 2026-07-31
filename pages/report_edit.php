@@ -15,8 +15,7 @@ $report = fetchReportOrRedirect($uuid);
 
 // Access control: only the declarant can edit
 $user = SessionService::getInstance()->getUserSession();
-$userIdStr = $user['id'] ?? '0';
-$userId = (int) $userIdStr;
+$userId = $user->id ?? 0;
 
 requireReportOwnership($report, $userId, $uuid, 'modifier');
 requireReportEditable($report, $uuid, 'modifié');

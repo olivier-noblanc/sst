@@ -25,18 +25,19 @@ $user = \App\Repository\UserRepository::instance()->findById($userId);
 if ($user === null) {
     new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
     new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('users'));
+    return;
 }
 
 // Get sites for dropdown
 $sites = \App\Repository\SiteRepository::instance()->findAll();
 
 // Form data and errors from session
-$formErrors = new \App\Services\SessionService()->getFormErrors();
-$formData = new \App\Services\SessionService()->getFormData();
+$session = new \App\Services\SessionService();
+$formErrors = $session->getFormErrors();
+$formData = $session->getFormData();
 
-/** @var array<string, mixed> $user */
-$userPrenom = (string) ($user['prenom'] ?? '');
-$userNom = (string) ($user['nom'] ?? '');
+$userPrenom = $user->prenom;
+$userNom = $user->nom;
 $pageTitle = 'Éditer l\'utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNom);
 ?>
 
@@ -50,18 +51,18 @@ $pageTitle = 'Éditer l\'utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNo
 
         <?php
         // Prepare variables for the shared template
-        $editNom = $formData['nom'] ?? $user['nom'] ?? '';
-$editPrenom = $formData['prenom'] ?? $user['prenom'] ?? '';
-$editEmail = $formData['email'] ?? $user['email'] ?? '';
-$editUsername = $formData['username'] ?? $user['username'] ?? '';
-$editRole = $formData['role'] ?? $user['role'] ?? \App\Enum\UserRole::Agent->value;
-$editSiteId = $formData['site_id'] ?? $user['site_id'] ?? 1;
+        $editNom = $formData['nom'] ?? $user->nom;
+$editPrenom = $formData['prenom'] ?? $user->prenom;
+$editEmail = $formData['email'] ?? $user->email ?? '';
+$editUsername = $formData['username'] ?? $user->username;
+$editRole = $formData['role'] ?? $user->role;
+$editSiteId = $formData['site_id'] ?? $user->siteId ?? 1;
 $usernameHint = 'Identifiant de connexion Windows';
 require __DIR__ . '/../templates/user_form_fields.php';
 ?>
 
-        <?php if (!empty($editEmail) && $editRole !== ($user['role'] ?? '')): ?>
-        <?php if (($user['role'] ?? '') === \App\Enum\UserRole::Superviseur->value && $editRole === \App\Enum\UserRole::Agent->value): ?>
+        <?php if (!empty($editEmail) && $editRole !== $user->role): ?>
+        <?php if ($user->role === \App\Enum\UserRole::Superviseur->value && $editRole === \App\Enum\UserRole::Agent->value): ?>
         <div class="separator">
             <div class="alert alert--danger">
                 <strong>Attention :</strong> Vous êtes sur le point de rétrograder un superviseur en agent. Cette action est significative.
@@ -82,12 +83,12 @@ require __DIR__ . '/../templates/user_form_fields.php';
                 </label>
                 <small class="text-muted block mt-1">
                     Un e-mail sera envoyé à <strong><?php echo $fmt->e($editEmail); ?></strong> pour l'informer que son rôle passe de
-                    <strong><?php echo $fmt->e(ROLE_LABELS[(string) ($user['role'] ?? '')] ?? (string) ($user['role'] ?? '')); ?></strong> à
+                    <strong><?php echo $fmt->e(ROLE_LABELS[$user->role] ?? $user->role); ?></strong> à
                     <strong><?php echo $fmt->e(ROLE_LABELS[$editRole] ?? $editRole); ?></strong>.
                 </small>
             </div>
         </div>
-        <?php elseif (!empty($editEmail) && $editRole === ($user['role'] ?? '')): ?>
+        <?php elseif (!empty($editEmail) && $editRole === $user->role): ?>
         <input type="hidden" name="notify_role_change" value="0">
         <?php else: ?>
         <input type="hidden" name="notify_role_change" value="0">
@@ -101,7 +102,7 @@ require __DIR__ . '/../templates/user_form_fields.php';
 </div>
 
 <!-- Delete user (soft delete) -->
-<?php if (!empty($user['is_active']) && (int) ($user['id'] ?? 0) !== (int) (new \App\Services\SessionService()->getUserSession()['id'] ?? 0)): ?>
+<?php if (!empty($user->isActive) && $user->id !== ($session->getUserSession()->id ?? 0)): ?>
 <div class="card card--danger">
     <h3 class="section-header--danger">Zone dangereuse</h3>
     <p class="text-muted mb-4">La désactivation rendra le compte inutilisable. Cette action est réversible.</p>

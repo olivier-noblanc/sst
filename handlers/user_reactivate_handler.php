@@ -33,8 +33,12 @@ try {
 
     $pdo = getDB();
     $user = $service->findById($userId);
-    /** @var array<string, string> $user */
-    $label = $user['prenom'] . ' ' . $user['nom'];
+    if ($user === null) {
+        $session->setFlash('error', 'Utilisateur introuvable.');
+        $http->redirect($http->url('users'));
+        return;
+    }
+    $label = $user->prenom . ' ' . $user->nom;
     auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $label, $userId, 'user');
     $session->setFlash('success', 'Utilisateur ' . e($label) . ' réactivé avec succès.');
 } catch (RuntimeException $e) {

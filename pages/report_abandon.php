@@ -18,9 +18,7 @@ $config = getConfigService();
 
 // Access control: only the declarant
 $user = new \App\Services\SessionService()->getUserSession();
-/** @var string */
-$userIdStr = $user['id'] ?? '0';
-$userId = (int) $userIdStr;
+$userId = $user->id ?? 0;
 
 requireReportOwnership($report, $userId, $uuid, 'abandonner');
 requireReportEditable($report, $uuid, 'abandonné');

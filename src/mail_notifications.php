@@ -71,8 +71,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     if ($notifyChsct) {
         $csaUsers = UserRepository::instance()->findByRole(UserRole::Chsct->value);
         foreach ($csaUsers as $csaUser) {
-            /** @var array<string, mixed> $csaUser */
-            if (!empty($csaUser['email']) && !in_array($csaUser['email'], $recipients, true)) {
+            if (!empty($csaUser->email) && !in_array($csaUser->email, $recipients, true)) {
                 $registryLabel = getRegistryShortLabel($type);
                 $csaSubject = 'Signalement ' . $registryLabel . ' — Notification ' . getRoleLabelShort('chsct') . " — {$report->reference}";
                 $csaBody = '<html><body>';
@@ -83,7 +82,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
                 $csaBody .= renderEmailField('Déclarant', $report->declarantPrenom . ' ' . $report->declarantNom);
                 $csaBody .= renderEmailLink($reportUrl, 'Consulter le signalement');
                 $csaBody .= '</body></html>';
-                sendMail($csaUser['email'], $csaSubject, $csaBody);
+                sendMail($csaUser->email, $csaSubject, $csaBody);
             }
         }
     }
@@ -105,7 +104,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     /** @var int */
     $declarantId = $report->declarantId;
     $declarant = UserRepository::instance()->findById($declarantId);
-    if ($declarant === null || empty($declarant['email'])) {
+    if ($declarant === null || empty($declarant->email)) {
         return;
     }
     /** @var string */
@@ -116,28 +115,27 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     if ($respondent === null) {
         return;
     }
-    /** @var array<string, mixed> $respondent */
     $reportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
     $body = '<html><body>';
     $body .= '<h2>Votre signalement a reçu une réponse</h2>';
     $body .= renderEmailField('Référence', $report->reference);
-    $body .= renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom']);
+    $body .= renderEmailField('Répondant', $respondent->prenom . ' ' . $respondent->nom);
     $body .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);
     $body .= renderEmailLink($reportUrl, 'Consulter la réponse');
     $body .= '</body></html>';
-    sendMail($declarant['email'], $subject, $body);
+    sendMail($declarant->email, $subject, $body);
 
     // Also notify linked/confirmed agents
     $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
     foreach ($linkedAgents as $linkedAgent) {
-        if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== $declarant['email']) {
+        if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== $declarant->email) {
             $linkedSubject = "Réponse au signalement $registryLabel — {$report->reference}";
             $linkedReportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
             $linkedBody = '<html><body>';
             $linkedBody .= '<h2>Réponse au signalement</h2>';
             $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom']) . ',</p>';
             $linkedBody .= '<p>Le signalement <strong>' . e($report->reference) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>';
-            $linkedBody .= renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom']);
+            $linkedBody .= renderEmailField('Répondant', $respondent->prenom . ' ' . $respondent->nom);
             $linkedBody .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);
             $linkedBody .= renderEmailLink($linkedReportUrl, 'Consulter la réponse');
             $linkedBody .= '</body></html>';
@@ -193,7 +191,7 @@ function getNotificationRecipients(PDO $pdo, ?int $siteId): array
 function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRole): void
 {
     $user = UserRepository::instance()->findById($userId);
-    if ($user === null || empty($user['email'])) {
+    if ($user === null || empty($user->email)) {
         return;
     }
     $appName = getConfigService()->get('app_nom_organisation', 'DREETS BFC');
@@ -202,7 +200,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     $subject = "Changement de votre rôle dans $appName";
     $body = '<html><body>';
     $body .= '<h2>Changement de rôle</h2>';
-    $body .= '<p>Bonjour ' . htmlspecialchars($user['prenom'] . ' ' . $user['nom']) . ',</p>';
+    $body .= '<p>Bonjour ' . htmlspecialchars($user->prenom . ' ' . $user->nom) . ',</p>';
     $body .= "<p>Votre rôle dans l'application <strong>" . htmlspecialchars($appName) . '</strong> a été modifié par un administrateur :</p>';
     $body .= '<table style="border-collapse:collapse; font-family:sans-serif; font-size:14px; margin:16px 0;">';
     $body .= '<tr><td style="padding:6px 16px; color:#888;">Ancien rôle</td><td style="padding:6px 16px;">' . htmlspecialchars($oldLabel) . '</td></tr>';
@@ -219,7 +217,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     $body .= '<hr style="margin:16px 0; border:none; border-top:1px solid #ddd;">';
     $body .= "<p style=\"font-size:12px; color:#888;\">Cet e-mail a été envoyé automatiquement par l'application $appName. Ne pas répondre directement à ce message.</p>";
     $body .= '</body></html>';
-    sendMail($user['email'], $subject, $body);
+    sendMail($user->email, $subject, $body);
 }
 
 /**

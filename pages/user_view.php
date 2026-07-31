@@ -27,17 +27,17 @@ $user = \App\Repository\UserRepository::instance()->findById($userId);
 if ($user === null) {
     new \App\Services\SessionService()->setFlash('error', 'Utilisateur introuvable.');
     new \App\Services\HttpService()->redirect(new \App\Services\HttpService()->url('users'));
+    return;
 }
-/** @var array<string, mixed> $user */
-$userPrenom = (string) ($user['prenom'] ?? '');
-$userNom = (string) ($user['nom'] ?? '');
-$userRole = (string) ($user['role'] ?? '');
-$userEmail = (string) ($user['email'] ?? '');
-$userUsername = (string) ($user['username'] ?? '');
-$userSiteNom = (string) ($user['site_nom'] ?? '—');
-$userCreatedAt = (string) ($user['created_at'] ?? '');
-$userUpdatedAt = (string) ($user['updated_at'] ?? '');
-$userIsActive = !empty($user['is_active']);
+$userPrenom = $user->prenom;
+$userNom = $user->nom;
+$userRole = $user->role;
+$userEmail = (string) ($user->email ?? '');
+$userUsername = $user->username;
+$userSiteNom = $user->siteNom ?? '—';
+$userCreatedAt = $user->createdAt;
+$userUpdatedAt = $user->updatedAt ?? '';
+$userIsActive = !empty($user->isActive);
 
 // Get user's report count
 $reportCount = \App\Repository\ReportRepository::instance()->countByDeclarantId($userId);
@@ -111,7 +111,7 @@ $pageTitle = 'Utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNom);
     <a href="<?php echo $http->url('users'); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>
 
-<?php if (!empty($user['is_active']) || $userNom !== \App\Repository\AnonymizationPolicy::ANONYMIZED_NAME): ?>
+<?php if (!empty($user->isActive) || $userNom !== \App\Repository\AnonymizationPolicy::ANONYMIZED_NAME): ?>
 <div class="card rgpd-section mt-5">
     <h3 class="card__subtitle text-muted">RGPD — Données personnelles</h3>
     <p class="rgpd-section__desc">

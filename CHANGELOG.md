@@ -16,6 +16,19 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **7** 🟡 **toArray() mortes supprimées** — `CreateUserCommand::toArray()`, `UpdateUserCommand::toArray()` plus utilisées.
 - **8** 🟡 **44 fichiers modifiés**, 6 DTOs créés, 3 fichiers de tests ajoutés.
 
+### Refactoring Array → DTO (Priorité 30 — cibles MEDIUM)
+
+- **9** 🟡 **RegistryCardData DTO** — `renderRegistryCard(array)` → `renderRegistryCard(RegistryCardData)`. 10 champs typés en `final readonly class` avec factory `::create()` + fallback `cardClass` automatique. `buildRegistryCards()` retourne `list<RegistryCardData>`. `RegistryCardService::buildRegistryCards()` construit des DTOs au lieu d'arrays. 24 tests passent (65 assertions).
+
+- **1** 🔴 **UserRepository — DTOs directement** — `create(array)` → `create(CreateUserCommand)`, `update(int, array)` → `update(int, UpdateUserCommand)`. Les DTOs existaient déjà mais étaient convertis en arrays avant le repo. Fin du pattern « DTO → toArray() → array ».
+- **2** 🔴 **UserService — types pour validate/canDemote** — `validate(array)` → `validate(CreateUserCommand|UpdateUserCommand)`, `canDemote(int, string, array)` → `canDemote(int, string, string)`. Validation lue depuis les propriétés DTO (déjà trimées par `fromPost()`).
+- **3** 🔴 **RegistryRepository — 3 nouveaux DTOs** — `CreateRegistryCommand` (12 champs), `UpdateRegistryCommand` (10 champs nullable), `CreateRegistryFieldCommand` (6 champs). `create(array)` et `update(int, array)` typés.
+- **4** 🔴 **AttachmentData — value object** — `respondToReport(..., array)` → `respondToReport(..., ?AttachmentData)`. `RespondToReportCommand` aligné.
+- **5** 🔴 **UpdateAppSettingsCommand** — `handleSettingsAppTab(PDO, array)` → `handleSettingsAppTab(PDO, UpdateAppSettingsCommand)`. 23 champs extraits de `$_POST` dans le DTO.
+- **6** 🔴 **getAdjacentUuids — scalaires** — `getAdjacentUuids(array)` → `getAdjacentUuids(string, ?string, string)`. 3 paramètres suffisent.
+- **7** 🟡 **toArray() mortes supprimées** — `CreateUserCommand::toArray()`, `UpdateUserCommand::toArray()` plus utilisées.
+- **8** 🟡 **44 fichiers modifiés**, 6 DTOs créés, 3 fichiers de tests ajoutés.
+
 
 ## [3.62.0] — 2026-07-31
 

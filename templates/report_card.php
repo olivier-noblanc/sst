@@ -27,11 +27,10 @@ $colorTheme = (string) ($registryForTheme['color_theme'] ?? $type);
 $cardClass = 'card--' . $colorTheme;
 
 $registryLabel = getRegistryShortLabel($type);
-$user = new \App\Services\SessionService()->getUserSession() ?? [];
-/** @var array{role: string, site_id: int|string, id: int|string} $user */
-$userRole = (string) $user['role'];
-$userSiteId = (int) $user['site_id'];
-$userId = (int) $user['id'];
+$sessionUser = new \App\Services\SessionService()->getUserSession();
+$userRole = $sessionUser ? $sessionUser->role : '';
+$userSiteId = $sessionUser ? $sessionUser->siteId ?? 0 : 0;
+$userId = $sessionUser ? $sessionUser->id : 0;
 $isDeclarant = ((int) $report->declarantId === $userId);
 $canEdit = new \App\Services\AccessService()->canEditReport($report, $userId);
 $canAbandon = $isDeclarant && !in_array($report->etat, [\App\Enum\ReportState::Abandonne->value, \App\Enum\ReportState::Traite->value], true);

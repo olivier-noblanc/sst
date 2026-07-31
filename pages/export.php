@@ -88,8 +88,8 @@ $enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled
                     <select name="declarant_id" id="declarant_id">
                         <option value="" <?php echo empty($formData['declarant_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($users as $u): ?>
-                        <?php /** @var int */ $exportUserId = $u['id']; ?>
-                        <option value="<?php echo $exportUserId; ?>" <?php echo ($formData['declarant_id'] ?? '') === (string) ($u['id']) ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u['prenom'] . ' ' . $u['nom']); ?></option>
+                        <?php /** @var int */ $exportUserId = $u->id; ?>
+                        <option value="<?php echo $exportUserId; ?>" <?php echo ($formData['declarant_id'] ?? '') === (string) ($u->id) ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u->prenom . ' ' . $u->nom); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">

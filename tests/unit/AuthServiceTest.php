@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use App\Services\AuthService;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
+use App\DTO\SessionUser;
 
 class AuthServiceTest extends TestCase
 {
@@ -169,8 +170,9 @@ class AuthServiceTest extends TestCase
         clearConfigCache();
         $user = $this->service->autoProvision('jean.martin');
         $this->assertNotNull($user);
-        $this->assertEquals('jean.martin', $user['username']);
-        $this->assertEquals(ROLE_AGENT, $user['role']);
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('jean.martin', $user->username);
+        $this->assertEquals(ROLE_AGENT, $user->role);
     }
 
     public function testAutoProvisionExtractsNamesFromUsername(): void
@@ -178,8 +180,8 @@ class AuthServiceTest extends TestCase
         updateConfig($this->pdo, 'app_superviseur_usernames', '');
         clearConfigCache();
         $user = $this->service->autoProvision('jean.martin');
-        $this->assertEquals('Jean', $user['prenom']);
-        $this->assertEquals('Martin', $user['nom']);
+        $this->assertEquals('Jean', $user->prenom);
+        $this->assertEquals('Martin', $user->nom);
     }
 
     public function testAutoProvisionThreePartUsername(): void
@@ -187,8 +189,8 @@ class AuthServiceTest extends TestCase
         updateConfig($this->pdo, 'app_superviseur_usernames', '');
         clearConfigCache();
         $user = $this->service->autoProvision('jean.pierre.martin');
-        $this->assertEquals('Jean', $user['prenom']);
-        $this->assertEquals('Pierre Martin', $user['nom']);
+        $this->assertEquals('Jean', $user->prenom);
+        $this->assertEquals('Pierre Martin', $user->nom);
     }
 
     public function testAutoProvisionSetsEmail(): void
@@ -196,7 +198,7 @@ class AuthServiceTest extends TestCase
         updateConfig($this->pdo, 'app_superviseur_usernames', '');
         clearConfigCache();
         $user = $this->service->autoProvision('jean.martin');
-        $this->assertEquals('jean.martin@dreets.gouv.fr', $user['email']);
+        $this->assertEquals('jean.martin@dreets.gouv.fr', $user->email);
     }
 
     public function testAutoProvisionSetsRoleFromConfig(): void
@@ -204,7 +206,7 @@ class AuthServiceTest extends TestCase
         updateConfig($this->pdo, 'app_superviseur_usernames', 'jean.martin');
         clearConfigCache();
         $user = $this->service->autoProvision('jean.martin');
-        $this->assertEquals(ROLE_SUPERVISEUR, $user['role']);
+        $this->assertEquals(ROLE_SUPERVISEUR, $user->role);
     }
 
     public function testAutoProvisionDispatchesEvent(): void
@@ -229,7 +231,8 @@ class AuthServiceTest extends TestCase
         $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active) VALUES ('existing.user', 'Existing', 'User', 'agent', 1)");
         $user = $this->service->findOrCreateUser('existing.user');
         $this->assertNotNull($user);
-        $this->assertEquals('existing.user', $user['username']);
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('existing.user', $user->username);
     }
 
     public function testFindOrCreateUserReturnsNullForInactiveUser(): void
@@ -245,47 +248,61 @@ class AuthServiceTest extends TestCase
         clearConfigCache();
         $user = $this->service->findOrCreateUser('new.user');
         $this->assertNotNull($user);
-        $this->assertEquals('new.user', $user['username']);
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('new.user', $user->username);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // checkAndPromote()
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    private function makeUser(array $overrides = []): SessionUser
+    {
+        $defaults = [
+            'id' => 1, 'username' => 'test.user', 'nom' => 'Test', 'prenom' => 'User',
+            'email' => null, 'role' => ROLE_AGENT, 'site_id' => null, 'is_active' => 1,
+            'created_at' => '2025-01-01 00:00:00', 'updated_at' => null,
+            'site_code' => null, 'site_nom' => null, 'site_chosen_at' => null,
+            'sessions_invalid_before' => null,
+        ];
+        return SessionUser::fromRow(array_merge($defaults, $overrides));
+    }
+
     public function testCheckAndPromoteAgentToSuperviseur(): void
     {
         updateConfig($this->pdo, 'app_superviseur_usernames', 'jean.martin');
         clearConfigCache();
-        $user = ['id' => 1, 'role' => ROLE_AGENT];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_AGENT]);
         $result = $this->service->checkAndPromote($user, 'jean.martin');
-        $this->assertEquals(ROLE_SUPERVISEUR, $result['role']);
+        $this->assertInstanceOf(SessionUser::class, $result);
+        $this->assertEquals(ROLE_SUPERVISEUR, $result->role);
     }
 
     public function testCheckAndPromoteAgentNotInListStaysAgent(): void
     {
         updateConfig($this->pdo, 'app_superviseur_usernames', 'admin.super');
         clearConfigCache();
-        $user = ['id' => 1, 'role' => ROLE_AGENT];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_AGENT]);
         $result = $this->service->checkAndPromote($user, 'jean.martin');
-        $this->assertEquals(ROLE_AGENT, $result['role']);
+        $this->assertEquals(ROLE_AGENT, $result->role);
     }
 
     public function testCheckAndPromoteAlreadySuperviseurStaysSuperviseur(): void
     {
         updateConfig($this->pdo, 'app_superviseur_usernames', 'jean.martin');
         clearConfigCache();
-        $user = ['id' => 1, 'role' => ROLE_SUPERVISEUR];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_SUPERVISEUR]);
         $result = $this->service->checkAndPromote($user, 'jean.martin');
-        $this->assertEquals(ROLE_SUPERVISEUR, $result['role']);
+        $this->assertEquals(ROLE_SUPERVISEUR, $result->role);
     }
 
     public function testCheckAndPromoteChsctNotPromoted(): void
     {
         updateConfig($this->pdo, 'app_superviseur_usernames', 'jean.martin');
         clearConfigCache();
-        $user = ['id' => 1, 'role' => ROLE_CHSCT];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_CHSCT]);
         $result = $this->service->checkAndPromote($user, 'jean.martin');
-        $this->assertEquals(ROLE_CHSCT, $result['role']);
+        $this->assertEquals(ROLE_CHSCT, $result->role);
     }
 
     public function testCheckAndPromoteDispatchesEventOnPromotion(): void
@@ -297,7 +314,7 @@ class AuthServiceTest extends TestCase
 
         updateConfig($this->pdo, 'app_superviseur_usernames', 'jean.martin');
         clearConfigCache();
-        $user = ['id' => 1, 'role' => ROLE_AGENT];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_AGENT]);
         $this->service->checkAndPromote($user, 'jean.martin');
         $this->assertTrue($dispatched);
     }
@@ -311,8 +328,19 @@ class AuthServiceTest extends TestCase
 
         updateConfig($this->pdo, 'app_superviseur_usernames', 'admin.super');
         clearConfigCache();
-        $user = ['id' => 1, 'role' => ROLE_AGENT];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_AGENT]);
         $this->service->checkAndPromote($user, 'jean.martin');
         $this->assertFalse($dispatched);
+    }
+
+    public function testCheckAndPromoteReturnsNewInstanceNotMutateOriginal(): void
+    {
+        updateConfig($this->pdo, 'app_superviseur_usernames', 'jean.martin');
+        clearConfigCache();
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_AGENT]);
+        $result = $this->service->checkAndPromote($user, 'jean.martin');
+        $this->assertNotSame($user, $result, 'must return a new instance');
+        $this->assertSame(ROLE_AGENT, $user->role, 'original must be unchanged');
+        $this->assertSame(ROLE_SUPERVISEUR, $result->role);
     }
 }

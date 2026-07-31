@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\DTO\CreateUserCommand;
 use App\DTO\SiteId;
 use App\DTO\UpdateUserCommand;
+use App\DTO\SessionUser;
 use App\Enum\UserRole;
 use Exception;
 use PDO;
@@ -41,41 +42,49 @@ class UserRepository
                 LEFT JOIN sites s ON u.site_id = s.id';
     }
 
-    /** @return UserArray|null */
-    public function findById(int $id): ?array
+    /** @phpstan-ignore shipmonk.deadMethod */
+    public function findById(int $id): ?SessionUser
     {
         $stmt = $this->pdo->prepare($this->baseQuery() . ' WHERE u.id = :id');
         $stmt->execute([':id' => $id]);
         $row = $stmt->fetch();
-        /** @var UserArray|null $row */
-        return is_array($row) ? $row : null;
+        if ($row === false) {
+            return null;
+        }
+        /** @var array{id: mixed, username: mixed, nom: mixed, prenom: mixed, email: mixed, role: mixed, site_id: mixed, is_active: mixed, created_at: mixed, updated_at: mixed, site_code: mixed, site_nom: mixed, site_chosen_at: mixed, sessions_invalid_before: mixed} $row */
+        return SessionUser::fromRow($row);
     }
 
-    /** @return UserArray|null */
-    public function findByUsername(string $username): ?array // @phpstan-ignore-line shipmonk.deadMethod
+    /** @phpstan-ignore shipmonk.deadMethod */
+    public function findByUsername(string $username): ?SessionUser
     {
         $stmt = $this->pdo->prepare(
             $this->baseQuery() . ' WHERE u.username = :username AND u.is_active = 1'
         );
         $stmt->execute([':username' => $username]);
         $row = $stmt->fetch();
-        /** @var UserArray|null $row */
-        return is_array($row) ? $row : null;
+        if ($row === false) {
+            return null;
+        }
+        /** @var array{id: mixed, username: mixed, nom: mixed, prenom: mixed, email: mixed, role: mixed, site_id: mixed, is_active: mixed, created_at: mixed, updated_at: mixed, site_code: mixed, site_nom: mixed, site_chosen_at: mixed, sessions_invalid_before: mixed} $row */
+        return SessionUser::fromRow($row);
     }
 
-    /** @return UserArray|null */
-    public function findByUsernameOrAny(string $username): ?array
+    public function findByUsernameOrAny(string $username): ?SessionUser
     {
         $stmt = $this->pdo->prepare(
             $this->baseQuery() . ' WHERE u.username = :username'
         );
         $stmt->execute([':username' => $username]);
         $row = $stmt->fetch();
-        /** @var UserArray|null $row */
-        return is_array($row) ? $row : null;
+        if ($row === false) {
+            return null;
+        }
+        /** @var array{id: mixed, username: mixed, nom: mixed, prenom: mixed, email: mixed, role: mixed, site_id: mixed, is_active: mixed, created_at: mixed, updated_at: mixed, site_code: mixed, site_nom: mixed, site_chosen_at: mixed, sessions_invalid_before: mixed} $row */
+        return SessionUser::fromRow($row);
     }
 
-    /** @return list<UserArray> */
+    /** @return list<SessionUser> */
     public function findByRole(string $role): array
     {
         $stmt = $this->pdo->prepare(
@@ -83,11 +92,12 @@ class UserRepository
         );
         $stmt->execute([':role' => $role]);
         $rows = $stmt->fetchAll();
-        /** @var list<UserArray> $rows */
-        return $rows;
+        /** @var list<SessionUser> $result */
+        $result = array_map(fn($row) => SessionUser::fromRow($row), $rows);
+        return $result;
     }
 
-    /** @return list<UserArray> */
+    /** @return list<SessionUser> */
     public function findAll(int $siteId = 0, bool $active = true): array
     {
         $sql = $this->baseQuery() . ' WHERE 1=1';
@@ -105,8 +115,9 @@ class UserRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
-        /** @var list<UserArray> $rows */
-        return $rows;
+        /** @var list<SessionUser> $result */
+        $result = array_map(fn($row) => SessionUser::fromRow($row), $rows);
+        return $result;
     }
 
     /** @phpstan-ignore shipmonk.deadMethod */
@@ -317,13 +328,13 @@ class UserRepository
         }
     }
 
-    /** @return array{user: UserArray, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>} */
+    /** @return array{user: array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, siteId: int|null, isActive: int, createdAt: string, updatedAt: string|null, siteCode: string|null, siteNom: string|null, siteChosenAt: string|null, sessionsInvalidBefore: string|null}, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>} */
     public function exportData(int $id): array
     {
         $user = $this->findById($id);
         if ($user === null) {
-            $empty = ['id' => 0, 'username' => '', 'nom' => '', 'prenom' => '', 'email' => null, 'role' => '', 'site_id' => null, 'is_active' => 0, 'created_at' => '', 'updated_at' => null, 'site_code' => null, 'site_nom' => null, 'site_chosen_at' => null, 'sessions_invalid_before' => null];
-            return ['user' => $empty, 'reports_count' => 0, 'reports' => [], 'responses_count' => 0, 'responses' => []];
+            $empty = SessionUser::fromRow(['id' => 0, 'username' => '', 'nom' => '', 'prenom' => '', 'email' => null, 'role' => '', 'site_id' => null, 'is_active' => 0, 'created_at' => '', 'updated_at' => null, 'site_code' => null, 'site_nom' => null, 'site_chosen_at' => null, 'sessions_invalid_before' => null]);
+            return ['user' => $empty->toArray(), 'reports_count' => 0, 'reports' => [], 'responses_count' => 0, 'responses' => []];
         }
 
         $stmt = $this->pdo->prepare('
@@ -345,15 +356,7 @@ class UserRepository
         /** @var list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}> $responses */
 
         return [
-            'user' => [
-                'id' => $user['id'], 'username' => $user['username'],
-                'nom' => $user['nom'], 'prenom' => $user['prenom'],
-                'email' => $user['email'], 'role' => $user['role'],
-                'site_id' => $user['site_id'], 'is_active' => $user['is_active'],
-                'created_at' => $user['created_at'], 'updated_at' => $user['updated_at'],
-                'site_code' => $user['site_code'], 'site_nom' => $user['site_nom'],
-                'site_chosen_at' => $user['site_chosen_at'], 'sessions_invalid_before' => $user['sessions_invalid_before'],
-            ],
+            'user' => $user->toArray(),
             'reports_count' => (int) count($reports), 'reports' => $reports,
             'responses_count' => (int) count($responses), 'responses' => $responses,
         ];

@@ -14,6 +14,7 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Services\SessionService;
+use App\DTO\SessionUser;
 
 class SessionServiceTest extends TestCase
 {
@@ -146,6 +147,18 @@ class SessionServiceTest extends TestCase
     // User session
     // ═══════════════════════════════════════════════════════════════════════════════
 
+    private function makeUser(array $overrides = []): SessionUser
+    {
+        $defaults = [
+            'id' => 1, 'username' => 'test.user', 'nom' => 'Dupont', 'prenom' => 'Jean',
+            'email' => null, 'role' => 'agent', 'site_id' => null, 'is_active' => 1,
+            'created_at' => '2025-01-01 00:00:00', 'updated_at' => null,
+            'site_code' => null, 'site_nom' => null, 'site_chosen_at' => null,
+            'sessions_invalid_before' => null,
+        ];
+        return SessionUser::fromRow(array_merge($defaults, $overrides));
+    }
+
     public function testIsUserLoggedInReturnsFalseWhenNoUser(): void
     {
         $this->assertFalse($this->service->isUserLoggedIn());
@@ -153,15 +166,19 @@ class SessionServiceTest extends TestCase
 
     public function testIsUserLoggedInReturnsTrueAfterSetUserSession(): void
     {
-        $this->service->setUserSession(['id' => 1, 'role' => 'agent']);
+        $this->service->setUserSession($this->makeUser(['id' => 1, 'role' => 'agent']));
         $this->assertTrue($this->service->isUserLoggedIn());
     }
 
     public function testGetUserSessionReturnsUserData(): void
     {
-        $user = ['id' => 1, 'role' => 'agent', 'nom' => 'Dupont'];
+        $user = $this->makeUser(['id' => 1, 'role' => 'agent', 'nom' => 'Dupont']);
         $this->service->setUserSession($user);
-        $this->assertEquals($user, $this->service->getUserSession());
+        $restored = $this->service->getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $restored);
+        $this->assertSame(1, $restored->id);
+        $this->assertSame('agent', $restored->role);
+        $this->assertSame('Dupont', $restored->nom);
     }
 
     public function testGetUserSessionReturnsNullWhenEmpty(): void
@@ -171,7 +188,7 @@ class SessionServiceTest extends TestCase
 
     public function testClearSessionEmptiesUser(): void
     {
-        $this->service->setUserSession(['id' => 1]);
+        $this->service->setUserSession($this->makeUser(['id' => 1]));
         $this->service->clearSession();
         $this->assertNull($this->service->getUserSession());
     }
@@ -182,21 +199,29 @@ class SessionServiceTest extends TestCase
 
     public function testStartImpersonationSetsRole(): void
     {
-        $this->service->setUserSession(['id' => 1, 'role' => 'superviseur']);
+        $this->service->setUserSession($this->makeUser(['id' => 1, 'role' => 'superviseur']));
         $this->service->startImpersonation('superviseur', 'agent');
         $this->assertTrue($this->service->isImpersonatingRole());
         $this->assertEquals('agent', $this->service->getImpersonatedRole());
         $this->assertEquals('superviseur', $this->service->getRealRole());
+        // Verify the user role was changed in session
+        $user = $this->service->getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertSame('agent', $user->role);
     }
 
     public function testStopImpersonationRestoresRealRole(): void
     {
-        $this->service->setUserSession(['id' => 1, 'role' => 'superviseur']);
+        $this->service->setUserSession($this->makeUser(['id' => 1, 'role' => 'superviseur']));
         $this->service->startImpersonation('superviseur', 'agent');
         $realRole = $this->service->stopImpersonation();
         $this->assertEquals('superviseur', $realRole);
         $this->assertFalse($this->service->isImpersonatingRole());
         $this->assertNull($this->service->getImpersonatedRole());
+        // Verify the user role was restored in session
+        $user = $this->service->getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertSame('superviseur', $user->role);
     }
 
     public function testStopImpersonationReturnsNullWhenNotImpersonating(): void
@@ -240,20 +265,20 @@ class SessionServiceTest extends TestCase
     // Impersonation edge cases — kill Infection mutants #14, #17
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    public function testStartImpersonationDoesNotUpdateRoleWhenUserNotArray(): void
+    public function testStartImpersonationDoesNotUpdateRoleWhenUserNotSessionUser(): void
     {
-        $_SESSION['user'] = 'not-an-array';
+        $_SESSION['user'] = 'not-a-SessionUser';
         $this->service->startImpersonation('superviseur', 'agent');
-        $this->assertSame('not-an-array', $_SESSION['user']);
+        $this->assertSame('not-a-SessionUser', $_SESSION['user']);
     }
 
-    public function testStopImpersonationDoesNotUpdateRoleWhenUserNotArray(): void
+    public function testStopImpersonationDoesNotUpdateRoleWhenUserNotSessionUser(): void
     {
         $_SESSION['real_role'] = 'superviseur';
         $_SESSION['impersonated_role'] = 'agent';
-        $_SESSION['user'] = 'not-an-array';
+        $_SESSION['user'] = 'not-a-SessionUser';
         $this->service->stopImpersonation();
-        $this->assertSame('not-an-array', $_SESSION['user']);
+        $this->assertSame('not-a-SessionUser', $_SESSION['user']);
     }
 
     public function testStartImpersonationSkipsRoleUpdateWhenUserNotSet(): void

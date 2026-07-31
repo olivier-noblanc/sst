@@ -1,5 +1,6 @@
 <?php
 
+use App\DTO\SessionUser;
 use App\Services\AuthService;
 
 /**
@@ -13,10 +14,7 @@ function getAuthServiceInstance(): AuthService
     return getContainer()->get(AuthService::class);
 }
 
-/**
- * @return array<string, mixed>|null
- */
-function getAuthenticatedUser(): ?array
+function getAuthenticatedUser(): ?SessionUser
 {
     return getAuthServiceInstance()->getAuthenticatedUser();
 }
@@ -26,18 +24,12 @@ function extractUsername(string $authUser): string
     return AuthService::extractUsername($authUser);
 }
 
-/**
- * @return array<string, mixed>|null
- */
-function findOrCreateUser(string $username): ?array
+function findOrCreateUser(string $username): ?SessionUser
 {
     return getAuthServiceInstance()->findOrCreateUser($username);
 }
 
-/**
- * @return array<string, mixed>|null
- */
-function mockLogin(string $username): ?array
+function mockLogin(string $username): ?SessionUser
 {
     return getAuthServiceInstance()->mockLogin($username);
 }

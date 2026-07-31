@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 use App\DTO\CreateUserCommand;
 use App\DTO\SiteId;
+use App\DTO\SessionUser;
 
 class AuthService
 {
@@ -26,9 +27,8 @@ class AuthService
     /**
      * Get the currently authenticated user.
      * In PROD: reads IIS AUTH_USER. In DEV: returns null (login form).
-     * @return UserArray|null
      */
-    public function getAuthenticatedUser(): ?array
+    public function getAuthenticatedUser(): ?SessionUser
     {
         if (\isUserLoggedIn()) {
             // Audit #9 + #22 + #23 + #38 — re-validate session periodically.
@@ -36,8 +36,8 @@ class AuthService
             // changed) kept their session active 24h until expiration.
             // Now we check sessions_invalid_before marker every 5 minutes.
             $user = \getUserSession();
-            if (is_array($user) && $this->shouldRevalidateSession($user)) {
-                $userId = (int) $user['id'];
+            if ($user instanceof SessionUser && $this->shouldRevalidateSession($user)) {
+                $userId = $user->id;
                 if ($userId > 0) {
                     $sessionStartedAt = (int) ($_SESSION['session_started_at'] ?? 0);
                     // session_started_at may be missing for legacy sessions — treat as 0 (force check)
@@ -49,7 +49,7 @@ class AuthService
                     }
                     // Re-fetch the user (role may have changed)
                     $freshUser = $this->repo->findById($userId);
-                    if ($freshUser === null || (int) $freshUser['is_active'] !== 1) {
+                    if ($freshUser === null || $freshUser->isActive !== 1) {
                         \clearSession();
                         return null;
                     }
@@ -86,10 +86,8 @@ class AuthService
 
     /**
      * Throttle DB check — only re-validate every N seconds (default 5 min).
-     *
-     * @param UserArray $user
      */
-    private function shouldRevalidateSession(array $user): bool
+    private function shouldRevalidateSession(SessionUser $user): bool
     {
         $lastCheck = (int) ($_SESSION['last_session_check'] ?? 0);
         if ($lastCheck === 0) {
@@ -127,18 +125,15 @@ class AuthService
 
     /**
      * Find existing user or auto-create from Windows login.
-     * @return UserArray|null
      */
-    public function findOrCreateUser(string $username): ?array
+    public function findOrCreateUser(string $username): ?SessionUser
     {
-        /** @var UserArray|null $user */
         $user = $this->repo->findByUsernameOrAny($username);
 
         if ($user !== null) {
-            if ($user['is_active'] === 0) {
+            if ($user->isActive === 0) {
                 return null;
             }
-            /** @var UserArray $user */
             $user = $this->checkAndPromote($user, $username);
             return $user;
         }
@@ -148,9 +143,8 @@ class AuthService
 
     /**
      * Attempt mock login (DEV_MODE only).
-     * @return UserArray|null
      */
-    public function mockLogin(string $username): ?array
+    public function mockLogin(string $username): ?SessionUser
     {
         if (!DEV_MODE) {
             return null;
@@ -179,9 +173,8 @@ class AuthService
 
     /**
      * Auto-provision a new user from their Windows login.
-     * @return UserArray|null
      */
-    public function autoProvision(string $username): ?array
+    public function autoProvision(string $username): ?SessionUser
     {
         $role = $this->determineRole($username);
 
@@ -201,7 +194,6 @@ class AuthService
             siteId: SiteId::none(),
         ));
 
-        /** @var UserArray|null $user */
         $user = $this->repo->findById($userId);
 
         $this->events->dispatch('user.provisioned', [
@@ -230,12 +222,11 @@ class AuthService
 
     /**
      * Check if existing user should be auto-promoted to superviseur.
-     * @param UserArray $user
-     * @return UserArray
+     * Returns a NEW SessionUser with updated role (immutable).
      */
-    public function checkAndPromote(array $user, string $username): array
+    public function checkAndPromote(SessionUser $user, string $username): SessionUser
     {
-        if ($user['role'] !== UserRole::Agent->value) {
+        if ($user->role !== UserRole::Agent->value) {
             return $user;
         }
 
@@ -243,9 +234,9 @@ class AuthService
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users, true)) {
-                $id = $user['id'];
+                $id = $user->id;
                 $this->repo->promoteToSuperviseur($id);
-                $user['role'] = UserRole::Superviseur->value;
+                $user = $user->withRole(UserRole::Superviseur->value);
                 error_log("SST App: Auto-promoted user '$username' to superviseur (config list rule)");
 
                 $this->events->dispatch('user.promoted', [
@@ -403,7 +394,8 @@ class AuthService
     public function handleLogout(): void
     {
         // Audit #38 — invalidate all sessions of this user before clearing
-        $userId = (int) (\getUserSession()['id'] ?? 0);
+        $sessionUser = \getUserSession();
+        $userId = $sessionUser->id ?? 0;
         if ($userId > 0) {
             try {
                 $this->repo->invalidateSessions($userId);

@@ -21,10 +21,9 @@ $session = SessionService::getInstance();
 
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
-$userId = (int) ($session->getUserSession()['id'] ?? 0);
 $user = $session->getUserSession();
+$userId = $user->id ?? 0;
 
-/** @var array<string, string> $user */
 requireReportOwnership($report, $userId, $reportUuid, 'modifier');
 requireReportEditable($report, $reportUuid, 'modifié');
 
@@ -83,7 +82,7 @@ try {
         if (!empty($linkedEmailsRaw)) {
             try {
                 $service = getContainer()->get(ReportService::class);
-                $linkedEmails = $service->validateLinkedEmails($linkedEmailsRaw, $user);
+                $linkedEmails = $service->validateLinkedEmails($linkedEmailsRaw, ['email' => $user?->email]);
             } catch (InvalidArgumentException $e) {
                 // @silent-ok: malformed linked-email input — falls back to "no linked agents"
                 // rather than blocking the whole report edit over one bad email field.

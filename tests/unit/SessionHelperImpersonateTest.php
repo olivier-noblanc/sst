@@ -9,6 +9,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\SessionUser;
 
 require_once __DIR__ . '/../../src/session.php';
 
@@ -31,19 +32,21 @@ class SessionHelperImpersonateTest extends TestCase
 
     public function testStartImpersonationSetsSession(): void
     {
-        $_SESSION['user'] = ['id' => 1, 'role' => 'superviseur'];
+        setUserSession(SessionUser::fromArray(['id' => 1, 'role' => 'superviseur']));
 
         startImpersonation('superviseur', 'agent');
 
         $this->assertTrue(isImpersonatingRole());
         $this->assertEquals('superviseur', $_SESSION['real_role']);
         $this->assertEquals('agent', $_SESSION['impersonated_role']);
-        $this->assertEquals('agent', $_SESSION['user']['role']);
+        $user = getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('agent', $user->role);
     }
 
     public function testStopImpersonationRestoresRole(): void
     {
-        $_SESSION['user'] = ['id' => 1, 'role' => 'agent'];
+        setUserSession(SessionUser::fromArray(['id' => 1, 'role' => 'agent']));
 
         startImpersonation('superviseur', 'agent');
         $this->assertTrue(isImpersonatingRole());
@@ -51,7 +54,9 @@ class SessionHelperImpersonateTest extends TestCase
         $restoredRole = stopImpersonation();
         $this->assertEquals('superviseur', $restoredRole);
         $this->assertFalse(isImpersonatingRole());
-        $this->assertEquals('superviseur', $_SESSION['user']['role']);
+        $user = getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('superviseur', $user->role);
     }
 
     public function testStopImpersonationWhenNotImpersonating(): void
@@ -67,42 +72,54 @@ class SessionHelperImpersonateTest extends TestCase
 
     public function testFullImpersonationCycle(): void
     {
-        $_SESSION['user'] = ['id' => 1, 'role' => 'superviseur', 'nom' => 'Admin'];
+        setUserSession(SessionUser::fromArray(['id' => 1, 'role' => 'superviseur', 'nom' => 'Admin']));
 
         // Start impersonating agent
         startImpersonation('superviseur', 'agent');
         $this->assertTrue(isImpersonatingRole());
-        $this->assertEquals('agent', $_SESSION['user']['role']);
+        $user = getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('agent', $user->role);
         $this->assertEquals('superviseur', $_SESSION['real_role']);
 
         // Stop impersonation
         $restored = stopImpersonation();
         $this->assertEquals('superviseur', $restored);
         $this->assertFalse(isImpersonatingRole());
-        $this->assertEquals('superviseur', $_SESSION['user']['role']);
+        $user = getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('superviseur', $user->role);
         $this->assertArrayNotHasKey('real_role', $_SESSION);
         $this->assertArrayNotHasKey('impersonated_role', $_SESSION);
     }
 
     public function testImpersonationToChsct(): void
     {
-        $_SESSION['user'] = ['id' => 1, 'role' => 'superviseur'];
+        setUserSession(SessionUser::fromArray(['id' => 1, 'role' => 'superviseur']));
 
         startImpersonation('superviseur', 'chsct');
         $this->assertTrue(isImpersonatingRole());
-        $this->assertEquals('chsct', $_SESSION['user']['role']);
+        $user = getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('chsct', $user->role);
 
         stopImpersonation();
-        $this->assertEquals('superviseur', $_SESSION['user']['role']);
+        $user = getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $user);
+        $this->assertEquals('superviseur', $user->role);
     }
 
     // ─── User Session ──────────────────────────────────────────────────────
 
     public function testSetUserSessionAndGetUserSession(): void
     {
-        $user = ['id' => 5, 'nom' => 'Dupont', 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'nom' => 'Dupont', 'role' => 'agent']);
         setUserSession($user);
-        $this->assertEquals($user, getUserSession());
+        $restored = getUserSession();
+        $this->assertInstanceOf(SessionUser::class, $restored);
+        $this->assertSame(5, $restored->id);
+        $this->assertSame('Dupont', $restored->nom);
+        $this->assertSame('agent', $restored->role);
     }
 
     public function testGetUserSessionReturnsNullWhenNotSet(): void
@@ -112,7 +129,7 @@ class SessionHelperImpersonateTest extends TestCase
 
     public function testIsUserLoggedInReturnsTrueWhenSet(): void
     {
-        $_SESSION['user'] = ['id' => 1];
+        setUserSession(SessionUser::fromArray(['id' => 1]));
         $this->assertTrue(isUserLoggedIn());
     }
 
@@ -123,7 +140,7 @@ class SessionHelperImpersonateTest extends TestCase
 
     public function testClearSessionRemovesAllData(): void
     {
-        $_SESSION['user'] = ['id' => 1];
+        setUserSession(SessionUser::fromArray(['id' => 1]));
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'OK'];
         $_SESSION['csrf_tokens'] = ['token1' => time()];
 

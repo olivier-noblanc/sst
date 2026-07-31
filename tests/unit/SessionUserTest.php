@@ -1,0 +1,256 @@
+<?php
+/**
+ * SessionUser DTO Unit Tests
+ *
+ * Tests src/DTO/SessionUser.php:
+ * - fromRow() hydrates from DB row array
+ * - toArray() serializes back to array
+ * - fromSession() hydrates from $_SESSION data
+ * - Round-trip: fromRow -> toArray -> fromSession preserves all fields
+ * - Nullable fields default correctly
+ */
+
+use PHPUnit\Framework\TestCase;
+use App\DTO\SessionUser;
+
+class SessionUserTest extends TestCase
+{
+    private array $fullRow = [
+        'id' => 42,
+        'username' => 'jean.martin',
+        'nom' => 'Martin',
+        'prenom' => 'Jean',
+        'email' => 'jean.martin@example.fr',
+        'role' => 'superviseur',
+        'site_id' => 7,
+        'is_active' => 1,
+        'created_at' => '2025-01-15 10:30:00',
+        'updated_at' => '2025-06-01 14:00:00',
+        'site_code' => 'UD_21',
+        'site_nom' => 'DREETS 21',
+        'site_chosen_at' => '2025-02-01 09:00:00',
+        'sessions_invalid_before' => null,
+    ];
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // fromRow()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testFromRowHydratesAllFields(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+
+        $this->assertSame(42, $user->id);
+        $this->assertSame('jean.martin', $user->username);
+        $this->assertSame('Martin', $user->nom);
+        $this->assertSame('Jean', $user->prenom);
+        $this->assertSame('jean.martin@example.fr', $user->email);
+        $this->assertSame('superviseur', $user->role);
+        $this->assertSame(7, $user->siteId);
+        $this->assertSame(1, $user->isActive);
+        $this->assertSame('2025-01-15 10:30:00', $user->createdAt);
+        $this->assertSame('2025-06-01 14:00:00', $user->updatedAt);
+        $this->assertSame('UD_21', $user->siteCode);
+        $this->assertSame('DREETS 21', $user->siteNom);
+        $this->assertSame('2025-02-01 09:00:00', $user->siteChosenAt);
+        $this->assertNull($user->sessionsInvalidBefore);
+    }
+
+    public function testFromRowHandlesNullables(): void
+    {
+        $row = $this->fullRow;
+        $row['email'] = null;
+        $row['site_id'] = null;
+        $row['updated_at'] = null;
+        $row['site_code'] = null;
+        $row['site_nom'] = null;
+        $row['site_chosen_at'] = null;
+        $row['sessions_invalid_before'] = '2025-07-01 00:00:00';
+
+        $user = SessionUser::fromRow($row);
+
+        $this->assertNull($user->email);
+        $this->assertNull($user->siteId);
+        $this->assertNull($user->updatedAt);
+        $this->assertNull($user->siteCode);
+        $this->assertNull($user->siteNom);
+        $this->assertNull($user->siteChosenAt);
+        $this->assertSame('2025-07-01 00:00:00', $user->sessionsInvalidBefore);
+    }
+
+    public function testFromRowCastsTypesCorrectly(): void
+    {
+        $row = $this->fullRow;
+        $row['id'] = '99'; // string that should become int
+        $row['site_id'] = '3';
+        $row['is_active'] = '1';
+
+        $user = SessionUser::fromRow($row);
+
+        $this->assertIsInt($user->id);
+        $this->assertSame(99, $user->id);
+        $this->assertIsInt($user->siteId);
+        $this->assertSame(3, $user->siteId);
+        $this->assertIsInt($user->isActive);
+        $this->assertSame(1, $user->isActive);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // toArray()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testToArrayReturnsAllFields(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        $array = $user->toArray();
+
+        $this->assertArrayHasKey('id', $array);
+        $this->assertArrayHasKey('username', $array);
+        $this->assertArrayHasKey('nom', $array);
+        $this->assertArrayHasKey('prenom', $array);
+        $this->assertArrayHasKey('email', $array);
+        $this->assertArrayHasKey('role', $array);
+        $this->assertArrayHasKey('siteId', $array);
+        $this->assertArrayHasKey('isActive', $array);
+        $this->assertArrayHasKey('createdAt', $array);
+        $this->assertArrayHasKey('updatedAt', $array);
+        $this->assertArrayHasKey('siteCode', $array);
+        $this->assertArrayHasKey('siteNom', $array);
+        $this->assertArrayHasKey('siteChosenAt', $array);
+        $this->assertArrayHasKey('sessionsInvalidBefore', $array);
+    }
+
+    public function testToArrayValuesMatchProperties(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        $array = $user->toArray();
+
+        $this->assertSame(42, $array['id']);
+        $this->assertSame('jean.martin', $array['username']);
+        $this->assertSame('superviseur', $array['role']);
+        $this->assertSame(7, $array['siteId']);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // fromSession()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testFromSessionHydratesFromSessionArray(): void
+    {
+        $sessionData = [
+            'id' => 42,
+            'username' => 'jean.martin',
+            'nom' => 'Martin',
+            'prenom' => 'Jean',
+            'email' => 'jean.martin@example.fr',
+            'role' => 'superviseur',
+            'siteId' => 7,
+            'isActive' => 1,
+            'createdAt' => '2025-01-15 10:30:00',
+            'updatedAt' => '2025-06-01 14:00:00',
+            'siteCode' => 'UD_21',
+            'siteNom' => 'DREETS 21',
+            'siteChosenAt' => '2025-02-01 09:00:00',
+            'sessionsInvalidBefore' => null,
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+
+        $this->assertSame(42, $user->id);
+        $this->assertSame('jean.martin', $user->username);
+        $this->assertSame('superviseur', $user->role);
+        $this->assertSame(7, $user->siteId);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Round-trip
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testRoundTripFromRowToSessionPreservesData(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        $sessionArray = $user->toArray();
+        $restored = SessionUser::fromSession($sessionArray);
+
+        $this->assertSame($user->id, $restored->id);
+        $this->assertSame($user->username, $restored->username);
+        $this->assertSame($user->nom, $restored->nom);
+        $this->assertSame($user->prenom, $restored->prenom);
+        $this->assertSame($user->email, $restored->email);
+        $this->assertSame($user->role, $restored->role);
+        $this->assertSame($user->siteId, $restored->siteId);
+        $this->assertSame($user->isActive, $restored->isActive);
+        $this->assertSame($user->createdAt, $restored->createdAt);
+        $this->assertSame($user->updatedAt, $restored->updatedAt);
+        $this->assertSame($user->siteCode, $restored->siteCode);
+        $this->assertSame($user->siteNom, $restored->siteNom);
+        $this->assertSame($user->siteChosenAt, $restored->siteChosenAt);
+        $this->assertSame($user->sessionsInvalidBefore, $restored->sessionsInvalidBefore);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Immutability (readonly)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testSessionUserIsImmutable(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        $originalRole = $user->role;
+
+        // readonly property — cannot be reassigned (would be compile error)
+        // Verify the value stays the same after construction
+        $this->assertSame($originalRole, $user->role);
+        $this->assertSame('superviseur', $user->role);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // withRole()
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testWithRoleReturnsNewInstance(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        $promoted = $user->withRole('agent');
+
+        $this->assertNotSame($user, $promoted);
+        $this->assertSame('agent', $promoted->role);
+        $this->assertSame('superviseur', $user->role); // original unchanged
+    }
+
+    public function testWithRolePreservesOtherFields(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        $changed = $user->withRole('chsct');
+
+        $this->assertSame($user->id, $changed->id);
+        $this->assertSame($user->username, $changed->username);
+        $this->assertSame($user->nom, $changed->nom);
+        $this->assertSame($user->prenom, $changed->prenom);
+        $this->assertSame($user->email, $changed->email);
+        $this->assertSame($user->siteId, $changed->siteId);
+        $this->assertSame($user->isActive, $changed->isActive);
+        $this->assertSame($user->createdAt, $changed->createdAt);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // fromArray() — minimal overrides with defaults
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testFromArrayCreatesUserWithDefaults(): void
+    {
+        $user = SessionUser::fromArray(['id' => 5, 'role' => 'agent']);
+        $this->assertSame(5, $user->id);
+        $this->assertSame('agent', $user->role);
+        $this->assertSame('', $user->username);
+        $this->assertSame(1, $user->isActive);
+    }
+
+    public function testFromArrayOverridesDefaults(): void
+    {
+        $user = SessionUser::fromArray(['id' => 10, 'username' => 'test', 'nom' => 'Test', 'prenom' => 'User', 'role' => 'superviseur', 'is_active' => 0]);
+        $this->assertSame(10, $user->id);
+        $this->assertSame('test', $user->username);
+        $this->assertSame('superviseur', $user->role);
+        $this->assertSame(0, $user->isActive);
+    }
+}

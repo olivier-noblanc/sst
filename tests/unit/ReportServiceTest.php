@@ -18,6 +18,7 @@ use App\DTO\CreateReportCommand;
 use App\DTO\SiteId;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
+use App\DTO\SessionUser;
 use App\Enum\ReportState;
 use App\Enum\ReportType;
 
@@ -211,13 +212,13 @@ class ReportServiceTest extends TestCase
             reponse: 'Response test',
             nouvelEtat: ReportState::EnCours,
         );
-        setUserSession([
+        setUserSession(SessionUser::fromArray([
             'id' => $this->supervisorId,
             'username' => 'svc.sup',
             'role' => ROLE_SUPERVISEUR,
             'site_id' => $this->siteId,
             'is_active' => 1,
-        ]);
+        ]));
         $result = $this->service->respond($report->uuid, $cmd, $this->supervisorId);
         $this->assertIsArray($result);
     }
@@ -228,13 +229,13 @@ class ReportServiceTest extends TestCase
             reponse: 'Response test',
             nouvelEtat: ReportState::EnCours,
         );
-        setUserSession([
+        setUserSession(SessionUser::fromArray([
             'id' => $this->supervisorId,
             'username' => 'svc.sup',
             'role' => ROLE_SUPERVISEUR,
             'site_id' => $this->siteId,
             'is_active' => 1,
-        ]);
+        ]));
         $this->expectException(\RuntimeException::class);
         $this->service->respond('nonexistent-uuid', $cmd, $this->supervisorId);
     }
@@ -254,13 +255,13 @@ class ReportServiceTest extends TestCase
             reponse: 'Event response',
             nouvelEtat: ReportState::EnCours,
         );
-        setUserSession([
+        setUserSession(SessionUser::fromArray([
             'id' => $this->supervisorId,
             'username' => 'svc.sup',
             'role' => ROLE_SUPERVISEUR,
             'site_id' => $this->siteId,
             'is_active' => 1,
-        ]);
+        ]));
         $service->respond($report->uuid, $cmd, $this->supervisorId);
         $this->assertTrue($dispatched);
     }
@@ -323,26 +324,26 @@ class ReportServiceTest extends TestCase
     public function testAbandonReturnsTrue(): void
     {
         $report = $this->createReport();
-        setUserSession([
+        setUserSession(SessionUser::fromArray([
             'id' => $this->userId,
             'username' => 'svc.agent',
             'role' => ROLE_AGENT,
             'site_id' => $this->siteId,
             'is_active' => 1,
-        ]);
+        ]));
         $result = $this->service->abandon($report->uuid, $this->userId);
         $this->assertTrue($result);
     }
 
     public function testAbandonThrowsForUnknownReport(): void
     {
-        setUserSession([
+        setUserSession(SessionUser::fromArray([
             'id' => $this->userId,
             'username' => 'svc.agent',
             'role' => ROLE_AGENT,
             'site_id' => $this->siteId,
             'is_active' => 1,
-        ]);
+        ]));
         $this->expectException(\RuntimeException::class);
         $this->service->abandon('nonexistent-uuid', $this->userId);
     }

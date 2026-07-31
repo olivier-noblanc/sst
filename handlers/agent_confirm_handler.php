@@ -37,22 +37,22 @@ $user = $session->getUserSession();
 if ($user === null) {
     $session->setFlash('error', 'Vous devez être connecté pour confirmer votre rattachement.');
     $http->redirect($http->url('home'));
+    return;
 }
-/** @var array{id: int|string, email: string} $user */
 
-if (strtolower((string) $user['email']) !== strtolower((string) $invite['email'])) {
-    $session->setFlash('error', 'Cette invitation est destinée à ' . e((string) $invite['email']) . '. Vous êtes connecté(e) en tant que ' . e((string) $user['email']) . '.');
+if (strtolower((string) $user->email) !== strtolower((string) $invite['email'])) {
+    $session->setFlash('error', 'Cette invitation est destinée à ' . e((string) $invite['email']) . '. Vous êtes connecté(e) en tant que ' . e((string) $user->email) . '.');
     $http->redirect($http->url('home'));
 }
 
-$confirmed = $repo->confirmAgentInvite($token, (int) ((string) $user['id']));
+$confirmed = $repo->confirmAgentInvite($token, $user->id);
 
 if ($confirmed) {
     $reportUuid = (string) $invite['report_uuid'];
     $report = $repo->findById($reportUuid);
     /** @var ReportData|null $report */
     $ref = $report !== null ? $report->reference : $reportUuid;
-    auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e($user['email']) . ' confirmé rattachement au signalement ' . $ref, null, 'report', ['reference' => $ref, 'email' => $user['email']], $reportUuid);
+    auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e($user->email) . ' confirmé rattachement au signalement ' . $ref, null, 'report', ['reference' => $ref, 'email' => $user->email ?? ''], $reportUuid);
     $session->setFlash('success', 'Votre rattachement au signalement ' . e($ref) . ' est confirmé.');
     $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
 } else {

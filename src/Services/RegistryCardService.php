@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\DTO\RegistryCardData;
 use App\Enum\VisibilityMode;
 use App\Repository\RegistryRepository;
 use App\Repository\ReportRepository;
@@ -32,19 +33,15 @@ class RegistryCardService
     }
 
     /**
-     * @return list<array{type: string, cardClass: string, title: string, subtitle: string, desc: string, count: int, btnLabel: string, btnUrl: string, listUrl: string, listLabel: string}>
+     * @return list<RegistryCardData>
      */
     public function buildRegistryCards(): array
     {
         $enabledRegistries = $this->registryRepo->findEnabled();
 
         $user = new SessionService()->getUserSession();
-        /** @var string */
-        $userIdStr = $user['id'] ?? '0';
-        $userId = (int) $userIdStr;
-        /** @var string */
-        $siteIdStr = $user['site_id'] ?? '0';
-        $userSiteId = (int) $siteIdStr;
+        $userId = $user->id ?? 0;
+        $userSiteId = $user->siteId ?? 0;
         $agentVisibility = $this->accessService->getReportVisibility(null);
         $seeAllSites = $this->accessService->canSeeAllSites();
 
@@ -65,18 +62,18 @@ class RegistryCardService
             }
 
             $colorTheme = $reg['color_theme'];
-            $cards[] = [
-                'type'       => $code,
-                'cardClass'  => RegistryRepository::themeClasses($colorTheme)['registry_card'],
-                'title'    => $reg['label'],
-                'subtitle' => $reg['short_label'],
-                'desc'     => $reg['description'],
-                'count'    => $reportCount,
-                'btnLabel' => $reg['btn_label'] ?? 'Signaler un événement',
-                'btnUrl'   => url('report_create', ['type' => $code]),
-                'listUrl'  => url('report_list', ['type' => $code]),
-                'listLabel' => $listLabel($code),
-            ];
+            $cards[] = RegistryCardData::create(
+                type: $code,
+                cardClass: RegistryRepository::themeClasses($colorTheme)['registry_card'],
+                title: $reg['label'],
+                subtitle: $reg['short_label'],
+                desc: $reg['description'],
+                count: $reportCount,
+                btnLabel: $reg['btn_label'] ?? 'Signaler un événement',
+                btnUrl: url('report_create', ['type' => $code]),
+                listUrl: url('report_list', ['type' => $code]),
+                listLabel: $listLabel($code),
+            );
         }
         return $cards;
     }

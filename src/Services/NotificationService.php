@@ -114,20 +114,20 @@ class NotificationService
         /** @var int */
         $declarantId = $report->declarantId;
         $declarant = UserRepository::instance()->findById($declarantId);
-        if ($declarant !== null && !empty($declarant['email']) && $declarantId !== $userId) {
+        if ($declarant !== null && !empty($declarant->email) && $declarantId !== $userId) {
             $subject = "Signalement réouvert $registryLabel — {$report->reference}";
             $body = '<html><body>';
             $body .= '<h2>Votre signalement a été réouvert</h2>';
             $body .= '<p><strong>Référence :</strong> ' . e($report->reference) . '</p>';
             $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
-            sendMail($declarant['email'], $subject, $body);
+            sendMail($declarant->email, $subject, $body);
         }
 
         // Also notify linked agents
         $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
         foreach ($linkedAgents as $linkedAgent) {
-            if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
+            if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant->email ?? '')) {
                 $linkedSubject = "Signalement réouvert $registryLabel — {$report->reference}";
                 $linkedBody = '<html><body>';
                 $linkedBody .= '<h2>Signalement réouvert</h2>';

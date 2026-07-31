@@ -2,6 +2,7 @@
 
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
+use App\DTO\SessionUser;
 
 /**
  * User Context — Application SST DREETS BFC
@@ -22,11 +23,9 @@ use App\Repository\UserRepository;
  */
 // ─── Identity ─────────────────────────────────────────────────────────────────
 /**
- * Get the current user's full data array from session.
- *
- * @return array<string, mixed>|null  The user array or null if not authenticated
+ * Get the current user's full data from session.
  */
-function currentUser(): ?array
+function currentUser(): ?SessionUser
 {
     return getUserSession();
 }
@@ -39,9 +38,7 @@ function currentUser(): ?array
 function currentUserId(): int
 {
     $user = getUserSession();
-    /** @var int */
-    $id = $user['id'] ?? 0;
-    return $user !== null ? $id : 0;
+    return $user->id ?? 0;
 }
 
 /**
@@ -52,11 +49,7 @@ function currentUserId(): int
 function currentUserUsername(): string
 {
     $user = getUserSession();
-    if ($user === null) {
-        return '';
-    }
-    $username = $user['username'];
-    return $username;
+    return $user->username ?? '';
 }
 
 /**
@@ -70,9 +63,7 @@ function currentUserDisplayName(): string
     if ($user === null) {
         return '';
     }
-    $prenom = $user['prenom'] ?? '';
-    $nom = $user['nom'] ?? '';
-    return trim($prenom . ' ' . $nom);
+    return trim($user->prenom . ' ' . $user->nom);
 }
 
 // ─── Role ─────────────────────────────────────────────────────────────────────
@@ -85,11 +76,7 @@ function currentUserDisplayName(): string
 function currentUserRole(): string
 {
     $user = getUserSession();
-    if ($user === null) {
-        return '';
-    }
-    $role = $user['role'];
-    return $role;
+    return $user->role ?? '';
 }
 
 /**
@@ -111,7 +98,7 @@ function isAgent(): bool
 function currentUserHasSite(): bool
 {
     $user = getUserSession();
-    return !empty($user['site_id']);
+    return $user !== null && $user->siteId !== null;
 }
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
@@ -134,7 +121,7 @@ function refreshCurrentUser(PDO $pdo): bool
         // Preserve impersonation state if active
         setUserSession($freshUser);
         if (isImpersonatingRole()) {
-            $impersonatedRole = getImpersonatedRole() ?? $freshUser['role'];
+            $impersonatedRole = getImpersonatedRole() ?? $freshUser->role;
             // Direct session write needed here — this is inside the session layer
             if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
                 $_SESSION['user']['role'] = $impersonatedRole;

@@ -19,7 +19,7 @@ $config = getConfigService();
 
 // Access control: must be supervisor or CHSCT (P0-3: declarant may NOT reopen)
 $user = new \App\Services\SessionService()->getUserSession();
-$userRole = $user['role'] ?? 'agent';
+$userRole = $user->role ?? 'agent';
 
 if (!in_array($userRole, [\App\Enum\UserRole::Superviseur->value], true)) {
     new \App\Services\SessionService()->setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs peuvent réouvrir un signalement.');
@@ -68,7 +68,7 @@ $flash = new \App\Services\SessionService()->getFlash();
                 <th>État actuel</th>
                 <td>
                     <span class="badge <?php echo $fmt->getEtatBadgeClass($report->etat); ?>">
-                        <?php echo $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat); ?>
+                        <?php echo $fmt->e(ETAT_LABELS[$report->etat]); ?>
                     </span>
                 </td>
             </tr>

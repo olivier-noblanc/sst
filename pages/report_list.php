@@ -32,10 +32,9 @@ $pageTitle = 'Liste des fiches du registre — ' . getRegistryShortLabel($type);
 $pdo = getContainer()->get(\PDO::class);
 /** @var PDO $pdo */
 $user = $session->getUserSession();
-/** @var array{id: int, site_id: int, role: string} $user */
-$userSiteId = (int) ($user['site_id']);
-$userId = (int) ($user['id']);
-$userRole = (string) ($user['role']);
+$userSiteId = $user->siteId ?? 0;
+$userId = $user->id ?? 0;
+$userRole = $user->role ?? '';
 $agentVisibility = $access->getReportVisibility($type);
 $seeAllSites = $access->canSeeAllSites();
 $noSiteMode = $config->isNoSiteMode();

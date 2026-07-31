@@ -11,6 +11,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\SessionUser;
 
 class PageRenderingTest extends TestCase
 {
@@ -86,7 +87,7 @@ class PageRenderingTest extends TestCase
 
     private function loginAsAgent(): void
     {
-        setUserSession([
+        setUserSession(SessionUser::fromArray([
             'id' => self::$agentUserId,
             'username' => 'test.agent',
             'nom' => 'Dupont',
@@ -94,12 +95,12 @@ class PageRenderingTest extends TestCase
             'role' => 'agent',
             'site_id' => self::$siteId,
             'is_active' => 1,
-        ]);
+        ]));
     }
 
     private function loginAsSuperviseur(): void
     {
-        setUserSession([
+        setUserSession(SessionUser::fromArray([
             'id' => self::$superviseurUserId,
             'username' => 'test.sup',
             'nom' => 'Martin',
@@ -107,7 +108,7 @@ class PageRenderingTest extends TestCase
             'role' => 'superviseur',
             'site_id' => self::$siteId,
             'is_active' => 1,
-        ]);
+        ]));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

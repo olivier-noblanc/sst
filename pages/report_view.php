@@ -19,21 +19,19 @@ if ($user === null) {
     exit;
 }
 
-if (!canAccessReport($report, $user)) {
+if (!canAccessReport($report, ['id' => $user->id, 'role' => $user->role, 'site_id' => $user->siteId])) {
     $session->setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
     $http->redirect($http->url('home'));
 }
 
 // Log confidential report access by supervisor/CHSCT
 $pdo = getDB();
-logConfidentialReportAccess($pdo, $report, $user);
+logConfidentialReportAccess($pdo, $report, ['id' => $user->id, 'role' => $user->role]);
 
 // If report is abandoned and user is not declarant nor supervisor/chsct
-/** @var string */
-$userIdRaw = $user['id'];
-/** @var string */
-$userRole = $user['role'];
-if ($report->etat === \App\Enum\ReportState::Abandonne->value && $report->declarantId !== (int) $userIdRaw && !in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true)) {
+$userIdRaw = $user->id;
+$userRole = $user->role;
+if ($report->etat === \App\Enum\ReportState::Abandonne->value && $report->declarantId !== $userIdRaw && !in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true)) {
     $session->setFlash('warning', 'Ce signalement a été abandonné.');
 }
 

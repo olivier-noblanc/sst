@@ -12,12 +12,12 @@ $config = getConfigService();
 
 $pdo = getContainer()->get(\PDO::class);
 $user = new \App\Services\SessionService()->getUserSession();
-$userRole = $user['role'] ?? \App\Enum\UserRole::Agent->value;
+$userRole = $user->role ?? \App\Enum\UserRole::Agent->value;
 $labelUnite = $config->get('app_label_unite', 'UR');
 
 // Build registry cards dynamically from the database
 $cards = buildRegistryCards();
-$totalReports = array_sum(array_column($cards, 'count'));
+$totalReports = array_sum(array_map(fn($c) => $c->count, $cards));
 
 // Word cloud — per registry, integrated inside each registry card
 $enabledRegistries = $config->getEnabledRegistries();

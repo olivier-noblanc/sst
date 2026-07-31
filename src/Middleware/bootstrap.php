@@ -55,7 +55,7 @@ function checkSuperviseurPromotion(): void
 
     // Promote in database
     $pdo = getDB();
-    $promoted = UserRepository::instance()->promoteToSuperviseur((int) (SessionService::getInstance()->getUserSession()['id'] ?? 0));
+    $promoted = UserRepository::instance()->promoteToSuperviseur((int) (SessionService::getInstance()->getUserSession()->id ?? 0));
 
     if ($promoted) {
         // Promotion applied — refresh session from DB
@@ -98,7 +98,7 @@ function checkUserSiteAssignment(): void
     // but the session didn't persist (edge case on some IIS configs)
     $refreshed = refreshCurrentUser($pdo);
 
-    if ($refreshed && !empty(SessionService::getInstance()->getUserSession()['site_id'])) {
+    if ($refreshed && SessionService::getInstance()->getUserSession()?->siteId !== null) {
         // DB has the site but session didn't — now fixed by refreshCurrentUser
     } else {
         // Really no site — redirect to choose_site

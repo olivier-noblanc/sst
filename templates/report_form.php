@@ -22,7 +22,7 @@ if (!isset($report)) $report = null;
 if (!isset($formErrors)) $formErrors = getFormErrors();
 if (!isset($formData)) $formData = getFormData();
 
-$user = \App\Services\SessionService::getInstance()->getUserSession() ?? [];
+$sessionUser = \App\Services\SessionService::getInstance()->getUserSession();
 $noSiteMode = isNoSiteMode(getDB());
 
 /** @var string $type */
@@ -32,7 +32,6 @@ $noSiteMode = isNoSiteMode(getDB());
 /** @var bool $isEdit */
 /** @var \App\DTO\ReportData|null $report */
 /** @var array<string, string> $formErrors */
-/** @var array<string, mixed> $user */
 
 // Determine values: prefer form data (on validation error), then report data, then defaults
 /** @var array<string, mixed> $formData */
@@ -218,7 +217,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     <?php foreach ($sites as $site): ?>
                         <option value="<?php echo e($site['id'] ?? ''); ?>"
                             <?php
-                        $siteIdVal = $user['site_id'] ?? '';
+                        $siteIdVal = $sessionUser ? (string) ($sessionUser->siteId ?? '') : '';
                         $siteIdFromForm = $val('site_id', $siteIdVal);
                         $siteIdRaw = $site['id'] ?? '0';
                         echo ((int)$siteIdFromForm === (int)$siteIdRaw) ? 'selected' : '';
@@ -293,11 +292,11 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             </div>
             <div class="form-group">
                 <label for="declarant_nom">Déclarant — Nom</label>
-                <input type="text" id="declarant_nom" value="<?php echo e($user['nom'] ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
+                <input type="text" id="declarant_nom" value="<?php echo e($sessionUser->nom ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
             </div>
             <div class="form-group">
                 <label for="declarant_prenom">Déclarant — Prénom</label>
-                <input type="text" id="declarant_prenom" value="<?php echo e($user['prenom'] ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
+                <input type="text" id="declarant_prenom" value="<?php echo e($sessionUser->prenom ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">
             </div>
             <?php
             // Dynamic registry_fields rendering (P21)

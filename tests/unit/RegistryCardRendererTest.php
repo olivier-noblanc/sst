@@ -8,6 +8,7 @@
  * wouldn't be callable even in the test bootstrap.
  */
 
+use App\DTO\RegistryCardData;
 use PHPUnit\Framework\TestCase;
 
 class RegistryCardRendererTest extends TestCase
@@ -93,11 +94,11 @@ class RegistryCardRendererTest extends TestCase
 
     public function testRenderRegistryCardContainsAllElements(): void
     {
-        $card = [
-            'type' => 'rsst', 'title' => 'Registre RSST', 'subtitle' => 'RSST',
-            'desc' => 'Description test', 'count' => 5,
-            'btnLabel' => 'Déposer', 'btnUrl' => '/create', 'listUrl' => '/list', 'listLabel' => 'Voir les signalements',
-        ];
+        $card = RegistryCardData::create(
+            type: 'rsst', title: 'Registre RSST', subtitle: 'RSST',
+            desc: 'Description test', count: 5,
+            btnLabel: 'Déposer', btnUrl: '/create', listUrl: '/list', listLabel: 'Voir les signalements',
+        );
 
         $html = renderRegistryCard($card);
 
@@ -112,11 +113,11 @@ class RegistryCardRendererTest extends TestCase
 
     public function testRenderRegistryCardSingularCount(): void
     {
-        $card = [
-            'type' => 'rami', 'title' => 'Test', 'subtitle' => 'T',
-            'desc' => 'Desc', 'count' => 1,
-            'btnLabel' => 'Btn', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements',
-        ];
+        $card = RegistryCardData::create(
+            type: 'rami', title: 'Test', subtitle: 'T',
+            desc: 'Desc', count: 1,
+            btnLabel: 'Btn', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements',
+        );
 
         $html = renderRegistryCard($card);
 
@@ -128,11 +129,11 @@ class RegistryCardRendererTest extends TestCase
 
     public function testRenderRegistryCardExtraClass(): void
     {
-        $card = [
-            'type' => 'dgi', 'title' => 'T', 'subtitle' => 'S',
-            'desc' => 'D', 'count' => 0,
-            'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements',
-        ];
+        $card = RegistryCardData::create(
+            type: 'dgi', title: 'T', subtitle: 'S',
+            desc: 'D', count: 0,
+            btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements',
+        );
 
         $html = renderRegistryCard($card, 'home-action--large');
 
@@ -150,12 +151,12 @@ class RegistryCardRendererTest extends TestCase
      */
     public function testRenderRegistryCardUsesCardClassNotType(): void
     {
-        $card = [
-            'type' => 'incident-electrique', 'cardClass' => 'registry-card--violet',
-            'title' => 'Incident électrique', 'subtitle' => 'IE',
-            'desc' => 'D', 'count' => 0,
-            'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements',
-        ];
+        $card = RegistryCardData::create(
+            type: 'incident-electrique', cardClass: 'registry-card--violet',
+            title: 'Incident électrique', subtitle: 'IE',
+            desc: 'D', count: 0,
+            btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements',
+        );
 
         $html = renderRegistryCard($card);
 
@@ -165,11 +166,11 @@ class RegistryCardRendererTest extends TestCase
 
     public function testRenderRegistryCardEscapesHtml(): void
     {
-        $card = [
-            'type' => 'rsst', 'title' => '<script>alert(1)</script>', 'subtitle' => 'S',
-            'desc' => 'D', 'count' => 0,
-            'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements',
-        ];
+        $card = RegistryCardData::create(
+            type: 'rsst', title: '<script>alert(1)</script>', subtitle: 'S',
+            desc: 'D', count: 0,
+            btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements',
+        );
 
         $html = renderRegistryCard($card);
 
@@ -182,7 +183,7 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardsCompact(): void
     {
         $cards = [
-            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements'],
+            RegistryCardData::create(type: 'rsst', title: 'RSST', subtitle: 'R', desc: 'D', count: 0, btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements'),
         ];
 
         $html = renderRegistryCards($cards, 'compact');
@@ -195,7 +196,7 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardsLarge(): void
     {
         $cards = [
-            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements'],
+            RegistryCardData::create(type: 'rsst', title: 'RSST', subtitle: 'R', desc: 'D', count: 0, btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements'),
         ];
 
         $html = renderRegistryCards($cards, 'large');
@@ -207,8 +208,8 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardsMultiple(): void
     {
         $cards = [
-            ['type' => 'rsst', 'title' => 'RSST', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements'],
-            ['type' => 'rami', 'title' => 'RAMI', 'subtitle' => 'R', 'desc' => 'D', 'count' => 0, 'btnLabel' => 'B', 'btnUrl' => '/a', 'listUrl' => '/b', 'listLabel' => 'Voir les signalements'],
+            RegistryCardData::create(type: 'rsst', title: 'RSST', subtitle: 'R', desc: 'D', count: 0, btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements'),
+            RegistryCardData::create(type: 'rami', title: 'RAMI', subtitle: 'R', desc: 'D', count: 0, btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements'),
         ];
 
         $html = renderRegistryCards($cards);
@@ -237,8 +238,8 @@ class RegistryCardRendererTest extends TestCase
         $cards = buildRegistryCards();
 
         $this->assertCount(1, $cards);
-        $this->assertSame('rsst', $cards[0]['type']);
-        $this->assertSame(3, $cards[0]['count']);
+        $this->assertSame('rsst', $cards[0]->type);
+        $this->assertSame(3, $cards[0]->count);
     }
 
     public function testBuildRegistryCardsAllEnabled(): void
@@ -252,9 +253,9 @@ class RegistryCardRendererTest extends TestCase
         $cards = buildRegistryCards();
 
         $this->assertCount(3, $cards);
-        $this->assertSame('rsst', $cards[0]['type']);
-        $this->assertSame('rami', $cards[1]['type']);
-        $this->assertSame('dgi', $cards[2]['type']);
+        $this->assertSame('rsst', $cards[0]->type);
+        $this->assertSame('rami', $cards[1]->type);
+        $this->assertSame('dgi', $cards[2]->type);
     }
 
     // ─── listLabel ("Voir mes signalements" vs "Voir les signalements") ────
@@ -269,7 +270,7 @@ class RegistryCardRendererTest extends TestCase
 
         $cards = buildRegistryCards();
 
-        $this->assertSame('Voir mes signalements', $cards[0]['listLabel'], 'An agent restricted to their own reports (confidential mode) must see "Voir mes signalements", not "Voir les signalements".');
+        $this->assertSame('Voir mes signalements', $cards[0]->listLabel, 'An agent restricted to their own reports (confidential mode) must see "Voir mes signalements", not "Voir les signalements".');
     }
 
     public function testListLabelIsAllForAgentInPublicMode(): void
@@ -282,7 +283,7 @@ class RegistryCardRendererTest extends TestCase
 
         $cards = buildRegistryCards();
 
-        $this->assertSame('Voir les signalements', $cards[0]['listLabel']);
+        $this->assertSame('Voir les signalements', $cards[0]->listLabel);
     }
 
     public function testListLabelIsAllForSuperviseurEvenInConfidentialMode(): void
@@ -297,7 +298,7 @@ class RegistryCardRendererTest extends TestCase
 
         $cards = buildRegistryCards();
 
-        $this->assertSame('Voir les signalements', $cards[0]['listLabel']);
+        $this->assertSame('Voir les signalements', $cards[0]->listLabel);
     }
 
     public function testBuildRegistryCardsRamiOnly(): void
@@ -311,8 +312,8 @@ class RegistryCardRendererTest extends TestCase
         $cards = buildRegistryCards();
 
         $this->assertCount(2, $cards);
-        $this->assertSame('rsst', $cards[0]['type']);
-        $this->assertSame('rami', $cards[1]['type']);
+        $this->assertSame('rsst', $cards[0]->type);
+        $this->assertSame('rami', $cards[1]->type);
     }
 
     public function testBuildRegistryCardsDgiOnly(): void
@@ -324,8 +325,8 @@ class RegistryCardRendererTest extends TestCase
         $cards = buildRegistryCards();
 
         $this->assertCount(2, $cards);
-        $this->assertSame('rsst', $cards[0]['type']);
-        $this->assertSame('dgi', $cards[1]['type']);
+        $this->assertSame('rsst', $cards[0]->type);
+        $this->assertSame('dgi', $cards[1]->type);
     }
 
     public function testBuildRegistryCardsPreservesCounts(): void
@@ -338,20 +339,20 @@ class RegistryCardRendererTest extends TestCase
 
         $cards = buildRegistryCards();
 
-        $this->assertSame(10, $cards[0]['count']);
-        $this->assertSame(20, $cards[1]['count']);
-        $this->assertSame(30, $cards[2]['count']);
+        $this->assertSame(10, $cards[0]->count);
+        $this->assertSame(20, $cards[1]->count);
+        $this->assertSame(30, $cards[2]->count);
     }
 
-    public function testBuildRegistryCardsHasRequiredKeys(): void
+    public function testBuildRegistryCardsHasRequiredProperties(): void
     {
         $this->seedReports('rsst', 1);
         $cards = buildRegistryCards();
-        $requiredKeys = ['type', 'cardClass', 'title', 'subtitle', 'desc', 'count', 'btnLabel', 'btnUrl', 'listUrl', 'listLabel'];
+        $requiredProps = ['type', 'cardClass', 'title', 'subtitle', 'desc', 'count', 'btnLabel', 'btnUrl', 'listUrl', 'listLabel'];
 
         foreach ($cards as $card) {
-            foreach ($requiredKeys as $key) {
-                $this->assertArrayHasKey($key, $card, "Missing key '$key' in card '{$card['type']}'");
+            foreach ($requiredProps as $prop) {
+                $this->assertTrue(property_exists($card, $prop), "Missing property '$prop' in card '{$card->type}'");
             }
         }
     }

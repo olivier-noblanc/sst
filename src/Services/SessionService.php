@@ -4,6 +4,8 @@
 
 namespace App\Services;
 
+use App\DTO\SessionUser;
+
 class SessionService
 {
     private static ?self $instance = null;
@@ -103,24 +105,23 @@ class SessionService
     }
 
     /**
-     * Store the full user data array in session.
-     * @param UserArray $user
+     * Store the full user data in session.
      */
-    public function setUserSession(array $user): void
+    public function setUserSession(SessionUser $user): void
     {
-        $_SESSION['user'] = $user;
+        $_SESSION['user'] = $user->toArray();
     }
 
     /**
-     * Get the current user's full data array from session.
-     *
-     * @return UserArray|null
+     * Get the current user's full data from session.
      */
-    public function getUserSession(): ?array
+    public function getUserSession(): ?SessionUser
     {
-        /** @var UserArray|null $user */
-        $user = $_SESSION['user'] ?? null;
-        return $user;
+        $data = $_SESSION['user'] ?? null;
+        if (!is_array($data)) {
+            return null;
+        }
+        return SessionUser::fromSession($data);
     }
 
     /**
@@ -173,8 +174,10 @@ class SessionService
     {
         $_SESSION['real_role'] = $realRole;
         $_SESSION['impersonated_role'] = $targetRole;
-        if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
-            $_SESSION['user']['role'] = $targetRole;
+        $data = $_SESSION['user'] ?? null;
+        if (is_array($data)) {
+            $user = SessionUser::fromSession($data);
+            $_SESSION['user'] = $user->withRole($targetRole)->toArray();
         }
         // Audit #33 — regenerate session ID on impersonation start.
         // Prevents session fixation: if an attacker steals the session cookie
@@ -194,8 +197,10 @@ class SessionService
             return null;
         }
         $realRole = $_SESSION['real_role'];
-        if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
-            $_SESSION['user']['role'] = $realRole;
+        $data = $_SESSION['user'] ?? null;
+        if (is_array($data)) {
+            $user = SessionUser::fromSession($data);
+            $_SESSION['user'] = $user->withRole($realRole)->toArray();
         }
         unset($_SESSION['real_role']);
         unset($_SESSION['impersonated_role']);

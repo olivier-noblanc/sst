@@ -29,18 +29,21 @@ if ($siteId <= 0) {
 $siteRepo = getContainer()->get(SiteRepository::class);
 $userRepo = getContainer()->get(UserRepository::class);
 
-$userId = (int) ($session->getUserSession()['id'] ?? 0);
 $user = $session->getUserSession();
-/** @var array<string, mixed> $user */
-$hasExistingSite = !empty($user['site_id']);
+if ($user === null) {
+    $session->setFlash('error', 'Session invalide.');
+    session_write_close();
+    $http->redirect($http->url('home'));
+    return;
+}
+$userId = $user->id;
+$hasExistingSite = $user->siteId !== null;
 
 // Grace period check
 if ($hasExistingSite) {
-    $siteChosenAt = $user['site_chosen_at'] ?? null;
+    $siteChosenAt = $user->siteChosenAt;
     if ($siteChosenAt !== null) {
-        /** @var string */
-        $siteChosenAtStr = $siteChosenAt;
-        $timestamp = strtotime($siteChosenAtStr);
+        $timestamp = strtotime($siteChosenAt);
         if ($timestamp !== false) {
             $daysSinceChoice = (time() - $timestamp) / 86400;
         } else {
@@ -50,13 +53,13 @@ if ($hasExistingSite) {
             $session->setFlash('error', 'Le délai de 7 jours pour modifier votre site est dépassé. Contactez votre superviseur pour changer de site.');
             session_write_close();
             $http->redirect($http->url('home'));
+            return;
         }
     }
-    /** @var string */
-    $siteIdVal = $user['site_id'] ?? '0';
-    if ((int) $siteIdVal === $siteId) {
+    if ($user->siteId === $siteId) {
         session_write_close();
         $http->redirect($http->url('home'));
+        return;
     }
 }
 
@@ -65,8 +68,8 @@ if ($site === null || empty($site['is_active'])) {
     $session->setFlash('error', 'Site invalide ou désactivé.');
     session_write_close();
     $http->redirect($http->url('choose_site'));
+    return;
 }
-assert($site !== null);
 $updated = $userRepo->updateSite($userId, $siteId);
 
 if ($updated) {

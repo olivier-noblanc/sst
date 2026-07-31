@@ -7,6 +7,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\SessionUser;
 
 require_once __DIR__ . '/../../src/audit.php';
 require_once __DIR__ . '/../../src/mail.php';
@@ -20,7 +21,7 @@ class AuditConfigMailTest extends TestCase
         $this->pdo = getDB();
         $this->pdo->exec('DELETE FROM audit_log');
         $this->pdo->exec('DELETE FROM config_app');
-        setUserSession(['id' => 1, 'username' => 'testuser']);
+        setUserSession(SessionUser::fromArray(['id' => 1, 'username' => 'testuser']));
     }
 
     protected function tearDown(): void

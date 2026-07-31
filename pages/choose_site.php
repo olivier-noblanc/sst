@@ -35,15 +35,14 @@ if ($config->isNoSiteMode()) {
 }
 
 $user = new \App\Services\SessionService()->getUserSession();
-/** @var int */
-$userSiteId = $user['site_id'] ?? 0;
-$hasExistingSite = !empty($user['site_id']);
+$userSiteId = $user->siteId ?? 0;
+$hasExistingSite = $user !== null && $user->siteId !== null;
 $isWithinGracePeriod = false;
 $daysRemaining = 0;
 
 // Safety: if user already has a site, check grace period
 if ($hasExistingSite) {
-    $siteChosenAt = $user['site_chosen_at'] ?? null;
+    $siteChosenAt = $user->siteChosenAt;
     if ($siteChosenAt !== null) {
         /** @var string */
         $siteChosenAtStr = $siteChosenAt;
@@ -79,7 +78,7 @@ $labelUnite = $config->get('app_label_unite', 'UR');
         <strong><?php echo $fmt->e(currentUserDisplayName()); ?></strong>, vous pouvez modifier votre <?php echo $fmt->e($labelUnite); ?>.
     </p>
     <p class="text-muted text-small mb-4">
-        Votre site actuel : <strong><?php echo $fmt->e($user['site_code'] ?? ''); ?> — <?php echo $fmt->e($user['site_nom'] ?? ''); ?></strong>.
+        Votre site actuel : <strong><?php echo $fmt->e($user->siteCode ?? ''); ?> — <?php echo $fmt->e($user->siteNom ?? ''); ?></strong>.
         Vous avez <strong><?php echo $daysRemaining; ?> jour<?php echo $daysRemaining != 1 ? 's' : ''; ?></strong> pour modifier votre choix.
         Après ce délai, seul un superviseur pourra le changer.
     </p>

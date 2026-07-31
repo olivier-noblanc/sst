@@ -41,7 +41,7 @@ class AuditRepository
             // Avant : AuditRepository dépendait de SessionService (Repository → Service,
             // interdit par deptrac). Maintenant l'appelant passe userId explicitement.
             // Si null, on retombe sur currentUser() helper (qui n'est pas une dépendance OOP).
-            $userId = (int) (\currentUser()['id'] ?? 0);
+            $userId = (int) (\currentUser()->id ?? 0);
         }
         $username = \currentUserUsername() !== '' ? \currentUserUsername() : 'system';
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';

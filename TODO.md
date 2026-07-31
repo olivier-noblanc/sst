@@ -504,78 +504,18 @@ Helpers : `renderEmailField()`, `renderEmailButton()`, `renderEmailLink()` (mêm
 
 ---
 
-## Priorité 26 — 🟡 En cours — Éliminer array<string, mixed> (noMixedArray)
+## Priorité 26 — ✅ Terminée — Éliminer array<string, mixed> (noMixedArray)
 
-**Objectif** : Zéro annotation `array<string, mixed>` dans le code applicatif. Créer une 4ème règle PHPStan `NoMixedArrayInVarRule` pour les `@var` dans le corps des méthodes.
+**Objectif** : Zéro annotation `array<string, mixed>` dans le code applicatif.
 
-### Phase 1 — ✅ Terminée
+**Résultat** : **0 erreur `app.noMixedArray`** dans PHPStan. Les deux dernières (`SessionUser::fromSession`, `SessionUser::fromArray`) remplacées par des shapes précises.
 
-| Task | Fichier(s) | Commit | Détail |
-|------|-----------|--------|--------|
-| 1 | `src/PHPStan/NoMixedArrayInVarRule.php` | b9e0cee | Nouvelle règle PHPStan pour `@var array<..., mixed>` dans les corps de méthodes |
-| 2 | `src/DTO/CreateReportCommand.php` + `handlers/report_create_handler.php` | cf82ad8 | Shapes précises pour `fromPost()` + `toArray()` |
-| 3 | `src/DTO/CreateUserCommand.php` | 99f2f3a | Shapes précises |
-| 4 | `src/DTO/ReportData.php` | 99f2f3a | Shapes précises |
-| 5 | `src/DTO/ReportFilter.php` | 99f2f3a | Shapes précises |
-| 6 | `src/DTO/ReportListItem.php` | 99f2f3a | Shapes précises |
-| 7 | `src/DTO/RespondToReportCommand.php` | 99f2f3a | Shapes précises |
-| 8 | `src/DTO/UpdateReportCommand.php` | 99f2f3a | Shapes précises |
-| 9 | `src/DTO/UpdateUserCommand.php` | 99f2f3a | Shapes précises |
-| 10 | `src/Repository/AuditRepository.php` | 17a0a4f | Shapes précises (log gardé tel quel) |
-| 11 | `src/Repository/NotificationRepository.php` | 17a0a4f | Shapes précises + fix cascading `mail_notifications.php` |
-| 12 | `src/Repository/RegistryFieldRepository.php` | 17a0a4f | Shapes précises |
-| 15 | `src/Repository/SiteRepository.php` | 17a0a4f | Shapes précises + fix cascading `choose_site_handler.php` |
-| 16 | `src/Repository/StatsRepository.php` | 17a0a4f | Shapes précises |
+**Métriques finales :**
 
-### Phase 2 — 🟡 En cours
-
-| Task | Fichier(s) | Commit | Détail |
-|------|-----------|--------|--------|
-| 13 | `src/Repository/RegistryRepository.php` | be00cbc | Shapes précises (findAll, findEnabled, findById, findByCode, create, update) |
-| 14 | `src/Repository/ReportRepository.php` | ⏳ | 9 annotations (toSnakeCase, getResponses, getResponsesForUuids, getAgentInviteByToken, respondToReport, getExportData, getResponseAttachmentById, findOverdue, findAnonymizable) |
-| 17 | `src/Repository/UserRepository.php` | ⏳ | 8 annotations |
-
-### Phase 3 — ⏳ À faire
-
-| Task | Fichier(s) | Détail |
-|------|-----------|--------|
-| 18 | `src/Services/AccessService.php` | 6 @param + 1 @return |
-| 19 | `src/Services/AuthService.php` | 2 @param + 5 @return + 3 @var |
-| 20 | `src/Services/FormattingService.php` | 1 @param |
-| 21 | `src/Services/HttpService.php` | 1 @param |
-| 22 | `src/Services/ReportService.php` | 1 @param |
-| 23 | `src/Services/SessionManager.php` | 2 @param + 2 @return (FormData = OK, baseline) |
-| 24 | `src/Services/SessionService.php` | 2 @param + 2 @return + 2 @var |
-| 25 | `src/Services/UserService.php` | 2 @param + 4 @return + 4 @var |
-
-### Phase 4 — ⏳ À faire
-
-| Task | Fichier(s) | Détail |
-|------|-----------|--------|
-| 26 | `handlers/settings_handler_app.php` + `_registres.php` + `_sites.php` | @param shapes |
-| 27 | `pages/report_print_helpers.php` | @param shapes |
-
-### Phase 5 — ⏳ À faire
-
-| Task | Fichier(s) | Détail |
-|------|-----------|--------|
-| 28 | `src/Container/Container.php` | Inline suppression (irréductible) |
-| 29 | `src/Query/QueryFilterBuilder.php` | @var `array<string, int\|string\|null>` + @param/@return |
-| 30 | `src/Event/event_listeners.php` | @var fixes |
-
-### Phase 6 — ⏳ À faire
-
-| Task | Description |
-|------|------------|
-| 31 | Vider le baseline `app.noMixedArray` progressivement (8 déjà supprimés) |
-| 32 | Validation finale : `rtk phpstan analyse --memory-limit=1G` = 0 erreur |
-
-### Métriques
-
-| Indicateur | Avant | Actuel |
-|-----------|-------|--------|
-| Annotations `array<string, mixed>` | ~30+ | ~15 (estimation) |
-| Baseline entries `app.noMixedArray` | 35+ | 27 |
+| Indicateur | Avant | Après |
+|-----------|-------|-------|
+| Annotations `array<string, mixed>` | ~30+ | **0** |
+| Baseline entries `app.noMixedArray` | 35+ | **0** (baseline vidé) |
 | Règles PHPStan noMixedArray | 3 (trait) | 4 (+NoMixedArrayInVarRule) |
 
 ---
@@ -865,19 +805,18 @@ Refactoring TDD complet en 3 phases, 10 cibles HIGH priority identifiées lors d
 
 ---
 
-## Priorité 30 — 🔴 MEDIUM priority — Array → DTOs (5 cibles restantes)
+## Priorité 30 — ✅ MEDIUM priority — RegistryCardData DTO — TERMINÉ
 
 Cibles identifiées lors de l'audit mais classées MEDIUM (impact moindre ou refactorings plus larges).
 
-| # | Cible | Fichier | Changement |
-|---|-------|---------|------------|
-| 1 | `AccessService::canAccessReport(ReportData, array $user)` | `src/Services/AccessService.php` | `$user` = `UserArray` (14 champs) — nécessite un `SessionUser` DTO + migration session |
-| 2 | `AuthService::shouldRevalidateSession(array $user)` | `src/Services/AuthService.php` | Même `UserArray` — dépend du même `SessionUser` |
-| 3 | `SessionService::setUserSession(array $user)` / `getUserSession(): ?array` | `src/Services/SessionService.php` | Stocke `$_SESSION` — nécessite sérialisation DTO (`__serialize`/`__unserialize`) |
-| 4 | `renderRegistryCard(array $card)` | `src/helpers/registry_card_renderer.php` | 10 champs — `RegistryCardData` DTO |
-| 5 | `EventDispatcher::dispatch(string, array $data)` | `src/Event/EventDispatcher.php` | Données événement génériques — possible `UserProvisionedEvent`, `UserPromotedEvent` |
-
-**Recommandation :** Priorité 1-3 (UserArray → SessionUser) est un bloc cohérant qui améliore toute la couche auth/session. Priorité 4-5 sont indépendantes et plus simples.
+| # | Cible | Statut |
+|---|-------|--------|
+| 1 | `AccessService::canAccessReport(ReportData, array $user)` | **Gardé** `array{id, role, ...}` intentionnellement (Audit #82) |
+| 2 | `AuthService::shouldRevalidateSession(array $user)` | **Déjà fait** — prend `SessionUser` |
+| 3 | `SessionService::setUserSession(array $user)` / `getUserSession(): ?array` | **Déjà fait** — prend/retourne `SessionUser` |
+| 4 | `renderRegistryCard(array $card)` → `RegistryCardData` | ✅ **TERMINÉ** — v3.63.0 |
+| 5 | `EventDispatcher::dispatch(string, array $data)` | **Sauté** — événements génériques justifiés |
+| 6 | `UserRepository::exportData()` retour `user` via `toArray()` | v3.63.0 (consolidé avec P30-4)
 
 ---
 

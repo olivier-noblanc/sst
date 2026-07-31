@@ -36,15 +36,14 @@ $session = getContainer()->get(SessionManager::class);
 $user = $authService->mockLogin($username);
 
 if ($user !== null) {
-    /** @var array<string, string> $user */
     safeSessionRegenerate();
 
     require_once __DIR__ . '/../src/cron.php';
     runLazyCron(getDB());
 
     $intendedUrl = (string) ($session->clearIntendedUrl() ?? $http->url('home'));
-    auditLog(getDB(), 'auth', 'login', 'Connexion : ' . (string) $user['prenom'] . ' ' . (string) $user['nom'], (int) $user['id'], 'user', ['username' => $user['username']]);
-    $sessionService->setFlash('success', 'Bienvenue, ' . (string) $user['prenom'] . ' ' . (string) $user['nom'] . ' !');
+    auditLog(getDB(), 'auth', 'login', 'Connexion : ' . $user->prenom . ' ' . $user->nom, $user->id, 'user', ['username' => $user->username]);
+    $sessionService->setFlash('success', 'Bienvenue, ' . $user->prenom . ' ' . $user->nom . ' !');
     $http->redirect($intendedUrl);
 } else {
     $sessionService->setFlash('error', 'Erreur lors de la connexion. Veuillez réessayer.');

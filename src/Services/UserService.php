@@ -9,6 +9,7 @@ use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 use App\DTO\CreateUserCommand;
 use App\DTO\UpdateUserCommand;
+use App\DTO\SessionUser;
 
 class UserService
 {
@@ -41,14 +42,13 @@ class UserService
         if ($user === null) {
             throw new RuntimeException('Utilisateur introuvable.');
         }
-        /** @var UserArray $user */
 
-        $demoteErrors = $this->canDemote($id, $cmd->role, $user['role']);
+        $demoteErrors = $this->canDemote($id, $cmd->role, $user->role);
         if (!empty($demoteErrors)) {
             throw new RuntimeException(implode(' ', $demoteErrors));
         }
 
-        $roleChanged = $user['role'] !== $cmd->role;
+        $roleChanged = $user->role !== $cmd->role;
         // Audit #29 — test le retour du repo.update. Avant ce fix, l'event
         // 'user.updated' était dispatché même si l'UPDATE était no-op.
         $updateResult = $this->repo->update($id, $cmd);
@@ -71,7 +71,7 @@ class UserService
 
                 $this->events->dispatch('user.role_changed', [
                     'user' => $user,
-                    'oldRole' => $user['role'],
+                    'oldRole' => $user->role,
                     'newRole' => $cmd->role,
                     'pdo' => $this->repo->getPdo(),
                 ]);
@@ -118,7 +118,7 @@ class UserService
         if ($user === null) {
             throw new RuntimeException('Utilisateur introuvable.');
         }
-        if ((int) $user['is_active'] === 1) {
+        if ($user->isActive === 1) {
             throw new RuntimeException('Cet utilisateur est déjà actif.');
         }
         $result = $this->repo->reactivate($id);
@@ -151,13 +151,11 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @return UserArray|null
+     * @return SessionUser|null
      */
-    public function findById(int $id): ?array
+    public function findById(int $id): ?SessionUser
     {
-        $result = $this->repo->findById($id);
-        /** @var UserArray|null $result */
-        return $result;
+        return $this->repo->findById($id);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -214,7 +212,7 @@ class UserService
         if ($user === null) {
             return false;
         }
-        if ($user['role'] === UserRole::Superviseur->value && $this->repo->countActiveSuperviseurs() <= 1) {
+        if ($user->role === UserRole::Superviseur->value && $this->repo->countActiveSuperviseurs() <= 1) {
             return false;
         }
         return true;
@@ -239,7 +237,7 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @return array{user: array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string}, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>}
+     * @return array{user: array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, siteId: int|null, isActive: int, createdAt: string, updatedAt: string|null, siteCode: string|null, siteNom: string|null, siteChosenAt: string|null, sessionsInvalidBefore: string|null}, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>}
      */
     public function exportData(int $id): array
     {

@@ -32,6 +32,13 @@ if ($userId <= 0) {
     $http->redirect($http->url('users'));
 }
 
+$sessionUser = $session->getUserSession();
+if ($sessionUser === null) {
+    $session->setFlash('error', 'Session invalide.');
+    $http->redirect($http->url('home'));
+    return;
+}
+
 $pdo = getDB();
 $service = getContainer()->get(UserService::class);
 
@@ -52,7 +59,7 @@ if ($action === 'anonymize') {
     // failed on report_responses.user_id. The handler ignored the return value
     // and showed a success flash. Now we test the return + audit log is written
     // only if anonymization actually succeeded.
-    $success = $service->anonymize($userId, (int) ($session->getUserSession()['id'] ?? 0));
+    $success = $service->anonymize($userId, $sessionUser->id);
     if ($success) {
         auditLog($pdo, 'gdpr', 'anonymize', 'Anonymisation RGPD de l\'utilisateur ID ' . $userId, $userId, 'user');
         $session->setFlash('success', 'Données personnelles de l\'utilisateur anonymisées conformément au RGPD.');
@@ -68,9 +75,8 @@ $user = $service->findById($userId);
 if ($user === null) {
     $session->setFlash('error', 'Utilisateur introuvable.');
     $http->redirect($http->url('users'));
+    return;
 }
-
-/** @var array{role: string} $user */
 
 // Validate
 $cmd = UpdateUserCommand::fromPost($_POST);
@@ -78,8 +84,8 @@ $cmd = UpdateUserCommand::fromPost($_POST);
 $errors = $service->validate($cmd, $userId);
 
 // Guard: prevent demoting the last active superviseur
-if ((string) $user['role'] === UserRole::Superviseur->value && $cmd->role !== UserRole::Superviseur->value) {
-    $demoteErrors = $service->canDemote($userId, $cmd->role, (string) $user['role']);
+if ($user->role === UserRole::Superviseur->value && $cmd->role !== UserRole::Superviseur->value) {
+    $demoteErrors = $service->canDemote($userId, $cmd->role, $user->role);
     $errors = array_merge($errors, $demoteErrors);
 
     if ($cmd->role === UserRole::Agent->value && empty($_POST['confirm_demotion'])) {
@@ -94,11 +100,11 @@ if (!empty($errors)) {
 }
 
 // Update user
-$oldRole = (string) $user['role'];
+$oldRole = $user->role;
 $roleChanged = ($cmd->role !== $oldRole);
 $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
 
-$service->update($userId, $cmd, (int) ($session->getUserSession()['id'] ?? 0));
+    $service->update($userId, $cmd, $sessionUser->id);
 
 // Bug #30 — Audit log écrit AVANT l'envoi de l'email. Si sendMail échoue,
 // l'audit log ment (notified=true). Maintenant on track le résultat réel.

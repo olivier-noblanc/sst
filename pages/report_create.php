@@ -36,9 +36,8 @@ if ($canSelectSite) {
     $sites = SiteRepository::instance()->findAll();
 } else {
     // Agent: only show their own site
-    /** @var string */
-    $mySiteIdStr = $user['site_id'] ?? '0';
-    $mySite = SiteRepository::instance()->findById((int) $mySiteIdStr);
+    $mySiteId = $user->siteId ?? 0;
+    $mySite = SiteRepository::instance()->findById($mySiteId);
     $sites = $mySite !== null ? [$mySite] : [];
 }
 

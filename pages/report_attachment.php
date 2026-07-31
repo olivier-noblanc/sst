@@ -40,13 +40,13 @@ if ($report === null) {
     exit('Fichier introuvable.');
 }
 
-if (!canAccessReport($report, $user)) {
+if (!canAccessReport($report, ['id' => $user->id, 'role' => $user->role, 'site_id' => $user->siteId])) {
     http_response_code(403);
     exit('Accès refusé.');
 }
 
 // Log confidential report access by supervisor/CHSCT
-logConfidentialReportAccess($pdo, $report, $user);
+logConfidentialReportAccess($pdo, $report, ['id' => $user->id, 'role' => $user->role]);
 
 // Serve the file
 /** @var string */

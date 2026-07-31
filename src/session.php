@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\SessionService;
+use App\DTO\SessionUser;
 
 /**
  * Session Management — Application SST DREETS BFC
@@ -21,17 +22,17 @@ function isUserLoggedIn(): bool
 }
 
 /**
- * @param UserArray $user
+ * @param SessionUser $user
  */
-function setUserSession(array $user): void
+function setUserSession(SessionUser $user): void
 {
     (SessionService::getInstance())->setUserSession($user);
 }
 
 /**
- * @return UserArray|null
+ * @return SessionUser|null
  */
-function getUserSession(): ?array
+function getUserSession(): ?SessionUser
 {
     return (SessionService::getInstance())->getUserSession();
 }

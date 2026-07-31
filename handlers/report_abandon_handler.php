@@ -21,7 +21,7 @@ $session = SessionService::getInstance();
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 $report = fetchReportOrRedirect($reportUuid);
 $user = $session->getUserSession();
-$userId = (int) ($session->getUserSession()['id'] ?? 0);
+$userId = $user->id ?? 0;
 $type = $report->type;
 
 requireReportOwnership($report, $userId, $reportUuid, 'abandonner');

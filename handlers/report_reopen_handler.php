@@ -25,7 +25,7 @@ if (mb_strlen($motifReouverture, 'UTF-8') < 10) {
 }
 
 $report = fetchReportOrRedirect($reportUuid);
-$userId = (int) ($session->getUserSession()['id'] ?? 0);
+$userId = $session->getUserSession()->id ?? 0;
 
 try {
     $cmd = new ReopenReportCommand(motif: $motifReouverture);
@@ -40,8 +40,7 @@ try {
         $pdo = getDB();
         $registryLabel = getRegistryShortLabel($report->type);
         $declarant = UserRepository::instance()->findById($report->declarantId);
-        if ($declarant !== null && !empty($declarant['email']) && $report->declarantId !== $userId) {
-            /** @var array<string, string> $declarant */
+        if ($declarant !== null && $declarant->email !== null && $report->declarantId !== $userId) {
             $subject = "Signalement réouvert $registryLabel — {$report->reference}";
             $body = '<html><body>';
             $body .= '<h2>Votre signalement a été réouvert</h2>';
@@ -49,12 +48,12 @@ try {
             $body .= '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>';
             $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
-            sendMail($declarant['email'], $subject, $body);
+            sendMail($declarant->email, $subject, $body);
         }
         $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
         foreach ($linkedAgents as $linkedAgent) {
             /** @var array<string, string> $linkedAgent */
-            if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant['email'] ?? '')) {
+            if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant->email ?? '')) {
                 $linkedSubject = "Signalement réouvert $registryLabel — {$report->reference}";
                 $linkedBody = renderEmailBody(
                     'Signalement réouvert',

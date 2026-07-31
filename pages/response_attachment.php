@@ -34,13 +34,13 @@ if ($user === null) {
 }
 
 $report = ReportRepository::instance()->findById($row['report_uuid']);
-if ($report === null || !canAccessReport($report, $user)) {
+if ($report === null || !canAccessReport($report, ['id' => $user->id, 'role' => $user->role, 'site_id' => $user->siteId])) {
     http_response_code(403);
     exit('Accès refusé.');
 }
 
 // Log confidential report access by supervisor/CHSCT
-logConfidentialReportAccess($pdo, $report, $user);
+logConfidentialReportAccess($pdo, $report, ['id' => $user->id, 'role' => $user->role]);
 
 // Serve the file
 $mime = $row['attachment_mime'] ?? 'application/octet-stream';

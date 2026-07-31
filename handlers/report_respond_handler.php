@@ -68,7 +68,7 @@ if (isset($_FILES['response_attachment']) && is_array($_FILES['response_attachme
 }
 
 $pdo = getDB();
-$userId = (int) ($session->getUserSession()['id'] ?? 0);
+$userId = $session->getUserSession()->id ?? 0;
 
 try {
     $cmd = new RespondToReportCommand(

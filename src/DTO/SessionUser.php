@@ -2,6 +2,7 @@
 
 namespace App\DTO;
 
+use Error;
 use ArrayAccess;
 
 /**
@@ -203,12 +204,12 @@ final readonly class SessionUser implements ArrayAccess
     /** @param string $offset */
     public function offsetSet(mixed $offset, mixed $value): never
     {
-        throw new \Error('Cannot modify readonly property ' . $offset);
+        throw new Error('Cannot modify readonly property ' . $offset);
     }
 
     /** @param string $offset */
     public function offsetUnset(mixed $offset): never
     {
-        throw new \Error('Cannot unset readonly property ' . $offset);
+        throw new Error('Cannot unset readonly property ' . $offset);
     }
 }

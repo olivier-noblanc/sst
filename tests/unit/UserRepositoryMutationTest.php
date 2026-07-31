@@ -345,13 +345,13 @@ class UserRepositoryMutationTest extends TestCase
         $this->assertSame(0, $result['responses_count']);
         $this->assertSame([], $result['reports']);
         $this->assertSame([], $result['responses']);
-        // User shape is a zeroed default
+        // User shape is a zeroed default (toArray() uses camelCase keys)
         $this->assertArrayHasKey('user', $result);
         $this->assertSame(0, $result['user']['id']);
         $this->assertSame('', $result['user']['username']);
-        $this->assertNull($result['user']['site_id']);
-        $this->assertArrayHasKey('site_chosen_at', $result['user']);
-        $this->assertArrayHasKey('updated_at', $result['user']);
+        $this->assertNull($result['user']['siteId']);
+        $this->assertArrayHasKey('siteChosenAt', $result['user']);
+        $this->assertArrayHasKey('updatedAt', $result['user']);
     }
 
     public function testExportDataReturnsUserData(): void
@@ -360,7 +360,7 @@ class UserRepositoryMutationTest extends TestCase
         $result = $this->repo->exportData($id);
         $this->assertSame('export.user', $result['user']['username']);
         $this->assertSame('Nomexport.user', $result['user']['nom']);
-        $this->assertSame($this->siteId, (int) $result['user']['site_id']);
+        $this->assertSame($this->siteId, $result['user']['siteId']);
     }
 
     public function testExportDataReturnsReportsAndResponses(): void

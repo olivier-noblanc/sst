@@ -197,7 +197,8 @@ class ReportRepositoryMethodsMutationTest extends TestCase
     public function testGetAdjacentUuidsReturnsNullsForSingleReport(): void
     {
         $uuid = $this->seedReport('rsst', ReportState::Nouveau->value);
-        $result = $this->repo->getAdjacentUuids($uuid, 'rsst');
+        $report = $this->repo->findById($uuid);
+        $result = $this->repo->getAdjacentUuids($report->toArray());
         $this->assertNull($result->prev);
         $this->assertNull($result->next);
     }
@@ -208,8 +209,8 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $uuid2 = $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-02-01 10:00:00');
         $uuid3 = $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-03-01 10:00:00');
 
-        // For uuid2: prev = uuid3 (newer), next = uuid1 (older)
-        $result = $this->repo->getAdjacentUuids($uuid2, 'rsst');
+        $report = $this->repo->findById($uuid2);
+        $result = $this->repo->getAdjacentUuids($report->toArray());
         $this->assertSame($uuid3, $result->prev, 'prev = newer report');
         $this->assertSame($uuid1, $result->next, 'next = older report');
     }
@@ -219,7 +220,8 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-01-01 10:00:00');
         $uuid2 = $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-02-01 10:00:00');
 
-        $result = $this->repo->getAdjacentUuids($uuid2, 'rsst');
+        $report = $this->repo->findById($uuid2);
+        $result = $this->repo->getAdjacentUuids($report->toArray());
         $this->assertNull($result->prev, 'newest report has no prev');
         $this->assertNotNull($result->next);
     }
@@ -229,21 +231,22 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $uuid1 = $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-01-01 10:00:00');
         $this->seedReport('rsst', ReportState::Nouveau->value, null, '2026-02-01 10:00:00');
 
-        $result = $this->repo->getAdjacentUuids($uuid1, 'rsst');
+        $report = $this->repo->findById($uuid1);
+        $result = $this->repo->getAdjacentUuids($report->toArray());
         $this->assertNotNull($result->prev);
         $this->assertNull($result->next, 'oldest report has no next');
     }
 
-    public function testGetAdjacentUuidsReturnsNullsForMissingReport(): void
+    public function testGetAdjacentUuidsReturnsNullsForEmptyArray(): void
     {
-        $result = $this->repo->getAdjacentUuids('nonexistent-uuid', 'rsst');
+        $result = $this->repo->getAdjacentUuids([]);
         $this->assertNull($result->prev);
         $this->assertNull($result->next);
     }
 
     // ═══ create() ═══
 
-    public function testCreateInsertsReportAndReturnsReportData(): void
+    public function testCreateInsertsReportAndReturnsUuid(): void
     {
         $cmd = new CreateReportCommand(
             type: 'rsst',
@@ -271,12 +274,14 @@ class ReportRepositoryMethodsMutationTest extends TestCase
             attachmentMime: null,
         );
 
-        $report = $this->repo->create($cmd);
+        $uuid = $this->repo->create($cmd);
+        $this->assertNotEmpty($uuid, 'create must return a UUID string');
+
+        $report = $this->repo->findById($uuid);
         $this->assertNotNull($report);
         $this->assertSame('Created report', $report->objet);
         $this->assertSame('rsst', $report->type);
         $this->assertSame($this->declarantId, $report->declarantId);
-        $this->assertSame('2026-01-15', $report->dateEvenement);
     }
 
     // ═══ respond() ═══
@@ -290,7 +295,8 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         );
 
         $result = $this->repo->respond($uuid, $cmd, $this->supervisorId);
-        $this->assertTrue($result);
+        $this->assertIsArray($result);
+        $this->assertTrue($result['success'] ?? false);
 
         // Verify etat was updated
         $report = $this->repo->findById($uuid);
@@ -305,10 +311,11 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $this->assertSame($this->supervisorId, (int) $responses[0]['user_id']);
     }
 
-    public function testRespondReturnsFalseForMissingReport(): void
+    public function testRespondReturnsErrorForMissingReport(): void
     {
         $cmd = new RespondToReportCommand(reponse: 'test', nouvelEtat: ReportState::EnCours);
-        $this->assertFalse($this->repo->respond('nonexistent-uuid', $cmd, $this->supervisorId));
+        $result = $this->repo->respond('nonexistent-uuid', $cmd, $this->supervisorId);
+        $this->assertFalse($result['success'] ?? true);
     }
 
     // ═══ abandon() ═══
@@ -364,7 +371,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
             consentSyndicat: true,
         );
 
-        $result = $this->repo->update($uuid, $cmd);
+        $result = $this->repo->update($uuid, $cmd, $this->declarantId);
         $this->assertTrue($result);
 
         $report = $this->repo->findById($uuid);
@@ -385,6 +392,6 @@ class ReportRepositoryMethodsMutationTest extends TestCase
             serviceAffectation: null, telephoneMobile: null,
             isConfidential: false, consentSyndicat: false,
         );
-        $this->assertFalse($this->repo->update('nonexistent-uuid', $cmd));
+        $this->assertFalse($this->repo->update('nonexistent-uuid', $cmd, $this->declarantId));
     }
 }

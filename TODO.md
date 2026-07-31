@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-30 (v3.59.0)
+Dernière mise à jour : 2026-07-31 (v3.62.0)
 
 ---
 
@@ -8,14 +8,14 @@ Dernière mise à jour : 2026-07-30 (v3.59.0)
 
 | Métrique | Valeur |
 |----------|--------|
-| PHPStan erreurs | **0** |
+| PHPStan erreurs | **0** (baseline: 6 garde-fous légitimes) |
 | Pages supprimées | **guide / help / preamble** (v3.59.0) |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule + NoBareDeleteInTestsRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
-| Tests | **1001** (2271 assertions) |
+| Tests | **1457** (3417 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
-| DTOs readonly | **17** (CreateReportCommand, UpdateReportCommand, RespondToReportCommand, ReopenReportCommand, CreateUserCommand, UpdateUserCommand, ReportData, ReportFilter, ReportListItem, PaginatedReports, ReportStateCounts, AdjacentUuids, IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult) |
+| DTOs readonly | **16** (CreateReportCommand, UpdateReportCommand, RespondToReportCommand, ReopenReportCommand, CreateUserCommand, UpdateUserCommand, ReportData, ReportFilter, ReportListItem, PaginatedReports, AdjacentUuids, IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult) |
 | CI | **GitHub Actions** (`.github/workflows/ci.yml` : lint + PHPStan + PHPUnit + PHPArkitect + Rector + Deptrac + E2E Firefox, sur chaque push/PR) + gate local `update_sst.ps1` (+ E2E msedge, bloquant) |
 | Dead code detector | **shipmonk** (installé via composer) |
 | Copy-paste detector | **phpcpd** (1.96% duplication, 13 blocs — pas re-mesuré depuis P14) |

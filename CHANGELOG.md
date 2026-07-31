@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.62.0] — 2026-07-31
+
+### PHPStan — baseline vidée (223→6) + AccessService refactorisé vers ReportData DTO
+
+- **1** 🔴 **Baseline PHPStan réduite de 223 à 6 erreurs** — les 217 erreurs corrigées : nullCoalesce.offset (suppression des `??` inutiles), is_array redondants (toujours true), deadMethod (~30 méthodes supprimées), return.type (PHPDoc corrigés), comparaisons toujours vraies/fausses, variable.undefined (seed files). Les 6 erreurs restantes sont des garde-fous `??` légitimes pour données formulaire/utilisateur potentiellement incomplètes.
+- **2** 🔴 **AccessService refactorisé vers ReportData DTO** — `canAccessReport()`, `canEditReport()`, `canRespondToReport()`, `logConfidentialReportAccess()` acceptent désormais `ReportData` au lieu de `array`. Les helpers `access.php` alignés. Fin des `array<string, mixed>` interdits par les règles du projet.
+- **3** 🔴 **~30 méthodes mortes supprimées** — SessionManager (17), ReportRepository (countByState, createAgentInvite), UserService (findByUsername, findAll, countActive), ReportService (findById), FormattingService (formatTime), NotificationService (sendDelayNotifications), RegistryRepository (toggleEnabled), RegistryFieldRepository (findById, update), ReportFilter (fromGet), RespondToReportCommand (fromPost), Router (getRoutes), ReportState (badgeClass), SiteId (none, isNone, toNullableInt).
+- **4** 🔴 **ReportStateCounts DTO supprimé** — aucun caller restant après suppression de `countByState()`.
+- **5** 🟡 **~74 tests supprimés** pour méthodes mortes + tests mis à jour pour utiliser ReportData DTO.
+- **6** 🟡 **Fix test isolation** — SessionInvalidationTest nettoyage FK par ID, RegistryCardRendererTest reseed + enable registries explicitement.
+
+
 ## [3.61.0] — 2026-07-30
 
 ### PHPStan — `MustCheckReturnValueRule` : ferme le trou structurel de l'Audit #8

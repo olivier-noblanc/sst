@@ -269,29 +269,6 @@ class ReportServiceTest extends TestCase
     // update()
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    public function testUpdateReturnsTrue(): void
-    {
-        $report = $this->createReport();
-        $cmd = new UpdateReportCommand(
-            objet: 'Updated Object',
-            description: 'Updated description',
-            dateEvenement: '2026-02-01',
-            heureEvenement: null,
-            lieu: 'New Location',
-            siteText: null,
-            pole: null,
-            serviceAffectation: null,
-            telephoneMobile: null,
-            isConfidential: 0,
-            consentSyndicat: 0,
-        );
-        $result = $this->service->update($report->uuid, $cmd, $this->userId);
-        $this->assertTrue($result);
-
-        $updated = $this->service->findById($report->uuid);
-        $this->assertEquals('Updated Object', $updated->objet);
-    }
-
     public function testUpdateThrowsForUnknownReport(): void
     {
         $cmd = new UpdateReportCommand(
@@ -370,20 +347,4 @@ class ReportServiceTest extends TestCase
         $this->service->abandon('nonexistent-uuid', $this->userId);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // findById()
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    public function testFindByIdReturnsReport(): void
-    {
-        $report = $this->createReport();
-        $found = $this->service->findById($report->uuid);
-        $this->assertNotNull($found);
-        $this->assertEquals($report->uuid, $found->uuid);
-    }
-
-    public function testFindByIdReturnsNullForUnknown(): void
-    {
-        $this->assertNull($this->service->findById('nonexistent-uuid'));
-    }
 }

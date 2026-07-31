@@ -67,9 +67,6 @@ class StatsRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
-        if (!is_array($rows)) {
-            return [];
-        }
         $result = [];
         foreach ($rows as $row) {
             $result[] = new SynthesisRow(
@@ -138,7 +135,7 @@ class StatsRepository
             $params[':date_to'] = $filters['date_to'];
         }
 
-        if (!empty($filters['etats']) && is_array($filters['etats'])) {
+        if (!empty($filters['etats'])) {
             $placeholders = [];
             foreach ($filters['etats'] as $i => $etat) {
                 $key = ':etat_' . $i;
@@ -154,7 +151,7 @@ class StatsRepository
         $stmt->execute($params);
         /** @var list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: ?string, lieu: string, declarant_id: int, declarant_nom: string, declarant_prenom: string, pour_compte_de: ?string, pour_compte_nom: ?string, pour_compte_prenom: ?string, nature_auteur: ?string, type_acte: ?string, site_id: ?int, site_text: ?string, pole: ?string, service_affectation: ?string, telephone_mobile: ?string, is_confidential: int, consent_syndicat: int, etat: string, repondant_id: ?int, date_reponse: ?string, reponse: ?string, attachment_name: ?string, attachment_mime: ?string, created_at: string, updated_at: string, site_code: ?string, site_nom: ?string, repondant_nom: ?string, repondant_prenom: ?string}> $rows */
         $rows = $stmt->fetchAll();
-        return is_array($rows) ? $rows : [];
+        return $rows;
     }
 
     public function getIndicateurs(string $year = '', int $siteId = 0): IndicateursData
@@ -298,9 +295,6 @@ class StatsRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
-        if (!is_array($rows)) {
-            return [];
-        }
         $result = [];
         foreach ($rows as $row) {
             $registryCounts = [];
@@ -338,7 +332,7 @@ class StatsRepository
             ORDER BY year DESC
         ");
         $rows = $stmt !== false ? $stmt->fetchAll() : [];
-        return array_column(is_array($rows) ? $rows : [], 'year');
+        return array_column($rows, 'year');
     }
 
     public function getRamiStructuredStats(string $year = ''): RamiStats
@@ -374,8 +368,8 @@ class StatsRepository
         $byType = $stmt->fetchAll();
 
         return new RamiStats(
-            byNatureAuteur: is_array($byNature) ? $byNature : [],
-            byTypeActe: is_array($byType) ? $byType : [],
+            byNatureAuteur: $byNature,
+            byTypeActe: $byType,
         );
     }
 }

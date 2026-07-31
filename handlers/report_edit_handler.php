@@ -83,7 +83,7 @@ try {
         if (!empty($linkedEmailsRaw)) {
             try {
                 $service = getContainer()->get(ReportService::class);
-                $linkedEmails = $service->validateLinkedEmails($linkedEmailsRaw, $user ?? []);
+                $linkedEmails = $service->validateLinkedEmails($linkedEmailsRaw, $user);
             } catch (InvalidArgumentException $e) {
                 // @silent-ok: malformed linked-email input — falls back to "no linked agents"
                 // rather than blocking the whole report edit over one bad email field.

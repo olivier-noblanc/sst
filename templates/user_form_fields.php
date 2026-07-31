@@ -26,11 +26,8 @@
 /** @var string $editRole */
 /** @var int|string $editSiteId */
 /** @var list<array{id: int|string, nom: string}> $sites */
-/** @var string $usernameHint */
 
-if (!isset($usernameHint)) {
-    $usernameHint = 'Identifiant de connexion Windows (ex: jean.martin)';
-}
+$usernameHint ??= 'Identifiant de connexion Windows (ex: jean.martin)';
 ?>
 
 <div class="form-grid">

@@ -80,7 +80,7 @@ $labelUnite = $config->get('app_label_unite', 'UR');
     </p>
     <p class="text-muted text-small mb-4">
         Votre site actuel : <strong><?php echo $fmt->e($user['site_code'] ?? ''); ?> — <?php echo $fmt->e($user['site_nom'] ?? ''); ?></strong>.
-        Vous avez <strong><?php echo $daysRemaining; ?> jour<?php echo $daysRemaining !== 1 ? 's' : ''; ?></strong> pour modifier votre choix.
+        Vous avez <strong><?php echo $daysRemaining; ?> jour<?php echo $daysRemaining != 1 ? 's' : ''; ?></strong> pour modifier votre choix.
         Après ce délai, seul un superviseur pourra le changer.
     </p>
     <?php else: ?>
@@ -110,11 +110,11 @@ $labelUnite = $config->get('app_label_unite', 'UR');
                 <?php foreach ($sites as $site): ?>
                 <?php
                     /** @var int */
-                    $siteId = $site['id'] ?? 0;
+                    $siteId = $site['id'];
                     /** @var string */
-                    $siteCode = $site['code'] ?? '';
+                    $siteCode = $site['code'];
                     /** @var string */
-                    $siteNom = $site['nom'] ?? '';
+                    $siteNom = $site['nom'];
                     ?>
                 <option value="<?php echo $fmt->e((string) $siteId); ?>" <?php echo $hasExistingSite && $userSiteId === $siteId ? '' : ''; ?>>
                     <?php echo $fmt->e($siteCode . ' — ' . $siteNom); ?>

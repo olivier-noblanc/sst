@@ -310,7 +310,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     $fieldCode = (string) $field['field_code'];
                     $fieldLabel = (string) $field['label'];
                     $fieldType = (string) $field['field_type'];
-                    $isRequired = (int) ($field['is_required'] ?? 0) === 1;
+                    $isRequired = (int) $field['is_required'] === 1;
                     $fieldValue = $val($fieldCode);
                     $hasError = isset($formErrors[$fieldCode]);
                     $errId = $hasError ? ' id="err_' . e($fieldCode) . '"' : '';

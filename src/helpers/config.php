@@ -38,7 +38,7 @@ function isRegistryEnabled(string $type): bool
  */
 function getEnabledRegistries(): array
 {
-    return array_values(getConfigService()->getEnabledRegistries());
+    return getConfigService()->getEnabledRegistries();
 }
 
 function getRoleLabel(string $role): string

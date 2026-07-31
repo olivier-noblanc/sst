@@ -1,4 +1,6 @@
 <?php
+global $pdo;
+
 // Additional sites (7 more to supplement the 2 default ones = 9 total)
 $additionalSites = [
     ['UR25B', 'UR Doubs — Antenne', 'Doubs'],           // site_id 3

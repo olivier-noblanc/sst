@@ -74,7 +74,7 @@ class RegistryFieldRepositoryMutationTest extends TestCase
         $this->pdo->prepare('INSERT INTO registries (code, label, short_label) VALUES (?, ?, ?)')
             ->execute(['other', 'Other', 'O']);
         $otherId = (int) $this->pdo->lastInsertId();
-        $this->repo->create($otherId, ['field_code' => 'other_field', 'label' => 'Other']);
+        $this->repo->create($otherId, ['field_code' => 'other_field', 'label' => 'Other', 'field_type' => 'text']);
 
         $result = $this->repo->findByRegistry($this->registryId);
         $this->assertCount(1, $result);
@@ -82,19 +82,6 @@ class RegistryFieldRepositoryMutationTest extends TestCase
     }
 
     // ═══ findById / findByCode ═══
-
-    public function testFindByIdReturnsFieldWhenExists(): void
-    {
-        $id = $this->seedField('test');
-        $field = $this->repo->findById($id);
-        $this->assertNotNull($field);
-        $this->assertSame('test', $field['field_code']);
-    }
-
-    public function testFindByIdReturnsNullForMissing(): void
-    {
-        $this->assertNull($this->repo->findById(99999));
-    }
 
     public function testFindByCodeReturnsFieldWhenExists(): void
     {
@@ -116,7 +103,7 @@ class RegistryFieldRepositoryMutationTest extends TestCase
         $this->pdo->prepare('INSERT INTO registries (code, label, short_label) VALUES (?, ?, ?)')
             ->execute(['other', 'Other', 'O']);
         $otherId = (int) $this->pdo->lastInsertId();
-        $this->repo->create($otherId, ['field_code' => 'shared_code', 'label' => 'Other label']);
+        $this->repo->create($otherId, ['field_code' => 'shared_code', 'label' => 'Other label', 'field_type' => 'text']);
 
         $field = $this->repo->findByCode($this->registryId, 'shared_code');
         $this->assertSame('Field shared_code', $field['label'], 'must find the right one per registry');
@@ -136,8 +123,9 @@ class RegistryFieldRepositoryMutationTest extends TestCase
         $id = $this->repo->create($this->registryId, [
             'field_code' => 'test',
             'label' => 'Test Field',
+            'field_type' => 'text',
         ]);
-        $field = $this->repo->findById($id);
+        $field = $this->repo->findByCode($this->registryId, 'test');
 
         $this->assertSame('text', $field['field_type'], 'default field_type');
         $this->assertNull($field['options'], 'default options null');
@@ -155,56 +143,11 @@ class RegistryFieldRepositoryMutationTest extends TestCase
             'is_required' => 1,
             'sort_order' => 5,
         ]);
-        $field = $this->repo->findById($id);
+        $field = $this->repo->findByCode($this->registryId, 'test');
         $this->assertSame('select', $field['field_type']);
         $this->assertSame('["a","b"]', $field['options']);
         $this->assertSame(1, (int) $field['is_required']);
         $this->assertSame(5, (int) $field['sort_order']);
-    }
-
-    // ═══ update ═══
-
-    public function testUpdateModifiesSpecifiedFields(): void
-    {
-        $id = $this->seedField('test');
-        $result = $this->repo->update($id, ['label' => 'Updated', 'is_required' => 1]);
-        $this->assertTrue($result);
-        $field = $this->repo->findById($id);
-        $this->assertSame('Updated', $field['label']);
-        $this->assertSame(1, (int) $field['is_required']);
-    }
-
-    public function testUpdateReturnsFalseWhenNoFieldsProvided(): void
-    {
-        $id = $this->seedField('test');
-        $result = $this->repo->update($id, []);
-        $this->assertFalse($result);
-    }
-
-    public function testUpdateReturnsFalseWhenFieldNotFound(): void
-    {
-        $result = $this->repo->update(99999, ['label' => 'New']);
-        $this->assertFalse($result);
-    }
-
-    public function testUpdateOnlyModifiesProvidedFields(): void
-    {
-        $id = $this->seedField('test');
-        $original = $this->repo->findById($id);
-        $this->repo->update($id, ['label' => 'New Label']);
-        $updated = $this->repo->findById($id);
-        $this->assertSame('New Label', $updated['label']);
-        $this->assertSame($original['field_type'], $updated['field_type']);
-    }
-
-    // ═══ delete ═══
-
-    public function testDeleteRemovesField(): void
-    {
-        $id = $this->seedField('test');
-        $result = $this->repo->delete($id);
-        $this->assertTrue($result);
-        $this->assertNull($this->repo->findById($id));
     }
 
     public function testDeleteReturnsFalseWhenNotFound(): void

@@ -26,7 +26,7 @@ class RegistryCardService
             return $cache[$type];
         }
         $reg = $this->registryRepo->findByCode($type);
-        $icon = $reg !== null ? ($reg['icon'] ?? '📋') : '📋';
+        $icon = $reg !== null ? $reg['icon'] : '📋';
         $cache[$type] = $icon;
         return $icon;
     }
@@ -64,13 +64,13 @@ class RegistryCardService
                 $reportCount = $this->reportRepo->countActive($code, $siteIdFilter);
             }
 
-            $colorTheme = $reg['color_theme'] ?? $code;
+            $colorTheme = $reg['color_theme'];
             $cards[] = [
                 'type'       => $code,
                 'cardClass'  => RegistryRepository::themeClasses($colorTheme)['registry_card'],
                 'title'    => $reg['label'],
                 'subtitle' => $reg['short_label'],
-                'desc'     => $reg['description'] ?? '',
+                'desc'     => $reg['description'],
                 'count'    => $reportCount,
                 'btnLabel' => $reg['btn_label'] ?? 'Signaler un événement',
                 'btnUrl'   => url('report_create', ['type' => $code]),

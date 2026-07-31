@@ -117,7 +117,7 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
 
         $maxOrder = 0;
         foreach ($repo->findAll() as $r) {
-            $o = (int) ($r['sort_order'] ?? 0);
+            $o = (int) $r['sort_order'];
             if ($o > $maxOrder) {
                 $maxOrder = $o;
             }
@@ -146,7 +146,7 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
 
     // ── Save all registres ────────────────────────────────────────────────
     /** @var list<array<string, string|int|bool|null>> $registres */
-    $registres = is_array($postData['registres'] ?? null) ? $postData['registres'] : [];
+    $registres = $postData['registres'] ?? [];
 
     foreach ($registres as $regId => $data) {
         $id = (int) $regId;

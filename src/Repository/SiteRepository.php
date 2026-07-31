@@ -30,7 +30,7 @@ class SiteRepository
         $stmt = $this->pdo->query('SELECT * FROM sites ORDER BY code ASC');
         /** @var list<array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}> $rows */
         $rows = $stmt !== false ? $stmt->fetchAll() : [];
-        return is_array($rows) ? $rows : [];
+        return $rows;
     }
 
     /** @return list<array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}> */
@@ -39,7 +39,7 @@ class SiteRepository
         $stmt = $this->pdo->query('SELECT * FROM sites WHERE is_active = 1 ORDER BY code ASC');
         /** @var list<array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}> $rows */
         $rows = $stmt !== false ? $stmt->fetchAll() : [];
-        return is_array($rows) ? $rows : [];
+        return $rows;
     }
 
     /** @return array{id: int, code: string, nom: string, departement: ?string, is_active: int, created_at: string}|null */

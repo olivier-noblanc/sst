@@ -31,7 +31,7 @@ $reportEtat = $report->etat;
 // Access control: centralized via canAccessReport()
 $user = SessionService::getInstance()->getUserSession();
 
-if ($user === null || !new AccessService()->canAccessReport($report->toArray(), $user)) {
+if ($user === null || !new AccessService()->canAccessReport($report, $user)) {
     SessionService::getInstance()->setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
     new HttpService()->redirect(new HttpService()->url('home'));
 }
@@ -39,7 +39,7 @@ if ($user === null || !new AccessService()->canAccessReport($report->toArray(), 
 // Log confidential report access by supervisor/CHSCT
 $pdo = getContainer()->get(PDO::class);
 assert($user !== null);
-new AccessService()->logConfidentialReportAccess($pdo, $report->toArray(), $user);
+new AccessService()->logConfidentialReportAccess($pdo, $report, $user);
 
 // Fetch attachment blob separately (not loaded by findById for performance)
 $attachmentData = ReportRepository::instance()->getAttachmentBlob($uuid);
@@ -66,9 +66,6 @@ require_once __DIR__ . '/report_print_helpers.php';
 
 // Create PDF
 $pdf = new SSTPDF('P', 'mm', 'A4');
-$pdf->headerText = getConfigService()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')
-    . ' — Signalement ' . $reportReference;
-$pdf->footerOrgName = getConfigService()->get('app_nom_organisation', 'DREETS BFC');
 $pdf->AliasNbPages();
 $pdf->SetAutoPageBreak(true, 22);
 $pdf->SetMargins(15, 22, 15);

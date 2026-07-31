@@ -24,9 +24,6 @@ class RegistryCardRendererTest extends TestCase
         // enabled, no reports, no custom registries from other test classes.
         reseedDefaultRegistries($this->pdo);
         $this->pdo->exec("DELETE FROM registries WHERE code NOT IN ('rsst', 'rami', 'dgi')");
-        foreach (['rsst', 'rami', 'dgi'] as $code) {
-            $this->setRegistryEnabled($code, true);
-        }
         $this->pdo->exec("INSERT OR IGNORE INTO sites (id, code, nom) VALUES (9001, 'TEST-RCR', 'Site Test RCR')");
         $this->pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id) VALUES (9001, 'test.rcr', 'Test', 'RCR', 'agent', 9001)");
     }
@@ -49,10 +46,8 @@ class RegistryCardRendererTest extends TestCase
 
     private function setRegistryEnabled(string $code, bool $enabled): void
     {
-        $registry = \App\Repository\RegistryRepository::instance()->findByCode($code);
-        if ($registry !== null) {
-            \App\Repository\RegistryRepository::instance()->toggleEnabled((int) $registry['id'], $enabled);
-        }
+        $stmt = $this->pdo->prepare('UPDATE registries SET is_enabled = ? WHERE code = ?');
+        $stmt->execute([$enabled ? 1 : 0, $code]);
     }
 
     /** Seeds $count active, public (non-confidential) reports of $type at the test site. */
@@ -248,6 +243,8 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildRegistryCardsAllEnabled(): void
     {
+        $this->setRegistryEnabled('rami', true);
+        $this->setRegistryEnabled('dgi', true);
         $this->seedReports('rsst', 1);
         $this->seedReports('rami', 2);
         $this->seedReports('dgi', 3);
@@ -307,6 +304,7 @@ class RegistryCardRendererTest extends TestCase
     {
         // "RamiOnly" (original name) meant: rsst (always on) + rami enabled,
         // dgi disabled — matching the old buildRegistryCards(0, 5, 0, true, false).
+        $this->setRegistryEnabled('rami', true);
         $this->setRegistryEnabled('dgi', false);
         $this->seedReports('rami', 5);
 
@@ -320,6 +318,7 @@ class RegistryCardRendererTest extends TestCase
     public function testBuildRegistryCardsDgiOnly(): void
     {
         $this->setRegistryEnabled('rami', false);
+        $this->setRegistryEnabled('dgi', true);
         $this->seedReports('dgi', 7);
 
         $cards = buildRegistryCards();
@@ -331,6 +330,8 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildRegistryCardsPreservesCounts(): void
     {
+        $this->setRegistryEnabled('rami', true);
+        $this->setRegistryEnabled('dgi', true);
         $this->seedReports('rsst', 10);
         $this->seedReports('rami', 20);
         $this->seedReports('dgi', 30);
@@ -370,6 +371,8 @@ class RegistryCardRendererTest extends TestCase
 
     public function testBuildAndRenderPipeline(): void
     {
+        $this->setRegistryEnabled('rami', true);
+        $this->setRegistryEnabled('dgi', true);
         $this->seedReports('rsst', 5);
         $this->seedReports('rami', 3);
         $this->seedReports('dgi', 1);

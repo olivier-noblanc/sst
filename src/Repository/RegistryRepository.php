@@ -118,11 +118,6 @@ class RegistryRepository
         return $stmt->rowCount() > 0;
     }
 
-    public function toggleEnabled(int $id, bool $enabled): bool
-    {
-        return $this->update($id, ['is_enabled' => $enabled ? 1 : 0]);
-    }
-
     public function delete(int $id): bool
     {
         $reg = $this->findById($id);

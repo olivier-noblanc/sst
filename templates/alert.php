@@ -7,8 +7,8 @@
  */
 $flash = getFlash();
 if ($flash !== null):
-    $type = $flash['type'] ?? 'info';
-    $message = $flash['message'] ?? '';
+    $type = $flash['type'];
+    $message = $flash['message'];
 ?>
     <div class="alert alert--<?php echo e($type); ?>" role="alert">
         <?php echo e($message); ?>

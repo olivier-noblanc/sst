@@ -131,7 +131,7 @@ class NotificationService
                 $linkedSubject = "Signalement réouvert $registryLabel — {$report->reference}";
                 $linkedBody = '<html><body>';
                 $linkedBody .= '<h2>Signalement réouvert</h2>';
-                $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>';
+                $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom']) . ',</p>';
                 $linkedBody .= '<p>Le signalement <strong>' . e($report->reference) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>';
                 $linkedBody .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
                 $linkedBody .= '</body></html>';
@@ -148,14 +148,4 @@ class NotificationService
         notifyRoleChange($this->pdo, $userId, $oldRole, $newRole);
     }
 
-    /**
-     * Send delay notifications for overdue reports (lazy cron check_delays).
-     */
-    public function sendDelayNotifications(): void
-    {
-        if (!function_exists('lazyCronCheckDelays')) {
-            require_once __DIR__ . '/../cron.php';
-        }
-        lazyCronCheckDelays($this->pdo);
-    }
 }

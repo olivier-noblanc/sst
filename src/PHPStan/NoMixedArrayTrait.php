@@ -178,7 +178,7 @@ trait NoMixedArrayTrait
     /**
      * Recursively collect @var array<..., mixed> errors from statements.
      *
-     * @param list<\PhpParser\Node\Stmt> $stmts
+     * @param array<int|string, \PhpParser\Node\Stmt|mixed> $stmts
      * @param list<IdentifierRuleError> $errors
      * @return void
      */

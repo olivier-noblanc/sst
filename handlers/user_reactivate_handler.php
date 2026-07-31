@@ -34,7 +34,7 @@ try {
     $pdo = getDB();
     $user = $service->findById($userId);
     /** @var array<string, string> $user */
-    $label = is_array($user) ? $user['prenom'] . ' ' . $user['nom'] : '(id=' . $userId . ')';
+    $label = $user['prenom'] . ' ' . $user['nom'];
     auditLog($pdo, 'user', 'reactivate', 'Utilisateur réactivé : ' . $label, $userId, 'user');
     $session->setFlash('success', 'Utilisateur ' . e($label) . ' réactivé avec succès.');
 } catch (RuntimeException $e) {

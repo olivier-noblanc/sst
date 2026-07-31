@@ -52,11 +52,4 @@ class NewRouterTest extends TestCase
         $this->assertEquals('abc-123', $result['params']['uuid']);
     }
 
-    public function testGetRoutesReturnsAllRoutes(): void
-    {
-        $router = new Router();
-        $router->addRoute('/a', 'a', ['GET'], function() {});
-        $router->addRoute('/b', 'b', ['POST'], function() {});
-        $this->assertCount(2, $router->getRoutes());
-    }
 }

@@ -67,21 +67,6 @@ class FormattingService
     }
 
     /**
-     * Format time only (H:i).
-     */
-    public function formatTime(?string $datetime): string
-    {
-        if (empty($datetime)) {
-            return '—';
-        }
-        $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime);
-        if ($dt === false) {
-            $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime);
-        }
-        return $dt !== false ? $dt->format('H:i') : $this->e($datetime);
-    }
-
-    /**
      * Generate a report reference string. Format: {type}-{YY}-{NNN}
      */
     public function generateReference(string $type, string $year2, int $seq): string

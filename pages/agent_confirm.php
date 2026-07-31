@@ -62,7 +62,7 @@ $pageTitle = 'Confirmer mon rattachement';
     <p>En confirmant, vous serez rattaché(e) à ce signalement et pourrez en suivre le traitement.</p>
 
     <form method="POST" action="<?php echo new \App\Services\HttpService()->url('agent_confirm'); ?>">
-        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken ?? ''); ?>">
+        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
         <input type="hidden" name="token" value="<?php echo new \App\Services\FormattingService()->e($token); ?>">
         <div class="form-actions form-actions--center">
             <button type="submit" class="btn btn--primary btn--lg">

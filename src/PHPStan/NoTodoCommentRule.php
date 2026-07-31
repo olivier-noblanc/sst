@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\PHPStan;
 
 use PhpParser\Node;
-use PhpParser\Node\Comment;
 use PhpParser\Node\Stmt\Nop;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;

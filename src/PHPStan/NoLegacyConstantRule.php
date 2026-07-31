@@ -6,7 +6,6 @@ namespace App\PHPStan;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\ConstFetch;
-use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -58,10 +57,6 @@ final class NoLegacyConstantRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        if (!($node->name instanceof Name)) {
-            return [];
-        }
-
         $name = $node->name->toString();
 
         if (!in_array($name, self::BLOCKED_CONSTANTS, true)) {

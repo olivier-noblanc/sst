@@ -35,7 +35,7 @@ class AuthService
             // Now we check sessions_invalid_before marker every 5 minutes.
             $user = \getUserSession();
             if (is_array($user) && $this->shouldRevalidateSession($user)) {
-                $userId = (int) ($user['id'] ?? 0);
+                $userId = (int) $user['id'];
                 if ($userId > 0) {
                     $sessionStartedAt = (int) ($_SESSION['session_started_at'] ?? 0);
                     // session_started_at may be missing for legacy sessions — treat as 0 (force check)
@@ -133,7 +133,7 @@ class AuthService
         $user = $this->repo->findByUsernameOrAny($username);
 
         if ($user !== null) {
-            if ($user['is_active'] === false || $user['is_active'] === 0) {
+            if ($user['is_active'] === 0) {
                 return null;
             }
             /** @var UserArray $user */
@@ -241,7 +241,7 @@ class AuthService
         if (!empty($superviseurUsernames)) {
             $users = self::parseSuperviseurUsernames($superviseurUsernames);
             if (in_array(strtolower($username), $users, true)) {
-                $id = is_int($user['id']) ? $user['id'] : 0;
+                $id = $user['id'];
                 $this->repo->promoteToSuperviseur($id);
                 $user['role'] = UserRole::Superviseur->value;
                 error_log("SST App: Auto-promoted user '$username' to superviseur (config list rule)");

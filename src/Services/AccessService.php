@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\DTO\ReportData;
 use App\Enum\ReportState;
 use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
@@ -39,10 +40,9 @@ class AccessService
      * Centralize access control for a report.
      * Combines role, site, visibility mode and confidentiality checks.
      *
-     * @param ReportArray $report  Row from `reports`
      * @param array{id: int, role: string, ...} $user    $_SESSION['user'] — only id/role are read, deliberately not UserArray (see Audit #82: forcing the full shape here made tools/tests/test_can_access_report.php, which only needs id/site_id/role, construct a fake full user for no reason)
      */
-    public function canAccessReport(array $report, array $user, ?string $forcedVisibility = null): bool
+    public function canAccessReport(ReportData $report, array $user, ?string $forcedVisibility = null): bool
     {
         if ($user['role'] === UserRole::Superviseur->value) {
             return true;
@@ -51,24 +51,21 @@ class AccessService
             if ($this->getChsctReportScope() === 'all') {
                 return true;
             }
-            return (int) ($report['consent_syndicat'] ?? 0) === 1;
+            return $report->consentSyndicat === 1;
         }
 
-        $visibility = $forcedVisibility ?? $this->getReportVisibilityMode($report['type'] ?? null);
-        $reportDeclarantId = (int) ($report['declarant_id'] ?? 0);
-        $userId = (int) ($user['id'] ?? 0);
+        $visibility = $forcedVisibility ?? $this->getReportVisibilityMode($report->type);
+        $reportDeclarantId = $report->declarantId;
+        $userId = (int) $user['id'];
 
         // Linked agents have the same read access as the declarant
-        $isLinkedAgent = isset($report['uuid'])
-            ? ReportRepository::instance()->isLinkedAgent((string) $report['uuid'], $userId)
-            : false;
+        $isLinkedAgent = ReportRepository::instance()->isLinkedAgent($report->uuid, $userId);
 
         if ($visibility === VisibilityMode::Confidential->value && $reportDeclarantId !== $userId && !$isLinkedAgent) {
             return false;
         }
 
-        $isConfidential = (int) ($report['is_confidential'] ?? 0);
-        if ($visibility === VisibilityMode::AgentChoice->value && $isConfidential === 1 && $reportDeclarantId !== $userId && !$isLinkedAgent) {
+        if ($visibility === VisibilityMode::AgentChoice->value && $report->isConfidential === 1 && $reportDeclarantId !== $userId && !$isLinkedAgent) {
             return false;
         }
 
@@ -78,25 +75,23 @@ class AccessService
     /**
      * Log access to a confidential report by supervisor/CSA/CHSCT.
      *
-     * @param ReportArray $report
      * @param array{id: int, role: string, ...} $user
      */
-    public function logConfidentialReportAccess(PDO $pdo, array $report, array $user): void
+    public function logConfidentialReportAccess(PDO $pdo, ReportData $report, array $user): void
     {
-        $isConfidential = (int) ($report['is_confidential'] ?? 0);
-        if ($isConfidential !== 1) {
+        if ($report->isConfidential !== 1) {
             return;
         }
         if (!in_array($user['role'], [UserRole::Superviseur->value, UserRole::Chsct->value], true)) {
             return;
         }
-        $reportDeclarantId = (int) ($report['declarant_id'] ?? 0);
-        $userId = (int) ($user['id'] ?? 0);
+        $reportDeclarantId = $report->declarantId;
+        $userId = (int) $user['id'];
         if ($reportDeclarantId === $userId) {
             return;
         }
         try {
-            ReportRepository::instance()->logAccess((string) $report['uuid'], $userId, (string) $user['role']);
+            ReportRepository::instance()->logAccess($report->uuid, $userId, (string) $user['role']);
         } catch (Exception $e) {
             // @silent-ok: access-log entry for RGPD audit trail — same justification as
             // src/audit.php, must never block the actual report access it's logging.
@@ -217,22 +212,18 @@ class AccessService
 
     /**
      * Check if a user can edit a report (must be the declarant AND report must be editable).
-     *
-     * @param ReportArray $report
      */
-    public function canEditReport(array $report, int $userId): bool
+    public function canEditReport(ReportData $report, int $userId): bool
     {
-        $isDeclarant = ((int) $report['declarant_id'] === $userId);
-        return $isDeclarant && in_array($report['etat'], [ReportState::Nouveau->value, ReportState::EnCours->value], true);
+        $isDeclarant = ($report->declarantId === $userId);
+        return $isDeclarant && in_array($report->etat, [ReportState::Nouveau->value, ReportState::EnCours->value], true);
     }
 
     /**
      * Check if a user can respond to a report (must be superviseur AND report must be editable).
-     *
-     * @param ReportArray $report
      */
-    public function canRespondToReport(array $report, string $role): bool
+    public function canRespondToReport(ReportData $report, string $role): bool
     {
-        return in_array($role, [UserRole::Superviseur->value], true) && in_array($report['etat'], [ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Reouvert->value], true);
+        return in_array($role, [UserRole::Superviseur->value], true) && in_array($report->etat, [ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Reouvert->value], true);
     }
 }

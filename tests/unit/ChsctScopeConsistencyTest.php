@@ -11,6 +11,7 @@
 use PHPUnit\Framework\TestCase;
 use App\Services\AccessService;
 use App\Services\ConfigService;
+use App\DTO\ReportData;
 use App\DTO\ReportFilter;
 use App\Repository\ReportRepository;
 
@@ -72,6 +73,47 @@ class ChsctScopeConsistencyTest extends TestCase
         $configService->clearCache();
     }
 
+    private function rowToReportData(array $row): ReportData
+    {
+        return new ReportData(
+            uuid: $row['uuid'],
+            reference: $row['reference'],
+            type: $row['type'],
+            objet: $row['objet'],
+            description: $row['description'],
+            dateEvenement: $row['date_evenement'],
+            heureEvenement: $row['heure_evenement'] ?? '',
+            lieu: $row['lieu'] ?? '',
+            declarantId: (int) $row['declarant_id'],
+            declarantNom: $row['declarant_nom'],
+            declarantPrenom: $row['declarant_prenom'],
+            pourCompteDe: $row['pour_compte_de'] ?? '',
+            pourCompteNom: $row['pour_compte_nom'] ?? '',
+            pourComptePrenom: $row['pour_compte_prenom'] ?? '',
+            natureAuteur: $row['nature_auteur'] ?? '',
+            typeActe: $row['type_acte'] ?? '',
+            siteId: $row['site_id'] !== null ? (int) $row['site_id'] : null,
+            siteText: $row['site_text'] ?? '',
+            pole: $row['pole'] ?? '',
+            serviceAffectation: $row['service_affectation'] ?? '',
+            telephoneMobile: $row['telephone_mobile'] ?? '',
+            isConfidential: (int) $row['is_confidential'],
+            consentSyndicat: (int) $row['consent_syndicat'],
+            etat: $row['etat'],
+            repondantId: $row['repondant_id'] !== null ? (int) $row['repondant_id'] : null,
+            dateReponse: $row['date_reponse'] ?? null,
+            reponse: $row['reponse'] ?? null,
+            attachmentName: $row['attachment_name'] ?? null,
+            attachmentMime: $row['attachment_mime'] ?? null,
+            createdAt: $row['created_at'] ?? '',
+            updatedAt: $row['updated_at'] ?? '',
+            siteCode: $row['site_code'] ?? '',
+            siteNom: $row['site_nom'] ?? '',
+            repondantNom: $row['repondant_nom'] ?? null,
+            repondantPrenom: $row['repondant_prenom'] ?? null,
+        );
+    }
+
     /**
      * When scope is 'consent_only', CHSCT should NOT see reports without consent
      * in both canAccessReport() and findPaginated().
@@ -92,7 +134,7 @@ class ChsctScopeConsistencyTest extends TestCase
 
         // canAccessReport should block
         $this->assertFalse(
-            $this->access->canAccessReport($reportRow, $user),
+            $this->access->canAccessReport($this->rowToReportData($reportRow), $user),
             'canAccessReport() should block CHSCT when scope is consent_only and consent_syndicat=0'
         );
 
@@ -132,7 +174,7 @@ class ChsctScopeConsistencyTest extends TestCase
 
         // canAccessReport should allow
         $this->assertTrue(
-            $this->access->canAccessReport($reportRow, $user),
+            $this->access->canAccessReport($this->rowToReportData($reportRow), $user),
             'canAccessReport() should allow CHSCT when scope is all'
         );
 
@@ -175,7 +217,7 @@ class ChsctScopeConsistencyTest extends TestCase
 
         // canAccessReport should allow
         $this->assertTrue(
-            $this->access->canAccessReport($reportRow, $user),
+            $this->access->canAccessReport($this->rowToReportData($reportRow), $user),
             'canAccessReport() should allow CHSCT when scope is consent_only and consent_syndicat=1'
         );
 
@@ -213,7 +255,7 @@ class ChsctScopeConsistencyTest extends TestCase
         ];
 
         $this->assertTrue(
-            $this->access->canAccessReport($reportRow, $user),
+            $this->access->canAccessReport($this->rowToReportData($reportRow), $user),
             'Superviseur should always have access regardless of CHSCT scope'
         );
     }

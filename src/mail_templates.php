@@ -30,11 +30,11 @@ function buildDelayAlertEmail(array $siteData, int $alertDelayDays): string
     $body .= "<tr style='background:#f5f5f5;'><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Réf.</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Registre</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Objet</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Déclarant</th><th style='padding:8px; border:1px solid #ddd; text-align:left;'>Créé le</th></tr>";
 
     foreach ($siteData['reports'] as $report) {
-        $reportType = $report['type'] ?? '';
+        $reportType = $report['type'];
         $registryLabel = getRegistryShortLabel($reportType);
-        $reference = $report['reference'] ?? '';
-        $objet = $report['objet'] ?? '';
-        $createdAt = $report['created_at'] ?? '';
+        $reference = $report['reference'];
+        $objet = $report['objet'];
+        $createdAt = $report['created_at'];
         $body .= '<tr>';
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars((string) $reference) . '</td>';
         $body .= "<td style='padding:6px 8px; border:1px solid #ddd;'>" . htmlspecialchars($registryLabel) . '</td>';

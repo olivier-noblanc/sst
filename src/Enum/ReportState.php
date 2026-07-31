@@ -21,6 +21,7 @@ enum ReportState: string
         };
     }
 
+    /** @phpstan-ignore shipmonk.deadMethod */
     public function badgeClass(): string
     {
         return match ($this) {

@@ -134,10 +134,4 @@ class Router
     {
         return $this->postHandlers;
     }
-
-    /** @return list<array{path: string, name: string, methods: list<string>, handler: callable}> */
-    public function getRoutes(): array
-    {
-        return $this->routes;
-    }
 }

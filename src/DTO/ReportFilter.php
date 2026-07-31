@@ -21,20 +21,6 @@ class ReportFilter
     ) {}
 
     /**
-     * @param array<string, string> $get
-     * @param array<string, string> $user
-     */
-    public static function fromGet(array $get, array $user): self
-    {
-        return new self(
-            type: $get['type'] ?? '',
-            etat: $get['etat'] ?? '',
-            siteId: (int) ($get['site'] ?? 0),
-            search: trim($get['q'] ?? '') !== '' ? trim($get['q'] ?? '') : null,
-        );
-    }
-
-    /**
      * @return array{
      *     etat: string,
      *     site_id: int,

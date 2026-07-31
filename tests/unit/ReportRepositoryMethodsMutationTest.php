@@ -1,7 +1,6 @@
 <?php
 /**
  * Tests ReportRepository methods — kills Infection mutants on:
- *   - countByState (match arms, CastInt, LogicalNot, siteId filter)
  *   - countActive (GreaterThan, LogicalAnd, confidentialMode)
  *   - getAdjacentUuids (prev/next navigation, ORDER BY)
  *   - create (lastInsertId, array mapping)
@@ -69,71 +68,6 @@ class ReportRepositoryMethodsMutationTest extends TestCase
             $this->declarantId, 'Dupont', 'Jean', $siteId ?? $this->siteId, $etat, $createdAt,
         ]);
         return $uuid;
-    }
-
-    // ═══ countByState() ═══
-
-    public function testCountByStateReturnsCorrectCounts(): void
-    {
-        $this->seedReport('rsst', ReportState::Nouveau->value);
-        $this->seedReport('rsst', ReportState::Nouveau->value);
-        $this->seedReport('rsst', ReportState::EnCours->value);
-        $this->seedReport('rsst', ReportState::Traite->value);
-        $this->seedReport('rsst', ReportState::Reouvert->value);
-        // Abandonne should be excluded
-        $this->seedReport('rsst', ReportState::Abandonne->value);
-
-        $result = $this->repo->countByState('rsst');
-
-        // Kill CastInt/Coalesce on each count
-        $this->assertSame(2, $result->nouveau, 'nouveau count');
-        $this->assertSame(1, $result->enCours, 'enCours count');
-        $this->assertSame(1, $result->traite, 'traite count');
-        $this->assertSame(1, $result->reouvert, 'reouvert count');
-        // Kill total calculation — total excludes abandonne
-        $this->assertSame(5, $result->total, 'total excludes abandonne');
-    }
-
-    public function testCountByStateReturnsZeroWhenNoReports(): void
-    {
-        $result = $this->repo->countByState('rsst');
-        $this->assertSame(0, $result->nouveau);
-        $this->assertSame(0, $result->enCours);
-        $this->assertSame(0, $result->traite);
-        $this->assertSame(0, $result->reouvert);
-        $this->assertSame(0, $result->total);
-    }
-
-    public function testCountByStateFiltersBySiteIdWhenSeeAllSitesFalse(): void
-    {
-        // Kill LogicalNot on !$seeAllSites
-        $this->pdo->prepare('INSERT INTO sites (code, nom) VALUES (?, ?)')->execute(['UR25', 'UR 25']);
-        $site2 = (int) $this->pdo->lastInsertId();
-
-        $this->seedReport('rsst', ReportState::Nouveau->value, $this->siteId);
-        $this->seedReport('rsst', ReportState::Nouveau->value, $site2);
-
-        $result = $this->repo->countByState('rsst', $this->siteId, false);
-        $this->assertSame(1, $result->nouveau, 'should only count reports for this site');
-        $this->assertSame(1, $result->total);
-    }
-
-    public function testCountByStateIgnoresSiteIdWhenSeeAllSitesTrue(): void
-    {
-        $this->pdo->prepare('INSERT INTO sites (code, nom) VALUES (?, ?)')->execute(['UR25', 'UR 25']);
-        $site2 = (int) $this->pdo->lastInsertId();
-
-        $this->seedReport('rsst', ReportState::Nouveau->value, $this->siteId);
-        $this->seedReport('rsst', ReportState::Nouveau->value, $site2);
-
-        $result = $this->repo->countByState('rsst', $this->siteId, true);
-        $this->assertSame(2, $result->nouveau, 'should count all sites');
-        $this->assertSame(2, $result->total);
-    }
-
-    public function testCountByStateReturnsReportStateCountsInstance(): void
-    {
-        $this->assertInstanceOf(\App\DTO\ReportStateCounts::class, $this->repo->countByState('rsst'));
     }
 
     // ═══ countActive() ═══

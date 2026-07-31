@@ -1,4 +1,6 @@
 <?php
+global $pdo;
+
 // Additional users (10 users to add to the 3 default ones = 13 total)
 $testUsers = [
     // 2 superviseurs (UR25, UR21)

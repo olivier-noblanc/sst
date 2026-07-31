@@ -209,24 +209,6 @@ class RegistryRepositoryMutationTest extends TestCase
         $this->assertSame($original['short_label'], $updated['short_label'], 'other fields unchanged');
     }
 
-    // ═══ toggleEnabled ═══
-
-    public function testToggleEnabledTrueSetsIsEnabledTo1(): void
-    {
-        $id = $this->seedRegistry('test', 0);
-        $this->repo->toggleEnabled($id, true);
-        $reg = $this->repo->findById($id);
-        $this->assertSame(1, (int) $reg['is_enabled']);
-    }
-
-    public function testToggleEnabledFalseSetsIsEnabledTo0(): void
-    {
-        $id = $this->seedRegistry('test', 1);
-        $this->repo->toggleEnabled($id, false);
-        $reg = $this->repo->findById($id);
-        $this->assertSame(0, (int) $reg['is_enabled']);
-    }
-
     // ═══ delete ═══
 
     public function testDeleteRemovesNonSystemRegistry(): void

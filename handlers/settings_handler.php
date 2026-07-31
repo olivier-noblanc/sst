@@ -37,7 +37,7 @@ $configService = getConfigService();
 if ($tab === 'sites') {
     $notifRepo->deleteByType('site');
     /** @var array<string, string> $siteEmails */
-    $siteEmails = is_array($_POST['site_emails'] ?? null) ? $_POST['site_emails'] : [];
+    $siteEmails = $_POST['site_emails'] ?? [];
     if (!empty($siteEmails)) {
         foreach ($siteEmails as $siteId => $emailText) {
             $siteId = (int) $siteId;
@@ -123,13 +123,10 @@ if ($tab === 'registres') {
 if ($tab === 'wordcloud') {
     $registryCode = trim((string) ($_POST['registry_code'] ?? ''));
     /** @var list<array{word: string, weight: int}> $rawWords */
-    $rawWords = is_array($_POST['words'] ?? null) ? $_POST['words'] : [];
+    $rawWords = $_POST['words'] ?? [];
     $cleanWords = [];
     if (!empty($rawWords)) {
         foreach ($rawWords as $entry) {
-            if (!is_array($entry)) {
-                continue;
-            }
             $wordVal = $entry['word'] ?? '';
             $weightVal = $entry['weight'] ?? 10;
             $word = trim((string) $wordVal);

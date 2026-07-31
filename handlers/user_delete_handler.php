@@ -29,12 +29,12 @@ if ($userId <= 0) {
 $service = getContainer()->get(UserService::class);
 
 try {
-    $service->deactivate($userId, (int)($session->getUserSession()['id'] ?? 0));
+    $service->deactivate($userId, (int) ($session->getUserSession()['id'] ?? 0));
 
     $pdo = getDB();
     $user = $service->findById($userId);
     /** @var array<string, string> $user */
-    $label = is_array($user) ? $user['prenom'] . ' ' . $user['nom'] : '(id=' . $userId . ')';
+    $label = $user['prenom'] . ' ' . $user['nom'];
     auditLog($pdo, 'user', 'delete', 'Utilisateur désactivé : ' . $label, $userId, 'user');
     $session->setFlash('success', 'Utilisateur ' . e($label) . ' désactivé avec succès.');
 } catch (RuntimeException $e) {

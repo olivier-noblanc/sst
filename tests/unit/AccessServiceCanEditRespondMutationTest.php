@@ -14,6 +14,7 @@
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use App\Services\AccessService;
+use App\DTO\ReportData;
 use App\Enum\ReportState;
 use App\Enum\UserRole;
 
@@ -26,6 +27,48 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
         $this->service = new AccessService();
     }
 
+    private function makeReport(array $overrides = []): ReportData
+    {
+        $defaults = [
+            'uuid' => 'test-uuid',
+            'reference' => 'RSST-25-001',
+            'type' => 'rsst',
+            'objet' => '',
+            'description' => '',
+            'dateEvenement' => '',
+            'heureEvenement' => '',
+            'lieu' => '',
+            'declarantId' => 0,
+            'declarantNom' => '',
+            'declarantPrenom' => '',
+            'pourCompteDe' => '',
+            'pourCompteNom' => '',
+            'pourComptePrenom' => '',
+            'natureAuteur' => '',
+            'typeActe' => '',
+            'siteId' => 0,
+            'siteText' => '',
+            'pole' => '',
+            'serviceAffectation' => '',
+            'telephoneMobile' => '',
+            'isConfidential' => 0,
+            'consentSyndicat' => 0,
+            'etat' => 'nouveau',
+            'repondantId' => null,
+            'dateReponse' => null,
+            'reponse' => null,
+            'attachmentName' => null,
+            'attachmentMime' => null,
+            'createdAt' => '',
+            'updatedAt' => '',
+            'siteCode' => '',
+            'siteNom' => '',
+            'repondantNom' => null,
+            'repondantPrenom' => null,
+        ];
+        return new ReportData(...array_merge($defaults, $overrides));
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // canEditReport() — truth table
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -33,10 +76,10 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     #[DataProvider('provideCanEditCases')]
     public function testCanEditReportTruthTable(bool $isDeclarant, string $etat, bool $expected): void
     {
-        $report = [
-            'declarant_id' => $isDeclarant ? 42 : 99,
+        $report = $this->makeReport([
+            'declarantId' => $isDeclarant ? 42 : 99,
             'etat' => $etat,
-        ];
+        ]);
         $this->assertSame($expected, $this->service->canEditReport($report, 42));
     }
 
@@ -65,16 +108,17 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
      */
     public function testCanEditReportHandlesStringDeclarantId(): void
     {
-        $report = ['declarant_id' => '42', 'etat' => ReportState::Nouveau->value];
+        $report = $this->makeReport(['declarantId' => '42', 'etat' => ReportState::Nouveau->value]);
         $this->assertTrue($this->service->canEditReport($report, 42), 'string "42" must equal int 42 after cast');
     }
 
     /**
      * Kill mutant that would coerce null declarant_id to current user.
+     * With typed DTO, declarantId is always int — test with non-matching declarant instead.
      */
-    public function testCanEditReportWithNullDeclarantIdNeverAllowsEdit(): void
+    public function testCanEditReportWithNonDeclarantIdNeverAllowsEdit(): void
     {
-        $report = ['declarant_id' => null, 'etat' => ReportState::Nouveau->value];
+        $report = $this->makeReport(['declarantId' => 0, 'etat' => ReportState::Nouveau->value]);
         $this->assertFalse($this->service->canEditReport($report, 42));
     }
 
@@ -85,17 +129,17 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     {
         // declarant only (not editable state)
         $this->assertFalse($this->service->canEditReport(
-            ['declarant_id' => 42, 'etat' => ReportState::Traite->value],
+            $this->makeReport(['declarantId' => 42, 'etat' => ReportState::Traite->value]),
             42,
         ));
         // editable state only (not declarant)
         $this->assertFalse($this->service->canEditReport(
-            ['declarant_id' => 99, 'etat' => ReportState::Nouveau->value],
+            $this->makeReport(['declarantId' => 99, 'etat' => ReportState::Nouveau->value]),
             42,
         ));
         // both — allowed
         $this->assertTrue($this->service->canEditReport(
-            ['declarant_id' => 42, 'etat' => ReportState::Nouveau->value],
+            $this->makeReport(['declarantId' => 42, 'etat' => ReportState::Nouveau->value]),
             42,
         ));
     }
@@ -107,7 +151,7 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     #[DataProvider('provideCanRespondCases')]
     public function testCanRespondToReportTruthTable(string $role, string $etat, bool $expected): void
     {
-        $report = ['etat' => $etat];
+        $report = $this->makeReport(['etat' => $etat]);
         $this->assertSame($expected, $this->service->canRespondToReport($report, $role));
     }
 
@@ -139,11 +183,11 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     {
         // Even in respondable state, CHSCT cannot respond
         $this->assertFalse($this->service->canRespondToReport(
-            ['etat' => ReportState::Nouveau->value],
+            $this->makeReport(['etat' => ReportState::Nouveau->value]),
             UserRole::Chsct->value,
         ));
         $this->assertFalse($this->service->canRespondToReport(
-            ['etat' => ReportState::Reouvert->value],
+            $this->makeReport(['etat' => ReportState::Reouvert->value]),
             UserRole::Chsct->value,
         ));
     }
@@ -154,7 +198,7 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     public function testCanRespondToReportAgentCannotRespond(): void
     {
         $this->assertFalse($this->service->canRespondToReport(
-            ['etat' => ReportState::Nouveau->value],
+            $this->makeReport(['etat' => ReportState::Nouveau->value]),
             UserRole::Agent->value,
         ));
     }
@@ -165,7 +209,7 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     public function testCanRespondToReportSuperviseurCanRespondToReouvert(): void
     {
         $this->assertTrue($this->service->canRespondToReport(
-            ['etat' => ReportState::Reouvert->value],
+            $this->makeReport(['etat' => ReportState::Reouvert->value]),
             UserRole::Superviseur->value,
         ));
     }
@@ -176,11 +220,11 @@ class AccessServiceCanEditRespondMutationTest extends TestCase
     public function testCanRespondToReportSuperviseurCannotRespondToFinalStates(): void
     {
         $this->assertFalse($this->service->canRespondToReport(
-            ['etat' => ReportState::Traite->value],
+            $this->makeReport(['etat' => ReportState::Traite->value]),
             UserRole::Superviseur->value,
         ));
         $this->assertFalse($this->service->canRespondToReport(
-            ['etat' => ReportState::Abandonne->value],
+            $this->makeReport(['etat' => ReportState::Abandonne->value]),
             UserRole::Superviseur->value,
         ));
     }

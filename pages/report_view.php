@@ -30,9 +30,9 @@ logConfidentialReportAccess($pdo, $report, $user);
 
 // If report is abandoned and user is not declarant nor supervisor/chsct
 /** @var string */
-$userIdRaw = $user['id'] ?? '0';
+$userIdRaw = $user['id'];
 /** @var string */
-$userRole = $user['role'] ?? '';
+$userRole = $user['role'];
 if ($report->etat === \App\Enum\ReportState::Abandonne->value && $report->declarantId !== (int) $userIdRaw && !in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true)) {
     $session->setFlash('warning', 'Ce signalement a été abandonné.');
 }

@@ -16,7 +16,6 @@ use App\DTO\PaginatedReports;
 use App\DTO\ReportData;
 use App\DTO\ReportFilter;
 use App\DTO\ReportListItem;
-use App\DTO\ReportStateCounts;
 use App\DTO\SiteId;
 use App\DTO\UpdateReportCommand;
 use App\DTO\RespondToReportCommand;
@@ -63,7 +62,7 @@ class ReportRepository
 
     /**
      * @param array<string, mixed> $data  // INSERT/UPDATE data — inherently mixed
-     * @return ReportArray
+     * @return array<string, mixed>
      */
     private function toSnakeCase(array $data): array
     {
@@ -244,9 +243,6 @@ class ReportRepository
                 $cfId = (int) $cfIdRaw;
                 $builder->addRaw('(r.is_confidential = 0 OR r.declarant_id = :cf_declarant_id)', [':cf_declarant_id' => $cfId]);
             }
-            if (!empty($filters['own_only'])) {
-                $builder->addEqual('r.declarant_id', $filters['own_only']);
-            }
         }
 
         if (!empty($filters['etat'])) {
@@ -296,7 +292,7 @@ class ReportRepository
             // Audit #17 — Build WHERE conditionally instead of str_replace on the
             // WHERE string (brittle — could break if the SQL fragment changed).
             // Now we decide upfront which search clause to use.
-            $searchTerm = is_string($filters['q']) ? $filters['q'] : '';
+            $searchTerm = $filters['q'];
             $ftsQuery = trim((string) preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $searchTerm));
             if ($hasFts && $ftsQuery !== '') {
                 // FTS5 search (fast, indexed) — only when we have a valid FTS query
@@ -328,31 +324,29 @@ class ReportRepository
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
         $reports = [];
-        if (is_array($rows)) {
-            foreach ($rows as $row) {
-                $reports[] = new ReportListItem(
-                    uuid: (string) $row['uuid'],
-                    reference: (string) ($row['reference'] ?? ''),
-                    type: (string) $row['type'],
-                    objet: (string) ($row['objet'] ?? ''),
-                    dateEvenement: (string) ($row['date_evenement'] ?? ''),
-                    // Audit #79 — was missing entirely: report_list.php's
-                    // $canEdit = $access->canEditReport($reportArr, $userId)
-                    // needs declarant_id to know whether the current user IS
-                    // the declarant. Without it, canEditReport() read an
-                    // undefined array key (warning in prod), (int) null = 0,
-                    // and no declarant ever saw "Modifier" on the list page —
-                    // the same user-facing symptom as the report_card.php
-                    // (array) cast bug fixed earlier this session, different
-                    // root cause (DTO missing the field, not a bad cast).
-                    declarantId: (int) ($row['declarant_id'] ?? 0),
-                    declarantNom: (string) ($row['declarant_nom'] ?? ''),
-                    declarantPrenom: (string) ($row['declarant_prenom'] ?? ''),
-                    siteCode: (string) ($row['site_code'] ?? ''),
-                    etat: (string) $row['etat'],
-                    isConfidential: (int) ($row['is_confidential'] ?? 0),
-                );
-            }
+        foreach ($rows as $row) {
+            $reports[] = new ReportListItem(
+                uuid: (string) $row['uuid'],
+                reference: (string) ($row['reference'] ?? ''),
+                type: (string) $row['type'],
+                objet: (string) ($row['objet'] ?? ''),
+                dateEvenement: (string) ($row['date_evenement'] ?? ''),
+                // Audit #79 — was missing entirely: report_list.php's
+                // $canEdit = $access->canEditReport($reportArr, $userId)
+                // needs declarant_id to know whether the current user IS
+                // the declarant. Without it, canEditReport() read an
+                // undefined array key (warning in prod), (int) null = 0,
+                // and no declarant ever saw "Modifier" on the list page —
+                // the same user-facing symptom as the report_card.php
+                // (array) cast bug fixed earlier this session, different
+                // root cause (DTO missing the field, not a bad cast).
+                declarantId: (int) ($row['declarant_id'] ?? 0),
+                declarantNom: (string) ($row['declarant_nom'] ?? ''),
+                declarantPrenom: (string) ($row['declarant_prenom'] ?? ''),
+                siteCode: (string) ($row['site_code'] ?? ''),
+                etat: (string) $row['etat'],
+                isConfidential: (int) ($row['is_confidential'] ?? 0),
+            );
         }
         return new PaginatedReports(reports: $reports, total: $total);
     }
@@ -398,53 +392,6 @@ class ReportRepository
         }
 
         return new AdjacentUuids(prev: $prev, next: $next);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // Read — Counts
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    public function countByState(string $type, int $siteId = 0, bool $seeAllSites = true): ReportStateCounts
-    {
-        $sql = 'SELECT etat, COUNT(*) as count FROM reports WHERE type = :type AND etat != ' . $this->pdo->quote(ReportState::Abandonne->value);
-        $params = [':type' => $type];
-
-        if (!$seeAllSites && $siteId > 0) {
-            $sql .= ' AND site_id = :site_id';
-            $params[':site_id'] = $siteId;
-        }
-        $sql .= ' GROUP BY etat';
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-
-        $nouveau = 0;
-        $enCours = 0;
-        $traite = 0;
-        $reouvert = 0;
-        $total = 0;
-        $rows = $stmt->fetchAll();
-        if (is_array($rows)) {
-            foreach ($rows as $row) {
-                $etat = is_string($row['etat'] ?? null) ? $row['etat'] : '';
-                $count = (int) ($row['count'] ?? 0);
-                match ($etat) {
-                    ReportState::Nouveau->value => $nouveau = $count,
-                    ReportState::EnCours->value => $enCours = $count,
-                    ReportState::Traite->value => $traite = $count,
-                    ReportState::Reouvert->value => $reouvert = $count,
-                    default => null,
-                };
-                $total += $count;
-            }
-        }
-        return new ReportStateCounts(
-            nouveau: $nouveau,
-            enCours: $enCours,
-            traite: $traite,
-            reouvert: $reouvert,
-            total: $total,
-        );
     }
 
     public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int
@@ -517,7 +464,7 @@ class ReportRepository
         $stmt->execute([':report_uuid' => $reportUuid]);
         $rows = $stmt->fetchAll();
         /** @var list<array{id: int, report_uuid: string, user_id: int|null, reponse: string|null, nouvel_etat: string|null, attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, created_at: string, nom: string|null, prenom: string|null}> $rows */
-        return is_array($rows) ? $rows : [];
+        return $rows;
     }
 
     /**
@@ -568,7 +515,8 @@ class ReportRepository
         ');
         $stmt->execute([$reportUuid]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return is_array($rows) ? $rows : [];
+        /** @var array<int, array{id: int, nom: string, prenom: string, email: string}> $rows */
+        return $rows;
     }
 
     /** @return list<array{email: string, created_at: string}> */
@@ -582,7 +530,7 @@ class ReportRepository
         $stmt->execute([$reportUuid]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         /** @var list<array{email: string, created_at: string}> $rows */
-        return is_array($rows) ? $rows : [];
+        return $rows;
     }
 
     /** @return array{id: int, report_uuid: string, email: string, token: string, confirmed: int, confirmed_at: string|null, created_at: string}|null */
@@ -953,17 +901,6 @@ class ReportRepository
     // ═══════════════════════════════════════════════════════════════════════════════
     // Write — Agent invites
     // ═══════════════════════════════════════════════════════════════════════════════
-
-    public function createAgentInvite(string $reportUuid, string $email): string
-    {
-        $token = bin2hex(random_bytes(32));
-        $stmt = $this->pdo->prepare('
-            INSERT INTO report_agent_invites (report_uuid, email, token)
-            VALUES (:uuid, :email, :token)
-        ');
-        $stmt->execute([':uuid' => $reportUuid, ':email' => $email, ':token' => $token]);
-        return $token;
-    }
 
     /**
      * Bug #10 — Insert invite with a pre-generated token (after email sent successfully).

@@ -11,6 +11,7 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Services\AccessService;
+use App\DTO\ReportData;
 
 class AccessServiceTest extends TestCase
 {
@@ -21,62 +22,104 @@ class AccessServiceTest extends TestCase
         $this->service = new AccessService();
     }
 
+    private function makeReport(array $overrides = []): ReportData
+    {
+        $defaults = [
+            'uuid' => 'test-uuid',
+            'reference' => 'RSST-25-001',
+            'type' => 'rsst',
+            'objet' => 'Test',
+            'description' => 'Test',
+            'dateEvenement' => '2026-01-15',
+            'heureEvenement' => '',
+            'lieu' => 'Bureau',
+            'declarantId' => 2,
+            'declarantNom' => 'Nom',
+            'declarantPrenom' => 'Prenom',
+            'pourCompteDe' => '',
+            'pourCompteNom' => '',
+            'pourComptePrenom' => '',
+            'natureAuteur' => '',
+            'typeActe' => '',
+            'siteId' => 1,
+            'siteText' => '',
+            'pole' => '',
+            'serviceAffectation' => '',
+            'telephoneMobile' => '',
+            'isConfidential' => 0,
+            'consentSyndicat' => 0,
+            'etat' => 'nouveau',
+            'repondantId' => null,
+            'dateReponse' => null,
+            'reponse' => null,
+            'attachmentName' => null,
+            'attachmentMime' => null,
+            'createdAt' => '2026-01-15 10:00:00',
+            'updatedAt' => '2026-01-15 10:00:00',
+            'siteCode' => 'UR21',
+            'siteNom' => 'UR Test',
+            'repondantNom' => null,
+            'repondantPrenom' => null,
+        ];
+        return new ReportData(...array_merge($defaults, $overrides));
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // canAccessReport()
     // ═══════════════════════════════════════════════════════════════════════════════
 
     public function testSuperviseurCanAccessAnyReport(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'consent_syndicat' => 0];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 99, 'consentSyndicat' => 0]);
         $user = ['id' => 1, 'role' => ROLE_SUPERVISEUR, 'site_id' => 2];
         $this->assertTrue($this->service->canAccessReport($report, $user));
     }
 
     public function testChsctCanAccessReportWithConsentSyndicat(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'consent_syndicat' => 1];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 99, 'consentSyndicat' => 1]);
         $user = ['id' => 1, 'role' => ROLE_CHSCT, 'site_id' => 1];
         $this->assertTrue($this->service->canAccessReport($report, $user));
     }
 
     public function testChsctCannotAccessReportWithoutConsentSyndicat(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 99, 'consent_syndicat' => 0];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 99, 'consentSyndicat' => 0]);
         $user = ['id' => 1, 'role' => ROLE_CHSCT, 'site_id' => 1];
         $this->assertFalse($this->service->canAccessReport($report, $user));
     }
 
     public function testAgentCanAccessReportOnSameSitePublicVisibility(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 2, 'type' => 'rsst'];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2]);
         $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
         $this->assertTrue($this->service->canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCanAccessReportRegardlessOfSite(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 2, 'type' => 'rsst'];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2]);
         $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 2];
         $this->assertTrue($this->service->canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCannotAccessConfidentialReportTheyDidNotDeclare(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 2, 'type' => 'rsst'];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2]);
         $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
         $this->assertFalse($this->service->canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentCanAccessConfidentialReportTheyDeclared(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 3, 'type' => 'rsst'];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 3]);
         $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
         $this->assertTrue($this->service->canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentChoiceConfidentialReportAccessibleOnlyToDeclarant(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 2, 'is_confidential' => 1, 'type' => 'rsst'];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2, 'isConfidential' => 1]);
         $userOther = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
         $this->assertFalse($this->service->canAccessReport($report, $userOther, 'agent_choice'));
 
@@ -86,7 +129,7 @@ class AccessServiceTest extends TestCase
 
     public function testAgentChoiceNonConfidentialReportAccessibleToAllOnSite(): void
     {
-        $report = ['site_id' => 1, 'declarant_id' => 2, 'is_confidential' => 0, 'type' => 'rsst'];
+        $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2, 'isConfidential' => 0]);
         $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
         $this->assertTrue($this->service->canAccessReport($report, $user, 'agent_choice'));
     }
@@ -97,31 +140,31 @@ class AccessServiceTest extends TestCase
 
     public function testDeclarantCanEditNouveauReport(): void
     {
-        $report = ['declarant_id' => 1, 'etat' => ETAT_NOUVEAU];
+        $report = $this->makeReport(['declarantId' => 1, 'etat' => ETAT_NOUVEAU]);
         $this->assertTrue($this->service->canEditReport($report, 1));
     }
 
     public function testDeclarantCanEditEnCoursReport(): void
     {
-        $report = ['declarant_id' => 1, 'etat' => ETAT_EN_COURS];
+        $report = $this->makeReport(['declarantId' => 1, 'etat' => ETAT_EN_COURS]);
         $this->assertTrue($this->service->canEditReport($report, 1));
     }
 
     public function testDeclarantCannotEditTraiteReport(): void
     {
-        $report = ['declarant_id' => 1, 'etat' => ETAT_TRAITE];
+        $report = $this->makeReport(['declarantId' => 1, 'etat' => ETAT_TRAITE]);
         $this->assertFalse($this->service->canEditReport($report, 1));
     }
 
     public function testDeclarantCannotEditAbandonneReport(): void
     {
-        $report = ['declarant_id' => 1, 'etat' => ETAT_ABANDONNE];
+        $report = $this->makeReport(['declarantId' => 1, 'etat' => ETAT_ABANDONNE]);
         $this->assertFalse($this->service->canEditReport($report, 1));
     }
 
     public function testNonDeclarantCannotEditReport(): void
     {
-        $report = ['declarant_id' => 1, 'etat' => ETAT_NOUVEAU];
+        $report = $this->makeReport(['declarantId' => 1, 'etat' => ETAT_NOUVEAU]);
         $this->assertFalse($this->service->canEditReport($report, 2));
     }
 
@@ -131,37 +174,37 @@ class AccessServiceTest extends TestCase
 
     public function testSuperviseurCanRespondToNouveauReport(): void
     {
-        $report = ['etat' => ETAT_NOUVEAU];
+        $report = $this->makeReport(['etat' => ETAT_NOUVEAU]);
         $this->assertTrue($this->service->canRespondToReport($report, ROLE_SUPERVISEUR));
     }
 
     public function testSuperviseurCanRespondToEnCoursReport(): void
     {
-        $report = ['etat' => ETAT_EN_COURS];
+        $report = $this->makeReport(['etat' => ETAT_EN_COURS]);
         $this->assertTrue($this->service->canRespondToReport($report, ROLE_SUPERVISEUR));
     }
 
     public function testSuperviseurCanRespondToReouvertReport(): void
     {
-        $report = ['etat' => ETAT_REOUVERT];
+        $report = $this->makeReport(['etat' => ETAT_REOUVERT]);
         $this->assertTrue($this->service->canRespondToReport($report, ROLE_SUPERVISEUR));
     }
 
     public function testSuperviseurCannotRespondToTraiteReport(): void
     {
-        $report = ['etat' => ETAT_TRAITE];
+        $report = $this->makeReport(['etat' => ETAT_TRAITE]);
         $this->assertFalse($this->service->canRespondToReport($report, ROLE_SUPERVISEUR));
     }
 
     public function testAgentCannotRespondToReport(): void
     {
-        $report = ['etat' => ETAT_NOUVEAU];
+        $report = $this->makeReport(['etat' => ETAT_NOUVEAU]);
         $this->assertFalse($this->service->canRespondToReport($report, ROLE_AGENT));
     }
 
     public function testChsctCannotRespondToReport(): void
     {
-        $report = ['etat' => ETAT_NOUVEAU];
+        $report = $this->makeReport(['etat' => ETAT_NOUVEAU]);
         $this->assertFalse($this->service->canRespondToReport($report, ROLE_CHSCT));
     }
 

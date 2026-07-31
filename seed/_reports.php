@@ -1,9 +1,12 @@
 <?php
 use App\Repository\UserRepository;
 
+global $pdo;
+
 // Sample reports seeder — data is in _reports_data.php
 require __DIR__ . '/_reports_data.php';
 
+/** @var list<array<string, mixed>> $sampleReports */
 $reportCount = 0;
 foreach ($sampleReports as $report) {
     $reportYear = (int) substr($report['date_evenement'], 0, 4);
@@ -29,7 +32,7 @@ foreach ($sampleReports as $report) {
         )
     ");
 
-    $declarant = \App\Repository\UserRepository::instance()->findById($report['declarant_id']);
+    $declarant = UserRepository::instance()->findById($report['declarant_id']);
 
     $stmt->execute([
         ':uuid'              => $reportUuid,

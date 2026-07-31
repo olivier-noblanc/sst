@@ -33,9 +33,9 @@ $pdo = getContainer()->get(\PDO::class);
 /** @var PDO $pdo */
 $user = $session->getUserSession();
 /** @var array{id: int, site_id: int, role: string} $user */
-$userSiteId = (int) ($user['site_id'] ?? 0);
-$userId = (int) ($user['id'] ?? 0);
-$userRole = (string) ($user['role'] ?? '');
+$userSiteId = (int) ($user['site_id']);
+$userId = (int) ($user['id']);
+$userRole = (string) ($user['role']);
 $agentVisibility = $access->getReportVisibility($type);
 $seeAllSites = $access->canSeeAllSites();
 $noSiteMode = $config->isNoSiteMode();
@@ -146,8 +146,8 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
                 <option value="">Tous</option>
                 <?php foreach ($allSites as $site): ?>
                 <?php /** @var array{id: int, code: string, nom: string} $site */ ?>
-                <option value="<?php echo $fmt->e((string) ($site['id'] ?? '')); ?>" <?php echo ($filters['site_id'] ?? '') === (string) ($site['id'] ?? '') ? 'selected' : ''; ?>>
-                    <?php echo $fmt->e((string) ($site['code'] ?? '') . ' — ' . (string) ($site['nom'] ?? '')); ?>
+                <option value="<?php echo $fmt->e((string) ($site['id'])); ?>" <?php echo ($filters['site_id'] ?? '') === (string) ($site['id']) ? 'selected' : ''; ?>>
+                    <?php echo $fmt->e((string) ($site['code']) . ' — ' . (string) ($site['nom'])); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
@@ -193,9 +193,26 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
                 <?php else: ?>
                     <?php foreach ($reports as $report): ?>
                     <?php
-                        $reportArr = $report->toArray();
-                        $canEdit = $access->canEditReport($reportArr, $userId);
-                        $canRespond = $access->canRespondToReport($reportArr, $userRole);
+                        $reportData = new \App\DTO\ReportData(
+                            uuid: $report->uuid, reference: $report->reference,
+                            type: $report->type, objet: $report->objet, description: '',
+                            dateEvenement: $report->dateEvenement, heureEvenement: '', lieu: '',
+                            declarantId: $report->declarantId, declarantNom: $report->declarantNom,
+                            declarantPrenom: $report->declarantPrenom,
+                            pourCompteDe: '', pourCompteNom: '', pourComptePrenom: '',
+                            natureAuteur: '', typeActe: '',
+                            siteId: null, siteText: '', pole: '', serviceAffectation: '',
+                            telephoneMobile: '',
+                            isConfidential: $report->isConfidential, consentSyndicat: 0,
+                            etat: $report->etat,
+                            repondantId: null, dateReponse: null, reponse: null,
+                            attachmentName: null, attachmentMime: null,
+                            createdAt: '', updatedAt: '',
+                            siteCode: $report->siteCode, siteNom: '',
+                            repondantNom: null, repondantPrenom: null,
+                        );
+                        $canEdit = $access->canEditReport($reportData, $userId);
+                        $canRespond = $access->canRespondToReport($reportData, $userRole);
                         ?>
                     <tr>
                         <td data-label="Référence"><strong><?php echo $fmt->e($report->reference); ?></strong></td>

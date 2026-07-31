@@ -57,8 +57,8 @@ $words = json_decode($wordsJson, true) ?? [];
                class="tabs__item <?php echo $activeRegistry === $reg['code'] ? 'tabs__item--active' : ''; ?>"
                role="tab"
                aria-selected="<?php echo $activeRegistry === $reg['code'] ? 'true' : 'false'; ?>">
-                <?php echo $fmt->e((string) ($reg['icon'] ?? '')); ?>
-                <?php echo $fmt->e((string) ($reg['short_label'] ?? $reg['code'])); ?>
+                <?php echo $fmt->e((string) ($reg['icon'])); ?>
+                <?php echo $fmt->e((string) ($reg['short_label'])); ?>
             </a>
             <?php endforeach; ?>
         </nav>
@@ -73,8 +73,8 @@ $words = json_decode($wordsJson, true) ?? [];
             <?php else: ?>
             <?php foreach ($words as $i => $w): ?>
             <div class="wordcloud-row" data-index="<?php echo $i; ?>">
-                <input type="text" name="words[<?php echo $i; ?>][word]" value="<?php echo $fmt->e($w['word'] ?? ''); ?>" class="input" required maxlength="50">
-                <input type="number" name="words[<?php echo $i; ?>][weight]" value="<?php echo (int) ($w['weight'] ?? 10); ?>" min="1" max="20" class="input input--small">
+                <input type="text" name="words[<?php echo $i; ?>][word]" value="<?php echo $fmt->e($w['word']); ?>" class="input" required maxlength="50">
+                <input type="number" name="words[<?php echo $i; ?>][weight]" value="<?php echo (int) ($w['weight']); ?>" min="1" max="20" class="input input--small">
                 <button type="button" class="btn btn--danger btn--small" onclick="this.closest('.wordcloud-row').remove()">&#x2716;</button>
             </div>
             <?php endforeach; ?>

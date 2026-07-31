@@ -50,7 +50,7 @@ class UserRepository
     }
 
     /** @return UserArray|null */
-    public function findByUsername(string $username): ?array
+    public function findByUsername(string $username): ?array // @phpstan-ignore-line shipmonk.deadMethod
     {
         $stmt = $this->pdo->prepare(
             $this->baseQuery() . ' WHERE u.username = :username AND u.is_active = 1'
@@ -82,7 +82,7 @@ class UserRepository
         $stmt->execute([':role' => $role]);
         $rows = $stmt->fetchAll();
         /** @var list<UserArray> $rows */
-        return is_array($rows) ? $rows : [];
+        return $rows;
     }
 
     /** @return list<UserArray> */
@@ -104,9 +104,10 @@ class UserRepository
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
         /** @var list<UserArray> $rows */
-        return is_array($rows) ? $rows : [];
+        return $rows;
     }
 
+    /** @phpstan-ignore shipmonk.deadMethod */
     public function countActive(): int
     {
         $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM users WHERE is_active = 1');
@@ -325,12 +326,13 @@ class UserRepository
         }
     }
 
-    /** @return array{user: array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string}, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>} */
+    /** @return array{user: UserArray, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>} */
     public function exportData(int $id): array
     {
         $user = $this->findById($id);
         if ($user === null) {
-            return ['user' => [], 'reports_count' => 0, 'reports' => [], 'responses_count' => 0, 'responses' => []];
+            $empty = ['id' => 0, 'username' => '', 'nom' => '', 'prenom' => '', 'email' => null, 'role' => '', 'site_id' => null, 'is_active' => 0, 'created_at' => '', 'updated_at' => null, 'site_code' => null, 'site_nom' => null, 'site_chosen_at' => null, 'sessions_invalid_before' => null];
+            return ['user' => $empty, 'reports_count' => 0, 'reports' => [], 'responses_count' => 0, 'responses' => []];
         }
 
         $stmt = $this->pdo->prepare('
@@ -349,9 +351,7 @@ class UserRepository
         $responses = $stmt->fetchAll();
 
         /** @var list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}> $reports */
-        $reports = is_array($reports) ? $reports : [];
         /** @var list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}> $responses */
-        $responses = is_array($responses) ? $responses : [];
 
         return [
             'user' => [
@@ -359,10 +359,12 @@ class UserRepository
                 'nom' => $user['nom'], 'prenom' => $user['prenom'],
                 'email' => $user['email'], 'role' => $user['role'],
                 'site_id' => $user['site_id'], 'is_active' => $user['is_active'],
-                'created_at' => $user['created_at'],
+                'created_at' => $user['created_at'], 'updated_at' => $user['updated_at'],
+                'site_code' => $user['site_code'], 'site_nom' => $user['site_nom'],
+                'site_chosen_at' => $user['site_chosen_at'], 'sessions_invalid_before' => $user['sessions_invalid_before'],
             ],
-            'reports_count' => count($reports), 'reports' => $reports,
-            'responses_count' => count($responses), 'responses' => $responses,
+            'reports_count' => (int) count($reports), 'reports' => $reports,
+            'responses_count' => (int) count($responses), 'responses' => $responses,
         ];
     }
 

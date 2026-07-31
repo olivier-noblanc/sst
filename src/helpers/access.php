@@ -22,7 +22,7 @@ function getAccessService(): AccessService
  */
 function canAccessReport(ReportData $report, array $user, ?string $forcedVisibility = null): bool
 {
-    return getAccessService()->canAccessReport($report->toArray(), $user, $forcedVisibility);
+    return getAccessService()->canAccessReport($report, $user, $forcedVisibility);
 }
 
 /**
@@ -30,7 +30,7 @@ function canAccessReport(ReportData $report, array $user, ?string $forcedVisibil
  */
 function logConfidentialReportAccess(PDO $pdo, ReportData $report, array $user): void
 {
-    getAccessService()->logConfidentialReportAccess($pdo, $report->toArray(), $user);
+    getAccessService()->logConfidentialReportAccess($pdo, $report, $user);
 }
 
 function canSeeAllSites(): bool
@@ -68,18 +68,12 @@ function reportVisibilityIsPublic(?string $type = null): bool
     return getAccessService()->reportVisibilityIsPublic($type);
 }
 
-/**
- * @param array<string, mixed> $report
- */
-function canEditReport(array $report, int $userId): bool
+function canEditReport(ReportData $report, int $userId): bool
 {
     return getAccessService()->canEditReport($report, $userId);
 }
 
-/**
- * @param array<string, mixed> $report
- */
-function canRespondToReport(array $report, string $role): bool
+function canRespondToReport(ReportData $report, string $role): bool
 {
     return getAccessService()->canRespondToReport($report, $role);
 }

@@ -60,12 +60,6 @@ class NotificationServiceTest extends TestCase
         $this->assertTrue(method_exists($service, 'notifyRoleChange'));
     }
 
-    public function testSendDelayNotificationsMethodExists(): void
-    {
-        $service = new NotificationService($this->pdo);
-        $this->assertTrue(method_exists($service, 'sendDelayNotifications'));
-    }
-
     public function testNotifyNewReportAcceptsCorrectParameters(): void
     {
         $service = new NotificationService($this->pdo);

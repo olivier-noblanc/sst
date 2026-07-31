@@ -34,11 +34,13 @@ final readonly class SiteId
         return new self($value !== null && $value > 0 ? $value : null);
     }
 
+    /** @phpstan-ignore shipmonk.deadMethod */
     public static function none(): self
     {
         return new self(null);
     }
 
+    /** @phpstan-ignore shipmonk.deadMethod */
     public function isNone(): bool
     {
         return $this->value === null;
@@ -51,6 +53,7 @@ final readonly class SiteId
     }
 
     /** Pour l'affichage/comparaison applicative (ex. site_id === user->siteId). */
+    /** @phpstan-ignore shipmonk.deadMethod */
     public function toNullableInt(): ?int
     {
         return $this->value;

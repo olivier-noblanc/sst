@@ -300,9 +300,17 @@ class UserRepositoryMutationTest extends TestCase
     public function testExportDataReturnsEmptyForMissingUser(): void
     {
         $result = $this->repo->exportData(99999);
-        $this->assertSame([], $result['user']);
         $this->assertSame(0, $result['reports_count']);
         $this->assertSame(0, $result['responses_count']);
+        $this->assertSame([], $result['reports']);
+        $this->assertSame([], $result['responses']);
+        // User shape is a zeroed default
+        $this->assertArrayHasKey('user', $result);
+        $this->assertSame(0, $result['user']['id']);
+        $this->assertSame('', $result['user']['username']);
+        $this->assertNull($result['user']['site_id']);
+        $this->assertArrayHasKey('site_chosen_at', $result['user']);
+        $this->assertArrayHasKey('updated_at', $result['user']);
     }
 
     public function testExportDataReturnsUserData(): void

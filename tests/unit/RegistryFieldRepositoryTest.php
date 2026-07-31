@@ -126,37 +126,6 @@ class RegistryFieldRepositoryTest extends TestCase
         $this->assertNull($this->fields->findByCode($regId, 'nonexistent'));
     }
 
-    // ─── UPDATE ──────────────────────────────────────────────────────────────
-
-    public function testUpdateModifiesFields(): void
-    {
-        $regId = $this->createRegistry('test');
-        $id = $this->fields->create($regId, [
-            'field_code' => 'upd',
-            'label' => 'Old Label',
-            'field_type' => 'text',
-        ]);
-        $this->fields->update($id, [
-            'label' => 'New Label',
-            'field_type' => 'select',
-            'is_required' => 1,
-        ]);
-        $field = $this->fields->findById($id);
-        $this->assertSame('New Label', $field['label']);
-        $this->assertSame('select', $field['field_type']);
-        $this->assertSame(1, (int) $field['is_required']);
-    }
-
-    // ─── DELETE ──────────────────────────────────────────────────────────────
-
-    public function testDeleteField(): void
-    {
-        $regId = $this->createRegistry('test');
-        $id = $this->fields->create($regId, ['field_code' => 'del', 'label' => 'Del', 'field_type' => 'text']);
-        $this->assertTrue($this->fields->delete($id));
-        $this->assertNull($this->fields->findById($id));
-    }
-
     public function testDeleteCascadeOnRegistryDelete(): void
     {
         $regId = $this->createRegistry('test');

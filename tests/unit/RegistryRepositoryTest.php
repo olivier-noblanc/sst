@@ -124,17 +124,6 @@ class RegistryRepositoryTest extends TestCase
         $this->assertSame(0, (int) $reg['is_enabled']);
     }
 
-    public function testToggleEnabled(): void
-    {
-        $id = $this->repo->create(['code' => 'tog', 'label' => 'Tog', 'short_label' => 'TOG', 'color_theme' => 'rsst']);
-        $this->assertTrue($this->repo->toggleEnabled($id, false));
-        $reg = $this->repo->findById($id);
-        $this->assertSame(0, (int) $reg['is_enabled']);
-        $this->assertTrue($this->repo->toggleEnabled($id, true));
-        $reg = $this->repo->findById($id);
-        $this->assertSame(1, (int) $reg['is_enabled']);
-    }
-
     // ─── DELETE ──────────────────────────────────────────────────────────────
 
     public function testDeleteNonSystemRegistry(): void

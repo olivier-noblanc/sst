@@ -146,29 +146,12 @@ class RepositoryInvariantTest extends TestCase
         $userId = $this->seedUser($siteId);
         $uuid = $this->seedReport($siteId, $userId);
 
-        $token = $repo->createAgentInvite($uuid, 'test@example.com');
+        $token = bin2hex(random_bytes(32));
+        $repo->createAgentInviteWithToken($uuid, 'test@example.com', $token);
         $result = $repo->getAgentInviteByToken($token);
         $this->assertIsArray($result);
 
         $this->assertNull($repo->getAgentInviteByToken('nonexistent-token'));
-    }
-
-    public function testCountByStateReturnsArrayWithExpectedKeys(): void
-    {
-        $repo = new ReportRepository($this->pdo);
-        $siteId = $this->seedSite();
-        $userId = $this->seedUser($siteId);
-        $this->seedReport($siteId, $userId, 'nouveau');
-        $this->seedReport($siteId, $userId, 'en_cours');
-        $this->seedReport($siteId, $userId, 'traite');
-
-        $result = $repo->countByState('rsst');
-
-        $this->assertInstanceOf(\App\DTO\ReportStateCounts::class, $result);
-        $this->assertSame(1, $result->nouveau);
-        $this->assertSame(1, $result->enCours);
-        $this->assertSame(1, $result->traite);
-        $this->assertSame(3, $result->total);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

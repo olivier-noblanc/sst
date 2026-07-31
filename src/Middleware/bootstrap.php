@@ -55,7 +55,7 @@ function checkSuperviseurPromotion(): void
 
     // Promote in database
     $pdo = getDB();
-    $promoted = UserRepository::instance()->promoteToSuperviseur((int)(SessionService::getInstance()->getUserSession()['id'] ?? 0));
+    $promoted = UserRepository::instance()->promoteToSuperviseur((int) (SessionService::getInstance()->getUserSession()['id'] ?? 0));
 
     if ($promoted) {
         // Promotion applied — refresh session from DB

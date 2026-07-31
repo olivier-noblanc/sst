@@ -1,4 +1,7 @@
 <?php
+use App\DTO\ReportData;
+use App\Enum\VisibilityMode;
+
 /**
  * Test Suite: canAccessReport() — Application SST DREETS BFC
  *
@@ -29,15 +32,15 @@ $projectRoot = dirname(__DIR__, 2);
 //  but helpers.php defines functions that reference them)
 if (!function_exists('getDB')) {
     function getDB(): PDO {
-        throw new \RuntimeException('getDB() should not be called in tests — use $forcedVisibility parameter.');
+        throw new RuntimeException('getDB() should not be called in tests — use $forcedVisibility parameter.');
     }
 }
 
 require_once $projectRoot . '/src/helpers.php';
 
 /** @param array<string, mixed> $overrides */
-function makeReportData(array $overrides): \App\DTO\ReportData {
-    return new \App\DTO\ReportData(
+function makeReportData(array $overrides): ReportData {
+    return new ReportData(
         uuid: $overrides['uuid'] ?? '',
         reference: $overrides['reference'] ?? '',
         type: $overrides['type'] ?? 'rsst',
@@ -143,9 +146,9 @@ foreach ($roles as $role) {
                         $expected = true; // Always can access
                     } elseif ($siteCase === 'different') {
                         $expected = false; // Agent can't see other sites
-                    } elseif ($visibility === 'confidential' && $declCase === 'other') {
+                    } elseif ($visibility === VisibilityMode::Confidential->value && $declCase === 'other') {
                         $expected = false; // Confidential: only own reports
-                    } elseif ($visibility === 'agent_choice' && $isConf === 1 && $declCase === 'other') {
+                    } elseif ($visibility === VisibilityMode::AgentChoice->value && $isConf === 1 && $declCase === 'other') {
                         $expected = false; // Agent_choice: can't see others' confidential
                     } else {
                         $expected = true; // All other cases: can access
@@ -211,12 +214,12 @@ echo "\n";
 
 echo str_repeat('=', 70) . "\n";
 echo "RÉSULTAT : {$passed}/{$total} test(s) réussi(s)";
-if ($failed > 0) {
+if ($failed > 0) { // @phpstan-ignore-line — PHPStan can't track global mutations
     echo " — {$failed} ÉCHEC(S)";
 }
 echo "\n";
 
-if ($failed > 0) {
+if ($failed > 0) { // @phpstan-ignore-line — PHPStan can't track global mutations
     echo "\n❌ Certains tests ont échoué. Vérifiez la logique de canAccessReport().\n\n";
     exit(1);
 } else {

@@ -206,19 +206,19 @@ class AccessHelperIntegrationTest extends TestCase
     public function testDeclarantCanEditNewReportInDb(): void
     {
         $report = $this->makeReport(['declarant_id' => $this->agentId1, 'etat' => 'nouveau']);
-        $this->assertTrue(canEditReport($report->toArray(), $this->agentId1));
+        $this->assertTrue(canEditReport($report, $this->agentId1));
     }
 
     public function testNonDeclarantCannotEditReportInDb(): void
     {
         $report = $this->makeReport(['declarant_id' => $this->agentId1, 'etat' => 'nouveau']);
-        $this->assertFalse(canEditReport($report->toArray(), $this->agentId2));
+        $this->assertFalse(canEditReport($report, $this->agentId2));
     }
 
     public function testDeclarantCannotEditTreatedReportInDb(): void
     {
         $report = $this->makeReport(['declarant_id' => $this->agentId1, 'etat' => 'traite']);
-        $this->assertFalse(canEditReport($report->toArray(), $this->agentId1));
+        $this->assertFalse(canEditReport($report, $this->agentId1));
     }
 
     // ─── canRespondToReport with DB data ─────────────────────────────────
@@ -226,25 +226,25 @@ class AccessHelperIntegrationTest extends TestCase
     public function testSuperviseurCanRespondToNewReportInDb(): void
     {
         $report = $this->makeReport(['etat' => 'nouveau']);
-        $this->assertTrue(canRespondToReport($report->toArray(), 'superviseur'));
+        $this->assertTrue(canRespondToReport($report, 'superviseur'));
     }
 
     public function testAgentCannotRespondToReportInDb(): void
     {
         $report = $this->makeReport(['etat' => 'nouveau']);
-        $this->assertFalse(canRespondToReport($report->toArray(), 'agent'));
+        $this->assertFalse(canRespondToReport($report, 'agent'));
     }
 
     public function testSuperviseurCanRespondToReouvertReportInDb(): void
     {
         $report = $this->makeReport(['etat' => 'reouvert']);
-        $this->assertTrue(canRespondToReport($report->toArray(), 'superviseur'));
+        $this->assertTrue(canRespondToReport($report, 'superviseur'));
     }
 
     public function testSuperviseurCannotRespondToTreatedReportInDb(): void
     {
         $report = $this->makeReport(['etat' => 'traite']);
-        $this->assertFalse(canRespondToReport($report->toArray(), 'superviseur'));
+        $this->assertFalse(canRespondToReport($report, 'superviseur'));
     }
 
     // ─── Linked agent access (report_agents) ───────────────────────────

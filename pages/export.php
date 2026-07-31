@@ -47,7 +47,7 @@ $enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled
                         <?php foreach ($enabledRegistries as $reg): ?>
                             <?php
                                 $regCode = (string) $reg['code'];
-                                $regLabel = (string) $reg['short_label'];
+                            $regLabel = (string) $reg['short_label'];
                             ?>
                             <option value="<?php echo e($regCode); ?>" <?php echo ($formData['type'] ?? '') === $regCode ? 'selected' : ''; ?>><?php echo e($regLabel); ?></option>
                         <?php endforeach; ?>
@@ -68,8 +68,8 @@ $enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled
                     <select name="site_id" id="site_id">
                         <option value="" <?php echo empty($formData['site_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($sites as $site): ?>
-                        <?php /** @var int */ $exportSiteId = $site['id'] ?? 0; ?>
-                        <option value="<?php echo $exportSiteId; ?>" <?php echo ($formData['site_id'] ?? '') === (string) ($site['id'] ?? '') ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($site['nom']); ?></option>
+                        <?php /** @var int */ $exportSiteId = $site['id']; ?>
+                        <option value="<?php echo $exportSiteId; ?>" <?php echo ($formData['site_id'] ?? '') === (string) ($site['id']) ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($site['nom']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">
@@ -88,8 +88,8 @@ $enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled
                     <select name="declarant_id" id="declarant_id">
                         <option value="" <?php echo empty($formData['declarant_id']) ? 'selected' : ''; ?>>— Choisir —</option>
                         <?php foreach ($users as $u): ?>
-                        <?php /** @var int */ $exportUserId = $u['id'] ?? 0; ?>
-                        <option value="<?php echo $exportUserId; ?>" <?php echo ($formData['declarant_id'] ?? '') === (string) ($u['id'] ?? '') ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u['prenom'] . ' ' . $u['nom']); ?></option>
+                        <?php /** @var int */ $exportUserId = $u['id']; ?>
+                        <option value="<?php echo $exportUserId; ?>" <?php echo ($formData['declarant_id'] ?? '') === (string) ($u['id']) ? 'selected' : ''; ?>><?php echo new \App\Services\FormattingService()->e($u['prenom'] . ' ' . $u['nom']); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label class="label--checkbox">
@@ -119,7 +119,7 @@ $enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled
                 <?php foreach (ETAT_LABELS as $key => $label): ?>
                 <label class="label--checkbox">
                     <input type="checkbox" name="etats[]" value="<?php echo new \App\Services\FormattingService()->e($key); ?>"
-                           <?php echo (empty($formData['etats']) || in_array($key, $formData['etats'] ?? [], true)) ? 'checked' : ''; ?>>
+                           <?php echo (empty($formData['etats']) || in_array($key, $formData['etats'], true)) ? 'checked' : ''; ?>>
                     <span class="badge <?php echo new \App\Services\FormattingService()->getEtatBadgeClass($key); ?> badge--sm"><?php echo new \App\Services\FormattingService()->e($label); ?></span>
                 </label>
                 <?php endforeach; ?>

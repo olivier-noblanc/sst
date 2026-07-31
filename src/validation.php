@@ -57,7 +57,7 @@ function validateReportAttachment(array &$errors, string $fieldName = 'attachmen
                         $attachmentBlob = null;
                     } else {
                         /** @var string */
-                        $fileName = $file['name'] ?? '';
+                        $fileName = $file['name'];
                         $attachmentName = basename($fileName);
                         $attachmentMime = $mime;
                     }

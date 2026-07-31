@@ -20,7 +20,6 @@
 namespace App\Services;
 
 use Throwable;
-
 use App\Repository\RegistryRepository;
 use App\Enum\ReportType;
 

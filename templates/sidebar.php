@@ -70,7 +70,7 @@ $menuItems = array_merge($menuItems, [
                 <?php
                     $isActive = false;
                     $itemPage = $item['page'];
-                    $itemParams = $item['params'] ?? [];
+                    $itemParams = $item['params'];
                     $itemType = $itemParams['type'] ?? null;
 
                     $isActive = ($currentPage === $itemPage);

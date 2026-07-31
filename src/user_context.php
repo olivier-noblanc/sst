@@ -55,7 +55,7 @@ function currentUserUsername(): string
     if ($user === null) {
         return '';
     }
-    $username = $user['username'] ?? '';
+    $username = $user['username'];
     return $username;
 }
 
@@ -88,7 +88,7 @@ function currentUserRole(): string
     if ($user === null) {
         return '';
     }
-    $role = $user['role'] ?? '';
+    $role = $user['role'];
     return $role;
 }
 
@@ -134,7 +134,7 @@ function refreshCurrentUser(PDO $pdo): bool
         // Preserve impersonation state if active
         setUserSession($freshUser);
         if (isImpersonatingRole()) {
-            $impersonatedRole = getImpersonatedRole() ?? ($freshUser['role'] ?? '');
+            $impersonatedRole = getImpersonatedRole() ?? $freshUser['role'];
             // Direct session write needed here — this is inside the session layer
             if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
                 $_SESSION['user']['role'] = $impersonatedRole;

@@ -56,12 +56,12 @@
             <?php
                 $userCount = \App\Repository\SiteRepository::instance()->countUsers((int) $site['id']);
                 $reportCount = \App\Repository\SiteRepository::instance()->countReports((int) $site['id']);
-                $isActive = !isset($site['is_active']) || $site['is_active'] === 1 || $site['is_active'] === '1';
+                $isActive = $site['is_active'] === 1;
                 ?>
             <tr class="<?php echo !$isActive ? 'row--inactive' : ''; ?>">
                 <td><strong><?php echo new \App\Services\FormattingService()->e($site['code']); ?></strong></td>
                 <td><?php echo new \App\Services\FormattingService()->e($site['nom']); ?></td>
-                <td><?php echo new \App\Services\FormattingService()->e($site['departement'] ?? '—'); ?></td>
+                <td><?php echo new \App\Services\FormattingService()->e($site['departement']); ?></td>
                 <td class="text-center"><?php echo $userCount; ?></td>
                 <td class="text-center"><?php echo $reportCount; ?></td>
                 <td>

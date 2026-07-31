@@ -158,12 +158,12 @@ class ConfigService
         $candidatePaths[] = dirname(__DIR__) . '/CHANGELOG.md';
         if (!empty($_SERVER['DOCUMENT_ROOT'])) {
             /** @var string */
-            $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+            $docRoot = $_SERVER['DOCUMENT_ROOT'];
             $candidatePaths[] = rtrim($docRoot, '/\\') . '/../CHANGELOG.md';
         }
         if (!empty($_SERVER['SCRIPT_FILENAME'])) {
             /** @var string */
-            $scriptFilename = $_SERVER['SCRIPT_FILENAME'] ?? '';
+            $scriptFilename = $_SERVER['SCRIPT_FILENAME'];
             $candidatePaths[] = dirname($scriptFilename, 2) . '/CHANGELOG.md';
         }
 

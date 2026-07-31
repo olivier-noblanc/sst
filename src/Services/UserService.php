@@ -160,31 +160,6 @@ class UserService
         return $result;
     }
 
-    /**
-     * @return UserArray|null
-     */
-    public function findByUsername(string $username): ?array
-    {
-        $result = $this->repo->findByUsername($username);
-        /** @var UserArray|null $result */
-        return $result;
-    }
-
-    /**
-     * @return list<UserArray>
-     */
-    public function findAll(int $siteId = 0, bool $active = true): array
-    {
-        $result = $this->repo->findAll($siteId, $active);
-        /** @var list<UserArray> $result */
-        return $result;
-    }
-
-    public function countActive(): int
-    {
-        return $this->repo->countActive();
-    }
-
     // ═══════════════════════════════════════════════════════════════════════════════
     // Validation
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -284,7 +259,7 @@ class UserService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * @return UserArray|null
+     * @return array{user: array{id: int, username: string, nom: string, prenom: string, email: string|null, role: string, site_id: int|null, is_active: int, created_at: string}, reports_count: int, reports: list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: string|null, lieu: string|null, is_confidential: int, etat: string, created_at: string}>, responses_count: int, responses: list<array{report_uuid: string, reponse: string|null, nouvel_etat: string|null, created_at: string}>}
      */
     public function exportData(int $id): array
     {

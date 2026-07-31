@@ -34,16 +34,6 @@ class RegistryFieldRepository
     }
 
     /** @return array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}|null */
-    public function findById(int $id): ?array
-    {
-        $stmt = $this->pdo->prepare('SELECT * FROM registry_fields WHERE id = :id');
-        $stmt->execute([':id' => $id]);
-        /** @var array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}|null $row */
-        $row = $stmt->fetch();
-        return is_array($row) ? $row : null;
-    }
-
-    /** @return array{id: int, registry_id: int, field_code: string, label: string, field_type: string, options: ?string, is_required: int, sort_order: int, created_at: string}|null */
     public function findByCode(int $registryId, string $fieldCode): ?array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM registry_fields WHERE registry_id = :rid AND field_code = :fc');
@@ -64,32 +54,12 @@ class RegistryFieldRepository
             ':rid'   => $registryId,
             ':fc'    => $data['field_code'],
             ':label' => $data['label'],
-            ':ft'    => $data['field_type'] ?? 'text',
+            ':ft'    => $data['field_type'],
             ':opts'  => $data['options'] ?? null,
             ':req'   => $data['is_required'] ?? 0,
             ':so'    => $data['sort_order'] ?? 0,
         ]);
         return (int) $this->pdo->lastInsertId();
-    }
-
-    /** @param array{label?: string, field_type?: string, options?: string, is_required?: int, sort_order?: int} $data */
-    public function update(int $id, array $data): bool
-    {
-        $sets = [];
-        $params = [':id' => $id];
-        foreach (['label', 'field_type', 'options', 'is_required', 'sort_order'] as $field) {
-            if (array_key_exists($field, $data)) {
-                $sets[] = "$field = :$field";
-                $params[":$field"] = $data[$field];
-            }
-        }
-        if (empty($sets)) {
-            return false;
-        }
-        $sql = 'UPDATE registry_fields SET ' . implode(', ', $sets) . ' WHERE id = :id';
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->rowCount() > 0;
     }
 
     public function delete(int $id): bool

@@ -66,7 +66,7 @@ class AuditRepository
 
     /**
      * @param array<string, string|int|null> $filters
-     * @return array{entries: list<AuditLogArray>, total: int}
+     * @return array{entries: list<array<string, mixed>>, total: int}
      */
     public function findPaginated(array $filters = [], int $page = 1, int $perPage = 50): array
     {
@@ -80,7 +80,7 @@ class AuditRepository
         if (!empty($filters['user_id'])) {
             $where .= ' AND user_id = :user_id';
             /** @var int */
-            $userId = $filters['user_id'] ?? 0;
+            $userId = $filters['user_id'];
             $params[':user_id'] = $userId;
         }
         if (!empty($filters['date_from'])) {
@@ -114,12 +114,14 @@ class AuditRepository
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
-        return ['entries' => $stmt->fetchAll(), 'total' => $total];
+        /** @var list<array<string, mixed>> */
+        $entries = $stmt->fetchAll();
+        return ['entries' => $entries, 'total' => $total];
     }
 
     /**
      * @param int|string $targetId
-     * @return list<AuditLogArray>
+     * @return list<array<string, mixed>>
      */
     public function findByTarget(string $targetType, int|string $targetId): array
     {
@@ -138,6 +140,7 @@ class AuditRepository
             ');
             $stmt->execute([':target_type' => $targetType, ':target_id' => $targetId]);
         }
+        /** @var list<array<string, mixed>> */
         return $stmt->fetchAll();
     }
 }

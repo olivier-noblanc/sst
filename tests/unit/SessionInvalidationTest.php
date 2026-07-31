@@ -47,6 +47,10 @@ class SessionInvalidationTest extends TestCase
     {
         cleanupForTest(self::$pdo, 'test.sess%');
         cleanupForTest(self::$pdo, 'anonymized_%');
+        $ids = [9101, 9102, 9103, 9104];
+        self::$pdo->exec('DELETE FROM report_responses WHERE user_id IN (' . implode(',', $ids) . ')');
+        self::$pdo->exec('DELETE FROM reports WHERE declarant_id IN (' . implode(',', $ids) . ')');
+        self::$pdo->exec('DELETE FROM users WHERE id IN (' . implode(',', $ids) . ')');
         $_SESSION = [];
     }
 

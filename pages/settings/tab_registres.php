@@ -43,15 +43,15 @@ $visibilityModes = [
         $regCode = $reg['code'];
         $regLabel = $reg['label'];
         $regShortLabel = $reg['short_label'];
-        $regDescription = $reg['description'] ?? '';
+        $regDescription = $reg['description'];
         $isEnabled = (int) $reg['is_enabled'] === 1;
         $isSystem = (int) $reg['is_system'] === 1;
         $colorTheme = $reg['color_theme'];
         $icon = $reg['icon'];
         $sortOrder = (int) $reg['sort_order'];
-        $defaultVisibility = $reg['default_visibility'] ?? VisibilityMode::AgentChoice->value;
-        $notifyChsct = (int) ($reg['notify_chsct'] ?? 0) === 1;
-        $legalNote = $reg['legal_note'] ?? '';
+        $defaultVisibility = $reg['default_visibility'];
+        $notifyChsct = (int) ($reg['notify_chsct']) === 1;
+        $legalNote = $reg['legal_note'];
         $reportCount = ReportRepository::instance()->countActive($regCode);
         ?>
     <div class="card mb-4 card--<?php echo $fmt->e($colorTheme); ?>">
@@ -87,7 +87,7 @@ $visibilityModes = [
                 // Use addslashes to escape ' and " for JS, on top of HTML escaping
                 // for the surrounding attribute.
                 $confirmLabelJs = addslashes((string) $regLabel);
-                ?>
+                    ?>
                 <button type="submit" name="action" value="delete_<?php echo $regId; ?>"
                         class="btn btn--danger btn--small"
                         onclick="return confirm('Supprimer le registre « <?php echo $fmt->e($confirmLabelJs); ?> » ? Les signalements existants ne seront pas supprimés.')">
@@ -126,11 +126,11 @@ $visibilityModes = [
             <div class="form-group">
                 <label>Couleur</label>
                 <?php
-                $themeColors = [
-                    \App\Enum\ReportType::Rsst->value => '#2E5C8A', \App\Enum\ReportType::Rami->value => '#6C6C6C', \App\Enum\ReportType::Dgi->value => '#b91c1c',
-                    'vert' => '#15803D', 'violet' => '#7C3AED', 'orange' => '#C2410C',
-                    'teal' => '#0D9488', 'indigo' => '#4338CA', 'rose' => '#BE123C', 'ambre' => '#B45309',
-                ];
+                    $themeColors = [
+                        \App\Enum\ReportType::Rsst->value => '#2E5C8A', \App\Enum\ReportType::Rami->value => '#6C6C6C', \App\Enum\ReportType::Dgi->value => '#b91c1c',
+                        'vert' => '#15803D', 'violet' => '#7C3AED', 'orange' => '#C2410C',
+                        'teal' => '#0D9488', 'indigo' => '#4338CA', 'rose' => '#BE123C', 'ambre' => '#B45309',
+                    ];
         ?>
                 <input type="hidden" name="registres[<?php echo $regId; ?>][color_theme]" value="<?php echo $fmt->e($colorTheme); ?>">
                 <div class="color-picker" data-regid="<?php echo $regId; ?>">
@@ -237,7 +237,7 @@ $enabledRegistries = $registryRepo->findEnabled();
 <?php foreach ($enabledRegistries as $reg):
     $regId = (int) $reg['id'];
     $fields = $fieldRepo->findByRegistry($regId);
-?>
+    ?>
 <div class="card mb-4">
     <h3 class="card__subtitle mb-2"><?php echo $fmt->e((string) $reg['label']); ?> (<?php echo $fmt->e((string) $reg['short_label']); ?>)</h3>
 

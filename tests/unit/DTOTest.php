@@ -1,10 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use App\DTO\CreateReportCommand;
-use App\DTO\ReportFilter;
 use App\DTO\UpdateReportCommand;
-use App\DTO\RespondToReportCommand;
-use App\Enum\ReportState;
 use App\Enum\ReportType;
 
 class DTOTest extends TestCase
@@ -28,16 +25,6 @@ class DTOTest extends TestCase
         $this->assertEquals(true, $cmd->isConfidential);
     }
 
-    public function testReportFilterFromGet(): void
-    {
-        $get = ['type' => 'rsst', 'etat' => 'nouveau', 'site' => '5', 'q' => 'test'];
-        $user = ['site_id' => 1, 'role' => 'superviseur'];
-        $filter = ReportFilter::fromGet($get, $user);
-        $this->assertEquals('rsst', $filter->type);
-        $this->assertEquals('nouveau', $filter->etat);
-        $this->assertEquals(5, $filter->siteId);
-    }
-
     public function testUpdateReportCommandFromPost(): void
     {
         $post = [
@@ -53,11 +40,4 @@ class DTOTest extends TestCase
         $this->assertEquals(true, $cmd->consentSyndicat);
     }
 
-    public function testRespondToReportCommandFromPost(): void
-    {
-        $post = ['reponse' => 'Pris en compte', 'nouvel_etat' => 'en_cours'];
-        $cmd = RespondToReportCommand::fromPost($post);
-        $this->assertEquals('Pris en compte', $cmd->reponse);
-        $this->assertEquals(ReportState::EnCours, $cmd->nouvelEtat);
-    }
 }

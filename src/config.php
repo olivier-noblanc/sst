@@ -140,7 +140,8 @@ if (!defined('ETAT_LABELS')) {
 }
 
 // Registry label helpers — read from DB
-function getRegistryLabel(string $type): string {
+function getRegistryLabel(string $type): string
+{
     static $cache = null;
     if ($cache === null) {
         $cache = [];
@@ -154,7 +155,8 @@ function getRegistryLabel(string $type): string {
     return $cache[$type] ?? strtoupper($type);
 }
 
-function getRegistryShortLabel(string $type): string {
+function getRegistryShortLabel(string $type): string
+{
     static $cache = null;
     if ($cache === null) {
         $cache = [];
@@ -168,7 +170,8 @@ function getRegistryShortLabel(string $type): string {
     return $cache[$type] ?? strtoupper($type);
 }
 
-function getEtatLabel(string $etat): string {
+function getEtatLabel(string $etat): string
+{
     return ReportState::tryFrom($etat)?->label() ?? $etat;
 }
 
@@ -189,7 +192,8 @@ final class RegistryFieldOptionsCache
 }
 
 /** @return array<string, string> */
-function getRegistryFieldOptions(string $registryCode, string $fieldCode): array {
+function getRegistryFieldOptions(string $registryCode, string $fieldCode): array
+{
     $key = $registryCode . ':' . $fieldCode;
     if (!isset(RegistryFieldOptionsCache::$cache[$key])) {
         RegistryFieldOptionsCache::$cache[$key] = [];
@@ -208,12 +212,14 @@ function getRegistryFieldOptions(string $registryCode, string $fieldCode): array
     return RegistryFieldOptionsCache::$cache[$key];
 }
 
-function clearRegistryFieldCache(): void {
+function clearRegistryFieldCache(): void
+{
     RegistryFieldOptionsCache::$cache = [];
 }
 
 /** @return list<string> */
-function getRegistryFieldKeys(string $registryCode, string $fieldCode): array {
+function getRegistryFieldKeys(string $registryCode, string $fieldCode): array
+{
     return array_keys(getRegistryFieldOptions($registryCode, $fieldCode));
 }
 

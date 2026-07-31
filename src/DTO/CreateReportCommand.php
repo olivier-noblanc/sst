@@ -69,7 +69,7 @@ class CreateReportCommand
 
         $declarantNom = $user['nom'] ?? '';
         $declarantPrenom = $user['prenom'] ?? '';
-        $declarantIdStr = $user['id'] ?? '0';
+        $declarantIdStr = $user['id'] ?? 0;
 
         return new self(
             type: $type,

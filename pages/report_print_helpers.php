@@ -28,15 +28,12 @@ function utf8ToCp1252(?string $s): string
         return '';
     }
     $converted = mb_convert_encoding($s, 'cp1252', 'UTF-8');
-    return $converted !== false ? $converted : $s;
+    return $converted;
 }
 
 /** Extended FPDF class with custom header and footer. */
 class SSTPDF extends FPDF
 {
-    public string $headerText = '';
-    public string $footerOrgName = '';
-
     public function getLeftMargin(): float
     {
         $margin = $this->lMargin;
@@ -46,38 +43,6 @@ class SSTPDF extends FPDF
     {
         $margin = $this->rMargin;
         return $margin;
-    }
-
-    #[Override]
-    public function Header(): void
-    {
-        if ($this->headerText !== '') {
-            $this->SetFont('DejaVu', '', 8);
-            $this->SetTextColor(102, 102, 102);
-            $this->Cell(0, 6, utf8ToCp1252($this->headerText), 0, 1, 'L');
-            $this->SetDrawColor(204, 204, 204);
-            $w = $this->w;
-            $r = $this->rMargin;
-            $this->Line($this->lMargin, $this->GetY(), $w - $r, $this->GetY());
-            $this->Ln(4);
-        }
-    }
-
-    #[Override]
-    public function Footer(): void
-    {
-        $this->SetY(-18);
-        $this->SetFont('DejaVu', '', 7);
-        $this->SetDrawColor(204, 204, 204);
-        $w = $this->w;
-        $r = $this->rMargin;
-        $this->Line($this->lMargin, $this->GetY(), $w - $r, $this->GetY());
-        $this->Ln(2);
-        $this->SetTextColor(153, 153, 153);
-        $pageNo = $this->PageNo();
-        $this->Cell(0, 8, utf8ToCp1252(
-            'Page ' . (string) $pageNo . ' / {nb} — Généré le ' . date('d/m/Y H:i')
-        ), 0, 0, 'C');
     }
 }
 

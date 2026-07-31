@@ -15,9 +15,9 @@ class RoleMiddleware
             SessionService::getInstance()->setFlash('error', 'Accès refusé.');
             new HttpService()->redirect(new HttpService()->url('home'));
             return; // Bug #26 — explicit return for defense-in-depth
-                    // even though redirect() calls exit(), this makes the
-                    // control flow explicit and survives any future refactor
-                    // of HttpService::redirect().
+            // even though redirect() calls exit(), this makes the
+            // control flow explicit and survives any future refactor
+            // of HttpService::redirect().
         }
         $next();
     }

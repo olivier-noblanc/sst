@@ -58,7 +58,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     $notifyChsct = false;
     try {
         $registry = RegistryRepository::instance()->findByCode($type);
-        if ($registry !== null && (int) ($registry['notify_chsct'] ?? 0) === 1) {
+        if ($registry !== null && (int) $registry['notify_chsct'] === 1) {
             $notifyChsct = true;
         } elseif ($registry === null && $type === ReportType::Dgi->value) {
             // Compatibilité : registre custom DGI sans ligne en DB (edge case)
@@ -135,7 +135,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
             $linkedReportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
             $linkedBody = '<html><body>';
             $linkedBody .= '<h2>Réponse au signalement</h2>';
-            $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom'] ?? '') . ',</p>';
+            $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom']) . ',</p>';
             $linkedBody .= '<p>Le signalement <strong>' . e($report->reference) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>';
             $linkedBody .= renderEmailField('Répondant', $respondent['prenom'] . ' ' . $respondent['nom']);
             $linkedBody .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);

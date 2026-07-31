@@ -24,7 +24,7 @@ $site = $repo->findById($siteId);
 
 /** @var array<string, string> $site */
 
-if ($site === null) {
+if (empty($site)) {
     $session->setFlash('error', 'Site introuvable.');
     $http->redirect($http->url('settings', ['tab' => 'manage_sites']));
 }

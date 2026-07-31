@@ -94,7 +94,7 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        if (!canRespondToReport($report->toArray(), currentUserRole())) {
+        if (!canRespondToReport($report, currentUserRole())) {
             throw new RuntimeException('Accès refusé.');
         }
 
@@ -137,7 +137,7 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        if (!canEditReport($report->toArray(), $userId)) {
+        if (!canEditReport($report, $userId)) {
             throw new RuntimeException('Accès refusé.');
         }
 
@@ -167,7 +167,7 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        if (!canEditReport($report->toArray(), $userId)) {
+        if (!canEditReport($report, $userId)) {
             throw new RuntimeException('Accès refusé.');
         }
         $result = $this->repo->abandon($uuid, $userId);
@@ -225,11 +225,6 @@ class ReportService
         }
 
         return $result;
-    }
-
-    public function findById(string $uuid): ?ReportData
-    {
-        return $this->repo->findById($uuid);
     }
 
     private function validateForCreation(CreateReportCommand $cmd): void

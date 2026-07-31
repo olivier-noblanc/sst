@@ -52,7 +52,7 @@ if (!isNoSiteMode($pdo)) {
         setFormData($_POST);
         $http->redirect($http->url('report_create', ['type' => $type]));
     }
-    if (!canSeeAllSites() && $siteId !== (int) ($user['site_id'] ?? 0)) {
+    if (!canSeeAllSites() && $siteId !== (int) $user['site_id']) {
         setFormErrors(['site_id' => 'Vous ne pouvez créer un signalement que pour votre ' . $config->get('app_label_unite', 'UR') . '.']);
         setFormData($_POST);
         $http->redirect($http->url('report_create', ['type' => $type]));
@@ -65,7 +65,7 @@ $linkedEmails = [];
 if (!empty($linkedEmailsRaw)) {
     try {
         $reportService = getContainer()->get(ReportService::class);
-        $linkedEmails = $reportService->validateLinkedEmails($linkedEmailsRaw, $user ?? []);
+        $linkedEmails = $reportService->validateLinkedEmails($linkedEmailsRaw, $user);
     } catch (InvalidArgumentException $e) {
         // @silent-ok: form validation error surfaced via setFormErrors(), shown to the user.
         setFormErrors(['linked_emails' => e($e->getMessage())]);
@@ -77,7 +77,7 @@ if (!empty($linkedEmailsRaw)) {
 try {
     $errors = [];
     $attachment = validateReportAttachment($errors);
-    $cmd = CreateReportCommand::fromPost($_POST, $user ?? []);
+    $cmd = CreateReportCommand::fromPost($_POST, $user);
     /** @var array<string, mixed> $cmdData */
     $cmdData = array_merge($cmd->toArray(), [
         'type' => $cmd->type,

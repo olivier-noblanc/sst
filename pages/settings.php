@@ -32,7 +32,7 @@ foreach ($currentSettings as $setting) {
     if ($setting['type'] === 'global') {
         $globalEmails[] = $setting;
     } else {
-        $siteIdStr = $setting['site_id'] ?? '0';
+        $siteIdStr = $setting['site_id'];
         $sId = (int) $siteIdStr;
         if (!isset($siteEmails[$sId])) {
             $siteEmails[$sId] = [];

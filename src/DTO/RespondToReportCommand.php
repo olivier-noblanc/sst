@@ -14,13 +14,4 @@ class RespondToReportCommand
         public readonly ReportState $nouvelEtat,
         public readonly array $attachment = ['blob' => null, 'name' => null, 'mime' => null],
     ) {}
-
-    /** @param array<string, string> $post */
-    public static function fromPost(array $post): self
-    {
-        return new self(
-            reponse: trim($post['reponse'] ?? ''),
-            nouvelEtat: ReportState::from($post['nouvel_etat'] ?? ReportState::EnCours->value),
-        );
-    }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\ReportType;
+use App\Enum\VisibilityMode;
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\DTO\UpdateAppSettingsCommand;
@@ -88,7 +90,7 @@ function handleSettingsAppTab(PDO $pdo, UpdateAppSettingsCommand $cmd): void
     updateConfig($pdo, 'app_report_visibility', $cmd->appReportVisibility);
 
     // Per-registry visibility settings
-    foreach (\App\Enum\ReportType::cases() as $type) {
+    foreach (ReportType::cases() as $type) {
         $key = 'app_report_visibility_' . $type->value;
         $value = $cmd->perRegistryVisibility[$type->value] ?? '';
         updateConfig($pdo, $key, $value);
@@ -96,7 +98,7 @@ function handleSettingsAppTab(PDO $pdo, UpdateAppSettingsCommand $cmd): void
 
     // Legacy keys: keep in sync for backward compatibility
     updateConfig($pdo, 'app_agent_visibility', $cmd->appReportVisibility);
-    updateConfig($pdo, 'app_agent_see_only_own', $cmd->appReportVisibility === \App\Enum\VisibilityMode::Confidential->value ? '1' : '0');
+    updateConfig($pdo, 'app_agent_see_only_own', $cmd->appReportVisibility === VisibilityMode::Confidential->value ? '1' : '0');
 
     // CHSCT report scope
     updateConfig($pdo, 'app_chsct_report_scope', $cmd->chsctScope);

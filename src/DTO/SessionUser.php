@@ -2,7 +2,18 @@
 
 namespace App\DTO;
 
-final readonly class SessionUser
+use ArrayAccess;
+
+/**
+ * SessionUser — immutable DTO representing the authenticated user's session data.
+ *
+ * Implements ArrayAccess for backward compatibility with code that still
+ * accesses user data as $user['nom'] instead of $user->nom.
+ * This will be removed once all callers are migrated to property access.
+ *
+ * @implements ArrayAccess<string, mixed>
+ */
+final readonly class SessionUser implements ArrayAccess
 {
     public function __construct(
         public readonly int $id,
@@ -146,5 +157,58 @@ final readonly class SessionUser
             'sessions_invalid_before' => null,
         ];
         return self::fromRow(array_merge($defaults, $overrides));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // ArrayAccess — backward compat for $user['nom'] style access.
+    // Maps snake_case keys to camelCase properties.
+    // TODO: remove once all callers use property access ($user->nom).
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    /** @param string $offset */
+    public function offsetExists(mixed $offset): bool
+    {
+        return match ($offset) {
+            'id', 'username', 'nom', 'prenom', 'email', 'role',
+            'site_id', 'is_active', 'created_at', 'updated_at',
+            'site_code', 'site_nom', 'site_chosen_at', 'sessions_invalid_before',
+            'siteId', 'isActive', 'createdAt', 'updatedAt',
+            'siteCode', 'siteNom', 'siteChosenAt', 'sessionsInvalidBefore' => true,
+            default => false,
+        };
+    }
+
+    /** @param string $offset */
+    public function offsetGet(mixed $offset): mixed
+    {
+        return match ($offset) {
+            'id', 'id' => $this->id,
+            'username' => $this->username,
+            'nom' => $this->nom,
+            'prenom' => $this->prenom,
+            'email' => $this->email,
+            'role' => $this->role,
+            'site_id', 'siteId' => $this->siteId,
+            'is_active', 'isActive' => $this->isActive,
+            'created_at', 'createdAt' => $this->createdAt,
+            'updated_at', 'updatedAt' => $this->updatedAt,
+            'site_code', 'siteCode' => $this->siteCode,
+            'site_nom', 'siteNom' => $this->siteNom,
+            'site_chosen_at', 'siteChosenAt' => $this->siteChosenAt,
+            'sessions_invalid_before', 'sessionsInvalidBefore' => $this->sessionsInvalidBefore,
+            default => null,
+        };
+    }
+
+    /** @param string $offset */
+    public function offsetSet(mixed $offset, mixed $value): never
+    {
+        throw new \Error('Cannot modify readonly property ' . $offset);
+    }
+
+    /** @param string $offset */
+    public function offsetUnset(mixed $offset): never
+    {
+        throw new \Error('Cannot unset readonly property ' . $offset);
     }
 }

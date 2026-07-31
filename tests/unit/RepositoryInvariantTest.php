@@ -158,23 +158,23 @@ class RepositoryInvariantTest extends TestCase
     // UserRepository
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    public function testUserFindByIdReturnsArrayOrNull(): void
+    public function testUserFindByIdReturnsSessionUserOrNull(): void
     {
         $repo = new UserRepository($this->pdo);
         $siteId = $this->seedSite();
         $userId = $this->seedUser($siteId);
 
-        $this->assertIsArray($repo->findById($userId));
+        $this->assertInstanceOf(\App\DTO\SessionUser::class, $repo->findById($userId));
         $this->assertNull($repo->findById(999999));
     }
 
-    public function testUserFindByUsernameReturnsArrayOrNull(): void
+    public function testUserFindByUsernameReturnsSessionUserOrNull(): void
     {
         $repo = new UserRepository($this->pdo);
         $siteId = $this->seedSite();
         $this->seedUser($siteId);
 
-        $this->assertIsArray($repo->findByUsername('jean.martin'));
+        $this->assertInstanceOf(\App\DTO\SessionUser::class, $repo->findByUsername('jean.martin'));
         $this->assertNull($repo->findByUsername('nonexistent'));
     }
 

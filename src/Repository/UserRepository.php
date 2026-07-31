@@ -93,7 +93,7 @@ class UserRepository
         $stmt->execute([':role' => $role]);
         $rows = $stmt->fetchAll();
         /** @var list<SessionUser> $result */
-        $result = array_map(fn($row) => SessionUser::fromRow($row), $rows);
+        $result = array_map(SessionUser::fromRow(...), $rows);
         return $result;
     }
 
@@ -116,7 +116,7 @@ class UserRepository
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
         /** @var list<SessionUser> $result */
-        $result = array_map(fn($row) => SessionUser::fromRow($row), $rows);
+        $result = array_map(SessionUser::fromRow(...), $rows);
         return $result;
     }
 

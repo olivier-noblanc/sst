@@ -1,5 +1,6 @@
 <?php
 
+use App\DTO\CreateRegistryFieldCommand;
 use App\Repository\RegistryRepository;
 use App\Repository\RegistryFieldRepository;
 use App\Enum\ReportType;
@@ -161,7 +162,7 @@ function seedDefaultData(PDO $pdo): void
         ];
         foreach ($ramiFields as [$code, $label, $type, $options, $sortOrder]) {
             if ($fieldRepo->findByCode((int) $rami['id'], $code) === null) {
-                $fieldRepo->create((int) $rami['id'], new \App\DTO\CreateRegistryFieldCommand(
+                $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
                     fieldCode: $code,
                     label: $label,
                     fieldType: $type,

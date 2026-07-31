@@ -62,7 +62,7 @@ class UserQueriesTest extends TestCase
         ));
         $this->assertGreaterThan(0, $id);
         $user = $this->users->findById($id);
-        $this->assertNull($user['email']);
+        $this->assertNull($user->email);
     }
 
     // ─── getUserById() ─────────────────────────────────────────────────────────
@@ -75,13 +75,13 @@ class UserQueriesTest extends TestCase
         ));
         $user = $this->users->findById($id);
         $this->assertNotNull($user);
-        $this->assertEquals('jean.martin', $user['username']);
-        $this->assertEquals('Martin', $user['nom']);
-        $this->assertEquals('Jean', $user['prenom']);
-        $this->assertEquals('agent', $user['role']);
-        $this->assertEquals(1, (int) $user['site_id']);
-        $this->assertEquals('UR21', $user['site_code']);
-        $this->assertEquals("UR Côte-d'Or", $user['site_nom']);
+        $this->assertEquals('jean.martin', $user->username);
+        $this->assertEquals('Martin', $user->nom);
+        $this->assertEquals('Jean', $user->prenom);
+        $this->assertEquals('agent', $user->role);
+        $this->assertEquals(1, (int) $user->siteId);
+        $this->assertEquals('UR21', $user->siteCode);
+        $this->assertEquals("UR Côte-d'Or", $user->siteNom);
     }
 
     public function testGetUserByIdReturnsNullForNonexistent(): void
@@ -100,9 +100,9 @@ class UserQueriesTest extends TestCase
         ));
         $user = $this->users->findByUsername('sophie.dupont');
         $this->assertNotNull($user);
-        $this->assertEquals('Dupont', $user['nom']);
-        $this->assertEquals('superviseur', $user['role']);
-        $this->assertEquals('UR25', $user['site_code']);
+        $this->assertEquals('Dupont', $user->nom);
+        $this->assertEquals('superviseur', $user->role);
+        $this->assertEquals('UR25', $user->siteCode);
     }
 
     public function testGetUserByUsernameReturnsNullForDeactivated(): void
@@ -173,9 +173,9 @@ class UserQueriesTest extends TestCase
         ));
         $this->assertTrue($result);
         $user = $this->users->findById($id);
-        $this->assertEquals('New', $user['nom']);
-        $this->assertEquals('superviseur', $user['role']);
-        $this->assertEquals('UR25', $user['site_code']);
+        $this->assertEquals('New', $user->nom);
+        $this->assertEquals('superviseur', $user->role);
+        $this->assertEquals('UR25', $user->siteCode);
     }
 
     // ─── deactivate() / reactivate() ────────────────────────────────────────────
@@ -189,7 +189,7 @@ class UserQueriesTest extends TestCase
         $result = $this->users->deactivate($id);
         $this->assertTrue($result);
         $user = $this->users->findById($id);
-        $this->assertEquals(0, (int) $user['is_active']);
+        $this->assertEquals(0, (int) $user->isActive);
     }
 
     public function testReactivateUserSetsActive(): void
@@ -201,7 +201,7 @@ class UserQueriesTest extends TestCase
         $this->users->deactivate($id);
         $this->users->reactivate($id);
         $user = $this->users->findById($id);
-        $this->assertEquals(1, (int) $user['is_active']);
+        $this->assertEquals(1, (int) $user->isActive);
     }
 
     // ─── updateRole() ────────────────────────────────────────────────────────────
@@ -215,15 +215,15 @@ class UserQueriesTest extends TestCase
         $user = $this->users->findById($id);
         $this->assertNotNull($user);
         $result = $this->users->update($id, new UpdateUserCommand(
-            nom: $user['nom'],
-            prenom: $user['prenom'],
-            email: $user['email'],
-            username: $user['username'],
+            nom: $user->nom,
+            prenom: $user->prenom,
+            email: $user->email,
+            username: $user->username,
             role: ROLE_SUPERVISEUR,
             siteId: SiteId::fromInput(1),
         ));
         $this->assertTrue($result);
         $user = $this->users->findById($id);
-        $this->assertEquals('superviseur', $user['role']);
+        $this->assertEquals('superviseur', $user->role);
     }
 }

@@ -59,11 +59,11 @@ class UserIdPhase1DtoTest extends TestCase
 
         $user = $this->repo->findById($id);
         $this->assertNotNull($user);
-        $this->assertSame('dto.user1', $user['username']);
-        $this->assertSame('Dupont', $user['nom']);
-        $this->assertSame('Jean', $user['prenom']);
-        $this->assertSame(ROLE_AGENT, $user['role']);
-        $this->assertSame($this->siteId, (int) $user['site_id']);
+        $this->assertSame('dto.user1', $user->username);
+        $this->assertSame('Dupont', $user->nom);
+        $this->assertSame('Jean', $user->prenom);
+        $this->assertSame(ROLE_AGENT, $user->role);
+        $this->assertSame($this->siteId, (int) $user->siteId);
     }
 
     public function testRepoCreateWithNoneSiteIdSetsNull(): void
@@ -78,7 +78,7 @@ class UserIdPhase1DtoTest extends TestCase
         );
         $id = $this->repo->create($cmd);
         $user = $this->repo->findById($id);
-        $this->assertNull($user['site_id'], 'SiteId::none() must produce NULL in DB');
+        $this->assertNull($user->siteId, 'SiteId::none() must produce NULL in DB');
     }
 
     public function testRepoCreateDefaultsRoleToAgent(): void
@@ -93,7 +93,7 @@ class UserIdPhase1DtoTest extends TestCase
         );
         $id = $this->repo->create($cmd);
         $user = $this->repo->findById($id);
-        $this->assertSame(ROLE_AGENT, $user['role']);
+        $this->assertSame(ROLE_AGENT, $user->role);
     }
 
     // ═══ UserRepository::update(int, UpdateUserCommand) ═══
@@ -122,7 +122,7 @@ class UserIdPhase1DtoTest extends TestCase
         $this->assertTrue($result);
 
         $user = $this->repo->findById($id);
-        $this->assertSame('Updated', $user['nom']);
+        $this->assertSame('Updated', $user->nom);
     }
 
     public function testRepoUpdateWithNoneSiteIdSetsNull(): void
@@ -147,7 +147,7 @@ class UserIdPhase1DtoTest extends TestCase
         );
         $this->repo->update($id, $updateCmd);
         $user = $this->repo->findById($id);
-        $this->assertNull($user['site_id'], 'SiteId::none() in update must produce NULL');
+        $this->assertNull($user->siteId, 'SiteId::none() in update must produce NULL');
     }
 
     // ═══ UserService::validate(CreateUserCommand|UpdateUserCommand) ═══

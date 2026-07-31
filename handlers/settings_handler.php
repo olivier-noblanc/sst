@@ -6,6 +6,7 @@
  * POST handler: save notification email settings, SMTP config, and app settings.
  * Access: superviseur only
  */
+use App\DTO\UpdateAppSettingsCommand;
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Repository\NotificationRepository;
@@ -109,7 +110,7 @@ if ($tab === 'smtp') {
 }
 
 if ($tab === 'app') {
-    handleSettingsAppTab($pdo, \App\DTO\UpdateAppSettingsCommand::fromPost($_POST));
+    handleSettingsAppTab($pdo, UpdateAppSettingsCommand::fromPost($_POST));
 }
 
 if ($tab === 'manage_sites') {

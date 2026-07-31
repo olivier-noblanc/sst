@@ -79,6 +79,7 @@ class RegistryPhase2DtoTest extends TestCase
     {
         $cmd = new CreateRegistryCommand(code: 't', label: 'T', shortLabel: 'T');
         $this->expectException(\Error::class);
+        /** @phpstan-ignore assign.propertyProtectedSet (intentional readonly violation test) */
         $cmd->code = 'changed';
     }
 
@@ -116,6 +117,7 @@ class RegistryPhase2DtoTest extends TestCase
     {
         $cmd = new UpdateRegistryCommand(label: 'Test');
         $this->expectException(\Error::class);
+        /** @phpstan-ignore assign.propertyProtectedSet (intentional readonly violation test) */
         $cmd->label = 'Changed';
     }
 
@@ -170,6 +172,7 @@ class RegistryPhase2DtoTest extends TestCase
     {
         $cmd = new CreateRegistryFieldCommand(fieldCode: 'f', label: 'F');
         $this->expectException(\Error::class);
+        /** @phpstan-ignore assign.propertyProtectedSet (intentional readonly violation test) */
         $cmd->fieldCode = 'changed';
     }
 

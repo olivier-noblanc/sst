@@ -76,10 +76,10 @@ class UserQueriesExportTest extends TestCase
         $result = $this->users->anonymize($id);
         $this->assertTrue($result);
         $user = $this->users->findById($id);
-        $this->assertEquals('Anonymisé', $user['nom']);
-        $this->assertEquals('Utilisateur', $user['prenom']);
-        $this->assertNull($user['email']);
-        $this->assertEquals(0, (int) $user['is_active']);
+        $this->assertEquals('Anonymisé', $user->nom);
+        $this->assertEquals('Utilisateur', $user->prenom);
+        $this->assertNull($user->email);
+        $this->assertEquals(0, (int) $user->isActive);
     }
 
     // ─── UserRepository site JOIN ─────────────────────────────────────────────
@@ -92,8 +92,8 @@ class UserQueriesExportTest extends TestCase
         ));
         $result = $this->users->findById($user);
         $this->assertNotNull($result);
-        $this->assertEquals('UR21', $result['site_code']);
-        $this->assertEquals('UR Côte-d\'Or', $result['site_nom']);
+        $this->assertEquals('UR21', $result->siteCode);
+        $this->assertEquals('UR Côte-d\'Or', $result->siteNom);
     }
 
     public function testUserWithoutSiteReturnsNullSiteFields(): void
@@ -103,7 +103,7 @@ class UserQueriesExportTest extends TestCase
             role: ROLE_AGENT, siteId: SiteId::none(), email: null,
         ));
         $user = $this->users->findById($id);
-        $this->assertNull($user['site_code']);
-        $this->assertNull($user['site_nom']);
+        $this->assertNull($user->siteCode);
+        $this->assertNull($user->siteNom);
     }
 }

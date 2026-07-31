@@ -4,6 +4,7 @@
 
 namespace App\Repository;
 
+use App\DTO\AttachmentData;
 use App\Enum\ReportState;
 use App\Enum\RespondStatus;
 use App\Enum\VisibilityMode;
@@ -352,7 +353,7 @@ class ReportRepository
 
     public function getAdjacentUuids(string $type, ?string $createdAt, string $currentUuid): AdjacentUuids
     {
-        $createdAt = $createdAt ?? '';
+        $createdAt ??= '';
         $uuid = $currentUuid;
         $prev = null;
         $next = null;
@@ -791,7 +792,7 @@ class ReportRepository
     /**
      * @return array{status: RespondStatus, message?: string}
      */
-    public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, ?\App\DTO\AttachmentData $attachment = null): array
+    public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, ?AttachmentData $attachment = null): array
     {
         $this->pdo->beginTransaction();
         try {

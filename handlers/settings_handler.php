@@ -127,10 +127,8 @@ if ($tab === 'wordcloud') {
     $cleanWords = [];
     if (!empty($rawWords)) {
         foreach ($rawWords as $entry) {
-            $wordVal = $entry['word'] ?? '';
-            $weightVal = $entry['weight'] ?? 10;
-            $word = trim((string) $wordVal);
-            $weight = (int) $weightVal;
+            $word = trim($entry['word']);
+            $weight = $entry['weight'];
             if ($word !== '' && $weight >= 1 && $weight <= 20) {
                 $cleanWords[] = ['word' => mb_strtolower($word, 'UTF-8'), 'weight' => $weight];
             }

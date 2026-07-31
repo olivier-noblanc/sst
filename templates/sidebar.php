@@ -17,7 +17,7 @@ $activeRegistryType = $_GET['type'] ?? null;
 $reportSubpages = ['report_create', 'report_view', 'report_edit', 'report_abandon', 'report_respond'];
 if ($activeRegistryType === null && in_array($currentPage, $reportSubpages, true) && isset($_GET['uuid'])) {
     try {
-        $reportUuid = $_GET['uuid'] ?? '';
+        $reportUuid = $_GET['uuid'];
         $reportUuidStr = (string) $reportUuid;
         if (strlen($reportUuidStr) === 36) {
             $activeRegistryType = \App\Repository\ReportRepository::instance()->getTypeByUuid($reportUuidStr);

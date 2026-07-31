@@ -220,19 +220,6 @@ class CreateReportCommandMutationTest extends TestCase
     }
 
     /**
-     * Kill mutants on user array missing keys — fallback to '' and 0.
-     */
-    public function testUserDataFallsBackWhenMissing(): void
-    {
-        $post = $this->basePost();
-        $user = []; // empty user
-        $cmd = CreateReportCommand::fromPost($post, $user);
-        $this->assertSame(0, $cmd->declarantId, 'missing user.id → 0');
-        $this->assertSame('', $cmd->declarantNom, 'missing user.nom → empty string');
-        $this->assertSame('', $cmd->declarantPrenom, 'missing user.prenom → empty string');
-    }
-
-    /**
      * Kill mutants on RAMI-specific natureAuteur / typeActe validation.
      *
      * NOTE: validateRamiFields() requires DB-backed registry_fields rows for

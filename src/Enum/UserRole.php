@@ -14,8 +14,8 @@ enum UserRole: string
         return match ($this) {
             self::Agent       => 'Agent',
             self::Superviseur => 'Superviseur',
-            self::Chsct       => 'Membre FS/CSA',
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Chsct       => 'Membre FS/CSA',
             default           => 'Inconnu',
         };
     }
@@ -25,8 +25,8 @@ enum UserRole: string
         return match ($this) {
             self::Agent       => false,
             self::Superviseur => true,
-            self::Chsct       => true,
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Chsct       => true,
             default           => false,
         };
     }

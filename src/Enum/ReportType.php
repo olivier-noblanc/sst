@@ -28,8 +28,8 @@ enum ReportType: string
         return match ($this) {
             self::Rsst => 'Santé et Sécurité au Travail',
             self::Rami => 'Agressions, Menaces et Incivilités',
-            self::Dgi  => 'Danger Grave et Imminent',
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Dgi  => 'Danger Grave et Imminent',
             default    => 'Inconnu',
         };
     }
@@ -39,8 +39,8 @@ enum ReportType: string
         return match ($this) {
             self::Rsst => 'RSST',
             self::Rami => 'RAMI',
-            self::Dgi  => 'DGI',
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Dgi  => 'DGI',
             default    => '',
         };
     }
@@ -50,8 +50,8 @@ enum ReportType: string
         return match ($this) {
             self::Rsst => 'badge--rsst',
             self::Rami => 'badge--rami',
-            self::Dgi  => 'badge--dgi',
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Dgi  => 'badge--dgi',
             default    => '',
         };
     }
@@ -62,8 +62,8 @@ enum ReportType: string
         return match ($this) {
             self::Rsst => [46, 92, 138],
             self::Rami => [108, 108, 108],
-            self::Dgi  => [178, 34, 34],
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Dgi  => [178, 34, 34],
             default    => [0, 0, 0],
         };
     }
@@ -73,8 +73,8 @@ enum ReportType: string
         return match ($this) {
             self::Rsst => 'Décret n° 82-453 art. 3-2 : registre consultable par tout agent. La transparence est recommandée.',
             self::Rami => 'Données sensibles (art. 9 RGPD) : le mode confidentiel ou choix de l\'agent est recommandé.',
-            self::Dgi  => 'Articles L4131-1 et D4132-1 du Code du travail : le formalisme du registre spécial peut justifier un mode restrictif.',
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Dgi  => 'Articles L4131-1 et D4132-1 du Code du travail : le formalisme du registre spécial peut justifier un mode restrictif.',
             default    => '',
         };
     }

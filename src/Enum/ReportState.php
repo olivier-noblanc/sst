@@ -17,8 +17,8 @@ enum ReportState: string
             self::EnCours   => 'En cours',
             self::Traite    => 'Traité',
             self::Reouvert  => 'Réouvert',
-            self::Abandonne => 'Abandonné',
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Abandonne => 'Abandonné',
             default         => 'Inconnu',
         };
     }
@@ -31,8 +31,8 @@ enum ReportState: string
             self::EnCours   => 'badge--en-cours',
             self::Traite    => 'badge--traite',
             self::Reouvert  => 'badge--reouvert',
-            self::Abandonne => 'badge--abandonne',
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Abandonne => 'badge--abandonne',
             default         => '',
         };
     }
@@ -45,8 +45,8 @@ enum ReportState: string
             self::EnCours   => [230, 126, 34],
             self::Traite    => [39, 174, 96],
             self::Reouvert  => [142, 68, 173],
-            self::Abandonne => [149, 165, 166],
             /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
+            self::Abandonne => [149, 165, 166],
             default         => [0, 0, 0],
         };
     }

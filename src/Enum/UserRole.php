@@ -15,7 +15,6 @@ enum UserRole: string
             self::Agent       => 'Agent',
             self::Superviseur => 'Superviseur',
             self::Chsct       => 'Membre FS/CSA',
-            /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
             default           => 'Inconnu',
         };
     }
@@ -26,7 +25,6 @@ enum UserRole: string
             self::Agent       => false,
             self::Superviseur => true,
             self::Chsct       => true,
-            /** @phpstan-ignore-next-line match.alwaysTrue (default needed for Infection MatchArmRemoval) */
             default           => false,
         };
     }

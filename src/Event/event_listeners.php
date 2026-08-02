@@ -27,7 +27,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
     $notifications = $c->get(NotificationService::class);
 
     // ── report.created → notifyNewReport ────────────────────────────────────
-    $events->addListener('report.created', function (ReportEventData|UserEventData|array $data) use ($notifications): void {
+    $events->addListener('report.created', function (ReportEventData|UserEventData $data) use ($notifications): void {
         if (!$data instanceof ReportEventData) {
             return;
         }
@@ -49,7 +49,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
     });
 
     // ── report.responded → notifyReportResponse ─────────────────────────────
-    $events->addListener('report.responded', function (ReportEventData|UserEventData|array $data) use ($notifications): void {
+    $events->addListener('report.responded', function (ReportEventData|UserEventData $data) use ($notifications): void {
         if (!$data instanceof ReportEventData) {
             return;
         }
@@ -69,7 +69,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
     });
 
     // ── report.reopened → notifyReportReopen ────────────────────────────────
-    $events->addListener('report.reopened', function (ReportEventData|UserEventData|array $data) use ($notifications): void {
+    $events->addListener('report.reopened', function (ReportEventData|UserEventData $data) use ($notifications): void {
         if (!$data instanceof ReportEventData) {
             return;
         }
@@ -89,7 +89,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
     });
 
     // ── report.abandoned → notifyReportAbandon ──────────────────────────────
-    $events->addListener('report.abandoned', function (ReportEventData|UserEventData|array $data) use ($notifications): void {
+    $events->addListener('report.abandoned', function (ReportEventData|UserEventData $data) use ($notifications): void {
         if (!$data instanceof ReportEventData) {
             return;
         }
@@ -109,7 +109,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
     });
 
     // ── user.role_changed → notifyRoleChange ────────────────────────────────
-    $events->addListener('user.role_changed', function (ReportEventData|UserEventData|array $data) use ($notifications): void {
+    $events->addListener('user.role_changed', function (ReportEventData|UserEventData $data) use ($notifications): void {
         if (!$data instanceof UserEventData) {
             return;
         }

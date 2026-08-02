@@ -17,7 +17,7 @@ use App\Repository\AuditRepository;
  * @param string $details   Human-readable description of the action
  * @param int|null $targetId ID of the affected entity (optional, for integer-keyed entities)
  * @param string|null $targetType Type of entity (report, user, site, etc.)
- * @param array<string, mixed> $context   Additional context data (will be JSON-encoded)
+ * @param array<string, string|int|bool|null> $context   Additional context data (will be JSON-encoded)
  * @param string|null $targetUuid UUID of the affected entity (for report entries)
  */
 function auditLog(PDO $pdo, string $category, string $action, string $details, ?int $targetId = null, ?string $targetType = null, array $context = [], ?string $targetUuid = null): void
@@ -34,7 +34,7 @@ function auditLog(PDO $pdo, string $category, string $action, string $details, ?
  * Get audit log entries with optional filtering and pagination.
  *
  * @param PDO    $pdo       Database connection
- * @param array<string, mixed> $filters   Filter options (category, user_id, date_from, date_to, q)
+ * @param array<string, string|int|null> $filters   Filter options (category, user_id, date_from, date_to, q)
  * @param int    $page      Page number (1-based)
  * @param int    $perPage   Items per page
  * @return array{entries: array<int, array<string, mixed>>, total: int}

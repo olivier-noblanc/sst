@@ -25,7 +25,9 @@ class AuditRepository
         return $instance;
     }
 
-    /** @param array<string, mixed> $context  // audit context — inherently mixed */
+    /**
+     * @param array<string, string|int|bool|null> $context  // typed primitives — JSON-encoded
+     */
     public function log(
         string $category,
         string $action,

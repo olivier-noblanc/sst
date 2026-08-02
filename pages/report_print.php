@@ -36,6 +36,9 @@ if ($user === null || !new AccessService()->canAccessReport($report, $user)) {
     new HttpService()->redirect(new HttpService()->url('home'));
 }
 
+// redirect() returns void (not never) — PHPStan can't infer $user is non-null here
+assert($user !== null);
+
 // Log confidential report access by supervisor/CHSCT
 $pdo = getContainer()->get(PDO::class);
 new AccessService()->logConfidentialReportAccess($pdo, $report, $user);

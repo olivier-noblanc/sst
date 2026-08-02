@@ -7,6 +7,7 @@ use App\Enum\UserRole;
 use RuntimeException;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
+use App\DTO\UserEventData;
 use App\DTO\CreateUserCommand;
 use App\DTO\UpdateUserCommand;
 use App\DTO\SessionUser;
@@ -27,11 +28,10 @@ class UserService
         $userId = $this->repo->create($cmd);
         $user = $this->repo->findById($userId);
 
-        $this->events->dispatch('user.created', [
-            'user' => $user,
-            'cmd' => $cmd,
-            'pdo' => $this->repo->getPdo(),
-        ]);
+        $this->events->dispatch('user.created', UserEventData::forUser(
+            $user,
+            $this->repo->getPdo(),
+        ));
 
         return $userId;
     }
@@ -58,23 +58,22 @@ class UserService
         }
 
         if ($updateResult) {
-            $this->events->dispatch('user.updated', [
-                'user' => $user,
-                'cmd' => $cmd,
-                'pdo' => $this->repo->getPdo(),
-            ]);
+            $this->events->dispatch('user.updated', UserEventData::forUser(
+                $user,
+                $this->repo->getPdo(),
+            ));
 
             if ($roleChanged) {
                 // Audit #23 — invalidate the user's other active sessions so
                 // they don't keep their old role for 24h.
                 $this->invalidateUserSessions($id);
 
-                $this->events->dispatch('user.role_changed', [
-                    'user' => $user,
-                    'oldRole' => $user->role,
-                    'newRole' => $cmd->role,
-                    'pdo' => $this->repo->getPdo(),
-                ]);
+                $this->events->dispatch('user.role_changed', UserEventData::forRoleChange(
+                    $user,
+                    $user->role,
+                    $cmd->role,
+                    $this->repo->getPdo(),
+                ));
             }
         }
 
@@ -103,10 +102,10 @@ class UserService
             // Audit #9 + #22 — invalidate all the user's active sessions immediately.
             $this->invalidateUserSessions($id);
 
-            $this->events->dispatch('user.deactivated', [
-                'user' => $user,
-                'pdo' => $this->repo->getPdo(),
-            ]);
+            $this->events->dispatch('user.deactivated', UserEventData::forUser(
+                $user,
+                $this->repo->getPdo(),
+            ));
         }
 
         return $result;
@@ -124,10 +123,10 @@ class UserService
         $result = $this->repo->reactivate($id);
 
         if ($result) {
-            $this->events->dispatch('user.reactivated', [
-                'user' => $user,
-                'pdo' => $this->repo->getPdo(),
-            ]);
+            $this->events->dispatch('user.reactivated', UserEventData::forUser(
+                $user,
+                $this->repo->getPdo(),
+            ));
         }
 
         return $result;

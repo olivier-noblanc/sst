@@ -9,6 +9,7 @@ use Throwable;
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
+use App\DTO\UserEventData;
 use App\DTO\CreateUserCommand;
 use App\DTO\SiteId;
 use App\DTO\SessionUser;
@@ -196,11 +197,10 @@ class AuthService
 
         $user = $this->repo->findById($userId);
 
-        $this->events->dispatch('user.provisioned', [
-            'user' => $user,
-            'username' => $username,
-            'pdo' => $this->repo->getPdo(),
-        ]);
+        $this->events->dispatch('user.provisioned', UserEventData::forUser(
+            $user,
+            $this->repo->getPdo(),
+        ));
 
         return $user;
     }
@@ -239,12 +239,12 @@ class AuthService
                 $user = $user->withRole(UserRole::Superviseur->value);
                 error_log("SST App: Auto-promoted user '$username' to superviseur (config list rule)");
 
-                $this->events->dispatch('user.promoted', [
-                    'user' => $user,
-                    'oldRole' => UserRole::Agent->value,
-                    'newRole' => UserRole::Superviseur->value,
-                    'pdo' => $this->repo->getPdo(),
-                ]);
+                $this->events->dispatch('user.promoted', UserEventData::forRoleChange(
+                    $user,
+                    UserRole::Agent->value,
+                    UserRole::Superviseur->value,
+                    $this->repo->getPdo(),
+                ));
             }
         }
 

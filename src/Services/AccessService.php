@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use App\DTO\ReportData;
+use App\DTO\SessionUser;
 use App\Enum\ReportState;
 use App\Enum\ReportType;
 use App\Enum\VisibilityMode;
@@ -40,14 +41,17 @@ class AccessService
      * Centralize access control for a report.
      * Combines role, site, visibility mode and confidentiality checks.
      *
-     * @param array{id: int, role: string, ...} $user    $_SESSION['user'] — only id/role are read, deliberately not UserArray (see Audit #82: forcing the full shape here made tools/tests/test_can_access_report.php, which only needs id/site_id/role, construct a fake full user for no reason)
+     * Accepts SessionUser (preferred) or legacy array for backward compat.
      */
-    public function canAccessReport(ReportData $report, array $user, ?string $forcedVisibility = null): bool
+    public function canAccessReport(ReportData $report, SessionUser|array $user, ?string $forcedVisibility = null): bool
     {
-        if ($user['role'] === UserRole::Superviseur->value) {
+        $role = $user instanceof SessionUser ? $user->role : (string) ($user['role'] ?? '');
+        $userId = $user instanceof SessionUser ? $user->id : (int) ($user['id'] ?? 0);
+
+        if ($role === UserRole::Superviseur->value) {
             return true;
         }
-        if ($user['role'] === UserRole::Chsct->value) {
+        if ($role === UserRole::Chsct->value) {
             if ($this->getChsctReportScope() === 'all') {
                 return true;
             }
@@ -56,7 +60,7 @@ class AccessService
 
         $visibility = $forcedVisibility ?? $this->getReportVisibilityMode($report->type);
         $reportDeclarantId = $report->declarantId;
-        $userId = (int) $user['id'];
+        // $userId already extracted above from SessionUser|array
 
         // Linked agents have the same read access as the declarant
         $isLinkedAgent = ReportRepository::instance()->isLinkedAgent($report->uuid, $userId);
@@ -75,23 +79,25 @@ class AccessService
     /**
      * Log access to a confidential report by supervisor/CSA/CHSCT.
      *
-     * @param array{id: int, role: string, ...} $user
+     * Accepts SessionUser (preferred) or legacy array.
      */
-    public function logConfidentialReportAccess(PDO $pdo, ReportData $report, array $user): void
+    public function logConfidentialReportAccess(PDO $pdo, ReportData $report, SessionUser|array $user): void
     {
+        $role = $user instanceof SessionUser ? $user->role : (string) ($user['role'] ?? '');
+        $userId = $user instanceof SessionUser ? $user->id : (int) ($user['id'] ?? 0);
+
         if ($report->isConfidential !== 1) {
             return;
         }
-        if (!in_array($user['role'], [UserRole::Superviseur->value, UserRole::Chsct->value], true)) {
+        if (!in_array($role, [UserRole::Superviseur->value, UserRole::Chsct->value], true)) {
             return;
         }
         $reportDeclarantId = $report->declarantId;
-        $userId = (int) $user['id'];
         if ($reportDeclarantId === $userId) {
             return;
         }
         try {
-            ReportRepository::instance()->logAccess($report->uuid, $userId, (string) $user['role']);
+            ReportRepository::instance()->logAccess($report->uuid, $userId, $role);
         } catch (Exception $e) {
             // @silent-ok: access-log entry for RGPD audit trail — same justification as
             // src/audit.php, must never block the actual report access it's logging.

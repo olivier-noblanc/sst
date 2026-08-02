@@ -12,6 +12,7 @@ use RuntimeException;
 use InvalidArgumentException;
 use App\Repository\ReportRepository;
 use App\Event\EventDispatcher;
+use App\DTO\ReportEventData;
 use App\DTO\CreateReportCommand;
 use App\DTO\ReportData;
 use App\DTO\SiteId;
@@ -76,11 +77,10 @@ class ReportService
             throw new RuntimeException('Signalement introuvable après création.');
         }
 
-        $this->events->dispatch('report.created', [
-            'report' => $report->toArray(),
-            'cmd' => $cmd,
-            'pdo' => $this->repo->getPdo(),
-        ]);
+        $this->events->dispatch('report.created', ReportEventData::fromReport(
+            $report,
+            pdo: $this->repo->getPdo(),
+        ));
 
         return $report;
     }
@@ -120,12 +120,11 @@ class ReportService
         // même en cas d'échec → ghost events → notifications email mentant
         // sur l'état réel du signalement.
         if ($result['status'] === RespondStatus::Ok) {
-            $this->events->dispatch('report.responded', [
-                'report' => $report->toArray(),
-                'cmd' => $cmd,
-                'userId' => $userId,
-                'pdo' => $this->repo->getPdo(),
-            ]);
+            $this->events->dispatch('report.responded', ReportEventData::fromReport(
+                $report,
+                userId: $userId,
+                pdo: $this->repo->getPdo(),
+            ));
         }
 
         return $result;
@@ -151,11 +150,10 @@ class ReportService
 
         // Audit #12 — ne pas dispatcher si l'UPDATE a échoué.
         if ($result) {
-            $this->events->dispatch('report.updated', [
-                'report' => $report->toArray(),
-                'cmd' => $cmd,
-                'pdo' => $this->repo->getPdo(),
-            ]);
+            $this->events->dispatch('report.updated', ReportEventData::fromReport(
+                $report,
+                pdo: $this->repo->getPdo(),
+            ));
         }
 
         return $result;
@@ -175,11 +173,11 @@ class ReportService
         // Audit: dispatch report.abandoned so listeners can notify supervisors
         // (parallels report.reopened). Skipped on failure — no spurious email.
         if ($result) {
-            $this->events->dispatch('report.abandoned', [
-                'report' => $report->toArray(),
-                'userId' => $userId,
-                'pdo'    => $this->repo->getPdo(),
-            ]);
+            $this->events->dispatch('report.abandoned', ReportEventData::fromReport(
+                $report,
+                userId: $userId,
+                pdo: $this->repo->getPdo(),
+            ));
         }
 
         return $result;
@@ -217,11 +215,11 @@ class ReportService
 
         // Audit #12 — ne pas dispatcher si la réouverture a échoué.
         if ($result) {
-            $this->events->dispatch('report.reopened', [
-                'report' => $report->toArray(),
-                'cmd'    => $cmd,
-                'pdo'    => $this->repo->getPdo(),
-            ]);
+            $this->events->dispatch('report.reopened', ReportEventData::fromReport(
+                $report,
+                userId: $userId,
+                pdo: $this->repo->getPdo(),
+            ));
         }
 
         return $result;

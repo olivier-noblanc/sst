@@ -306,7 +306,7 @@ function getBaseUrl(): string
  * by hand at each call site — that pattern already caused a real bug once
  * (sendAgentInviteEmails() built a plain url() with no host at all).
  *
- * @param array<string, mixed> $params
+ * @param array<string, string|int|null> $params
  */
 function absoluteUrl(string $page, array $params = []): string
 {

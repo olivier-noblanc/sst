@@ -61,8 +61,8 @@ class ReportRepository
     }
 
     /**
-     * @param array<string, mixed> $data  // INSERT/UPDATE data — inherently mixed
-     * @return array<string, mixed>
+     * @param array<string, string|int|bool|null> $data  // DTO toArray() — typed primitives
+     * @return array<string, string|int|bool|null>
      */
     private function toSnakeCase(array $data): array
     {

@@ -17,7 +17,7 @@ function getHttpService(): HttpService
 }
 
 /**
- * @param array<string, mixed> $params
+ * @param array<string, string|int|null> $params
  */
 function url(string $page, array $params = []): string
 {

@@ -128,9 +128,14 @@ class UpdateAppSettingsCommandMutationTest extends TestCase
     public function testFromPostBooleanFlagsTruthTable(): void
     {
         // Kill !empty mutants on each boolean flag
-        foreach (['app_display_errors', 'app_registry_rami_enabled', 'app_registry_dgi_enabled', 'app_dgi_notify_csa'] as $key) {
+        $flags = [
+            'app_display_errors' => 'appDisplayErrors',
+            'app_registry_rami_enabled' => 'appRegistryRamiEnabled',
+            'app_registry_dgi_enabled' => 'appRegistryDgiEnabled',
+            'app_dgi_notify_csa' => 'appDgiNotifyCsa',
+        ];
+        foreach ($flags as $key => $prop) {
             $cmd = UpdateAppSettingsCommand::fromPost([$key => '1']);
-            $prop = lcfirst(str_replace('_', '', ucwords(substr($key, 4), '_')));
             $this->assertTrue($cmd->$prop, "$key='1' → true");
 
             $cmd = UpdateAppSettingsCommand::fromPost([$key => '0']);

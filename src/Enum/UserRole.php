@@ -15,6 +15,7 @@ enum UserRole: string
             self::Agent       => 'Agent',
             self::Superviseur => 'Superviseur',
             self::Chsct       => 'Membre FS/CSA',
+            default           => 'Inconnu',
         };
     }
 
@@ -24,6 +25,7 @@ enum UserRole: string
             self::Agent       => false,
             self::Superviseur => true,
             self::Chsct       => true,
+            default           => false,
         };
     }
 }

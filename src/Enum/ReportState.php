@@ -18,6 +18,7 @@ enum ReportState: string
             self::Traite    => 'Traité',
             self::Reouvert  => 'Réouvert',
             self::Abandonne => 'Abandonné',
+            default         => 'Inconnu',
         };
     }
 
@@ -30,6 +31,7 @@ enum ReportState: string
             self::Traite    => 'badge--traite',
             self::Reouvert  => 'badge--reouvert',
             self::Abandonne => 'badge--abandonne',
+            default         => '',
         };
     }
 
@@ -42,6 +44,7 @@ enum ReportState: string
             self::Traite    => [39, 174, 96],
             self::Reouvert  => [142, 68, 173],
             self::Abandonne => [149, 165, 166],
+            default         => [0, 0, 0],
         };
     }
 }

@@ -42,6 +42,8 @@ class AccessService
      * Combines role, site, visibility mode and confidentiality checks.
      *
      * Accepts SessionUser (preferred) or legacy array for backward compat.
+     *
+     * @param SessionUser|array<string, mixed> $user
      */
     public function canAccessReport(ReportData $report, SessionUser|array $user, ?string $forcedVisibility = null): bool
     {
@@ -80,6 +82,8 @@ class AccessService
      * Log access to a confidential report by supervisor/CSA/CHSCT.
      *
      * Accepts SessionUser (preferred) or legacy array.
+     *
+     * @param SessionUser|array<string, mixed> $user
      */
     public function logConfidentialReportAccess(PDO $pdo, ReportData $report, SessionUser|array $user): void
     {

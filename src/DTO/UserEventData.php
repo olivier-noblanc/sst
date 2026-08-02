@@ -17,6 +17,7 @@ final readonly class UserEventData
         public ?int $userId = null,
         public ?string $oldRole = null,
         public ?string $newRole = null,
+        /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for DB access in listeners) */
         public ?\PDO $pdo = null,
     ) {}
 
@@ -51,7 +52,7 @@ final readonly class UserEventData
      */
     public function userIdInt(): int
     {
-        return $this->userId ?? ($this->user?->id ?? 0);
+        return $this->userId ?? ($this->user !== null ? $this->user->id : 0);
     }
 
     /**

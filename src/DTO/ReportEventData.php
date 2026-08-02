@@ -18,7 +18,9 @@ final readonly class ReportEventData
         public ?string $type = null,
         public ?int $siteId = null,
         public ?int $userId = null,
+        /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for future event listeners) */
         public ?string $motif = null,
+        /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for DB access in listeners) */
         public ?\PDO $pdo = null,
     ) {}
 
@@ -42,7 +44,7 @@ final readonly class ReportEventData
      */
     public function uuid(): string
     {
-        return $this->reportUuid ?? ($this->report?->uuid ?? '');
+        return $this->reportUuid ?? ($this->report !== null ? $this->report->uuid : '');
     }
 
     /**
@@ -50,7 +52,7 @@ final readonly class ReportEventData
      */
     public function typeString(): string
     {
-        return $this->type ?? ($this->report?->type ?? '');
+        return $this->type ?? ($this->report !== null ? $this->report->type : '');
     }
 
     /**
@@ -58,7 +60,7 @@ final readonly class ReportEventData
      */
     public function siteIdInt(): int
     {
-        return $this->siteId ?? ($this->report?->siteId ?? 0);
+        return $this->siteId ?? ($this->report !== null ? $this->report->siteId : 0);
     }
 
     /**

@@ -69,13 +69,11 @@ class EventListenersTest extends TestCase
 
         registerEventListeners($events, $container);
 
-        $events->dispatch('report.created', [
-            'report' => [
-                'uuid' => 'test-uuid-1',
-                'type' => 'rsst',
-                'site_id' => 1,
-            ],
-        ]);
+        $events->dispatch('report.created', new \App\DTO\ReportEventData(
+            reportUuid: 'test-uuid-1',
+            type: 'rsst',
+            siteId: 1,
+        ));
 
         $this->assertCount(1, $calls['notifyNewReport'] ?? [], 'notifyNewReport should be called once');
         $this->assertSame('test-uuid-1', $calls['notifyNewReport'][0]['reportUuid']);
@@ -92,13 +90,11 @@ class EventListenersTest extends TestCase
 
         registerEventListeners($events, $container);
 
-        $events->dispatch('report.created', [
-            'report' => [
-                'uuid' => 'dgi-uuid',
-                'type' => 'dgi',
-                'site_id' => 5,
-            ],
-        ]);
+        $events->dispatch('report.created', new \App\DTO\ReportEventData(
+            reportUuid: 'dgi-uuid',
+            type: 'dgi',
+            siteId: 5,
+        ));
 
         $this->assertCount(1, $calls['notifyNewReport'], 'notifyNewReport must be called for DGI');
         $this->assertSame('dgi', $calls['notifyNewReport'][0]['type']);
@@ -112,12 +108,15 @@ class EventListenersTest extends TestCase
 
         registerEventListeners($events, $container);
 
-        // Missing report key — listener should silently no-op
+        // Empty array — listener should silently no-op
         $events->dispatch('report.created', []);
         $this->assertCount(0, $calls['notifyNewReport']);
 
-        // Missing uuid
-        $events->dispatch('report.created', ['report' => ['type' => 'rsst', 'site_id' => 1]]);
+        // Missing uuid — listener should silently no-op
+        $events->dispatch('report.created', new \App\DTO\ReportEventData(
+            type: 'rsst',
+            siteId: 1,
+        ));
         $this->assertCount(0, $calls['notifyNewReport']);
     }
 
@@ -140,9 +139,11 @@ class EventListenersTest extends TestCase
         registerEventListeners($events, $container);
 
         // Should NOT throw — the listener must catch exceptions
-        $events->dispatch('report.created', [
-            'report' => ['uuid' => 'test-uuid', 'type' => 'rsst', 'site_id' => 1],
-        ]);
+        $events->dispatch('report.created', new \App\DTO\ReportEventData(
+            reportUuid: 'test-uuid',
+            type: 'rsst',
+            siteId: 1,
+        ));
 
         $this->assertTrue(true, 'Listener should catch exceptions without propagating');
     }
@@ -155,10 +156,10 @@ class EventListenersTest extends TestCase
 
         registerEventListeners($events, $container);
 
-        $events->dispatch('report.responded', [
-            'report' => ['uuid' => 'resp-uuid'],
-            'userId' => 42,
-        ]);
+        $events->dispatch('report.responded', new \App\DTO\ReportEventData(
+            reportUuid: 'resp-uuid',
+            userId: 42,
+        ));
 
         $this->assertCount(1, $calls['notifyReportResponse'] ?? []);
         $this->assertSame('resp-uuid', $calls['notifyReportResponse'][0]['reportUuid']);
@@ -173,11 +174,11 @@ class EventListenersTest extends TestCase
 
         registerEventListeners($events, $container);
 
-        $events->dispatch('user.role_changed', [
-            'user' => ['id' => 7, 'role' => 'agent'],
-            'oldRole' => 'agent',
-            'newRole' => 'superviseur',
-        ]);
+        $events->dispatch('user.role_changed', new \App\DTO\UserEventData(
+            userId: 7,
+            oldRole: 'agent',
+            newRole: 'superviseur',
+        ));
 
         $this->assertCount(1, $calls['notifyRoleChange'] ?? []);
         $this->assertSame(7, $calls['notifyRoleChange'][0]['userId']);

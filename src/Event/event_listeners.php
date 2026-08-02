@@ -42,6 +42,8 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyNewReport($reportUuid, $type, $siteId);
         } catch (Throwable $e) {
+            // @silent-ok: notifications must not break the request — log and continue.
+            // The report is already in DB, the user sees a success page.
             error_log('[SST-EVENT] notifyNewReport failed: ' . $e->getMessage());
         }
     });
@@ -61,6 +63,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyReportResponse($reportUuid, $userId);
         } catch (Throwable $e) {
+            // @silent-ok: best-effort notification after main action succeeded.
             error_log('[SST-EVENT] notifyReportResponse failed: ' . $e->getMessage());
         }
     });
@@ -80,6 +83,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyReportReopen($reportUuid, $userId);
         } catch (Throwable $e) {
+            // @silent-ok: best-effort notification after main action succeeded.
             error_log('[SST-EVENT] notifyReportReopen failed: ' . $e->getMessage());
         }
     });
@@ -99,6 +103,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyReportAbandon($reportUuid, $userId);
         } catch (Throwable $e) {
+            // @silent-ok: best-effort notification after main action succeeded.
             error_log('[SST-EVENT] notifyReportAbandon failed: ' . $e->getMessage());
         }
     });
@@ -119,6 +124,7 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyRoleChange($userId, $oldRole, $newRole);
         } catch (Throwable $e) {
+            // @silent-ok: best-effort notification after main action succeeded.
             error_log('[SST-EVENT] notifyRoleChange failed: ' . $e->getMessage());
         }
     });

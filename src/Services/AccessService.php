@@ -43,7 +43,7 @@ class AccessService
      *
      * Accepts SessionUser (preferred) or legacy array for backward compat.
      */
-    public function canAccessReport(ReportData $report, SessionUser|array<string, mixed> $user, ?string $forcedVisibility = null): bool
+    public function canAccessReport(ReportData $report, SessionUser|array $user, ?string $forcedVisibility = null): bool
     {
         $role = $user instanceof SessionUser ? $user->role : (string) ($user['role'] ?? '');
         $userId = $user instanceof SessionUser ? $user->id : (int) ($user['id'] ?? 0);
@@ -81,7 +81,7 @@ class AccessService
      *
      * Accepts SessionUser (preferred) or legacy array.
      */
-    public function logConfidentialReportAccess(PDO $pdo, ReportData $report, SessionUser|array<string, mixed> $user): void
+    public function logConfidentialReportAccess(PDO $pdo, ReportData $report, SessionUser|array $user): void
     {
         $role = $user instanceof SessionUser ? $user->role : (string) ($user['role'] ?? '');
         $userId = $user instanceof SessionUser ? $user->id : (int) ($user['id'] ?? 0);

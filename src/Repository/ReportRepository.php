@@ -551,8 +551,8 @@ class ReportRepository
         $this->pdo->beginTransaction();
         try {
             $year = (int) date('Y');
-            $seq = getNextSequence($this->pdo, $data['type'], $year);
-            $reference = generateReference($data['type'], date('y'), $seq);
+            $seq = getNextSequence($this->pdo, $cmd->type, $year);
+            $reference = generateReference($cmd->type, date('y'), $seq);
             $uuid = generateUuid();
 
             $stmt = $this->pdo->prepare("

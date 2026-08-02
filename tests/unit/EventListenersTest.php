@@ -108,8 +108,8 @@ class EventListenersTest extends TestCase
 
         registerEventListeners($events, $container);
 
-        // Empty array — listener should silently no-op
-        $events->dispatch('report.created', []);
+        // Empty DTO — listener should silently no-op
+        $events->dispatch('report.created', new \App\DTO\ReportEventData());
         $this->assertCount(0, $calls['notifyNewReport']);
 
         // Missing uuid — listener should silently no-op

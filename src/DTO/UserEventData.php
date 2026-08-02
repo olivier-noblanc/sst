@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
+use PDO;
+
 /**
  * UserEventData — DTO pour les events liés aux utilisateurs.
  *
@@ -18,13 +20,13 @@ final readonly class UserEventData
         public ?string $oldRole = null,
         public ?string $newRole = null,
         /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for DB access in listeners) */
-        public ?\PDO $pdo = null,
+        public ?PDO $pdo = null,
     ) {}
 
     /**
      * Factory for role change events.
      */
-    public static function forRoleChange(SessionUser $user, string $oldRole, string $newRole, ?\PDO $pdo = null): self
+    public static function forRoleChange(SessionUser $user, string $oldRole, string $newRole, ?PDO $pdo = null): self
     {
         return new self(
             user: $user,
@@ -38,11 +40,11 @@ final readonly class UserEventData
     /**
      * Factory for simple user events (created, updated, deactivated, etc.).
      */
-    public static function forUser(SessionUser $user, ?\PDO $pdo = null): self
+    public static function forUser(?SessionUser $user, ?PDO $pdo = null): self
     {
         return new self(
             user: $user,
-            userId: $user->id,
+            userId: $user?->id,
             pdo: $pdo,
         );
     }

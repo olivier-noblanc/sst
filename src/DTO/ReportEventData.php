@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
+use PDO;
+
 /**
  * ReportEventData — DTO pour les events liés aux signalements.
  *
@@ -21,13 +23,13 @@ final readonly class ReportEventData
         /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for future event listeners) */
         public ?string $motif = null,
         /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for DB access in listeners) */
-        public ?\PDO $pdo = null,
+        public ?PDO $pdo = null,
     ) {}
 
     /**
      * Factory from a ReportData object (most common case).
      */
-    public static function fromReport(ReportData $report, ?int $userId = null, ?\PDO $pdo = null): self
+    public static function fromReport(ReportData $report, ?int $userId = null, ?PDO $pdo = null): self
     {
         return new self(
             report: $report,
@@ -60,7 +62,8 @@ final readonly class ReportEventData
      */
     public function siteIdInt(): int
     {
-        return $this->siteId ?? ($this->report !== null ? $this->report->siteId : 0);
+        $siteId = $this->siteId ?? ($this->report !== null ? $this->report->siteId : null);
+        return $siteId ?? 0;
     }
 
     /**

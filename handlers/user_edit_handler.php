@@ -104,7 +104,7 @@ $oldRole = $user->role;
 $roleChanged = ($cmd->role !== $oldRole);
 $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
 
-    $service->update($userId, $cmd, $sessionUser->id);
+$service->update($userId, $cmd, $sessionUser->id);
 
 // Bug #30 — Audit log écrit AVANT l'envoi de l'email. Si sendMail échoue,
 // l'audit log ment (notified=true). Maintenant on track le résultat réel.

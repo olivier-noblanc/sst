@@ -31,15 +31,14 @@ $reportEtat = $report->etat;
 // Access control: centralized via canAccessReport()
 $user = SessionService::getInstance()->getUserSession();
 
-if ($user === null || !new AccessService()->canAccessReport($report, ['id' => $user->id, 'role' => $user->role, 'site_id' => $user->siteId])) {
+if ($user === null || !new AccessService()->canAccessReport($report, $user)) {
     SessionService::getInstance()->setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
     new HttpService()->redirect(new HttpService()->url('home'));
 }
 
 // Log confidential report access by supervisor/CHSCT
 $pdo = getContainer()->get(PDO::class);
-assert($user !== null);
-new AccessService()->logConfidentialReportAccess($pdo, $report, ['id' => $user->id, 'role' => $user->role]);
+new AccessService()->logConfidentialReportAccess($pdo, $report, $user);
 
 // Fetch attachment blob separately (not loaded by findById for performance)
 $attachmentData = ReportRepository::instance()->getAttachmentBlob($uuid);

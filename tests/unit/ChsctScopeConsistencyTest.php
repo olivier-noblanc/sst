@@ -13,6 +13,7 @@ use App\Services\AccessService;
 use App\Services\ConfigService;
 use App\DTO\ReportData;
 use App\DTO\ReportFilter;
+use App\DTO\SessionUser;
 use App\Repository\ReportRepository;
 
 class ChsctScopeConsistencyTest extends TestCase
@@ -126,11 +127,11 @@ class ChsctScopeConsistencyTest extends TestCase
         $report->execute([':uuid' => $this->reportUuid]);
         $reportRow = $report->fetch();
 
-        $user = [
+        $user = SessionUser::fromArray([
             'id' => $this->chsctUserId,
             'role' => ROLE_CHSCT,
             'site_id' => $this->siteId,
-        ];
+        ]);
 
         // canAccessReport should block
         $this->assertFalse(
@@ -166,11 +167,11 @@ class ChsctScopeConsistencyTest extends TestCase
         $report->execute([':uuid' => $this->reportUuid]);
         $reportRow = $report->fetch();
 
-        $user = [
+        $user = SessionUser::fromArray([
             'id' => $this->chsctUserId,
             'role' => ROLE_CHSCT,
             'site_id' => $this->siteId,
-        ];
+        ]);
 
         // canAccessReport should allow
         $this->assertTrue(
@@ -209,11 +210,11 @@ class ChsctScopeConsistencyTest extends TestCase
         $report->execute([':uuid' => $this->reportUuid]);
         $reportRow = $report->fetch();
 
-        $user = [
+        $user = SessionUser::fromArray([
             'id' => $this->chsctUserId,
             'role' => ROLE_CHSCT,
             'site_id' => $this->siteId,
-        ];
+        ]);
 
         // canAccessReport should allow
         $this->assertTrue(
@@ -248,11 +249,11 @@ class ChsctScopeConsistencyTest extends TestCase
         $report->execute([':uuid' => $this->reportUuid]);
         $reportRow = $report->fetch();
 
-        $user = [
+        $user = SessionUser::fromArray([
             'id' => 999,
             'role' => ROLE_SUPERVISEUR,
             'site_id' => $this->siteId,
-        ];
+        ]);
 
         $this->assertTrue(
             $this->access->canAccessReport($this->rowToReportData($reportRow), $user),

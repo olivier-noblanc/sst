@@ -19,14 +19,14 @@ if ($user === null) {
     exit;
 }
 
-if (!canAccessReport($report, ['id' => $user->id, 'role' => $user->role, 'site_id' => $user->siteId])) {
+if (!canAccessReport($report, $user)) {
     $session->setFlash('error', 'Vous n\'avez pas accès à ce signalement.');
     $http->redirect($http->url('home'));
 }
 
 // Log confidential report access by supervisor/CHSCT
 $pdo = getDB();
-logConfidentialReportAccess($pdo, $report, ['id' => $user->id, 'role' => $user->role]);
+logConfidentialReportAccess($pdo, $report, $user);
 
 // If report is abandoned and user is not declarant nor supervisor/chsct
 $userIdRaw = $user->id;

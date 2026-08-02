@@ -222,7 +222,7 @@ jobs:
             -d @/tmp/comment_payload.json
 
   static-analysis:
-    name: PHPArkitect + Rector + Deptrac
+    name: PHPArkitect + Deptrac
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -253,9 +253,6 @@ jobs:
       - name: PHPArkitect
         run: php vendor/bin/phparkitect check --config=phparkitect.php 2>&1 | tee phparkitect-output.txt
 
-      - name: Rector (dry-run)
-        run: php vendor/bin/rector process --dry-run --no-progress-bar --config=rector.php 2>&1 | tee rector-output.txt
-
       - name: Deptrac
         run: php vendor/bin/deptrac analyse --no-progress 2>&1 | tee deptrac-output.txt
 
@@ -266,8 +263,8 @@ jobs:
         run: |
           set +e
           {
-            echo "### ❌ CI \"PHPArkitect + Rector + Deptrac\" a échoué — commit \`${GITHUB_SHA::8}\`"
-            for f in phparkitect-output.txt rector-output.txt deptrac-output.txt; do
+            echo "### ❌ CI \"PHPArkitect + Deptrac\" a échoué — commit \`${GITHUB_SHA::8}\`"
+            for f in phparkitect-output.txt deptrac-output.txt; do
               if [ -s "$f" ]; then
                 echo ""
                 echo "<details><summary>$f (dernières 200 lignes)</summary>"
@@ -465,6 +462,82 @@ jobs:
             echo ""
             echo '```'
             tail -n 200 cs-fixer-output.txt
+            echo '```'
+            echo "</details>"
+            echo ""
+            echo "[Run complet]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > /tmp/comment_body.md
+          python3 -c "
+          import json
+          body = open('/tmp/comment_body.md').read()
+          if len(body) > 65000:
+              body = body[:65000] + '\n\n...(tronqué)'
+          print(json.dumps({'body': body}))
+          " > /tmp/comment_payload.json
+          curl -s -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -d @/tmp/comment_payload.json
+
+  # ── Rector (modernisation PHP 8.5) ───────────────────────────
+  # Job standalone : vérifie que le code est à jour des règles de
+  # modernisation (PHP 8.5 : readonly, asymmetric visibility, typed
+  # constants, first-class callable, etc.). Échec = Rector aurait
+  # modifié des fichiers — il faut lancer `composer rector` localement
+  # puis committer.
+  rector:
+    name: Rector (modernisation PHP 8.5)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash --noprofile --norc -eo pipefail {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: none
+          tools: composer
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php85-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Rector (dry-run)
+        run: php vendor/bin/rector process --dry-run --no-progress-bar --config=rector.php 2>&1 | tee rector-output.txt
+
+      - name: Report failure as commit comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          {
+            echo "### ❌ CI \"Rector (modernisation)\" a échoué — commit \`${GITHUB_SHA::8}\`"
+            echo ""
+            echo "Rector détecte du code à moderniser (PHP 8.5). Lancer localement :"
+            echo ""
+            echo '```bash'
+            echo 'composer rector'
+            echo '```'
+            echo ""
+            echo "<details><summary>rector-output.txt (dernières 200 lignes)</summary>"
+            echo ""
+            echo '```'
+            tail -n 200 rector-output.txt
             echo '```'
             echo "</details>"
             echo ""

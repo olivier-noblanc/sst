@@ -1,6 +1,7 @@
 <?php
 
 use App\DTO\ReportData;
+use App\DTO\SessionUser;
 use App\Services\AccessService;
 
 /**
@@ -17,18 +18,12 @@ function getAccessService(): AccessService
     return new AccessService();
 }
 
-/**
- * @param array{id: int, role: string, ...} $user
- */
-function canAccessReport(ReportData $report, array $user, ?string $forcedVisibility = null): bool
+function canAccessReport(ReportData $report, SessionUser $user, ?string $forcedVisibility = null): bool
 {
     return getAccessService()->canAccessReport($report, $user, $forcedVisibility);
 }
 
-/**
- * @param array{id: int, role: string, ...} $user
- */
-function logConfidentialReportAccess(PDO $pdo, ReportData $report, array $user): void
+function logConfidentialReportAccess(PDO $pdo, ReportData $report, SessionUser $user): void
 {
     getAccessService()->logConfidentialReportAccess($pdo, $report, $user);
 }

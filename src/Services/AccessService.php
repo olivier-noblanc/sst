@@ -40,15 +40,11 @@ class AccessService
     /**
      * Centralize access control for a report.
      * Combines role, site, visibility mode and confidentiality checks.
-     *
-     * Accepts SessionUser (preferred) or legacy array for backward compat.
-     *
-     * @param SessionUser|array<string, mixed> $user
      */
-    public function canAccessReport(ReportData $report, SessionUser|array $user, ?string $forcedVisibility = null): bool
+    public function canAccessReport(ReportData $report, SessionUser $user, ?string $forcedVisibility = null): bool
     {
-        $role = $user instanceof SessionUser ? $user->role : (string) ($user['role'] ?? '');
-        $userId = $user instanceof SessionUser ? $user->id : (int) ($user['id'] ?? 0);
+        $role = $user->role;
+        $userId = $user->id;
 
         if ($role === UserRole::Superviseur->value) {
             return true;
@@ -62,7 +58,6 @@ class AccessService
 
         $visibility = $forcedVisibility ?? $this->getReportVisibilityMode($report->type);
         $reportDeclarantId = $report->declarantId;
-        // $userId already extracted above from SessionUser|array
 
         // Linked agents have the same read access as the declarant
         $isLinkedAgent = ReportRepository::instance()->isLinkedAgent($report->uuid, $userId);
@@ -80,15 +75,11 @@ class AccessService
 
     /**
      * Log access to a confidential report by supervisor/CSA/CHSCT.
-     *
-     * Accepts SessionUser (preferred) or legacy array.
-     *
-     * @param SessionUser|array<string, mixed> $user
      */
-    public function logConfidentialReportAccess(PDO $pdo, ReportData $report, SessionUser|array $user): void
+    public function logConfidentialReportAccess(PDO $pdo, ReportData $report, SessionUser $user): void
     {
-        $role = $user instanceof SessionUser ? $user->role : (string) ($user['role'] ?? '');
-        $userId = $user instanceof SessionUser ? $user->id : (int) ($user['id'] ?? 0);
+        $role = $user->role;
+        $userId = $user->id;
 
         if ($report->isConfidential !== 1) {
             return;

@@ -10,6 +10,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\SessionUser;
 
 class AccessHelperIntegrationTest extends TestCase
 {
@@ -64,13 +65,13 @@ class AccessHelperIntegrationTest extends TestCase
         $this->chsctId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'chsct1'")->fetchColumn();
     }
 
-    private function makeUser(array $overrides = []): array
+    private function makeUser(array $overrides = []): SessionUser
     {
-        return array_merge([
+        return SessionUser::fromArray(array_merge([
             'id' => $this->agentId1,
             'site_id' => $this->siteId1,
             'role' => 'agent',
-        ], $overrides);
+        ], $overrides));
     }
 
     private function makeReport(array $overrides = []): \App\DTO\ReportData

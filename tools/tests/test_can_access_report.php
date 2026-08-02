@@ -1,5 +1,6 @@
 <?php
 use App\DTO\ReportData;
+use App\DTO\SessionUser;
 use App\Enum\VisibilityMode;
 
 /**
@@ -135,11 +136,11 @@ foreach ($roles as $role) {
                         'type' => 'rsst',
                     ]);
 
-                    $user = [
+                    $user = SessionUser::fromArray([
                         'id' => $userId,
                         'site_id' => $siteId,
                         'role' => $role,
-                    ];
+                    ]);
 
                     // Expected result: derive from the rules
                     if (in_array($role, ['superviseur', 'chsct'])) {
@@ -181,15 +182,15 @@ echo "--- Cas limites ---\n";
 
 // 1. Superviseur with different site — should still have access
 $report = makeReportData(['site_id' => 999, 'declarant_id' => $otherUserId, 'is_confidential' => 1, 'type' => 'rami']);
-$user = ['id' => $userId, 'site_id' => $siteId, 'role' => 'superviseur'];
+$user = SessionUser::fromArray(['id' => $userId, 'site_id' => $siteId, 'role' => 'superviseur']);
 assert_can_access(true, canAccessReport($report, $user, 'confidential'), 'superviseur × other site × confidential = ALLOW');
 
 // 2. CHSCT with different site — should still have access
-$user = ['id' => $userId, 'site_id' => $siteId, 'role' => 'chsct'];
+$user = SessionUser::fromArray(['id' => $userId, 'site_id' => $siteId, 'role' => 'chsct']);
 assert_can_access(true, canAccessReport($report, $user, 'confidential'), 'chsct × other site × confidential = ALLOW');
 
 // 3. Agent in public mode, different site — DENY
-$user = ['id' => $userId, 'site_id' => $siteId, 'role' => 'agent'];
+$user = SessionUser::fromArray(['id' => $userId, 'site_id' => $siteId, 'role' => 'agent']);
 assert_can_access(false, canAccessReport($report, $user, 'public'), 'agent × public × other site = DENY');
 
 // 4. Agent in agent_choice mode, not confidential, other declarant — ALLOW

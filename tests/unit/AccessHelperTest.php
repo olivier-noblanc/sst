@@ -9,6 +9,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\SessionUser;
 
 require_once __DIR__ . '/../../src/helpers/access.php';
 
@@ -197,56 +198,56 @@ class AccessHelperTest extends TestCase
     public function testSuperviseurCanAlwaysAccess(): void
     {
         $report = $this->makeReportForAccess(1, 99, (bool) 1, 'rsst');
-        $user = ['id' => 5, 'site_id' => 2, 'role' => 'superviseur'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 2, 'role' => 'superviseur']);
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testChsctCanAlwaysAccessWithConsent(): void
     {
         $report = $this->makeReportForAccess(1, 99, (bool) 1, 'rsst', (bool) 1);
-        $user = ['id' => 5, 'site_id' => 2, 'role' => 'chsct'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 2, 'role' => 'chsct']);
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testChsctCannotAccessWithoutConsent(): void
     {
         $report = $this->makeReportForAccess(1, 99, (bool) 1, 'rsst', (bool) 0);
-        $user = ['id' => 5, 'site_id' => 2, 'role' => 'chsct'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 2, 'role' => 'chsct']);
         $this->assertFalse(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentCanAccessOtherSiteReport(): void
     {
         $report = $this->makeReportForAccess(1, 99, (bool) 0, 'rsst');
-        $user = ['id' => 5, 'site_id' => 2, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 2, 'role' => 'agent']);
         $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCannotAccessOtherConfidentialReport(): void
     {
         $report = $this->makeReportForAccess(1, 99, (bool) 1, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'agent']);
         $this->assertFalse(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentCanAccessOwnConfidentialReport(): void
     {
         $report = $this->makeReportForAccess(1, 5, (bool) 1, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'agent']);
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentCanAccessPublicReportOnSameSite(): void
     {
         $report = $this->makeReportForAccess(1, 99, (bool) 0, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'agent']);
         $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentChoiceModeRespectsConfidentialFlag(): void
     {
         $report = $this->makeReportForAccess(1, 99, (bool) 0, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'agent']);
         $this->assertTrue(canAccessReport($report, $user, 'agent_choice'));
 
         $report2 = $this->makeReportForAccess(1, 99, (bool) 1, 'rsst');
@@ -256,42 +257,42 @@ class AccessHelperTest extends TestCase
     public function testAgentCanAccessOwnConfidentialReportInAgentChoiceMode(): void
     {
         $report = $this->makeReportForAccess(1, 5, (bool) 1, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'agent']);
         $this->assertTrue(canAccessReport($report, $user, 'agent_choice'));
     }
 
     public function testSuperviseurCanAccessConfidentialAcrossSites(): void
     {
         $report = $this->makeReportForAccess(10, 99, (bool) 1, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'superviseur'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'superviseur']);
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testChsctCanAccessPublicAcrossSitesWithConsent(): void
     {
         $report = $this->makeReportForAccess(10, 99, (bool) 0, 'rsst', (bool) 1);
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'chsct'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'chsct']);
         $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCanAccessDifferentSiteInPublicMode(): void
     {
         $report = $this->makeReportForAccess(2, 99, (bool) 0, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'agent']);
         $this->assertTrue(canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCanAccessOwnConfidentialInConfidentialMode(): void
     {
         $report = $this->makeReportForAccess(1, 5, (bool) 1, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'agent']);
         $this->assertTrue(canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentCannotAccessOtherConfidentialInConfidentialModeSameSite(): void
     {
         $report = $this->makeReportForAccess(1, 99, (bool) 1, 'rsst');
-        $user = ['id' => 5, 'site_id' => 1, 'role' => 'agent'];
+        $user = SessionUser::fromArray(['id' => 5, 'site_id' => 1, 'role' => 'agent']);
         $this->assertFalse(canAccessReport($report, $user, 'confidential'));
     }
 }

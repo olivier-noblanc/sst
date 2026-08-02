@@ -12,6 +12,7 @@
 use PHPUnit\Framework\TestCase;
 use App\Services\AccessService;
 use App\DTO\ReportData;
+use App\DTO\SessionUser;
 
 class AccessServiceTest extends TestCase
 {
@@ -64,6 +65,11 @@ class AccessServiceTest extends TestCase
         return new ReportData(...array_merge($defaults, $overrides));
     }
 
+    private function makeUser(array $overrides = []): SessionUser
+    {
+        return SessionUser::fromArray($overrides);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // canAccessReport()
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -71,66 +77,66 @@ class AccessServiceTest extends TestCase
     public function testSuperviseurCanAccessAnyReport(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 99, 'consentSyndicat' => 0]);
-        $user = ['id' => 1, 'role' => ROLE_SUPERVISEUR, 'site_id' => 2];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_SUPERVISEUR, 'site_id' => 2]);
         $this->assertTrue($this->service->canAccessReport($report, $user));
     }
 
     public function testChsctCanAccessReportWithConsentSyndicat(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 99, 'consentSyndicat' => 1]);
-        $user = ['id' => 1, 'role' => ROLE_CHSCT, 'site_id' => 1];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_CHSCT, 'site_id' => 1]);
         $this->assertTrue($this->service->canAccessReport($report, $user));
     }
 
     public function testChsctCannotAccessReportWithoutConsentSyndicat(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 99, 'consentSyndicat' => 0]);
-        $user = ['id' => 1, 'role' => ROLE_CHSCT, 'site_id' => 1];
+        $user = $this->makeUser(['id' => 1, 'role' => ROLE_CHSCT, 'site_id' => 1]);
         $this->assertFalse($this->service->canAccessReport($report, $user));
     }
 
     public function testAgentCanAccessReportOnSameSitePublicVisibility(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2]);
-        $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
+        $user = $this->makeUser(['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1]);
         $this->assertTrue($this->service->canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCanAccessReportRegardlessOfSite(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2]);
-        $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 2];
+        $user = $this->makeUser(['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 2]);
         $this->assertTrue($this->service->canAccessReport($report, $user, 'public'));
     }
 
     public function testAgentCannotAccessConfidentialReportTheyDidNotDeclare(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2]);
-        $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
+        $user = $this->makeUser(['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1]);
         $this->assertFalse($this->service->canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentCanAccessConfidentialReportTheyDeclared(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 3]);
-        $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
+        $user = $this->makeUser(['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1]);
         $this->assertTrue($this->service->canAccessReport($report, $user, 'confidential'));
     }
 
     public function testAgentChoiceConfidentialReportAccessibleOnlyToDeclarant(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2, 'isConfidential' => 1]);
-        $userOther = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
+        $userOther = $this->makeUser(['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1]);
         $this->assertFalse($this->service->canAccessReport($report, $userOther, 'agent_choice'));
 
-        $userDeclarant = ['id' => 2, 'role' => ROLE_AGENT, 'site_id' => 1];
+        $userDeclarant = $this->makeUser(['id' => 2, 'role' => ROLE_AGENT, 'site_id' => 1]);
         $this->assertTrue($this->service->canAccessReport($report, $userDeclarant, 'agent_choice'));
     }
 
     public function testAgentChoiceNonConfidentialReportAccessibleToAllOnSite(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 2, 'isConfidential' => 0]);
-        $user = ['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1];
+        $user = $this->makeUser(['id' => 3, 'role' => ROLE_AGENT, 'site_id' => 1]);
         $this->assertTrue($this->service->canAccessReport($report, $user, 'agent_choice'));
     }
 

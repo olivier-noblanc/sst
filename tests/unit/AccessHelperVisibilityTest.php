@@ -8,6 +8,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\SessionUser;
 
 require_once __DIR__ . '/../../src/helpers/access.php';
 
@@ -95,7 +96,7 @@ class AccessHelperVisibilityTest extends TestCase
         $accessorId = $this->makeSiteAndUser('superviseur');
         $report = $this->makeReport($declarantId, true);
 
-        logConfidentialReportAccess(getDB(), $report, ['id' => $accessorId, 'role' => 'superviseur']);
+        logConfidentialReportAccess(getDB(), $report, SessionUser::fromArray(['id' => $accessorId, 'role' => 'superviseur']));
 
         $stmt = getDB()->prepare('SELECT report_uuid, user_id, role FROM report_access_log WHERE report_uuid = ?');
         $stmt->execute([$report->uuid]);
@@ -112,7 +113,7 @@ class AccessHelperVisibilityTest extends TestCase
         $accessorId = $this->makeSiteAndUser('superviseur');
         $report = $this->makeReport($declarantId, false);
 
-        logConfidentialReportAccess(getDB(), $report, ['id' => $accessorId, 'role' => 'superviseur']);
+        logConfidentialReportAccess(getDB(), $report, SessionUser::fromArray(['id' => $accessorId, 'role' => 'superviseur']));
 
         $this->assertEquals(0, $this->accessLogCountFor($report->uuid));
     }
@@ -123,7 +124,7 @@ class AccessHelperVisibilityTest extends TestCase
         $accessorId = $this->makeSiteAndUser('agent');
         $report = $this->makeReport($declarantId, true);
 
-        logConfidentialReportAccess(getDB(), $report, ['id' => $accessorId, 'role' => 'agent']);
+        logConfidentialReportAccess(getDB(), $report, SessionUser::fromArray(['id' => $accessorId, 'role' => 'agent']));
 
         $this->assertEquals(0, $this->accessLogCountFor($report->uuid));
     }
@@ -133,7 +134,7 @@ class AccessHelperVisibilityTest extends TestCase
         $declarantId = $this->makeSiteAndUser('superviseur');
         $report = $this->makeReport($declarantId, true);
 
-        logConfidentialReportAccess(getDB(), $report, ['id' => $declarantId, 'role' => 'superviseur']);
+        logConfidentialReportAccess(getDB(), $report, SessionUser::fromArray(['id' => $declarantId, 'role' => 'superviseur']));
 
         $this->assertEquals(0, $this->accessLogCountFor($report->uuid));
     }

@@ -1889,6 +1889,7 @@ tr:hover td {
 }
 
 .alert--success { background: var(--color-success-bg); color: var(--color-success-text); border: 1px solid var(--color-success-border); }
+.alert--created { background: var(--color-success-bg); color: var(--color-success-text); border: 1px solid var(--color-success-border); }
 .alert--error   { background: var(--color-danger-bg); color: var(--color-danger-text); border: 1px solid var(--color-danger-border); }
 .alert--danger  { background: var(--color-danger-bg); color: var(--color-danger-text); border: 1px solid var(--color-danger-border); }
 .alert--warning { background: var(--color-warning-bg); color: var(--color-warning-text); border: 1px solid var(--color-warning-border); }

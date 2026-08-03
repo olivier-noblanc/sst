@@ -37,7 +37,7 @@ jobs:
         # #84) — ce n'est pas hérité automatiquement d'un job à l'autre.
         shell: bash --noprofile --norc -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -47,7 +47,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
@@ -115,7 +115,7 @@ jobs:
       run:
         shell: bash --noprofile --norc -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -125,7 +125,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
@@ -231,7 +231,7 @@ jobs:
       run:
         shell: bash --noprofile --norc -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -241,7 +241,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
@@ -303,7 +303,7 @@ jobs:
       run:
         shell: bash --noprofile --norc -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -313,7 +313,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
@@ -370,7 +370,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -380,7 +380,7 @@ jobs:
           coverage: none
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
@@ -426,7 +426,7 @@ jobs:
       run:
         shell: bash --noprofile --norc -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -437,7 +437,7 @@ jobs:
           tools: composer
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
@@ -496,7 +496,7 @@ jobs:
       run:
         shell: bash --noprofile --norc -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -507,7 +507,7 @@ jobs:
           tools: composer
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
@@ -564,7 +564,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
@@ -575,7 +575,7 @@ jobs:
           tools: composer
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}

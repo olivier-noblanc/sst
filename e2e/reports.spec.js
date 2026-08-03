@@ -60,7 +60,7 @@ test.describe('Report Creation', () => {
     await createReport(page, 'rsst');
 
     // Verify success flash message
-    await expect(page.locator('.alert--success')).toContainText(/enregistré/);
+    await expect(page.locator('.alert--created')).toContainText(/enregistré/);
 
     // Verify report view displays key data
     await expect(page.locator('#main-content')).toContainText('Test E2E Signalement');
@@ -74,7 +74,7 @@ test.describe('Report Creation', () => {
 
     await createReport(page, 'rami');
 
-    await expect(page.locator('.alert--success')).toContainText(/enregistré/);
+    await expect(page.locator('.alert--created')).toContainText(/enregistré/);
     await expect(page.locator('#main-content')).toContainText('Test E2E Signalement');
   });
 
@@ -85,7 +85,7 @@ test.describe('Report Creation', () => {
 
     await createReport(page, 'dgi');
 
-    await expect(page.locator('.alert--success')).toContainText(/enregistré/);
+    await expect(page.locator('.alert--created')).toContainText(/enregistré/);
     await expect(page.locator('#main-content')).toContainText('Test E2E Signalement');
   });
 
@@ -148,7 +148,7 @@ test.describe('Report Creation', () => {
 
     await createReport(page, 'rami', { pourCompte: true });
 
-    await expect(page.locator('.alert--success')).toContainText(/enregistré/);
+    await expect(page.locator('.alert--created')).toContainText(/enregistré/);
   });
 
 });

@@ -113,7 +113,7 @@ $dynamicCssClasses = [
     'badge--cat-auth', 'badge--cat-backup', 'badge--cat-config', 'badge--cat-default',
     'badge--cat-export', 'badge--cat-gdpr', 'badge--cat-report', 'badge--cat-site', 'badge--cat-user',
     // Alert variants (built dynamically from flash messages)
-    'alert--error', 'alert--success',
+    'alert--error', 'alert--success', 'alert--created',
     // Breadcrumb (built dynamically in FormattingService)
     'breadcrumb', 'breadcrumb__item', 'breadcrumb__current', 'breadcrumb__separator',
     // Login (standalone page, not in templates/)

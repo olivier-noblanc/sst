@@ -545,6 +545,19 @@ Ces 45 échecs étaient présents avant cette session (depuis le commit `0766f80
 
 ---
 
+### Session 2026-08-03 — ✅ TERMINÉE (commits 881e66d, 79ef5fa)
+
+| Item | Statut |
+|------|--------|
+| uopz désinstallé (exit() cassait les handlers tests) | ✅ |
+| Flash type 'created' + enum cleanup + SessionUser bug | ✅ |
+| E2E .alert--success → .alert--created | ✅ |
+| actions/checkout@v4 → @v5 + actions/cache@v4 → @v5 | ✅ |
+| CI GitHub Actions 8/8 vert | ✅ |
+| Tests unitaires 1556 OK, PHPStan 0 erreurs | ✅ |
+
+---
+
 ## Audit CTO 2026-07-26 — 98 bugs identifiés + 8 refactorings
 
 Suite à l'audit CTO DDD/TDD complet (commit de réf `64bd9a4`), **98 bugs fonctionnels** identifiés sur 5 périmètres :
@@ -672,15 +685,15 @@ La P25 (TODO.md) prétendait « TERMINÉ » pour les registres customs, mais un 
 | P1.3 | `notifyNewReport()` lit `registries.notify_chsct` (au lieu de `=== Dgi->value`) | `mail_notifications.php:51` | N'importe quel registre custom peut déclencher la notif CSA |
 | P1.4 | Réécrire `testRegistryLabelsMatchEnum` et `testRegistryShortLabelsMatchEnum` | `tests/unit/ReportTypeTest.php:78-97` | Tests cassés en silence depuis P25d (référençaient constante supprimée) |
 
-### Phase 2 — 🟡 EN COURS
+### Phase 2 — ✅ TERMINÉE (commit c69e058)
 
 | # | Fix | Fichier | Statut |
 |---|-----|---------|--------|
-| P2.1 | Extraire `RegistryPolicy` (1 service ~50 lignes + 3 colonnes DB `lieu_label`, `warning_panel`, `requires_pour_compte`) | à créer | ⏳ À faire |
+| P2.1 | Extraire `RegistryPolicy` (1 service ~50 lignes + 3 colonnes DB `lieu_label`, `warning_panel`, `requires_pour_compte`) | à créer | ✅ Terminé (commit c69e058) |
 | P2.2 | `FormattingService::getRegistryColor/getRegistryBadgeClass` dynamiques via `color_theme` | `src/Services/FormattingService.php` | ✅ Terminé |
 | P2.3 | `CreateReportCommand::$type` : `ReportType` → `string` (validé par handler via `findByCode()`) | `src/DTO/CreateReportCommand.php` | ✅ Terminé |
-| P2.4 | `pages/statistics.php` et `pages/synthesis.php` : remplacer `ReportType::cases()` par `findEnabled()` | à migrer | ⏳ À faire |
-| P2.5 | `pages/help/_registres.php` : 3 cartes hardcodées → itération dynamique | à migrer | ⏳ À faire |
+| P2.4 | `pages/statistics.php` et `pages/synthesis.php` : remplacer `ReportType::cases()` par `findEnabled()` | à migrer | ✅ Terminé (commit c69e058) |
+| P2.5 | `pages/help/_registres.php` : 3 cartes hardcodées → itération dynamique | à migrer | ✅ Terminé (commit c69e058) |
 
 ### Phase 3 — ⏳ À FAIRE
 
@@ -691,6 +704,8 @@ La P25 (TODO.md) prétendait « TERMINÉ » pour les registres customs, mais un 
 | P3.3 | Export CSV incluant dynamiquement les champs `registry_fields` | `handlers/export_handler.php` |
 
 ### Bugs E2E pré-existants (14 failures sur baseline `f67545d`)
+
+> **Note :** Cette liste est **partiellement corrigée**. Voir la section « Bugs E2E pré-existants — partiellement corrigés » plus bas pour les fixes déjà appliqués (sélecteurs obsolètes, seed RAMI fields, registres manquants). Il reste ~4-6 bugs à investiguer parmi ceux listés ci-dessous.
 
 À investiguer — pas liés à mes changements mais le user veut du code sans bug.
 
@@ -738,7 +753,7 @@ Voir `worklog.md` Task ID `modular-audit` (210 lignes) pour l'audit complet.
 | PHPArkitect | ✅ |
 | Rector | ✅ |
 | Deptrac | ✅ |
-| E2E | ⏳ (en cours) |
+| E2E | ✅ |
 
 ---
 

@@ -53,7 +53,7 @@ if ($type === ReportType::Rami->value) {
 
 if (!empty($errors)) {
     setFormErrors($errors);
-    setFormData(App\DTO\FormData::fromPost($_POST));
+    setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('report_edit', ['uuid' => $reportUuid]));
 }
 
@@ -112,7 +112,7 @@ try {
     // @silent-ok: handler boundary — converts to a user-facing flash error + redirect,
     // the standard error-surfacing mechanism for this HTTP layer. Not silent: the user sees it.
     $session->setFlash('error', e($e->getMessage()));
-    setFormData(App\DTO\FormData::fromPost($_POST));
+    setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('report_edit', ['uuid' => $reportUuid]));
 }
 

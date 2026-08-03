@@ -1,5 +1,6 @@
 <?php
 
+use App\DTO\FormData;
 use App\Services\HttpService;
 use App\Services\SessionService;
 
@@ -14,7 +15,6 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 /** @var array<string, string> $_POST */
 
-use App\DTO\FormData;
 use App\DTO\CreateUserCommand;
 use App\Services\UserService;
 
@@ -28,7 +28,7 @@ $errors = $service->validate($cmd);
 
 if (!empty($errors)) {
     setFormErrors($errors);
-    setFormData(App\DTO\FormData::fromPost($_POST));
+    setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('users', ['tab' => 'create']));
 }
 

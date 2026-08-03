@@ -32,9 +32,9 @@ class SessionHelperFlashTest extends TestCase
     {
         setFlash('success', 'Operation completed');
         $flash = getFlash();
-        $this->assertIsArray($flash);
-        $this->assertEquals('success', $flash['type']);
-        $this->assertEquals('Operation completed', $flash['message']);
+        $this->assertNotNull($flash);
+        $this->assertSame('success', $flash->type);
+        $this->assertSame('Operation completed', $flash->message);
     }
 
     public function testGetFlashClearsMessage(): void
@@ -55,28 +55,28 @@ class SessionHelperFlashTest extends TestCase
     {
         setFlash('success', 'OK');
         $flash = getFlash();
-        $this->assertEquals('success', $flash['type']);
+        $this->assertSame('success', $flash->type);
     }
 
     public function testFlashTypeError(): void
     {
         setFlash('error', 'Fail');
         $flash = getFlash();
-        $this->assertEquals('error', $flash['type']);
+        $this->assertSame('error', $flash->type);
     }
 
     public function testFlashTypeWarning(): void
     {
         setFlash('warning', 'Careful');
         $flash = getFlash();
-        $this->assertEquals('warning', $flash['type']);
+        $this->assertSame('warning', $flash->type);
     }
 
     public function testFlashTypeInfo(): void
     {
         setFlash('info', 'FYI');
         $flash = getFlash();
-        $this->assertEquals('info', $flash['type']);
+        $this->assertSame('info', $flash->type);
     }
 
     public function testFlashOverwritesPrevious(): void
@@ -84,7 +84,7 @@ class SessionHelperFlashTest extends TestCase
         setFlash('error', 'First error');
         setFlash('success', 'Then success');
         $flash = getFlash();
-        $this->assertEquals('success', $flash['type']);
-        $this->assertEquals('Then success', $flash['message']);
+        $this->assertSame('success', $flash->type);
+        $this->assertSame('Then success', $flash->message);
     }
 }

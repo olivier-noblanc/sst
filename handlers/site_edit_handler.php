@@ -47,7 +47,7 @@ if (!empty($code) && $code !== (string) ($site['code'] ?? '') && $repo->findByCo
 
 if (!empty($errors)) {
     setFormErrors($errors);
-    setFormData(App\DTO\FormData::fromPost($_POST));
+    setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('site_edit', ['id' => $siteId]));
 }
 

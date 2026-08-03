@@ -36,7 +36,7 @@ final readonly class FormData implements ArrayAccess
      * `array<int, string>` — templates do `in_array($key, $formData['etats'])`
      * which only works if the nested structure is preserved).
      *
-     * @param array<string, mixed> $post
+     * @param array<array-key, mixed> $post
      */
     public static function fromPost(array $post): self
     {
@@ -53,7 +53,7 @@ final readonly class FormData implements ArrayAccess
     /**
      * Restore from $_SESSION['form_data'] raw storage.
      *
-     * @param array<string, mixed> $data
+     * @param array<array-key, mixed> $data
      */
     public static function fromSession(array $data): self
     {
@@ -68,6 +68,8 @@ final readonly class FormData implements ArrayAccess
 
     /**
      * Get a string field (with default fallback).
+     *
+     * @phpstan-ignore shipmonk.deadMethod
      */
     public function getString(string $key, string $default = ''): string
     {
@@ -77,6 +79,8 @@ final readonly class FormData implements ArrayAccess
 
     /**
      * Get an integer field (with default fallback).
+     *
+     * @phpstan-ignore shipmonk.deadMethod
      */
     public function getInt(string $key, int $default = 0): int
     {
@@ -86,6 +90,8 @@ final readonly class FormData implements ArrayAccess
 
     /**
      * Get a boolean field (with default fallback).
+     *
+     * @phpstan-ignore shipmonk.deadMethod
      */
     public function getBool(string $key, bool $default = false): bool
     {
@@ -103,6 +109,8 @@ final readonly class FormData implements ArrayAccess
 
     /**
      * Check if a field is "empty" (PHP empty() semantics — covers '', 0, '0', null, false, []).
+     *
+     * @phpstan-ignore shipmonk.deadMethod
      */
     public function isEmpty(string $key): bool
     {

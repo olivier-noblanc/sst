@@ -48,6 +48,7 @@ trait NoMixedArrayTrait
         '/tools/',
         '/seed/',
         'src/database.php',           // PDO fetch
+        'src/DTO/FormData.php',       // $_POST boundary — accepts raw superglobal
         'src/Services/SessionService.php',  // I/O boundary - $_SESSION storage is mixed
         'src/Repository/ReportRepository.php',  // I/O boundary - mixed is inherent
         'src/Repository/AuditRepository.php',  // I/O boundary - mixed is inherent

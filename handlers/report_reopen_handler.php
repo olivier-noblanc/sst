@@ -21,7 +21,7 @@ $motifReouverture = trim((string) ($_POST['motif_reouverture'] ?? ''));
 
 if (mb_strlen($motifReouverture, 'UTF-8') < 10) {
     $session->setFlash('error', 'Le motif de réouverture doit contenir au moins 10 caractères.');
-    setFormData(App\DTO\FormData::fromPost($_POST));
+    setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('report_reopen', ['uuid' => $reportUuid]));
 }
 

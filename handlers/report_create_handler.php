@@ -42,18 +42,18 @@ $siteId = (int) ($_POST['site_id'] ?? 0);
 if (!isNoSiteMode($pdo)) {
     if ($siteId <= 0) {
         setFormErrors(['site_id' => 'L\'unité départementale est obligatoire.']);
-        setFormData(App\DTO\FormData::fromPost($_POST));
+        setFormData(FormData::fromPost($_POST));
         $http->redirect($http->url('report_create', ['type' => $type]));
     }
     $site = SiteRepository::instance()->findById($siteId);
     if ($site === null || empty($site['is_active'])) {
         setFormErrors(['site_id' => 'Unité invalide ou désactivée.']);
-        setFormData(App\DTO\FormData::fromPost($_POST));
+        setFormData(FormData::fromPost($_POST));
         $http->redirect($http->url('report_create', ['type' => $type]));
     }
     if (!canSeeAllSites() && $siteId !== ($user->siteId ?? 0)) {
         setFormErrors(['site_id' => 'Vous ne pouvez créer un signalement que pour votre ' . $config->get('app_label_unite', 'UR') . '.']);
-        setFormData(App\DTO\FormData::fromPost($_POST));
+        setFormData(FormData::fromPost($_POST));
         $http->redirect($http->url('report_create', ['type' => $type]));
     }
 }
@@ -68,7 +68,7 @@ if (!empty($linkedEmailsRaw)) {
     } catch (InvalidArgumentException $e) {
         // @silent-ok: form validation error surfaced via setFormErrors(), shown to the user.
         setFormErrors(['linked_emails' => e($e->getMessage())]);
-        setFormData(App\DTO\FormData::fromPost($_POST));
+        setFormData(FormData::fromPost($_POST));
         $http->redirect($http->url('report_create', ['type' => $type]));
     }
 }
@@ -105,6 +105,6 @@ try {
 } catch (InvalidArgumentException $e) {
     // @silent-ok: form validation error surfaced via setFormErrors(), shown to the user.
     setFormErrors(['general' => $e->getMessage()]);
-    setFormData(App\DTO\FormData::fromPost($_POST));
+    setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('report_create', ['type' => $type]));
 }

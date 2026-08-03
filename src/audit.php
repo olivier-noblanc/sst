@@ -37,7 +37,7 @@ function auditLog(PDO $pdo, string $category, string $action, string $details, ?
  * @param array<string, string|int|null> $filters   Filter options (category, user_id, date_from, date_to, q)
  * @param int    $page      Page number (1-based)
  * @param int    $perPage   Items per page
- * @return array{entries: array<int, array<string, mixed>>, total: int}
+ * @return array{entries: array<int, array<string, string|int|null>>, total: int}
  */
 function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage = 50): array
 {
@@ -50,7 +50,7 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
  * @param PDO    $pdo         Database connection
  * @param string $targetType  Entity type (report, user, site)
  * @param int|string $targetId Entity ID (int for user/site, UUID string for report)
- * @return array<int, array<string, mixed>>
+ * @return array<int, array<string, string|int|null>>
  */
 function getAuditLogForTarget(PDO $pdo, string $targetType, int|string $targetId): array
 {

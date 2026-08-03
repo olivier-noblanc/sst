@@ -290,7 +290,7 @@ class SessionService
      */
     public function setFlash(string $type, string $message): void
     {
-        $_SESSION['flash'] = (new FlashMessage($type, $message))->toArray();
+        $_SESSION['flash'] = new FlashMessage($type, $message)->toArray();
     }
 
     /**

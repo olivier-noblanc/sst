@@ -229,13 +229,13 @@ $auditActionLabels = [
                         <tr>
                             <td class="text-small text-muted"><?php echo $fmt->e($entry['created_at']); ?></td>
                             <td>
-                                <?php $catKey = $entry['category'];
+                                <?php $catKey = (string) $entry['category'];
                         $catLabel = $auditCategoryLabels[$catKey] ?? $catKey; ?>
                                 <span class="badge badge--cat-<?php echo $fmt->e($catKey); ?>"><?php echo $fmt->e($catLabel); ?></span>
                             </td>
                             <td class="text-small"><?php echo $fmt->e($entry['username']); ?></td>
                             <td>
-                                <span class="text-small"><?php echo $fmt->e($auditActionLabels[$entry['action']] ?? $entry['action']); ?></span>
+                                <span class="text-small"><?php echo $fmt->e($auditActionLabels[(string) $entry['action']] ?? (string) $entry['action']); ?></span>
                             </td>
                             <td class="text-small"><?php echo $fmt->e($entry['details']); ?></td>
                             <td class="text-small text-muted"><?php echo $fmt->e($entry['ip_address']); ?></td>

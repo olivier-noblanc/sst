@@ -114,8 +114,8 @@ class ReportCreateHandlerTest extends TestCase
         $this->assertStringContainsString('page=report_view', $result['redirect']);
         $this->assertStringContainsString('uuid=', $result['redirect']);
 
-        // Flash should be success
-        $this->assertEquals('success', $result['flash']['type'] ?? null);
+        // Flash should be 'created' (confirmation banner trigger)
+        $this->assertEquals('created', $result['flash']['type'] ?? null);
         $this->assertStringContainsString('enregistré', $result['flash']['message'] ?? '');
 
         // Report was created

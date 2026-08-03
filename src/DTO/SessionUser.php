@@ -91,7 +91,7 @@ final readonly class SessionUser implements ArrayAccess
     public static function fromSession(array $data): self
     {
         return new self(
-            id: (int) ($data['id'] ?? $data['id'] ?? 0),
+            id: (int) ($data['id'] ?? 0),
             username: (string) ($data['username'] ?? ''),
             nom: (string) ($data['nom'] ?? ''),
             prenom: (string) ($data['prenom'] ?? ''),
@@ -183,7 +183,7 @@ final readonly class SessionUser implements ArrayAccess
     public function offsetGet(mixed $offset): mixed
     {
         return match ($offset) {
-            'id', 'id' => $this->id,
+            'id' => $this->id,
             'username' => $this->username,
             'nom' => $this->nom,
             'prenom' => $this->prenom,

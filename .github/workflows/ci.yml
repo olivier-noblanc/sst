@@ -561,6 +561,8 @@ jobs:
     name: Composer Audit
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -583,13 +585,35 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: Composer audit
-        run: composer audit --locked --no-dev 2>&1 | tee composer-audit-output.txt || true
-        # Non-bloquant pour l'instant — passe en warning si vulnérabilités trouvées
+        run: composer audit --locked --no-dev 2>&1 | tee composer-audit-output.txt
 
-      - name: Check for vulnerabilities
+      - name: Report failure as commit comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if grep -q "No advisories found" composer-audit-output.txt; then
-            echo "::notice::Aucune vulnérabilité trouvée par composer audit."
-          else
-            echo "::warning::Vulnérabilités détectées par composer audit — voir composer-audit-output.txt"
-          fi
+          set +e
+          {
+            echo "### ❌ CI \"Composer Audit\" a échoué — commit \`${GITHUB_SHA::8}\`"
+            echo ""
+            echo "<details><summary>composer-audit-output.txt</summary>"
+            echo ""
+            echo '```'
+            cat composer-audit-output.txt
+            echo '```'
+            echo "</details>"
+            echo ""
+            echo "[Run complet]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > /tmp/comment_body.md
+          python3 -c "
+          import json
+          body = open('/tmp/comment_body.md').read()
+          if len(body) > 65000:
+              body = body[:65000] + '\n\n...(tronqué)'
+          print(json.dumps({'body': body}))
+          " > /tmp/comment_payload.json
+          curl -s -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -d @/tmp/comment_payload.json

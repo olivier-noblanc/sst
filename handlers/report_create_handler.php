@@ -98,8 +98,7 @@ try {
         sendAgentInviteEmails($pdo, (string) $report->uuid, $linkedEmails);
     }
 
-    $session->setFlash('success', 'Signalement enregistré avec la référence ' . e((string) $report->reference));
-    $_SESSION['report_created'] = true;
+    $session->setFlash('created', 'Signalement enregistré avec la référence ' . e((string) $report->reference));
     $http->redirect($http->url('report_view', ['uuid' => $report->uuid]));
 
 } catch (InvalidArgumentException $e) {

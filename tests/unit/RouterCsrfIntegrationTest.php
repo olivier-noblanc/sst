@@ -79,8 +79,8 @@ class RouterCsrfIntegrationTest extends TestCase
 
         $this->assertEquals(1, $result['queries']['report_count'], 'Report was not saved — regression of the double CSRF-consumption bug (router middleware + handler both validating the same one-time-use token).');
         $this->assertStringContainsString('report_view', (string) $result['redirect']);
-        $this->assertStringContainsString('result=success', (string) $result['redirect'], 'redirect() should append result=<flash type> automatically — pure debug aid, see HttpService::redirect().');
-        $this->assertEquals('success', $result['flash']['type'] ?? null);
+        $this->assertStringContainsString('result=created', (string) $result['redirect'], 'redirect() should append result=<flash type> automatically — pure debug aid, see HttpService::redirect().');
+        $this->assertEquals('created', $result['flash']['type'] ?? null);
     }
 
     public function testReportCreateRejectsInvalidCsrfToken(): void

@@ -57,8 +57,8 @@ $reportShortLabel = getRegistryShortLabel($reportType);
 
 <?php
 // Big confirmation banner after report creation
-$justCreated = !empty($_SESSION['report_created']);
-unset($_SESSION['report_created']);
+$flash = $session->getFlash();
+$justCreated = $flash !== null && $flash->type === 'created';
 if ($justCreated):
     ?>
 <div class="confirmation-banner" role="status" aria-live="polite">
@@ -66,8 +66,7 @@ if ($justCreated):
     <div class="confirmation-banner__content">
         <h2 class="confirmation-banner__title">Signalement bien enregistré !</h2>
         <p class="confirmation-banner__text">
-            Votre signalement <strong><?php echo e($report->reference); ?></strong> a été enregistré dans le registre <?php echo e($reportShortLabel); ?>.
-            Un superviseur va le prendre en charge.
+            <?php echo e($flash->message); ?>
         </p>
         <p class="confirmation-banner__text">
             Vous pouvez consulter son état à tout moment depuis la liste des signalements.

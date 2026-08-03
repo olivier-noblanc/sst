@@ -45,6 +45,47 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
 }
 
 /**
+ * Build a flat, audit-friendly context array from export filters.
+ *
+ * Issue #1 — Avant ce fix, export_handler.php faisait json_encode($filters)
+ * puis AuditRepository::log() re-json_encode le context → double-encoding
+ * (les filtres étaient stockés comme un string JSON dans un object JSON).
+ * Cette fonction aplatit tous les filtres en clés scalaires filter_*,
+ * compatibles avec array<string, string|int|bool|null>.
+ *
+ * @param array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: string|list<string>} $filters
+ * @param int $count  Number of exported reports
+ * @return array<string, string|int|bool|null>  Flat context (JSON-encodable sans nested array)
+ */
+function buildExportAuditContext(array $filters, int $count): array
+{
+    $context = ['count' => $count];
+
+    if (isset($filters['type'])) {
+        $context['filter_type'] = $filters['type'];
+    }
+    if (isset($filters['site_id'])) {
+        $context['filter_site_id'] = $filters['site_id'];
+    }
+    if (isset($filters['declarant_id'])) {
+        $context['filter_declarant_id'] = $filters['declarant_id'];
+    }
+    if (isset($filters['date_from'])) {
+        $context['filter_date_from'] = $filters['date_from'];
+    }
+    if (isset($filters['date_to'])) {
+        $context['filter_date_to'] = $filters['date_to'];
+    }
+    if (isset($filters['etats'])) {
+        $etats = $filters['etats'];
+        $etatsList = is_array($etats) ? $etats : [$etats];
+        $context['filter_etats'] = implode(',', array_map('strval', $etatsList));
+    }
+
+    return $context;
+}
+
+/**
  * Get audit log entries for a specific target entity.
  *
  * @param PDO    $pdo         Database connection

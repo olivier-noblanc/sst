@@ -3,6 +3,20 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.64.0] — 2026-08-03
+
+### Code review superpowers — 2 fix Important
+
+- **1** 🔴 **`buildExportAuditContext()` — fix double-encodage JSON** — `handlers/export_handler.php:77` faisait `json_encode($filters)` puis `AuditRepository::log()` re-json_encode le context → les filtres étaient stockés comme un string JSON dans un object JSON (`{"filters": "{\"date_from\":...}", ...}`). Nouvelle fonction `buildExportAuditContext()` dans `src/audit.php` qui aplatit les filtres en clés scalaires `filter_*` (`filter_type`, `filter_site_id`, `filter_declarant_id`, `filter_date_from`, `filter_date_to`, `filter_etats` aplati en string comma-separated). Le handler appelle maintenant `buildExportAuditContext($filters, $count)` au lieu de `['filters' => json_encode($filters), 'count' => $count]`. Plus de double-encodage : `AuditRepository::log()` json_encode une seule fois un context déjà plat. 4 tests TDD (RED → GREEN) couvrent le aplatissement, le cas vide, le cas string-only, et le round-trip sans double-encoding.
+- **2** 🔴 **`setFormData()` — fini le shim `FormData|array`** — `src/Services/SessionService.php:321` et `src/session_form.php:15` acceptaient `FormData|array<string, mixed>` pour backward compat, contrairement à `SessionUser` migré proprement. Signature resserrée vers `setFormData(FormData $data)` — un array brut lève maintenant `TypeError` plutôt que de contourner silencieusement le DTO. Tous les appelants passaient déjà `FormData::fromPost($_POST)` (vérifié via grep sur 29 sites d'appel). 1 test TDD (RED → GREEN) verrouille le shim.
+
+### Métriques
+
+- Tests : **1556** (3904 assertions) — +5 tests vs 3.63.0
+- PHPStan : **0 errors** (level 8)
+- 3 échecs pré-existants (identiques au commit de base `ec5a5e7`, non causés par cette version)
+
+
 ## [3.63.0] — 2026-07-31
 
 ### Refactoring Array → DTO (10 cibles HIGH priority)

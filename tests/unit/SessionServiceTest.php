@@ -105,6 +105,16 @@ class SessionServiceTest extends TestCase
         $this->assertEquals([], $this->service->getFormData()->toArray());
     }
 
+    public function testSetFormDataRejectsRawArray(): void
+    {
+        // Issue #2 — la signature setFormData(FormData|array) gardait un shim
+        // acceptant les arrays bruts, contrairement à SessionUser migré proprement.
+        // Après resserrement vers FormData seul, un array brut doit lever TypeError.
+        $this->expectException(\TypeError::class);
+        /** @phpstan-ignore-next-line — type volontairement erroné pour verrouiller le shim */
+        $this->service->setFormData(['objet' => 'raw array']);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // getFieldError()
     // ═══════════════════════════════════════════════════════════════════════════════

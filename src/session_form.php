@@ -10,9 +10,12 @@ use App\Services\SessionService;
  */
 
 /**
- * @param FormData|array<string, mixed> $data
+ * Store form data in session for repopulation after validation error.
+ *
+ * Issue #2 — fini le shim FormData|array : les appelants doivent passer un
+ * FormData (via FormData::fromPost($_POST)).
  */
-function setFormData(FormData|array $data): void
+function setFormData(FormData $data): void
 {
     SessionService::getInstance()->setFormData($data);
 }

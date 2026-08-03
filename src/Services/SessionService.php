@@ -314,13 +314,13 @@ class SessionService
     /**
      * Store form data in session for repopulation after validation error.
      *
-     * Accepts either a FormData DTO (preferred) or a raw array (legacy callers).
-     *
-     * @param FormData|array<string, mixed> $data
+     * Issue #2 — fini le shim FormData|array : tous les appelants passent
+     * désormais un FormData (via FormData::fromPost($_POST)). Un array brut
+     * doit lever TypeError plutôt que de contourner silencieusement le DTO.
      */
-    public function setFormData(FormData|array $data): void
+    public function setFormData(FormData $data): void
     {
-        $_SESSION['form_data'] = $data instanceof FormData ? $data->toArray() : $data;
+        $_SESSION['form_data'] = $data->toArray();
     }
 
     /**

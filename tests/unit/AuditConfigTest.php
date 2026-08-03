@@ -124,6 +124,74 @@ class AuditConfigTest extends TestCase
         $this->assertCount(0, $entries);
     }
 
+    // ─── buildExportAuditContext ─────────────────────────────────────────────
+    // Issue #1 — Avant : export_handler.php faisait json_encode($filters) puis
+    // AuditRepository::log() re-json_encode le context → double-encoding.
+    // buildExportAuditContext() doit retourner des clés scalaires filter_*.
+
+    public function testBuildExportAuditContextFlattensAllFiltersToScalarKeys(): void
+    {
+        $filters = [
+            'type' => 'rsst',
+            'site_id' => 5,
+            'declarant_id' => 12,
+            'date_from' => '2025-01-01',
+            'date_to' => '2025-12-31',
+            'etats' => ['nouveau', 'en_cours'],
+        ];
+        $context = buildExportAuditContext($filters, 42);
+
+        // Tous les valeurs doivent être scalaires — pas de nested array
+        foreach ($context as $key => $value) {
+            $this->assertTrue(
+                is_string($value) || is_int($value) || is_bool($value) || is_null($value),
+                "La clé '$key' doit être scalaire, reçu " . gettype($value)
+            );
+        }
+
+        $this->assertSame(42, $context['count']);
+        $this->assertSame('rsst', $context['filter_type']);
+        $this->assertSame(5, $context['filter_site_id']);
+        $this->assertSame(12, $context['filter_declarant_id']);
+        $this->assertSame('2025-01-01', $context['filter_date_from']);
+        $this->assertSame('2025-12-31', $context['filter_date_to']);
+        // etats array aplati en string comma-separated
+        $this->assertSame('nouveau,en_cours', $context['filter_etats']);
+    }
+
+    public function testBuildExportAuditContextWithEmptyFilters(): void
+    {
+        $context = buildExportAuditContext([], 0);
+
+        $this->assertSame(0, $context['count']);
+        $this->assertArrayNotHasKey('filter_type', $context);
+        $this->assertArrayNotHasKey('filter_etats', $context);
+    }
+
+    public function testBuildExportAuditContextHandlesSingleEtatString(): void
+    {
+        // $_POST['etats'] peut être un string seul (un seul checkbox coché)
+        $context = buildExportAuditContext(['etats' => 'nouveau'], 1);
+
+        $this->assertSame('nouveau', $context['filter_etats']);
+    }
+
+    public function testBuildExportAuditContextProducesNoDoubleEncoding(): void
+    {
+        // Simule le round-trip : buildExportAuditContext() → AuditRepository::log()
+        // qui fait json_encode($context). Le resultat doit être du JSON propre,
+        // pas du double-encoded.
+        $filters = ['type' => 'rsst', 'etats' => ['nouveau', 'en_cours']];
+        $context = buildExportAuditContext($filters, 3);
+
+        $encoded = json_encode($context, JSON_UNESCAPED_UNICODE);
+        $decoded = json_decode($encoded, true);
+
+        // filter_etats doit rester un string après un seul encode
+        $this->assertIsString($decoded['filter_etats']);
+        $this->assertSame('nouveau,en_cours', $decoded['filter_etats']);
+    }
+
     // ─── getConfig / updateConfig ────────────────────────────────────────────
 
     public function testGetConfigReturnsDefaultWhenNotSet(): void

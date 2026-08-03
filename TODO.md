@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-07-31 (v3.63.0)
+Dernière mise à jour : 2026-08-03 (v3.64.0)
 
 ---
 
@@ -12,7 +12,7 @@ Dernière mise à jour : 2026-07-31 (v3.63.0)
 | Pages supprimées | **guide / help / preamble** (v3.59.0) |
 | PHPStan strict rules | **installé** (phpstan-strict-rules + disallowed-calls + dead-code-detector + NoMagicStringRule + NoSqlOutsideRepositoryRule + NoBareDeleteInTestsRule) |
 | Infection MSI | **51%** (objectif 85%, en pause — voir Priorité 13) |
-| Tests | **1505** (3565 assertions) |
+| Tests | **1556** (3904 assertions) |
 | Niveau PHPStan | **8** |
 | Enums consolidés | **4** (ReportState, ReportType, UserRole, VisibilityMode) |
 | DTOs readonly | **22** (CreateReportCommand, UpdateReportCommand, RespondToReportCommand, ReopenReportCommand, CreateUserCommand, UpdateUserCommand, ReportData, ReportFilter, ReportListItem, PaginatedReports, AdjacentUuids, IndicateursData, SiteStatsRow, SynthesisRow, RamiStats, StatisticsResult, CreateRegistryCommand, UpdateRegistryCommand, CreateRegistryFieldCommand, AttachmentData, UpdateAppSettingsCommand, SiteId) |

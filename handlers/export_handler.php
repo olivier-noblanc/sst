@@ -74,7 +74,10 @@ if ($tmpFile === false) {
 // log was written before tmpfile() → if tmpfile() failed (disk full, /tmp
 // not writable), the audit log claimed success but the user got an error.
 // Now the audit log reflects the actual export attempt (data was fetched).
-auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . $count . ' signalements' . ($truncated ? ' (tronqué)' : ''), null, null, ['filters' => json_encode($filters, JSON_UNESCAPED_UNICODE), 'count' => $count]);
+// Issue #1 — fini le json_encode($filters) qui causait un double-encoding
+// (AuditRepository::log() re-json_encode le context). buildExportAuditContext()
+// aplatit les filtres en clés scalaires filter_*.
+auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . $count . ' signalements' . ($truncated ? ' (tronqué)' : ''), null, null, buildExportAuditContext($filters, $count));
 
 /** @var resource $tmpFile */
 // UTF-8 BOM for Excel compatibility

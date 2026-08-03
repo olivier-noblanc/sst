@@ -14,6 +14,7 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Services\SessionService;
+use App\DTO\FormData;
 use App\DTO\SessionUser;
 
 class SessionServiceTest extends TestCase
@@ -39,7 +40,9 @@ class SessionServiceTest extends TestCase
     {
         $this->service->setFlash('success', 'Opération réussie');
         $flash = $this->service->getFlash();
-        $this->assertEquals(['type' => 'success', 'message' => 'Opération réussie'], $flash);
+        $this->assertNotNull($flash);
+        $this->assertSame('success', $flash->type);
+        $this->assertSame('Opération réussie', $flash->message);
     }
 
     public function testGetFlashClearsAfterRead(): void
@@ -84,20 +87,22 @@ class SessionServiceTest extends TestCase
     public function testSetFormDataAndRetrieve(): void
     {
         $data = ['objet' => 'Test', 'lieu' => 'Bureau'];
-        $this->service->setFormData($data);
-        $this->assertEquals($data, $this->service->getFormData());
+        $this->service->setFormData(FormData::fromPost($data));
+        $formData = $this->service->getFormData();
+        $this->assertSame('Test', $formData->getString('objet'));
+        $this->assertSame('Bureau', $formData->getString('lieu'));
     }
 
     public function testGetFormDataClearsAfterRead(): void
     {
-        $this->service->setFormData(['key' => 'val']);
+        $this->service->setFormData(FormData::fromPost(['key' => 'val']));
         $this->service->getFormData();
-        $this->assertEquals([], $this->service->getFormData());
+        $this->assertEquals([], $this->service->getFormData()->toArray());
     }
 
     public function testGetFormDataReturnsEmptyArrayWhenNoneSet(): void
     {
-        $this->assertEquals([], $this->service->getFormData());
+        $this->assertEquals([], $this->service->getFormData()->toArray());
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

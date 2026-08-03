@@ -6,6 +6,7 @@
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Repository\SiteRepository;
+use App\DTO\FormData;
 
 /** @var array<string, string> $_POST */
 
@@ -46,7 +47,7 @@ if (!empty($code) && $code !== (string) ($site['code'] ?? '') && $repo->findByCo
 
 if (!empty($errors)) {
     setFormErrors($errors);
-    setFormData($_POST);
+    setFormData(App\DTO\FormData::fromPost($_POST));
     $http->redirect($http->url('site_edit', ['id' => $siteId]));
 }
 

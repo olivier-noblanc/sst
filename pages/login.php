@@ -67,8 +67,8 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
 
             <?php $flash = new \App\Services\SessionService()->getFlash(); ?>
             <?php if ($flash !== null): ?>
-                <div class="alert alert--<?php echo new \App\Services\FormattingService()->e($flash['type']); ?>" role="alert">
-                    <?php echo new \App\Services\FormattingService()->e($flash['message']); ?>
+                <div class="alert alert--<?php echo new \App\Services\FormattingService()->e($flash->type); ?>" role="alert">
+                    <?php echo new \App\Services\FormattingService()->e($flash->message); ?>
                 </div>
             <?php endif; ?>
 

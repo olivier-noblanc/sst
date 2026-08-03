@@ -7,6 +7,7 @@ use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Repository\UserRepository;
 use App\Repository\ReportRepository;
+use App\DTO\FormData;
 use App\DTO\ReopenReportCommand;
 use App\Services\ReportService;
 
@@ -20,7 +21,7 @@ $motifReouverture = trim((string) ($_POST['motif_reouverture'] ?? ''));
 
 if (mb_strlen($motifReouverture, 'UTF-8') < 10) {
     $session->setFlash('error', 'Le motif de réouverture doit contenir au moins 10 caractères.');
-    setFormData($_POST);
+    setFormData(App\DTO\FormData::fromPost($_POST));
     $http->redirect($http->url('report_reopen', ['uuid' => $reportUuid]));
 }
 

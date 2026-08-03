@@ -1,5 +1,6 @@
 <?php
 
+use App\DTO\FormData;
 use App\Services\SessionService;
 
 /**
@@ -9,17 +10,14 @@ use App\Services\SessionService;
  */
 
 /**
- * @param array<string, mixed> $data
+ * @param FormData|array<string, mixed> $data
  */
-function setFormData(array $data): void
+function setFormData(FormData|array $data): void
 {
     SessionService::getInstance()->setFormData($data);
 }
 
-/**
- * @return array<string, mixed>
- */
-function getFormData(): array
+function getFormData(): FormData
 {
     return SessionService::getInstance()->getFormData();
 }

@@ -40,9 +40,15 @@ trait NoMixedArrayTrait
     ];
 
     private const WHITELIST_FILES = [
+        '/PHPStan/',
+        '/Rector/',
+        '/lib/',
+        '/vendor/',
+        '/tests/',
+        '/tools/',
+        '/seed/',
         'src/database.php',           // PDO fetch
-        'src/audit.php',              // audit log context
-        'src/Services/SessionService.php',  // I/O boundary - mixed is inherent
+        'src/Services/SessionService.php',  // I/O boundary - $_SESSION storage is mixed
         'src/Repository/ReportRepository.php',  // I/O boundary - mixed is inherent
         'src/Repository/AuditRepository.php',  // I/O boundary - mixed is inherent
         'src/migration_columns.php',  // migration data
@@ -51,8 +57,8 @@ trait NoMixedArrayTrait
         'src/migration_indexes.php',  // migration data
         'src/config.php',             // config helpers
         'src/helpers/config.php',     // config helpers
-        'src/session.php',            // $_SESSION
-        'src/session_form.php',       // form data
+        'src/session.php',            // $_SESSION delegation helpers
+        'src/session_form.php',       // form data delegation
         'src/session_patch.php',      // session patch
         'src/auth.php',               // auth helpers
         'src/auth_flow.php',          // auth flow

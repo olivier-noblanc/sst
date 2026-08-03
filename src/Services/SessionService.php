@@ -4,6 +4,8 @@
 
 namespace App\Services;
 
+use App\DTO\FlashMessage;
+use App\DTO\FormData;
 use App\DTO\SessionUser;
 
 class SessionService
@@ -288,21 +290,19 @@ class SessionService
      */
     public function setFlash(string $type, string $message): void
     {
-        $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+        $_SESSION['flash'] = (new FlashMessage($type, $message))->toArray();
     }
 
     /**
      * Retrieve and clear the flash message from the session.
-     *
-     * @return array{type: string, message: string}|null
      */
-    public function getFlash(): ?array
+    public function getFlash(): ?FlashMessage
     {
-        if (isset($_SESSION['flash'])) {
-            /** @var array{type: string, message: string} $flash */
-            $flash = $_SESSION['flash'];
+        if (isset($_SESSION['flash']) && is_array($_SESSION['flash'])) {
+            /** @var array{type?: mixed, message?: mixed} $raw */
+            $raw = $_SESSION['flash'];
             unset($_SESSION['flash']);
-            return $flash;
+            return FlashMessage::fromSession($raw);
         }
         return null;
     }
@@ -313,27 +313,28 @@ class SessionService
 
     /**
      * Store form data in session for repopulation after validation error.
-     * @param array<string, mixed> $data  // $_SESSION — mixed is inherent
+     *
+     * Accepts either a FormData DTO (preferred) or a raw array (legacy callers).
+     *
+     * @param FormData|array<string, mixed> $data
      */
-    public function setFormData(array $data): void
+    public function setFormData(FormData|array $data): void
     {
-        $_SESSION['form_data'] = $data;
+        $_SESSION['form_data'] = $data instanceof FormData ? $data->toArray() : $data;
     }
 
     /**
      * Retrieve and clear stored form data.
-     *
-     * @return array<string, mixed>  // $_SESSION — mixed is inherent
      */
-    public function getFormData(): array
+    public function getFormData(): FormData
     {
-        if (isset($_SESSION['form_data'])) {
-            /** @var array<string, mixed> $data */  // $_SESSION — mixed is inherent
+        if (isset($_SESSION['form_data']) && is_array($_SESSION['form_data'])) {
+            /** @var array<string, mixed> $data */
             $data = $_SESSION['form_data'];
             unset($_SESSION['form_data']);
-            return $data;
+            return FormData::fromSession($data);
         }
-        return [];
+        return new FormData();
     }
 
     /**

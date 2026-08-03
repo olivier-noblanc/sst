@@ -7,6 +7,7 @@ use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Repository\ReportRepository;
 use App\Enum\ReportType;
+use App\DTO\FormData;
 use App\DTO\UpdateReportCommand;
 use App\Services\ReportService;
 
@@ -52,7 +53,7 @@ if ($type === ReportType::Rami->value) {
 
 if (!empty($errors)) {
     setFormErrors($errors);
-    setFormData($_POST);
+    setFormData(App\DTO\FormData::fromPost($_POST));
     $http->redirect($http->url('report_edit', ['uuid' => $reportUuid]));
 }
 
@@ -111,7 +112,7 @@ try {
     // @silent-ok: handler boundary — converts to a user-facing flash error + redirect,
     // the standard error-surfacing mechanism for this HTTP layer. Not silent: the user sees it.
     $session->setFlash('error', e($e->getMessage()));
-    setFormData($_POST);
+    setFormData(App\DTO\FormData::fromPost($_POST));
     $http->redirect($http->url('report_edit', ['uuid' => $reportUuid]));
 }
 

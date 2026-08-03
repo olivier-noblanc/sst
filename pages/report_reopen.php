@@ -77,8 +77,8 @@ $flash = new \App\Services\SessionService()->getFlash();
 </div>
 
     <?php if ($flash !== null): ?>
-    <div class="alert alert--<?php echo $fmt->e($flash['type']); ?>" role="alert">
-        <?php echo $fmt->e($flash['message']); ?>
+    <div class="alert alert--<?php echo $fmt->e($flash->type); ?>" role="alert">
+        <?php echo $fmt->e($flash->message); ?>
     </div>
     <?php endif; ?>
 

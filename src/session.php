@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\SessionService;
+use App\DTO\FlashMessage;
 use App\DTO\SessionUser;
 
 /**
@@ -97,10 +98,7 @@ function setFlash(string $type, string $message): void
     (SessionService::getInstance())->setFlash($type, $message);
 }
 
-/**
- * @return array{type: string, message: string}|null
- */
-function getFlash(): ?array
+function getFlash(): ?FlashMessage
 {
     return (SessionService::getInstance())->getFlash();
 }

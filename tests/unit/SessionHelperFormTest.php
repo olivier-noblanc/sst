@@ -8,6 +8,7 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use App\DTO\FormData;
 
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../../src/session.php';
@@ -32,37 +33,40 @@ class SessionHelperFormTest extends TestCase
     public function testSetFormDataAndGetFormData(): void
     {
         $data = ['nom' => 'Dupont', 'prenom' => 'Marie', 'site_id' => '1'];
-        setFormData($data);
+        setFormData(FormData::fromPost($data));
         $result = getFormData();
-        $this->assertEquals($data, $result);
+        $this->assertSame('Dupont', $result->getString('nom'));
+        $this->assertSame('Marie', $result->getString('prenom'));
+        $this->assertSame('1', $result->getString('site_id'));
     }
 
     public function testGetFormDataClearsData(): void
     {
-        setFormData(['field' => 'value']);
+        setFormData(FormData::fromPost(['field' => 'value']));
         $result1 = getFormData();
         $result2 = getFormData();
-        $this->assertEquals(['field' => 'value'], $result1);
-        $this->assertEquals([], $result2);
+        $this->assertSame('value', $result1->getString('field'));
+        $this->assertEquals([], $result2->toArray());
     }
 
     public function testGetFormDataReturnsEmptyArrayWhenNoneSet(): void
     {
-        $this->assertEquals([], getFormData());
+        $this->assertEquals([], getFormData()->toArray());
     }
 
     public function testSetFormDataWithEmptyArray(): void
     {
-        setFormData([]);
-        $this->assertEquals([], getFormData());
+        setFormData(FormData::fromPost([]));
+        $this->assertEquals([], getFormData()->toArray());
     }
 
     public function testSetFormDataOverwritesPrevious(): void
     {
-        setFormData(['field1' => 'value1']);
-        setFormData(['field2' => 'value2']);
+        setFormData(FormData::fromPost(['field1' => 'value1']));
+        setFormData(FormData::fromPost(['field2' => 'value2']));
         $result = getFormData();
-        $this->assertEquals(['field2' => 'value2'], $result);
+        $this->assertSame('value2', $result->getString('field2'));
+        $this->assertFalse($result->has('field1'));
     }
 
     // ─── Form Errors ───────────────────────────────────────────────────────

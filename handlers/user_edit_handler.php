@@ -15,6 +15,7 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 /** @var array<string, string> $_POST */
 
+use App\DTO\FormData;
 use App\DTO\UpdateUserCommand;
 use App\Services\UserService;
 
@@ -95,7 +96,7 @@ if ($user->role === UserRole::Superviseur->value && $cmd->role !== UserRole::Sup
 
 if (!empty($errors)) {
     setFormErrors($errors);
-    setFormData($_POST);
+    setFormData(App\DTO\FormData::fromPost($_POST));
     $http->redirect($http->url('user_edit', ['id' => $userId]));
 }
 

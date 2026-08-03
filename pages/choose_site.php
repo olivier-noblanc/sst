@@ -94,8 +94,8 @@ $labelUnite = $config->get('app_label_unite', 'UR');
 
     <?php $flash = new \App\Services\SessionService()->getFlash(); ?>
     <?php if ($flash !== null): ?>
-        <div class="alert alert--<?php echo $fmt->e($flash['type']); ?>" role="alert">
-            <?php echo $fmt->e($flash['message']); ?>
+        <div class="alert alert--<?php echo $fmt->e($flash->type); ?>" role="alert">
+            <?php echo $fmt->e($flash->message); ?>
         </div>
     <?php endif; ?>
 

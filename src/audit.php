@@ -79,7 +79,7 @@ function buildExportAuditContext(array $filters, int $count): array
     if (isset($filters['etats'])) {
         $etats = $filters['etats'];
         $etatsList = is_array($etats) ? $etats : [$etats];
-        $context['filter_etats'] = implode(',', array_map('strval', $etatsList));
+        $context['filter_etats'] = implode(',', array_map(strval(...), $etatsList));
     }
 
     return $context;

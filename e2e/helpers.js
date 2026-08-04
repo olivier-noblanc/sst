@@ -17,7 +17,10 @@ export async function loginAs(page, username = 'admin.dev') {
   // Dev users: use the pre-filled form
   if (username === 'admin.dev' || username === 'agent.dev' || username === 'chsct.dev') {
     const formIndex = username === 'agent.dev' ? 1 : username === 'chsct.dev' ? 2 : 0;
-    await page.locator('form').nth(formIndex).evaluate(form => form.submit());
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'networkidle' }),
+      page.locator('form').nth(formIndex).evaluate(form => form.submit()),
+    ]);
   } else {
     // Non-dev users: POST directly. page.request shares cookies with page's
     // browser context, so the session is set correctly — but page.request

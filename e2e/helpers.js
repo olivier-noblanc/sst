@@ -17,13 +17,12 @@ export async function loginAs(page, username = 'admin.dev') {
   // Dev users: use the pre-filled form
   if (username === 'admin.dev' || username === 'agent.dev' || username === 'chsct.dev') {
     const formIndex = username === 'agent.dev' ? 1 : username === 'chsct.dev' ? 2 : 0;
-    // Ensure the form is ready before submitting
-    const form = page.locator('form').nth(formIndex);
-    await form.waitFor({ state: 'visible' });
-    // Submit the form and wait for navigation to complete
-    // form.submit() is more reliable than button click for form submissions
-    await form.evaluate(formElement => formElement.submit());
-    await page.waitForURL(/page=(home|choose_site)/, { timeout: 10000 });
+    // Click the submit button and wait for navigation
+    const submitButton = page.locator('form').nth(formIndex).locator('button[type="submit"]');
+    await submitButton.waitFor({ state: 'visible' });
+    await submitButton.click();
+    // Wait for the page to navigate to home or choose_site
+    await page.waitForURL(/page=(home|choose_site)/, { timeout: 15000 });
     // After login, handle multi-site flow if needed (same as non-dev users)
     if (page.url().includes('page=choose_site')) {
       const siteSelect = page.locator('#site_id');

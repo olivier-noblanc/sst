@@ -17,10 +17,25 @@ export async function loginAs(page, username = 'admin.dev') {
   // Dev users: use the pre-filled form
   if (username === 'admin.dev' || username === 'agent.dev' || username === 'chsct.dev') {
     const formIndex = username === 'agent.dev' ? 1 : username === 'chsct.dev' ? 2 : 0;
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle' }),
-      page.locator('form').nth(formIndex).locator('button[type="submit"]').click(),
-    ]);
+    // Ensure the form is ready before submitting
+    const form = page.locator('form').nth(formIndex);
+    await form.waitFor({ state: 'visible' });
+    // Submit the form and wait for navigation to complete
+    // form.submit() is more reliable than button click for form submissions
+    await form.evaluate(formElement => formElement.submit());
+    await page.waitForURL(/page=(home|choose_site)/, { timeout: 10000 });
+    // After login, handle multi-site flow if needed (same as non-dev users)
+    if (page.url().includes('page=choose_site')) {
+      const siteSelect = page.locator('#site_id');
+      if (await siteSelect.isVisible()) {
+        const chooseCsrf = await page.locator('input[name="csrf_token"]').first().inputValue();
+        await siteSelect.selectOption({ index: 1 });
+        await page.request.post('/index.php?page=choose_site', {
+          form: { csrf_token: chooseCsrf, site_id: await siteSelect.inputValue() },
+        });
+        await page.goto('/index.php?page=home');
+      }
+    }
   } else {
     // Non-dev users: POST directly. page.request shares cookies with page's
     // browser context, so the session is set correctly — but page.request

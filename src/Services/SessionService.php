@@ -246,7 +246,8 @@ class SessionService
      * multiple tabs open (e.g. report_create, report_edit, settings), the
      * oldest CSRF tokens were silently evicted → "Erreur de sécurité" on
      * submit with no explanation. Now the limit is 50 (enough for ~25 tabs
-     * with 2 forms each) and a warning is logged when eviction happens.
+     * with 2 forms each) and a warning is logged once per session when
+     * eviction starts happening.
      */
     public function generateCsrfToken(): string
     {
@@ -258,8 +259,12 @@ class SessionService
         $limit = 50;
         if (count($tokens) > $limit) {
             $evicted = count($tokens) - $limit;
-            error_log("[SST-CSRF] Evicting {$evicted} old CSRF token(s) — limit={$limit}. User may have many tabs open.");
             $tokens = array_slice($tokens, -$limit, null, true);
+            // Log eviction warning only once per session to avoid log spam
+            if (empty($_SESSION['csrf_eviction_logged'])) {
+                error_log("[SST-CSRF] Evicting {$evicted} old CSRF token(s) — limit={$limit}. User may have many tabs open.");
+                $_SESSION['csrf_eviction_logged'] = true;
+            }
         }
         $_SESSION['csrf_tokens'] = $tokens;
         return $token;

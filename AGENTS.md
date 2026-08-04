@@ -1,10 +1,11 @@
+@~/.config/opencode/AGENTS.md
 # Instructions pour les agents IA — Projet SST DREETS BFC
 
 ## Règles et préférences du projet
 
 ### Pas de manuel en Markdown
 - **Ne pas créer de manuel utilisateur en .md** (MANUEL_AGENT.md, MANUEL_SUPERVISEUR.md, etc.).
-- La documentation utilisateur est intégrée **dans l'application** (page help.php).
+- La documentation utilisateur est intégrée **dans l'application** (page d'aide contextuelle).
 - Les fichiers `docs/MANUEL_AGENT.md` et `docs/MANUEL_SUPERVISEUR.md` sont dans `.gitignore`.
 
 ### Fichiers CSS
@@ -121,19 +122,19 @@ final class VisibilityPolicy
 - `pages/` : pages PHP rendues côté serveur
 - `handlers/` : handlers POST (création, édition, réponse, export)
 - `templates/` : composants réutilisables (header, footer, form, user_form_fields, breadcrumb, etc.)
-- `tests/` : tests unitaires PHPUnit (896 tests, 1874 assertions)
+- `tests/` : tests unitaires PHPUnit (1556 tests, 3904 assertions)
 - `nuclear-reset.php` : purge des signalements (CLI uniquement, guard php_sapi_name)
 
 ## Générer les captures d'écran
 
-```bash
+```powershell
 # 1. Capturer les HTML en PNG (Playwright, 1280px de large)
-cd /path/to/sst
-python3 tools/capture_screenshots.py
+Set-Location C:\Users\olivier.noblanc\source\repos\sst
+py -3 tools/capture_screenshots.py
 
 # 2. Ajouter les annotations (callouts numérotés avec flèches)
 #    Les positions sont détectées automatiquement via les sélecteurs CSS dans Playwright
-python3 tools/annotate_screenshots.py
+py -3 tools/annotate_screenshots.py
 
 # Les PNG annotés sont dans public/screenshots/ et docs/screenshots/
 ```

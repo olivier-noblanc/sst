@@ -12,7 +12,7 @@ Plateforme des Registres en Santé et Sécurité au Travail
 - **Base de données** : SQLite via PDO
 - **Authentification** : IIS Windows Authentication (pas de LDAP — lecture de `$_SERVER['AUTH_USER']`)
 - **Dépendances PHP** : FPDF 1.9 (génération PDF, inclus sans Composer), Parsedown (inclus sans Composer)
-- **JavaScript** : AUCUN — zéro JS, tout fonctionne en PHP/HTML/CSS pur
+- **JavaScript** : Minimal — wordcloud.js uniquement pour les graphiques (v3.44.0+)
 - **Serveur de prod** : IIS 10+ avec FastCGI
 
 ## Installation sur IIS
@@ -20,7 +20,7 @@ Plateforme des Registres en Santé et Sécurité au Travail
 1. Cloner le dépôt dans `C:\inetpub\sst\`
 2. Configurer un site IIS pointant vers `C:\inetpub\sst\public\`
 3. Activer Windows Authentication (désactiver Anonymous Authentication)
-4. Installer PHP 8.3 NTS + extensions (`sqlite3`, `pdo_sqlite`, `mbstring`)
+4. Installer PHP 8.5 NTS + extensions (`sqlite3`, `pdo_sqlite`, `mbstring`)
 5. Donner les permissions IIS_IUSRS en écriture sur `data\`
 7. L'application détecte automatiquement l'environnement (IIS = prod, sinon dev) — voir `DEPLOY.md` pour forcer le mode
 8. Accéder à l'application — la base se crée automatiquement
@@ -96,7 +96,7 @@ deptrac analyse
 
 | Suite | Tests | Fichiers | Portée |
 |-------|-------|----------|--------|
-| **PHPUnit** | 1001 (2271 assertions) | 25+ | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting, services, repositories |
+| **PHPUnit** | 1556 (3904 assertions) | 25+ | Unitaires : helpers, queries, validation, accès, crypto, audit, config, formatting, services, repositories |
 | **Playwright E2E** | ~208 cas (16 specs) | 16 | Navigation, auth, formulaires, rôles, incarnation, onboarding, version, export, settings, agent_confirm |
 
 ## Visibilité des signalements — 3 modes (configurable par le superviseur)
@@ -140,8 +140,8 @@ C:\inetpub\sst\
 ├── pages/           ← Pages de l'application
 ├── handlers/        ← Traitements des formulaires POST
 ├── templates/       ← Templates réutilisables (header, sidebar, footer, user_form_fields...)
-├── tests/           ← Tests unitaires PHPUnit (1001 tests, 2271 assertions)
-├── e2e/             ← Tests E2E Playwright (15 specs, ~207 cas)
+├── tests/           ← Tests unitaires PHPUnit (1556 tests, 3904 assertions)
+├── e2e/             ← Tests E2E Playwright (16 specs, ~208 cas)
 ├── tools/           ← Scripts CLI (capture_screenshots.py, check_delays, anonymize...)
 ├── docs/            ← Documentation et captures HTML source
 ├── data/            ← Base SQLite (auto-créée, git-ignorée)
@@ -150,7 +150,6 @@ C:\inetpub\sst\
 ├── phpunit.xml      ← Configuration PHPUnit
 ├── update_sst.ps1   ← Script de mise à jour automatisée
 ├── DEPLOY.md        ← Guide de déploiement IIS complet
-├── SPEC.md          ← Spécification technique détaillée
 └── README.md        ← Ce fichier
 ```
 

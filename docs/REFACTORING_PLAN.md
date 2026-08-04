@@ -1,6 +1,12 @@
 # Plan de Refactoring — SST DREETS BFC
 ## 3 Phases, Incrémental, Zéro Réécriture
 
+> ⚠️ **PLAN OBSOLÈTE** — Daté du 8 juillet 2026, version v3.26.0.
+> Le projet est actuellement en **v3.64.0** (août 2026).
+> **Toutes les phases 1 et 2 sont réalisées** : Services OOP, Repository, DTOs readonly, EventDispatcher,
+> formatting.php refactorisé, EmailRenderer, RegistryCardService, etc.
+> Ce document est conservé à titre historique uniquement.
+
 **Règle d'or** : chaque étape est **indépendante et déployable**. On ne casse jamais quelque chose qui fonctionne.
 
 ---

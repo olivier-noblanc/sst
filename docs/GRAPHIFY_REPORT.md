@@ -1,6 +1,12 @@
 # GRAPHIFY REPORT — SST DREETS BFC
 ## Analyse Honnête de la Qualité du Code | Rapport CTO
 
+> ⚠️ **RAPPORT HISTORIQUE OBSOLÈTE** — Daté du 8 juillet 2026, version v3.26.0.
+> Le projet est actuellement en **v3.64.0** (août 2026) et a subi une refactorisation DDD complète.
+> Ce document décrit une architecture **100% procédurale** qui n'existe plus — la plupart des "god functions"
+> listées ici ont été converties en classes OOP (Services, Repository, DTO, Enums).
+> **Ne pas utiliser comme référence pour l'état actuel du code.**
+
 **Date** : 8 juillet 2026  
 **Version** : v3.26.0  
 **Auteur** : Analyse automatique (4 agents parallèles + revue manuelle)

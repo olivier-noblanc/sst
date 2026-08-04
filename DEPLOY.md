@@ -3,7 +3,7 @@
 ## Prérequis
 
 - Windows Server 2016+ avec IIS 10+
-- PHP 8.3 installé (Non-Thread-Safe recommandé pour IIS/FastCGI)
+- PHP 8.5 installé (Non-Thread-Safe recommandé pour IIS/FastCGI)
 - **PAS BESOIN** de Composer (FPDF est inclus directement)
 - **PAS BESOIN** du module URL Rewrite (l'app utilise un routage par query string)
 - Active Directory DREETS BFC accessible (pour l'authentification Windows)
@@ -97,29 +97,40 @@ define('APP_ENV_FORCE', 'prod');
 3. Ajouter un Module Mapping :
    - Request path: `*.php`
    - Module: `FastCgiModule`
-   - Executable: `C:\php\php-cgi.exe`
-   - Name: `PHP83_via_FastCGI`
+- Executable: `C:\php\php-cgi.exe`
+    - Name: `PHP85_via_FastCGI`
 
 ### 3. Déployer l'application
 
 1. Copier le contenu du projet dans `C:\inetpub\sst\`
 2. La structure doit être :
-   ```
-   C:\inetpub\sst\
-   ├── public\           ← RACINE DU SITE IIS
-   │   ├── index.php
-   │   ├── web.config    ← Configuration IIS
-   │   └── css\
-   ├── src\              ← Inaccessible depuis le web (hiddenSegments)
-   │   └── lib\          ← Parsedown.php, fpdf/ (FPDF 1.9 + polices)
-   ├── handlers\
-   ├── pages\
-   ├── templates\
-   ├── queries\
-   ├── middleware\
-   ├── data\             ← Base SQLite (accès en ÉCRITURE requis)
-   └── schema.sql
-   ```
+```
+    C:\inetpub\sst\
+    ├── public\           ← RACINE DU SITE IIS
+    │   ├── index.php
+    │   ├── web.config    ← Configuration IIS
+    │   └── css\
+    ├── src\              ← Inaccessible depuis le web (hiddenSegments)
+    │   ├── Enum/         ← Enums PHP 8.1+ (ReportState, ReportType, UserRole, VisibilityMode)
+    │   ├── Repository/   ← Couche d'accès données (ReportRepository, UserRepository, etc.)
+    │   ├── Services/     ← Services métier (AuthService, ReportService, UserService, etc.)
+    │   ├── DTO/          ← Data Transfer Objects (CreateReportCommand, UpdateUserCommand, etc.)
+    │   ├── lib\          ← Parsedown.php, fpdf/ (FPDF 1.9 + polices)
+    │   ├── helpers/      ← Modules utilitaires (access, formatting, http, config, crypto, assets)
+    │   ├── middleware/   ← Contrôle d'accès + bootstrap
+    │   ├── mail/         ← Templates email + renderer
+    │   ├── queries/      ← Fonctions procédurales (wrappers vers Repository, legacy)
+    │   ├── auth.php      ← Authentification (AUTH_USER / mock login)
+    │   ├── database.php  ← Connexion SQLite + auto-migration
+    │   ├── config.php    ← Configuration (APP_ENV, modes visibilité)
+    │   ├── cron.php      ← Lazy cron (check_delays + anonymize)
+    │   └── audit.php     ← Journal d'audit
+    ├── handlers\         ← Handlers POST (création, édition, réponse, export)
+    ├── pages\            ← Pages PHP rendues côté serveur
+    ├── templates\        ← Templates réutilisables (header, sidebar, footer, user_form_fields...)
+    ├── data\             ← Base SQLite (accès en ÉCRITURE requis)
+    └── schema.sql
+    ```
 3. Créer un site IIS pointant vers `C:\inetpub\sst\public\`
 5. Configurer le binding (port 80 ou 443)
 6. `index.php` est déjà défini comme document par défaut dans web.config

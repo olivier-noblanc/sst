@@ -29,6 +29,7 @@ use App\Services\StatisticsService;
 use App\Services\RegistryPolicy;
 use App\Services\ReportStateMachine;
 use App\Services\CronService;
+use App\Services\ExportService;
 use App\Event\EventDispatcher;
 
 require_once __DIR__ . '/Event/event_listeners.php';
@@ -138,6 +139,10 @@ function createContainer(): Container
         /** @var AuditRepository $auditRepo */ $auditRepo = $c->get(AuditRepository::class);
         /** @var SessionRepository $sessionRepo */ $sessionRepo = $c->get(SessionRepository::class);
         return new CronService($pdo, $configRepo, $reportRepo, $auditRepo, $sessionRepo);
+    });
+    $container->set(ExportService::class, function (Container $c) {
+        /** @var ConfigService $config */ $config = $c->get(ConfigService::class);
+        return new ExportService($config);
     });
 
     return $container;

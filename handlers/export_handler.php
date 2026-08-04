@@ -11,7 +11,7 @@
  */
 use App\Services\HttpService;
 use App\Services\SessionService;
-use App\Enum\ReportType;
+use App\Services\ExportService;
 use App\Repository\StatsRepository;
 use App\Repository\ReportRepository;
 
@@ -20,6 +20,7 @@ use App\Repository\ReportRepository;
 $http = new HttpService();
 $session = SessionService::getInstance();
 $config = getConfigService();
+$exportService = getContainer()->get(ExportService::class);
 
 $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
@@ -83,40 +84,8 @@ auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . $count . ' signalemen
 // UTF-8 BOM for Excel compatibility
 fwrite($tmpFile, "\xEF\xBB\xBF");
 
-// Header row — includes multi-response columns
-$headers = [
-    'Référence',
-    'Registre',
-    'Date événement',
-    'Heure dépôt',
-    'Lieu',
-    'Pôle',
-    'Service d\'affectation',
-    'Téléphone mobile',
-    'Site (texte)',
-    'Objet',
-    'Description',
-    'Déclarant (nom)',
-    'Déclarant (prénom)',
-];
-if (!$noSiteMode) {
-    $headers[] = $config->get('app_label_unite', 'UR');
-    $headers[] = 'Nom ' . $config->get('app_label_unite', 'UR');
-}
-$headers = array_merge($headers, [
-    'État',
-    'Confidentiel',
-    'Transmission FS/CSA',
-    'Date création',
-    'Déclaré pour le compte de',
-    'Nature de l\'auteur (RAMI)',
-    'Type d\'acte (RAMI)',
-    'Nb réponses',
-    'Dernière réponse',
-    'Dernier répondant',
-    'Date dernière réponse',
-    'Historique réponses',
-]);
+// Header row — includes multi-response columns (declarative via ExportService)
+$headers = $exportService->buildHeaders($noSiteMode);
 fputcsv($tmpFile, $headers, ';', escape: '');
 
 // Bulk-fetch all responses for the reports being exported (avoids N+1 queries)
@@ -126,85 +95,14 @@ if (!empty($reports)) {
     $allResponses = $reportRepo->getResponsesForUuids($allUuids);
 }
 
-// Data rows
+// Data rows (transformed via ExportService)
 foreach ($reports as $row) {
     /** @var array<string, string> $row */
     // Get response history for this report (from bulk-fetched data)
     $responses = $allResponses[(string) ($row['uuid'] ?? '')] ?? [];
-    $responseCount = count($responses);
 
-    // Build "Pour le compte de" field
-    $pourCompte = '';
-    if (!empty($row['pour_compte_nom'])) {
-        $pourCompte = trim(($row['pour_compte_prenom'] ?? '') . ' ' . $row['pour_compte_nom']);
-    }
-
-    // Build RAMI structured fields labels
-    $natureAuteurLabel = getRegistryFieldOptions(ReportType::Rami->value, 'nature_auteur')[(string) ($row['nature_auteur'] ?? '')] ?? '';
-    $typeActeLabel = getRegistryFieldOptions(ReportType::Rami->value, 'type_acte')[(string) ($row['type_acte'] ?? '')] ?? '';
-
-    // Build response history as structured text
-    // Format: [Date] Répondant (État) : Réponse | [Date] ...
-    $historyParts = [];
-    foreach ($responses as $resp) {
-        /** @var array<string, string> $resp */
-        $date = (string) ($resp['created_at'] ?? '');
-        $respondent = trim((string) ($resp['prenom'] ?? '') . ' ' . (string) ($resp['nom'] ?? ''));
-        $etat = ETAT_LABELS[(string) ($resp['nouvel_etat'] ?? '')] ?? (string) ($resp['nouvel_etat'] ?? '');
-        $text = (string) ($resp['reponse'] ?? '');
-        $historyParts[] = "[$date] $respondent ($etat) : $text";
-    }
-    $historyText = implode(' | ', $historyParts);
-
-    // CSV formula injection prevention: prefix cells starting with =+@-
-    // Audit #72 — Avant ce fix, les caractères \t, \r, \n n'étaient pas
-    // échappés. fputcsv gère les enclosures automatiquement, mais les
-    // valeurs contenant ces chars pouvaient casser l'analyse CSV dans
-    // certains lecteurs Excel edge-case. Maintenant on les sanitize.
-    $csvEscape = function ($value): string {
-        $safe = (string) $value;
-        // Formula injection prevention
-        if (preg_match('/^[=+\-@]/', $safe) > 0) {
-            $safe = "'" . $safe;
-        }
-        // Audit #72 — sanitize tab/newline chars that could break CSV parsing
-        $safe = str_replace(["\t", "\r", "\n"], [' ', ' ', ' '], $safe);
-        return $safe;
-    };
-
-    $csvRow = [
-        $csvEscape($row['reference'] ?? ''),
-        $csvEscape(strtoupper($row['type'] ?? '')),
-        $csvEscape($row['date_evenement'] ?? ''),
-        $csvEscape($row['heure_evenement'] ?? ''),
-        $csvEscape($row['lieu'] ?? ''),
-        $csvEscape($row['pole'] ?? ''),
-        $csvEscape($row['service_affectation'] ?? ''),
-        $csvEscape($row['telephone_mobile'] ?? ''),
-        $csvEscape($row['site_text'] ?? ''),
-        $csvEscape($row['objet'] ?? ''),
-        $csvEscape($row['description'] ?? ''),
-        $csvEscape($row['declarant_nom'] ?? ''),
-        $csvEscape($row['declarant_prenom'] ?? ''),
-    ];
-    if (!$noSiteMode) {
-        $csvRow[] = $csvEscape($row['site_code'] ?? '');
-        $csvRow[] = $csvEscape($row['site_nom'] ?? '');
-    }
-    $csvRow = array_merge($csvRow, [
-        $csvEscape(ETAT_LABELS[(string) ($row['etat'] ?? '')] ?? (string) ($row['etat'] ?? '')),
-        !empty($row['is_confidential']) ? 'Oui' : 'Non',
-        !empty($row['consent_syndicat']) ? 'Acceptée' : 'Refusée',
-        $csvEscape($row['created_at'] ?? ''),
-        $csvEscape($pourCompte),
-        $csvEscape($natureAuteurLabel),
-        $csvEscape($typeActeLabel),
-        $responseCount,
-        $csvEscape($row['reponse'] ?? ''),
-        $csvEscape(trim(($row['repondant_prenom'] ?? '') . ' ' . ($row['repondant_nom'] ?? ''))),
-        $csvEscape($row['date_reponse'] ?? ''),
-        $csvEscape($historyText),
-    ]);
+    // Build CSV row using ExportService
+    $csvRow = $exportService->buildCsvRow($row, $responses, $noSiteMode);
 
     fputcsv($tmpFile, $csvRow, ';', escape: '');
 }

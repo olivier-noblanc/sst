@@ -19,7 +19,7 @@ export async function loginAs(page, username = 'admin.dev') {
     const formIndex = username === 'agent.dev' ? 1 : username === 'chsct.dev' ? 2 : 0;
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'networkidle' }),
-      page.locator('form').nth(formIndex).evaluate(form => form.submit()),
+      page.locator('form').nth(formIndex).locator('button[type="submit"]').click(),
     ]);
   } else {
     // Non-dev users: POST directly. page.request shares cookies with page's

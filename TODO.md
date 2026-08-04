@@ -658,15 +658,28 @@ Voir détail dans le rapport d'audit. Sera traité par theme.
 #### Batch 9 — Bugs Low (40)
 Voir détail dans le rapport d'audit.
 
-#### Batch 10 — Refactorings R1-R8
-- R1 : `ReportStateMachine` centralisée
-- R2 : wire EventDispatcher listeners (clos Batch 5)
-- R3 : `AnonymizationPolicy` unifiée (clos Batch 3 + #44, #45, #46)
-- R4 : `SessionInvalidator` avec marqueur DB (clos Batch 6)
-- R5 : `ExportService` déclaratif
-- R6 : `CronService` avec verrou atomic (clos #41)
-- R7 : `SitesStatsView`
-- R8 : Nettoyage code mort HTML (clos #5, #6, #78)
+#### Batch 10 — ✅ Refactorings R1-R8 — TERMINÉ (session 2026-08-04)
+
+| Refactoring | Statut | Commit |
+|---|---|---|
+| R1 | `ReportStateMachine` centralisée | ✅ `0189b09` |
+| R2 | wire EventDispatcher listeners | ✅ (clos Batch 5) |
+| R3 | `AnonymizationPolicy` unifiée | ✅ (clos Batch 3 + #44, #45, #46) |
+| R4 | `SessionInvalidator` avec marqueur DB | ✅ (clos Batch 6) |
+| R5 | `ExportService` déclaratif | ✅ `72ece28` |
+| R6 | `CronService` avec verrou atomic | ✅ `0189b09` (clos #41) |
+| R7 | `SitesStatsView` | ✅ `f8046e8` |
+| R8 | Nettoyage code mort HTML | ✅ (clos #5, #6, #78) |
+
+**Bonus:**
+- Cleanup logs [SST-CRYPTO] — ✅ `2672abe`
+- Fix CSRF eviction log spam — ✅ `647e71d`
+- Fix Rector modernisation — ✅ `51a09ea`
+
+**Vérifications:**
+- PHPStan: ✅ 0 erreur
+- PHPUnit: ✅ 1575 tests, 4007 assertions
+- CI GitHub Actions: ✅ Lint/PHPStan/PHPUnit/Rector/PHPArkitect/Deptrac/CSP/Composer Audit — E2E en cours
 
 ### Tests TDD spec-first à écrire pour chaque bug
 

@@ -5,6 +5,12 @@ includes:
     - phpstan-banned-code.neon
     - vendor/shipmonk/dead-code-detector/rules.neon
 
+services:
+    -
+        class: App\PHPStan\DeadCode\PhpStanRuleUsageProvider
+        tags:
+            - shipmonk.deadCode.memberUsageProvider
+
 parameters:
     level: 8
     treatPhpDocTypesAsCertain: true

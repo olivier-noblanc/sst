@@ -304,9 +304,9 @@ class AuthService
             \setUserSession($autoUser);
             \safeSessionRegenerate();
 
-            require_once __DIR__ . '/../cron.php';
             try {
-                \runLazyCron(\getDB());
+                $cronService = \getContainer()->get(CronService::class);
+                $cronService->runLazyCron();
             } catch (Exception $e) {
                 // @silent-ok: lazy-cron piggybacking on IIS auto-auth requests — must not
                 // block the login itself if a background task fails.

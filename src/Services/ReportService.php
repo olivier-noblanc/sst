@@ -24,7 +24,8 @@ class ReportService
 {
     public function __construct(
         private readonly ReportRepository $repo,
-        private readonly EventDispatcher $events
+        private readonly EventDispatcher $events,
+        private readonly ReportStateMachine $stateMachine
     ) {}
 
     /**
@@ -94,23 +95,12 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        if (!canRespondToReport($report, currentUserRole())) {
-            throw new RuntimeException('Accès refusé.');
-        }
 
-        // Audit #6-Medium — validate that nouvelEtat is a valid response state.
-        // Before this fix, a supervisor could pass ReportState::Abandonne (via
-        // crafted POST) → bypassing the rule that abandon is declarant-only
-        // (cf. abandon() method). Only EnCours and Traite are valid response
-        // states — Nouveau is the initial state (no response yet), Reouvert and
-        // Abandonne are managed by their own methods.
-        $validResponseStates = [ReportState::EnCours, ReportState::Traite];
-        if (!in_array($cmd->nouvelEtat, $validResponseStates, true)) {
-            throw new InvalidArgumentException(
-                'État cible invalide pour une réponse. Seuls "en_cours" et "traite" sont autorisés. '
-                . 'Pour abandonner, utilisez le bouton "Abandonner" (réservé au déclarant).'
-            );
-        }
+        $userRole = UserRole::from(currentUserRole());
+        $currentState = ReportState::from($report->etat);
+
+        // Validate transition using state machine
+        $this->stateMachine->validateTransition($report, $cmd->nouvelEtat, $userRole);
 
         $result = $this->repo->respond($uuid, $cmd, $userId);
 
@@ -165,9 +155,13 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        if (!canEditReport($report, $userId)) {
-            throw new RuntimeException('Accès refusé.');
-        }
+
+        $userRole = UserRole::from(currentUserRole());
+        $currentState = ReportState::from($report->etat);
+
+        // Validate transition using state machine
+        $this->stateMachine->validateTransition($report, ReportState::Abandonne, $userRole);
+
         $result = $this->repo->abandon($uuid, $userId);
 
         // Audit: dispatch report.abandoned so listeners can notify supervisors
@@ -189,12 +183,11 @@ class ReportService
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable.');
         }
-        if (!in_array($report->etat, [ReportState::Traite->value, ReportState::Abandonne->value], true)) {
-            throw new RuntimeException('Ce signalement ne peut pas être réouvert.');
-        }
-        if (!in_array(currentUserRole(), [UserRole::Superviseur->value, UserRole::Chsct->value], true)) {
-            throw new RuntimeException('Accès refusé — seuls les superviseurs et le CHSCT peuvent réouvrir.');
-        }
+
+        $userRole = UserRole::from(currentUserRole());
+
+        // Validate transition using state machine
+        $this->stateMachine->validateTransition($report, ReportState::Reouvert, $userRole);
 
         // Audit #19 — rate limit sur les réouvertures pour éviter l'abus
         // (abandon → reopen → respond → reopen → ... en boucle). Limite

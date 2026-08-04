@@ -17,6 +17,7 @@ require_once __DIR__ . '/../src/bootstrap_services.php';
 
 use App\Services\AuthService;
 use App\Services\SessionManager;
+use App\Services\CronService;
 
 $http = new HttpService();
 $sessionService = SessionService::getInstance();
@@ -32,14 +33,14 @@ if (empty($username)) {
 
 $authService = getContainer()->get(AuthService::class);
 $session = getContainer()->get(SessionManager::class);
+$cronService = getContainer()->get(CronService::class);
 
 $user = $authService->mockLogin($username);
 
 if ($user !== null) {
     safeSessionRegenerate();
 
-    require_once __DIR__ . '/../src/cron.php';
-    runLazyCron(getDB());
+    $cronService->runLazyCron();
 
     $intendedUrl = (string) ($session->clearIntendedUrl() ?? $http->url('home'));
     auditLog(getDB(), 'auth', 'login', 'Connexion : ' . $user->prenom . ' ' . $user->nom, $user->id, 'user', ['username' => $user->username]);

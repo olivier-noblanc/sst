@@ -11,6 +11,8 @@ use App\Repository\StatsRepository;
 use App\Repository\RegistryRepository;
 use App\Repository\RegistryFieldRepository;
 use App\Repository\AuditRepository;
+use App\Repository\SessionRepository;
+use App\Repository\ConfigRepository;
 use App\Services\ReportService;
 use App\Services\UserService;
 use App\Services\AuthService;
@@ -25,6 +27,8 @@ use App\Services\AssetService;
 use App\Services\RegistryCardService;
 use App\Services\StatisticsService;
 use App\Services\RegistryPolicy;
+use App\Services\ReportStateMachine;
+use App\Services\CronService;
 use App\Event\EventDispatcher;
 
 require_once __DIR__ . '/Event/event_listeners.php';
@@ -73,6 +77,9 @@ function createContainer(): Container
     $container->set(AuditRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new AuditRepository($pdo);
     });
+    $container->set(SessionRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new SessionRepository($pdo);
+    });
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Services — standalone (no constructor dependencies)
@@ -86,6 +93,7 @@ function createContainer(): Container
     $container->set(AssetService::class, fn() => new AssetService());
     $container->set(SessionManager::class, fn() => new SessionManager());
     $container->set(RegistryPolicy::class, fn() => new RegistryPolicy());
+    $container->set(ReportStateMachine::class, fn() => new ReportStateMachine());
 
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -100,7 +108,8 @@ function createContainer(): Container
     $container->set(ReportService::class, function (Container $c) {
         /** @var ReportRepository $repo */ $repo = $c->get(ReportRepository::class);
         /** @var EventDispatcher $events */ $events = $c->get(EventDispatcher::class);
-        return new ReportService($repo, $events);
+        /** @var ReportStateMachine $stateMachine */ $stateMachine = $c->get(ReportStateMachine::class);
+        return new ReportService($repo, $events, $stateMachine);
     });
     $container->set(UserService::class, function (Container $c) {
         /** @var UserRepository $repo */ $repo = $c->get(UserRepository::class);
@@ -121,6 +130,14 @@ function createContainer(): Container
     $container->set(StatisticsService::class, function (Container $c) {
         /** @var StatsRepository $statsRepo */ $statsRepo = $c->get(StatsRepository::class);
         return new StatisticsService($statsRepo);
+    });
+    $container->set(CronService::class, function (Container $c) {
+        /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        /** @var ConfigRepository $configRepo */ $configRepo = $c->get(ConfigRepository::class);
+        /** @var ReportRepository $reportRepo */ $reportRepo = $c->get(ReportRepository::class);
+        /** @var AuditRepository $auditRepo */ $auditRepo = $c->get(AuditRepository::class);
+        /** @var SessionRepository $sessionRepo */ $sessionRepo = $c->get(SessionRepository::class);
+        return new CronService($pdo, $configRepo, $reportRepo, $auditRepo, $sessionRepo);
     });
 
     return $container;

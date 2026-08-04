@@ -145,4 +145,30 @@ class AuditRepository
         /** @var list<array<string, mixed>> */
         return $stmt->fetchAll();
     }
+
+    /**
+     * Purge les entrées d'audit plus anciennes que la date donnée.
+     *
+     * @param string $cutoffDate Date limite (format Y-m-d H:i:s)
+     * @return int Nombre d'entrées supprimées
+     */
+    public function purgeOlderThan(string $cutoffDate): int
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM audit_log WHERE created_at < :cutoff');
+        $stmt->execute([':cutoff' => $cutoffDate]);
+        return $stmt->rowCount();
+    }
+
+    /**
+     * Purge les logs de consultation plus anciens que la date donnée.
+     *
+     * @param string $cutoffDate Date limite (format Y-m-d H:i:s)
+     * @return int Nombre d'entrées supprimées
+     */
+    public function purgeAccessLogOlderThan(string $cutoffDate): int
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM report_access_log WHERE accessed_at < :cutoff');
+        $stmt->execute([':cutoff' => $cutoffDate]);
+        return $stmt->rowCount();
+    }
 }

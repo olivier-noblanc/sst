@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 use App\Services\ReportService;
 use App\Repository\ReportRepository;
 use App\Event\EventDispatcher;
+use App\Services\ReportStateMachine;
 use App\DTO\CreateReportCommand;
 use App\DTO\SiteId;
 use App\DTO\UpdateReportCommand;
@@ -28,6 +29,7 @@ class ReportServiceTest extends TestCase
     private ReportRepository $repo;
     private ReportService $service;
     private EventDispatcher $events;
+    private ReportStateMachine $stateMachine;
     private int $siteId;
     private int $userId;
     private int $supervisorId;
@@ -46,7 +48,8 @@ class ReportServiceTest extends TestCase
 
         $this->repo = new ReportRepository($this->pdo);
         $this->events = new EventDispatcher();
-        $this->service = new ReportService($this->repo, $this->events);
+        $this->stateMachine = new ReportStateMachine();
+        $this->service = new ReportService($this->repo, $this->events, $this->stateMachine);
 
         $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD_SVC', 'ReportService Site', 1)");
         $this->siteId = (int) $this->pdo->query("SELECT id FROM sites WHERE code = 'UD_SVC'")->fetchColumn();
@@ -138,7 +141,8 @@ class ReportServiceTest extends TestCase
             $dispatched = true;
         });
         $repo = new ReportRepository($this->pdo);
-        $service = new ReportService($repo, $events);
+        $stateMachine = new ReportStateMachine();
+        $service = new ReportService($repo, $events, $stateMachine);
 
         $cmd = new CreateReportCommand(
             type: ReportType::Rsst->value,
@@ -248,7 +252,8 @@ class ReportServiceTest extends TestCase
             $dispatched = true;
         });
         $repo = new ReportRepository($this->pdo);
-        $service = new ReportService($repo, $events);
+        $stateMachine = new ReportStateMachine();
+        $service = new ReportService($repo, $events, $stateMachine);
 
         $report = $this->createReport();
         $cmd = new RespondToReportCommand(
@@ -297,7 +302,8 @@ class ReportServiceTest extends TestCase
             $dispatched = true;
         });
         $repo = new ReportRepository($this->pdo);
-        $service = new ReportService($repo, $events);
+        $stateMachine = new ReportStateMachine();
+        $service = new ReportService($repo, $events, $stateMachine);
 
         $report = $this->createReport();
         $cmd = new UpdateReportCommand(

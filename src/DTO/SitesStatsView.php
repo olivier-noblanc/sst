@@ -39,7 +39,7 @@ class SitesStatsView
         $rows = [];
         foreach ($this->sites as $site) {
             $siteCode = $site['code'];
-            $matched = isset($statsIndex[$siteCode]) ? $statsIndex[$siteCode] : null;
+            $matched = $statsIndex[$siteCode] ?? null;
 
             $row = [
                 'code' => $siteCode,

@@ -27,45 +27,15 @@ $indicateurs = $stats->indicateurs;
 $statsBySite = $stats->statsBySite;
 $ramiStats = $stats->ramiStats;
 
-// Build table data by site
+// Build table data via SitesStatsView (view model)
 /** @var list<array{id: int, code: string, nom: string}> $sites */
 $sites = \App\Repository\SiteRepository::instance()->findAll();
-// Modular-audit P2.4 — iterate over enabled registries dynamically instead of
-// hardcoding RSST/RAMI/DGI columns. Custom registries now appear automatically.
+/** @var list<array{code: string, label: string, short_label: string, color_theme: string}> $enabledRegistries */
 $enabledRegistries = \App\Repository\RegistryRepository::instance()->findEnabled();
 $registryCodes = array_map(fn($r) => (string) $r['code'], $enabledRegistries);
-$tableData = [];
-foreach ($sites as $site) {
-    $row = ['code' => $site['code'], 'nom'  => $site['nom'], 'total' => 0];
-    foreach ($registryCodes as $code) {
-        $row[$code] = 0;
-    }
-    $tableData[$site['id']] = $row;
-}
 
-foreach ($statsBySite as $row) {
-    // Find matching site
-    foreach ($tableData as $sId => &$td) {
-        if ($td['code'] === $row->code) {
-            foreach ($registryCodes as $code) {
-                $td[$code] = $row->getCount($code);
-            }
-            $td['total'] = $row->total;
-            break;
-        }
-    }
-}
-unset($td);
-
-// Calculate totals
-$registryTotals = array_fill_keys($registryCodes, 0);
-$totalAll = 0;
-foreach ($tableData as $td) {
-    foreach ($registryCodes as $code) {
-        $registryTotals[$code] += $td[$code];
-    }
-    $totalAll  += $td['total'];
-}
+$siteStatsView = new \App\DTO\SitesStatsView($statsBySite, $sites, $registryCodes);
+$tableData = $siteStatsView->getRows();
 
 $pageTitle = 'Statistiques';
 ?>
@@ -129,7 +99,7 @@ foreach ($registryRepo->findEnabled() as $reg):
                 <tr>
                     <td><strong><?php echo $fmt->e($td['code']); ?></strong> — <?php echo $fmt->e($td['nom']); ?></td>
                     <?php foreach ($registryCodes as $code): ?>
-                        <td class="text-center <?php echo $td[$code] > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td[$code]; ?></td>
+                        <td class="text-center <?php echo ($td['registryCounts'][$code] ?? 0) > 0 ? 'synthesis-cell-value' : 'synthesis-cell-zero'; ?>"><?php echo $td['registryCounts'][$code] ?? 0; ?></td>
                     <?php endforeach; ?>
                     <td class="text-center synthesis-cell-value"><strong><?php echo $td['total']; ?></strong></td>
                 </tr>
@@ -138,9 +108,9 @@ foreach ($registryRepo->findEnabled() as $reg):
                 <tr class="row--totals">
                     <td><strong>Total</strong></td>
                     <?php foreach ($registryCodes as $code): ?>
-                        <td class="text-center synthesis-cell-value"><?php echo $registryTotals[$code]; ?></td>
+                        <td class="text-center synthesis-cell-value"><?php echo $siteStatsView->getTotalByRegistry($code); ?></td>
                     <?php endforeach; ?>
-                    <td class="text-center synthesis-cell-value"><strong><?php echo $totalAll; ?></strong></td>
+                    <td class="text-center synthesis-cell-value"><strong><?php echo $siteStatsView->getGrandTotal(); ?></strong></td>
                 </tr>
             </tbody>
         </table>

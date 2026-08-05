@@ -372,4 +372,64 @@ class StatsRepository
             byTypeActe: $byType,
         );
     }
+
+    /** @api */
+    public function getStructuredStatsForRegistry(string $registryCode, string $year = ''): RamiStats
+    {
+        $byNature = [];
+        $byType = [];
+
+        // Find registry
+        $regRepo = new RegistryRepository($this->pdo);
+        $registry = $regRepo->findByCode($registryCode);
+        if ($registry === null) {
+            return new RamiStats(byNatureAuteur: $byNature, byTypeActe: $byType);
+        }
+        $registryId = (int) $registry['id'];
+
+        // Get active field_codes for this registry from registry_fields
+        $stmt = $this->pdo->prepare('SELECT field_code FROM registry_fields WHERE registry_id = :rid');
+        $stmt->execute([':rid' => $registryId]);
+        /** @var list<string> $activeFieldCodes */
+        $activeFieldCodes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $params = [];
+        $yearFilter = '';
+        if (!empty($year)) {
+            $yearFilter = ' AND created_at >= :year_start AND created_at < :year_next';
+            $params[':year_start'] = $year . '-01-01 00:00:00';
+            $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
+        }
+
+        $params[':type'] = $registryCode;
+
+        if (in_array('nature_auteur', $activeFieldCodes, true)) {
+            $sqlNature = "SELECT nature_auteur, COUNT(*) as count
+                FROM reports
+                WHERE type = :type AND nature_auteur IS NOT NULL AND nature_auteur != ''{$yearFilter}
+                GROUP BY nature_auteur
+                ORDER BY count DESC";
+            $stmt = $this->pdo->prepare($sqlNature);
+            $stmt->execute($params);
+            /** @var list<array{nature_auteur: string, count: int}> $byNature */
+            $byNature = $stmt->fetchAll();
+        }
+
+        if (in_array('type_acte', $activeFieldCodes, true)) {
+            $sqlType = "SELECT type_acte, COUNT(*) as count
+                FROM reports
+                WHERE type = :type AND type_acte IS NOT NULL AND type_acte != ''{$yearFilter}
+                GROUP BY type_acte
+                ORDER BY count DESC";
+            $stmt = $this->pdo->prepare($sqlType);
+            $stmt->execute($params);
+            /** @var list<array{type_acte: string, count: int}> $byType */
+            $byType = $stmt->fetchAll();
+        }
+
+        return new RamiStats(
+            byNatureAuteur: $byNature,
+            byTypeActe: $byType,
+        );
+    }
 }

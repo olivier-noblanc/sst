@@ -3,6 +3,12 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.64.1] — 2026-08-05
+
+### Bugfix — E2E login crash (ConfigRepository non enregistré dans le DI container)
+
+- 🔴 **`ConfigRepository` manquant dans le container DI** — `src/bootstrap_services.php` enregistrait 10 repositories mais oubliait `ConfigRepository`. Le `CronService` (factory ligne 137) dépend de `$c->get(ConfigRepository::class)` → `RuntimeException: Service not registered` au moment de `runLazyCron()` dans `login_handler.php`. L'exception fatale empêchait la redirection `page=home` après login → tous les tests E2E timeout (login reste sur `page=login`). Fix : enregistrement de `ConfigRepository` avec le même pattern factory que les autres repositories (injection PDO). Vérifié par test HTTP complet (GET login → POST → 302 vers `page=home`).
+
 ## [3.64.0] — 2026-08-03
 
 ### Code review superpowers — 2 fix Important

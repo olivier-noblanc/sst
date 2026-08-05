@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-08-04 (v3.64.0) — vérification ground truth audit CTO
+Dernière mise à jour : 2026-08-05 (v3.64.1) — fix ConfigRepository manquant dans DI container (E2E login crash)
 
 ---
 

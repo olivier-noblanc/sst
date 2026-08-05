@@ -81,6 +81,9 @@ function createContainer(): Container
     $container->set(SessionRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new SessionRepository($pdo);
     });
+    $container->set(ConfigRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new ConfigRepository($pdo);
+    });
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Services — standalone (no constructor dependencies)

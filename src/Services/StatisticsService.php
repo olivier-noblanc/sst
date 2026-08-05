@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use App\DTO\StatisticsResult;
+use App\Enum\ReportType;
 use App\Repository\StatsRepository;
 
 class StatisticsService
@@ -44,7 +45,7 @@ class StatisticsService
         $result = new StatisticsResult(
             indicateurs: $this->statsRepo->getIndicateurs($year),
             statsBySite: $this->statsRepo->getBySite($year),
-            ramiStats: $this->statsRepo->getRamiStructuredStats($year),
+            ramiStats: $this->statsRepo->getStructuredStatsForRegistry(ReportType::Rami->value, $year),
         );
         $this->cache[$year] = $result;
         return $result;

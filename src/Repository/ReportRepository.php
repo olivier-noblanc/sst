@@ -938,11 +938,12 @@ class ReportRepository
 
     /**
      * @param array{type?: string, site_id?: int, date_debut?: string, date_fin?: string, etat?: string} $filters
+     * @param string|null $registryCode Code du registre pour ajouter dynamiquement les colonnes depuis registry_fields
      * @return list<array{uuid: string, reference: string, type: string, objet: string, date_evenement: string, etat: string, declarant_nom: string, declarant_prenom: string, site_nom: string|null, pole: string|null, service_affectation: string|null, telephone_mobile: string|null, consent_syndicat: int, site_text: string|null}>
      */
-    public function getExportData(array $filters = []): array
+    public function getExportData(array $filters = [], ?string $registryCode = null): array
     {
-        return StatsRepository::instance()->getExportData($filters);
+        return StatsRepository::instance()->getExportData($filters, $registryCode);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

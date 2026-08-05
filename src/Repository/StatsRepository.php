@@ -4,7 +4,6 @@
 
 namespace App\Repository;
 
-use App\Enum\ReportType;
 use App\DTO\IndicateursData;
 use App\DTO\RamiStats;
 use App\DTO\SiteStatsRow;
@@ -85,11 +84,35 @@ class StatsRepository
 
     /**
      * @param array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: list<string>} $filters
+     * @param string|null $registryCode Code du registre pour ajouter dynamiquement les colonnes depuis registry_fields
      * @return list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: ?string, lieu: string, declarant_id: int, declarant_nom: string, declarant_prenom: string, pour_compte_de: ?string, pour_compte_nom: ?string, pour_compte_prenom: ?string, nature_auteur: ?string, type_acte: ?string, site_id: ?int, site_text: ?string, pole: ?string, service_affectation: ?string, telephone_mobile: ?string, is_confidential: int, consent_syndicat: int, etat: string, repondant_id: ?int, date_reponse: ?string, reponse: ?string, attachment_name: ?string, attachment_mime: ?string, created_at: string, updated_at: string, site_code: ?string, site_nom: ?string, repondant_nom: ?string, repondant_prenom: ?string}>
      */
-    public function getExportData(array $filters = []): array
+    public function getExportData(array $filters = [], ?string $registryCode = null): array
     {
-        $sql = '
+        // Build dynamic columns from registry_fields if registryCode is provided
+        $dynamicColumns = '';
+        if ($registryCode !== null) {
+            $registryRepo = RegistryRepository::instance();
+            $registry = $registryRepo->findByCode($registryCode);
+
+            if ($registry !== null) {
+                $registryId = (int) $registry['id'];
+                $stmt = $this->pdo->prepare('SELECT field_code FROM registry_fields WHERE registry_id = ?');
+                $stmt->execute([$registryId]);
+                $fieldKeys = array_column($stmt->fetchAll(), 'field_code');
+
+                // Add each field as a column (r.pole, r.service_affectation, etc.)
+                foreach ($fieldKeys as $fieldKey) {
+                    // Sanitize field key to prevent SQL injection
+                    $safeKey = preg_replace('/[^a-zA-Z_]/', '', (string) $fieldKey);
+                    if ($safeKey !== '') {
+                        $dynamicColumns .= ', r.' . $safeKey;
+                    }
+                }
+            }
+        }
+
+        $baseColumns = '
             SELECT r.uuid, r.reference, r.type, r.objet, r.description,
                    r.date_evenement, r.heure_evenement, r.lieu,
                    r.declarant_id, r.declarant_nom, r.declarant_prenom,
@@ -103,6 +126,9 @@ class StatsRepository
                    r.created_at, r.updated_at,
                    s.code as site_code, s.nom as site_nom,
                    rep.nom as repondant_nom, rep.prenom as repondant_prenom
+        ';
+
+        $sql = $baseColumns . $dynamicColumns . '
             FROM reports r
             LEFT JOIN sites s ON r.site_id = s.id
             LEFT JOIN users rep ON r.repondant_id = rep.id
@@ -335,44 +361,6 @@ class StatsRepository
         return array_column($rows, 'year');
     }
 
-    public function getRamiStructuredStats(string $year = ''): RamiStats
-    {
-        $params = [];
-        $yearFilter = '';
-        if (!empty($year)) {
-            $yearFilter = ' AND created_at >= :year_start AND created_at < :year_next';
-            $params[':year_start'] = $year . '-01-01 00:00:00';
-            $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
-        }
-
-        $ramiType = $this->pdo->quote(ReportType::Rami->value);
-
-        $sqlNature = "SELECT nature_auteur, COUNT(*) as count
-            FROM reports
-            WHERE type = {$ramiType} AND nature_auteur IS NOT NULL AND nature_auteur != ''{$yearFilter}
-            GROUP BY nature_auteur
-            ORDER BY count DESC";
-        $stmt = $this->pdo->prepare($sqlNature);
-        $stmt->execute($params);
-        /** @var list<array{nature_auteur: string, count: int}> $byNature */
-        $byNature = $stmt->fetchAll();
-
-        $sqlType = "SELECT type_acte, COUNT(*) as count
-            FROM reports
-            WHERE type = {$ramiType} AND type_acte IS NOT NULL AND type_acte != ''{$yearFilter}
-            GROUP BY type_acte
-            ORDER BY count DESC";
-        $stmt = $this->pdo->prepare($sqlType);
-        $stmt->execute($params);
-        /** @var list<array{type_acte: string, count: int}> $byType */
-        $byType = $stmt->fetchAll();
-
-        return new RamiStats(
-            byNatureAuteur: $byNature,
-            byTypeActe: $byType,
-        );
-    }
-
     /** @api */
     public function getStructuredStatsForRegistry(string $registryCode, string $year = ''): RamiStats
     {
@@ -392,6 +380,14 @@ class StatsRepository
         $stmt->execute([':rid' => $registryId]);
         /** @var list<string> $activeFieldCodes */
         $activeFieldCodes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        // Backward compat: if registry_fields is empty for this registry,
+        // assume legacy behavior (nature_auteur + type_acte are active)
+        // This ensures existing tests and RAMI/DGI/RSST registries work
+        // even if registry_fields wasn't seeded for them.
+        if (empty($activeFieldCodes)) {
+            $activeFieldCodes = ['nature_auteur', 'type_acte'];
+        }
 
         $params = [];
         $yearFilter = '';

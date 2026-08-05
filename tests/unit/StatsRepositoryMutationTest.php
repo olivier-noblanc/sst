@@ -5,7 +5,7 @@
  *   - getIndicateurs() (CastInt, Coalesce on totals)
  *   - getBySite() (CastInt, Coalesce on per-site counts)
  *   - getAvailableYears() (strftime, datetime, DISTINCT, ORDER BY)
- *   - getRamiStructuredStats() (GROUP BY nature_auteur, type_acte)
+ *   - getStructuredStatsForRegistry() (GROUP BY nature_auteur, type_acte)
  *
  * Strategy : seed reports with known states/types, then assert exact count values.
  * Each assertSame(int) kills CastInt/DecrementInteger/IncrementInteger mutants.
@@ -18,6 +18,7 @@ use App\DTO\IndicateursData;
 use App\DTO\SiteStatsRow;
 use App\DTO\SynthesisRow;
 use App\Enum\ReportState;
+use App\Enum\ReportType;
 
 class StatsRepositoryMutationTest extends TestCase
 {
@@ -311,15 +312,15 @@ class StatsRepositoryMutationTest extends TestCase
         }
     }
 
-    // ═══ getRamiStructuredStats() ═══
+    // ═══ getStructuredStatsForRegistry() ═══
 
-    public function testGetRamiStructuredStatsReturnsCorrectCounts(): void
+    public function testGetStructuredStatsForRegistryReturnsCorrectCounts(): void
     {
         $this->seedReport('rami', ReportState::Nouveau->value, null, 'usager', 'verbal');
         $this->seedReport('rami', ReportState::Nouveau->value, null, 'usager', 'verbal');
         $this->seedReport('rami', ReportState::Nouveau->value, null, 'collegue', 'physique');
 
-        $result = $this->repo->getRamiStructuredStats('2026');
+        $result = $this->repo->getStructuredStatsForRegistry(ReportType::Rami->value, '2026');
 
         // Kill CastInt/Coalesce on nature_auteur counts
         $byNature = $result->byNatureAuteur;
@@ -347,20 +348,20 @@ class StatsRepositoryMutationTest extends TestCase
         $this->assertSame(1, $physiqueCount, 'physique count must be 1');
     }
 
-    public function testGetRamiStructuredStatsReturnsEmptyWhenNoRamiReports(): void
+    public function testGetStructuredStatsForRegistryReturnsEmptyWhenNoRamiReports(): void
     {
-        $result = $this->repo->getRamiStructuredStats('2026');
+        $result = $this->repo->getStructuredStatsForRegistry(ReportType::Rami->value, '2026');
         $this->assertSame([], $result->byNatureAuteur);
         $this->assertSame([], $result->byTypeActe);
     }
 
-    public function testGetRamiStructuredStatsOnlyCountsRamiReports(): void
+    public function testGetStructuredStatsForRegistryOnlyCountsRamiReports(): void
     {
         // RSST reports should not appear in RAMI stats
         $this->seedReport('rsst', ReportState::Nouveau->value, null, 'usager', 'verbal');
         $this->seedReport('rami', ReportState::Nouveau->value, null, 'usager', 'verbal');
 
-        $result = $this->repo->getRamiStructuredStats('2026');
+        $result = $this->repo->getStructuredStatsForRegistry(ReportType::Rami->value, '2026');
         $this->assertNotEmpty($result->byNatureAuteur);
         // Only 1 RAMI report with usager
         $total = 0;
@@ -370,13 +371,13 @@ class StatsRepositoryMutationTest extends TestCase
         $this->assertSame(1, $total, 'should only count RAMI reports, not RSST');
     }
 
-    public function testGetRamiStructuredStatsFiltersByYear(): void
+    public function testGetStructuredStatsForRegistryFiltersByYear(): void
     {
         $this->seedReport('rami', ReportState::Nouveau->value, null, 'usager', 'verbal', '2025-06-15 10:00:00');
         $this->seedReport('rami', ReportState::Nouveau->value, null, 'usager', 'verbal', '2026-06-15 10:00:00');
 
-        $result2025 = $this->repo->getRamiStructuredStats('2025');
-        $result2026 = $this->repo->getRamiStructuredStats('2026');
+        $result2025 = $this->repo->getStructuredStatsForRegistry(ReportType::Rami->value, '2025');
+        $result2026 = $this->repo->getStructuredStatsForRegistry(ReportType::Rami->value, '2026');
 
         $total2025 = 0;
         foreach ($result2025->byNatureAuteur as $entry) $total2025 += (int) $entry['count'];
@@ -387,13 +388,13 @@ class StatsRepositoryMutationTest extends TestCase
         $this->assertSame(1, $total2026);
     }
 
-    public function testGetRamiStructuredStatsExcludesNullNatureAndType(): void
+    public function testGetStructuredStatsForRegistryExcludesNullNatureAndType(): void
     {
         // Reports with NULL nature_auteur should not appear in byNatureAuteur
         $this->seedReport('rami', ReportState::Nouveau->value, null, null, null);
         $this->seedReport('rami', ReportState::Nouveau->value, null, 'usager', 'verbal');
 
-        $result = $this->repo->getRamiStructuredStats('2026');
+        $result = $this->repo->getStructuredStatsForRegistry(ReportType::Rami->value, '2026');
         $this->assertNotEmpty($result->byNatureAuteur);
         // Only the report with nature_auteur='usager' should be counted
         $total = 0;

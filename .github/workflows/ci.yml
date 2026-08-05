@@ -408,9 +408,13 @@ jobs:
         run: npx playwright install --with-deps firefox
 
       - name: Create session directory
-        run: mkdir -p /tmp/php_sessions
+        run: |
+          mkdir -p /tmp/php_sessions
+          chmod 777 /tmp/php_sessions
 
       - name: Run E2E tests (shard ${{ matrix.shard }})
+        env:
+          CI: true
         run: npx playwright test --project=firefox --shard=${{ matrix.shard }}
 
       - name: Upload Playwright report on failure

@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\SQLiteSessionHandler;
+
 // === Force session name BEFORE any session_start() (including auto_start) ===
 // If session.auto_start is enabled in php.ini, PHP starts a session with
 // the default PHPSESSID name before our code runs. Setting the name early
@@ -23,7 +25,7 @@ if (session_status() === PHP_SESSION_NONE && session_name() === 'PHPSESSID') {
 $useGzip = (extension_loaded('zlib')
     && ini_get('zlib.output_compression') === false
     && isset($_SERVER['HTTP_ACCEPT_ENCODING'])
-    && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false
+    && str_contains($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')
     && php_sapi_name() !== 'cli-server');
 if ($useGzip) {
     ob_start('ob_gzhandler');
@@ -39,7 +41,16 @@ if ($useGzip) {
 require_once __DIR__ . '/../src/autoload.php';
 require_once __DIR__ . '/../src/error_handler.php';
 
+// === Load database BEFORE session handler (handler needs PDO) ===
 require_once __DIR__ . '/../src/database.php';
+
+// === Activate SQLite session handler BEFORE any session_start() (including auto_start) ===
+// This must run before session.php is loaded to ensure session persistence across requests
+if (!ini_get('session.auto_start')) {
+    $sessionHandler = new SQLiteSessionHandler(getDB());
+    session_set_save_handler($sessionHandler, true);
+}
+
 require_once __DIR__ . '/../src/session.php';
 if (defined('DEV_MODE') && DEV_MODE) {
     require_once __DIR__ . '/../src/session_patch.php';
@@ -71,8 +82,8 @@ try {
 }
 
 // Register custom error handler (email critical errors to admin)
-set_error_handler('sstErrorHandler');
-register_shutdown_function('sstShutdownHandler');
+set_error_handler(sstErrorHandler(...));
+register_shutdown_function(sstShutdownHandler(...));
 
 // Validation user (pas dans autoload)
 

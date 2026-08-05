@@ -10,16 +10,10 @@ const phpBinary = process.env.SST_PHP_BINARY || 'php';
 const sessionPath = isWindows ? path.join(__dirname, 'data', 'sessions') : '/tmp/php_sessions';
 const routerPath = path.join(__dirname, 'public', 'router.php').replace(/\\/g, '/');
 
-// On Windows, use 'set DEV_MODE=1 &&' prefix; on Linux, use 'DEV_MODE=1' prefix
-const devModePrefix = isWindows ? 'set DEV_MODE=1 &&' : 'DEV_MODE=1';
-
 // E2E tests use an isolated temp DB, never the real data/sst.db
 const e2eDbPath = isWindows
   ? '%TEMP%\\sst-e2e-test.db'
   : '/tmp/sst-e2e-test.db';
-const dbPathPrefix = isWindows
-  ? `set SST_DB_PATH=${e2eDbPath} &&`
-  : `SST_DB_PATH=${e2eDbPath}`;
 
 // Disable Xdebug for E2E tests (causes timeouts)
 const xdebugFlag = isWindows ? '-d xdebug.mode=off' : '-d xdebug.mode=off';
@@ -91,7 +85,9 @@ module.exports = defineConfig({
     },
   ],
   webServer: {
-    command: `${dbPathPrefix} ${devModePrefix} mkdir -p "${sessionPath}" && ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
+    command: isWindows
+      ? `set SST_DB_PATH=${e2eDbPath} && set DEV_MODE=1 && mkdir -p "${sessionPath}" && ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`
+      : `mkdir -p "${sessionPath}" && SST_DB_PATH=${e2eDbPath} DEV_MODE=1 ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
     port: 8850,
     reuseExistingServer: true,
     timeout: 30000,

@@ -727,11 +727,11 @@ La P25 (TODO.md) prétendait « TERMINÉ » pour les registres customs, mais un 
 | P2.4 | `pages/statistics.php` et `pages/synthesis.php` : remplacer `ReportType::cases()` par `findEnabled()` | à migrer | ✅ Terminé (commit c69e058) |
 | P2.5 | `pages/help/_registres.php` : 3 cartes hardcodées → itération dynamique | à migrer | ✅ Terminé (commit c69e058) |
 
-### Phase 3 — ✅ TERMINÉE (commits 53d0e00, e2576d6)
+### Phase 3 — ✅ TERMINÉE (commits 53d0e00, e2576d6, 3920117)
 
 | # | Fix | Statut |
 |---|-----|--------|
-| P3.1 | `ReportType` réduit à un rôle purement sémantique : `fromCode()` créé, `from()` déprécié | ✅ Partiel (fromCode() existe, migration en attente) |
+| P3.1 | `ReportType` réduit à un rôle purement sémantique : `fromCode()` créé, `from()` interdit par règle PHPStan | ✅ Terminé (NoForbiddenEnumMethodRule) |
 | P3.2 | `getRamiStructuredStats()` → `getStructuredStatsForRegistry()` générique | ✅ Terminé (53d0e00) |
 | P3.3 | Export CSV incluant dynamiquement les champs `registry_fields` | ✅ Terminé (e2576d6) |
 

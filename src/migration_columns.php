@@ -23,6 +23,95 @@
  *
  * @param PDO $pdo
  */
+
+/**
+ * Rebuild reports table with custom column definitions.
+ *
+ * Encapsulates the backup → DROP → CREATE → INSERT → DROP → RENAME →
+ * recreate-indexes → recreate-FTS5 → rollback → foreign_keys reset →
+ * FK-orphan-check pattern shared by the two reports-table rebuilds in
+ * migrateColumns() below.
+ *
+ * @param PDO     $pdo             Database connection.
+ * @param Closure $buildColumnDefs Callable that returns the full array of
+ *                                 column/FK/CHECK definitions ready for
+ *                                 implode (reads PRAGMA table_info and
+ *                                 PRAGMA foreign_key_list internally).
+ * @param string  $logMessage      Message to write via error_log() on success.
+ */
+function rebuildReportsTable(PDO $pdo, Closure $buildColumnDefs, string $logMessage): void
+{
+    backupBeforeMigration($pdo);
+    // Audit #78 — DROP TABLE reports needs foreign_keys OFF. With it ON,
+    // SQLite performs an implicit row-by-row DELETE before dropping the
+    // table; report_state_history references reports(uuid) without ON
+    // DELETE CASCADE, so any database with at least one row in
+    // report_state_history fails the rebuild. Toggling the pragma is a
+    // no-op inside a transaction (SQLite requirement), so it must happen
+    // outside the beginTransaction()/commit() below — restored in finally
+    // so a worker's PDO connection never ends up with foreign_keys left OFF.
+    $fkStmt = $pdo->query('PRAGMA foreign_keys');
+    if ($fkStmt === false) {
+        throw new RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
+    }
+    $fkWasEnabled = (bool) $fkStmt->fetchColumn();
+    $pdo->exec('PRAGMA foreign_keys = OFF');
+    try {
+        $pdo->beginTransaction();
+        try {
+            // Audit #55 — Drop any leftover reports_new from a previously failed migration.
+            $pdo->exec('DROP TABLE IF EXISTS reports_new');
+            $colDefs = $buildColumnDefs();
+            $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $colDefs) . ')';
+            $pdo->exec($createSql);
+            $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
+            $pdo->exec('DROP TABLE IF EXISTS reports');
+            $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
+            // Recreate indexes (SQLite drops them with the table)
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
+            $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
+            // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
+            recreateReportsFts5($pdo);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            // Audit — never leave the cached PDO connection (static across
+            // requests under a persistent FastCGI worker) mid-transaction:
+            // an unrolled-back transaction here would make every subsequent
+            // beginTransaction() on this worker fatal with "There is already
+            // an active transaction", breaking unrelated requests until the
+            // worker is recycled. Roll back, then re-throw unchanged — the
+            // migration failure must stay loud, not be silently swallowed.
+            $pdo->rollBack();
+            throw $e;
+        }
+    } finally {
+        $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
+    }
+    // Audit #78 — verify the rebuild didn't leave any dangling reference
+    // (report_state_history and friends) now that enforcement is back ON.
+    // A rebuild that "succeeds" but leaves orphaned FKs is worse than one
+    // that fails loudly.
+    $orphanStmt = $pdo->query('PRAGMA foreign_key_check(reports)');
+    if ($orphanStmt === false) {
+        throw new RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
+    }
+    $orphans = $orphanStmt->fetchAll();
+    if (!empty($orphans)) {
+        throw new RuntimeException('reports rebuild left dangling foreign keys: ' . json_encode($orphans));
+    }
+    error_log($logMessage);
+}
+
 function migrateColumns(PDO $pdo): void
 {
     // ── Make reports.site_id nullable ────────────────────────────────────────
@@ -47,124 +136,51 @@ function migrateColumns(PDO $pdo): void
         }
     }
     if ($siteIdIsNotNull) {
-        $colDefs = [];
-        foreach ($columns as $col) {
-            if (!is_array($col)) {
-                continue;
+        rebuildReportsTable($pdo, function () use ($pdo, $columns): array {
+            $colDefs = [];
+            foreach ($columns as $col) {
+                if (!is_array($col)) {
+                    continue;
+                }
+                /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
+                $def = $col['name'] . ' ' . $col['type'];
+                if ($col['pk']) {
+                    $def .= ' PRIMARY KEY';
+                }
+                // site_id loses its NOT NULL here; every other column keeps its own.
+                if ($col['notnull'] && !$col['pk'] && $col['name'] !== 'site_id') {
+                    $def .= ' NOT NULL';
+                }
+                if ($col['dflt_value'] !== null) {
+                    /** @var string $dfltValue */
+                    $dfltValue = $col['dflt_value'];
+                    $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
+                    $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
+                }
+                $colDefs[] = $def;
             }
-            /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
-            $def = $col['name'] . ' ' . $col['type'];
-            if ($col['pk']) {
-                $def .= ' PRIMARY KEY';
+            // Modular-audit P1.1 — CHECK (type IN ('rsst','rami','dgi')) supprimé.
+            // Les registres doivent être 100% modulaires (création/suppression
+            // dynamique selon les lois). La table `registries` est la source de
+            // vérité pour les codes valides, pas une CHECK constraint hardcodée.
+            $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
+            $hasSiteIdCheck = array_any($colDefs, fn($existingDef) => str_contains((string) $existingDef, 'CHECK (site_id IS NULL OR site_id > 0)'));
+            if (!$hasSiteIdCheck) {
+                $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
             }
-            // site_id loses its NOT NULL here; every other column keeps its own.
-            if ($col['notnull'] && !$col['pk'] && $col['name'] !== 'site_id') {
-                $def .= ' NOT NULL';
+            $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
+            $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
+            $fkStmt = null;
+            $fkClauses = [];
+            foreach ($fks as $fk) {
+                if (!is_array($fk)) {
+                    continue;
+                }
+                /** @var array{from: string, table: string, to: string} $fk */
+                $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
             }
-            if ($col['dflt_value'] !== null) {
-                /** @var string $dfltValue */
-                $dfltValue = $col['dflt_value'];
-                $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
-                $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
-            }
-            $colDefs[] = $def;
-        }
-        // Modular-audit P1.1 — CHECK (type IN ('rsst','rami','dgi')) supprimé.
-        // Les registres doivent être 100% modulaires (création/suppression
-        // dynamique selon les lois). La table `registries` est la source de
-        // vérité pour les codes valides, pas une CHECK constraint hardcodée.
-        $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
-        $hasSiteIdCheck = array_any($colDefs, fn($existingDef) => str_contains((string) $existingDef, 'CHECK (site_id IS NULL OR site_id > 0)'));
-        if (!$hasSiteIdCheck) {
-            $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
-        }
-        $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
-        $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
-        $fkStmt = null;
-        $fkClauses = [];
-        foreach ($fks as $fk) {
-            if (!is_array($fk)) {
-                continue;
-            }
-            /** @var array{from: string, table: string, to: string} $fk */
-            $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
-        }
-        $allDefs = array_merge($colDefs, $fkClauses);
-        $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
-        backupBeforeMigration($pdo);
-        // Audit #78 — DROP TABLE reports, a few lines below, needs foreign_keys
-        // OFF. With it ON, SQLite performs an implicit row-by-row DELETE before
-        // dropping the table; report_state_history references reports(uuid)
-        // without ON DELETE CASCADE (unlike report_responses/report_access_log/
-        // report_agents/report_agent_invites, which all have it), so any
-        // database with at least one row in report_state_history fails the
-        // whole rebuild with "FOREIGN KEY constraint failed" — every single
-        // time migrateColumns() runs, forever, since nothing here ever
-        // resolves that row. Toggling the pragma is a no-op inside a
-        // transaction (SQLite requirement), so it must happen outside the
-        // beginTransaction()/commit() below — restored in finally so a
-        // worker's PDO connection never ends up with foreign_keys left OFF.
-        $fkStmt = $pdo->query('PRAGMA foreign_keys');
-        if ($fkStmt === false) {
-            throw new RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
-        }
-        $fkWasEnabled = (bool) $fkStmt->fetchColumn();
-        $pdo->exec('PRAGMA foreign_keys = OFF');
-        try {
-            $pdo->beginTransaction();
-            try {
-                // Audit #55 — Drop any leftover reports_new from a previously failed migration.
-                $pdo->exec('DROP TABLE IF EXISTS reports_new');
-                $pdo->exec($createSql);
-                $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
-                $pdo->exec('DROP TABLE IF EXISTS reports');
-                $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
-                // Recreate indexes (SQLite drops them with the table)
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
-                $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
-                // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
-                // DROP TABLE reports silently dropped the triggers reports_fts_ai/ad/au
-                // (and reports_fts itself was orphaned). Without this, future INSERTs on
-                // reports would not be reflected in reports_fts → full-text search broken.
-                recreateReportsFts5($pdo);
-                $pdo->commit();
-            } catch (Throwable $e) {
-                // Audit — never leave the cached PDO connection (static across
-                // requests under a persistent FastCGI worker) mid-transaction:
-                // an unrolled-back transaction here would make every subsequent
-                // beginTransaction() on this worker fatal with "There is already
-                // an active transaction", breaking unrelated requests until the
-                // worker is recycled. Roll back, then re-throw unchanged — the
-                // migration failure must stay loud, not be silently swallowed.
-                $pdo->rollBack();
-                throw $e;
-            }
-        } finally {
-            $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
-        }
-        // Audit #78 — verify the rebuild didn't leave any dangling reference
-        // (report_state_history and friends) now that enforcement is back ON.
-        // A rebuild that "succeeds" but leaves orphaned FKs is worse than one
-        // that fails loudly.
-        $orphanStmt = $pdo->query('PRAGMA foreign_key_check(reports)');
-        if ($orphanStmt === false) {
-            throw new RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
-        }
-        $orphans = $orphanStmt->fetchAll();
-        if (!empty($orphans)) {
-            throw new RuntimeException('reports rebuild (site_id nullable) left dangling foreign keys: ' . json_encode($orphans));
-        }
-        error_log('[SST-MIGRATION] reports.site_id is now nullable (no-site mode support).');
+            return array_merge($colDefs, $fkClauses);
+        }, '[SST-MIGRATION] reports.site_id is now nullable (no-site mode support).');
     }
 
     // ── Remove CHECK constraint on reports.type ──────────────────────────────
@@ -205,109 +221,48 @@ function migrateColumns(PDO $pdo): void
         $colStmt = $pdo->query('PRAGMA table_info(reports)');
         $columns = ($colStmt !== false) ? $colStmt->fetchAll() : [];
         $colStmt = null;
-        $colDefs = [];
-        foreach ($columns as $col) {
-            if (!is_array($col)) {
-                continue;
+
+        rebuildReportsTable($pdo, function () use ($pdo, $columns): array {
+            $colDefs = [];
+            foreach ($columns as $col) {
+                if (!is_array($col)) {
+                    continue;
+                }
+                /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
+                $def = $col['name'] . ' ' . $col['type'];
+                if ($col['pk']) {
+                    $def .= ' PRIMARY KEY';
+                }
+                if ($col['notnull'] && !$col['pk']) {
+                    $def .= ' NOT NULL';
+                }
+                if ($col['dflt_value'] !== null) {
+                    /** @var string $dfltValue */
+                    $dfltValue = $col['dflt_value'];
+                    $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
+                    $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
+                }
+                $colDefs[] = $def;
             }
-            /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
-            $def = $col['name'] . ' ' . $col['type'];
-            if ($col['pk']) {
-                $def .= ' PRIMARY KEY';
+            // NOT adding CHECK (type IN (...)) — that's the whole point
+            $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
+            $hasSiteIdCheck = array_any($colDefs, fn($existingDef) => str_contains((string) $existingDef, 'CHECK (site_id IS NULL OR site_id > 0)'));
+            if (!$hasSiteIdCheck) {
+                $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
             }
-            if ($col['notnull'] && !$col['pk']) {
-                $def .= ' NOT NULL';
+            $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
+            $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
+            $fkStmt = null;
+            $fkClauses = [];
+            foreach ($fks as $fk) {
+                if (!is_array($fk)) {
+                    continue;
+                }
+                /** @var array{from: string, table: string, to: string} $fk */
+                $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
             }
-            if ($col['dflt_value'] !== null) {
-                /** @var string $dfltValue */
-                $dfltValue = $col['dflt_value'];
-                $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
-                $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
-            }
-            $colDefs[] = $def;
-        }
-        // NOT adding CHECK (type IN (...)) — that's the whole point
-        $colDefs[] = "CHECK (etat IN ('nouveau','en_cours','traite','reouvert','abandonne'))";
-        $hasSiteIdCheck = array_any($colDefs, fn($existingDef) => str_contains((string) $existingDef, 'CHECK (site_id IS NULL OR site_id > 0)'));
-        if (!$hasSiteIdCheck) {
-            $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
-        }
-        $fkStmt = $pdo->query('PRAGMA foreign_key_list(reports)');
-        $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
-        $fkStmt = null;
-        $fkClauses = [];
-        foreach ($fks as $fk) {
-            if (!is_array($fk)) {
-                continue;
-            }
-            /** @var array{from: string, table: string, to: string} $fk */
-            $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
-        }
-        $allDefs = array_merge($colDefs, $fkClauses);
-        $createSql = 'CREATE TABLE IF NOT EXISTS reports_new (' . implode(', ', $allDefs) . ')';
-        backupBeforeMigration($pdo);
-        // Audit #78 — same reasoning as the site_id rebuild above: DROP TABLE
-        // reports with foreign_keys ON fails with "FOREIGN KEY constraint
-        // failed" as soon as any row exists in report_state_history (the one
-        // child table without ON DELETE CASCADE to reports(uuid)). This was
-        // the actual reason this migration never completed on a real
-        // production database — it wasn't a deploy-lag issue, it failed the
-        // same way on every single run. See PR discussion / commit message
-        // for the concrete repro against a production DB export.
-        $fkStmt = $pdo->query('PRAGMA foreign_keys');
-        if ($fkStmt === false) {
-            throw new RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
-        }
-        $fkWasEnabled = (bool) $fkStmt->fetchColumn();
-        $pdo->exec('PRAGMA foreign_keys = OFF');
-        try {
-            $pdo->beginTransaction();
-            try {
-                // Audit #55 — Drop any leftover reports_new from a previously failed migration.
-                $pdo->exec('DROP TABLE IF EXISTS reports_new');
-                $pdo->exec($createSql);
-                $pdo->exec('INSERT OR IGNORE INTO reports_new SELECT * FROM reports');
-                $pdo->exec('DROP TABLE IF EXISTS reports');
-                $pdo->exec('ALTER TABLE reports_new RENAME TO reports');
-                // Recreate indexes (SQLite drops them with the table)
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type ON reports(type)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_etat ON reports(etat)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_site_id ON reports(site_id)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_declarant_id ON reports(declarant_id)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_etat ON reports(type, etat)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site ON reports(type, site_id)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_site_etat ON reports(type, site_id, etat)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_declarant_etat ON reports(type, declarant_id, etat)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_type_date_evenement ON reports(type, date_evenement)');
-                $pdo->exec('CREATE INDEX IF NOT EXISTS idx_reports_is_confidential ON reports(is_confidential)');
-                $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_uuid ON reports(uuid)');
-                // Audit #42 — recreate FTS5 virtual table + triggers after rebuild.
-                recreateReportsFts5($pdo);
-                $pdo->commit();
-            } catch (Throwable $e) {
-                // Audit — never leave the cached PDO connection (static across
-                // requests under a persistent FastCGI worker) mid-transaction:
-                // an unrolled-back transaction here would make every subsequent
-                // beginTransaction() on this worker fatal with "There is already
-                // an active transaction", breaking unrelated requests until the
-                // worker is recycled. Roll back, then re-throw unchanged — the
-                // migration failure must stay loud, not be silently swallowed.
-                $pdo->rollBack();
-                throw $e;
-            }
-        } finally {
-            $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
-        }
-        $orphanStmt = $pdo->query('PRAGMA foreign_key_check(reports)');
-        if ($orphanStmt === false) {
-            throw new RuntimeException('PRAGMA foreign_key_check(reports) query failed unexpectedly.');
-        }
-        $orphans = $orphanStmt->fetchAll();
-        if (!empty($orphans)) {
-            throw new RuntimeException('reports rebuild (type CHECK removal) left dangling foreign keys: ' . json_encode($orphans));
-        }
-        error_log('[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
+            return array_merge($colDefs, $fkClauses);
+        }, '[SST-MIGRATION] CHECK constraint on reports.type removed (custom registres supported).');
     }
 
     // ── Add btn_label column to registries ──────────────────────────────────

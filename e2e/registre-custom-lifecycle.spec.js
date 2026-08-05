@@ -45,15 +45,15 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
     await expect(page.locator('h2:has-text("Gestion des registres")')).toBeVisible();
 
     // Le registre VIOL devrait être visible
-    // Modular-audit P1.5 — use first() to avoid strict mode violation when 2 cards
-    // match (the registre card itself + a child section that also contains the label).
-    const violCard = page.locator('div.card:has(h3:has-text("Registre des Violences"))').first();
+    // Use :has(.toggle-switch) to distinguish the registry form card from the
+    // "Champs personnalisés" card which also has a matching h3 label.
+    const violCard = page.locator('div.card:has(h3:has-text("Registre des Violences")):has(.toggle-switch)');
     await expect(violCard).toBeVisible();
 
     // ═══════════════════════════════════════════════════════════════
     // ÉTAPE 3 : Personnaliser couleur et icône
     // ═══════════════════════════════════════════════════════════════
-    const violCard2 = page.locator('div.card:has(h3:has-text("Registre des Violences"))').first();
+    const violCard2 = page.locator('div.card:has(h3:has-text("Registre des Violences")):has(.toggle-switch)');
 
     // Choisir la couleur "violet" — UI uses <span class="color-dot" data-theme="violet">
     // (not radio buttons). Click the dot to select.
@@ -121,7 +121,7 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
     // ═══════════════════════════════════════════════════════════════
     await page.goto('/index.php?page=settings&tab=registres');
 
-    const violCard3 = page.locator('div.card:has(h3:has-text("Registre des Violences"))').first();
+    const violCard3 = page.locator('div.card:has(h3:has-text("Registre des Violences")):has(.toggle-switch)');
     await expect(violCard3).toBeVisible();
 
     // Le bouton supprimer ne devrait pas être disabled (pas système)
@@ -140,7 +140,7 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
     // ÉTAPE 9 : Vérifier qu'il n'apparaît plus
     // ═══════════════════════════════════════════════════════════════
     await page.goto('/index.php?page=settings&tab=registres');
-    const violCardGone = page.locator('div.card:has(h3:has-text("Registre des Violences"))').first();
+    const violCardGone = page.locator('div.card:has(h3:has-text("Registre des Violences")):has(.toggle-switch)');
     await expect(violCardGone).toHaveCount(0);
 
     // Plus sur le dashboard

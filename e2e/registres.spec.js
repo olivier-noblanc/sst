@@ -83,7 +83,7 @@ test.describe('Settings — Registres Tab', () => {
     // RAMI card should have color dots (10 themes)
     // Modular-audit P1.5 — UI uses <span class="color-dot"> + hidden input, not radio buttons.
     // The old test checked `input[type="radio"][name*="color_theme"]` which never matched.
-    const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))');
+    const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))').first();
     const colorDots = ramiCard.locator('.color-dot');
     await expect(colorDots.first()).toBeVisible();
 
@@ -97,7 +97,7 @@ test.describe('Settings — Registres Tab', () => {
 
     // RAMI card should have icon <select> dropdown (not radio buttons)
     // Modular-audit P1.5 — UI uses <select>, not <input type="radio">. Old test was wrong.
-    const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))');
+    const ramiCard = page.locator('div.card:has(h3:has-text("Registre des Actes"))').first();
     const iconSelect = ramiCard.locator('select[name*="[icon]"]');
     await expect(iconSelect).toBeVisible();
 

@@ -91,7 +91,7 @@ module.exports = defineConfig({
     },
   ],
   webServer: {
-    command: `${dbPathPrefix} ${devModePrefix} ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
+    command: `${dbPathPrefix} ${devModePrefix} mkdir -p "${sessionPath}" && ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
     port: 8850,
     reuseExistingServer: true,
     timeout: 30000,

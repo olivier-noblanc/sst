@@ -407,11 +407,6 @@ jobs:
       - name: Install Playwright (Firefox only)
         run: npx playwright install --with-deps firefox
 
-      - name: Create session directory
-        run: |
-          mkdir -p /tmp/php_sessions
-          chmod 777 /tmp/php_sessions
-
       - name: Run E2E tests (shard ${{ matrix.shard }})
         env:
           CI: true

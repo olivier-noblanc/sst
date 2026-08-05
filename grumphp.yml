@@ -1,18 +1,11 @@
+# GrumPHP pre-commit — fast local feedback only.
+# Heavy tasks (phpunit, phparkitect, rector, deptrac) are run by CI.
 parameters:
-    command_timeout: 300
+    command_timeout: 120
     tasks:
         phpstan:
             configuration: phpstan.neon
             memory_limit: 1G
-        phpunit:
-            config_file: phpunit.xml
         phpcsfixer:
             config: .php-cs-fixer.dist.php
             allow_risky: true
-        phparkitect:
-            config: phparkitect.php
-        rector:
-            config: rector.php
-            triggered_by: ['php']
-        deptrac:
-            depfile: deptrac.yaml

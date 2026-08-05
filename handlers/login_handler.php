@@ -19,6 +19,15 @@ use App\Services\AuthService;
 use App\Services\SessionManager;
 use App\Services\CronService;
 
+// Debug logging for E2E troubleshooting
+if (defined('DEV_MODE') && DEV_MODE) {
+    $sessionId = session_id() ?: 'no-session-id';
+    $postUsername = $_POST['username'] ?? 'none';
+    $postCsrf = $_POST['csrf_token'] ?? 'none';
+    $csrfTokens = $_SESSION['csrf_tokens'] ?? [];
+    error_log("[SST-LOGIN] POST received - session_id=$sessionId, username=$postUsername, csrf_provided=" . substr($postCsrf, 0, 8) . "..., csrf_in_session=" . count($csrfTokens));
+}
+
 $http = new HttpService();
 $sessionService = SessionService::getInstance();
 

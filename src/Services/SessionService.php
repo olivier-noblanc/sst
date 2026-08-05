@@ -57,6 +57,14 @@ class SessionService
             session_name('SST_SESSION');
 
             session_start();
+            
+            // Debug logging for E2E troubleshooting
+            if (defined('DEV_MODE') && DEV_MODE) {
+                $incomingCookie = $_COOKIE['SST_SESSION'] ?? 'none';
+                $sessionId = session_id();
+                $isNewSession = !isset($_SESSION['csrf_tokens']) && !isset($_SESSION['user']);
+                error_log("[SST-SESSION] startSession - incoming_cookie=" . substr($incomingCookie, 0, 16) . "..., new_session_id=" . $sessionId . ", is_new=" . ($isNewSession ? 'yes' : 'no') . ", path=" . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
+            }
         }
     }
 

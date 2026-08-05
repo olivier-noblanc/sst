@@ -126,7 +126,9 @@ class HttpService
         if (!\validateCsrfToken($token)) {
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
             $caller = $trace[1]['file'] ?? ($trace[0]['file'] ?? 'unknown');
-            error_log('[SST-HTTP] validatePostRequest: CSRF token rejected (token_present=' . ($token !== '' ? 'yes' : 'no') . ', fallback=' . $fallbackUrl . ', called_from=' . $caller . ', post_keys=' . implode(',', array_keys($_POST)) . ')');
+            $sessionId = session_id() ?: 'no-session-id';
+            $tokens = is_array($_SESSION['csrf_tokens'] ?? null) ? $_SESSION['csrf_tokens'] : [];
+            error_log('[SST-HTTP] CSRF validation FAILED - caller=' . $caller . ', token_provided=' . ($token !== '' ? 'yes(' . substr($token, 0, 8) . '...)' : 'no') . ', session_id=' . $sessionId . ', tokens_in_session=' . count($tokens) . ', fallback=' . $fallbackUrl);
             SessionService::getInstance()->setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
             $this->redirect($fallbackUrl);
         }

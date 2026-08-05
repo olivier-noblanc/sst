@@ -47,6 +47,22 @@ function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string 
     getHttpService()->validatePostRequest($fallbackUrl, $roles, $csrfToken);
 }
 
+/**
+ * Debug helper - log session state for E2E debugging
+ */
+function logSessionState(string $context): void
+{
+    if (defined('DEV_MODE') && DEV_MODE) {
+        $sessionId = session_id() ?: 'no-session-id';
+        $sessionName = session_name();
+        $sessionStatus = session_status();
+        $csrfTokens = $_SESSION['csrf_tokens'] ?? [];
+        $user = $_SESSION['user'] ?? null;
+        $flash = $_SESSION['flash'] ?? null;
+        error_log("[SST-DEBUG] $context - session_name=$sessionName, session_id=$sessionId, status=$sessionStatus, csrf_count=" . count($csrfTokens) . ", user=" . ($user ? $user['username'] : 'none') . ", flash=" . ($flash ? $flash['type'] : 'none'));
+    }
+}
+
 function flashAndRedirect(string $type, string $message, string $url): void
 {
     getHttpService()->flashAndRedirect($type, $message, $url);

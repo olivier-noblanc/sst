@@ -32,6 +32,7 @@ final class NoSqlOutsideRepositoryRule implements Rule
         '/nuclear-reset',
         '/database.php',
         '/audit.php',
+        '/SQLiteSessionHandler', // Implements SessionHandlerInterface
     ];
 
     public function getNodeType(): string

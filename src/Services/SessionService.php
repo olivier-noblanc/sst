@@ -26,6 +26,7 @@ class SessionService
     /**
      * Start the PHP session with secure settings.
      *
+     * Uses SQLiteSessionHandler in DEV_MODE/CI for reliable session storage.
      * Clears any legacy PHPSESSID cookie to prevent session fragmentation
      * when the canonical session name is SST_SESSION.
      */
@@ -56,20 +57,25 @@ class SessionService
             ini_set('session.gc_maxlifetime', (string) (60 * 60 * 24)); // 24h
             session_name('SST_SESSION');
 
-            // Ensure session save path exists and is writable (E2E tests + CI)
-            $savePath = ini_get('session.save_path');
-            if (!empty($savePath) && !is_dir($savePath)) {
-                @mkdir($savePath, 0777, true);
+            // Use SQLite session handler in DEV_MODE/CI for reliable session storage
+            // (avoids file permission issues with file-based sessions in CI)
+            if ((defined('DEV_MODE') && DEV_MODE) || getenv('CI') === 'true') {
+                if (!function_exists('getDB')) {
+                    require_once __DIR__ . '/../database.php';
+                }
+                $pdo = getDB();
+                $handler = new SQLiteSessionHandler($pdo);
+                session_set_save_handler($handler, true);
             }
 
             session_start();
 
             // Debug logging for E2E troubleshooting
-            if (defined('DEV_MODE') && DEV_MODE) {
+            if ((defined('DEV_MODE') && DEV_MODE) || getenv('CI') === 'true') {
                 $incomingCookie = $_COOKIE['SST_SESSION'] ?? 'none';
                 $sessionId = session_id();
                 $isNewSession = !isset($_SESSION['csrf_tokens']) && !isset($_SESSION['user']);
-                error_log('[SST-SESSION] startSession - incoming_cookie=' . substr((string) $incomingCookie, 0, 16) . '..., new_session_id=' . $sessionId . ', is_new=' . ($isNewSession ? 'yes' : 'no') . ', path=' . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
+                error_log('[SST-SESSION] startSession - incoming_cookie=' . substr((string) $incomingCookie, 0, 16) . '..., new_session_id=' . $sessionId . ', is_new=' . ($isNewSession ? 'yes' : 'no') . ', path=' . ($_SERVER['REQUEST_URI'] ?? 'unknown') . ', handler=SQLite');
             }
         }
     }

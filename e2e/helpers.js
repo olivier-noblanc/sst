@@ -38,17 +38,16 @@ export async function loginAs(page, username = 'admin.dev') {
       }
     }
   } else {
-    // Non-dev users: POST directly. page.request shares cookies with page's
-    // browser context, so the session is set correctly — but page.request
-    // is a background API call, it does NOT navigate `page` itself. Without
-    // an explicit page.goto() afterwards, `page` stays on ?page=login and
-    // the toHaveURL assertion below would just time out waiting for a
-    // navigation that was never going to happen.
+    // Non-dev users: POST directly with custom credentials
+    // Get CSRF token from the first form (admin.dev form)
     const csrfToken = await page.locator('form').first().locator('input[name="csrf_token"]').inputValue();
-    await page.request.post('/index.php?page=login', {
-      form: { username, password: 'test', csrf_token: csrfToken },
-    });
-    await page.goto('/index.php?page=home');
+    
+    // Use page.context().addCookies() to ensure session is shared, then POST
+    // Actually, simpler: just fill the form and submit like a real user
+    await page.locator('form').first().fill('input[name="username"]', username);
+    await page.locator('form').first().fill('input[name="password"]', 'test');
+    await page.locator('form').first().locator('button[type="submit"]').click();
+    await page.waitForURL(/page=(home|choose_site)/, { timeout: 15000 });
 
     // In a multi-site environment (active sites configured — the case in
     // CI, unlike a production install running in no-site mode), a

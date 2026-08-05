@@ -19,19 +19,30 @@ use App\Services\AuthService;
 use App\Services\SessionManager;
 use App\Services\CronService;
 
-// Debug logging for E2E troubleshooting
+// Debug logging for E2E troubleshooting - BEFORE validatePostRequest
 if (defined('DEV_MODE') && DEV_MODE) {
-    $sessionId = session_id() ?: 'no-session-id';
-    $postUsername = $_POST['username'] ?? 'none';
+    error_log('[SST-LOGIN] === POST START ===');
+    error_log('[SST-LOGIN] $_COOKIE: ' . json_encode($_COOKIE));
+    error_log('[SST-LOGIN] $_POST: ' . json_encode($_POST));
+    error_log('[SST-LOGIN] session_status=' . session_status() . ', session_id=' . (session_id() ?: 'none'));
+    error_log('[SST-LOGIN] $_SESSION keys: ' . json_encode(array_keys($_SESSION ?? [])));
     $postCsrf = $_POST['csrf_token'] ?? 'none';
-    $csrfTokens = $_SESSION['csrf_tokens'] ?? [];
-    error_log("[SST-LOGIN] POST received - session_id=$sessionId, username=$postUsername, csrf_provided=" . substr($postCsrf, 0, 8) . "..., csrf_in_session=" . count($csrfTokens));
+    error_log('[SST-LOGIN] CSRF from POST: ' . substr($postCsrf, 0, 16) . '...');
+    $csrfInSession = $_SESSION['csrf_tokens'] ?? [];
+    error_log('[SST-LOGIN] CSRF in session: ' . count($csrfInSession) . ' tokens, keys=' . json_encode(array_keys($csrfInSession)));
 }
 
 $http = new HttpService();
 $sessionService = SessionService::getInstance();
 
+if (defined('DEV_MODE') && DEV_MODE) {
+    error_log('[SST-LOGIN] Calling validatePostRequest...');
+}
 validatePostRequest($http->url('login'));
+if (defined('DEV_MODE') && DEV_MODE) {
+    error_log('[SST-LOGIN] validatePostRequest PASSED');
+    error_log('[SST-LOGIN] $_SESSION after validate: ' . json_encode(array_keys($_SESSION ?? [])));
+}
 
 $username = trim((string) ($_POST['username'] ?? ''));
 

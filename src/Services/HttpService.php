@@ -105,6 +105,13 @@ class HttpService
      */
     public function validatePostRequest(string $fallbackUrl, ?array $roles = null, ?string $csrfToken = null): void
     {
+        if (defined('DEV_MODE') && DEV_MODE) {
+            error_log('[SST-HTTP] validatePostRequest START - method=' . $_SERVER['REQUEST_METHOD'] . ', fallback=' . $fallbackUrl);
+            error_log('[SST-HTTP] $_POST keys: ' . json_encode(array_keys($_POST)));
+            error_log('[SST-HTTP] $_SESSION keys: ' . json_encode(array_keys($_SESSION ?? [])));
+            error_log('[SST-HTTP] session_id=' . (session_id() ?: 'none') . ', session_status=' . session_status());
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             error_log('[SST-HTTP] validatePostRequest: non-POST request reached a POST-only handler (method=' . $_SERVER['REQUEST_METHOD'] . ', fallback=' . $fallbackUrl . ')');
             $this->redirect($fallbackUrl);
@@ -123,14 +130,23 @@ class HttpService
         }
 
         $token = $csrfToken ?? ($_POST['csrf_token'] ?? '');
+        if (defined('DEV_MODE') && DEV_MODE) {
+            error_log('[SST-HTTP] About to validateCsrfToken - token_provided=' . ($token !== '' ? 'yes(' . substr((string) $token, 0, 8) . '...)' : 'no'));
+            error_log('[SST-HTTP] $_SESSION[csrf_tokens] before validate: ' . json_encode($_SESSION['csrf_tokens'] ?? 'NOT_SET'));
+        }
+
         if (!\validateCsrfToken($token)) {
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
             $caller = $trace[1]['file'] ?? ($trace[0]['file'] ?? 'unknown');
             $sessionId = session_id() ?: 'no-session-id';
             $tokens = is_array($_SESSION['csrf_tokens'] ?? null) ? $_SESSION['csrf_tokens'] : [];
-            error_log('[SST-HTTP] CSRF validation FAILED - caller=' . $caller . ', token_provided=' . ($token !== '' ? 'yes(' . substr($token, 0, 8) . '...)' : 'no') . ', session_id=' . $sessionId . ', tokens_in_session=' . count($tokens) . ', fallback=' . $fallbackUrl);
+            error_log('[SST-HTTP] CSRF validation FAILED - caller=' . $caller . ', token_provided=' . ($token !== '' ? 'yes(' . substr((string) $token, 0, 8) . '...)' : 'no') . ', session_id=' . $sessionId . ', tokens_in_session=' . count($tokens) . ', fallback=' . $fallbackUrl);
             SessionService::getInstance()->setFlash('error', 'Erreur de sécurité. Veuillez réessayer.');
             $this->redirect($fallbackUrl);
+        }
+
+        if (defined('DEV_MODE') && DEV_MODE) {
+            error_log('[SST-HTTP] CSRF validation PASSED');
         }
 
         if ($roles !== null && !empty($roles)) {

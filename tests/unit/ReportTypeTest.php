@@ -104,12 +104,11 @@ class ReportTypeTest extends TestCase
     }
 
     /**
-     * from() must reject invalid values.
+     * fromCode() must return null for invalid values (safe alternative to from()).
      */
-    public function testFromRejectsInvalidValues(): void
+    public function testFromCodeReturnsNullForInvalid(): void
     {
-        $this->expectException(ValueError::class);
-        ReportType::from('invalid_type');
+        $this->assertNull(ReportType::fromCode('invalid_type'));
     }
 
     /**

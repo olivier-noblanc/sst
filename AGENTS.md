@@ -25,6 +25,7 @@
 - Les switch/case `case 'nouveau':` sont interdits → `case ReportState::Nouveau->value:`
 - Les clés de tableau `$arr['rsst']` → `$arr[ReportType::Rsst->value]` quand c'est une clé métier (pas une colonne SQL)
 - **Exceptions** : noms de colonnes SQL (`$row['nouveau']`), form values HTML (`value="rsst"`), seed data, tests
+- **`ReportType::from()` interdit** — la méthode native PHP `from()` lève `ValueError` sur les codes inconnus (ex: codes de registre personnalisés). Utiliser `ReportType::tryFrom()` ou `ReportType::fromCode()` qui retournent `null` proprement. PHPStan vérifie ça via `NoForbiddenEnumMethodRule` (`src/PHPStan/NoForbiddenEnumMethodRule.php`). Autorise dans `tests/`, `Enum/`, `PHPStan/`.
 - PHPStan vérifie ça via la règle custom `NoMagicStringRule` (`src/PHPStan/NoMagicStringRule.php`)
 - Rector peut auto-migrer les `===`/`!==` et `switch/case` via `ReplaceMagicStringWithEnumRector`
 - **Nouveaux développements** : introduire les enums dès le départ, ne jamais créer de constantes string pour des valeurs métier

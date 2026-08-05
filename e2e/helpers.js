@@ -20,9 +20,11 @@ export async function loginAs(page, username = 'admin.dev') {
     // Click the submit button and wait for navigation
     const submitButton = page.locator('form').nth(formIndex).locator('button[type="submit"]');
     await submitButton.waitFor({ state: 'visible' });
-    await submitButton.click();
-    // Wait for the page to navigate to home or choose_site
-    await page.waitForURL(/page=(home|choose_site)/, { timeout: 15000 });
+    // Use Promise.all to avoid race condition between click and URL wait
+    await Promise.all([
+      page.waitForURL(/page=(home|choose_site)/, { timeout: 15000 }),
+      submitButton.click(),
+    ]);
     // After login, handle multi-site flow if needed (same as non-dev users)
     if (page.url().includes('page=choose_site')) {
       const siteSelect = page.locator('#site_id');

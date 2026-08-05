@@ -101,7 +101,7 @@ test.describe('Settings — Word Cloud Tab', () => {
 
   test('should have save button', async ({ page }) => {
     await page.goto('/index.php?page=settings&tab=wordcloud');
-    await expect(page.locator('button:has-text("Enregistrer")')).toBeVisible();
+    await expect(page.locator('form:has(input[name="tab"][value="wordcloud"]) button[type="submit"]')).toBeVisible();
   });
 
   test('should save wordcloud words for a registry', async ({ page }) => {
@@ -113,7 +113,7 @@ test.describe('Settings — Word Cloud Tab', () => {
     await row.locator('input[type="number"]').fill('15');
 
     // Submit
-    await page.locator('button:has-text("Enregistrer")').click();
+    await page.locator('form:has(input[name="tab"][value="wordcloud"]) button[type="submit"]').click();
     await page.waitForLoadState('networkidle');
 
     // Should show success flash
@@ -159,7 +159,7 @@ test.describe('Home Page — Word Cloud Rendering', () => {
     const row = page.locator('.wordcloud-row').first();
     await row.locator('input[type="text"]').fill('TestWord');
     await row.locator('input[type="number"]').fill('10');
-    await page.locator('button:has-text("Enregistrer")').click();
+    await page.locator('form:has(input[name="tab"][value="wordcloud"]) button[type="submit"]').click();
     await page.waitForLoadState('networkidle');
 
     // Navigate to home

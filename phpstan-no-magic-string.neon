@@ -55,3 +55,7 @@ services:
         class: App\PHPStan\MustCheckReturnValueRule
         tags:
             - phpstan.rules.rule
+    -
+        class: App\PHPStan\NoForbiddenEnumMethodRule
+        tags:
+            - phpstan.rules.rule

@@ -121,6 +121,7 @@ if ($tab === 'registres') {
     handleSettingsRegistresTab($pdo, $_POST);
 }
 
+$registryCode = '';
 if ($tab === 'wordcloud') {
     $registryCode = trim((string) ($_POST['registry_code'] ?? ''));
     /** @var list<array{word: string, weight: int}> $rawWords */
@@ -156,4 +157,8 @@ $messages = [
 ];
 auditLog($pdo, 'config', 'update', 'Paramètres modifiés — onglet : ' . $tab, null, 'config', ['tab' => $tab]);
 $session->setFlash('success', $messages[$tab] ?? 'Paramètres enregistrés avec succès.');
-$http->redirect($http->url('settings', ['tab' => $tab]));
+$params = ['tab' => $tab];
+if ($registryCode !== '') {
+    $params['registry'] = $registryCode;
+}
+$http->redirect($http->url('settings', $params));

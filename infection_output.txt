@@ -1,0 +1,54 @@
+
+    ____      ____          __  _
+   /  _/___  / __/__  _____/ /_(_)___  ____
+   / // __ \/ /_/ _ \/ ___/ __/ / __ \/ __ \
+ _/ // / / / __/  __/ /__/ /_/ / /_/ / / / /
+/___/_/ /_/_/  \___/\___/\__/_/\____/_/ /_/
+
+#StandWithUkraine
+
+Infection - PHP Mutation Testing Framework version 0.34.0
+
+[notice] You are running Infection with PCOV enabled.
+[notice] Running Infection with 4 threads.
+
+Running initial tests with PHPUnit version 13.2.4
+
+.: killed by tests, A: killed by SA, M: escaped, U: uncovered
+E: fatal error, X: syntax error, T: timed out, S: skipped, I: ignored
+
+
+Generate mutants...
+
+Processing source code files...
+........TTTTTT..................TTTTTTTT.....MMM.M   (   50)
+...................M.....M...M...M.......M.M.M.M..   (  100)
+..........MM......................................   (  150)
+...........MMM..M.M...M............MMMM.MMM..MTT.T   (  200)
+.TT.T..................M.M.M.M.M.MMM.M....MM.MMMMM   (  250)
+.M.M.............MMM..MMMM.M.MMMMM.MM.............   (  300)
+...M..MM.MMMMMMMMM................MMMTTTMMMMM.MMMM   (  350)
+.MM.MM.......MM..M..M..M.MM..M.TTTTTTT..M.M..M...M   (  400)
+...M...M......M...M...M...M....M....M.............   (  450)
+.TTTTTT.................TTT.TTT.......T...........   (  500)
+............M.MMM......MMMMMMMTMMMMMMMMMMMMMMMMMMT   (  550)
+TMMMMMMMMMMMMMMMMMMMMMMMMM........................   (  600)
+..................MMMMMMMMMMM.....................   (  650)
+............MM......MMMMM..MM.M........M.MM.......   (  700)
+.......M.MM..M...M..................MM........M.M.   (  750)
+..M...MMMMM.MM.........MMMMM.................M.MM.   (  800)
+...MMMMM...............................M..........   (  850)
+................M.........M......M....MM........MM   (  900)
+.......MMMM......M.M.M.........MMMM...M....M......   (  950)
+..................................................   ( 1000)
+.......MMMM.MMMMMM.M....M.M...M..MMMMMM.M.MMMMMMM.   ( 1050)
+.M.MM.MMMMM..M.........MMMMMMMMMM.MMMMMMMMM.MMM...   ( 1100)
+............MMMMM..........MM......MMM........MMM.   ( 1150)
+...MMM.MMM.MMM.M.....M.....MM.MMMMM........MMMMMMM   ( 1200)
+..MMMM...........M..................M.............   ( 1250)
+...M............M.MM..M......MMM.MM.........MMMMM.   ( 1300)
+...........................MMM.MMM...M.....MMMMM..   ( 1350)
+...M...........M.......TTTTTTTT...M.M.............   ( 1400)
+........M..MMMMM..................................   ( 1450)
+.....................MM.MMM...MM..M............M..   ( 1500)
+..................................................   ( 1550)

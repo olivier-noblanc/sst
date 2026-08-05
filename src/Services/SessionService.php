@@ -56,14 +56,20 @@ class SessionService
             ini_set('session.gc_maxlifetime', (string) (60 * 60 * 24)); // 24h
             session_name('SST_SESSION');
 
+            // Ensure session save path exists and is writable (E2E tests + CI)
+            $savePath = ini_get('session.save_path');
+            if (!empty($savePath) && !is_dir($savePath)) {
+                @mkdir($savePath, 0777, true);
+            }
+
             session_start();
-            
+
             // Debug logging for E2E troubleshooting
             if (defined('DEV_MODE') && DEV_MODE) {
                 $incomingCookie = $_COOKIE['SST_SESSION'] ?? 'none';
                 $sessionId = session_id();
                 $isNewSession = !isset($_SESSION['csrf_tokens']) && !isset($_SESSION['user']);
-                error_log("[SST-SESSION] startSession - incoming_cookie=" . substr($incomingCookie, 0, 16) . "..., new_session_id=" . $sessionId . ", is_new=" . ($isNewSession ? 'yes' : 'no') . ", path=" . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
+                error_log('[SST-SESSION] startSession - incoming_cookie=' . substr((string) $incomingCookie, 0, 16) . '..., new_session_id=' . $sessionId . ', is_new=' . ($isNewSession ? 'yes' : 'no') . ', path=' . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
             }
         }
     }

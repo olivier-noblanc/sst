@@ -48,9 +48,10 @@ module.exports = defineConfig({
   // server AND the same shared SQLite database concurrently caused
   // timeouts and tests seeing state left behind by another worker.
   workers: inCi ? 1 : undefined,
-  retries: 1,
+  retries: 0,
   timeout: 30000,
   expect: { timeout: 10000 },
+  failOnFirstFailure: true,
   // 'github' adds inline failure annotations on the commit/PR — visible via
   // GET /repos/.../check-runs/{id}/annotations without downloading the full
   // HTML report artifact (which can run tens of MB and isn't reachable from

@@ -86,10 +86,12 @@ module.exports = defineConfig({
   ],
   webServer: {
     command: isWindows
-      ? `set SST_DB_PATH=${e2eDbPath} && set DEV_MODE=1 && mkdir -p "${sessionPath}" && ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`
-      : `mkdir -p "${sessionPath}" && SST_DB_PATH=${e2eDbPath} DEV_MODE=1 ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
+      ? `set SST_DB_PATH=${e2eDbPath} && set DEV_MODE=1 && mkdir -p "${sessionPath}" && ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 -d error_log=/tmp/php-error.log ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`
+      : `mkdir -p "${sessionPath}" && chmod 777 "${sessionPath}" && SST_DB_PATH=${e2eDbPath} DEV_MODE=1 ${phpBinary} -d session.auto_start=0 -d "session.save_path=${sessionPath}" -d display_errors=1 -d error_log=/tmp/php-error.log ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
     port: 8850,
     reuseExistingServer: true,
     timeout: 30000,
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
 });

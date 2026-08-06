@@ -59,7 +59,7 @@ function logSessionState(string $context): void
         $csrfTokens = $_SESSION['csrf_tokens'] ?? [];
         $user = $_SESSION['user'] ?? null;
         $flash = $_SESSION['flash'] ?? null;
-        error_log("[SST-DEBUG] $context - session_name=$sessionName, session_id=$sessionId, status=$sessionStatus, csrf_count=" . count($csrfTokens) . ", user=" . ($user ? $user['username'] : 'none') . ", flash=" . ($flash ? $flash['type'] : 'none'));
+        error_log("[SST-DEBUG] $context - session_name=$sessionName, session_id=$sessionId, status=$sessionStatus, csrf_count=" . count($csrfTokens) . ', user=' . ($user ? $user['username'] : 'none') . ', flash=' . ($flash ? $flash['type'] : 'none'));
     }
 }
 

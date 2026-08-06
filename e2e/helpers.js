@@ -44,8 +44,8 @@ export async function loginAs(page, username = 'admin.dev') {
     
     // Use page.context().addCookies() to ensure session is shared, then POST
     // Actually, simpler: just fill the form and submit like a real user
-    await page.locator('form').first().fill('input[name="username"]', username);
-    await page.locator('form').first().fill('input[name="password"]', 'test');
+    await page.locator('form').first().locator('input[name="username"]').fill(username);
+    await page.locator('form').first().locator('input[name="password"]').fill('test');
     await page.locator('form').first().locator('button[type="submit"]').click();
     await page.waitForURL(/page=(home|choose_site)/, { timeout: 15000 });
 

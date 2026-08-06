@@ -38,16 +38,25 @@ export async function loginAs(page, username = 'admin.dev') {
       }
     }
   } else {
-    // Non-dev users: POST directly with custom credentials
-    // Get CSRF token from the first form (admin.dev form)
+    // Non-dev users: POST directly via the login handler.
+    // We cannot use fill() on the hidden fields in the dev login forms.
+    // Use page.evaluate() to POST from the browser context (shares cookies with the page).
     const csrfToken = await page.locator('form').first().locator('input[name="csrf_token"]').inputValue();
-    
-    // Use page.context().addCookies() to ensure session is shared, then POST
-    // Actually, simpler: just fill the form and submit like a real user
-    await page.locator('form').first().locator('input[name="username"]').fill(username);
-    await page.locator('form').first().locator('input[name="password"]').fill('test');
-    await page.locator('form').first().locator('button[type="submit"]').click();
-    await page.waitForURL(/page=(home|choose_site)/, { timeout: 15000 });
+
+    await page.evaluate(async ({ csrfToken, username }) => {
+      const formData = new URLSearchParams();
+      formData.set('csrf_token', csrfToken);
+      formData.set('username', username);
+      formData.set('password', 'test');
+      await fetch('/index.php?page=login', {
+        method: 'POST',
+        body: formData,
+        redirect: 'follow',
+      });
+    }, { csrfToken, username });
+
+    // Navigate to home after the login POST.
+    await page.goto('/index.php?page=home');
 
     // In a multi-site environment (active sites configured — the case in
     // CI, unlike a production install running in no-site mode), a

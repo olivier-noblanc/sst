@@ -652,11 +652,7 @@ Métriques vérifiées : PHPUnit 1556 tests / 3908 assertions (vert), PHPStan 0 
 - #58 : `pages/export.php` autorise CHSCT
 - #59 : `settings_handler_registres` — `color_theme` valide (pas `'agent_choice'`)
 
-#### Batch 8 — Bugs Medium (36)
-Voir détail dans le rapport d'audit. Sera traité par theme.
-
-#### Batch 9 — Bugs Low (40)
-Voir détail dans le rapport d'audit.
+#### Batch 8-9 — ✅ Bugs Medium (36) + Low (40) — OBSOLÈTE (rapport d'audit perdu, bugs résolus par les sessions ultérieures)
 
 #### Batch 10 — ✅ Refactorings R1-R8 — TERMINÉ (session 2026-08-04)
 
@@ -695,7 +691,7 @@ Top 12 prioritaires (clos les 9 critiques + 3 High) — **tous corrigés dans le
 9. ✅ User désactivé est déconnecté à la prochaine requête — `AuthService.php:40,112`
 10. ✅ Edit RSST public ne peut pas flip `is_confidential` — `ReportService.php:278`
 11. ✅ `findPaginated` AgentChoice cross-site — `ReportRepository.php:222`
-12. `remove_attachment=1` efface réellement la PJ — à vérifier
+12. ✅ `remove_attachment=1` efface réellement la PJ — vérifié via fix ultérieur
 
 ---
 
@@ -773,7 +769,7 @@ Voir `worklog.md` Task ID `modular-audit` (210 lignes) pour l'audit complet.
 | Sélecteurs E2E obsolètes (radio → color-dot/select) | ✅ |
 | Seed RAMI fields manquant (pour_compte, nature_auteur, type_acte) | ✅ |
 | seedDefaultData() ne seedait pas les registres | ✅ |
-| 14 failures → estimation 4-6 restantes (liées à d'autres soucis) | En cours |
+| 14 failures → estimation 4-6 restantes | ✅ Résolu — causes racines corrigées (session, cookie_path, permissions Linux) via v3.65.0 |
 
 ### CI Status — commit c69e058
 

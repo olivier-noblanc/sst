@@ -3,6 +3,39 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.65.0] — 2026-08-06
+
+### Fonctionnalités
+
+- **1** 🔴 **Phase 3 Modular-Audit — `getStructuredStatsForRegistry()`** — Nouvelle méthode `RegistryDataService::getStructuredStatsForRegistry()` qui retourne les statistiques structurées d'un registre (totaux par état, répartition par site) dans un format `RegistryStatsData` DTO typé. Remplace l'appel ad-hoc `getReportStatsByRegistry()`. Commits : `53d0e00`, `e2576d6`, `3920117`.
+- **2** 🔴 **Phase 3 Modular-Audit — Export CSV dynamique** — L'export CSV utilise désormais les colonnes dynamiques du registre plutôt qu'un template statique. `NoForbiddenEnumMethodRule` ajouté pour PHPStan (interdit `ReportType::from()` en faveur de `ReportType::tryFrom()`/`fromCode()`).
+
+### Corrections
+
+- **3** 🔴 **SQLiteSessionHandler activé dans index.php** — Intégration du `SQLiteSessionHandler` comme gestionnaire de session natif dans `public/index.php`. Remplace le handler par défaut par un stockage SQLite, résolvant les problèmes de session en environnement conteneurisé et E2E. (`be0ee38`, `7157132`)
+- **4** 🔴 **Session cookie_path '/'** — Correction du chemin de cookie session pour qu'il soit accessible sur toutes les routes de l'application (`/` au lieu du chemin par défaut). Résout les pertes de session entre pages. (`995fb46`)
+- **5** 🟡 **Session/CSRF logging** — Ajout de logging pour le débogage des problèmes de session et CSRF en environnement E2E (cookie_path, chmod, répertoire session). (`13f8a34`, `1699fd4`, `4972f05`, `a575dff`)
+- **6** 🟡 **GrumPHP pre-commit allégé** — Réduction du temps d'exécution du pre-commit GrumPHP pour éviter les timeouts intempestifs. (`7cb046a`)
+
+### CI / E2E
+
+- **7** 🟢 **E2E split en 3 shards** — Les tests Playwright sont désormais répartis sur 3 shards parallèles (au lieu d'un seul worker séquentiel), réduisant le temps d'exécution de ~45 min à ~15 min. (`353ee8d`, `a96ece8`)
+- **8** 🟢 **Refactoring `rebuildReportsTable()`** — Extraction de la reconstruction de table de signalements en fonction réutilisable dans les helpers E2E. (`a96ece8`)
+- **9** 🟢 **Arrêt au premier échec E2E** — Les tests E2E s'arrêtent immédiatement au premier échec (`--max-failures=1`) pour éviter des runs longs inutiles. (`42bd0d0`)
+- **10** 🟢 **Chemins session /tmp pour E2E** — Configuration du chemin de session vers `/tmp` pour les environnements E2E Linux, résolvant les permissions. (`6cca59e`, `c220808`)
+- **11** 🟢 **Configuration CI** — Timeout E2E porté à 60 min, annulation des runs précédents désactivée, variables d'environnement Linux. (`4e0d651`, `e2e2ce0`–`112b6eb`)
+
+### Métriques
+
+- Tests : inchangé (stabilisation E2E, pas de nouveaux tests unitaires)
+- PHPStan : **0 errors** (level 8)
+- Couverture E2E : 3 shards × ~30 tests each
+
+### Technique
+
+- **12** 🟡 **CS fixes + Rector auto** — Nettoyage de code automatique via PHP-CS-Fixer et Rector sur les fichiers modifiés. (`a9ee8c9`)
+
+
 ## [3.64.1] — 2026-08-05
 
 ### Bugfix — E2E login crash (ConfigRepository non enregistré dans le DI container)

@@ -87,6 +87,7 @@ final class VisibilityPolicy
 - Les binaires sont directement dans le PATH grâce aux shims : `phpunit`, `phpstan`, `php-cs-fixer`, `rector`, `phparkitect`, `infection`.
 - `composer.json` ne contient que les dépendances runtime (pas les outils dev en PHAR).
 - **phive** est disponible dans le PATH pour installer des PHAR : `phive install <tool>`.
+- **Préférer la commande shim** (ex: `phpstan`) plutôt que le `.phar` (ex: `phpstan.phar`). Les `.phar` ne résolvent pas `~` et cassent les chemins relatifs. Si le shim n'existe pas, utiliser `vendor/bin/` en fallback.
 
 ### Git — Interdctions
 - **JAMAIS** modifier `git config --global` — c'est un environnement partagé.

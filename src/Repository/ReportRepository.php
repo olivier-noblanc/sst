@@ -9,7 +9,6 @@ use App\Enum\ReportState;
 use App\Enum\RespondStatus;
 use App\Enum\VisibilityMode;
 use Exception;
-use Throwable;
 use App\DTO\AdjacentUuids;
 use App\DTO\CreateReportCommand;
 use App\DTO\PaginatedReports;
@@ -172,16 +171,7 @@ class ReportRepository
      */
     public function getAttachmentBlob(string $uuid): ?array
     {
-        if (!isValidUuid($uuid)) {
-            return null;
-        }
-        $stmt = $this->pdo->prepare('
-            SELECT attachment_blob, attachment_name, attachment_mime
-            FROM reports WHERE uuid = :uuid
-        ');
-        $stmt->execute([':uuid' => $uuid]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row !== false ? $row : null;
+        return ReportAttachmentRepository::instance()->getAttachmentBlob($uuid);
     }
 
     public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): PaginatedReports
@@ -392,21 +382,7 @@ class ReportRepository
 
     public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int
     {
-        $sql = "SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ReportState::Abandonne->value . "'";
-        $params = [':type' => $type];
-
-        if ($siteId > 0) {
-            $sql .= ' AND site_id = :site_id';
-            $params[':site_id'] = $siteId;
-        }
-        if ($confidentialMode && $userId > 0) {
-            $sql .= ' AND (is_confidential = 0 OR declarant_id = :user_id)';
-            $params[':user_id'] = $userId;
-        }
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return (int) $stmt->fetchColumn();
+        return StatsRepository::instance()->countActive($type, $siteId, $userId, $confidentialMode);
     }
 
     /**
@@ -648,96 +624,23 @@ class ReportRepository
      */
     public function countReopens(string $uuid): int
     {
-        try {
-            $stmt = $this->pdo->prepare(
-                'SELECT COUNT(*) FROM report_state_history
-                 WHERE report_uuid = :uuid AND etat_suivant = :etat_reouvert'
-            );
-            $stmt->execute([
-                ':uuid' => $uuid,
-                ':etat_reouvert' => ReportState::Reouvert->value,
-            ]);
-            return (int) $stmt->fetchColumn();
-        } catch (Throwable $e) {
-            // @silent-ok: pre-migration (table missing) — fails open (allow reopen) rather
-            // than blocking a legitimate action on a DB that hasn't migrated yet.
-            error_log('[SST-REPORT] countReopens failed: ' . $e->getMessage());
-            return 0;
-        }
+        return ReportLifecycleRepository::instance()->countReopens($uuid);
     }
 
     public function abandon(string $uuid, int $userId): bool
     {
-        $stmt = $this->pdo->prepare("
-            UPDATE reports
-            SET etat = '" . ReportState::Abandonne->value . "', updated_at = datetime('now')
-            WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ReportState::Nouveau->value . "', '" . ReportState::EnCours->value . "')
-        ");
-        $stmt->execute([':uuid' => $uuid, ':user_id' => $userId]);
-        return $stmt->rowCount() > 0;
+        return ReportLifecycleRepository::instance()->abandon($uuid, $userId);
     }
 
     public function reopen(string $uuid, int $userId, string $motif): bool
     {
-        $this->pdo->beginTransaction();
-        try {
-            $checkStmt = $this->pdo->prepare("SELECT etat FROM reports WHERE uuid = :uuid AND etat IN ('traite', 'abandonne')");
-            $checkStmt->execute([':uuid' => $uuid]);
-            $current = $checkStmt->fetch();
-            if (!is_array($current)) {
-                $this->pdo->rollBack();
-                return false;
-            }
-
-            $histStmt = $this->pdo->prepare('
-                INSERT INTO report_state_history (report_uuid, etat_precedent, etat_suivant, user_id, motif)
-                VALUES (:report_uuid, :etat_precedent, :etat_suivant, :user_id, :motif)
-            ');
-            $histStmt->execute([
-                ':report_uuid'    => $uuid,
-                ':etat_precedent' => $current['etat'],
-                ':etat_suivant'   => ReportState::Reouvert->value,
-                ':user_id'        => $userId,
-                ':motif'          => $motif,
-            ]);
-
-            $updateStmt = $this->pdo->prepare("
-                UPDATE reports
-                SET etat = :nouvel_etat, updated_at = datetime('now')
-                WHERE uuid = :uuid AND etat IN (" . $this->pdo->quote(ReportState::Traite->value) . ', ' . $this->pdo->quote(ReportState::Abandonne->value) . ')
-            ');
-            $updateStmt->execute([':nouvel_etat' => ReportState::Reouvert->value, ':uuid' => $uuid]);
-            if ($updateStmt->rowCount() === 0) {
-                $this->pdo->rollBack();
-                return false;
-            }
-
-            $respStmt = $this->pdo->prepare('
-                INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
-                VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
-            ');
-            $respStmt->execute([
-                ':report_uuid' => $uuid,
-                ':user_id'     => $userId,
-                ':reponse'     => 'Réouverture du signalement. Motif : ' . $motif,
-                ':nouvel_etat' => ReportState::Reouvert->value,
-            ]);
-
-            $this->pdo->commit();
-            return true;
-        } catch (Exception $e) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
-            error_log('[SST-DB] reopen failed: ' . $e->getMessage());
-            throw $e;
-        }
+        return ReportLifecycleRepository::instance()->reopen($uuid, $userId, $motif);
     }
 
     /** @return array{status: RespondStatus, message?: string} */
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array
     {
-        return $this->respondToReport($uuid, $userId, $cmd->reponse, $cmd->nouvelEtat->value, $cmd->attachment);
+        return ReportLifecycleRepository::instance()->respond($uuid, $cmd, $userId);
     }
 
     /**
@@ -745,72 +648,7 @@ class ReportRepository
      */
     public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, ?AttachmentData $attachment = null): array
     {
-        $this->pdo->beginTransaction();
-        try {
-            $checkStmt = $this->pdo->prepare('SELECT etat, reponse, repondant_id, date_reponse FROM reports WHERE uuid = :uuid');
-            $checkStmt->execute([':uuid' => $uuid]);
-            $current = $checkStmt->fetch();
-
-            if (is_array($current) && $current['etat'] === ReportState::Reouvert->value && !empty($current['reponse'])) {
-                $archiveStmt = $this->pdo->prepare('
-                    INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat)
-                    VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
-                ');
-                $repondantIdRaw = $current['repondant_id'] ?? null;
-                $archiveUserId = $repondantIdRaw !== null ? (int) $repondantIdRaw : 0;
-                $archiveStmt->execute([
-                    ':report_uuid' => $uuid,
-                    ':user_id'     => $archiveUserId,
-                    ':reponse'     => '[Réponse initiale archivée] ' . $current['reponse'],
-                    ':nouvel_etat' => ReportState::Traite->value,
-                ]);
-            }
-
-            $stmt = $this->pdo->prepare("
-                UPDATE reports
-                SET etat = :nouvel_etat,
-                    reponse = :reponse,
-                    repondant_id = :user_id,
-                    date_reponse = datetime('now'),
-                    updated_at = datetime('now')
-                WHERE uuid = :uuid AND etat IN ('" . ReportState::Nouveau->value . "', '" . ReportState::EnCours->value . "', '" . ReportState::Reouvert->value . "')
-            ");
-            $stmt->execute([
-                ':nouvel_etat' => $nouvelEtat,
-                ':reponse'     => $reponse,
-                ':user_id'     => $userId,
-                ':uuid'        => $uuid,
-            ]);
-
-            if ($stmt->rowCount() === 0) {
-                $this->pdo->rollBack();
-                return ['status' => RespondStatus::Concurrent];
-            }
-
-            $stmt = $this->pdo->prepare('
-                INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat, attachment_blob, attachment_name, attachment_mime)
-                VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat, :attachment_blob, :attachment_name, :attachment_mime)
-            ');
-            $stmt->execute([
-                ':report_uuid' => $uuid,
-                ':user_id'     => $userId,
-                ':reponse'     => $reponse,
-                ':nouvel_etat' => $nouvelEtat,
-                ':attachment_blob' => $attachment?->blob,
-                ':attachment_name' => $attachment?->name,
-                ':attachment_mime' => $attachment?->mime,
-            ]);
-
-            $this->pdo->commit();
-            return ['status' => RespondStatus::Ok];
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-            // @silent-ok: converted to a typed RespondStatus::Error the caller must handle
-            // (RespondStatus is a backed enum — a match on it without the Error case is a
-            // PHPStan error), not a swallow.
-            error_log('[SST-DB] respondToReport transaction failed: ' . $e->getMessage());
-            return ['status' => RespondStatus::Error, 'message' => $e->getMessage()];
-        }
+        return ReportLifecycleRepository::instance()->respondToReport($uuid, $userId, $reponse, $nouvelEtat, $attachment);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -878,22 +716,12 @@ class ReportRepository
      */
     public function getResponseAttachmentById(int $responseId): ?array
     {
-        $stmt = $this->pdo->prepare('
-            SELECT rr.attachment_blob, rr.attachment_name, rr.attachment_mime, rr.report_uuid
-            FROM report_responses rr
-            WHERE rr.id = :id
-        ');
-        $stmt->execute([':id' => $responseId]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        /** @var array{attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, report_uuid: string}|null $row */
-        return is_array($row) ? $row : null;
+        return ReportAttachmentRepository::instance()->getResponseAttachmentById($responseId);
     }
 
     public function countByDeclarantId(int $declarantId): int
     {
-        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM reports WHERE declarant_id = :uid');
-        $stmt->execute([':uid' => $declarantId]);
-        return (int) $stmt->fetchColumn();
+        return StatsRepository::instance()->countByDeclarantId($declarantId);
     }
 
     public function getTypeByUuid(string $uuid): ?string

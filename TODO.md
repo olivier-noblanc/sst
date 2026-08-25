@@ -158,34 +158,18 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 
 ---
 
-## Priorité 13 — Infection MSI — ⏸️ EN PAUSE (outil trop lent)
+## Priorité 13 — Infection MSI — 🟡 EN COURS (avancé ce soir, avec supervision)
 
-**Problème** : Infection timeout systématiquement après 10 minutes (200+ mutants analysés). L'outil est trop lent pour être utilisé en local sur ce projet.
+Baseline réelle mesurée ce soir (pcov compilé pour l'occasion) : **2318 mutants, MSI 48,5%**.
 
-**Tentatives** :
-- Timeout augmenté de 10s → 30s dans `infection.json`
-- Threads réduits à 4
-- Option `--initial-tests-php-options="-d max_execution_time=120"` ajoutée
+**Fait ce soir** :
+- `infection.json` : exclusion de `src/lib` (Parsedown, FPDF — librairies tierces, déjà exclues de PHPStan). Gain honnête sans écrire un test : nouveau total 1957 mutants, **MSI recalculé ~57,4%**.
+- `ReportRepository::findPaginated()` : couverture réelle de la pagination ajoutée (offset, page par défaut) — le test précédent ne dépassait jamais la page 1. Vérifié en mutant le code à la main : le mutant sur `($page - 1) * $perPage` est bien tué ; le mutant sur la valeur par défaut `$page = 1 → 0` reste un mutant **équivalent** (SQLite traite un OFFSET négatif comme 0 — indétectable par nature, pas un trou de couverture).
+- `StatsRepository::getSynthesis()` : **vrai bug trouvé et corrigé**. `COUNT(*)` comptait la ligne fantôme produite par le `LEFT JOIN` quand aucun signalement ne correspond — un site sans signalement sur l'année affichait `total: 1` au lieu de `0`. Corrigé (`COUNT(r.uuid)`). Sans impact visible actuel (le seul appelant, `pages/synthesis.php`, filtrait déjà cette ligne par accident) mais un vrai bug de contrat sur la méthode.
 
-**Résultat** : ~200 mutants analysés en 10 min, beaucoup de timeouts (`T`) et mutants échappés (`M`). Estimation : **10+ heures** pour analyser tous les mutants restants.
+**Reste réellement à faire** : ~530 mutants à tuer pour atteindre 85%, sur `Repository/StatsRepository.php` (le reste), les enums `ReportState`/`ReportType`, `ConfigService`, `FormattingService`, les DTO `CreateReportCommand`/`UpdateReportCommand`, `SQLiteSessionHandler`. Beaucoup ressemblent au motif déjà écarté ce soir (plomberie `instance()`/DI, sans valeur à tester) — le ratio "mutant creusé → vrai bug trouvé" observé ce soir est d'environ 1 sur 2 quand on filtre le bruit, mais rien ne garantit qu'il tienne sur le reste.
 
-**Décision** : Infection est un outil utile mais **trop coûteux en temps** pour ce projet. La couverture de test actuelle (1589 tests, 4063 assertions) et PHPStan level 8 (0 erreur) offrent déjà une bonne garantie de qualité.
-
-**Alternative** : Se concentrer sur :
-- ✅ Tests unitaires ciblés pour les nouvelles fonctionnalités
-- ✅ PHPStan level 8 + règles custom (NoMagicStringRule, NoSqlOutsideRepositoryRule, etc.)
-- ✅ E2E tests (207 tests) pour les flux critiques
-- ✅ Code review systématique
-
-**Métriques actuelles** :
-| Indicateur | Valeur |
-|------------|--------|
-| Tests PHPUnit | 1589 (4063 assertions) |
-| Couverture E2E | 207 tests (flux critiques) |
-| PHPStan | Level 8, 0 erreur |
-| Infection MSI | ~57% (partiel, non fiable) |
-
-**Statut** : ⏸️ **Abandonné** — le coût/bénéfice n'est pas favorable.
+**Effort restant** : plusieurs heures, à reprendre avec du temps dédié plutôt qu'en fin de session — pour continuer à trouver de vrais trous plutôt que de gonfler le chiffre.
 
 ---
 

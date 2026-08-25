@@ -7,7 +7,7 @@
  */
 /** @var string $csrfToken */
 use App\Repository\RegistryRepository;
-use App\Repository\ReportRepository;
+use App\Repository\StatsRepository;
 use App\Enum\VisibilityMode;
 
 $fmt = new \App\Services\FormattingService();
@@ -52,7 +52,7 @@ $visibilityModes = [
         $defaultVisibility = $reg['default_visibility'];
         $notifyChsct = (int) ($reg['notify_chsct']) === 1;
         $legalNote = $reg['legal_note'];
-        $reportCount = ReportRepository::instance()->countActive($regCode);
+        $reportCount = StatsRepository::instance()->countActive($regCode);
         ?>
     <div class="card mb-4 card--<?php echo $fmt->e($colorTheme); ?>">
         <div class="card__title-row">

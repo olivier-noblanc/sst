@@ -127,9 +127,8 @@ function createContainer(): Container
     });
     $container->set(RegistryCardService::class, function (Container $c) {
         /** @var RegistryRepository $registryRepo */ $registryRepo = $c->get(RegistryRepository::class);
-        /** @var ReportRepository $reportRepo */ $reportRepo = $c->get(ReportRepository::class);
         /** @var AccessService $accessService */ $accessService = $c->get(AccessService::class);
-        return new RegistryCardService($registryRepo, $reportRepo, $accessService);
+        return new RegistryCardService($registryRepo, $accessService);
     });
     $container->set(StatisticsService::class, function (Container $c) {
         /** @var StatsRepository $statsRepo */ $statsRepo = $c->get(StatsRepository::class);

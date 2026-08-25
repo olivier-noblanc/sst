@@ -40,7 +40,7 @@ $userUpdatedAt = $user->updatedAt ?? '';
 $userIsActive = !empty($user->isActive);
 
 // Get user's report count
-$reportCount = \App\Repository\ReportRepository::instance()->countByDeclarantId($userId);
+$reportCount = \App\Repository\StatsRepository::instance()->countByDeclarantId($userId);
 
 $pageTitle = 'Utilisateur — ' . $fmt->e($userPrenom . ' ' . $userNom);
 ?>

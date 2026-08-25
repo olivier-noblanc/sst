@@ -54,12 +54,12 @@ if (!empty($_POST['date_to'])) {
 
 // States
 if (!empty($_POST['etats'])) {
-    $filters['etats'] = $_POST['etats'];
+    $filters['etats'] = (array) $_POST['etats'];
 }
 
 // Get data (with optional registryCode for dynamic columns)
 $registryCode = !empty($_POST['registry']) ? (string) $_POST['registry'] : null;
-$reports = $reportRepo->getExportData($filters, $registryCode);
+$reports = StatsRepository::instance()->getExportData($filters, $registryCode);
 $count = count($reports);
 $truncated = $count >= StatsRepository::EXPORT_MAX_ROWS;
 

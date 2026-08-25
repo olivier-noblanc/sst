@@ -11,6 +11,7 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Repository\ReportRepository;
+use App\Repository\ReportLifecycleRepository;
 use App\DTO\CreateReportCommand;
 use App\DTO\SiteId;
 use App\DTO\RespondToReportCommand;
@@ -228,7 +229,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
             nouvelEtat: ReportState::EnCours,
         );
 
-        $result = $this->repo->respond($uuid, $cmd, $this->supervisorId);
+        $result = ReportLifecycleRepository::instance()->respond($uuid, $cmd, $this->supervisorId);
         $this->assertIsArray($result);
         $this->assertSame(\App\Enum\RespondStatus::Ok, $result['status']);
 
@@ -248,7 +249,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
     public function testRespondReturnsErrorForMissingReport(): void
     {
         $cmd = new RespondToReportCommand(reponse: 'test', nouvelEtat: ReportState::EnCours);
-        $result = $this->repo->respond('nonexistent-uuid', $cmd, $this->supervisorId);
+        $result = ReportLifecycleRepository::instance()->respond('nonexistent-uuid', $cmd, $this->supervisorId);
         // For a missing report, the UPDATE WHERE uuid = :uuid matches 0 rows
         // → rowCount() === 0 → status = Concurrent (not Ok)
         $this->assertNotSame(\App\Enum\RespondStatus::Ok, $result['status']);
@@ -259,7 +260,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
     public function testAbandonUpdatesEtatToAbandonne(): void
     {
         $uuid = $this->seedReport('rsst', ReportState::Nouveau->value);
-        $result = $this->repo->abandon($uuid, $this->declarantId);
+        $result = ReportLifecycleRepository::instance()->abandon($uuid, $this->declarantId);
         $this->assertTrue($result);
 
         $report = $this->repo->findById($uuid);
@@ -268,7 +269,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
 
     public function testAbandonReturnsFalseForMissingReport(): void
     {
-        $this->assertFalse($this->repo->abandon('nonexistent-uuid', $this->declarantId));
+        $this->assertFalse(ReportLifecycleRepository::instance()->abandon('nonexistent-uuid', $this->declarantId));
     }
 
     // ═══ reopen() ═══
@@ -276,7 +277,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
     public function testReopenUpdatesEtatToReouvert(): void
     {
         $uuid = $this->seedReport('rsst', ReportState::Traite->value);
-        $result = $this->repo->reopen($uuid, $this->supervisorId, 'Motif de réouverture');
+        $result = ReportLifecycleRepository::instance()->reopen($uuid, $this->supervisorId, 'Motif de réouverture');
         $this->assertTrue($result);
 
         $report = $this->repo->findById($uuid);
@@ -285,7 +286,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
 
     public function testReopenReturnsFalseForMissingReport(): void
     {
-        $this->assertFalse($this->repo->reopen('nonexistent-uuid', $this->supervisorId, 'motif'));
+        $this->assertFalse(ReportLifecycleRepository::instance()->reopen('nonexistent-uuid', $this->supervisorId, 'motif'));
     }
 
     // ═══ update() ═══

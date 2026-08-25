@@ -21,6 +21,7 @@ use App\DTO\SiteId;
 use App\DTO\UpdateReportCommand;
 use App\Enum\ReportType;
 use App\Repository\ReportRepository;
+use App\Repository\ReportLifecycleRepository;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../bootstrap.php';
@@ -148,7 +149,7 @@ class ReportQueriesTest extends TestCase
             'objet' => 'To abandon', 'description' => 'Will be abandoned', 'dateEvenement' => '2025-02-01',
         ]));
 
-        $result = self::$reports->abandon($uuid, self::$userId);
+        $result = ReportLifecycleRepository::instance()->abandon($uuid, self::$userId);
         $this->assertTrue($result);
 
         $report = self::$reports->findById($uuid);
@@ -167,7 +168,7 @@ class ReportQueriesTest extends TestCase
         self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Sup', 'Anne', 'anne.sup', 'superviseur', " . self::$siteId . ", 1)");
         $supId = (int) self::$pdo->lastInsertId();
 
-        $result = self::$reports->respondToReport($uuid, $supId, 'Prise en charge du signalement.', 'en_cours');
+        $result = ReportLifecycleRepository::instance()->respondToReport($uuid, $supId, 'Prise en charge du signalement.', 'en_cours');
         $this->assertEquals(\App\Enum\RespondStatus::Ok, $result['status']);
 
         $report = self::$reports->findById($uuid);

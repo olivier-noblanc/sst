@@ -11,6 +11,7 @@ use App\Enum\VisibilityMode;
 use RuntimeException;
 use InvalidArgumentException;
 use App\Repository\ReportRepository;
+use App\Repository\ReportLifecycleRepository;
 use App\Event\EventDispatcher;
 use App\DTO\ReportEventData;
 use App\DTO\CreateReportCommand;
@@ -102,7 +103,7 @@ class ReportService
         // Validate transition using state machine
         $this->stateMachine->validateTransition($report, $cmd->nouvelEtat, $userRole);
 
-        $result = $this->repo->respond($uuid, $cmd, $userId);
+        $result = ReportLifecycleRepository::instance()->respond($uuid, $cmd, $userId);
 
         // Audit #12 — ne pas dispatcher les events si l'opération a échoué
         // (status='concurrent' = race condition : un autre superviseur a déjà
@@ -162,7 +163,7 @@ class ReportService
         // Validate transition using state machine
         $this->stateMachine->validateTransition($report, ReportState::Abandonne, $userRole);
 
-        $result = $this->repo->abandon($uuid, $userId);
+        $result = ReportLifecycleRepository::instance()->abandon($uuid, $userId);
 
         // Audit: dispatch report.abandoned so listeners can notify supervisors
         // (parallels report.reopened). Skipped on failure — no spurious email.
@@ -195,7 +196,7 @@ class ReportService
         // configurable via 'app_max_reopens_per_report' (default 3).
         $maxReopens = (int) getConfigService()->get('app_max_reopens_per_report', '3');
         if ($maxReopens > 0) {
-            $reopensCount = $this->repo->countReopens($uuid);
+            $reopensCount = ReportLifecycleRepository::instance()->countReopens($uuid);
             if ($reopensCount >= $maxReopens) {
                 throw new RuntimeException(
                     'Ce signalement a déjà été réouvert ' . $reopensCount . ' fois. '
@@ -204,7 +205,7 @@ class ReportService
             }
         }
 
-        $result = $this->repo->reopen($uuid, $userId, $cmd->motif);
+        $result = ReportLifecycleRepository::instance()->reopen($uuid, $userId, $cmd->motif);
 
         // Audit #12 — ne pas dispatcher si la réouverture a échoué.
         if ($result) {

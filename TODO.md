@@ -186,6 +186,32 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 
 ---
 
+## Priorité 33 — 🟡 ReportRepository.php (1090 lignes) — À REFACTORISER
+
+**Constat** : `src/Repository/ReportRepository.php` = **1090 lignes** — énorme pour un repository.
+
+**Analyse rapide** :
+- Contient : CRUD, pagination, filtres, exports, stats, FTS5, attachments, linked agents, invites, etc.
+- Probablement trop de responsabilités (Single Responsibility Principle)
+
+**Pistes de découpage** :
+1. `ReportRepository` — CRUD de base (find, findById, create, update, delete)
+2. `ReportQueryRepository` — méthodes de recherche/filtres (findPaginated, findByFilter, etc.)
+3. `ReportStatsRepository` — méthodes de statistiques (getTypeStats, getExportData, etc.)
+4. `ReportAttachmentRepository` — gestion des pièces jointes (getAttachmentBlob, etc.)
+5. `ReportAgentRepository` — linked agents (linkAgentsToReport, replaceLinkedAgents, etc.)
+6. `ReportInviteRepository` — invitations (getAgentInviteByToken, confirmAgentInvite, etc.)
+
+**Approche** :
+- Commencer par extraire les méthodes par groupe fonctionnel
+- Utiliser composition plutôt qu'héritage (ex: `ReportRepository` injecte `ReportStatsRepository`)
+- Vérifier les appelants de chaque méthode avant extraction
+- Tests existants doivent continuer à passer
+
+**Statut** : 🟡 **À investiguer** — audit détaillé nécessaire.
+
+---
+
 ## Priorité 14 — ✅ Nettoyage queries orphelines — TERMINÉ
 
 Vérification indépendante refaite (l'investigation précédente datait un peu) par grep exhaustif des appelants réels (hors définition, en distinguant précisément un appel de fonction procédurale `fn(` d'un appel de méthode OOP `->fn(` du même nom — piège rencontré sur `getExportData`/`getAvailableYears`/`getRamiStructuredStats`, qui existent à la fois comme fonctions procédurales mortes ET comme méthodes `StatsRepository` bien vivantes).

@@ -623,3 +623,77 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
             -d @/tmp/comment_payload.json
+
+  # ── Infection (Mutation Testing) ─────────────────────────────
+  # MSI target: 80% (minMsi dans infection.json)
+  # Timeout: 120 min — mutation testing est lent mais utile
+  infection:
+    name: Infection MSI
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash --noprofile --norc -eo pipefail {0}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: sqlite3, pdo_sqlite, mbstring, intl, bcmath, curl, zip, opcache
+          coverage: pcov
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php85-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php85-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Infection (mutation testing)
+        run: php vendor/bin/infection --threads=4 --no-progress 2>&1 | tee infection-output.txt
+
+      - name: Upload infection logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infection-logs
+          path: data/infection*.log
+          retention-days: 7
+
+      - name: Report failure as commit comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          {
+            echo "### ❌ CI \"Infection MSI\" a échoué — commit \`${GITHUB_SHA::8}\`"
+            echo ""
+            echo "<details><summary>infection-output.txt (dernières 200 lignes)</summary>"
+            echo ""
+            echo '```'
+            tail -n 200 infection-output.txt
+            echo '```'
+            echo "</details>"
+            echo ""
+            echo "[Run complet]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > /tmp/comment_body.md
+          python3 -c "
+          import json
+          body = open('/tmp/comment_body.md').read()
+          if len(body) > 65000:
+              body = body[:65000] + '\n\n...(tronqué)'
+          print(json.dumps({'body': body}))
+          " > /tmp/comment_payload.json
+          curl -s -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -d @/tmp/comment_payload.json

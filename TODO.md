@@ -158,18 +158,31 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 
 ---
 
-## Priorité 13 — Infection MSI — 🟡 EN COURS (avancé ce soir, avec supervision)
+## Priorité 13 — Infection MSI — 🟡 EN COURS (délégué à CI GitHub Actions)
 
-Baseline réelle mesurée ce soir (pcov compilé pour l'occasion) : **2318 mutants, MSI 48,5%**.
+**Problème** : Infection est trop lent en local (timeout après 10 min, ~200 mutants analysés). Estimation : 10+ heures pour une analyse complète.
 
-**Fait ce soir** :
-- `infection.json` : exclusion de `src/lib` (Parsedown, FPDF — librairies tierces, déjà exclues de PHPStan). Gain honnête sans écrire un test : nouveau total 1957 mutants, **MSI recalculé ~57,4%**.
-- `ReportRepository::findPaginated()` : couverture réelle de la pagination ajoutée (offset, page par défaut) — le test précédent ne dépassait jamais la page 1. Vérifié en mutant le code à la main : le mutant sur `($page - 1) * $perPage` est bien tué ; le mutant sur la valeur par défaut `$page = 1 → 0` reste un mutant **équivalent** (SQLite traite un OFFSET négatif comme 0 — indétectable par nature, pas un trou de couverture).
-- `StatsRepository::getSynthesis()` : **vrai bug trouvé et corrigé**. `COUNT(*)` comptait la ligne fantôme produite par le `LEFT JOIN` quand aucun signalement ne correspond — un site sans signalement sur l'année affichait `total: 1` au lieu de `0`. Corrigé (`COUNT(r.uuid)`). Sans impact visible actuel (le seul appelant, `pages/synthesis.php`, filtrait déjà cette ligne par accident) mais un vrai bug de contrat sur la méthode.
+**Solution** : Déléguer l'exécution à **GitHub Actions CI** (16+ cores, pas de timeout local, peut tourner plusieurs heures).
 
-**Reste réellement à faire** : ~530 mutants à tuer pour atteindre 85%, sur `Repository/StatsRepository.php` (le reste), les enums `ReportState`/`ReportType`, `ConfigService`, `FormattingService`, les DTO `CreateReportCommand`/`UpdateReportCommand`, `SQLiteSessionHandler`. Beaucoup ressemblent au motif déjà écarté ce soir (plomberie `instance()`/DI, sans valeur à tester) — le ratio "mutant creusé → vrai bug trouvé" observé ce soir est d'environ 1 sur 2 quand on filtre le bruit, mais rien ne garantit qu'il tienne sur le reste.
+**Fait** :
+- Job `infection` ajouté à `.github/workflows/ci.yml`
+- Timeout : 120 minutes
+- Coverage : PCOV activé pour le mutation testing
+- Logs uploadés en cas d'échec
+- MSI target : **80%** (configuré dans `infection.json`)
 
-**Effort restant** : plusieurs heures, à reprendre avec du temps dédié plutôt qu'en fin de session — pour continuer à trouver de vrais trous plutôt que de gonfler le chiffre.
+**Historique** :
+- Baseline mesurée : **2318 mutants, MSI 48,5%**
+- `infection.json` : exclusion de `src/lib` (librairies tierces) → 1957 mutants, **MSI ~57,4%**
+- `StatsRepository::getSynthesis()` : **vrai bug trouvé et corrigé** (`COUNT(*)` → `COUNT(r.uuid)`)
+
+**Reste à faire** : ~530 mutants à tuer pour atteindre 80%, principalement sur :
+- `Repository/StatsRepository.php` (le reste)
+- Enums `ReportState`/`ReportType`
+- `ConfigService`, `FormattingService`
+- DTOs `CreateReportCommand`/`UpdateReportCommand`
+
+**Statut** : 🟡 **En cours** — CI job ajouté, premier run à valider.
 
 ---
 

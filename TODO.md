@@ -203,11 +203,11 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 | `StatsRepository` (extension) | +2 méthodes | +24 | Stats (countActive, countByDeclarantId) — déjà utilisé via getExportData facade |
 | `AuditRepository` (extension, optionnel) | +1 méthode | +12 | Audit (logAccess) — cohérent avec purgeAccessLogOlderThan |
 
-### Méthodes à supprimer
+### Méthodes à conserver (faux positifs)
 
 | Méthode | Raison |
 |---------|--------|
-| `getTypeByUuid` | 0 appelant — dead code |
+| `getTypeByUuid` | 1 appelant dans `templates/sidebar.php:23` (active menu highlighting) — à conserver dans le core |
 
 ### Approche : 2 phases
 

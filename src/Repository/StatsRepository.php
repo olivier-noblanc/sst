@@ -428,4 +428,30 @@ class StatsRepository
             byTypeActe: $byType,
         );
     }
+
+    public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int
+    {
+        $sql = "SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ReportState::Abandonne->value . "'";
+        $params = [':type' => $type];
+
+        if ($siteId > 0) {
+            $sql .= ' AND site_id = :site_id';
+            $params[':site_id'] = $siteId;
+        }
+        if ($confidentialMode && $userId > 0) {
+            $sql .= ' AND (is_confidential = 0 OR declarant_id = :user_id)';
+            $params[':user_id'] = $userId;
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function countByDeclarantId(int $declarantId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM reports WHERE declarant_id = :uid');
+        $stmt->execute([':uid' => $declarantId]);
+        return (int) $stmt->fetchColumn();
+    }
 }

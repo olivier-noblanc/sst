@@ -1,4 +1,5 @@
 <?php
+
 /**
  * SessionService Unit Tests — Flash messages, form data, CSRF, session state
  *
@@ -313,23 +314,31 @@ class SessionServiceTest extends TestCase
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // CSRF token eviction boundary — kill Infection mutant #19
+    // CSRF token reuse — single token per session (no accumulation)
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    public function testCsrfTokenEvictionKeepsMaxFiftyTokens(): void
+    public function testCsrfTokenReusesExistingValidToken(): void
     {
-        for ($i = 0; $i < 55; $i++) {
-            $this->service->generateCsrfToken();
-        }
-        $this->assertCount(50, $_SESSION['csrf_tokens']);
+        // Generate token multiple times - should reuse same token while valid
+        $token1 = $this->service->generateCsrfToken();
+        $token2 = $this->service->generateCsrfToken();
+        $token3 = $this->service->generateCsrfToken();
+
+        // All tokens should be identical (reuse, not accumulation)
+        $this->assertSame($token1, $token2);
+        $this->assertSame($token2, $token3);
+        $this->assertCount(1, $_SESSION['csrf_tokens']);
     }
 
-    public function testCsrfTokenNoEvictionBelowLimit(): void
+    public function testCsrfTokenGeneratesNewAfterConsumption(): void
     {
-        for ($i = 0; $i < 49; $i++) {
-            $this->service->generateCsrfToken();
-        }
-        $this->assertCount(49, $_SESSION['csrf_tokens']);
+        $token1 = $this->service->generateCsrfToken();
+        $this->service->validateCsrfToken($token1); // Consume the token
+
+        // After consumption, next call should generate new token
+        $token2 = $this->service->generateCsrfToken();
+        $this->assertNotSame($token1, $token2);
+        $this->assertCount(1, $_SESSION['csrf_tokens']);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

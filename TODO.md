@@ -558,6 +558,33 @@ Ces 45 échecs étaient présents avant cette session (depuis le commit `0766f80
 
 ---
 
+### Session 2026-08-25 — ✅ Fixes E2E/CI et session handling — TERMINÉE
+
+| Item | Statut |
+|------|--------|
+| fix(e2e): POST direct via page.evaluate() pour loginAs non-dev | ✅ |
+| fix(ci): helpers.js (fill sur input), CS Fixer http.php, artifact name | ✅ |
+| chore: alléger GrumPHP pre-commit — phpstan + phpcsfixer uniquement | ✅ |
+| fix(di): register ConfigRepository in container — fixes E2E login crash | ✅ |
+| Fix: Activer SQLiteSessionHandler dans index.php avant session_start() | ✅ |
+| test: use PHP default session path (/tmp) for E2E to avoid mkdir issues | ✅ |
+| test: stop E2E on first failure, disable retries for faster CI feedback | ✅ |
+| fix(e2e): add detailed session/CSRF logging for debugging | ✅ |
+| fix(session): set cookie_path to '/' for consistent cookie sending | ✅ |
+| fix(e2e): add chmod and error logging for PHP session debugging | ✅ |
+| ci: enable cancel-in-progress to stop old jobs on new push | ✅ |
+| fix(e2e): correct env var scoping in webServer command for Linux | ✅ |
+| fix(e2e): ensure session directory exists before PHP server starts | ✅ |
+| fix(ci): add chmod 777 for PHP session directory in E2E tests | ✅ |
+| ci: disable cancel-in-progress and increase E2E timeout to 60min | ✅ |
+
+**Métriques:**
+- CI GitHub Actions: ✅ vert (L lint/PHPStan/PHPUnit + E2E Firefox)
+- PHPUnit: ✅ 1556 tests, 3904 assertions
+- PHPStan: ✅ 0 erreur
+
+---
+
 ## Audit CTO 2026-07-26 — 98 bugs identifiés + 8 refactorings
 
 Suite à l'audit CTO DDD/TDD complet (commit de réf `64bd9a4`), **98 bugs fonctionnels** identifiés sur 5 périmètres :

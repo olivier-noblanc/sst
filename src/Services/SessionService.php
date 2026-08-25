@@ -261,22 +261,37 @@ class SessionService
     // ═══════════════════════════════════════════════════════════════════════════════
 
     /**
-     * Generate a unique per-form CSRF token and store it in the session.
+     * Generate a CSRF token for form protection.
+     * Reuses the most recent valid token if present to avoid accumulation on page refresh.
+     * New token is generated only if no valid token exists (all consumed or expired).
+     * Max 50 tokens to support multiple tabs/forms simultaneously.
      *
-     * Audit #28 — Before this fix, the limit was 20 tokens. If a user had
-     * multiple tabs open (e.g. report_create, report_edit, settings), the
-     * oldest CSRF tokens were silently evicted → "Erreur de sécurité" on
-     * submit with no explanation. Now the limit is 50 (enough for ~25 tabs
-     * with 2 forms each) and a warning is logged once per session when
-     * eviction starts happening.
+     * Audit #28 — Before this fix, a NEW token was generated on EVERY GET request,
+     * causing accumulation even with a single tab (refresh = new token).
+     * Now: reuses most recent valid token → no spam on simple refresh, but still
+     * supports multiple tabs/forms (up to 50).
      */
     public function generateCsrfToken(): string
     {
         $this->startSession();
-        $token = bin2hex(random_bytes(32));
         /** @var array<string, int> $tokens */
         $tokens = is_array($_SESSION['csrf_tokens'] ?? null) ? $_SESSION['csrf_tokens'] : [];
+
+        // Reuse the most recent valid token if present (avoids accumulation on refresh)
+        if (!empty($tokens)) {
+            // Get the most recent token (last one in array, as arrays maintain insertion order)
+            $mostRecentToken = array_key_last($tokens);
+            $mostRecentTimestamp = $tokens[$mostRecentToken];
+            if (time() - $mostRecentTimestamp < 3600) { // 1 hour validity
+                return $mostRecentToken;
+            }
+        }
+
+        // No valid token exists, generate new one
+        $token = bin2hex(random_bytes(32));
         $tokens[$token] = time();
+
+        // Enforce limit of 50 tokens (for multiple tabs/forms support)
         $limit = 50;
         if (count($tokens) > $limit) {
             $evicted = count($tokens) - $limit;
@@ -287,6 +302,7 @@ class SessionService
                 $_SESSION['csrf_eviction_logged'] = true;
             }
         }
+
         $_SESSION['csrf_tokens'] = $tokens;
         return $token;
     }

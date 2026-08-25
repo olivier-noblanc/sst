@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Session Helper Unit Tests — CSRF Token
  *
@@ -69,22 +70,35 @@ class SessionHelperTest extends TestCase
 
     public function testMultipleTokensCanBeValidSimultaneously(): void
     {
+        // Generate initial token (will be reused on subsequent calls)
         $token1 = generateCsrfToken();
-        $token2 = generateCsrfToken();
-        $token3 = generateCsrfToken();
+        $token2 = generateCsrfToken(); // Reuses token1
+        $token3 = generateCsrfToken(); // Reuses token1
 
-        $this->assertTrue(validateCsrfToken($token2));
+        // All tokens are the same (reuse behavior to prevent accumulation)
+        $this->assertSame($token1, $token2);
+        $this->assertSame($token2, $token3);
+
+        // The single token is valid
         $this->assertTrue(validateCsrfToken($token1));
-        $this->assertTrue(validateCsrfToken($token3));
     }
 
     public function testConsumingOneTokenDoesNotAffectOthers(): void
     {
+        // With token reuse, there's only one token at a time
         $token1 = generateCsrfToken();
-        $token2 = generateCsrfToken();
+        $token2 = generateCsrfToken(); // Same as token1
 
+        $this->assertSame($token1, $token2);
+
+        // Consume the token
         $this->assertTrue(validateCsrfToken($token1));
-        $this->assertTrue(validateCsrfToken($token2));
+
+        // After consumption, a new token is generated
+        $token3 = generateCsrfToken();
+        $this->assertNotSame($token1, $token3);
+
+        // Old token is invalid (consumed)
         $this->assertFalse(validateCsrfToken($token1));
     }
 

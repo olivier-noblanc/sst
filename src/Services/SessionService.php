@@ -12,12 +12,23 @@ class SessionService
 {
     private static ?self $instance = null;
 
+    private CookieService $cookieService;
+    private SessionDataService $dataService;
+    private SessionTokenService $tokenService;
+
     public static function getInstance(): self
     {
         if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance;
+    }
+
+    public function __construct()
+    {
+        $this->cookieService = CookieService::getInstance();
+        $this->dataService = SessionDataService::getInstance();
+        $this->tokenService = SessionTokenService::getInstance();
     }
     // ═══════════════════════════════════════════════════════════════════════════════
     // Session startup
@@ -32,17 +43,12 @@ class SessionService
      */
     public function startSession(): void
     {
-        $this->clearLegacySessionCookie('PHPSESSID');
+        $this->cookieService->clearLegacySessionCookie('PHPSESSID');
 
         if (session_status() === PHP_SESSION_NONE) {
             ini_set('session.use_strict_mode', '1');
             ini_set('session.use_only_cookies', '1');
-            ini_set('session.cookie_httponly', '1');
-            ini_set('session.cookie_samesite', 'Lax');
-            ini_set('session.cookie_path', '/');
-            if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-                ini_set('session.cookie_secure', '1');
-            }
+            $this->cookieService->configureSessionCookie();
             // Force garbage collection settings explicitly — don't rely on
             // the server's php.ini. Debian/Ubuntu-packaged PHP sets
             // gc_probability=0 by default (cleanup handled by an external
@@ -80,350 +86,150 @@ class SessionService
         }
     }
 
-    /**
-     * Remove a legacy session cookie that conflicts with the canonical session name.
-     *
-     * @param string $legacyName The old session cookie name to clear (e.g. 'PHPSESSID')
-     */
-    private function clearLegacySessionCookie(string $legacyName): void
-    {
-        if (session_status() !== PHP_SESSION_NONE) {
-            return;
-        }
-        if (!isset($_COOKIE[$legacyName])) {
-            return;
-        }
-
-        unset($_COOKIE[$legacyName]);
-
-        if (headers_sent()) {
-            return;
-        }
-
-        $params = session_get_cookie_params();
-        setcookie(
-            $legacyName,
-            '',
-            [
-                'expires'  => time() - 3600,
-                'path'     => $params['path'],
-                'domain'   => $params['domain'],
-                'secure'   => $params['secure'],
-                'httponly'  => $params['httponly'],
-                'samesite' => $params['samesite'],
-            ]
-        );
-    }
-
     // ═══════════════════════════════════════════════════════════════════════════════
     // User session — authentication state
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Check if a user is currently logged in.
-     */
     public function isUserLoggedIn(): bool
     {
-        return isset($_SESSION['user']);
+        return $this->dataService->isUserLoggedIn();
     }
 
-    /**
-     * Store the full user data in session.
-     */
     public function setUserSession(SessionUser $user): void
     {
-        $_SESSION['user'] = $user->toArray();
+        $this->dataService->setUserSession($user);
     }
 
-    /**
-     * Get the current user's full data from session.
-     */
     public function getUserSession(): ?SessionUser
     {
-        $data = $_SESSION['user'] ?? null;
-        if (!is_array($data)) {
-            return null;
-        }
-        return SessionUser::fromSession($data);
+        return $this->dataService->getUserSession();
     }
 
-    /**
-     * Clear the entire session (used for logout).
-     */
     public function clearSession(): void
     {
-        $_SESSION = [];
+        $this->dataService->clearSession();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Intended URL — redirect after login
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Store the intended URL for post-login redirect.
-     */
     public function setIntendedUrl(string $url): void
     {
-        $_SESSION['intended_url'] = $url;
+        $this->dataService->setIntendedUrl($url);
     }
 
-    /**
-     * Get the intended URL (without clearing it).
-     */
     public function getIntendedUrl(): ?string
     {
-        $url = $_SESSION['intended_url'] ?? null;
-        return $url;
+        return $this->dataService->getIntendedUrl();
     }
 
-    /**
-     * Get and clear the intended URL.
-     */
     public function clearIntendedUrl(): ?string
     {
-        $url = $_SESSION['intended_url'] ?? null;
-        unset($_SESSION['intended_url']);
-        return $url;
+        return $this->dataService->clearIntendedUrl();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Impersonation — role switching by superviseur
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Start impersonating a different role.
-     */
     public function startImpersonation(string $realRole, string $targetRole): void
     {
-        $_SESSION['real_role'] = $realRole;
-        $_SESSION['impersonated_role'] = $targetRole;
-        $data = $_SESSION['user'] ?? null;
-        if (is_array($data)) {
-            $user = SessionUser::fromSession($data);
-            $_SESSION['user'] = $user->withRole($targetRole)->toArray();
-        }
-        // Audit #33 — regenerate session ID on impersonation start.
-        // Prevents session fixation: if an attacker steals the session cookie
-        // before impersonation starts, they can't hijack the impersonated role.
-        // Same logic as login — session ID changes, old cookie is invalidated.
-        if (function_exists('safeSessionRegenerate')) {
-            \safeSessionRegenerate();
-        }
+        $this->dataService->startImpersonation($realRole, $targetRole);
     }
 
-    /**
-     * Stop impersonation and restore the real role.
-     */
     public function stopImpersonation(): ?string
     {
-        if (!isset($_SESSION['real_role'])) {
-            return null;
-        }
-        $realRole = $_SESSION['real_role'];
-        $data = $_SESSION['user'] ?? null;
-        if (is_array($data)) {
-            $user = SessionUser::fromSession($data);
-            $_SESSION['user'] = $user->withRole($realRole)->toArray();
-        }
-        unset($_SESSION['real_role']);
-        unset($_SESSION['impersonated_role']);
-        return $realRole;
+        return $this->dataService->stopImpersonation();
     }
 
-    /**
-     * Check if the user is currently impersonating a role.
-     */
     public function isImpersonatingRole(): bool
     {
-        return isset($_SESSION['real_role']);
+        return $this->dataService->isImpersonatingRole();
     }
 
-    /**
-     * Get the impersonated role (or null if not impersonating).
-     */
     public function getImpersonatedRole(): ?string
     {
-        $role = $_SESSION['impersonated_role'] ?? null;
-        return $role;
+        return $this->dataService->getImpersonatedRole();
     }
 
-    /**
-     * Get the real role (before impersonation).
-     */
     public function getRealRole(): ?string
     {
-        $role = $_SESSION['real_role'] ?? null;
-        return $role;
+        return $this->dataService->getRealRole();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // CSRF token
+    // CSRF token — delegated to SessionTokenService
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Generate a CSRF token for form protection.
-     * Reuses the most recent valid token if present to avoid accumulation on page refresh.
-     * New token is generated only if no valid token exists (all consumed or expired).
-     * Max 50 tokens to support multiple tabs/forms simultaneously.
-     *
-     * Audit #28 — Before this fix, a NEW token was generated on EVERY GET request,
-     * causing accumulation even with a single tab (refresh = new token).
-     * Now: reuses most recent valid token → no spam on simple refresh, but still
-     * supports multiple tabs/forms (up to 50).
-     */
     public function generateCsrfToken(): string
     {
-        $this->startSession();
-        /** @var array<string, int> $tokens */
-        $tokens = is_array($_SESSION['csrf_tokens'] ?? null) ? $_SESSION['csrf_tokens'] : [];
-
-        // Reuse the most recent valid token if present (avoids accumulation on refresh)
-        if (!empty($tokens)) {
-            // Get the most recent token (last one in array, as arrays maintain insertion order)
-            $mostRecentToken = array_key_last($tokens);
-            $mostRecentTimestamp = $tokens[$mostRecentToken];
-            if (time() - $mostRecentTimestamp < 3600) { // 1 hour validity
-                return $mostRecentToken;
-            }
-        }
-
-        // No valid token exists, generate new one
-        $token = bin2hex(random_bytes(32));
-        $tokens[$token] = time();
-
-        // Enforce limit of 50 tokens (for multiple tabs/forms support)
-        $limit = 50;
-        if (count($tokens) > $limit) {
-            $evicted = count($tokens) - $limit;
-            $tokens = array_slice($tokens, -$limit, null, true);
-            // Log eviction warning only once per session to avoid log spam
-            if (empty($_SESSION['csrf_eviction_logged'])) {
-                error_log("[SST-CSRF] Evicting {$evicted} old CSRF token(s) — limit={$limit}. User may have many tabs open.");
-                $_SESSION['csrf_eviction_logged'] = true;
-            }
-        }
-
-        $_SESSION['csrf_tokens'] = $tokens;
-        return $token;
+        return $this->tokenService->generateCsrfToken();
     }
 
-    /**
-     * Validate a CSRF token and consume it (one-time use).
-     */
     public function validateCsrfToken(string $token): bool
     {
-        $this->startSession();
-        /** @var array<string, int> $tokens */
-        $tokens = is_array($_SESSION['csrf_tokens'] ?? null) ? $_SESSION['csrf_tokens'] : [];
-        if (empty($token) || !isset($tokens[$token])) {
-            return false;
-        }
-        unset($tokens[$token]);
-        $_SESSION['csrf_tokens'] = $tokens;
-        return true;
+        return $this->tokenService->validateCsrfToken($token);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Flash messages
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Store a flash message in the session.
-     */
     public function setFlash(string $type, string $message): void
     {
-        $_SESSION['flash'] = new FlashMessage($type, $message)->toArray();
+        $this->dataService->setFlash($type, $message);
     }
 
-    /**
-     * Retrieve and clear the flash message from the session.
-     */
     public function getFlash(): ?FlashMessage
     {
-        if (isset($_SESSION['flash']) && is_array($_SESSION['flash'])) {
-            /** @var array{type?: mixed, message?: mixed} $raw */
-            $raw = $_SESSION['flash'];
-            unset($_SESSION['flash']);
-            return FlashMessage::fromSession($raw);
-        }
-        return null;
+        return $this->dataService->getFlash();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Form data & errors (from session_form.php)
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Store form data in session for repopulation after validation error.
-     *
-     * Issue #2 — fini le shim FormData|array : tous les appelants passent
-     * désormais un FormData (via FormData::fromPost($_POST)). Un array brut
-     * doit lever TypeError plutôt que de contourner silencieusement le DTO.
-     */
     public function setFormData(FormData $data): void
     {
-        $_SESSION['form_data'] = $data->toArray();
+        $this->dataService->setFormData($data);
     }
 
-    /**
-     * Retrieve and clear stored form data.
-     */
     public function getFormData(): FormData
     {
-        if (isset($_SESSION['form_data']) && is_array($_SESSION['form_data'])) {
-            /** @var array<string, mixed> $data */
-            $data = $_SESSION['form_data'];
-            unset($_SESSION['form_data']);
-            return FormData::fromSession($data);
-        }
-        return new FormData();
+        return $this->dataService->getFormData();
     }
 
     /**
-     * Store form errors in session.
      * @param array<string, string> $errors
      */
     public function setFormErrors(array $errors): void
     {
-        $_SESSION['form_errors'] = $errors;
+        $this->dataService->setFormErrors($errors);
     }
 
     /**
-     * Retrieve and clear stored form errors.
-     *
      * @return array<string, string>
      */
     public function getFormErrors(): array
     {
-        if (isset($_SESSION['form_errors'])) {
-            /** @var array<string, string> $errors */
-            $errors = $_SESSION['form_errors'];
-            unset($_SESSION['form_errors']);
-            return $errors;
-        }
-        return [];
+        return $this->dataService->getFormErrors();
     }
 
     /**
-     * Get a specific form error for a field.
      * @param array<string, string|null> $errors
      */
     public function getFieldError(array $errors, string $field): ?string
     {
-        return $errors[$field] ?? null;
+        return $this->dataService->getFieldError($errors, $field);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Session patch (from session_patch.php)
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Safe session regeneration that works with PHP built-in server.
-     */
     public function safeSessionRegenerate(): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_regenerate_id(!DEV_MODE);
-        }
+        $this->tokenService->refreshSessionId();
     }
 }

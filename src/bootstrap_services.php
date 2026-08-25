@@ -4,10 +4,12 @@
 
 use App\Container\Container;
 use App\Repository\ReportRepository;
+use App\Repository\ReportResponseRepository;
 use App\Repository\UserRepository;
 use App\Repository\SiteRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\StatsRepository;
+use App\Repository\StatsQueryRepository;
 use App\Repository\RegistryRepository;
 use App\Repository\RegistryFieldRepository;
 use App\Repository\AuditRepository;
@@ -17,6 +19,9 @@ use App\Services\ReportService;
 use App\Services\UserService;
 use App\Services\AuthService;
 use App\Services\SessionManager;
+use App\Services\CookieService;
+use App\Services\SessionDataService;
+use App\Services\SessionTokenService;
 use App\Services\NotificationService;
 use App\Services\AccessService;
 use App\Services\ConfigService;
@@ -57,6 +62,9 @@ function createContainer(): Container
     $container->set(ReportRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new ReportRepository($pdo);
     });
+    $container->set(ReportResponseRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new ReportResponseRepository($pdo);
+    });
     $container->set(UserRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new UserRepository($pdo);
     });
@@ -68,6 +76,9 @@ function createContainer(): Container
     });
     $container->set(StatsRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new StatsRepository($pdo);
+    });
+    $container->set(StatsQueryRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new StatsQueryRepository($pdo);
     });
     $container->set(RegistryRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new RegistryRepository($pdo);
@@ -96,6 +107,9 @@ function createContainer(): Container
     $container->set(HttpService::class, fn() => new HttpService());
     $container->set(AssetService::class, fn() => new AssetService());
     $container->set(SessionManager::class, fn() => new SessionManager());
+    $container->set(CookieService::class, fn() => new CookieService());
+    $container->set(SessionDataService::class, fn() => new SessionDataService());
+    $container->set(SessionTokenService::class, fn() => new SessionTokenService());
     $container->set(RegistryPolicy::class, fn() => new RegistryPolicy());
     $container->set(ReportStateMachine::class, fn() => new ReportStateMachine());
 

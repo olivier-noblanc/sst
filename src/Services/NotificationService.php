@@ -9,6 +9,7 @@
 
 namespace App\Services;
 
+use App\Repository\ReportAgentRepository;
 use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
 use PDO;
@@ -125,7 +126,7 @@ class NotificationService
         }
 
         // Also notify linked agents
-        $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
+        $linkedAgents = ReportAgentRepository::instance()->getLinkedAgents($reportUuid);
         foreach ($linkedAgents as $linkedAgent) {
             if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant->email ?? '')) {
                 $linkedSubject = "Signalement réouvert $registryLabel — {$report->reference}";

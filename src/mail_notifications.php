@@ -1,5 +1,6 @@
 <?php
 
+use App\Repository\ReportAgentRepository;
 use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
 use App\Enum\UserRole;
@@ -126,7 +127,7 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     sendMail($declarant->email, $subject, $body);
 
     // Also notify linked/confirmed agents
-    $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
+    $linkedAgents = ReportAgentRepository::instance()->getLinkedAgents($reportUuid);
     foreach ($linkedAgents as $linkedAgent) {
         if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== $declarant->email) {
             $linkedSubject = "Réponse au signalement $registryLabel — {$report->reference}";
@@ -256,7 +257,7 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
             );
             sendMail($email, $subject, $body);
             // Email sent successfully — NOW persist the invite in DB
-            ReportRepository::instance()->createAgentInviteWithToken($reportUuid, $email, $token);
+            ReportAgentRepository::instance()->createAgentInviteWithToken($reportUuid, $email, $token);
         } catch (Throwable $e) {
             // @silent-ok: best-effort per-invite in a loop — one failed invite must not
             // stop the others from being sent.

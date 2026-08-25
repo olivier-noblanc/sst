@@ -12,6 +12,7 @@ use App\Enum\VisibilityMode;
 use App\Enum\UserRole;
 use PDO;
 use Exception;
+use App\Repository\ReportAgentRepository;
 use App\Repository\ReportRepository;
 use App\Repository\RegistryRepository;
 
@@ -60,7 +61,7 @@ class AccessService
         $reportDeclarantId = $report->declarantId;
 
         // Linked agents have the same read access as the declarant
-        $isLinkedAgent = ReportRepository::instance()->isLinkedAgent($report->uuid, $userId);
+        $isLinkedAgent = ReportAgentRepository::instance()->isLinkedAgent($report->uuid, $userId);
 
         if ($visibility === VisibilityMode::Confidential->value && $reportDeclarantId !== $userId && !$isLinkedAgent) {
             return false;

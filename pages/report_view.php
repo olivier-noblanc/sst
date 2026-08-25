@@ -41,8 +41,8 @@ $pageTitle = 'Signalement — ' . $report->reference;
 $responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 
 // Get linked agents and pending invites (moved from template to avoid DB queries in presentation layer)
-$linkedAgents = \App\Repository\ReportRepository::instance()->getLinkedAgents($report->uuid);
-$pendingInvites = \App\Repository\ReportRepository::instance()->getPendingInvites($report->uuid);
+$linkedAgents = \App\Repository\ReportAgentRepository::instance()->getLinkedAgents($report->uuid);
+$pendingInvites = \App\Repository\ReportAgentRepository::instance()->getPendingInvites($report->uuid);
 
 // Breadcrumb data
 $reportType = $report->type;

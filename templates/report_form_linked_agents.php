@@ -9,6 +9,8 @@
  *   $formData  — Submitted form data for repopulation
  *   $formErrors — Array of field errors
  */
+use App\Repository\ReportAgentRepository;
+
 /** @var bool $isEdit */
 /** @var \App\DTO\ReportData|null $report */
 $declarantEmail = $user['email'] ?? '';
@@ -19,7 +21,7 @@ if ($declarantEmailStr !== '' && str_contains($declarantEmailStr, '@')) {
 }
 $linkedEmails = '';
 if ($isEdit && $report !== null) {
-    $existing = \App\Repository\ReportRepository::instance()->getLinkedAgents($report->uuid);
+    $existing = ReportAgentRepository::instance()->getLinkedAgents($report->uuid);
     $linkedEmails = implode(', ', array_map(fn($a) => $a['email'], $existing));
 }
 if (isset($formData['linked_emails'])) {

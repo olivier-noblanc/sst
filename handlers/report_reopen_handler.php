@@ -6,7 +6,7 @@
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Repository\UserRepository;
-use App\Repository\ReportRepository;
+use App\Repository\ReportAgentRepository;
 use App\DTO\FormData;
 use App\DTO\ReopenReportCommand;
 use App\Services\ReportService;
@@ -51,7 +51,7 @@ try {
             $body .= '</body></html>';
             sendMail($declarant->email, $subject, $body);
         }
-        $linkedAgents = ReportRepository::instance()->getLinkedAgents($reportUuid);
+        $linkedAgents = ReportAgentRepository::instance()->getLinkedAgents($reportUuid);
         foreach ($linkedAgents as $linkedAgent) {
             /** @var array<string, string> $linkedAgent */
             if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant->email ?? '')) {

@@ -5,7 +5,7 @@
  */
 use App\Services\HttpService;
 use App\Services\SessionService;
-use App\Repository\ReportRepository;
+use App\Repository\ReportAgentRepository;
 use App\Enum\ReportType;
 use App\DTO\FormData;
 use App\DTO\UpdateReportCommand;
@@ -92,7 +92,7 @@ try {
 
             if (!empty($linkedEmails)) {
                 $pdo = getDB();
-                $existingLinked = ReportRepository::instance()->getLinkedAgents($reportUuid);
+                $existingLinked = ReportAgentRepository::instance()->getLinkedAgents($reportUuid);
                 $existingEmails = array_column($existingLinked, 'email');
                 $newEmails = array_diff($linkedEmails, $existingEmails);
                 if (!empty($newEmails)) {

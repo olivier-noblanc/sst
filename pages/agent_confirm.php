@@ -17,7 +17,7 @@ if (empty($token)) {
     return;
 }
 
-$invite = \App\Repository\ReportRepository::instance()->getAgentInviteByToken($token);
+$invite = \App\Repository\ReportAgentRepository::instance()->getAgentInviteByToken($token);
 
 if ($invite === null) {
     echo '<div class="card card--spaced"><h1 class="page-title">Invitation déjà traitée</h1><p>Cette invitation a déjà été confirmée ou a expiré. Si vous venez de cliquer, votre rattachement est déjà actif.</p><a href="' . new \App\Services\HttpService()->url('home') . '" class="btn btn--primary">Retour à l\'accueil</a></div>';

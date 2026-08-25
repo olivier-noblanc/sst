@@ -8,7 +8,7 @@
             "lib"
         ]
     },
-    "timeout": 10,
+    "timeout": 30,
     "testFrameworkOptions": "--testsuite=\"SST Unit Tests\"",
     "logs": {
         "text": "data/infection.log",

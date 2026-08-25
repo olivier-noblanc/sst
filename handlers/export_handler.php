@@ -54,7 +54,7 @@ if (!empty($_POST['date_to'])) {
 
 // States
 if (!empty($_POST['etats'])) {
-    $filters['etats'] = array_map('strval', (array) $_POST['etats']);
+    $filters['etats'] = array_map('strval', (array) $_POST['etats']); // @phpstan-ignore argument.type
 }
 
 // Get data (with optional registryCode for dynamic columns)

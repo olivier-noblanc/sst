@@ -186,29 +186,62 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 
 ---
 
-## Priorité 33 — 🟡 ReportRepository.php (1090 lignes) — À REFACTORISER
+## Priorité 33 — 🟡 ReportRepository.php (1090 lignes) — REFACTORISATION EN COURS
 
 **Constat** : `src/Repository/ReportRepository.php` = **1090 lignes** — énorme pour un repository.
 
-**Analyse rapide** :
-- Contient : CRUD, pagination, filtres, exports, stats, FTS5, attachments, linked agents, invites, etc.
-- Probablement trop de responsabilités (Single Responsibility Principle)
+**Audit terminé** — Plan de découpage validé :
 
-**Pistes de découpage** :
-1. `ReportRepository` — CRUD de base (find, findById, create, update, delete)
-2. `ReportQueryRepository` — méthodes de recherche/filtres (findPaginated, findByFilter, etc.)
-3. `ReportStatsRepository` — méthodes de statistiques (getTypeStats, getExportData, etc.)
-4. `ReportAttachmentRepository` — gestion des pièces jointes (getAttachmentBlob, etc.)
-5. `ReportAgentRepository` — linked agents (linkAgentsToReport, replaceLinkedAgents, etc.)
-6. `ReportInviteRepository` — invitations (getAgentInviteByToken, confirmAgentInvite, etc.)
+### Nouveaux repositories à créer
 
-**Approche** :
-- Commencer par extraire les méthodes par groupe fonctionnel
-- Utiliser composition plutôt qu'héritage (ex: `ReportRepository` injecte `ReportStatsRepository`)
-- Vérifier les appelants de chaque méthode avant extraction
-- Tests existants doivent continuer à passer
+| Repository | Méthodes | Lignes | Responsabilité |
+|------------|----------|--------|----------------|
+| `ReportRepository` (core) | 14 méthodes | ~510 | CRUD de base (find, findById, create, update, delete, findPaginated, getAdjacentUuids, getResponses, getNextSequence, getPdo) + helpers (baseSelect, toSnakeCase) |
+| `ReportAgentRepository` (nouveau) | 8 méthodes | ~128 | Linked agents + invitations (getLinkedAgents, linkAgents, isLinkedAgent, countVisibleForAgent, getPendingInvites, getAgentInviteByToken, createAgentInviteWithToken, confirmAgentInvite) |
+| `ReportLifecycleRepository` (nouveau) | 5 méthodes | ~158 | State machine (abandon, reopen, respond, respondToReport, countReopens) — transactions |
+| `ReportAttachmentRepository` (nouveau) | 2 méthodes | ~25 | Pièces jointes (getAttachmentBlob, getResponseAttachmentById) |
+| `StatsRepository` (extension) | +2 méthodes | +24 | Stats (countActive, countByDeclarantId) — déjà utilisé via getExportData facade |
+| `AuditRepository` (extension, optionnel) | +1 méthode | +12 | Audit (logAccess) — cohérent avec purgeAccessLogOlderThan |
 
-**Statut** : 🟡 **À investiguer** — audit détaillé nécessaire.
+### Méthodes à supprimer
+
+| Méthode | Raison |
+|---------|--------|
+| `getTypeByUuid` | 0 appelant — dead code |
+
+### Approche : 2 phases
+
+**Phase 1** (6 commits, zéro risque) :
+1. Supprimer `getTypeByUuid` (dead code)
+2. Créer `ReportAgentRepository` + 8 méthodes + stubs facade dans `ReportRepository`
+3. Créer `ReportLifecycleRepository` + 5 méthodes + stubs facade
+4. Créer `ReportAttachmentRepository` + 2 méthodes + stubs facade
+5. Étendre `StatsRepository` (+2 méthodes) + stubs facade
+6. (Optionnel) Étendre `AuditRepository` (+1 méthode) + stub facade
+
+**Résultat Phase 1** : `ReportRepository` passe de 1090 → ~510 lignes. 0 changement pour les appelants (facades). Tests inchangés.
+
+**Phase 2** (2-3 commits, migration progressive) :
+- Migrer les appelants vers les nouveaux repositories (par groupe)
+- Supprimer les stubs facades
+- Renommer/migrer les tests
+
+**Résultat Phase 2** : Découpage complet, plus de facades.
+
+### Risques identifiés
+
+| # | Risque | Sévérité | Mitigation |
+|---|--------|----------|------------|
+| R1 | Transactions cross-repos (`reopen`, `respondToReport` utilisent `$this->pdo->beginTransaction()`) | Moyen | Vérifier que `getDB()` retourne la même instance PDO singleton pour tous les repos (partage de transaction) |
+| R2 | Singleton/container wiring (nouveaux repos doivent répliquer `instance()` + `getContainer()`) | Faible | Copier le pattern de `SiteRepository` (13 lignes) |
+| R3 | Tests `ReportRepositoryMethodsMutationTest` à migrer | Faible (Phase 1) / Moyen (Phase 2) | Phase 1 : 0 changement (facade). Phase 2 : renommer/éclater vers nouveaux repos |
+| R4 | `getPdo()` leak (3 Services appellent `ReportRepository::instance()->getPdo()`) | Hors scope | Conserver sur le core. Cleanup orthogonal ultérieur |
+
+### Statut
+
+**Phase 1** : 🟡 **À lancer** — 6 commits, zéro risque de régression.
+
+**Phase 2** : ⏸️ **En attente** — après validation Phase 1 + vérification R1 (PDO singleton).
 
 ---
 

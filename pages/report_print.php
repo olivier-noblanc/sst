@@ -5,6 +5,7 @@ use App\Services\SessionService;
 use App\Services\AccessService;
 use App\Services\HttpService;
 use App\Repository\ReportRepository;
+use App\Repository\ReportAttachmentRepository;
 use App\Services\FormattingService;
 
 /**
@@ -44,7 +45,7 @@ $pdo = getContainer()->get(PDO::class);
 new AccessService()->logConfidentialReportAccess($pdo, $report, $user);
 
 // Fetch attachment blob separately (not loaded by findById for performance)
-$attachmentData = ReportRepository::instance()->getAttachmentBlob($uuid);
+$attachmentData = ReportAttachmentRepository::instance()->getAttachmentBlob($uuid);
 $attachmentBlob = $attachmentData['attachment_blob'] ?? null;
 
 // Get response history

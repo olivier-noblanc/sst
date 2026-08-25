@@ -2,6 +2,7 @@
 
 use App\Services\SessionService;
 use App\Repository\ReportRepository;
+use App\Repository\ReportAttachmentRepository;
 
 /**
  * Response Attachment Download — Application SST DREETS BFC
@@ -19,7 +20,7 @@ if ($responseId <= 0) {
 }
 
 $pdo = getDB();
-$row = ReportRepository::instance()->getResponseAttachmentById($responseId);
+$row = ReportAttachmentRepository::instance()->getResponseAttachmentById($responseId);
 
 if ($row === null || empty($row['attachment_blob'])) {
     http_response_code(404);

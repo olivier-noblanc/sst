@@ -1,6 +1,6 @@
 # TODO — Application SST DREETS BFC
 
-Dernière mise à jour : 2026-08-05 (v3.64.1) — fix ConfigRepository manquant dans DI container (E2E login crash)
+Dernière mise à jour : 2026-08-25 (v3.65.0) — fix CSRF token accumulation + E2E/CI stabilisation
 
 ---
 
@@ -425,6 +425,30 @@ public function __construct(private readonly PDO $pdo) {}
 ### A8 — ✅ Compteur DTOs mis à jour (17 au lieu de 11)
 
 Fait en même temps que l'audit. `RegistryCard` retiré de la liste, compteur corrigé.
+
+---
+
+## Session 2026-08-25 — ✅ Fix CSRF token accumulation — TERMINÉ
+
+**Problème** : Le log `[SST-CSRF] Evicting 1 old CSRF token(s)` apparaissait à chaque rafraîchissement de page, même avec un seul onglet ouvert.
+
+**Cause racine** : `SessionService::generateCsrfToken()` générait un **nouveau token à chaque requête GET**, même si un token valide existait déjà en session.
+
+**Solution** :
+- Réutilisation du token existant s'il est valide (< 1 heure)
+- Nouveau token généré uniquement après consommation (POST) ou expiration
+- Maintien de la limite de 50 tokens pour le support multi-onglets
+
+**Fichiers modifiés** :
+- `src/Services/SessionService.php` — logique de réutilisation de token
+- `tests/unit/SessionHelperTest.php` — tests mis à jour
+- `tests/unit/SessionServiceTest.php` — tests mis à jour
+- `tests/unit/CsrfRegressionTest.php` — **nouveau** (7 tests, 21 assertions)
+
+**Validation** :
+- ✅ 1589 tests, 4063 assertions
+- ✅ PHPStan 0 erreur
+- ✅ Commit `a966759` pushé sur `main`
 
 ---
 

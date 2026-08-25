@@ -10,5 +10,9 @@ parameters:
 			path: src/Repository/SessionRepository.php
 		-
 			identifier: shipmonk.deadMethod
+			message: '#App\\Repository\\StatsQueryRepository::instance#'
+			path: src/Repository/StatsQueryRepository.php
+		-
+			identifier: shipmonk.deadMethod
 			message: '#App\\Services\\ReportStateMachine::getTransitionDescription#'
 			path: src/Services/ReportStateMachine.php

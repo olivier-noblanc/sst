@@ -8,6 +8,7 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Repository\ReportRepository;
+use App\Repository\ReportAgentRepository;
 use App\DTO\ReportFilter;
 use App\Enum\ReportType;
 use App\Enum\ReportState;
@@ -17,6 +18,7 @@ class LinkedAgentVisibilityTest extends TestCase
 {
     private PDO $pdo;
     private ReportRepository $repo;
+    private ReportAgentRepository $agentRepo;
     private int $siteId;
     private int $siteId2;
     private int $agentId1;
@@ -26,6 +28,7 @@ class LinkedAgentVisibilityTest extends TestCase
     {
         $this->pdo = getDB();
         $this->repo = new ReportRepository($this->pdo);
+        $this->agentRepo = new ReportAgentRepository($this->pdo);
 
         // Ensure report_agents table exists
         $this->pdo->exec("CREATE TABLE IF NOT EXISTS report_agents (
@@ -88,7 +91,7 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->linkAgent($uuid, $this->agentId1);
 
         // agent1 should see 1 report (the linked one) in confidential mode
-        $count = $this->repo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
         $this->assertEquals(1, $count);
     }
 
@@ -98,7 +101,7 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->createReport($this->agentId2, 'Confidential not linked', 1);
 
         // agent1 should see 0 reports
-        $count = $this->repo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
         $this->assertEquals(0, $count);
     }
 
@@ -107,7 +110,7 @@ class LinkedAgentVisibilityTest extends TestCase
         // agent1 creates their own report
         $this->createReport($this->agentId1, 'Own report');
 
-        $count = $this->repo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
         $this->assertEquals(1, $count);
     }
 
@@ -118,7 +121,7 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->linkAgent($uuid, $this->agentId1);
 
         // agent1 should see it in agent_choice mode (linked = declarant-equivalent access)
-        $count = $this->repo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::AgentChoice->value);
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::AgentChoice->value);
         $this->assertEquals(1, $count);
     }
 
@@ -128,7 +131,7 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->createReport($this->agentId2, 'Public from agent2', 0);
 
         // agent1 should see it in agent_choice mode
-        $count = $this->repo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::AgentChoice->value);
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::AgentChoice->value);
         $this->assertEquals(1, $count);
     }
 
@@ -138,7 +141,7 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->pdo->prepare("UPDATE reports SET etat = :etat WHERE uuid = :uuid")
             ->execute([':uuid' => $uuid, ':etat' => ReportState::Abandonne->value]);
 
-        $count = $this->repo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
         $this->assertEquals(0, $count);
     }
 

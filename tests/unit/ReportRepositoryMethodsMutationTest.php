@@ -12,6 +12,7 @@
 use PHPUnit\Framework\TestCase;
 use App\Repository\ReportRepository;
 use App\Repository\ReportLifecycleRepository;
+use App\Repository\StatsRepository;
 use App\DTO\CreateReportCommand;
 use App\DTO\SiteId;
 use App\DTO\RespondToReportCommand;
@@ -22,6 +23,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
 {
     private PDO $pdo;
     private ReportRepository $repo;
+    private StatsRepository $statsRepo;
     private int $siteId;
     private int $declarantId;
     private int $supervisorId;
@@ -35,6 +37,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         \App\Repository\RegistryRepository::instance()->seedDefaults();
 
         $this->repo = new ReportRepository($this->pdo);
+        $this->statsRepo = new StatsRepository($this->pdo);
 
         $this->pdo->prepare('INSERT INTO sites (code, nom) VALUES (?, ?)')->execute(['UR21', 'UR Test']);
         $this->siteId = (int) $this->pdo->lastInsertId();
@@ -82,12 +85,12 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $this->seedReport('rsst', ReportState::Abandonne->value);
 
         // Kill CastInt on return
-        $this->assertSame(3, $this->repo->countActive('rsst'), 'abandonne excluded');
+        $this->assertSame(3, $this->statsRepo->countActive('rsst'), 'abandonne excluded');
     }
 
     public function testCountActiveReturnsZeroWhenNoReports(): void
     {
-        $this->assertSame(0, $this->repo->countActive('rsst'));
+        $this->assertSame(0, $this->statsRepo->countActive('rsst'));
     }
 
     public function testCountActiveFiltersBySiteId(): void
@@ -99,7 +102,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $this->seedReport('rsst', ReportState::Nouveau->value, $this->siteId);
         $this->seedReport('rsst', ReportState::Nouveau->value, $site2);
 
-        $this->assertSame(1, $this->repo->countActive('rsst', $this->siteId), 'only count for this site');
+        $this->assertSame(1, $this->statsRepo->countActive('rsst', $this->siteId), 'only count for this site');
     }
 
     public function testCountActiveWithConfidentialModeAndUserId(): void
@@ -112,9 +115,9 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $this->pdo->exec("UPDATE reports SET is_confidential = 0 WHERE uuid = '$uuid2'");
 
         // confidentialMode=true, userId=declarant → should see own + non-confidential
-        $this->assertSame(2, $this->repo->countActive('rsst', 0, $this->declarantId, true));
+        $this->assertSame(2, $this->statsRepo->countActive('rsst', 0, $this->declarantId, true));
         // confidentialMode=true, userId=other → should see only non-confidential
-        $this->assertSame(1, $this->repo->countActive('rsst', 0, 99999, true));
+        $this->assertSame(1, $this->statsRepo->countActive('rsst', 0, 99999, true));
     }
 
     public function testCountActiveWithoutConfidentialModeCountsAll(): void
@@ -124,7 +127,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $this->seedReport('rsst', ReportState::Nouveau->value);
 
         // Kill mutant that applies confidential filter when mode=false
-        $this->assertSame(2, $this->repo->countActive('rsst', 0, 0, false), 'no confidential filter');
+        $this->assertSame(2, $this->statsRepo->countActive('rsst', 0, 0, false), 'no confidential filter');
     }
 
     // ═══ getAdjacentUuids() ═══

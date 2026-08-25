@@ -4,11 +4,6 @@
 
 namespace App\Repository;
 
-use App\DTO\AttachmentData;
-use App\Enum\ReportState;
-use App\Enum\RespondStatus;
-use App\Enum\VisibilityMode;
-use Exception;
 use App\DTO\AdjacentUuids;
 use App\DTO\CreateReportCommand;
 use App\DTO\PaginatedReports;
@@ -17,8 +12,10 @@ use App\DTO\ReportFilter;
 use App\DTO\ReportListItem;
 use App\DTO\SiteId;
 use App\DTO\UpdateReportCommand;
-use App\DTO\RespondToReportCommand;
+use App\Enum\ReportState;
+use App\Enum\VisibilityMode;
 use App\Query\QueryFilterBuilder;
+use Exception;
 use PDO;
 
 class ReportRepository
@@ -162,17 +159,6 @@ class ReportRepository
             repondantNom: $row['repondant_nom'] ?? null,
             repondantPrenom: $row['repondant_prenom'] ?? null,
         );
-    }
-
-    /**
-     * Fetch only the attachment blob for a report (used by print page).
-     *
-     * @return array{attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null}|null
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function getAttachmentBlob(string $uuid): ?array
-    {
-        return ReportAttachmentRepository::instance()->getAttachmentBlob($uuid);
     }
 
     public function findPaginated(ReportFilter $filter, int $page = 1, int $perPage = 20): PaginatedReports
@@ -381,35 +367,6 @@ class ReportRepository
         return new AdjacentUuids(prev: $prev, next: $next);
     }
 
-    /**
-     * @param string $type
-     * @param int $siteId
-     * @param int $userId
-     * @param bool $confidentialMode
-     * @return int
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int
-    {
-        return StatsRepository::instance()->countActive($type, $siteId, $userId, $confidentialMode);
-    }
-
-    /**
-     * Count reports visible to an agent, including reports where they are linked
-     * via report_agents table.
-     *
-     * @param string $type
-     * @param int $userId
-     * @param int $siteId
-     * @param string $visibility
-     * @return int
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function countVisibleForAgent(string $type, int $userId, int $siteId = 0, string $visibility = VisibilityMode::Confidential->value): int
-    {
-        return ReportAgentRepository::instance()->countVisibleForAgent($type, $userId, $siteId, $visibility);
-    }
-
     // ═══════════════════════════════════════════════════════════════════════════════
     // Read — Responses
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -460,37 +417,6 @@ class ReportRepository
             }
         }
         return $result;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // Read — Linked agents
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    /**
-     * @return array<int, array{id: int, nom: string, prenom: string, email: string}>
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function getLinkedAgents(string $reportUuid): array
-    {
-        return ReportAgentRepository::instance()->getLinkedAgents($reportUuid);
-    }
-
-    /**
-     * @return list<array{email: string, created_at: string}>
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function getPendingInvites(string $reportUuid): array
-    {
-        return ReportAgentRepository::instance()->getPendingInvites($reportUuid);
-    }
-
-    /**
-     * @return array{id: int, report_uuid: string, email: string, token: string, confirmed: int, confirmed_at: string|null, created_at: string}|null
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function getAgentInviteByToken(string $token): ?array
-    {
-        return ReportAgentRepository::instance()->getAgentInviteByToken($token);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -642,168 +568,9 @@ class ReportRepository
         }
     }
 
-    /**
-     * Audit #19 — count how many times a report has been reopened
-     * (for rate limiting). Uses report_state_history to count transitions
-     * to Reouvert state.
-     *
-     * @param string $uuid
-     * @return int
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function countReopens(string $uuid): int
-    {
-        return ReportLifecycleRepository::instance()->countReopens($uuid);
-    }
-
-    /**
-     * @param string $uuid
-     * @param int $userId
-     * @return bool
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function abandon(string $uuid, int $userId): bool
-    {
-        return ReportLifecycleRepository::instance()->abandon($uuid, $userId);
-    }
-
-    /**
-     * @param string $uuid
-     * @param int $userId
-     * @param string $motif
-     * @return bool
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function reopen(string $uuid, int $userId, string $motif): bool
-    {
-        return ReportLifecycleRepository::instance()->reopen($uuid, $userId, $motif);
-    }
-
-    /**
-     * @param string $uuid
-     * @param RespondToReportCommand $cmd
-     * @param int $userId
-     * @return array{status: RespondStatus, message?: string}
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array
-    {
-        return ReportLifecycleRepository::instance()->respond($uuid, $cmd, $userId);
-    }
-
-    /**
-     * @param string $uuid
-     * @param int $userId
-     * @param string $reponse
-     * @param string $nouvelEtat
-     * @param AttachmentData|null $attachment
-     * @return array{status: RespondStatus, message?: string}
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function respondToReport(string $uuid, int $userId, string $reponse, string $nouvelEtat, ?AttachmentData $attachment = null): array
-    {
-        return ReportLifecycleRepository::instance()->respondToReport($uuid, $userId, $reponse, $nouvelEtat, $attachment);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // Write — Linked agents
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    /**
-     * @param string $reportUuid
-     * @param list<int|string> $userIds
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function linkAgents(string $reportUuid, array $userIds): void
-    {
-        ReportAgentRepository::instance()->linkAgents($reportUuid, $userIds);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // Write — Agent invites
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Bug #10 — Insert invite with a pre-generated token (after email sent successfully).
-     *
-     * @param string $reportUuid
-     * @param string $email
-     * @param string $token
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function createAgentInviteWithToken(string $reportUuid, string $email, string $token): void
-    {
-        ReportAgentRepository::instance()->createAgentInviteWithToken($reportUuid, $email, $token);
-    }
-
-    /**
-     * @param string $token
-     * @param int $userId
-     * @return bool
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function confirmAgentInvite(string $token, int $userId): bool
-    {
-        return ReportAgentRepository::instance()->confirmAgentInvite($token, $userId);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // Export (delegated to StatsRepository)
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    /**
-     * @param array{type?: string, site_id?: int, date_debut?: string, date_fin?: string, etat?: string} $filters
-     * @param string|null $registryCode Code du registre pour ajouter dynamiquement les colonnes depuis registry_fields
-     * @return list<array{uuid: string, reference: string, type: string, objet: string, date_evenement: string, etat: string, declarant_nom: string, declarant_prenom: string, site_nom: string|null, pole: string|null, service_affectation: string|null, telephone_mobile: string|null, consent_syndicat: int, site_text: string|null}>
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function getExportData(array $filters = [], ?string $registryCode = null): array
-    {
-        return StatsRepository::instance()->getExportData($filters, $registryCode);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // Write — Linked agents
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Check if a user is linked to a report via report_agents table.
-     *
-     * @param string $reportUuid
-     * @param int $userId
-     * @return bool
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function isLinkedAgent(string $reportUuid, int $userId): bool
-    {
-        return ReportAgentRepository::instance()->isLinkedAgent($reportUuid, $userId);
-    }
-
     public function getPdo(): PDO
     {
         return $this->pdo;
-    }
-
-    /**
-     * Get response attachment by response ID.
-     *
-     * @param int $responseId
-     * @return array{attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, report_uuid: string}|null
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function getResponseAttachmentById(int $responseId): ?array
-    {
-        return ReportAttachmentRepository::instance()->getResponseAttachmentById($responseId);
-    }
-
-    /**
-     * @param int $declarantId
-     * @return int
-     * @phpstan-ignore shipmonk.deadMethod
-     */
-    public function countByDeclarantId(int $declarantId): int
-    {
-        return StatsRepository::instance()->countByDeclarantId($declarantId);
     }
 
     public function getTypeByUuid(string $uuid): ?string

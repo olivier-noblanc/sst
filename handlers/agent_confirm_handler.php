@@ -6,6 +6,7 @@
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\DTO\ReportData;
+use App\Repository\ReportAgentRepository;
 use App\Repository\ReportRepository;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -24,8 +25,8 @@ if (empty($token)) {
     $http->redirect($http->url('home'));
 }
 
-$repo = getContainer()->get(ReportRepository::class);
-$invite = $repo->getAgentInviteByToken($token);
+$agentRepo = ReportAgentRepository::instance();
+$invite = $agentRepo->getAgentInviteByToken($token);
 
 if ($invite === null) {
     $session->setFlash('error', 'Cette invitation a déjà été confirmée ou est invalide. Si vous venez de cliquer, votre rattachement est déjà actif.');
@@ -45,11 +46,11 @@ if (strtolower((string) $user->email) !== strtolower((string) $invite['email']))
     $http->redirect($http->url('home'));
 }
 
-$confirmed = $repo->confirmAgentInvite($token, $user->id);
+$confirmed = $agentRepo->confirmAgentInvite($token, $user->id);
 
 if ($confirmed) {
     $reportUuid = (string) $invite['report_uuid'];
-    $report = $repo->findById($reportUuid);
+    $report = ReportRepository::instance()->findById($reportUuid);
     /** @var ReportData|null $report */
     $ref = $report !== null ? $report->reference : $reportUuid;
     auditLog(getDB(), 'report', 'agent_confirm', 'Agent ' . e($user->email) . ' confirmé rattachement au signalement ' . $ref, null, 'report', ['reference' => $ref, 'email' => $user->email ?? ''], $reportUuid);

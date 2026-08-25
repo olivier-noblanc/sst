@@ -1,6 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use App\Repository\ReportRepository;
+use App\Repository\ReportAgentRepository;
 use App\Repository\UserRepository;
 use App\Repository\SiteRepository;
 use App\Repository\StatsRepository;
@@ -119,7 +120,7 @@ class RepositoryInvariantTest extends TestCase
 
     public function testGetLinkedAgentsReturnsArray(): void
     {
-        $repo = new ReportRepository($this->pdo);
+        $repo = new ReportAgentRepository($this->pdo);
         $siteId = $this->seedSite();
         $userId = $this->seedUser($siteId);
         $uuid = $this->seedReport($siteId, $userId);
@@ -130,7 +131,7 @@ class RepositoryInvariantTest extends TestCase
 
     public function testGetPendingInvitesReturnsArray(): void
     {
-        $repo = new ReportRepository($this->pdo);
+        $repo = new ReportAgentRepository($this->pdo);
         $siteId = $this->seedSite();
         $userId = $this->seedUser($siteId);
         $uuid = $this->seedReport($siteId, $userId);
@@ -141,7 +142,7 @@ class RepositoryInvariantTest extends TestCase
 
     public function testGetAgentInviteByTokenReturnsArrayOrNull(): void
     {
-        $repo = new ReportRepository($this->pdo);
+        $repo = new ReportAgentRepository($this->pdo);
         $siteId = $this->seedSite();
         $userId = $this->seedUser($siteId);
         $uuid = $this->seedReport($siteId, $userId);

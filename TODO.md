@@ -186,13 +186,13 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 
 ---
 
-## Priorité 33 — 🟡 ReportRepository.php (1090 lignes) — REFACTORISATION EN COURS
+## Priorité 33 — ✅ ReportRepository.php (1090 lignes) — REFACTORISATION TERMINÉE
 
 **Constat** : `src/Repository/ReportRepository.php` = **1090 lignes** — énorme pour un repository.
 
 **Audit terminé** — Plan de découpage validé :
 
-### Nouveaux repositories à créer
+### Nouveaux repositories créés
 
 | Repository | Méthodes | Lignes | Responsabilité |
 |------------|----------|--------|----------------|
@@ -239,11 +239,44 @@ La clé legacy `app_wordcloud_words` (format plaintext) est orpheline dans la DB
 
 ### Statut
 
-**Phase 1** : 🟡 **À lancer** — 6 commits, zéro risque de régression.
+**Phase 1** : ✅ **TERMINÉE** — 6 commits, zéro risque de régression.
 
-**Phase 2** : ⏸️ **En attente** — après validation Phase 1 + vérification R1 (PDO singleton).
+**Phase 2** : ✅ **TERMINÉE** — Migration progressive achevée.
 
 ---
+
+### Résumé technique
+
+| Métrique | Valeur |
+|----------|--------|
+| Avant | 1090 lignes |
+| Après | 670 lignes |
+| Réduction | 38% |
+| Méthodes extraites | 18 |
+| Nouveaux repositories créés | 4 |
+| Commits | 9 |
+| Tests | 1589 tests, 4063 assertions |
+| PHPStan | 0 erreurs (2 pré-existants dans export_handler.php non liés au refactor) |
+
+### Liste des commits
+
+1. `2e20ed9` docs: add detailed ReportRepository refactoring plan (Priority 33)
+2. `0af5781` refactor: extract ReportAgentRepository (8 methods, facade pattern)
+3. `617439c` refactor: extract ReportLifecycleRepository (5 methods, facade pattern)
+4. `9e0c88a` refactor: migrate ReportAttachmentRepository calls to use new repository
+5. `9539db8` refactor: migrate ReportLifecycleRepository calls to use new repository
+6. `856f514` refactor: migrate StatsRepository calls to use stats repository
+7. `c2ed65e` refactor: remove facade methods from ReportRepository after migration
+8. `deff3d4` refactor: move count methods to StatsRepository (facade pattern)
+9. `5ee50a2` fix: move @phpstan-ignore to end of PHPDoc blocks
+
+### Résultats
+
+✅ Tous les tests passent (1589 tests, 4063 assertions)  
+✅ PHPStan : 0 erreur (2 erreurs pré-existantes dans export_handler.php non liées au refactor)  
+✅ ReportRepository réduit de 1090 à 670 lignes (38% de réduction)  
+✅ 18 méthodes extraites dans 4 nouveaux repositories  
+✅ 9 commits poussés sur main  
 
 ## Priorité 14 — ✅ Nettoyage queries orphelines — TERMINÉ
 

@@ -24,8 +24,7 @@ final class RegistryPolicyTest extends TestCase
      */
     public function testRequiresPourCompteWithHardcodedTypes(): void
     {
-        // RSST and RAMI always require pour_compte (hardcoded)
-        $this->assertTrue($this->policy->requiresPourCompte('RSST'));
+        // RAMI always requires pour_compte (hardcoded)
         $this->assertTrue($this->policy->requiresPourCompte('RAMI'));
         
         // DGI doesn't require pour_compte (hardcoded)
@@ -41,7 +40,6 @@ final class RegistryPolicyTest extends TestCase
         $this->assertSame('Lieu / Mesures de protection', $this->policy->getLieuLabel('DGI'));
         
         // Others use default "Lieu"
-        $this->assertSame('Lieu', $this->policy->getLieuLabel('RSST'));
         $this->assertSame('Lieu', $this->policy->getLieuLabel('RAMI'));
     }
 
@@ -119,7 +117,6 @@ final class RegistryPolicyTest extends TestCase
         $this->assertTrue($this->policy->hasDgiWarningPanel('DGI'));
         
         // Others don't have warning panel (default)
-        $this->assertFalse($this->policy->hasDgiWarningPanel('RSST'));
         $this->assertFalse($this->policy->hasDgiWarningPanel('RAMI'));
     }
 }

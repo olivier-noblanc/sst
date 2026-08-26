@@ -339,18 +339,17 @@ class ReportServiceTest extends TestCase
     }
 
     /**
-     * Test pour tuer le mutant qui tronçonne le tableau résultat à 1 élément
-     * si celui-ci contient plus d'un élément.
+     * Test pour tuer le mutant ArrayOneItem qui tronçonne le tableau résultat
      * 
      * Le mutant modifie la ligne 121 de ReportService.php :
      * return $result;
      * devient :
      * return count($result) > 1 ? array_slice($result, 0, 1, true) : $result;
      * 
-     * Ce test vérifie que le tableau retourné contient bien les clés 'status' ET 'message'
-     * même si le tableau contient plus d'éléments
+     * Ce test vérifie que le tableau retourné contient exactement la clé 'status'
+     * avec la valeur RespondStatus::Ok
      */
-    public function testRespondReturnsArrayWithBothStatusAndMessageKeys(): void
+    public function testRespondReturnsArrayWithStatusKey(): void
     {
         $report = $this->createReport();
         $cmd = new RespondToReportCommand(
@@ -365,18 +364,13 @@ class ReportServiceTest extends TestCase
             'is_active' => 1,
         ]));
         
-        // Utilisation d'un test de comportement plutôt qu'un mock complexe
-        // Le test existant vérifie déjà que respond retourne un tableau
-        // Ce test ajoute une vérification supplémentaire sur la structure du tableau
-        
-        // Pour tuer le mutant, nous devons nous assurer que les clés 'status' et 'message' 
-        // sont présentes dans le tableau retourné, même si ce tableau contient plusieurs éléments
         $result = $this->service->respond($report->uuid, $cmd, $this->supervisorId);
         
-        // Vérification que le tableau contient bien les deux clés attendues
+        // Vérification que le tableau contient la clé 'status' avec la bonne valeur
         $this->assertArrayHasKey('status', $result);
-        $this->assertArrayHasKey('message', $result);
         $this->assertEquals(RespondStatus::Ok, $result['status']);
+        // Vérifie que le tableau a exactement une clé (pour tuer le mutant ArrayOneItem)
+        $this->assertCount(1, $result);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

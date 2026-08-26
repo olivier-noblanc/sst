@@ -25,10 +25,10 @@ final class RegistryPolicyTest extends TestCase
     public function testRequiresPourCompteWithHardcodedTypes(): void
     {
         // RAMI always requires pour_compte (hardcoded)
-        $this->assertTrue($this->policy->requiresPourCompte('RAMI'));
+        $this->assertTrue($this->policy->requiresPourCompte('rami'));
         
         // DGI doesn't require pour_compte (hardcoded)
-        $this->assertFalse($this->policy->requiresPourCompte('DGI'));
+        $this->assertFalse($this->policy->requiresPourCompte('dgi'));
     }
 
     /**
@@ -37,10 +37,10 @@ final class RegistryPolicyTest extends TestCase
     public function testGetLieuLabelWithHardcodedTypes(): void
     {
         // DGI has special label
-        $this->assertSame('Lieu / Mesures de protection', $this->policy->getLieuLabel('DGI'));
+        $this->assertSame('Lieu / Mesures de protection', $this->policy->getLieuLabel('dgi'));
         
         // Others use default "Lieu"
-        $this->assertSame('Lieu', $this->policy->getLieuLabel('RAMI'));
+        $this->assertSame('Lieu', $this->policy->getLieuLabel('rami'));
     }
 
     /**
@@ -102,10 +102,10 @@ final class RegistryPolicyTest extends TestCase
     public function testUnknownRegistryTypeReturnsDefaults(): void
     {
         // For unknown types, requiresPourCompte returns false (default)
-        $this->assertFalse($this->policy->requiresPourCompte('UNKNOWN_TYPE'));
+        $this->assertFalse($this->policy->requiresPourCompte('unknown_type'));
         
         // For unknown types, getLieuLabel returns "Lieu" (default)
-        $this->assertSame('Lieu', $this->policy->getLieuLabel('UNKNOWN_TYPE'));
+        $this->assertSame('Lieu', $this->policy->getLieuLabel('unknown_type'));
     }
 
     /**
@@ -114,9 +114,9 @@ final class RegistryPolicyTest extends TestCase
     public function testHasDgiWarningPanel(): void
     {
         // DGI has warning panel (hardcoded)
-        $this->assertTrue($this->policy->hasDgiWarningPanel('DGI'));
+        $this->assertTrue($this->policy->hasDgiWarningPanel('dgi'));
         
         // Others don't have warning panel (default)
-        $this->assertFalse($this->policy->hasDgiWarningPanel('RAMI'));
+        $this->assertFalse($this->policy->hasDgiWarningPanel('rami'));
     }
 }

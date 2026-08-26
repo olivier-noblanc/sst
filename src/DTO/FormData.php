@@ -121,7 +121,7 @@ final readonly class FormData implements ArrayAccess
     /** @param string $offset */
     public function offsetExists(mixed $offset): bool
     {
-        return $this->has((string) $offset);
+        return $this->has($offset);
     }
 
     /** @param string $offset */

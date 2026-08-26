@@ -9,31 +9,47 @@ class FlashMessageTest extends TestCase
     {
         $data = ['type' => 42, 'message' => 'test message'];
         $flash = FlashMessage::fromSession($data);
-        $this->assertEquals('42', $flash->type);
-        $this->assertEquals('test message', $flash->message);
+        $this->assertSame('42', $flash->type);
+        $this->assertSame('test message', $flash->message);
     }
 
     public function testFromSessionWithNullMessageReturnsEmptyString(): void
     {
         $data = ['type' => 'success', 'message' => null];
         $flash = FlashMessage::fromSession($data);
-        $this->assertEquals('success', $flash->type);
-        $this->assertEquals('', $flash->message);
+        $this->assertSame('success', $flash->type);
+        $this->assertSame('', $flash->message);
+    }
+
+    public function testFromSessionWithIntMessageReturnsStringCast(): void
+    {
+        $data = ['type' => null, 'message' => 456];
+        $flash = FlashMessage::fromSession($data);
+        $this->assertSame('', $flash->type);
+        $this->assertSame('456', $flash->message);
+    }
+
+    public function testFromSessionWithIntTypeAndNullMessage(): void
+    {
+        $data = ['type' => 123, 'message' => null];
+        $flash = FlashMessage::fromSession($data);
+        $this->assertSame('123', $flash->type);
+        $this->assertSame('', $flash->message);
     }
 
     public function testFromSessionWithEmptyArrayReturnsEmptyStrings(): void
     {
         $data = [];
         $flash = FlashMessage::fromSession($data);
-        $this->assertEquals('', $flash->type);
-        $this->assertEquals('', $flash->message);
+        $this->assertSame('', $flash->type);
+        $this->assertSame('', $flash->message);
     }
 
     public function testFromSessionWithTypeAndMessage(): void
     {
         $data = ['type' => 'warning', 'message' => 'warning message'];
         $flash = FlashMessage::fromSession($data);
-        $this->assertEquals('warning', $flash->type);
-        $this->assertEquals('warning message', $flash->message);
+        $this->assertSame('warning', $flash->type);
+        $this->assertSame('warning message', $flash->message);
     }
 }

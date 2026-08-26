@@ -101,6 +101,43 @@ final class VisibilityPolicy
 - **TOUJOURS** vérifier que PHPStan passe (`rtk phpstan analyse --memory-limit=1G`) avant de push.
 - **Ne jamais pusher sans test préalable.**
 
+### CI GitHub — Rapport de tests avec `dorny/test-reporter`
+
+Pour faciliter la lecture des échecs de tests dans la CI GitHub, utiliser l'action [`dorny/test-reporter`](https://github.com/dorny/test-reporter) :
+
+```yaml
+- name: Test Report
+  if: always()
+  uses: dorny/test-reporter@v2
+  with:
+    name: PHPUnit Tests
+    path: reports/phpunit-junit.xml
+    reporter: phpunit
+```
+
+**Configuration requise :**
+1. Ajouter le générateur de rapport JUnit dans `phpunit.xml` :
+   ```xml
+   <log type="junit" target="reports/phpunit-junit.xml"/>
+   ```
+2. Modifier la step PHPUnit dans `.github/workflows/ci.yml` pour générer le rapport :
+   ```bash
+   php vendor/bin/phpunit --no-coverage --log-junit reports/phpunit-junit.xml
+   ```
+3. Ajouter la step `dorny/test-reporter` après PHPUnit (voir exemple ci-dessus)
+
+**Bénéfices :**
+- Résumé des tests directement dans l'onglet "Checks" de la PR
+- Annotations inline sur les lignes d'erreur
+- Statistiques : tests passés/échoués/skippés, durée
+- Navigation rapide vers les échecs (fichier + ligne)
+
+**Pour Infection :** utiliser le rapport JUnit également :
+```bash
+infection --threads=4 --no-progress --log-junit=data/infection-junit.xml
+```
+Puis ajouter une step `dorny/test-reporter` dédiée pour les mutants.
+
 ### TDD — Test-Driven Development obligatoire
 - **Toujours écrire les tests AVANT l'implémentation** (Red → Green → Refactor).
 - Ne jamais écrire l'implémentation en premier puis les tests après — c'est du test-after, pas du TDD.

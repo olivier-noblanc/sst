@@ -31,8 +31,8 @@ final readonly class FlashMessage implements ArrayAccess
     public static function fromSession(array $data): self
     {
         return new self(
-            type: (string) ($data['type'] ?? ''),
-            message: (string) ($data['message'] ?? ''),
+            type: $data['type'] ?? '',
+            message: $data['message'] ?? '',
         );
     }
 

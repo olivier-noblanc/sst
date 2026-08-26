@@ -135,7 +135,15 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: PHPUnit
-        run: php vendor/bin/phpunit --no-coverage --debug 2>&1 | tee phpunit-output.txt
+        run: php vendor/bin/phpunit --no-coverage --log-junit=phpunit.junit.xml --debug 2>&1 | tee phpunit-output.txt
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v3
+        if: always()  # Run even if tests fail, so failures surface as annotations
+        with:
+          name: PHPUnit Results
+          path: phpunit.junit.xml
+          reporter: phpunit
 
       - name: Diagnose FTS5 "malformed" warning
         if: always()

@@ -271,6 +271,72 @@ class ReportServiceTest extends TestCase
         $this->assertTrue($dispatched);
     }
 
+    // Test pour valider que validateTransition est appelé correctement dans respond()
+    public function testRespondValidatesTransitionSuccess(): void
+    {
+        $report = $this->createReport();
+        $cmd = new RespondToReportCommand(
+            reponse: 'Response test',
+            nouvelEtat: ReportState::EnCours,
+        );
+        setUserSession(SessionUser::fromArray([
+            'id' => $this->supervisorId,
+            'username' => 'svc.sup',
+            'role' => ROLE_SUPERVISEUR,
+            'site_id' => $this->siteId,
+            'is_active' => 1,
+        ]));
+        
+        // Ce test vérifie que l'appel à validateTransition ne lance pas d'exception
+        // et que la transition est valide
+        $result = $this->service->respond($report->uuid, $cmd, $this->supervisorId);
+        $this->assertIsArray($result);
+    }
+
+    public function testRespondValidatesTransitionFailureThrowsInvalidArgumentException(): void
+    {
+        $report = $this->createReport();
+        // Essayer une transition invalide : rester dans le même état
+        $cmd = new RespondToReportCommand(
+            reponse: 'Response test',
+            nouvelEtat: ReportState::Nouveau, // Même état - transition invalide
+        );
+        setUserSession(SessionUser::fromArray([
+            'id' => $this->supervisorId,
+            'username' => 'svc.sup',
+            'role' => ROLE_SUPERVISEUR,
+            'site_id' => $this->siteId,
+            'is_active' => 1,
+        ]));
+        
+        // Cette tentative devrait lancer une InvalidArgumentException
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Transition invalide');
+        $this->service->respond($report->uuid, $cmd, $this->supervisorId);
+    }
+
+    public function testRespondValidatesTransitionFailureThrowsRuntimeException(): void
+    {
+        $report = $this->createReport();
+        // Essayer une transition non autorisée : un agent ne peut pas passer à EnCours
+        $cmd = new RespondToReportCommand(
+            reponse: 'Response test',
+            nouvelEtat: ReportState::EnCours,
+        );
+        setUserSession(SessionUser::fromArray([
+            'id' => $this->userId,
+            'username' => 'svc.agent',
+            'role' => ROLE_AGENT,
+            'site_id' => $this->siteId,
+            'is_active' => 1,
+        ]));
+        
+        // Cette tentative devrait lancer une RuntimeException
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Accès refusé');
+        $this->service->respond($report->uuid, $cmd, $this->userId);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // update()
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -354,4 +420,62 @@ class ReportServiceTest extends TestCase
         $this->service->abandon('nonexistent-uuid', $this->userId);
     }
 
+    // Test pour valider que validateTransition est appelé correctement dans abandon()
+    public function testAbandonValidatesTransitionSuccess(): void
+    {
+        $report = $this->createReport();
+        setUserSession(SessionUser::fromArray([
+            'id' => $this->userId,
+            'username' => 'svc.agent',
+            'role' => ROLE_AGENT,
+            'site_id' => $this->siteId,
+            'is_active' => 1,
+        ]));
+        
+        // Ce test vérifie que l'appel à validateTransition ne lance pas d'exception
+        // et que la transition est valide
+        $result = $this->service->abandon($report->uuid, $this->userId);
+        $this->assertTrue($result);
+    }
+
+    public function testAbandonValidatesTransitionFailureThrowsInvalidArgumentException(): void
+    {
+        $report = $this->createReport();
+        // Essayer une transition invalide : essayer de passer de Nouveau à Nouveau (même état)
+        $cmd = new RespondToReportCommand(
+            reponse: 'Response test',
+            nouvelEtat: ReportState::Nouveau, // Même état - transition invalide
+        );
+        setUserSession(SessionUser::fromArray([
+            'id' => $this->userId,
+            'username' => 'svc.agent',
+            'role' => ROLE_AGENT,
+            'site_id' => $this->siteId,
+            'is_active' => 1,
+        ]));
+        
+        // Cette tentative devrait lancer une InvalidArgumentException
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Transition invalide');
+        // On tente une transition invalide via respond pour tester validateTransition
+        $this->service->respond($report->uuid, $cmd, $this->userId);
+    }
+
+    public function testAbandonValidatesTransitionFailureThrowsRuntimeException(): void
+    {
+        $report = $this->createReport();
+        // Essayer une transition non autorisée : un superviseur ne peut pas abandonner
+        setUserSession(SessionUser::fromArray([
+            'id' => $this->supervisorId,
+            'username' => 'svc.sup',
+            'role' => ROLE_SUPERVISEUR,
+            'site_id' => $this->siteId,
+            'is_active' => 1,
+        ]));
+        
+        // Cette tentative devrait lancer une RuntimeException
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Accès refusé');
+        $this->service->abandon($report->uuid, $this->supervisorId);
+    }
 }

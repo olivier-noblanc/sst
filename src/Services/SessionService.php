@@ -12,9 +12,9 @@ class SessionService
 {
     private static ?self $instance = null;
 
-    private CookieService $cookieService;
-    private SessionDataService $dataService;
-    private SessionTokenService $tokenService;
+    private readonly CookieService $cookieService;
+    private readonly SessionDataService $dataService;
+    private readonly SessionTokenService $tokenService;
 
     public static function getInstance(): self
     {

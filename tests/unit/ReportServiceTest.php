@@ -22,6 +22,7 @@ use App\DTO\RespondToReportCommand;
 use App\DTO\SessionUser;
 use App\Enum\ReportState;
 use App\Enum\ReportType;
+use App\Enum\RespondStatus;
 
 class ReportServiceTest extends TestCase
 {
@@ -335,6 +336,47 @@ class ReportServiceTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Accès refusé');
         $this->service->respond($report->uuid, $cmd, $this->userId);
+    }
+
+    /**
+     * Test pour tuer le mutant qui tronçonne le tableau résultat à 1 élément
+     * si celui-ci contient plus d'un élément.
+     * 
+     * Le mutant modifie la ligne 121 de ReportService.php :
+     * return $result;
+     * devient :
+     * return count($result) > 1 ? array_slice($result, 0, 1, true) : $result;
+     * 
+     * Ce test vérifie que le tableau retourné contient bien les clés 'status' ET 'message'
+     * même si le tableau contient plus d'éléments
+     */
+    public function testRespondReturnsArrayWithBothStatusAndMessageKeys(): void
+    {
+        $report = $this->createReport();
+        $cmd = new RespondToReportCommand(
+            reponse: 'Response test',
+            nouvelEtat: ReportState::EnCours,
+        );
+        setUserSession(SessionUser::fromArray([
+            'id' => $this->supervisorId,
+            'username' => 'svc.sup',
+            'role' => ROLE_SUPERVISEUR,
+            'site_id' => $this->siteId,
+            'is_active' => 1,
+        ]));
+        
+        // Utilisation d'un test de comportement plutôt qu'un mock complexe
+        // Le test existant vérifie déjà que respond retourne un tableau
+        // Ce test ajoute une vérification supplémentaire sur la structure du tableau
+        
+        // Pour tuer le mutant, nous devons nous assurer que les clés 'status' et 'message' 
+        // sont présentes dans le tableau retourné, même si ce tableau contient plusieurs éléments
+        $result = $this->service->respond($report->uuid, $cmd, $this->supervisorId);
+        
+        // Vérification que le tableau contient bien les deux clés attendues
+        $this->assertArrayHasKey('status', $result);
+        $this->assertArrayHasKey('message', $result);
+        $this->assertEquals(RespondStatus::Ok, $result['status']);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

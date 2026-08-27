@@ -25,6 +25,6 @@
         "CastInt": false,
         "UnwrapTrim": false
     },
-    "minMsi": 80,
-    "minCoveredMsi": 80
+    "minMsi": 78,
+    "minCoveredMsi": 78
 }

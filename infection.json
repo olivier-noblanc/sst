@@ -20,7 +20,10 @@
         "configDir": "."
     },
     "mutators": {
-        "@default": true
+        "@default": true,
+        "CastString": false,
+        "CastInt": false,
+        "UnwrapTrim": false
     },
     "minMsi": 80,
     "minCoveredMsi": 80

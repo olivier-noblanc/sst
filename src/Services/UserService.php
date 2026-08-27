@@ -186,7 +186,7 @@ class UserService
             $errors['username'] = 'L\'identifiant ne doit contenir que des lettres, chiffres, points, tirets et underscores (2 à 100 caractères).';
         }
 
-        if (UserRole::tryFrom(trim($command->role)) === null) {
+        if (UserRole::tryFrom(trim((string) $command->role)) === null) {
             $errors['role'] = 'Rôle invalide.';
         }
 

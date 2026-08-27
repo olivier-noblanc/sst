@@ -237,13 +237,6 @@ class UserServiceValidateMutationTest extends TestCase
         }
     }
 
-    public function testValidateTrimsRole(): void
-    {
-        $cmd = $this->makeCommand(['role' => 'agent']);
-        $errors = $this->service->validate($cmd);
-        $this->assertArrayNotHasKey('role', $errors, 'trimmed role must pass');
-    }
-
     // ═══ Site ID validation ═══
 
     public function testValidateRejectsInvalidSiteId(): void
@@ -311,6 +304,75 @@ class UserServiceValidateMutationTest extends TestCase
         $cmd = $this->makeCommand(['email' => 'jean@gouv.fr']);
         $errors = $this->service->validate($cmd);
         $this->assertArrayNotHasKey('email', $errors, 'trimmed email must pass');
+    }
+
+    public function testValidateCastStringOnEmailWhenInt(): void
+    {
+        // Kill CastString mutant on line 200: trim((string) $command->email)
+        // Without cast, int 123 would stay int and filter_var would fail differently
+        $cmd = $this->makeCommand(['email' => 123]);
+        $errors = $this->service->validate($cmd);
+        // int 123 cast to string "123" is not a valid email
+        $this->assertArrayHasKey('email', $errors, 'int email must be cast to string then validated');
+    }
+
+    public function testValidateCastStringOnEmailWhenNull(): void
+    {
+        // Kill CastString mutant: null cast to string becomes ""
+        $cmd = $this->makeCommand(['email' => null]);
+        $errors = $this->service->validate($cmd);
+        // null → "" which is valid (empty email is optional)
+        $this->assertArrayNotHasKey('email', $errors, 'null email must be cast to empty string and pass');
+    }
+
+    public function testValidateTrimsWhitespaceOnlyEmail(): void
+    {
+        // Kill UnwrapTrim mutant on line 200: without trim, "   " would pass as non-empty
+        $cmd = $this->makeCommand(['email' => '   ']);
+        $errors = $this->service->validate($cmd);
+        // After trim, "   " becomes "" which is valid (optional)
+        $this->assertArrayNotHasKey('email', $errors, 'whitespace-only email must be trimmed to empty and pass');
+    }
+
+    public function testValidateCastStringOnRoleWhenInt(): void
+    {
+        // Kill CastString mutant on UserRole::tryFrom(trim($command->role))
+        // Without cast, int 123 would fail differently
+        $cmd = $this->makeCommand(['role' => 123]);
+        $errors = $this->service->validate($cmd);
+        // int 123 cast to string "123" is not a valid role
+        $this->assertArrayHasKey('role', $errors, 'int role must be cast to string then validated');
+    }
+
+    public function testValidateTrimsRole(): void
+    {
+        // Kill UnwrapTrim mutant on UserRole::tryFrom(trim($command->role))
+        // Without trim, "  agent  " would fail UserRole::tryFrom
+        $cmd = $this->makeCommand(['role' => '  agent  ']);
+        $errors = $this->service->validate($cmd);
+        $this->assertArrayNotHasKey('role', $errors, 'role with whitespace must be trimmed and pass');
+    }
+
+    public function testValidateReturnsArrayOfErrorsNotSingleElement(): void
+    {
+        // Kill ArrayOneItem mutant on return $errors
+        // The mutant changes return to array_slice($errors, 0, 1)
+        // We test that multiple errors are all returned, not just the first
+        $cmd = new CreateUserCommand(
+            username: '', // error 1
+            nom: '', // error 2
+            prenom: '', // error 3
+            role: 'invalid', // error 4
+            siteId: SiteId::none(),
+            email: null,
+        );
+        $errors = $this->service->validate($cmd);
+        // ArrayOneItem mutant would return only 1 error, we expect all 4
+        $this->assertGreaterThanOrEqual(3, count($errors), 'must return all errors, not just first one');
+        $this->assertArrayHasKey('username', $errors);
+        $this->assertArrayHasKey('nom', $errors);
+        $this->assertArrayHasKey('prenom', $errors);
+        $this->assertArrayHasKey('role', $errors);
     }
 
     // ═══ Full valid input ═══

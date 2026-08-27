@@ -255,6 +255,184 @@ class SessionUserTest extends TestCase
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // fromSession() — id default (kills Decrement/IncrementInteger on `?? 0`)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testFromSessionIdAbsentDefaultsToZero(): void
+    {
+        $user = SessionUser::fromSession([]);
+        $this->assertSame(0, $user->id);
+    }
+
+    public function testFromSessionIdNullDefaultsToZero(): void
+    {
+        $user = SessionUser::fromSession(['id' => null]);
+        $this->assertSame(0, $user->id);
+    }
+
+    public function testFromSessionIdZeroStaysZero(): void
+    {
+        $user = SessionUser::fromSession(['id' => 0]);
+        $this->assertSame(0, $user->id);
+    }
+
+    public function testFromSessionIdValueIsPreserved(): void
+    {
+        $user = SessionUser::fromSession(['id' => 42]);
+        $this->assertSame(42, $user->id);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // fromSession() — coalesce fields (isActive, createdAt, updatedAt, siteCode,
+    // siteNom, siteChosenAt, sessionsInvalidBefore) : kills Coalesce mutants
+    // (camelCase ?? snake_case ?? fallback)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testFromSessionWithCamelCaseKeys(): void
+    {
+        $user = SessionUser::fromSession([
+            'id' => 1,
+            'isActive' => 0,
+            'createdAt' => '2026-01-01 00:00:00',
+            'updatedAt' => '2026-01-02 00:00:00',
+            'siteCode' => 'UR_A',
+            'siteNom' => 'Site A',
+            'siteChosenAt' => '2026-01-03 00:00:00',
+            'sessionsInvalidBefore' => '2026-02-01 00:00:00',
+        ]);
+
+        $this->assertSame(0, $user->isActive);
+        $this->assertSame('2026-01-01 00:00:00', $user->createdAt);
+        $this->assertSame('2026-01-02 00:00:00', $user->updatedAt);
+        $this->assertSame('UR_A', $user->siteCode);
+        $this->assertSame('Site A', $user->siteNom);
+        $this->assertSame('2026-01-03 00:00:00', $user->siteChosenAt);
+        $this->assertSame('2026-02-01 00:00:00', $user->sessionsInvalidBefore);
+    }
+
+    public function testFromSessionWithSnakeCaseKeys(): void
+    {
+        $user = SessionUser::fromSession([
+            'id' => 1,
+            'is_active' => 0,
+            'created_at' => '2026-03-01 00:00:00',
+            'updated_at' => '2026-03-02 00:00:00',
+            'site_code' => 'UR_B',
+            'site_nom' => 'Site B',
+            'site_chosen_at' => '2026-03-03 00:00:00',
+            'sessions_invalid_before' => '2026-04-01 00:00:00',
+        ]);
+
+        $this->assertSame(0, $user->isActive);
+        $this->assertSame('2026-03-01 00:00:00', $user->createdAt);
+        $this->assertSame('2026-03-02 00:00:00', $user->updatedAt);
+        $this->assertSame('UR_B', $user->siteCode);
+        $this->assertSame('Site B', $user->siteNom);
+        $this->assertSame('2026-03-03 00:00:00', $user->siteChosenAt);
+        $this->assertSame('2026-04-01 00:00:00', $user->sessionsInvalidBefore);
+    }
+
+    public function testFromSessionPrefersCamelCaseOverSnakeCase(): void
+    {
+        $user = SessionUser::fromSession([
+            'id' => 1,
+            'isActive' => 1,
+            'is_active' => 0,
+            'createdAt' => '2026-C',
+            'created_at' => '2026-S',
+            'updatedAt' => '2026-UC',
+            'updated_at' => '2026-US',
+            'siteCode' => 'UR-C',
+            'site_code' => 'UR-S',
+            'siteNom' => 'Site C',
+            'site_nom' => 'Site S',
+            'siteChosenAt' => '2026-CC',
+            'site_chosen_at' => '2026-CS',
+            'sessionsInvalidBefore' => '2026-IC',
+            'sessions_invalid_before' => '2026-IS',
+        ]);
+
+        $this->assertSame(1, $user->isActive);
+        $this->assertSame('2026-C', $user->createdAt);
+        $this->assertSame('2026-UC', $user->updatedAt);
+        $this->assertSame('UR-C', $user->siteCode);
+        $this->assertSame('Site C', $user->siteNom);
+        $this->assertSame('2026-CC', $user->siteChosenAt);
+        $this->assertSame('2026-IC', $user->sessionsInvalidBefore);
+    }
+
+    public function testFromSessionCoalesceFieldsFallbackWhenAbsent(): void
+    {
+        $user = SessionUser::fromSession(['id' => 1]);
+
+        $this->assertSame(1, $user->isActive);   // fallback 1
+        $this->assertSame('', $user->createdAt);  // fallback ''
+        $this->assertNull($user->updatedAt);      // fallback null
+        $this->assertNull($user->siteCode);
+        $this->assertNull($user->siteNom);
+        $this->assertNull($user->siteChosenAt);
+        $this->assertNull($user->sessionsInvalidBefore);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // ArrayAccess offsetGet() — kills MatchArmRemoval mutants on every match arm
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testOffsetGetReturnsEveryProperty(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+
+        $this->assertSame(42, $user->offsetGet('id'));
+        $this->assertSame('jean.martin', $user->offsetGet('username'));
+        $this->assertSame('Martin', $user->offsetGet('nom'));
+        $this->assertSame('Jean', $user->offsetGet('prenom'));
+        $this->assertSame('jean.martin@example.fr', $user->offsetGet('email'));
+        $this->assertSame('superviseur', $user->offsetGet('role'));
+        $this->assertSame(7, $user->offsetGet('site_id'));
+        $this->assertSame(7, $user->offsetGet('siteId'));
+        $this->assertSame(1, $user->offsetGet('is_active'));
+        $this->assertSame(1, $user->offsetGet('isActive'));
+        $this->assertSame('2025-01-15 10:30:00', $user->offsetGet('created_at'));
+        $this->assertSame('2025-06-01 14:00:00', $user->offsetGet('updated_at'));
+        $this->assertSame('UD_21', $user->offsetGet('site_code'));
+        $this->assertSame('DREETS 21', $user->offsetGet('site_nom'));
+        $this->assertSame('2025-02-01 09:00:00', $user->offsetGet('site_chosen_at'));
+        $this->assertNull($user->offsetGet('sessions_invalid_before'));
+    }
+
+    public function testOffsetGetReturnsNullForUnknownKey(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        $this->assertNull($user->offsetGet('does_not_exist'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // ArrayAccess offsetSet()/offsetUnset() — kills Concat/Throw_ mutants
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testOffsetSetThrowsErrorWithConcatenatedMessage(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        try {
+            $user['id'] = 999;
+            $this->fail('Expected \Error to be thrown');
+        } catch (\Error $e) {
+            $this->assertSame('Cannot modify readonly property id', $e->getMessage());
+        }
+    }
+
+    public function testOffsetUnsetThrowsErrorWithConcatenatedMessage(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        try {
+            unset($user['id']);
+            $this->fail('Expected \Error to be thrown');
+        } catch (\Error $e) {
+            $this->assertSame('Cannot unset readonly property id', $e->getMessage());
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // fromSession() Coalesce mutants - test snake_case vs camelCase keys
     // ═══════════════════════════════════════════════════════════════════════════════
 

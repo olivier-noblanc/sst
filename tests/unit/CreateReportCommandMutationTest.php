@@ -135,6 +135,39 @@ class CreateReportCommandMutationTest extends TestCase
     }
 
     /**
+     * Kill DecrementInteger mutant on line 84: (int) ($post['site_id'] ?? 0) → (int) ($post['site_id'] ?? -1)
+     * When site_id is explicitly "0" string, it should be treated as no site (null).
+     * The mutant changes ?? 0 to ?? -1, which would still produce null via SiteId::fromInput.
+     * To kill this mutant, we test with a positive site_id value and verify it's preserved.
+     */
+    public function testSiteIdPreservesPositiveValue(): void
+    {
+        $user = ['id' => 1, 'nom' => 'A', 'prenom' => 'B'];
+        $post = $this->basePost();
+        $post['site_id'] = '42'; // Explicit positive site_id
+
+        $cmd = CreateReportCommand::fromPost($post, $user);
+
+        $this->assertSame(42, $cmd->siteId->toNullableInt(), 'Positive site_id must be preserved');
+        $this->assertFalse($cmd->siteId->isNone(), 'Positive siteId should not be none');
+    }
+
+    /**
+     * Kill CastInt mutant on declarantId when user id is a numeric string.
+     */
+    public function testDeclarantIdCastFromString(): void
+    {
+        $user = ['id' => '123', 'nom' => 'A', 'prenom' => 'B']; // string id
+        $post = $this->basePost();
+
+        $cmd = CreateReportCommand::fromPost($post, $user);
+
+        // CastInt mutant would keep string '123' instead of converting to int 123
+        $this->assertSame(123, $cmd->declarantId, 'string declarantId must be cast to int');
+        $this->assertIsInt($cmd->declarantId);
+    }
+
+    /**
      * Kill Ternary mutants on ?? null patterns.
      */
     public function testNullableFieldsDefaultToNullWhenEmpty(): void

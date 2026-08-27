@@ -109,4 +109,91 @@ class ReportStateTest extends TestCase
         $this->assertSame(ReportState::Reouvert, ReportState::tryFrom('reouvert'));
         $this->assertSame(ReportState::Abandonne, ReportState::tryFrom('abandonne'));
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // label() — MatchArmRemoval/DecrementInteger mutants (lines 13-46)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testNouveauLabel(): void
+    {
+        $this->assertSame('Nouveau', ReportState::Nouveau->label());
+    }
+
+    public function testEnCoursLabel(): void
+    {
+        $this->assertSame('En cours', ReportState::EnCours->label());
+    }
+
+    public function testTraiteLabel(): void
+    {
+        $this->assertSame('Traité', ReportState::Traite->label());
+    }
+
+    public function testReouvertLabel(): void
+    {
+        $this->assertSame('Réouvert', ReportState::Reouvert->label());
+    }
+
+    public function testAbandonneLabel(): void
+    {
+        $this->assertSame('Abandonné', ReportState::Abandonne->label());
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // badgeClass() — MatchArmRemoval/DecrementInteger mutants
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testNouveauBadgeClass(): void
+    {
+        $this->assertSame('badge--nouveau', ReportState::Nouveau->badgeClass());
+    }
+
+    public function testEnCoursBadgeClass(): void
+    {
+        $this->assertSame('badge--en-cours', ReportState::EnCours->badgeClass());
+    }
+
+    public function testTraiteBadgeClass(): void
+    {
+        $this->assertSame('badge--traite', ReportState::Traite->badgeClass());
+    }
+
+    public function testReouvertBadgeClass(): void
+    {
+        $this->assertSame('badge--reouvert', ReportState::Reouvert->badgeClass());
+    }
+
+    public function testAbandonneBadgeClass(): void
+    {
+        $this->assertSame('badge--abandonne', ReportState::Abandonne->badgeClass());
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // pdfColor() — MatchArmRemoval/DecrementInteger mutants
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testNouveauPdfColor(): void
+    {
+        $this->assertSame([46, 92, 138], ReportState::Nouveau->pdfColor());
+    }
+
+    public function testEnCoursPdfColor(): void
+    {
+        $this->assertSame([230, 126, 34], ReportState::EnCours->pdfColor());
+    }
+
+    public function testTraitePdfColor(): void
+    {
+        $this->assertSame([39, 174, 96], ReportState::Traite->pdfColor());
+    }
+
+    public function testReouvertPdfColor(): void
+    {
+        $this->assertSame([142, 68, 173], ReportState::Reouvert->pdfColor());
+    }
+
+    public function testAbandonnePdfColor(): void
+    {
+        $this->assertSame([149, 165, 166], ReportState::Abandonne->pdfColor());
+    }
 }

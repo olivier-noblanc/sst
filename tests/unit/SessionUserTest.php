@@ -253,4 +253,331 @@ class SessionUserTest extends TestCase
         $this->assertSame('superviseur', $user->role);
         $this->assertSame(0, $user->isActive);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // fromSession() Coalesce mutants - test snake_case vs camelCase keys
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testFromSessionWithSnakeCaseIsActiveKey(): void
+    {
+        // Kill Coalesce mutant on line 101: $data['isActive'] ?? $data['is_active']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 0, // snake_case key
+            'created_at' => '2025-01-15 10:30:00',
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame(0, $user->isActive, 'isActive should use is_active snake_case key');
+    }
+
+    public function testFromSessionWithCamelCaseIsActiveKey(): void
+    {
+        // Kill Coalesce mutant on line 101: $data['isActive'] ?? $data['is_active']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'isActive' => 0, // camelCase key
+            'created_at' => '2025-01-15 10:30:00',
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame(0, $user->isActive, 'isActive should use isActive camelCase key');
+    }
+
+    public function testFromSessionWithSnakeCaseCreatedAtKey(): void
+    {
+        // Kill Coalesce mutant on line 102: $data['createdAt'] ?? $data['created_at']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00', // snake_case key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('2025-01-15 10:30:00', $user->createdAt, 'createdAt should use created_at snake_case key');
+    }
+
+    public function testFromSessionWithCamelCaseCreatedAtKey(): void
+    {
+        // Kill Coalesce mutant on line 102: $data['createdAt'] ?? $data['created_at']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'createdAt' => '2025-02-20 15:00:00', // camelCase key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('2025-02-20 15:00:00', $user->createdAt, 'createdAt should use createdAt camelCase key');
+    }
+
+    public function testFromSessionWithSnakeCaseUpdatedAtKey(): void
+    {
+        // Kill Coalesce mutant on line 103: $data['updatedAt'] ?? $data['updated_at']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'updated_at' => '2025-06-01 14:00:00', // snake_case key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('2025-06-01 14:00:00', $user->updatedAt, 'updatedAt should use updated_at snake_case key');
+    }
+
+    public function testFromSessionWithCamelCaseUpdatedAtKey(): void
+    {
+        // Kill Coalesce mutant on line 103: $data['updatedAt'] ?? $data['updated_at']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'updatedAt' => '2025-07-01 09:00:00', // camelCase key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('2025-07-01 09:00:00', $user->updatedAt, 'updatedAt should use updatedAt camelCase key');
+    }
+
+    public function testFromSessionWithSnakeCaseSiteCodeKey(): void
+    {
+        // Kill Coalesce mutant on line 104: $data['siteCode'] ?? $data['site_code']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'site_code' => 'UD_21', // snake_case key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('UD_21', $user->siteCode, 'siteCode should use site_code snake_case key');
+    }
+
+    public function testFromSessionWithCamelCaseSiteCodeKey(): void
+    {
+        // Kill Coalesce mutant on line 104: $data['siteCode'] ?? $data['site_code']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'siteCode' => 'UD_99', // camelCase key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('UD_99', $user->siteCode, 'siteCode should use siteCode camelCase key');
+    }
+
+    public function testFromSessionWithSnakeCaseSiteNomKey(): void
+    {
+        // Kill Coalesce mutant on line 105: $data['siteNom'] ?? $data['site_nom']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'site_nom' => 'DREETS 21', // snake_case key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('DREETS 21', $user->siteNom, 'siteNom should use site_nom snake_case key');
+    }
+
+    public function testFromSessionWithCamelCaseSiteNomKey(): void
+    {
+        // Kill Coalesce mutant on line 105: $data['siteNom'] ?? $data['site_nom']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'siteNom' => 'DREETS 99', // camelCase key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('DREETS 99', $user->siteNom, 'siteNom should use siteNom camelCase key');
+    }
+
+    public function testFromSessionWithSnakeCaseSiteChosenAtKey(): void
+    {
+        // Kill Coalesce mutant on line 106: $data['siteChosenAt'] ?? $data['site_chosen_at']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'site_chosen_at' => '2025-02-01 09:00:00', // snake_case key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('2025-02-01 09:00:00', $user->siteChosenAt, 'siteChosenAt should use site_chosen_at snake_case key');
+    }
+
+    public function testFromSessionWithCamelCaseSiteChosenAtKey(): void
+    {
+        // Kill Coalesce mutant on line 106: $data['siteChosenAt'] ?? $data['site_chosen_at']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'siteChosenAt' => '2025-03-01 09:00:00', // camelCase key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('2025-03-01 09:00:00', $user->siteChosenAt, 'siteChosenAt should use siteChosenAt camelCase key');
+    }
+
+    public function testFromSessionWithSnakeCaseSessionsInvalidBeforeKey(): void
+    {
+        // Kill Coalesce mutant on line 107: $data['sessionsInvalidBefore'] ?? $data['sessions_invalid_before']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'sessions_invalid_before' => '2025-07-01 00:00:00', // snake_case key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('2025-07-01 00:00:00', $user->sessionsInvalidBefore, 'sessionsInvalidBefore should use sessions_invalid_before snake_case key');
+    }
+
+    public function testFromSessionWithCamelCaseSessionsInvalidBeforeKey(): void
+    {
+        // Kill Coalesce mutant on line 107: $data['sessionsInvalidBefore'] ?? $data['sessions_invalid_before']
+        $sessionData = [
+            'id' => 42,
+            'username' => 'test',
+            'nom' => 'Test',
+            'prenom' => 'User',
+            'email' => 'test@example.fr',
+            'role' => 'agent',
+            'site_id' => 7,
+            'is_active' => 1,
+            'created_at' => '2025-01-15 10:30:00',
+            'sessionsInvalidBefore' => '2025-08-01 00:00:00', // camelCase key
+        ];
+
+        $user = SessionUser::fromSession($sessionData);
+        $this->assertSame('2025-08-01 00:00:00', $user->sessionsInvalidBefore, 'sessionsInvalidBefore should use sessionsInvalidBefore camelCase key');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // offsetExists() — MatchArmRemoval mutants (line 172)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public function testOffsetExistsReturnsTrueForAllValidKeys(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        
+        // Test all valid snake_case keys
+        $this->assertTrue($user->offsetExists('id'));
+        $this->assertTrue($user->offsetExists('username'));
+        $this->assertTrue($user->offsetExists('nom'));
+        $this->assertTrue($user->offsetExists('prenom'));
+        $this->assertTrue($user->offsetExists('email'));
+        $this->assertTrue($user->offsetExists('role'));
+        $this->assertTrue($user->offsetExists('site_id'));
+        $this->assertTrue($user->offsetExists('is_active'));
+        $this->assertTrue($user->offsetExists('created_at'));
+        $this->assertTrue($user->offsetExists('updated_at'));
+        $this->assertTrue($user->offsetExists('site_code'));
+        $this->assertTrue($user->offsetExists('site_nom'));
+        $this->assertTrue($user->offsetExists('site_chosen_at'));
+        $this->assertTrue($user->offsetExists('sessions_invalid_before'));
+        
+        // Test all valid camelCase keys
+        $this->assertTrue($user->offsetExists('siteId'));
+        $this->assertTrue($user->offsetExists('isActive'));
+        $this->assertTrue($user->offsetExists('createdAt'));
+        $this->assertTrue($user->offsetExists('updatedAt'));
+        $this->assertTrue($user->offsetExists('siteCode'));
+        $this->assertTrue($user->offsetExists('siteNom'));
+        $this->assertTrue($user->offsetExists('siteChosenAt'));
+        $this->assertTrue($user->offsetExists('sessionsInvalidBefore'));
+    }
+
+    public function testOffsetExistsReturnsFalseForInvalidKeys(): void
+    {
+        $user = SessionUser::fromRow($this->fullRow);
+        
+        $this->assertFalse($user->offsetExists('invalid_key'));
+        $this->assertFalse($user->offsetExists('password'));
+        $this->assertFalse($user->offsetExists('token'));
+        $this->assertFalse($user->offsetExists(''));
+        $this->assertFalse($user->offsetExists(null));
+        $this->assertFalse($user->offsetExists(123));
+    }
 }

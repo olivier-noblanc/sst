@@ -94,6 +94,24 @@ class UpdateAppSettingsCommandMutationTest extends TestCase
         $this->assertSame('#FF0000', $cmd->appBrandColor);
     }
 
+    public function testFromPostBrandColorRejectsJunkAroundValidHex(): void
+    {
+        // Tue les mutants PregMatchRemoveCaret / PregMatchRemoveDollar :
+        // sans l'ancre ^, 'X#ff0000' matcherait (le # est en position 2) ;
+        // sans l'ancre $, '#ff0000X' matcherait (6 hexa présents en tête).
+        // Dans les deux cas le mutant accepterait la valeur polluée au lieu
+        // de retomber sur la couleur par défaut.
+        $cmd = UpdateAppSettingsCommand::fromPost(['app_brand_color' => 'X#ff0000']);
+        $this->assertSame('#1e40af', $cmd->appBrandColor, 'junk prefix must invalidate the color');
+
+        $cmd = UpdateAppSettingsCommand::fromPost(['app_brand_color' => '#ff0000X']);
+        $this->assertSame('#1e40af', $cmd->appBrandColor, 'junk suffix must invalidate the color');
+
+        // 7 hexa : trop long même avec les deux ancres
+        $cmd = UpdateAppSettingsCommand::fromPost(['app_brand_color' => '#ff0000f']);
+        $this->assertSame('#1e40af', $cmd->appBrandColor, '7 hex digits must invalidate the color');
+    }
+
     public function testFromPostReportCreateLabelDefaultWhenEmpty(): void
     {
         $cmd = UpdateAppSettingsCommand::fromPost(['app_report_create_label' => '']);

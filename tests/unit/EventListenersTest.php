@@ -51,7 +51,8 @@ class EventListenersTest extends TestCase
         // Use reflection to verify listeners were registered
         $reflection = new \ReflectionClass($events);
         $listenersProp = $reflection->getProperty('listeners');
-        $listenersProp->setAccessible(true);
+        // ReflectionProperty::setAccessible() is a no-op since PHP 8.1 and deprecated in 8.5;
+        // ReflectionClass::getProperty() already yields an accessible ReflectionProperty here.
         $listeners = $listenersProp->getValue($events);
 
         $this->assertArrayHasKey('report.created', $listeners, 'report.created listener must be registered');

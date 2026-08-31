@@ -48,4 +48,15 @@ class ReportFilterMutationTest extends TestCase
         $f = new ReportFilter(type: 'rsst');
         $this->assertNull($f->toArray()['own_only']);
     }
+
+    public function testSeeAllSitesDefaultsToTrue(): void
+    {
+        // Kill TrueValue mutant on the seeAllSites default (= true → false).
+        // La valeur par défaut est le mode superviseur/CHSCT (voir tous les sites) :
+        // un mutant qui la bascule à false change silencieusement le périmètre de
+        // visibilité par défaut des requêtes.
+        $f = new ReportFilter(type: 'rsst');
+        $this->assertTrue($f->seeAllSites, 'seeAllSites must default to true');
+        $this->assertFalse($f->chsctConsentOnly, 'chsctConsentOnly must default to false');
+    }
 }

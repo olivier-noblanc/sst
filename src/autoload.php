@@ -27,6 +27,14 @@ spl_autoload_register(function (string $class): void {
 
 // Fichiers procéduraux (helpers, config, session, auth, etc.)
 // Ordre important : config d'abord (les autres helpers appellent getConfig())
+//
+// ⚠️ NE PAS rajouter ces fichiers dans composer.json "autoload.files" :
+// l'autoload "files" s'exécute dès vendor/autoload.php — AVANT le bootstrap
+// PHPUnit — donc AVANT que l'IncludeInterceptor d'Infection ne remplace les
+// fichiers mutants. config.php touche App\Enum\ReportState/UserRole au chargement :
+// les mutants sur ces enums n'étaient jamais chargés et échappaient systématiquement
+// (Infection MSI < 80% en CI). Les tests chargent ces fichiers ici, sous
+// l'intercepteur, ce qui rend les mutants testables.
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/session.php';

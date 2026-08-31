@@ -324,10 +324,16 @@ class SessionUserMutationTest extends TestCase
     {
         $user = SessionUser::fromRow($this->sampleRow());
 
+        // Kill offsetGet MatchArmRemoval mutants — camelCase alias arms.
+        // Every camelCase key must return the same value as its snake_case twin.
         $this->assertSame(5, $user['siteId']);
         $this->assertSame(1, $user['isActive']);
         $this->assertSame('2026-01-15 10:00:00', $user['createdAt']);
+        $this->assertSame('2026-02-01 12:00:00', $user['updatedAt']);
         $this->assertSame('UR21', $user['siteCode']);
+        $this->assertSame('UR Test', $user['siteNom']);
+        $this->assertSame('2026-01-20 08:00:00', $user['siteChosenAt']);
+        $this->assertSame('2026-03-01 00:00:00', $user['sessionsInvalidBefore']);
     }
 
     public function testArrayAccessOffsetExists(): void

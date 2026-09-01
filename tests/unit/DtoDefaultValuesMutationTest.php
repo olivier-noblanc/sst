@@ -216,6 +216,63 @@ class DtoDefaultValuesMutationTest extends TestCase
         $this->assertNull($data->userId);
     }
 
+    public function testUserEventDataForUserNullUserYieldsNullUserId(): void
+    {
+        // Kill NullSafePropertyCall mutant on UserEventData::forUser() line 47 ($user?->id)
+        $data = UserEventData::forUser(null);
+        $this->assertNull($data->userId, 'forUser(null) → userId must be null (nullsafe op)');
+        $this->assertSame(0, $data->userIdInt(), 'userIdInt() must fall back to 0');
+    }
+
+    public function testReportEventDataCoalescePrefersOwnSiteIdOverReport(): void
+    {
+        // Kill Coalesce mutant on ReportEventData::siteIdInt() line 65 — when both
+        // siteId AND report->siteId are set, own siteId takes precedence.
+        $report = new ReportData(
+            uuid: 'test-uuid',
+            reference: 'REF-001',
+            type: 'rsst',
+            objet: 'Test',
+            description: 'Test desc',
+            dateEvenement: '2026-01-15',
+            heureEvenement: '10:00',
+            lieu: 'Test location',
+            declarantId: 1,
+            declarantNom: 'Test',
+            declarantPrenom: 'User',
+            pourCompteDe: '',
+            pourCompteNom: '',
+            pourComptePrenom: '',
+            natureAuteur: '',
+            typeActe: '',
+            siteId: 42,
+            siteText: 'Test site',
+            pole: '',
+            serviceAffectation: '',
+            telephoneMobile: '',
+            isConfidential: 0,
+            consentSyndicat: 0,
+            etat: 'nouveau',
+            repondantId: null,
+            dateReponse: null,
+            reponse: null,
+            attachmentName: null,
+            attachmentMime: null,
+            createdAt: '2026-01-15 10:00:00',
+            updatedAt: '2026-01-15 10:00:00',
+            siteCode: 'TEST',
+            siteNom: 'Test Site',
+            repondantNom: null,
+            repondantPrenom: null,
+        );
+
+        $data = new ReportEventData(
+            report: $report,
+            siteId: 99,
+        );
+        $this->assertSame(99, $data->siteIdInt(), 'own siteId (99) must win over report siteId (42)');
+    }
+
     // ═══ SitesStatsView ═══
 
     public function testGetGrandTotalReturnsZeroWithEmptyStats(): void
@@ -283,6 +340,98 @@ class DtoDefaultValuesMutationTest extends TestCase
         $rows = $view->getRows();
         $this->assertCount(1, $rows);
         $this->assertSame(0, $rows[0]['total'], 'total must be 0 when no matching stats');
+        // Kill DecrementInteger/IncrementInteger on line 52: registryCounts fallback 0
+        $this->assertSame(0, $rows[0]['registryCounts']['rsst'], 'registryCounts must be 0 when no matching stats');
+    }
+
+    public function testGetRowsPopulatesRegistryCountsWhenMatching(): void
+    {
+        // Kill Foreach_ mutant on line 51 — registryCounts must be filled per registry code
+        $statsRow = new SiteStatsRow(
+            code: 'UR21',
+            total: 5,
+            registryCounts: ['rsst' => 3, 'rami' => 2],
+        );
+
+        $view = new SitesStatsView(
+            statsBySite: [$statsRow],
+            sites: [['code' => 'UR21', 'nom' => 'Test Site', 'id' => 1]],
+            registryCodes: ['rsst', 'rami'],
+        );
+
+        $rows = $view->getRows();
+        $this->assertSame(3, $rows[0]['registryCounts']['rsst']);
+        $this->assertSame(2, $rows[0]['registryCounts']['rami']);
+    }
+
+    public function testGetTotalByRegistrySumsAcrossAllSites(): void
+    {
+        // Kill Foreach_ (line 67), Assignment (line 68: += → =), PlusEqual (line 68: += → -=)
+        $view = new SitesStatsView(
+            statsBySite: [
+                new SiteStatsRow(code: 'UR21', total: 5, registryCounts: ['rsst' => 3, 'rami' => 2]),
+                new SiteStatsRow(code: 'UR22', total: 7, registryCounts: ['rsst' => 4, 'rami' => 1]),
+            ],
+            sites: [],
+            registryCodes: ['rsst', 'rami'],
+        );
+
+        $this->assertSame(7, $view->getTotalByRegistry('rsst'), '3 + 4 must sum');
+        $this->assertSame(3, $view->getTotalByRegistry('rami'), '2 + 1 must sum');
+        $this->assertSame(0, $view->getTotalByRegistry('dgi'), 'unknown registry → 0');
+    }
+
+    public function testGetGrandTotalSumsAcrossAllSites(): void
+    {
+        // Kill Foreach_ (line 79), Assignment (line 80: += → =), PlusEqual (line 80: += → -=)
+        $view = new SitesStatsView(
+            statsBySite: [
+                new SiteStatsRow(code: 'UR21', total: 5, registryCounts: []),
+                new SiteStatsRow(code: 'UR22', total: 7, registryCounts: []),
+                new SiteStatsRow(code: 'UR23', total: 2, registryCounts: []),
+            ],
+            sites: [],
+            registryCodes: [],
+        );
+
+        $this->assertSame(14, $view->getGrandTotal(), '5 + 7 + 2 must sum');
+    }
+
+    public function testGetRowsReturnsTwoRowsWhenTwoSites(): void
+    {
+        // Kill ArrayOneItem mutant on line 58 — multi-row output must not be truncated to 1
+        $view = new SitesStatsView(
+            statsBySite: [
+                new SiteStatsRow(code: 'UR21', total: 5, registryCounts: []),
+                new SiteStatsRow(code: 'UR22', total: 7, registryCounts: []),
+            ],
+            sites: [
+                ['code' => 'UR21', 'nom' => 'Site A', 'id' => 1],
+                ['code' => 'UR22', 'nom' => 'Site B', 'id' => 2],
+            ],
+            registryCodes: [],
+        );
+
+        $rows = $view->getRows();
+        $this->assertCount(2, $rows, 'two sites → two rows');
+        $this->assertSame(5, $rows[0]['total']);
+        $this->assertSame(7, $rows[1]['total']);
+    }
+
+    public function testIsCellPositiveDetectsPositiveCell(): void
+    {
+        // Kill comparison mutants on isCellPositive
+        $view = new SitesStatsView(
+            statsBySite: [
+                new SiteStatsRow(code: 'UR21', total: 5, registryCounts: ['rsst' => 3, 'rami' => 0]),
+            ],
+            sites: [],
+            registryCodes: [],
+        );
+
+        $this->assertTrue($view->isCellPositive('rsst', 'UR21'));
+        $this->assertFalse($view->isCellPositive('rami', 'UR21'), 'count 0 → not positive');
+        $this->assertFalse($view->isCellPositive('rsst', 'UNKNOWN'), 'unknown site → not positive');
     }
 
     public function testGetRowsReturnsRegistryCountsForMatchedSite(): void

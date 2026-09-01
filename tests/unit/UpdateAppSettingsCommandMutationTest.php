@@ -112,6 +112,23 @@ class UpdateAppSettingsCommandMutationTest extends TestCase
         $this->assertSame('#1e40af', $cmd->appBrandColor, '7 hex digits must invalidate the color');
     }
 
+    public function testFromPostBrandColorRequiresAnchors(): void
+    {
+        // Kill PregMatchRemoveCaret (^) and PregMatchRemoveDollar ($) on line 48.
+        // 'xx#ff0000' matches WITHOUT the ^ anchor → must fall back to default (kills RemoveCaret).
+        $cmd = UpdateAppSettingsCommand::fromPost(['app_brand_color' => 'xx#ff0000']);
+        $this->assertSame('#1e40af', $cmd->appBrandColor, 'leading chars must fail ^ anchor → default');
+
+        // '#ff0000xx' matches WITHOUT the $ anchor → must fall back to default (kills RemoveDollar).
+        $cmd = UpdateAppSettingsCommand::fromPost(['app_brand_color' => '#ff0000xx']);
+        $this->assertSame('#1e40af', $cmd->appBrandColor, 'trailing chars must fail $ anchor → default');
+
+        // Short hex ('#ff000') and long hex ('#ff00000') are invalid anchored; without
+        // bounds they'd wrongly pass a loosened regex — guard the {6} quantifier too.
+        $cmd = UpdateAppSettingsCommand::fromPost(['app_brand_color' => '#ff000']);
+        $this->assertSame('#1e40af', $cmd->appBrandColor, '5 hex chars → default');
+    }
+
     public function testFromPostReportCreateLabelDefaultWhenEmpty(): void
     {
         $cmd = UpdateAppSettingsCommand::fromPost(['app_report_create_label' => '']);

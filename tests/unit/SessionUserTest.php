@@ -406,6 +406,28 @@ class SessionUserTest extends TestCase
         $this->assertNull($user->offsetGet('does_not_exist'));
     }
 
+    public function testOffsetGetCamelCaseAliases(): void
+    {
+        // Kill MatchArmRemoval mutants on camelCase offsetGet() aliases (line 185)
+        $user = SessionUser::fromRow($this->fullRow);
+
+        $this->assertSame('2025-06-01 14:00:00', $user->offsetGet('updatedAt'));
+        $this->assertSame('DREETS 21', $user->offsetGet('siteNom'));
+        $this->assertSame('2025-02-01 09:00:00', $user->offsetGet('siteChosenAt'));
+        $this->assertNull($user->offsetGet('sessionsInvalidBefore'));
+    }
+
+    public function testOffsetGetSessionsInvalidBeforeWithValue(): void
+    {
+        // Distinguish MatchArmRemoval for sessionsInvalidBefore using a non-null value
+        $row = $this->fullRow;
+        $row['sessions_invalid_before'] = '2026-08-01 00:00:00';
+        $user = SessionUser::fromRow($row);
+
+        $this->assertSame('2026-08-01 00:00:00', $user->offsetGet('sessions_invalid_before'));
+        $this->assertSame('2026-08-01 00:00:00', $user->offsetGet('sessionsInvalidBefore'));
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // ArrayAccess offsetSet()/offsetUnset() — kills Concat/Throw_ mutants
     // ═══════════════════════════════════════════════════════════════════════════════

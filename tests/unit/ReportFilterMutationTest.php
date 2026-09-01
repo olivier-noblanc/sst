@@ -59,4 +59,10 @@ class ReportFilterMutationTest extends TestCase
         $this->assertTrue($f->seeAllSites, 'seeAllSites must default to true');
         $this->assertFalse($f->chsctConsentOnly, 'chsctConsentOnly must default to false');
     }
+
+    public function testSeeAllSitesExplicitFalseRespected(): void
+    {
+        $f = new ReportFilter(type: 'rsst', seeAllSites: false);
+        $this->assertFalse($f->seeAllSites);
+    }
 }

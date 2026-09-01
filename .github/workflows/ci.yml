@@ -413,6 +413,13 @@ jobs:
       - name: npm install
         run: npm install
 
+      # tests/infra/PlaywrightConfigWindowsCommandTest.php needs node +
+      # node_modules/@playwright/test: it cannot run in the PHPUnit job
+      # (no node there), so it runs here, once per CI run, on shard 1/3.
+      - name: Infra test — Playwright config Windows quoting
+        if: matrix.shard == '1/3'
+        run: php vendor/bin/phpunit --no-coverage tests/infra/PlaywrightConfigWindowsCommandTest.php
+
       - name: Install Playwright (Firefox only)
         run: npx playwright install --with-deps firefox
 

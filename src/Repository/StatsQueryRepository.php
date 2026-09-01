@@ -15,6 +15,27 @@ class StatsQueryRepository
 {
     public const EXPORT_MAX_ROWS = 50000;
 
+    /**
+     * Colonnes du SELECT de base de getExportData() qui correspondent 1:1 à des
+     * colonnes de la table reports (sans alias). Sert à dé-dupliquer les colonnes
+     * dynamiques issues de registry_fields : un field_code déjà sélectionné ici
+     * ne doit pas être re-ajouté au SELECT (les doublons PDO::FETCH_ASSOC se
+     * masquent silencieusement et polluent la requête).
+     */
+    private const array BASE_EXPORT_COLUMNS = [
+        'uuid', 'reference', 'type', 'objet', 'description',
+        'date_evenement', 'heure_evenement', 'lieu',
+        'declarant_id', 'declarant_nom', 'declarant_prenom',
+        'pour_compte_de', 'pour_compte_nom', 'pour_compte_prenom',
+        'nature_auteur', 'type_acte',
+        'site_id', 'site_text', 'pole', 'service_affectation',
+        'telephone_mobile', 'consent_syndicat',
+        'is_confidential', 'etat',
+        'repondant_id', 'date_reponse', 'reponse',
+        'attachment_name', 'attachment_mime',
+        'created_at', 'updated_at',
+    ];
+
     public function __construct(private readonly PDO $pdo) {}
 
     public static function instance(): self
@@ -101,11 +122,31 @@ class StatsQueryRepository
                 $stmt->execute([$registryId]);
                 $fieldKeys = array_column($stmt->fetchAll(), 'field_code');
 
-                // Add each field as a column (r.pole, r.service_affectation, etc.)
+                // Only add registry fields that are (a) real columns of the
+                // reports table and (b) not already selected in $baseColumns.
+                // Real RAMI registry_fields include 'pour_compte' (a form
+                // checkbox, not a physical column) — adding it verbatim
+                // generated "r.pour_compte" → PDOException "no such column"
+                // and every RAMI export crashed. 'nature_auteur', 'type_acte',
+                // 'pour_compte_nom', 'pour_compte_prenom' are real columns but
+                // already selected in the base SELECT (duplicates).
+                $colsStmt = $this->pdo->query('PRAGMA table_info(reports)');
+                $reportColumns = $colsStmt !== false ? $colsStmt->fetchAll() : [];
+                $existingColumns = [];
+                foreach ($reportColumns as $column) {
+                    $columnName = $column['name'] ?? null;
+                    if (is_string($columnName) && $columnName !== '') {
+                        $existingColumns[$columnName] = true;
+                    }
+                }
+                $baseSelected = array_flip(self::BASE_EXPORT_COLUMNS);
+
                 foreach ($fieldKeys as $fieldKey) {
                     // Sanitize field key to prevent SQL injection
-                    $safeKey = preg_replace('/[^a-zA-Z_]/', '', (string) $fieldKey);
-                    if ($safeKey !== '') {
+                    // (string) normalise le null de preg_replace en '' — rejeté
+                    // par le check ci-dessous, comportement runtime inchangé
+                    $safeKey = (string) preg_replace('/[^a-zA-Z_]/', '', (string) $fieldKey);
+                    if ($safeKey !== '' && isset($existingColumns[$safeKey]) && !isset($baseSelected[$safeKey])) {
                         $dynamicColumns .= ', r.' . $safeKey;
                     }
                 }

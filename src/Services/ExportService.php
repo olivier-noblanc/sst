@@ -66,6 +66,64 @@ class ExportService
     ) {}
 
     /**
+     * Construit les filtres d'export depuis les données POST du formulaire d'export.
+     *
+     * Extrait de export_handler.php (testabilité + règle logique-métier-hors-handlers).
+     *
+     * `etats` est normalisé en list<string> via array_values() : le contrat de
+     * StatsRepository::getExportData() et buildExportAuditContext() exige une
+     * list, or un POST forgé peut contenir des clés non séquentielles
+     * (ex: etats[5]=nouveau) et array_map préserve les clés d'origine.
+     *
+     * @param array<string, string> $post Données du formulaire ($_POST) —
+     *        convention du codebase (cf. CreateReportCommand) : les valeurs
+     *        multi (etats[]) sont couvertes au runtime par le cast (array).
+     * @return array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: list<string>}
+     */
+    public function buildFiltersFromPost(array $post): array
+    {
+        $filters = [];
+
+        // Registry type
+        if (empty($post['all_registries']) && !empty($post['type'])) {
+            $filters['type'] = (string) $post['type'];
+        }
+
+        // Site
+        if (empty($post['all_sites']) && !empty($post['site_id'])) {
+            $filters['site_id'] = (int) $post['site_id'];
+        }
+
+        // Agent (declarant)
+        if (empty($post['all_agents']) && !empty($post['declarant_id'])) {
+            $filters['declarant_id'] = (int) $post['declarant_id'];
+        }
+
+        // Date range
+        if (!empty($post['date_from'])) {
+            $filters['date_from'] = (string) $post['date_from'];
+        }
+        if (!empty($post['date_to'])) {
+            $filters['date_to'] = (string) $post['date_to'];
+        }
+
+        // States — construit en list<string> (clés 0..n garanties par la
+        // construction $etats[]) : le contrat de getExportData() et
+        // buildExportAuditContext() exige une list. Un POST réel peut contenir
+        // des clés non séquentielles (ex: etats[5]=nouveau) qu'un array_map
+        // préserverait — l'ajout séquentiel ici les élimine.
+        if (!empty($post['etats'])) {
+            $etats = [];
+            foreach ((array) $post['etats'] as $etatValue) {
+                $etats[] = (string) $etatValue;
+            }
+            $filters['etats'] = $etats;
+        }
+
+        return $filters;
+    }
+
+    /**
      * Génère les en-têtes CSV.
      *
      * @param bool $noSiteMode true si mode sans site activé

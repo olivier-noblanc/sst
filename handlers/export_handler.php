@@ -26,36 +26,9 @@ $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
 $reportRepo = ReportRepository::instance();
 
-// Build filters from form data
-$filters = [];
-
-// Registry type
-if (empty($_POST['all_registries']) && !empty($_POST['type'])) {
-    $filters['type'] = (string) $_POST['type'];
-}
-
-// Site
-if (empty($_POST['all_sites']) && !empty($_POST['site_id'])) {
-    $filters['site_id'] = (int) $_POST['site_id'];
-}
-
-// Agent (declarant)
-if (empty($_POST['all_agents']) && !empty($_POST['declarant_id'])) {
-    $filters['declarant_id'] = (int) $_POST['declarant_id'];
-}
-
-// Date range
-if (!empty($_POST['date_from'])) {
-    $filters['date_from'] = (string) $_POST['date_from'];
-}
-if (!empty($_POST['date_to'])) {
-    $filters['date_to'] = (string) $_POST['date_to'];
-}
-
-// States
-if (!empty($_POST['etats'])) {
-    $filters['etats'] = array_map(strval(...), (array) $_POST['etats']);
-}
+// Build filters from form data (delegated to ExportService — testable,
+// etats normalisé en list<string> pour le contrat de getExportData())
+$filters = $exportService->buildFiltersFromPost($_POST);
 
 // Get data (with optional registryCode for dynamic columns)
 $registryCode = !empty($_POST['registry']) ? (string) $_POST['registry'] : null;

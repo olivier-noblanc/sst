@@ -77,7 +77,7 @@ function Create-Backup {
         $extensions = @("*.php", "*.md", "*.css", "*.js")
         foreach ($ext in $extensions) {
             $files = Get-ChildItem -Path $SourceDir -Filter $ext -Recurse -File |
-                Where-Object { $_.FullName -notmatch '\\(db|sessions|vendor|logs|\.git|\.mimocode|backups|data|graphify-out|node_modules)\\' }
+                Where-Object { $_.FullName -notmatch '\\(db|sessions|vendor|logs|\.git|\.mimocode|backups|data|node_modules)\\' }
             foreach ($file in $files) {
                 $relativePath = $file.FullName.Substring($SourceDir.Length + 1)
                 $destPath     = Join-Path $backupDir $relativePath
@@ -205,7 +205,6 @@ function Invoke-QualityGate {
                       $rel -like ".git\*"    -or $rel -like ".git/*"    -or
                       $rel -like ".mimocode\*" -or $rel -like ".mimocode/*" -or
                       $rel -like "data\*"    -or $rel -like "data/*"    -or
-                      $rel -like "graphify-out\*" -or $rel -like "graphify-out/*" -or
                       $rel -like "node_modules\*" -or $rel -like "node_modules/*" -or
                       $rel -like "e2e\*"     -or $rel -like "e2e/*")
             }
@@ -229,7 +228,7 @@ function Invoke-QualityGate {
                             $full = Join-Path $AppDir $rel
                             if (Test-Path $full) {
                                 $normalized = $full -replace '/', '\'
-                                if ($normalized -notmatch '\\(vendor|tests|backups|\.git|\.mimocode|data|graphify-out|node_modules|e2e)\\') {
+                                if ($normalized -notmatch '\\(vendor|tests|backups|\.git|\.mimocode|data|node_modules|e2e)\\') {
                                     $filesToLint += $full
                                 }
                             }

@@ -38,7 +38,6 @@ php_server_err.log
 # Internal agent artifacts (not part of the project)
 skills/
 node_modules/
-graphify-out/
 download/
 upload/
 pdf_docs/

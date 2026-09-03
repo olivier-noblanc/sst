@@ -160,7 +160,234 @@ class PlaywrightConfigWindowsCommandTest extends TestCase
     }
 
     /**
-     * Load the real playwright.config.js module with process.platform
+     * The PHP error_log destination of the E2E dev server must never be
+     * hard-coded — /tmp/php-error.log is a POSIX-only path that silently
+     * breaks error capture on Windows (the directory does not exist, PHP
+     * falls back to stderr/syslog). This test pins the SOURCE: the literal
+     * must not appear anywhere in playwright.config.js. The runtime value
+     * itself is covered by the fallback test (portable os.tmpdir() oracle,
+     * both branches) and the override test (SST_E2E_ERROR_LOG).
+     *
+     * Note: the assertion is deliberately source-only. A runtime command
+     * check would false-fail on POSIX runners where os.tmpdir() legitimately
+     * resolves to /tmp — making the COMPUTED fallback byte-identical to the
+     * old literal, which is correct behavior, not hard-coding.
+     */
+    public function testErrorLogIsNotHardcodedToTmpPath(): void
+    {
+        $source = file_get_contents(dirname(__DIR__, 2) . '/playwright.config.js');
+        $this->assertIsString($source);
+
+        $this->assertStringNotContainsString(
+            '/tmp/php-error.log',
+            $source,
+            'playwright.config.js must not hard-code /tmp/php-error.log — the '
+            . 'error_log value must be SST_E2E_ERROR_LOG-overridable with a '
+            . 'portable os.tmpdir() fallback.'
+        );
+    }
+
+    /**
+     * Without SST_E2E_ERROR_LOG, both platform branches must fall back to
+     * the portable value computed by Node itself: path.join(os.tmpdir(),
+     * 'php-error.log'). The oracle is computed by the harness's own Node
+     * runtime from OS primitives — path semantics are never re-implemented
+     * in PHP.
+     */
+    public function testErrorLogFallsBackToPortableTempDirOnBothBranches(): void
+    {
+        foreach (['win32', 'linux'] as $platform) {
+            $snapshot = $this->getConfigSnapshot($platform);
+            $value = $this->extractErrorLogValue($snapshot['command'], $platform);
+
+            $this->assertSame(
+                $snapshot['fallback'],
+                $value,
+                'The ' . $platform . ' webServer command must inject the '
+                . 'portable os.tmpdir()-based error_log fallback. Expected: '
+                . var_export($snapshot['fallback'], true)
+                . ' — found: ' . var_export($value, true)
+            );
+        }
+    }
+
+    /**
+     * SST_E2E_ERROR_LOG must override the fallback verbatim in BOTH
+     * branches, with branch-appropriate shell quoting (cmd.exe: double
+     * quotes; /bin/sh: single quotes). The override contains spaces and
+     * backslashes — exactly the case where unquoted interpolation splits
+     * the argument on spaces or captures a trailing space.
+     */
+    public function testErrorLogEnvOverrideIsInjectedVerbatimWithBranchQuoting(): void
+    {
+        $override = 'C:\\E2E Temp Dirs\\custom log.log';
+
+        foreach (['win32', 'linux'] as $platform) {
+            $snapshot = $this->getConfigSnapshot($platform, $override);
+
+            $this->assertStringNotContainsString(
+                '/tmp/php-error.log',
+                $snapshot['command'],
+                'An SST_E2E_ERROR_LOG override must replace the fallback '
+                . 'entirely (' . $platform . ' branch).'
+            );
+
+            $value = $this->extractErrorLogValue($snapshot['command'], $platform);
+            $this->assertSame(
+                $override,
+                $value,
+                'The ' . $platform . ' webServer command must inject the '
+                . 'SST_E2E_ERROR_LOG value verbatim (spaces preserved). '
+                . 'Expected: ' . var_export($override, true)
+                . ' — found: ' . var_export($value, true)
+            );
+
+            // The quoted argument must be closed and followed by the next
+            // `-d` flag: a value that leaked a trailing space, left an
+            // unclosed quote or a shell operator would break this shape.
+            $this->assertSame(
+                1,
+                preg_match(
+                    $platform === 'win32'
+                        ? '/ -d "error_log=[^"]*" -d /'
+                        : "/ -d 'error_log=[^']*' -d /",
+                    $snapshot['command']
+                ),
+                'The error_log argument must be a single, properly closed '
+                . 'and space-delimited quoted argument in the ' . $platform
+                . ' command. Command: ' . $snapshot['command']
+            );
+
+            $this->assertSame(
+                rtrim($snapshot['command']),
+                $snapshot['command'],
+                'The ' . $platform . ' webServer command must not end with '
+                . 'a stray space.'
+            );
+        }
+    }
+
+    /**
+     * A value that cannot be quoted safely for both cmd.exe (double quotes:
+     * `"` would close them, `%` would trigger variable expansion) and
+     * /bin/sh (single quotes: `'` would terminate them), or that carries
+     * control characters, must make the config fail fast with a clear error
+     * naming SST_E2E_ERROR_LOG — never emit a silently broken webServer
+     * command.
+     */
+    public function testErrorLogUnsafeOverrideFailsFast(): void
+    {
+        $run = $this->runNodeConfigEval('win32', 'C:\\bro"ken%PATH%\\log.log');
+
+        $this->assertNotSame(
+            0,
+            $run['exitCode'],
+            'An unsafe SST_E2E_ERROR_LOG value must abort the config '
+            . 'evaluation (non-zero exit), not produce a broken command. '
+            . 'Output: ' . implode(PHP_EOL, $run['lines'])
+        );
+
+        $this->assertStringContainsString(
+            'SST_E2E_ERROR_LOG',
+            implode(PHP_EOL, $run['lines']),
+            'The fail-fast error must name the offending environment variable.'
+        );
+    }
+
+    /**
+     * D1: on Windows the error_log value is emitted inside the cmd.exe
+     * double-quoted argument `-d "error_log=…"`, which the PHP process then
+     * re-parses with the MSVC CRT command-line rules: a run of backslashes
+     * immediately before the closing `"` is consumed as escape sequences —
+     * an ODD trailing run (2n+1 backslashes) collapses to n backslashes
+     * followed by a LITERAL quote, so the quote never closes, the argument
+     * swallows the rest of the command line and the error_log destination
+     * is lost entirely. Such an override must be rejected with a non-zero
+     * exit and an error naming SST_E2E_ERROR_LOG — never emit a silently
+     * broken webServer command.
+     */
+    public function testErrorLogOverrideEndingWithOddTrailingBackslashIsRejectedOnWin32(): void
+    {
+        // PHP single-quoted literal → C:\E2E Logs\ (ONE trailing backslash).
+        $run = $this->runNodeConfigEval('win32', 'C:\\E2E Logs\\');
+
+        $this->assertNotSame(
+            0,
+            $run['exitCode'],
+            'A win32 SST_E2E_ERROR_LOG value ending with an odd number of '
+            . 'trailing backslashes escapes the closing double quote of the '
+            . '`-d "error_log=…"` argument (MSVC CRT parsing) and must abort '
+            . 'the config evaluation, not produce a broken command. '
+            . 'Output: ' . implode(PHP_EOL, $run['lines'])
+        );
+
+        $this->assertStringContainsString(
+            'SST_E2E_ERROR_LOG',
+            implode(PHP_EOL, $run['lines']),
+            'The fail-fast error must name the offending environment variable.'
+        );
+    }
+
+    /**
+     * D1, even trailing run: a value ending with TWO (or any even number
+     * of) backslashes keeps the command structurally sound — the MSVC CRT
+     * collapses 2n trailing backslashes to n and the closing quote still
+     * closes — but the destination is then silently HALVED by the same
+     * parser, and a path ending with a separator names a directory, which
+     * PHP can never open as an error_log file. Accepting it would trade
+     * the explicit fail-fast for a silently lost log (the exact failure
+     * class D1 targets), so ANY trailing-backslash run is rejected on
+     * win32. The POSIX branch is deliberately unaffected: single quotes
+     * keep backslashes literal (see
+     * testErrorLogTrailingBackslashOverrideIsAcceptedOnPosix).
+     */
+    public function testErrorLogOverrideEndingWithTwoTrailingBackslashesIsRejectedOnWin32(): void
+    {
+        // PHP single-quoted literal → C:\E2E Logs\\ (TWO trailing backslashes).
+        $run = $this->runNodeConfigEval('win32', 'C:\\E2E Logs\\\\');
+
+        $this->assertNotSame(
+            0,
+            $run['exitCode'],
+            'A win32 SST_E2E_ERROR_LOG value ending with an even run of '
+            . 'trailing backslashes is halved by the MSVC CRT parser and '
+            . 'names a directory, not a writable log file — it must abort '
+            . 'the config evaluation too. Output: '
+            . implode(PHP_EOL, $run['lines'])
+        );
+
+        $this->assertStringContainsString(
+            'SST_E2E_ERROR_LOG',
+            implode(PHP_EOL, $run['lines']),
+            'The fail-fast error must name the offending environment variable.'
+        );
+    }
+
+    /**
+     * D1 scope guard: the trailing-backslash rejection must stay
+     * Windows-only. On the POSIX branch the value is single-quoted, and
+     * /bin/sh keeps every character literal — a trailing backslash cannot
+     * escape anything, so such an override (harmless there) must still be
+     * accepted and injected VERBATIM. This pins the POSIX branches against
+     * an accidental widening of the new check.
+     */
+    public function testErrorLogTrailingBackslashOverrideIsAcceptedOnPosix(): void
+    {
+        // PHP single-quoted literal → /tmp/e2e logs\ (one trailing backslash).
+        $override = '/tmp/e2e logs\\';
+        $snapshot = $this->getConfigSnapshot('linux', $override);
+
+        $this->assertSame(
+            $override,
+            $this->extractErrorLogValue($snapshot['command'], 'linux'),
+            'The POSIX branch single-quotes the error_log value, so a '
+            . 'trailing backslash is harmless there and must be injected '
+            . 'verbatim. Expected: ' . var_export($override, true)
+        );
+    }
+
+    /**
+     * Load the real playwright.config.js with process.platform
      * mocked to 'win32', and return its webServer.command string. This
      * exercises the actual code under test (the config file), on any host
      * OS — the Windows branch is selected deterministically via the mock.
@@ -195,15 +422,14 @@ class PlaywrightConfigWindowsCommandTest extends TestCase
     }
 
     /**
-     * Locate the marker-prefixed JSON line among node's output lines and
-     * decode it. Fails loudly (with the full output) when the marker is
-     * missing or the payload is not a JSON string — never returns garbage
-     * downstream. Immune to stderr warnings appearing before/after the
-     * command line.
+     * Locate the marker-prefixed line among node's output lines and return
+     * its raw JSON payload. Fails loudly (with the full output) when the
+     * marker is missing. Immune to stderr warnings appearing before/after
+     * the payload line.
      *
      * @param string[] $lines raw output lines (stdout+stderr interleaved)
      */
-    private function extractCommandFromNodeOutput(array $lines): string
+    private function findMarkerPayload(array $lines): string
     {
         $markerLines = array_values(array_filter(
             $lines,
@@ -217,19 +443,136 @@ class PlaywrightConfigWindowsCommandTest extends TestCase
             );
         }
 
-        $decoded = json_decode(
-            substr($markerLines[0], strlen(self::NODE_OUTPUT_MARKER)),
-            true
-        );
+        return substr($markerLines[0], strlen(self::NODE_OUTPUT_MARKER));
+    }
+
+    /**
+     * Locate the marker-prefixed JSON line among node's output lines and
+     * decode it. Fails loudly (with the full output) when the marker is
+     * missing or the payload is not a JSON string — never returns garbage
+     * downstream. Immune to stderr warnings appearing before/after the
+     * command line.
+     *
+     * @param string[] $lines raw output lines (stdout+stderr interleaved)
+     */
+    private function extractCommandFromNodeOutput(array $lines): string
+    {
+        $payload = $this->findMarkerPayload($lines);
+
+        $decoded = json_decode($payload, true);
 
         if (!is_string($decoded)) {
             $this->fail(
                 'Marker line payload was not a JSON string. Line: '
-                . $markerLines[0]
+                . self::NODE_OUTPUT_MARKER . $payload
             );
         }
 
         return $decoded;
+    }
+
+    /**
+     * Evaluate the real playwright.config.js with process.platform mocked
+     * to $platform, and SST_E2E_ERROR_LOG explicitly removed (null) or set
+     * to $errorLogOverride. The variable is manipulated INSIDE the node
+     * process (delete / JSON-encoded assignment), so the result is
+     * deterministic whatever the invoking shell exports.
+     *
+     * Returns the webServer.command plus `fallback`: the expected portable
+     * error_log value computed by the same Node runtime from OS primitives
+     * (path.join(os.tmpdir(), 'php-error.log')) — the oracle for the
+     * config's own fallback, without re-implementing path semantics in PHP.
+     *
+     * @return array{command: string, fallback: string}
+     */
+    private function getConfigSnapshot(string $platform, ?string $errorLogOverride = null): array
+    {
+        $run = $this->runNodeConfigEval($platform, $errorLogOverride);
+
+        $this->assertSame(
+            0,
+            $run['exitCode'],
+            'node -e failed to evaluate playwright.config.js: ' . implode(PHP_EOL, $run['lines'])
+        );
+
+        $decoded = json_decode($this->findMarkerPayload($run['lines']), true);
+
+        $this->assertIsArray($decoded, 'Marker payload was not a JSON object. Payload: '
+            . $this->findMarkerPayload($run['lines']));
+        $this->assertArrayHasKey('command', $decoded);
+        $this->assertArrayHasKey('fallback', $decoded);
+        $this->assertIsString($decoded['command']);
+        $this->assertIsString($decoded['fallback']);
+
+        return ['command' => $decoded['command'], 'fallback' => $decoded['fallback']];
+    }
+
+    /**
+     * Build and run the instrumented `node -e` evaluation of
+     * playwright.config.js (see getConfigSnapshot for the payload contract),
+     * WITHOUT asserting on the exit code — callers decide what a non-zero
+     * exit means (e.g. a deliberate fail-fast on an unsafe override).
+     *
+     * @param string|null $errorLogOverride null removes the variable from
+     *        the node process; a string assigns it verbatim (passed to the
+     *        script base64-encoded — a byte-safe transport that cannot be
+     *        mangled by cmd.exe quoting on the `node -e` command line).
+     *
+     * @return array{exitCode: int, lines: string[]}
+     */
+    private function runNodeConfigEval(string $platform, ?string $errorLogOverride): array
+    {
+        $root = dirname(__DIR__, 2);
+        $configPath = $root . DIRECTORY_SEPARATOR . 'playwright.config.js';
+        $this->assertFileExists($configPath);
+
+        // Forward slashes: Node resolves them fine on Windows, and they
+        // avoid backslash-escaping issues inside the quoted JS one-liner.
+        $jsConfigPath = str_replace('\\', '/', $configPath);
+
+        $envStmt = $errorLogOverride === null
+            ? 'delete process.env.SST_E2E_ERROR_LOG;'
+            : "process.env.SST_E2E_ERROR_LOG = Buffer.from('"
+                . base64_encode($errorLogOverride) . "','base64').toString('utf8');";
+
+        $script =
+            "Object.defineProperty(process,'platform',{value:'" . $platform . "'});"
+            . $envStmt
+            . "const os=require('os');const path=require('path');"
+            . "const c=require('" . $jsConfigPath . "');"
+            . "console.log('" . self::NODE_OUTPUT_MARKER . "' + JSON.stringify({"
+            . 'command:c.webServer.command,'
+            . "fallback:path.join(os.tmpdir(),'php-error.log')"
+            . '}));';
+
+        // `2>&1` keeps node's stderr in the captured output so failure
+        // messages include it — the marker-based extraction makes the JSON
+        // line's POSITION irrelevant.
+        exec('node -e ' . escapeshellarg($script) . ' 2>&1', $output, $exitCode);
+
+        return ['exitCode' => $exitCode, 'lines' => $output];
+    }
+
+    /**
+     * Extract the error_log INI value from the command's `-d` argument,
+     * according to the branch's shell quoting (cmd.exe: double quotes;
+     * /bin/sh: single quotes). Fails loudly when no properly quoted
+     * argument is found.
+     */
+    private function extractErrorLogValue(string $command, string $platform): string
+    {
+        $pattern = $platform === 'win32'
+            ? '/-d "error_log=([^"]*)"/'
+            : "/-d 'error_log=([^']*)'/";
+
+        $this->assertSame(
+            1,
+            preg_match($pattern, $command, $m),
+            'No quoted `-d error_log=…` argument found in the ' . $platform
+            . ' webServer command. Command: ' . $command
+        );
+
+        return $m[1];
     }
 
     /**

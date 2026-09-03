@@ -1,6 +1,7 @@
 // @ts-check
 const { defineConfig } = require('@playwright/test');
 const path = require('path');
+const os = require('os');
 
 // Cross-platform: detect OS and build appropriate PHP command
 const isWindows = process.platform === 'win32';
@@ -17,6 +18,66 @@ const e2eDbPath = isWindows
 
 // Disable Xdebug for E2E tests (causes timeouts)
 const xdebugFlag = isWindows ? '-d xdebug.mode=off' : '-d xdebug.mode=off';
+
+// PHP error_log destination for the E2E dev server.
+// - Overridable per environment through SST_E2E_ERROR_LOG (empty/blank
+//   counts as unset).
+// - Portable fallback computed by Node: the OS temp dir + a fixed file
+//   name — never a hard-coded /tmp path (POSIX-only, silently breaks error
+//   capture on Windows).
+// - A value that cannot be quoted safely for BOTH target shells is a
+//   configuration error: fail fast with a clear message instead of
+//   emitting a broken webServer command. Rejected: `"` (terminates the
+//   cmd.exe double-quoted argument), `%` (cmd.exe variable expansion
+//   fires even inside double quotes), `'` (terminates the /bin/sh
+//   single-quoted argument) and control characters.
+const errorLogOverride = process.env.SST_E2E_ERROR_LOG ?? '';
+const errorLogValue =
+  errorLogOverride.trim() !== ''
+    ? errorLogOverride
+    : path.join(os.tmpdir(), 'php-error.log');
+if (/["'%\r\n\u0000]/.test(errorLogValue)) {
+  throw new Error(
+    'SST_E2E_ERROR_LOG contains a character that cannot be quoted safely ' +
+      'for the webServer command (double quote, single quote, % or a ' +
+      'control character): ' +
+      JSON.stringify(errorLogValue)
+  );
+}
+// D1: on Windows the value lands inside the double-quoted cmd.exe argument
+// `-d "error_log=…"`, which the PHP process then re-parses with the MSVC
+// CRT command-line rules: a run of backslashes directly before the closing
+// `"` is consumed as escape sequences (2n → n backslashes and the quote
+// closes; 2n+1 → n backslashes and a LITERAL quote that stays open). An
+// odd trailing run therefore escapes the closing quote — the argument
+// swallows the rest of the command line and the error_log destination is
+// lost entirely. An even run keeps the command structurally sound, but the
+// same parser silently halves the value AND a path ending with a separator
+// names a directory, which PHP can never open as a log file — so ANY
+// trailing backslash loses the log one way or the other and is rejected
+// here. Paths that merely CONTAIN backslashes (any normal Windows path)
+// and the os.tmpdir() fallback (path.join never emits a trailing
+// separator) are unaffected. The POSIX branch is out of scope: single
+// quotes keep every backslash literal, so nothing can escape there.
+if (isWindows && /\\+$/.test(errorLogValue)) {
+  throw new Error(
+    'SST_E2E_ERROR_LOG ends with a backslash, which cannot be quoted ' +
+      'safely for the Windows webServer command: an odd trailing run of ' +
+      'backslashes escapes the closing double quote of the -d ' +
+      '"error_log=…" argument (the rest of the command line is swallowed ' +
+      'and the log is lost), while an even run is halved by the Windows ' +
+      'command-line parser and names a directory, not a writable log ' +
+      'file. Point SST_E2E_ERROR_LOG at a log FILE path without trailing ' +
+      'backslashes: ' +
+      JSON.stringify(errorLogValue)
+  );
+}
+// Quoted for the target shell so spaces survive: cmd.exe keeps everything
+// literal inside double quotes except `"` and `%` (both rejected above);
+// /bin/sh single quotes keep every character literal except `'`.
+const phpErrorLogFlag = isWindows
+  ? `-d "error_log=${errorLogValue}"`
+  : `-d 'error_log=${errorLogValue}'`;
 
 // Force strictly sequential test files only in CI (process.env.CI, the
 // de-facto standard env var set by GitHub Actions and virtually every CI
@@ -89,8 +150,8 @@ module.exports = defineConfig({
     // Use PHP default session path (/tmp) — no need to create custom directory.
     // Session files are automatically cleaned up by PHP's GC.
     command: isWindows
-      ? `set "SST_DB_PATH=${e2eDbPath}" && set "DEV_MODE=1" && ${phpBinary} -d session.auto_start=0 -d display_errors=1 -d error_log=/tmp/php-error.log ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`
-      : `SST_DB_PATH=${e2eDbPath} DEV_MODE=1 ${phpBinary} -d session.auto_start=0 -d display_errors=1 -d error_log=/tmp/php-error.log ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
+      ? `set "SST_DB_PATH=${e2eDbPath}" && set "DEV_MODE=1" && ${phpBinary} -d session.auto_start=0 -d display_errors=1 ${phpErrorLogFlag} ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`
+      : `SST_DB_PATH=${e2eDbPath} DEV_MODE=1 ${phpBinary} -d session.auto_start=0 -d display_errors=1 ${phpErrorLogFlag} ${xdebugFlag} -S 127.0.0.1:8850 "${routerPath}"`,
     port: 8850,
     reuseExistingServer: true,
     timeout: 30000,

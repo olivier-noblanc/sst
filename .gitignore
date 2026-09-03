@@ -75,6 +75,7 @@ sst_init.php
 node_modules/
 test-results/
 playwright-report/
+.playwright-mcp/
 .phpunit.result.cache
 
 # QA tool caches
@@ -87,6 +88,10 @@ phpstan_output.txt
 coverage-report/
 data/infection-tmp/
 data/coverage/
+
+# Infection scratch output (runs ad-hoc à la racine)
+infection-ci-output.txt
+infection-*.json
 
 # PHPStan debug artifacts
 phpstan-*.neon

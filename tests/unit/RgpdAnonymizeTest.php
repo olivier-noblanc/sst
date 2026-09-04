@@ -95,4 +95,37 @@ class RgpdAnonymizeTest extends TestCase
 
         $this->assertSame(0, (int) $count->fetchColumn(), 'report_agents link should be removed once the linked agent is anonymized');
     }
+
+    public function testAnonymizeNullsRepondantIdOnReports(): void
+    {
+        // Un répondeur (autre que le déclarant) relié à un signalement de
+        // tiers : l'anonymisation DOIT casser le lien repondant_id
+        // (UPDATE reports SET repondant_id = NULL WHERE repondant_id = :id
+        // AND repondant_id IS NOT NULL) — ni exécution sans paramètre, ni
+        // exécution retirée : le lien doit réellement disparaître.
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('rgpd_respond', 'Respond', 'Agent', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");
+        $respondId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'rgpd_respond'")->fetchColumn();
+
+        $uuid = 'test-rgpd-rep-' . uniqid();
+        $this->pdo->prepare('
+            INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, lieu, declarant_id, declarant_nom, declarant_prenom, site_id, is_confidential, consent_syndicat, etat, repondant_id)
+            VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu, :declarant_id, :declarant_nom, :declarant_prenom, :site_id, 0, 0, :etat, :repondant_id)
+        ')->execute([
+            ':uuid' => $uuid, ':reference' => 'RSST-25-902', ':type' => 'rsst',
+            ':objet' => 'Test RGPD repondant', ':description' => 'Test',
+            ':date_evenement' => '2025-01-15', ':lieu' => 'Bureau',
+            ':declarant_id' => $this->agentId, ':declarant_nom' => 'Agent',
+            ':declarant_prenom' => 'RGPD', ':site_id' => $this->siteId, ':etat' => 'traite',
+            ':repondant_id' => $respondId,
+        ]);
+
+        \App\Repository\UserRepository::instance()->anonymize($respondId);
+
+        $stmt = $this->pdo->prepare('SELECT repondant_id FROM reports WHERE uuid = :uuid');
+        $stmt->execute([':uuid' => $uuid]);
+        $row = $stmt->fetch();
+
+        $this->assertNotNull($row, 'le signalement de tiers doit survivre à l\'anonymisation du répondeur');
+        $this->assertNull($row['repondant_id'], 'repondant_id doit être NULL après anonymisation du répondant (lien cassé)');
+    }
 }

@@ -404,4 +404,96 @@ class StatsRepositoryMutationTest extends TestCase
         foreach ($result->byNatureAuteur as $entry) $total += (int) $entry['count'];
         $this->assertSame(1, $total, 'NULL nature_auteur must be excluded');
     }
+
+    // ═══ Fiabilisation Infection — défauts et états exacts (StatsQueryRepository) ═══
+
+    public function testGetSynthesisCountsEveryStateExactlyOnce(): void
+    {
+        // Un signalement par état : chaque compteur doit valoir exactement 1.
+        // Tue les swaps Coalesce d'Infection (`0 ?? $row[...]` → toujours 0)
+        // sur en_cours/abandonne/reouvert : la valeur réelle (1) doit primer.
+        $this->pdo->exec("UPDATE registries SET is_enabled = 1 WHERE code = 'rsst'");
+        foreach (ReportState::cases() as $state) {
+            $this->seedReport('rsst', $state->value);
+        }
+
+        $result = $this->repo->getSynthesis('2026');
+        $rows = array_values(array_filter($result, fn ($r) => $r->type === 'rsst'));
+        $this->assertNotEmpty($rows, 'la ligne de synthèse rsst doit exister');
+
+        foreach ($rows as $row) {
+            $this->assertSame(1, $row->nouveau, 'nouveau doit compter exactement 1');
+            $this->assertSame(1, $row->enCours, 'en_cours doit compter exactement 1');
+            $this->assertSame(1, $row->traite, 'traite doit compter exactement 1');
+            $this->assertSame(1, $row->abandonne, 'abandonne doit compter exactement 1');
+            $this->assertSame(1, $row->reouvert, 'reouvert doit compter exactement 1');
+            $this->assertSame(5, $row->total, 'total = 5 états');
+        }
+    }
+
+    public function testGetSynthesisWithoutSiteFilterSpansAllSites(): void
+    {
+        // Appel SANS siteId : le défaut 0 signifie « tous les sites »
+        // (le filtre ne s'applique que si $siteId > 0). Un défaut muté en 1
+        // filtrerait le site id=1 et masquerait les autres sites.
+        $this->pdo->exec("UPDATE registries SET is_enabled = 1 WHERE code = 'rsst'");
+        $this->pdo->prepare('INSERT INTO sites (code, nom) VALUES (?, ?)')
+            ->execute(['UR25B', 'UR 25 B']);
+        $site2 = (int) $this->pdo->lastInsertId();
+
+        $this->seedReport('rsst', ReportState::Nouveau->value, $this->siteId);
+        $this->seedReport('rsst', ReportState::Nouveau->value, $site2);
+
+        $result = $this->repo->getSynthesis('2026');
+        $siteIds = array_unique(array_map(fn ($r) => $r->siteId, $result));
+        $this->assertContains($this->siteId, $siteIds, 'le site du setUp doit apparaître');
+        $this->assertContains($site2, $siteIds, 'le second site doit apparaître (aucun filtre par défaut)');
+    }
+
+    public function testGetIndicateursWithoutSiteFilterCountsAllSites(): void
+    {
+        // Même contrat que getSynthesis() : défaut siteId=0 → tous les sites.
+        $this->pdo->exec("UPDATE registries SET is_enabled = 1 WHERE code = 'rsst'");
+        $this->pdo->prepare('INSERT INTO sites (code, nom) VALUES (?, ?)')
+            ->execute(['UR25C', 'UR 25 C']);
+        $site2 = (int) $this->pdo->lastInsertId();
+
+        $this->seedReport('rsst', ReportState::Nouveau->value, $this->siteId);
+        $this->seedReport('rsst', ReportState::Nouveau->value, $site2);
+
+        $result = $this->repo->getIndicateurs('2026');
+        $this->assertSame(2, $result->totalReports, 'défaut siteId=0 → tous les sites (un défaut muté en 1 n\'en compterait qu\'un)');
+        $this->assertSame(2, $result->totalNouveau, 'totalNouveau suit totalReports sans filtre site');
+    }
+
+    public function testGetIndicateursEscapesApostropheInRegistryCode(): void
+    {
+        // Code de registre custom avec apostrophe : str_replace("'", "''", $code)
+        // doit échapper — sans lui, le SQL du CASE WHEN casse (PDOException).
+        $this->pdo->exec("INSERT INTO registries (code, label, short_label) VALUES (\"d'acte\", 'Registre d''acte', 'DA')");
+        $this->seedReport("d'acte", ReportState::Nouveau->value);
+        try {
+            $result = $this->repo->getIndicateurs('2026');
+            $this->assertSame(1, $result->totalReports, 'le signalement du registre avec apostrophe doit être compté');
+            $this->assertSame(1, $result->registryTotals['total_d_acte'], 'alias sanitisé : l\'apostrophe devient underscore');
+        } finally {
+            $this->pdo->prepare('DELETE FROM registries WHERE code = ?')->execute(["d'acte"]);
+        }
+    }
+
+    public function testGetExportDataEtatsFilterMatchesAllProvidedStates(): void
+    {
+        // Filtre multi-états : chaque état POSTÉ doit matcher via son propre
+        // paramètre :etat_{i} — un mutant qui fusionnerait les clés
+        // (':etat_' sans indice) ne renverrait que le dernier état.
+        $this->seedReport('rsst', ReportState::Nouveau->value);
+        $this->seedReport('rsst', ReportState::Traite->value);
+        $this->seedReport('rsst', ReportState::EnCours->value);
+
+        $rows = $this->repo->getExportData(['etats' => ['nouveau', 'traite']]);
+        $etats = array_unique(array_column($rows, 'etat'));
+        $this->assertContains('nouveau', $etats, 'nouveau doit matcher (:etat_0)');
+        $this->assertContains('traite', $etats, 'traite doit matcher (:etat_1)');
+        $this->assertNotContains('en_cours', $etats, 'les états non filtrés ne doivent pas apparaître');
+    }
 }

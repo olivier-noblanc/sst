@@ -139,6 +139,70 @@ class EmailInvariantTest extends TestCase
         $this->assertSame([], $targets, 'Aucune variante de casse mélangée de la sentinelle ne reçoit de notification');
     }
 
+    /**
+     * Oracle — le case-folding de la sentinelle est ASCII : 'ANONYME@...' est
+     * la sentinelle, un homoglyphe multioctet ('Ànonyme@...') ne l'est JAMAIS.
+     * La sentinelle étant une constante ASCII pure (domaine .invalid RFC 2606),
+     * un case-folding ASCII suffit ; verrouille aussi le mutateur
+     * UnwrapStrToLower d'Infection (suppression du strtolower doit échouer).
+     */
+    public function testSentinelCaseFoldingIsAsciiExact(): void
+    {
+        $isSentinel = \App\Repository\AnonymizationPolicy::isAnonymizedEmail(...);
+        $this->assertTrue($isSentinel('ANONYME@ANONYME.INVALID'), 'Variante uppercase = sentinelle (insensible à la casse)');
+        $this->assertTrue($isSentinel('  anonyme@anonyme.invalid  '), 'Les espaces autour sont tolérés (trim)');
+        $this->assertFalse($isSentinel('Ànonyme@anonyme.invalid'), 'Homoglyphe multioctet ≠ sentinelle (pas un compte anonymisé)');
+    }
+
+    /**
+     * Oracle — CreateUserCommand::fromPost() tolère une clé 'email' absente
+     * SANS émettre d'E_WARNING ('Undefined array key') : le `?? ''` est
+     * porteur de sens (DTO → email '' → la validation refuse ensuite un
+     * email vide). Aucun warning ne doit passer sous silence ni éclater.
+     */
+    public function testFromPostToleratesMissingEmailKeyWithoutWarning(): void
+    {
+        $warnings = [];
+        set_error_handler(static function (int $errno, string $errstr) use (&$warnings): bool {
+            $warnings[] = $errstr;
+            return true; // capturé ici : l'assertion explicite décide, pas PHPUnit
+        });
+        try {
+            $cmd = \App\DTO\CreateUserCommand::fromPost([
+                'username' => 'inv.noemail.' . uniqid(),
+                'nom' => 'Nom',
+                'prenom' => 'Prenom',
+            ]);
+        } finally {
+            restore_error_handler();
+        }
+        $this->assertSame('', $cmd->email, 'Clé email absente → chaîne vide (la validation refusera ensuite un email vide)');
+        $this->assertSame(\App\Enum\UserRole::Agent->value, $cmd->role, 'Clé role absente → agent par défaut (jamais de rôle vide)');
+        $this->assertTrue($cmd->siteId->isNone(), 'Clé site_id absente → mode sans site (défaut 0 → none, jamais 1)');
+        $this->assertSame([], $warnings, 'fromPost ne doit émettre AUCUN E_WARNING sur clé email absente — le ?? \'\' est porteur de sens');
+    }
+
+    public function testFromPostCarriesEveryPostedField(): void
+    {
+        // Mapping complet POST → DTO : un swap Coalesce d'Infection
+        // (`'' ?? $post[...]` → valeur toujours '') est détecté sur chaque
+        // champ peuplé — username, nom, prenom, role, site_id et email.
+        $cmd = \App\DTO\CreateUserCommand::fromPost([
+            'username' => 'inv.map.user',
+            'nom' => 'Nnom',
+            'prenom' => 'Pprenom',
+            'role' => 'chsct',
+            'site_id' => '3',
+            'email' => 'agent.reel@acme.fr',
+        ]);
+        $this->assertSame('inv.map.user', $cmd->username, 'username POSTÉ doit arriver intact');
+        $this->assertSame('Nnom', $cmd->nom, 'nom POSTÉ doit arriver intact');
+        $this->assertSame('Pprenom', $cmd->prenom, 'prenom POSTÉ doit arriver intact');
+        $this->assertSame('chsct', $cmd->role, 'rôle POSTÉ doit primer sur le défaut agent');
+        $this->assertSame(3, $cmd->siteId->toNullableInt(), 'site_id POSTÉ doit arriver (défaut muté → toujours none)');
+        $this->assertSame('agent.reel@acme.fr', $cmd->email, 'email POSTÉ doit arriver intact (invariant users.email NOT NULL)');
+    }
+
     public function testValidateRequiresRealEmailForCreation(): void
     {
         $service = new \App\Services\UserService(

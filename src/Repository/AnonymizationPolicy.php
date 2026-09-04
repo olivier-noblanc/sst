@@ -40,10 +40,16 @@ final class AnonymizationPolicy
      * Oracle — comparaison de sentinelle INSENSIBLE à la casse, source de
      * vérité unique : tous les guards (validation utilisateur, chokepoint
      * sendMail, sélection des destinataires) passent par cette méthode.
+     *
+     * Case-folding ASCII volontaire : la sentinelle est une constante ASCII
+     * pure (domaine .invalid RFC 2606), strtolower est donc exact — un input
+     * multioctet ne peut jamais l'égaler ('Ànonyme@…' ≠ 'anonyme@…').
+     * mb_strtolower produirait un mutant Infection (MBString) équivalent —
+     * donc non-tuable — sans aucun gain sémantique.
      */
     public static function isAnonymizedEmail(string $email): bool
     {
-        return mb_strtolower(trim($email), 'UTF-8') === self::ANONYMIZED_EMAIL;
+        return strtolower(trim($email)) === self::ANONYMIZED_EMAIL;
     }
 
     /**

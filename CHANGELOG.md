@@ -14,12 +14,13 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **5** 🔴 **Migration `users.email NOT NULL` + sentinelle d'anonymisation** — Migration de reconstruction (`users_new`, INSERT nommé strict) appliquant `email NOT NULL` + `CHECK (email <> '')` sans DEFAULT : les valeurs NULL/vides sont backfillées avec la sentinelle `anonyme@anonyme.invalid` (domaine `.invalid` RFC 2606), réservée au chemin d'anonymisation via `AnonymizationPolicy::ANONYMIZED_EMAIL`. L'invariant est verrouillé par `EmailInvariantTest` (unicité, casse, interdiction d'envoi vers la sentinelle).
 - **6** 🟡 **Garde-fous enums (PHPStan/Rector)** — `NoMagicStringRule` étendu aux nouveaux périmètres, tests `PHPStanRulesTest` enrichis (+109 lignes), `rector.php` : règle `ReplaceMagicStringWithEnumRector` pour auto-migrer les comparaisons/switch restants.
 - **7** 🟡 **Tests & fixtures** — +9 tests unitaires nouveaux (`ConfigSetManyTest`, `EmailInvariantTest`, `ExportRegistryCodeWiringTest`, `NotificationsSinglePathTest`, `ReportAbandonHandlerTest`, `ReportReopenHandlerTest`, `ReportRespondPageTest`, `RouterRoleMappingTest`, `SettingsHandlersValidationTest`) ; `tests/handler_runner.php` enrichi (runner POST partagé pour les tests de handlers).
+- **8** 🟡 **Infection MSI ≥ 80 % rétabli** — Les 2 mutants échappés du lot (CI) sont traités : `isAnonymizedEmail()` simplifié en `strtolower` (sentinelle ASCII pure — le mutant MBString était équivalent donc non-tuable), et test `fromPost()` sans clé email verrouillant l'absence d'E_WARNING (tue le mutant Coalesce). Renforcement de la couverture des nouveaux chemins : ligne CSV d'export exacte cellule par cellule (`ExportCsvRowExactTest` : swaps Coalesce, labels conditionnels, concat répondant), défauts et états exacts de la synthèse/indicateurs (`StatsRepositoryMutationTest`), mapping complet `CreateUserCommand::fromPost()`, lien RGPD `repondant_id` cassé par l'anonymisation (`RgpdAnonymizeTest`). +13 tests, 66 mutants tués sur les 4 fichiers du lot.
 
 ### Métriques
 
-- Tests : **1831** (4638 assertions) — +9 tests unitaires nouveaux du lot
+- Tests : **1844** (4683 assertions) — +13 tests du lot et de la fiabilisation Infection
 - PHPStan : **0 errors** (level 8)
-- Contrôles locaux : PHP-CS-Fixer, Rector (dry-run), Deptrac, PHPArkitect — 0 violation
+- Contrôles locaux : PHP-CS-Fixer, Rector (dry-run), Deptrac, PHPArkitect — 0 violation ; Infection local filtré : 66 mutants échappés en moins sur les fichiers du lot
 
 ## [3.65.0] — 2026-08-06
 

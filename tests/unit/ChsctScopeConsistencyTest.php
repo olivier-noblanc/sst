@@ -39,11 +39,11 @@ class ChsctScopeConsistencyTest extends TestCase
         $this->siteId = (int) $this->pdo->query("SELECT id FROM sites WHERE code = 'UD99'")->fetchColumn();
 
         // Seed CHSCT user
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('chsct_scope_test', 'CHSCT', 'Test', 'chsct', {$this->siteId}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('chsct_scope_test', 'CHSCT', 'Test', 'chsct', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->chsctUserId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'chsct_scope_test'")->fetchColumn();
 
         // Seed agent user
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('agent_scope_test', 'Agent', 'Test', 'agent', {$this->siteId}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('agent_scope_test', 'Agent', 'Test', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->agentUserId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'agent_scope_test'")->fetchColumn();
 
         // Create report WITHOUT consent

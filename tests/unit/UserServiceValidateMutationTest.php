@@ -67,7 +67,7 @@ class UserServiceValidateMutationTest extends TestCase
             prenom: $data['prenom'],
             role: $data['role'],
             siteId: $data['siteId'] ?? SiteId::none(),
-            email: $data['email'] ?? null,
+            email: $data['email'],
         );
     }
 
@@ -153,8 +153,8 @@ class UserServiceValidateMutationTest extends TestCase
 
     public function testValidateRejectsDuplicateUsername(): void
     {
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role) VALUES (?, ?, ?, ?)')
-            ->execute(['existing.user', 'Test', 'User', 'agent']);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, email) VALUES (?, ?, ?, ?, ?)')
+            ->execute(['existing.user', 'Test', 'User', 'agent', 'fixture@dreets-bfc.gouv.fr']);
 
         $cmd = $this->makeCommand(['username' => 'existing.user']);
         $errors = $this->service->validate($cmd);
@@ -164,8 +164,8 @@ class UserServiceValidateMutationTest extends TestCase
 
     public function testValidateAllowsSameUsernameWithExcludeId(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role) VALUES (?, ?, ?, ?, ?)')
-            ->execute([42, 'existing.user', 'Test', 'User', 'agent']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, email) VALUES (?, ?, ?, ?, ?, ?)')
+            ->execute([42, 'existing.user', 'Test', 'User', 'agent', 'fixture@dreets-bfc.gouv.fr']);
 
         $cmd = $this->makeCommand(['username' => 'existing.user']);
         $errors = $this->service->validate($cmd, 42);
@@ -292,11 +292,11 @@ class UserServiceValidateMutationTest extends TestCase
         $this->assertArrayNotHasKey('email', $errors);
     }
 
-    public function testValidateAcceptsEmptyEmail(): void
+    public function testValidateRejectsEmptyEmail(): void
     {
         $cmd = $this->makeCommand(['email' => '']);
         $errors = $this->service->validate($cmd);
-        $this->assertArrayNotHasKey('email', $errors, 'empty email must pass (optional)');
+        $this->assertArrayHasKey('email', $errors, 'Invariant NOT NULL - email vide refuse');
     }
 
     public function testValidateTrimsEmail(): void
@@ -318,11 +318,21 @@ class UserServiceValidateMutationTest extends TestCase
 
     public function testValidateCastStringOnEmailWhenNull(): void
     {
-        // Kill CastString mutant: null cast to string becomes ""
-        $cmd = $this->makeCommand(['email' => null]);
+        // Invariant users.email NOT NULL : le DTO CreateUserCommand est typé
+        // `string $email` non-nullable — null n'est plus constructible côté
+        // validate(). Le cast `(string)` a migré dans CreateUserCommand::fromPost()
+        // (trim((string) ($post['email'] ?? ''))) : un POST sans clé email
+        // donne '' et la validation le refuse.
+        $cmd = CreateUserCommand::fromPost([
+            'username' => 'jean.dupont',
+            'nom' => 'Dupont',
+            'prenom' => 'Jean',
+            'role' => 'agent',
+            'site_id' => (string) $this->siteId,
+        ]);
+        $this->assertSame('', $cmd->email, 'fromPost sans clé email doit caster en chaîne vide');
         $errors = $this->service->validate($cmd);
-        // null → "" which is valid (empty email is optional)
-        $this->assertArrayNotHasKey('email', $errors, 'null email must be cast to empty string and pass');
+        $this->assertArrayHasKey('email', $errors, 'Invariant NOT NULL — email absent/vidé refusé');
     }
 
     public function testValidateTrimsWhitespaceOnlyEmail(): void
@@ -331,7 +341,7 @@ class UserServiceValidateMutationTest extends TestCase
         $cmd = $this->makeCommand(['email' => '   ']);
         $errors = $this->service->validate($cmd);
         // After trim, "   " becomes "" which is valid (optional)
-        $this->assertArrayNotHasKey('email', $errors, 'whitespace-only email must be trimmed to empty and pass');
+        $this->assertArrayHasKey('email', $errors, 'Invariant NOT NULL - whitespace-only refuse');
     }
 
     public function testValidateCastStringOnRoleWhenInt(): void
@@ -364,7 +374,7 @@ class UserServiceValidateMutationTest extends TestCase
             prenom: '', // error 3
             role: 'invalid', // error 4
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         // ArrayOneItem mutant would return only 1 error, we expect all 4
@@ -393,25 +403,25 @@ class UserServiceValidateMutationTest extends TestCase
 
     public function testCanDeactivateReturnsTrueForRegularAgent(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([1, 'agent1', 'A', 'B', 'agent']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([1, 'agent1', 'A', 'B', 'agent', 'fixture@dreets-bfc.gouv.fr']);
         $this->assertTrue($this->service->canDeactivate(1));
     }
 
     public function testCanDeactivateReturnsTrueForNonLastSuperviseur(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur']);
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([2, 'sup2', 'C', 'D', 'superviseur']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 'fixture@dreets-bfc.gouv.fr']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([2, 'sup2', 'C', 'D', 'superviseur', 'fixture@dreets-bfc.gouv.fr']);
         $this->assertTrue($this->service->canDeactivate(1));
     }
 
     public function testCanDeactivateReturnsFalseForLastSuperviseur(): void
     {
         // Kill mutant on countActiveSuperviseurs() <= 1
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 'fixture@dreets-bfc.gouv.fr']);
         $this->assertFalse($this->service->canDeactivate(1), 'cannot deactivate last superviseur');
     }
 
@@ -419,24 +429,24 @@ class UserServiceValidateMutationTest extends TestCase
 
     public function testCanDemoteReturnsNoErrorForNonSuperviseur(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([1, 'agent1', 'A', 'B', 'agent']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([1, 'agent1', 'A', 'B', 'agent', 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, 'superviseur', 'agent');
         $this->assertSame([], $errors);
     }
 
     public function testCanDemoteReturnsNoErrorForSuperviseurStayingSuperviseur(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, 'superviseur', 'superviseur');
         $this->assertSame([], $errors, 'same role → no demote error');
     }
 
     public function testCanDemoteReturnsErrorWhenDemotingLastSuperviseur(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, 'agent', 'superviseur');
         $this->assertArrayHasKey('role', $errors);
         $this->assertStringContainsString('dernier superviseur', $errors['role']);
@@ -444,10 +454,10 @@ class UserServiceValidateMutationTest extends TestCase
 
     public function testCanDemoteReturnsNoErrorWhenMultipleSuperviseurs(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur']);
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, 1)')
-            ->execute([2, 'sup2', 'C', 'D', 'superviseur']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 'fixture@dreets-bfc.gouv.fr']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, 1, ?)')
+            ->execute([2, 'sup2', 'C', 'D', 'superviseur', 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, 'agent', 'superviseur');
         $this->assertSame([], $errors, 'multiple superviseurs → demote allowed');
     }

@@ -21,6 +21,35 @@ $report = fetchReportOrRedirect($uuid);
 // Check if report can be responded to
 requireReportRespondable($report, $uuid, 'répondu');
 
+// Options d'état dérivées de la machine à états (source unique de vérité) —
+// plus aucune liste d'états codée en dur dans l'UI. Pour un signalement déjà
+// « En cours », seule la transition disponible (Traité) est proposée :
+// l'ancien formulaire proposait « En cours » → EnCours→EnCours absent de la
+// matrice → InvalidArgumentException fatale à la soumission.
+$respondStateMachine = new \App\Services\ReportStateMachine();
+// Réserve R1 (revue Oracle) — alignement du GET sur le pattern sûr du handler
+// POST (report_respond_handler.php) : ::from() est interdit sur une valeur non
+// contrôlée (AGENTS.md / NoForbiddenEnumMethodRule). requireRole() et
+// requireReportRespondable() filtrent déjà le rôle et l'état en amont, mais
+// par défense en profondeur : tryFrom + refus contrôlé (flash + redirection),
+// jamais de ValueError fatal ni de fallback métier silencieux.
+$respondRole = \App\Enum\UserRole::tryFrom((string) \currentUserRole());
+if ($respondRole === null) {
+    $session->setFlash('error', 'Votre rôle de session n\'est pas reconnu. Reconnectez-vous.');
+    $http->redirect($http->url('report_view', ['uuid' => $uuid]));
+}
+assert($respondRole instanceof \App\Enum\UserRole);
+$respondCurrentState = \App\Enum\ReportState::tryFrom($report->etat);
+if ($respondCurrentState === null) {
+    $session->setFlash('error', 'L\'état actuel de ce signalement n\'est pas reconnu. Contactez un superviseur.');
+    $http->redirect($http->url('report_view', ['uuid' => $uuid]));
+}
+assert($respondCurrentState instanceof \App\Enum\ReportState);
+$availableRespondStates = $respondStateMachine->getAvailableTransitions(
+    $respondCurrentState,
+    $respondRole
+);
+
 $pdo = getContainer()->get(\PDO::class);
 $noSiteMode = $config->isNoSiteMode();
 
@@ -156,9 +185,13 @@ $etat = $report->etat;
             <label for="nouvel_etat">Nouvel état <span class="required">*</span></label>
             <select name="nouvel_etat" id="nouvel_etat" required
                     <?php echo isset($formErrors['nouvel_etat']) ? 'aria-describedby="err_nouvel_etat" aria-invalid="true"' : ''; ?>>
-                <option value="en_cours" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === \App\Enum\ReportState::EnCours->value) ? 'selected' : ''; ?>>En cours</option>
-                <option value="traite" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === \App\Enum\ReportState::Traite->value) ? 'selected' : ''; ?>>Traité</option>
+                <?php foreach ($availableRespondStates as $respondState): ?>
+                    <option value="<?php echo $fmt->e($respondState->value); ?>" <?php echo (isset($formData['nouvel_etat']) && $formData['nouvel_etat'] === $respondState->value) ? 'selected' : ''; ?>><?php echo $fmt->e($respondState->label()); ?></option>
+                <?php endforeach; ?>
             </select>
+            <?php if (empty($availableRespondStates)): ?>
+                <span class="form-hint">Aucun changement d'état n'est disponible pour ce signalement avec votre rôle.</span>
+            <?php endif; ?>
             <?php if (isset($formErrors['nouvel_etat'])): ?>
                 <span class="form-error" id="err_nouvel_etat"><?php echo $fmt->e($formErrors['nouvel_etat']); ?></span>
             <?php endif; ?>

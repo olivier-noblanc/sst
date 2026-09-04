@@ -42,12 +42,12 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         $this->pdo->prepare('INSERT INTO sites (code, nom) VALUES (?, ?)')->execute(['UR21', 'UR Test']);
         $this->siteId = (int) $this->pdo->lastInsertId();
 
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['decl.user', 'Dupont', 'Jean', 'agent', $this->siteId, 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['decl.user', 'Dupont', 'Jean', 'agent', $this->siteId, 1, 'fixture@dreets-bfc.gouv.fr']);
         $this->declarantId = (int) $this->pdo->lastInsertId();
 
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['sup.user', 'Martin', 'Sophie', 'superviseur', $this->siteId, 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['sup.user', 'Martin', 'Sophie', 'superviseur', $this->siteId, 1, 'fixture@dreets-bfc.gouv.fr']);
         $this->supervisorId = (int) $this->pdo->lastInsertId();
     }
 
@@ -56,6 +56,9 @@ class ReportRepositoryMethodsMutationTest extends TestCase
         cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec('DELETE FROM registries');
+        // DB partagée process-wide : toute suppression de `registries` doit
+        // re-seeder les 3 registres système (cf. reseedDefaultRegistries()).
+        reseedDefaultRegistries($this->pdo);
     }
 
     private function seedReport(string $type = 'rsst', string $etat = 'nouveau', ?int $siteId = null, string $createdAt = '2026-01-15 10:00:00'): string

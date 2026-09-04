@@ -3,6 +3,24 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [3.66.0] — 2026-09-04
+
+### Fiabilisation — notifications, settings, export, lifecycle, migration email
+
+- **1** 🔴 **Notifications — chemin unique** — Tous les envois mail passent désormais par un seul chemin : `src/mail_notifications.php` délègue à `NotificationService` (`notifyNewReport()`, `notifyReportResponse()`, `notifyReportAbandon()`, `notifyReportReopen()`, `notifyRoleChange()`). Garde-fou dans `src/mail.php` : tout envoi vers la sentinelle d'anonymisation est bloqué (aucun mail requis). Vérifié par `NotificationsSinglePathTest`.
+- **2** 🔴 **Settings — écriture atomique** — Nouveau `ConfigRepository::setMany()` : toutes les clés d'un formulaire de réglages sont écrites dans une transaction SQLite (BEGIN/COMMIT, rollback + re-throw en cas d'erreur — jamais d'écriture partielle). Les handlers `settings_handler.php`, `settings_handler_app.php` et `settings_handler_sites.php` sont migrés et durcis (validation des entrées). Vérifié par `ConfigSetManyTest` et `SettingsHandlersValidationTest`.
+- **3** 🔴 **Export CSV — code de registre custom** — `ExportService::resolveRegistryCodeFromPost()` résout le code de registre depuis le POST, avec champs dynamiques par registre (`getDynamicExportFields()`, `buildHeaders()`, `buildCsvRow()`), historique des réponses dans une colonne dédiée (`buildResponseHistory()`) et échappement centralisé (`escapeCsvField()`). `handlers/export_handler.php` câblé sur ce service. Vérifié par `ExportRegistryCodeWiringTest`.
+- **4** 🔴 **Lifecycle — transitions rôle-conscient** — `ReportStateMachine::canTransition(ReportState, ReportState, UserRole)` devient le point de vérité des transitions autorisées (abandon, réouverture avec motif, réponse) ; `ReportLifecycleRepository::abandon()/reopen()` portent les écritures. Handlers et pages `report_abandon`, `report_reopen`, `report_respond` alignés, routes et mapping de rôles vérifiés par `RouterRoleMappingTest`.
+- **5** 🔴 **Migration `users.email NOT NULL` + sentinelle d'anonymisation** — Migration de reconstruction (`users_new`, INSERT nommé strict) appliquant `email NOT NULL` + `CHECK (email <> '')` sans DEFAULT : les valeurs NULL/vides sont backfillées avec la sentinelle `anonyme@anonyme.invalid` (domaine `.invalid` RFC 2606), réservée au chemin d'anonymisation via `AnonymizationPolicy::ANONYMIZED_EMAIL`. L'invariant est verrouillé par `EmailInvariantTest` (unicité, casse, interdiction d'envoi vers la sentinelle).
+- **6** 🟡 **Garde-fous enums (PHPStan/Rector)** — `NoMagicStringRule` étendu aux nouveaux périmètres, tests `PHPStanRulesTest` enrichis (+109 lignes), `rector.php` : règle `ReplaceMagicStringWithEnumRector` pour auto-migrer les comparaisons/switch restants.
+- **7** 🟡 **Tests & fixtures** — +9 tests unitaires nouveaux (`ConfigSetManyTest`, `EmailInvariantTest`, `ExportRegistryCodeWiringTest`, `NotificationsSinglePathTest`, `ReportAbandonHandlerTest`, `ReportReopenHandlerTest`, `ReportRespondPageTest`, `RouterRoleMappingTest`, `SettingsHandlersValidationTest`) ; `tests/handler_runner.php` enrichi (runner POST partagé pour les tests de handlers).
+
+### Métriques
+
+- Tests : **1831** (4638 assertions) — +9 tests unitaires nouveaux du lot
+- PHPStan : **0 errors** (level 8)
+- Contrôles locaux : PHP-CS-Fixer, Rector (dry-run), Deptrac, PHPArkitect — 0 violation
+
 ## [3.65.0] — 2026-08-06
 
 ### Fonctionnalités

@@ -49,19 +49,19 @@ class AccessHelperIntegrationTest extends TestCase
         $this->siteId2 = (int) $this->pdo->query("SELECT id FROM sites WHERE code = 'UD25'")->fetchColumn();
 
         // Seed users
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('agent1', 'Agent', 'Un', 'agent', {$this->siteId1}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('agent1', 'Agent', 'Un', 'agent', {$this->siteId1}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->agentId1 = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'agent1'")->fetchColumn();
 
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('agent2', 'Agent', 'Deux', 'agent', {$this->siteId1}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('agent2', 'Agent', 'Deux', 'agent', {$this->siteId1}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->agentId2 = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'agent2'")->fetchColumn();
 
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('agent3', 'Agent', 'Trois', 'agent', {$this->siteId2}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('agent3', 'Agent', 'Trois', 'agent', {$this->siteId2}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->agentId3 = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'agent3'")->fetchColumn();
 
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('superv1', 'Super', 'Visor', 'superviseur', {$this->siteId1}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('superv1', 'Super', 'Visor', 'superviseur', {$this->siteId1}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->superviseurId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'superv1'")->fetchColumn();
 
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('chsct1', 'CHSCT', 'Membre', 'chsct', {$this->siteId1}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('chsct1', 'CHSCT', 'Membre', 'chsct', {$this->siteId1}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->chsctId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'chsct1'")->fetchColumn();
     }
 

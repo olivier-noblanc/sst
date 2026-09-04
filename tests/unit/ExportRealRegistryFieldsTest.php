@@ -60,7 +60,7 @@ class ExportRealRegistryFieldsTest extends TestCase
         self::$siteId = $siteRow !== false ? (int) $siteRow : 0;
 
         if (self::$siteId > 0) {
-            $pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9995, 'test.real.export', 'Test', 'Real', 'agent', " . self::$siteId . ', 1)');
+            $pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9995, 'test.real.export', 'Test', 'Real', 'agent', " . self::$siteId . ", 1, 'fixture@dreets-bfc.gouv.fr')");
         }
 
         // Fixture = jeu RÉEL dérivé du seed prod. Aucun try/catch : un échec de

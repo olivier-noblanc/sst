@@ -27,7 +27,7 @@ class RgpdAnonymizeTest extends TestCase
         $this->siteId = (int) $this->pdo->query("SELECT id FROM sites WHERE code = 'UD_RGPD'")->fetchColumn();
 
         // Seed user
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('rgpd_agent', 'Agent', 'RGPD', 'agent', {$this->siteId}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('rgpd_agent', 'Agent', 'RGPD', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->agentId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'rgpd_agent'")->fetchColumn();
     }
 
@@ -71,7 +71,7 @@ class RgpdAnonymizeTest extends TestCase
         // A second agent, distinct from the declarant, linked ("rattaché") to a
         // report belonging to someone else — this is the report_agents scenario:
         // the linked agent's own account gets anonymized later.
-        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('rgpd_linked', 'Linked', 'Agent', 'agent', {$this->siteId}, 1)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('rgpd_linked', 'Linked', 'Agent', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $linkedAgentId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'rgpd_linked'")->fetchColumn();
 
         $uuid = 'test-rgpd-linked-' . uniqid();

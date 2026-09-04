@@ -28,6 +28,25 @@ final class AnonymizationPolicy
     public const string ANONYMIZED_USER_FIRSTNAME = 'Utilisateur';
 
     /**
+     * Sentinelle d'email d'anonymisation (décision produit — invariant
+     * users.email NOT NULL). Source de vérité UNIQUE — ne jamais dupliquer ce
+     * littéral : migration, guard sendMail et notification référencent cette
+     * constante. Le domaine .invalid (RFC 2606) ne peut jamais résoudre ni
+     * recevoir ; le chokepoint sendMail neutralise tout envoi vers elle.
+     */
+    public const string ANONYMIZED_EMAIL = 'anonyme@anonyme.invalid';
+
+    /**
+     * Oracle — comparaison de sentinelle INSENSIBLE à la casse, source de
+     * vérité unique : tous les guards (validation utilisateur, chokepoint
+     * sendMail, sélection des destinataires) passent par cette méthode.
+     */
+    public static function isAnonymizedEmail(string $email): bool
+    {
+        return mb_strtolower(trim($email), 'UTF-8') === self::ANONYMIZED_EMAIL;
+    }
+
+    /**
      * Tables (hors users/reports) portant un user_id vers un utilisateur
      * anonymisé, et ce qu'il faut en faire. 'set_null' quand la ligne porte
      * un payload qui doit survivre (réponse, log) ; 'delete' quand la ligne
@@ -54,7 +73,7 @@ final class AnonymizationPolicy
     {
         $stmt = $pdo->prepare('
             UPDATE users
-            SET nom = :name, prenom = :user_firstname, email = NULL,
+            SET nom = :name, prenom = :user_firstname, email = :email,
                 username = \'anonymized_\' || CAST(:id AS TEXT),
                 is_active = 0, updated_at = datetime(\'now\')
             WHERE id = :id2
@@ -62,6 +81,7 @@ final class AnonymizationPolicy
         $stmt->execute([
             ':name' => self::ANONYMIZED_NAME,
             ':user_firstname' => self::ANONYMIZED_USER_FIRSTNAME,
+            ':email' => self::ANONYMIZED_EMAIL,
             ':id' => $id,
             ':id2' => $id,
         ]);

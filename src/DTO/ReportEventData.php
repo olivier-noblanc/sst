@@ -28,8 +28,12 @@ final readonly class ReportEventData
 
     /**
      * Factory from a ReportData object (most common case).
+     *
+     * Fiabilisation (council) — $motif permet de faire transiter le motif de
+     * réouverture jusqu'aux listeners de notification (l'ancien envoi direct
+     * du handler report_reopen l'incluait dans l'e-mail).
      */
-    public static function fromReport(ReportData $report, ?int $userId = null, ?PDO $pdo = null): self
+    public static function fromReport(ReportData $report, ?int $userId = null, ?PDO $pdo = null, ?string $motif = null): self
     {
         return new self(
             report: $report,
@@ -37,6 +41,7 @@ final readonly class ReportEventData
             type: $report->type,
             siteId: $report->siteId,
             userId: $userId,
+            motif: $motif,
             pdo: $pdo,
         );
     }

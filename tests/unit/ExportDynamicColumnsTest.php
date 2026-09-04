@@ -39,7 +39,7 @@ class ExportDynamicColumnsTest extends TestCase
 
         // Ensure test user exists
         if (self::$siteId > 0) {
-            $pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9991, 'test.dyn.export', 'Test', 'Agent', 'agent', " . self::$siteId . ", 1)");
+            $pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9991, 'test.dyn.export', 'Test', 'Agent', 'agent', " . self::$siteId . ", 1, 'fixture@dreets-bfc.gouv.fr')");
         }
 
         // Ensure registries table has expected rows (some test classes may replace the table)

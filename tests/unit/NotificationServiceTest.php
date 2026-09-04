@@ -151,4 +151,47 @@ class NotificationServiceTest extends TestCase
         $service->notifyRoleChange(999999, 'agent', 'superviseur');
         $this->assertTrue(true); // No exception = pass
     }
+
+    /**
+     * Oracle — INVARIANT déclarant sans email : users.email est légalement
+     * nullable (?string en création/édition, validation permissive). Les
+     * agents rattachés doivent recevoir leur notification MÊME si le
+     * déclarant n'a pas d'email — l'ancien return précoce les privait de
+     * tout message. Le helper pur est testé sans SMTP.
+     */
+    public function testBuildResponseNotificationTargetsKeepsLinkedAgentsWhenDeclarantHasNoEmail(): void
+    {
+        $targets = buildResponseNotificationTargets(
+            ['email' => null],
+            [
+                ['email' => 'agent.rattache@dreets-bfc.gouv.fr', 'prenom' => 'Al'],
+                ['email' => 'autre.rattache@dreets-bfc.gouv.fr', 'prenom' => 'Bob'],
+            ]
+        );
+
+        $emails = array_column($targets, 'email');
+        $this->assertContains('agent.rattache@dreets-bfc.gouv.fr', $emails, 'Les rattachés reçoivent leur notification même sans email déclarant');
+        $this->assertContains('autre.rattache@dreets-bfc.gouv.fr', $emails);
+        $this->assertNotContains('declarant', array_column($targets, 'role'), 'Aucun envoi au déclarant sans email');
+    }
+
+    public function testBuildResponseNotificationTargetsDeduplicatesAgainstDeclarant(): void
+    {
+        $targets = buildResponseNotificationTargets(
+            ['email' => 'declarant@dreets-bfc.gouv.fr'],
+            [
+                ['email' => 'DECLARANT@dreets-bfc.gouv.fr', 'prenom' => 'Self'],
+                ['email' => 'agent.rattache@dreets-bfc.gouv.fr', 'prenom' => 'Al'],
+            ]
+        );
+
+        $roles = array_column($targets, 'role');
+        $this->assertSame(['declarant', 'linked'], $roles, 'Le déclarant reçoit son e-mail ; le rattaché au même email (casse différente) est dédupliqué');
+    }
+
+    public function testBuildResponseNotificationTargetsDeclarantOnlyWithoutAgents(): void
+    {
+        $targets = buildResponseNotificationTargets(['email' => 'declarant@dreets-bfc.gouv.fr'], []);
+        $this->assertSame([['email' => 'declarant@dreets-bfc.gouv.fr', 'role' => 'declarant']], $targets);
+    }
 }

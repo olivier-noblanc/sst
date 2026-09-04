@@ -26,7 +26,7 @@ class RegistryCardRendererTest extends TestCase
         reseedDefaultRegistries($this->pdo);
         $this->pdo->exec("DELETE FROM registries WHERE code NOT IN ('rsst', 'rami', 'dgi')");
         $this->pdo->exec("INSERT OR IGNORE INTO sites (id, code, nom) VALUES (9001, 'TEST-RCR', 'Site Test RCR')");
-        $this->pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id) VALUES (9001, 'test.rcr', 'Test', 'RCR', 'agent', 9001)");
+        $this->pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, email) VALUES (9001, 'test.rcr', 'Test', 'RCR', 'agent', 9001, 'fixture@dreets-bfc.gouv.fr')");
     }
 
     protected function tearDown(): void

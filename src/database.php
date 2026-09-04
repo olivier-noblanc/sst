@@ -190,6 +190,7 @@ function migrateSchema(PDO $pdo): void
 
     migrateTables($pdo);
     migrateColumns($pdo);
+    migrateUsersEmailNotNull($pdo);
     migrateIndexes($pdo);
     migrateConfigKeys($pdo);
     migrateEncryptSmtpPass($pdo);

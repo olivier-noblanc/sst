@@ -14,7 +14,11 @@ class UpdateUserCommand
         public readonly string $prenom,
         public readonly string $role,
         public readonly SiteId $siteId,
-        public readonly ?string $email,
+        /**
+     * Email réel obligatoire (invariant users.email NOT NULL) — la validation
+     * refuse le vide et la sentinelle d'anonymisation.
+     */
+        public readonly string $email,
     ) {}
 
     /** @param array<string, string> $post */
@@ -26,7 +30,7 @@ class UpdateUserCommand
             prenom: trim($post['prenom'] ?? ''),
             role: trim($post['role'] ?? UserRole::Agent->value),
             siteId: SiteId::fromInput((int) ($post['site_id'] ?? 0)),
-            email: !empty(trim($post['email'] ?? '')) ? trim((string) $post['email']) : null,
+            email: trim((string) ($post['email'] ?? '')),
         );
     }
 }

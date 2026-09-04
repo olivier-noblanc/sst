@@ -228,8 +228,7 @@ class AuthServiceTest extends TestCase
 
     public function testFindOrCreateUserReturnsExistingUser(): void
     {
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active) VALUES ('existing.user', 'Existing', 'User', 'agent', 1)");
-        $user = $this->service->findOrCreateUser('existing.user');
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active, email) VALUES ('existing.user', 'Existing', 'User', 'agent', 1, 'fixture@dreets-bfc.gouv.fr')");        $user = $this->service->findOrCreateUser('existing.user');
         $this->assertNotNull($user);
         $this->assertInstanceOf(SessionUser::class, $user);
         $this->assertEquals('existing.user', $user->username);
@@ -237,8 +236,7 @@ class AuthServiceTest extends TestCase
 
     public function testFindOrCreateUserReturnsNullForInactiveUser(): void
     {
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active) VALUES ('inactive.user', 'Inactive', 'User', 'agent', 0)");
-        $user = $this->service->findOrCreateUser('inactive.user');
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active, email) VALUES ('inactive.user', 'Inactive', 'User', 'agent', 0, 'fixture@dreets-bfc.gouv.fr')");        $user = $this->service->findOrCreateUser('inactive.user');
         $this->assertNull($user);
     }
 

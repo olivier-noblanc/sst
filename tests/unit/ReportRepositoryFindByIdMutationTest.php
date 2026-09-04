@@ -39,13 +39,13 @@ class ReportRepositoryFindByIdMutationTest extends TestCase
         $this->siteId = (int) $this->pdo->lastInsertId();
 
         // Seed declarant
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['decl.user', 'Dupont', 'Jean', 'agent', $this->siteId, 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['decl.user', 'Dupont', 'Jean', 'agent', $this->siteId, 1, 'fixture@dreets-bfc.gouv.fr']);
         $this->declarantId = (int) $this->pdo->lastInsertId();
 
         // Seed respondent (superviseur)
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['resp.user', 'Martin', 'Sophie', 'superviseur', $this->siteId, 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['resp.user', 'Martin', 'Sophie', 'superviseur', $this->siteId, 1, 'fixture@dreets-bfc.gouv.fr']);
         $this->repondantId = (int) $this->pdo->lastInsertId();
     }
 

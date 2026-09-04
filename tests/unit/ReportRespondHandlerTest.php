@@ -200,6 +200,80 @@ class ReportRespondHandlerTest extends TestCase
         $this->assertEquals('nouveau', $result['queries']['report_etat']);
     }
 
+    public function testRespondToEnCoursWithSameStateShowsControlledError(): void
+    {
+        // Fiabilisation — avant ce fix, un POST nouvel_etat=en_cours sur un
+        // signalement déjà en_cours levait une InvalidArgumentException non
+        // interceptée par le catch(RuntimeException) du handler (EnCours→EnCours
+        // n'existe pas dans la matrice ReportStateMachine::TRANSITIONS) → fatal
+        // 500, saisie de la réponse perdue, e-mail d'alerte admin.
+        // Attendu : redirection contrôlée + flash error + état inchangé.
+        $reportUuid = '77777777-8888-4999-baaa-bbbbbbbbbbbb';
+        $token = bin2hex(random_bytes(32));
+        $session = array_merge($this->makeSuperviseurSession(), ['csrf_tokens' => [$token => time()]]);
+
+        $result = $this->runHandler([
+            'handler' => 'report_respond_handler.php',
+            'session' => $session,
+            'post' => [
+                'csrf_token' => $token,
+                'report_uuid' => $reportUuid,
+                'nouvel_etat' => 'en_cours',
+                'reponse' => 'Mise a jour sans changement d etat.',
+            ],
+            'db_seed' => $this->seedWithReport($reportUuid, 1, 1, 'en_cours'),
+            'assertions' => [
+                'report_etat' => "SELECT etat FROM reports WHERE uuid = '$reportUuid'",
+                'response_count' => "SELECT COUNT(*) FROM report_responses WHERE report_uuid = '$reportUuid'",
+            ],
+        ]);
+
+        $this->assertNotNull($result['redirect'], 'Une redirection contrôlée doit être émise (pas d\'erreur fatale)');
+        $this->assertEquals('error', $result['flash']['type'] ?? null);
+        $this->assertEquals('en_cours', $result['queries']['report_etat']);
+        $this->assertEquals(0, $result['queries']['response_count']);
+    }
+
+    public function testRejectsUnknownSessionRoleWithControlledError(): void
+    {
+        // Fiabilisation (oracle) — UserRole::from(currentUserRole()) levait une
+        // ValueError fatale si le rôle de session n'était pas un UserRole connu
+        // (session corrompue/legacy) — interdit par AGENTS.md/NoForbiddenEnumMethodRule.
+        // Attendu : tryFrom + refus contrôlé (flash + redirection), jamais de fatal.
+        $reportUuid = '88888877-9999-4aaa-bbbb-cccccccccccc';
+        $token = bin2hex(random_bytes(32));
+        $session = [
+            'user' => [
+                'id' => 9, 'nom' => 'Legacy', 'prenom' => 'Role',
+                'username' => 'legacy.role', 'role' => 'direction_generale',
+                'site_id' => 1, 'site_code' => 'UD21',
+                'email' => 'legacy.role@dreets-bfc.gouv.fr', 'is_active' => 1,
+            ],
+            'csrf_tokens' => [$token => time()],
+        ];
+
+        $result = $this->runHandler([
+            'handler' => 'report_respond_handler.php',
+            'session' => $session,
+            'post' => [
+                'csrf_token' => $token,
+                'report_uuid' => $reportUuid,
+                'nouvel_etat' => 'en_cours',
+                'reponse' => 'Tentative avec role de session inconnu.',
+            ],
+            'db_seed' => $this->seedWithReport($reportUuid),
+            'assertions' => [
+                'report_etat' => "SELECT etat FROM reports WHERE uuid = '$reportUuid'",
+                'response_count' => "SELECT COUNT(*) FROM report_responses WHERE report_uuid = '$reportUuid'",
+            ],
+        ]);
+
+        $this->assertNotNull($result['redirect'], 'Rôle inconnu → refus contrôlé, pas de fatal ValueError');
+        $this->assertEquals('error', $result['flash']['type'] ?? null);
+        $this->assertEquals('nouveau', $result['queries']['report_etat']);
+        $this->assertEquals(0, $result['queries']['response_count']);
+    }
+
     public function testRejectsResponseToTreatedReport(): void
     {
         $reportUuid = '66666666-7777-4888-a999-aaaaaaaaaaaa';

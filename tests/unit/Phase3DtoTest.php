@@ -32,6 +32,9 @@ class Phase3DtoTest extends TestCase
         cleanupAllForTest($this->pdo);
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec('DELETE FROM registries');
+        // DB partagée process-wide : toute suppression de `registries` doit
+        // re-seeder les 3 registres système (cf. reseedDefaultRegistries()).
+        reseedDefaultRegistries($this->pdo);
     }
 
     // ═══ AttachmentData ═══
@@ -201,7 +204,7 @@ class Phase3DtoTest extends TestCase
         $repo = new ReportRepository($this->pdo);
 
         // Create a user for FK
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active) VALUES ('test.phase3', 'Dupont', 'Jean', 'agent', 1)");
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active, email) VALUES ('test.phase3', 'Dupont', 'Jean', 'agent', 1, 'fixture@dreets-bfc.gouv.fr')");
         $userId = (int) $this->pdo->lastInsertId();
 
         // Seed reports

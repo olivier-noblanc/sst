@@ -21,8 +21,7 @@ class ReportRepositoryTest extends TestCase
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote-d-Or', 1)");
         $this->siteId = (int) $this->pdo->lastInsertId();
-        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Martin', 'Jean', 'jean.martin', 'agent', {$this->siteId}, 1)");
-        $this->userId = (int) $this->pdo->lastInsertId();
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Martin', 'Jean', 'jean.martin', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");        $this->userId = (int) $this->pdo->lastInsertId();
     }
 
     public function testCreateAndFindById(): void

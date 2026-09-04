@@ -1,5 +1,7 @@
 <?php
 
+use App\Repository\AnonymizationPolicy;
+
 /**
  * Migration — Column Additions & Data Fixes
  *
@@ -578,16 +580,331 @@ function migrateColumns(PDO $pdo): void
 }
 
 /**
- * Recreate the reports_fts virtual table and its triggers after a reports rebuild.
+ * Invariant users.email NOT NULL (décision produit, oracle).
  *
- * Audit #42 — DROP TABLE reports silently drops the FTS5 triggers
- * (reports_fts_ai/ad/au) and orphans the reports_fts virtual table (its content
- * no longer matches reports). Without this helper, future INSERTs on reports
- * would not be reflected in reports_fts → full-text search broken after migration.
- *
- * Safe to call multiple times — uses IF NOT EXISTS for triggers and rebuilds
- * reports_fts content from scratch.
+ * - Idempotent : détecte via PRAGMA (email notnull + CHECK email <> '') ;
+ * - Préflight 1 : REFUSE (crash, jamais silencieux) toute contrainte UNIQUE
+ *   inattendue sur email (incompatible avec la sentinelle partagée) ;
+ * - Préflight 2 : REFUSE (crash) tout schéma users déviant — le schéma
+ *   legacy réel compte 12 colonnes (les 10 historiques de schema.sql +
+ *   site_chosen_at et sessions_invalid_before ajoutées par migrateColumns(),
+ *   qui tourne avant cet appel dans migrateSchema()) et TOUT écart exige
+ *   une décision de migration, jamais d'adaptation silencieuse ;
+ * - Backfill + rebuild dans UNE transaction : si le rebuild échoue, le
+ *   backfill est rollBack avec le reste (jamais de backfill commité sur
+ *   une table non migrée) — NULL et vides → sentinelle
+ *   AnonymizationPolicy::ANONYMIZED_EMAIL (compat fixtures/legacy) ;
+ * - Rebuild users : DDL généré depuis PRAGMA table_info (types/NOT NULL/
+ *   DEFAULT réels préservés) + re-ajouts explicites AUTOINCREMENT,
+ *   username UNIQUE, FK sites et CHECK site_id. email cible = NOT NULL +
+ *   CHECK (email <> '') SANS DEFAULT (sentinelle réservée au chemin
+ *   d'anonymisation) ;
+ * - PRAGMA foreign_keys géré + foreign_key_check obligatoire ;
+ * - Jamais de chemin temporaire fixe.
  */
+function migrateUsersEmailNotNull(PDO $pdo): void
+{
+    // D3 — garde explicite du retour de PRAGMA (jamais false silencieux)
+    $infoStmt = $pdo->query('PRAGMA table_info(users)');
+    if ($infoStmt === false) {
+        throw new RuntimeException('PRAGMA table_info(users) query failed unexpectedly.');
+    }
+    $emailCol = null;
+    foreach ($infoStmt->fetchAll() as $col) {
+        if (is_array($col) && ($col['name'] ?? '') === 'email') {
+            $emailCol = $col;
+        }
+    }
+    $infoStmt = null;
+    if ($emailCol === null) {
+        throw new RuntimeException('migrateUsersEmailNotNull: colonne users.email absente — schéma inattendu.');
+    }
+
+    // D3 (réserve) — fetchColumn gardé : sqlite_master doit répondre avec la
+    // table users, sinon crash (jamais de '' silencieux interprété comme
+    // « CHECK absent »).
+    $tableSqlStmt = $pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'");
+    if ($tableSqlStmt === false) {
+        throw new RuntimeException('migrateUsersEmailNotNull: requête sqlite_master échouée de manière inattendue.');
+    }
+    $tableSqlRaw = $tableSqlStmt->fetchColumn();
+    $tableSqlStmt = null;
+    if ($tableSqlRaw === false || $tableSqlRaw === null) {
+        throw new RuntimeException('migrateUsersEmailNotNull: table users absente de sqlite_master — schéma inattendu.');
+    }
+    $tableSql = (string) $tableSqlRaw;
+
+    // Réserve — alreadyDone ne dépend d'AUCUN DEFAULT : l'invariant est
+    // exactement « NOT NULL + CHECK (email <> '') ». Le DDL cible n'a pas de
+    // DEFAULT sur email (sentinelle réservée au chemin d'anonymisation),
+    // donc exiger 'DEFAULT' dans le SQL rendait alreadyDone dépendant de la
+    // présence d'un DEFAULT quelconque ailleurs dans la table.
+    $alreadyDone = (int) $emailCol['notnull'] === 1
+        && str_contains($tableSql, "CHECK (email <> '')");
+
+    if (!$alreadyDone) {
+        // D1 — backfill + rebuild DANS LA MÊME transaction (voir
+        // rebuildUsersTableEmailNotNull) : un échec de rebuild (préflight,
+        // INSERT strict, divergence de comptage) rollBack aussi le backfill.
+        rebuildUsersTableEmailNotNull($pdo);
+    }
+
+    // Post-vérification défensive : aucun NULL/vide ne peut survivre.
+    $remainingStmt = $pdo->query("SELECT COUNT(*) FROM users WHERE email IS NULL OR email = ''");
+    if ($remainingStmt === false) {
+        throw new RuntimeException('Post-migration count query failed unexpectedly.');
+    }
+    $remaining = (int) $remainingStmt->fetchColumn();
+    if ($remaining > 0) {
+        throw new RuntimeException('migrateUsersEmailNotNull: ' . $remaining . ' user(s) sans email après migration — backfill incomplet.');
+    }
+}
+
+/**
+ * D2 — rebuild users pour l'invariant email NOT NULL.
+ *
+ * Préflight strict (crash-hard) puis, dans UNE transaction : backfill email
+ * (NULL/vide → sentinelle) → création users_new → INSERT NOMMÉ strict (jamais
+ * OR IGNORE, jamais SELECT * positionnel) → vérification de comptage →
+ * DROP users → RENAME → recréation des index. Un échec à n'importe quelle
+ * étape rollBack le backfill avec le reste.
+ *
+ * Le DDL de users_new est généré depuis PRAGMA table_info (préserve les
+ * types/NOT NULL/DEFAULT réels du schéma legacy à 12 colonnes) avec les
+ * re-ajouts explicites que PRAGMA ne transporte pas : AUTOINCREMENT,
+ * username UNIQUE (détecté via PRAGMA index_list), FKs (PRAGMA
+ * foreign_key_list) et CHECK site_id (ajouté si absent du legacy).
+ */
+function rebuildUsersTableEmailNotNull(PDO $pdo): void
+{
+    // D3 + D2 préflight — colonnes réelles == les 12 colonnes du schéma
+    // legacy réel (oracle B1) : les 10 colonnes historiques de schema.sql +
+    // site_chosen_at + sessions_invalid_before (appendées via ALTER TABLE
+    // par migrateColumns(), qui tourne avant cet appel dans migrateSchema()).
+    // Toute déviation (colonne manquante ou additionnelle) = crash —
+    // décision de migration requise, jamais d'adaptation silencieuse.
+    $infoStmt = $pdo->query('PRAGMA table_info(users)');
+    if ($infoStmt === false) {
+        throw new RuntimeException('PRAGMA table_info(users) query failed unexpectedly.');
+    }
+    $userColumns = $infoStmt->fetchAll();
+    $infoStmt = null;
+    $sortedActual = array_column($userColumns, 'name');
+    sort($sortedActual);
+    $sortedExpected = ['created_at', 'email', 'id', 'is_active', 'nom', 'prenom', 'role', 'sessions_invalid_before', 'site_chosen_at', 'site_id', 'updated_at', 'username'];
+    if ($sortedActual !== $sortedExpected) {
+        throw new RuntimeException(
+            'migrateUsersEmailNotNull: colonnes users inattendues ('
+            . implode(', ', $sortedActual) . ') — décision de migration requise avant application.'
+        );
+    }
+
+    // D3 — SQL legacy de la table : détection AUTOINCREMENT et CHECK site_id
+    // (PRAGMA table_info ne transporte ni l'un ni l'autre).
+    $tableSqlStmt = $pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'");
+    if ($tableSqlStmt === false) {
+        throw new RuntimeException('migrateUsersEmailNotNull: requête sqlite_master échouée de manière inattendue.');
+    }
+    $legacySqlRaw = $tableSqlStmt->fetchColumn();
+    $tableSqlStmt = null;
+    if ($legacySqlRaw === false || $legacySqlRaw === null) {
+        throw new RuntimeException('migrateUsersEmailNotNull: table users absente de sqlite_master — schéma inattendu.');
+    }
+    $legacySql = (string) $legacySqlRaw;
+    $hadAutoincrement = str_contains($legacySql, 'AUTOINCREMENT');
+    $hasSiteIdCheck = str_contains($legacySql, 'CHECK (site_id IS NULL OR site_id > 0)');
+
+    // Préflight — refus explicite (crash) d'une contrainte UNIQUE inattendue
+    // sur email : la sentinelle est partagée par tous les comptes anonymisés.
+    // Au passage : username UNIQUE (autoindex) est détecté pour être ré-émis
+    // dans le DDL (PRAGMA table_info ne transporte pas UNIQUE), et tout
+    // index nommé (origin 'c') est capturé pour être recréé après le rebuild.
+    $usernameHasUnique = false;
+    $recreateIndexSql = [];
+    $indexesStmt = $pdo->query('PRAGMA index_list(users)');
+    if ($indexesStmt === false) {
+        throw new RuntimeException('PRAGMA index_list(users) query failed unexpectedly.');
+    }
+    foreach ($indexesStmt->fetchAll() as $idx) {
+        if (!is_array($idx)) {
+            continue;
+        }
+        $idxName = (string) ($idx['name'] ?? '');
+        $isUnique = (int) ($idx['unique'] ?? 0) === 1;
+        $idxInfoStmt = $pdo->query("PRAGMA index_info('" . str_replace("'", "''", $idxName) . "')");
+        if ($idxInfoStmt === false) {
+            throw new RuntimeException('PRAGMA index_info query failed unexpectedly.');
+        }
+        $idxColumns = array_column($idxInfoStmt->fetchAll(), 'name');
+        $idxInfoStmt = null;
+        if ($isUnique && in_array('email', $idxColumns, true)) {
+            throw new RuntimeException(
+                'migrateUsersEmailNotNull: contrainte UNIQUE inattendue sur users.email (index '
+                . ($idx['name'] ?? '?') . ') — incompatible avec la sentinelle d\'anonymisation partagée.'
+            );
+        }
+        if ($isUnique && $idxColumns === ['username']) {
+            $usernameHasUnique = true;
+            continue;
+        }
+        if (($idx['origin'] ?? '') === 'c') {
+            // Index nommé créé par CREATE INDEX : recréé tel quel après le
+            // rebuild (le DROP TABLE emporte tous les index de la table).
+            $idxSqlStmt = $pdo->query("SELECT sql FROM sqlite_master WHERE type='index' AND name='" . str_replace("'", "''", $idxName) . "'");
+            if ($idxSqlStmt === false) {
+                throw new RuntimeException('sqlite_master index query failed unexpectedly.');
+            }
+            $idxSql = $idxSqlStmt->fetchColumn();
+            $idxSqlStmt = null;
+            if (is_string($idxSql) && $idxSql !== '') {
+                $recreateIndexSql[] = $idxSql;
+            }
+        }
+    }
+    $indexesStmt = null;
+
+    // D7 — backup crash-hard : un échec de backup annule la migration.
+    if (backupBeforeMigration($pdo) !== true) {
+        throw new RuntimeException('migrateUsersEmailNotNull: backup pré-migration échoué — migration annulée.');
+    }
+
+    // DDL généré depuis PRAGMA table_info : types/NOT NULL/DEFAULT réels du
+    // legacy préservés. Seule différence intentionnelle : email.
+    $columnDefs = [];
+    $insertColumns = [];
+    foreach ($userColumns as $col) {
+        if (!is_array($col)) {
+            continue;
+        }
+        /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
+        $name = (string) $col['name'];
+        $insertColumns[] = '"' . str_replace('"', '""', $name) . '"';
+        if ($name === 'email') {
+            // L'invariant cible — pas de DEFAULT : la sentinelle est réservée
+            // au chemin d'anonymisation.
+            $columnDefs[] = $name . ' ' . $col['type'] . " NOT NULL CHECK (email <> '')";
+            continue;
+        }
+        $def = $name . ' ' . $col['type'];
+        if ((int) $col['pk'] === 1) {
+            $def .= ' PRIMARY KEY' . ($hadAutoincrement ? ' AUTOINCREMENT' : '');
+        }
+        if ((int) $col['notnull'] === 1 && (int) $col['pk'] !== 1) {
+            $def .= ' NOT NULL';
+        }
+        if ($col['dflt_value'] !== null) {
+            /** @var string $dfltValue */
+            $dfltValue = (string) $col['dflt_value'];
+            $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
+            $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
+        }
+        if ($name === 'username' && $usernameHasUnique) {
+            $def .= ' UNIQUE';
+        }
+        $columnDefs[] = $def;
+    }
+    if (!$hasSiteIdCheck) {
+        $columnDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
+    }
+    $fkStmt = $pdo->query('PRAGMA foreign_key_list(users)');
+    if ($fkStmt === false) {
+        throw new RuntimeException('PRAGMA foreign_key_list(users) query failed unexpectedly.');
+    }
+    $fkClauses = [];
+    foreach ($fkStmt->fetchAll() as $fk) {
+        if (!is_array($fk)) {
+            continue;
+        }
+        /** @var array{from: string, table: string, to: string} $fk */
+        $fkClauses[] = "FOREIGN KEY ({$fk['from']}) REFERENCES {$fk['table']}({$fk['to']})";
+    }
+    $fkStmt = null;
+    $createSql = 'CREATE TABLE users_new (' . implode(', ', array_merge($columnDefs, $fkClauses)) . ')';
+    // INSERT NOMMÉ : insensible à l'ordre physique des colonnes — le legacy
+    // 12 colonnes a site_chosen_at/sessions_invalid_before APPENDÉES en fin
+    // de table (ALTER TABLE), contrairement à l'ordre de schema.sql.
+    $insertColumnList = implode(', ', $insertColumns);
+
+    $fkStmt = $pdo->query('PRAGMA foreign_keys');
+    if ($fkStmt === false) {
+        throw new RuntimeException('PRAGMA foreign_keys query failed unexpectedly.');
+    }
+    $fkWasEnabled = (bool) $fkStmt->fetchColumn();
+    $fkStmt = null;
+    $pdo->exec('PRAGMA foreign_keys = OFF');
+    $backfilled = 0;
+    try {
+        $pdo->beginTransaction();
+        try {
+            $countBeforeStmt = $pdo->query('SELECT COUNT(*) FROM users');
+            if ($countBeforeStmt === false) {
+                throw new RuntimeException('Count query failed unexpectedly.');
+            }
+            $countBefore = (int) $countBeforeStmt->fetchColumn();
+
+            // D1 — backfill DANS la transaction : NULL/vide → sentinelle,
+            // AVANT le INSERT strict (sinon ces lignes seraient rejetées par
+            // le CHECK (email <> '')). RollBack avec le reste si le rebuild
+            // échoue — jamais de backfill commité sur table non migrée.
+            $backfill = $pdo->prepare("UPDATE users SET email = :sent WHERE email IS NULL OR email = ''");
+            $backfill->execute([':sent' => AnonymizationPolicy::ANONYMIZED_EMAIL]);
+            $backfilled = $backfill->rowCount();
+            $backfill = null;
+
+            $pdo->exec('DROP TABLE IF EXISTS users_new');
+            $pdo->exec($createSql);
+            // D1 — INSERT NOMMÉ STRICT (jamais OR IGNORE) : toute ligne
+            // refusée lève une PDOException → rollback total → aucune perte
+            // silencieuse.
+            $pdo->exec("INSERT INTO users_new ($insertColumnList) SELECT $insertColumnList FROM users");
+            $countAfterStmt = $pdo->query('SELECT COUNT(*) FROM users_new');
+            if ($countAfterStmt === false) {
+                throw new RuntimeException('Count query failed unexpectedly.');
+            }
+            $countAfter = (int) $countAfterStmt->fetchColumn();
+            if ($countAfter !== $countBefore) {
+                throw new RuntimeException(
+                    'migrateUsersEmailNotNull: divergence de lignes (' . $countBefore . ' → ' . $countAfter
+                    . ') — migration annulée, aucune perte acceptée.'
+                );
+            }
+
+            // P16 — terminer/nuller les statements sur users avant le DROP :
+            // un PDOStatement vivant verrouille la table (table is locked).
+            $countBeforeStmt = null;
+            $countAfterStmt = null;
+
+            $pdo->exec('DROP TABLE IF EXISTS users');
+            $pdo->exec('ALTER TABLE users_new RENAME TO users');
+            // Recréation des index : tout index nommé du legacy (SQL capturé
+            // ci-dessus) puis les 3 index standard (IF NOT EXISTS, idempotent).
+            foreach ($recreateIndexSql as $idxSql) {
+                $pdo->exec($idxSql);
+            }
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_users_site_id ON users(site_id)');
+            $pdo->exec('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    } finally {
+        $pdo->exec('PRAGMA foreign_keys = ' . ($fkWasEnabled ? 'ON' : 'OFF'));
+    }
+    $orphanStmt = $pdo->query('PRAGMA foreign_key_check(users)');
+    if ($orphanStmt === false) {
+        throw new RuntimeException('PRAGMA foreign_key_check(users) query failed unexpectedly.');
+    }
+    $orphans = $orphanStmt->fetchAll();
+    if (!empty($orphans)) {
+        throw new RuntimeException('users rebuild (email NOT NULL) left dangling foreign keys: ' . json_encode($orphans));
+    }
+    // Réserve — le log ne mentionne plus de DEFAULT : le DDL cible n'en a
+    // PAS sur email (sentinelle réservée au chemin d'anonymisation).
+    error_log('[SST-MIGRATION] users.email NOT NULL + CHECK (email <> \'\') appliqués — backfill sentinelle: ' . $backfilled . ' ligne(s).');
+}
+
 function recreateReportsFts5(PDO $pdo): void
 {
     // Drop and recreate the FTS5 virtual table (it's a content-less mirror)

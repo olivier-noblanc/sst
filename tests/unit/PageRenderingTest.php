@@ -56,8 +56,8 @@ class PageRenderingTest extends TestCase
         cleanupAllForTest($pdo);
         $pdo->exec("DELETE FROM sites WHERE code = 'UR21'");
         $pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'UR Test', 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'test.agent', 'Dupont', 'Jean', 'agent', 1, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (2, 'test.sup', 'Martin', 'Pierre', 'superviseur', 1, 1)");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (1, 'test.agent', 'Dupont', 'Jean', 'agent', 1, 1, 'fixture@dreets-bfc.gouv.fr')");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (2, 'test.sup', 'Martin', 'Pierre', 'superviseur', 1, 1, 'fixture@dreets-bfc.gouv.fr')");
         $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential) VALUES ('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', 'RSST-25-001', 'rsst', 'Test nouveau', 'Description test', '2025-01-01', 1, 'Dupont', 'Jean', 1, 'nouveau', 1)");
         $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential) VALUES ('11111111-2222-3333-4444-555555555555', 'RSST-25-002', 'rsst', 'Test traite', 'Description test', '2025-01-01', 1, 'Dupont', 'Jean', 1, 'traite', 1)");
 

@@ -56,10 +56,21 @@ class ReportLifecycleRepository
 
     public function abandon(string $uuid, int $userId): bool
     {
+        // Audit lifecycle — clause d'états ALIGNÉE sur la matrice
+        // ReportStateMachine::TRANSITIONS (autorité) : Abandonne est atteignable
+        // depuis Nouveau/EnCours/Traite/Reouvert pour le rôle Agent. L'ancienne
+        // clause ('nouveau', 'en_cours') était plus restrictive que la matrice
+        // et rejetait silencieusement (rowCount=0) un abandon d'un signalement
+        // Réouvert déjà validé par les guards.
         $stmt = $this->pdo->prepare("
             UPDATE reports
             SET etat = '" . ReportState::Abandonne->value . "', updated_at = datetime('now')
-            WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ReportState::Nouveau->value . "', '" . ReportState::EnCours->value . "')
+            WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN (
+                '" . ReportState::Nouveau->value . "',
+                '" . ReportState::EnCours->value . "',
+                '" . ReportState::Traite->value . "',
+                '" . ReportState::Reouvert->value . "'
+            )
         ");
         $stmt->execute([':uuid' => $uuid, ':user_id' => $userId]);
         return $stmt->rowCount() > 0;

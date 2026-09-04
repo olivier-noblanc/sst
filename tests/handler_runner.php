@@ -47,7 +47,8 @@ if (session_status() === PHP_SESSION_NONE) {
 // Set up environment
 $_SESSION = $config['session'] ?? [];
 $_POST = $config['post'] ?? [];
-$_GET = [];
+// Support GET pages (page mode) — handlers keep the previous behavior ($_GET = []).
+$_GET = $config['get'] ?? [];
 $_SERVER['REQUEST_METHOD'] = $config['server']['REQUEST_METHOD'] ?? 'POST';
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 $_SERVER['HTTP_HOST'] = 'localhost';
@@ -65,7 +66,6 @@ register_shutdown_function(function () use ($config) {
         'form_data'  => $_SESSION['form_data'] ?? null,
         'report_created' => $_SESSION['report_created'] ?? null,
     ];
-
     $pdo = getDB();
     $queries = $config['assertions'] ?? [];
     $results = [];
@@ -79,19 +79,36 @@ register_shutdown_function(function () use ($config) {
     }
     $result['queries'] = $results;
 
+    // Capture rendered output (pages) instead of discarding it — lets page
+    // tests assert on visible markers (e.g. access denied). Additive: handler
+    // tests that ignore the extra 'output' key are unaffected.
+    $renderedOutput = '';
     while (ob_get_level() > 0) {
-        ob_end_clean();
+        $renderedOutput = (string) ob_get_clean() . $renderedOutput;
     }
+    $result['output'] = $renderedOutput;
+
     echo json_encode($result);
 });
 
 // Start output buffer to capture handler output (e.g. CSV from export)
 ob_start();
 
-$handlerFile = __DIR__ . '/../handlers/' . $config['handler'];
-if (!file_exists($handlerFile)) {
-    echo json_encode(['error' => 'Handler not found: ' . $config['handler']]);
-    exit(1);
-}
+// Page mode (GET pages): run pages/<page>.php instead of a POST handler.
+// 'handler' remains the default for backward compatibility.
+if (isset($config['page'])) {
+    $pageFile = __DIR__ . '/../pages/' . $config['page'];
+    if (!file_exists($pageFile)) {
+        echo json_encode(['error' => 'Page not found: ' . $config['page']]);
+        exit(1);
+    }
+    require $pageFile;
+} else {
+    $handlerFile = __DIR__ . '/../handlers/' . $config['handler'];
+    if (!file_exists($handlerFile)) {
+        echo json_encode(['error' => 'Handler not found: ' . $config['handler']]);
+        exit(1);
+    }
 
-require $handlerFile;
+    require $handlerFile;
+}

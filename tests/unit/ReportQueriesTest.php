@@ -49,7 +49,7 @@ class ReportQueriesTest extends TestCase
         self::$siteId = (int) self::$pdo->lastInsertId();
 
         // Seed: one user (agent)
-        self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Martin', 'Jean', 'jean.martin', 'agent', " . self::$siteId . ", 1)");
+        self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Martin', 'Jean', 'jean.martin', 'agent', " . self::$siteId . ", 1, 'fixture@dreets-bfc.gouv.fr')");
         self::$userId = (int) self::$pdo->lastInsertId();
 
         self::$reports = ReportRepository::instance();
@@ -60,7 +60,8 @@ class ReportQueriesTest extends TestCase
         cleanupAllForTest(self::$pdo);
         // Restore the seed user deleted by cleanupAllForTest.
         // Site is preserved (cleanupAllForTest doesn't touch sites).
-        self::$pdo->exec("INSERT OR IGNORE INTO users (id, nom, prenom, username, role, site_id, is_active) VALUES (" . self::$userId . ", 'Martin', 'Jean', 'jean.martin', 'agent', " . self::$siteId . ", 1)");
+        self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Martin', 'Jean', 'jean.martin', 'agent', " . self::$siteId . ", 1, 'fixture@dreets-bfc.gouv.fr')");
+        self::$userId = (int) self::$pdo->lastInsertId();
     }
 
     /** @param array<string, mixed> $overrides */
@@ -165,7 +166,7 @@ class ReportQueriesTest extends TestCase
         ]));
 
         // Add a superviseur user for responding
-        self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Sup', 'Anne', 'anne.sup', 'superviseur', " . self::$siteId . ", 1)");
+        self::$pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Sup', 'Anne', 'anne.sup', 'superviseur', " . self::$siteId . ", 1, 'fixture@dreets-bfc.gouv.fr')");
         $supId = (int) self::$pdo->lastInsertId();
 
         $result = ReportLifecycleRepository::instance()->respondToReport($uuid, $supId, 'Prise en charge du signalement.', 'en_cours');

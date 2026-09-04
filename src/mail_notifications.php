@@ -1,5 +1,6 @@
 <?php
 
+use App\Repository\AnonymizationPolicy;
 use App\Repository\ReportAgentRepository;
 use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
@@ -74,7 +75,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         foreach ($csaUsers as $csaUser) {
             if (!empty($csaUser->email) && !in_array($csaUser->email, $recipients, true)) {
                 $registryLabel = getRegistryShortLabel($type);
-                $csaSubject = 'Signalement ' . $registryLabel . ' — Notification ' . getRoleLabelShort('chsct') . " — {$report->reference}";
+                $csaSubject = 'Signalement ' . $registryLabel . ' — Notification ' . getRoleLabelShort(UserRole::Chsct->value) . " — {$report->reference}";
                 $csaBody = '<html><body>';
                 $csaBody .= '<h2>Notification ' . $registryLabel . ' — Article L4131-2 du Code du travail</h2>';
                 $csaBody .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>';
@@ -89,6 +90,53 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     }
 }
 /**
+ * Sélectionne les destinataires de la notification de réponse (oracle).
+ *
+ * INVARIANT (décision produit) : users.email est NOT NULL avec sentinelle
+ * RGPD d'anonymisation AnonymizationPolicy::ANONYMIZED_EMAIL
+ * ('anonyme@anonyme.invalid', domaine .invalid RFC 2606). Un compte réel
+ * porte toujours un email valide (validation obligatoire à la création et à
+ * l'édition) ; la sentinelle n'est écrite QUE par le chemin d'anonymisation
+ * et n'est jamais destinataire — comparaison insensible à la casse via
+ * AnonymizationPolicy::isAnonymizedEmail().
+ *
+ * Les agents rattachés sont notifiés indépendamment de l'email du déclarant
+ * (dédupliquée contre l'email du déclarant).
+ *
+ * @param array{email: string|null}|null $declarant Utilisateur déclarant (ou null si introuvable)
+ * @param array<int, array{id?: int, nom?: string, prenom?: string|null, email?: string|null}> $linkedAgents
+ * @return list<array{email: string, role: string}> role ∈ {'declarant','linked'}
+ */
+function buildResponseNotificationTargets(?array $declarant, array $linkedAgents): array
+{
+    $targets = [];
+    $declarantEmail = ($declarant !== null && !empty($declarant['email'])) ? (string) $declarant['email'] : null;
+
+    // Invariant sentinelle (décision produit) — la sentinelle d'anonymisation
+    // n'est jamais un destinataire réel (compte anonymisé) ; comparaison
+    // insensible à la casse via AnonymizationPolicy::isAnonymizedEmail().
+    if ($declarantEmail !== null && !AnonymizationPolicy::isAnonymizedEmail($declarantEmail)) {
+        $targets[] = ['email' => $declarantEmail, 'role' => 'declarant'];
+    }
+
+    $seen = $declarantEmail !== null ? [strtolower($declarantEmail)] : [];
+    foreach ($linkedAgents as $linkedAgent) {
+        $email = (string) ($linkedAgent['email'] ?? '');
+        if ($email === '' || AnonymizationPolicy::isAnonymizedEmail($email)) {
+            continue;
+        }
+        $lower = strtolower($email);
+        if (in_array($lower, $seen, true)) {
+            continue;
+        }
+        $seen[] = $lower;
+        $targets[] = ['email' => $email, 'role' => 'linked'];
+    }
+
+    return $targets;
+}
+
+/**
  * Notify the declarant that their report has received a response.
  *
  * @param PDO    $pdo          Database connection
@@ -101,47 +149,45 @@ function notifyReportResponse(PDO $pdo, string $reportUuid, int $respondentId): 
     if ($report === null) {
         return;
     }
-    // Get declarant email
     /** @var int */
     $declarantId = $report->declarantId;
     $declarant = UserRepository::instance()->findById($declarantId);
-    if ($declarant === null || empty($declarant->email)) {
-        return;
-    }
     /** @var string */
     $reportType = $report->type;
     $registryLabel = getRegistryShortLabel($reportType);
-    $subject = "Réponse à votre signalement $registryLabel — {$report->reference}";
     $respondent = UserRepository::instance()->findById($respondentId);
     if ($respondent === null) {
         return;
     }
     $reportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
-    $body = '<html><body>';
-    $body .= '<h2>Votre signalement a reçu une réponse</h2>';
-    $body .= renderEmailField('Référence', $report->reference);
-    $body .= renderEmailField('Répondant', $respondent->prenom . ' ' . $respondent->nom);
-    $body .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);
-    $body .= renderEmailLink($reportUrl, 'Consulter la réponse');
-    $body .= '</body></html>';
-    sendMail($declarant->email, $subject, $body);
 
-    // Also notify linked/confirmed agents
+    // Oracle — destinataires via le helper pur : un déclarant sans email
+    // (légal) ne prive plus les agents rattachés de leur notification.
+    /** @var array{email: string|null}|null $declarantArray */
+    $declarantArray = $declarant !== null ? ['email' => $declarant->email] : null;
     $linkedAgents = ReportAgentRepository::instance()->getLinkedAgents($reportUuid);
-    foreach ($linkedAgents as $linkedAgent) {
-        if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== $declarant->email) {
-            $linkedSubject = "Réponse au signalement $registryLabel — {$report->reference}";
-            $linkedReportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
-            $linkedBody = '<html><body>';
-            $linkedBody .= '<h2>Réponse au signalement</h2>';
-            $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom']) . ',</p>';
-            $linkedBody .= '<p>Le signalement <strong>' . e($report->reference) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>';
-            $linkedBody .= renderEmailField('Répondant', $respondent->prenom . ' ' . $respondent->nom);
-            $linkedBody .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);
-            $linkedBody .= renderEmailLink($linkedReportUrl, 'Consulter la réponse');
-            $linkedBody .= '</body></html>';
-            sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
+    $targets = buildResponseNotificationTargets($declarantArray, $linkedAgents);
+
+    foreach ($targets as $target) {
+        $subject = $target['role'] === 'declarant'
+            ? "Réponse à votre signalement $registryLabel — {$report->reference}"
+            : "Réponse au signalement $registryLabel — {$report->reference}";
+        $body = '<html><body>';
+        if ($target['role'] === 'declarant') {
+            $body .= '<h2>Votre signalement a reçu une réponse</h2>';
+            $body .= renderEmailField('Référence', $report->reference);
+            $body .= renderEmailField('Répondant', $respondent->prenom . ' ' . $respondent->nom);
+            $body .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);
+            $body .= renderEmailLink($reportUrl, 'Consulter la réponse');
+        } else {
+            $body .= '<h2>Réponse au signalement</h2>';
+            $body .= '<p>Le signalement <strong>' . e($report->reference) . '</strong> auquel vous êtes rattaché(e) a reçu une réponse.</p>';
+            $body .= renderEmailField('Répondant', $respondent->prenom . ' ' . $respondent->nom);
+            $body .= renderEmailField('Nouvel état', ETAT_LABELS[$report->etat] ?? $report->etat);
+            $body .= renderEmailLink($reportUrl, 'Consulter la réponse');
         }
+        $body .= '</body></html>';
+        sendMail($target['email'], $subject, $body);
     }
 }
 
@@ -210,7 +256,7 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     if ($newRole === UserRole::Superviseur->value) {
         $body .= "<p>En tant que <strong>Superviseur</strong>, vous pouvez désormais : répondre aux signalements, gérer les utilisateurs, consulter la synthèse et les statistiques, exporter les données, et configurer les paramètres de l'application.</p>";
     } elseif ($newRole === UserRole::Chsct->value) {
-        $body .= '<p>En tant que <strong>' . e(getRoleLabel('chsct')) . '</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>';
+        $body .= '<p>En tant que <strong>' . e(getRoleLabel(UserRole::Chsct->value)) . '</strong>, vous pouvez consulter tous les signalements (y compris confidentiels), la synthèse, les statistiques et les exports.</p>';
     } else {
         $body .= "<p>En tant qu'<strong>Agent</strong>, vous pouvez créer des signalements et suivre leurs réponses.</p>";
     }

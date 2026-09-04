@@ -9,6 +9,7 @@ use App\DTO\SessionUser;
 use App\Enum\UserRole;
 use Exception;
 use PDO;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -161,6 +162,12 @@ class UserRepository
 
     public function create(CreateUserCommand $cmd): int
     {
+        // D8 — invariant users.email NOT NULL : la validation utilisateur
+        // refuse le vide en amont ; le repository ne convertit JAMAIS
+        // silencieusement (crash hard, sémantique non brouillée).
+        if (trim($cmd->email) === '') {
+            throw new RuntimeException('L\'adresse email est requise (invariant users.email NOT NULL).');
+        }
         $stmt = $this->pdo->prepare('
             INSERT INTO users (username, nom, prenom, email, role, site_id)
             VALUES (:username, :nom, :prenom, :email, :role, :site_id)
@@ -178,6 +185,10 @@ class UserRepository
 
     public function update(int $id, UpdateUserCommand $cmd): bool
     {
+        // D8 — même contrat que create() : crash hard, pas de conversion.
+        if (trim((string) $cmd->email) === '') {
+            throw new RuntimeException('L\'adresse email est requise (invariant users.email NOT NULL).');
+        }
         $stmt = $this->pdo->prepare("
             UPDATE users
             SET nom = :nom, prenom = :prenom, email = :email,
@@ -188,7 +199,7 @@ class UserRepository
         $stmt->execute([
             ':nom'      => $cmd->nom,
             ':prenom'   => $cmd->prenom,
-            ':email'    => !empty($cmd->email) ? $cmd->email : null,
+            ':email'    => $cmd->email,
             ':username' => $cmd->username,
             ':role'     => $cmd->role,
             ':site_id'  => $cmd->siteId->toSql(),

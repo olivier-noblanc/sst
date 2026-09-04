@@ -35,6 +35,8 @@ class RegistryFieldRepositoryMutationTest extends TestCase
     {
         $this->pdo->exec('DELETE FROM registry_fields');
         $this->pdo->exec('DELETE FROM registries');
+        // DB partagée process-wide : re-seed des registres système après wipe.
+        reseedDefaultRegistries($this->pdo);
     }
 
     private function seedField(string $code = 'field1', int $sortOrder = 0): int

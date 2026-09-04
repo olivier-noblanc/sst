@@ -226,7 +226,7 @@ use App\Enum\VisibilityMode;
 
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> voient toujours tous les signalements.</p>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> voient toujours tous les signalements.</p>
 
             <?php foreach (\App\Enum\ReportType::cases() as $type):
                 $configKey = 'app_report_visibility_' . $type->value;
@@ -278,26 +278,26 @@ use App\Enum\VisibilityMode;
             <?php endforeach; ?>
 
             <div class="info-panel agent-visibility-warning">
-                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> voient tous les signalements, y compris les confidentiels.
+                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> voient tous les signalements, y compris les confidentiels.
             </div>
         </div>
 
         <div class="separator">
-            <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?></h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> peuvent consulter.</p>
+            <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></h4>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> peuvent consulter.</p>
             <?php
                         $chsctScopeValue = getConfigService()->get('app_chsct_report_scope', 'consent_only');
 $chsctScopeValue = new \App\Services\AccessService()->normalizeChsctScope($chsctScopeValue);
 ?>
             <fieldset class="form-group visibility-radios">
-                <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?></legend>
+                <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></legend>
                 <div class="visibility-radios">
                     <label class="visibility-radio-label">
                         <input type="radio" name="app_chsct_report_scope" value="consent_only"
                                <?php echo $chsctScopeValue === 'consent_only' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Consentement uniquement</strong> <span class="text-muted text-small">(par défaut)</span>
-                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> ne voit que les signalements dont le déclarant a coché la case de consentement de transmission syndicale.</div>
+                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ne voit que les signalements dont le déclarant a coché la case de consentement de transmission syndicale.</div>
                         </div>
                     </label>
                     <label class="visibility-radio-label">
@@ -305,7 +305,7 @@ $chsctScopeValue = new \App\Services\AccessService()->normalizeChsctScope($chsct
                                <?php echo $chsctScopeValue === 'all' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Tous les signalements</strong>
-                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort('chsct')); ?> voit l'intégralité des signalements de tous les sites, y compris les signalements confidentiels non consentis (nom, prénom, objet inclus).</div>
+                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> voit l'intégralité des signalements de tous les sites, y compris les signalements confidentiels non consentis (nom, prénom, objet inclus).</div>
                         </div>
                     </label>
                 </div>

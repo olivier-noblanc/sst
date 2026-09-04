@@ -4,6 +4,7 @@ namespace App\DTO;
 
 use Error;
 use ArrayAccess;
+use App\Enum\UserRole;
 
 /**
  * SessionUser — immutable DTO representing the authenticated user's session data.
@@ -147,7 +148,7 @@ final readonly class SessionUser implements ArrayAccess
             'nom' => '',
             'prenom' => '',
             'email' => null,
-            'role' => 'agent',
+            'role' => UserRole::Agent->value,
             'site_id' => null,
             'is_active' => 1,
             'created_at' => date('Y-m-d H:i:s'),

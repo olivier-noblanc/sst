@@ -48,8 +48,8 @@ class StatsRepositoryMutationTest extends TestCase
         $this->siteId = (int) $this->pdo->lastInsertId();
 
         // Seed declarant
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['decl.user', 'Dupont', 'Jean', 'agent', $this->siteId, 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['decl.user', 'Dupont', 'Jean', 'agent', $this->siteId, 1, 'fixture@dreets-bfc.gouv.fr']);
         $this->declarantId = (int) $this->pdo->lastInsertId();
     }
 
@@ -60,6 +60,9 @@ class StatsRepositoryMutationTest extends TestCase
         $this->pdo->exec('DELETE FROM config_app');
         $this->pdo->exec('DELETE FROM registry_fields');
         $this->pdo->exec('DELETE FROM registries');
+        // DB partagée process-wide : toute suppression de `registries` doit
+        // re-seeder les 3 registres système (cf. reseedDefaultRegistries()).
+        reseedDefaultRegistries($this->pdo);
         clearConfigCache();
     }
 

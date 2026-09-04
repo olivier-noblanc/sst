@@ -104,10 +104,37 @@ class StatsQueryRepository
     }
 
     /**
+     * Colonnes physiques réelles de la table reports (PRAGMA table_info).
+     *
+     * Oracle R1 — source unique de vérité pour « ce qui peut réellement être
+     * sélectionné » : utilisée par getExportData() (colonnes dynamiques du
+     * SELECT) ET par ExportService::getDynamicExportFields() (annoncé en
+     * en-têtes CSV) pour garantir qu'aucune colonne annoncée n'est vide —
+     * un registry_field sans colonne physique (métadonnée, case à cocher de
+     * formulaire comme 'pour_compte') n'est jamais sélectionné ni exporté.
+     *
+     * @return list<string>
+     */
+    public function getReportPhysicalColumns(): array
+    {
+        $colsStmt = $this->pdo->query('PRAGMA table_info(reports)');
+        $reportColumns = $colsStmt !== false ? $colsStmt->fetchAll() : [];
+        $names = [];
+        foreach ($reportColumns as $column) {
+            $columnName = $column['name'] ?? null;
+            if (is_string($columnName) && $columnName !== '') {
+                $names[] = $columnName;
+            }
+        }
+        return $names;
+    }
+
+    /**
      * @param array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: list<string>} $filters
      * @param string|null $registryCode Code du registre pour ajouter dynamiquement les colonnes depuis registry_fields
      * @return list<array{uuid: string, reference: string, type: string, objet: string, description: string, date_evenement: string, heure_evenement: ?string, lieu: string, declarant_id: int, declarant_nom: string, declarant_prenom: string, pour_compte_de: ?string, pour_compte_nom: ?string, pour_compte_prenom: ?string, nature_auteur: ?string, type_acte: ?string, site_id: ?int, site_text: ?string, pole: ?string, service_affectation: ?string, telephone_mobile: ?string, is_confidential: int, consent_syndicat: int, etat: string, repondant_id: ?int, date_reponse: ?string, reponse: ?string, attachment_name: ?string, attachment_mime: ?string, created_at: string, updated_at: string, site_code: ?string, site_nom: ?string, repondant_nom: ?string, repondant_prenom: ?string}>
      */
+
     public function getExportData(array $filters = [], ?string $registryCode = null): array
     {
         // Build dynamic columns from registry_fields if registryCode is provided
@@ -130,15 +157,10 @@ class StatsQueryRepository
                 // and every RAMI export crashed. 'nature_auteur', 'type_acte',
                 // 'pour_compte_nom', 'pour_compte_prenom' are real columns but
                 // already selected in the base SELECT (duplicates).
-                $colsStmt = $this->pdo->query('PRAGMA table_info(reports)');
-                $reportColumns = $colsStmt !== false ? $colsStmt->fetchAll() : [];
-                $existingColumns = [];
-                foreach ($reportColumns as $column) {
-                    $columnName = $column['name'] ?? null;
-                    if (is_string($columnName) && $columnName !== '') {
-                        $existingColumns[$columnName] = true;
-                    }
-                }
+                // Oracle R1 — le filtre PRAGMA est factorisé dans
+                // getReportPhysicalColumns(), réutilisé par ExportService pour
+                // n'annoncer en CSV que des colonnes réellement sélectionnées.
+                $existingColumns = array_flip($this->getReportPhysicalColumns());
                 $baseSelected = array_flip(self::BASE_EXPORT_COLUMNS);
 
                 foreach ($fieldKeys as $fieldKey) {

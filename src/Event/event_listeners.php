@@ -81,7 +81,10 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         }
 
         try {
-            $notifications->notifyReportReopen($reportUuid, $userId);
+            // Fiabilisation (council) — le motif de réouverture transite par
+            // ReportEventData::motif pour préserver le contenu de l'e-mail
+            // (l'ancien envoi direct du handler l'incluait).
+            $notifications->notifyReportReopen($reportUuid, $userId, $data->motif);
         } catch (Throwable $e) {
             // @silent-ok: best-effort notification after main action succeeded.
             error_log('[SST-EVENT] notifyReportReopen failed: ' . $e->getMessage());
@@ -108,24 +111,9 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         }
     });
 
-    // ── user.role_changed → notifyRoleChange ────────────────────────────────
-    $events->addListener('user.role_changed', function (ReportEventData|UserEventData $data) use ($notifications): void {
-        if (!$data instanceof UserEventData) {
-            return;
-        }
-        $userId = $data->userIdInt();
-        $oldRole = $data->oldRoleString();
-        $newRole = $data->newRoleString();
-
-        if ($userId === 0) {
-            return;
-        }
-
-        try {
-            $notifications->notifyRoleChange($userId, $oldRole, $newRole);
-        } catch (Throwable $e) {
-            // @silent-ok: best-effort notification after main action succeeded.
-            error_log('[SST-EVENT] notifyRoleChange failed: ' . $e->getMessage());
-        }
-    });
+    // Fiabilisation (council) — PAS de listener 'user.role_changed' : le
+    // changement de rôle est notifié par user_edit_handler.php SEUL, qui
+    // respecte la checkbox notify_role_change du formulaire et trace
+    // email_sent/email_error dans l'audit (Bug #30). Un listener ici envoyait
+    // un e-mail inconditionnel (checkbox ignorée) EN PLUS de celui du handler.
 }

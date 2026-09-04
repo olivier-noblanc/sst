@@ -41,6 +41,33 @@ class ConfigRepository
     }
 
     /**
+     * Écrit plusieurs clés de configuration dans UNE transaction (tout ou rien).
+     *
+     * Fiabilisation (council) — les handlers de paramétrage écrivaient clé
+     * par clé : une validation placée après N écritures laissait l'application
+     * dans un état partiellement modifié. Toute clé invalidée ici invalide
+     * l'ensemble (rollback + rethrow — crash hard, jamais d'échec silencieux).
+     *
+     * @param array<string, string> $values Clés => valeurs à persister
+     */
+    public function setMany(array $values): void
+    {
+        if ($values === []) {
+            return;
+        }
+        $this->pdo->beginTransaction();
+        try {
+            foreach ($values as $cle => $valeur) {
+                $this->set((string) $cle, (string) $valeur);
+            }
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
      * Atomic compare-and-swap for lazy cron locking.
      *
      * Audit #41 — Before this fix, runLazyCronTask did:

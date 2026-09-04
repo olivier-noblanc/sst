@@ -3,13 +3,14 @@
 /**
  * Report Reopen Handler — Thin controller delegating to ReportService.
  */
+use App\Enum\ReportState;
+use App\Enum\UserRole;
 use App\Services\HttpService;
 use App\Services\SessionService;
-use App\Repository\UserRepository;
-use App\Repository\ReportAgentRepository;
 use App\DTO\FormData;
 use App\DTO\ReopenReportCommand;
 use App\Services\ReportService;
+use App\Services\ReportStateMachine;
 
 /** @var array<string, string> $_POST */
 
@@ -28,6 +29,20 @@ if (mb_strlen($motifReouverture, 'UTF-8') < 10) {
 $report = fetchReportOrRedirect($reportUuid);
 $userId = $session->getUserSession()->id ?? 0;
 
+// Fiabilisation (audit lifecycle) — validation PRÉALABLE contre la matrice
+// (autorité) : une transition absente (ex. Nouveau→Reouvert) levait une
+// InvalidArgumentException non interceptée par le catch(RuntimeException)
+// → fatal. Refus contrôlé symétrique à respond + tryFrom (jamais ::from).
+$reopenStateMachine = new ReportStateMachine();
+$reopenCurrentState = ReportState::tryFrom($report->etat);
+$reopenRole = UserRole::tryFrom((string) currentUserRole());
+if ($reopenCurrentState === null || $reopenRole === null
+    || !$reopenStateMachine->canTransition($reopenCurrentState, ReportState::Reouvert, $reopenRole)) {
+    $session->setFlash('error', 'Ce signalement ne peut pas être réouvert (état : '
+        . e(ETAT_LABELS[$report->etat] ?? $report->etat) . ').');
+    $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
+}
+
 try {
     $cmd = new ReopenReportCommand(motif: $motifReouverture);
     $service = getContainer()->get(ReportService::class);
@@ -36,43 +51,20 @@ try {
     if ($result) {
         auditLog(getDB(), 'report', 'reopen', 'Signalement réouvert : ' . (string) $report->reference . ' — Motif : ' . $motifReouverture, null, 'report', ['reference' => $report->reference, 'motif' => $motifReouverture], $reportUuid);
 
-        // Notify declarant + linked agents (non-blocking)
-        require_once __DIR__ . '/../src/mail.php';
-        $pdo = getDB();
-        $registryLabel = getRegistryShortLabel($report->type);
-        $declarant = UserRepository::instance()->findById($report->declarantId);
-        if ($declarant !== null && $declarant->email !== null && $report->declarantId !== $userId) {
-            $subject = "Signalement réouvert $registryLabel — {$report->reference}";
-            $body = '<html><body>';
-            $body .= '<h2>Votre signalement a été réouvert</h2>';
-            $body .= '<p><strong>Référence :</strong> ' . e((string) $report->reference) . '</p>';
-            $body .= '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>';
-            $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
-            $body .= '</body></html>';
-            sendMail($declarant->email, $subject, $body);
-        }
-        $linkedAgents = ReportAgentRepository::instance()->getLinkedAgents($reportUuid);
-        foreach ($linkedAgents as $linkedAgent) {
-            /** @var array<string, string> $linkedAgent */
-            if (!empty($linkedAgent['email']) && $linkedAgent['email'] !== ($declarant->email ?? '')) {
-                $linkedSubject = "Signalement réouvert $registryLabel — {$report->reference}";
-                $linkedBody = renderEmailBody(
-                    'Signalement réouvert',
-                    '<p>Bonjour ' . e((string) ($linkedAgent['prenom'] ?? '')) . ',</p>'
-                    . '<p>Le signalement <strong>' . e((string) $report->reference) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>'
-                    . '<p><strong>Motif :</strong> ' . e($motifReouverture) . '</p>'
-                    . '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>'
-                );
-                sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
-            }
-        }
+        // Fiabilisation (council) — notification de réouverture : chemin UNIQUE
+        // via l'event 'report.reopened' dispatché par ReportService::reopen()
+        // (NotificationService::notifyReportReopen → déclarant + rattachés,
+        // motif transmis via ReportEventData::motif). L'ancien bloc d'envoi
+        // direct ici DOUBLAIT chaque e-mail de réouverture.
 
         $session->setFlash('success', 'Signalement ' . e((string) $report->reference) . ' réouvert avec succès.');
     } else {
         $session->setFlash('error', 'Ce signalement a été modifié entre-temps. Veuillez réessayer.');
     }
-} catch (RuntimeException $e) {
+} catch (RuntimeException|InvalidArgumentException $e) {
     // @silent-ok: handler boundary — flash error shown to the user, standard pattern.
+    // Audit lifecycle — InvalidArgumentException (transition absente) gérée
+    // symétriquement : race condition entre le GET et le POST.
     $session->setFlash('error', e($e->getMessage()));
     $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
 }

@@ -4,7 +4,10 @@ use App\DTO\FormData;
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Enum\ReportState;
+use App\Enum\UserRole;
 use App\Enum\RespondStatus;
+use App\Services\AccessService;
+use App\Services\ReportStateMachine;
 
 /**
  * Report Respond Handler — Application SST DREETS BFC
@@ -25,13 +28,17 @@ $session = SessionService::getInstance();
 
 $reportUuid = trim((string) ($_POST['report_uuid'] ?? ''));
 
-// Validate nouvel_etat
+// Validate nouvel_etat — enum-safe via tryFrom (jamais de whitelist
+// dupliquée ici) : la validité complète (transition + rôle) est vérifiée
+// contre la machine à états une fois le signalement chargé.
 $nouvelEtat = trim((string) ($_POST['nouvel_etat'] ?? ''));
-if (!in_array($nouvelEtat, [ReportState::EnCours->value, ReportState::Traite->value], true)) {
+$targetState = ReportState::tryFrom($nouvelEtat);
+if ($targetState === null) {
     $session->setFlash('error', 'L\'état sélectionné n\'est pas valide.');
     setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('report_respond', ['uuid' => $reportUuid]));
 }
+assert($targetState instanceof ReportState);
 
 // Validate reponse
 $reponse = trim((string) ($_POST['reponse'] ?? ''));
@@ -48,11 +55,42 @@ if (mb_strlen($reponse, 'UTF-8') > 5000) {
     $http->redirect($http->url('report_respond', ['uuid' => $reportUuid]));
 }
 
-// Validate report state
+// Validate report respondability + transition — sources uniques :
+// AccessService::canRespondToReport (état répondable) puis
+// ReportStateMachine::canTransition (matrice + rôle).
+// Fiabilisation : une transition absente de la matrice (y compris un état
+// identique, ex. EnCours→EnCours qui crashait en InvalidArgumentException
+// non interceptée) produit une réponse utilisateur contrôlée (flash +
+// redirection avec la saisie préservée), jamais une exception fatale.
 $report = fetchReportOrRedirect($reportUuid);
-if (!in_array($report->etat, [ReportState::Nouveau->value, ReportState::EnCours->value, ReportState::Reouvert->value], true)) {
+// AGENTS.md / NoForbiddenEnumMethodRule — ::from() est interdit sur une
+// valeur non contrôlée : tryFrom + refus contrôlé, jamais de ValueError fatal.
+$userRole = UserRole::tryFrom((string) currentUserRole());
+if ($userRole === null) {
+    $session->setFlash('error', 'Votre rôle de session n\'est pas reconnu. Reconnectez-vous.');
+    $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
+}
+assert($userRole instanceof UserRole);
+$access = new AccessService();
+if (!$access->canRespondToReport($report, $userRole->value)) {
     $session->setFlash('error', 'Ce signalement ne peut plus recevoir de réponse.');
     $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
+}
+
+// État courant : tryFrom — un état DB inconnu (hors CHECK constraint) est
+// refusé proprement au lieu de lever une ValueError fatale.
+$currentState = ReportState::tryFrom($report->etat);
+if ($currentState === null) {
+    $session->setFlash('error', 'L\'état actuel de ce signalement n\'est pas reconnu. Contactez un superviseur.');
+    $http->redirect($http->url('report_view', ['uuid' => $reportUuid]));
+}
+assert($currentState instanceof ReportState);
+
+$stateMachine = new ReportStateMachine();
+if (!$stateMachine->canTransition($currentState, $targetState, $userRole)) {
+    $session->setFlash('error', e($stateMachine->getTransitionDescription($currentState, $userRole)));
+    setFormData(FormData::fromPost($_POST));
+    $http->redirect($http->url('report_respond', ['uuid' => $reportUuid]));
 }
 
 // Handle optional attachment
@@ -74,7 +112,7 @@ $userId = $session->getUserSession()->id ?? 0;
 try {
     $cmd = new RespondToReportCommand(
         reponse: $reponse,
-        nouvelEtat: ReportState::from($nouvelEtat),
+        nouvelEtat: $targetState,
         attachment: $attachment,
     );
 
@@ -84,9 +122,10 @@ try {
     if ($result['status'] === RespondStatus::Ok) {
         auditLog($pdo, 'report', 'respond', 'Réponse au signalement ' . (string) $report->reference . ' — état : ' . $nouvelEtat, null, 'report', ['reference' => $report->reference, 'nouvel_etat' => $nouvelEtat], $reportUuid);
 
-        require_once __DIR__ . '/../src/mail.php';
-        notifyReportResponse($pdo, $reportUuid, $userId);
-
+        // Fiabilisation (council) — notification de réponse : chemin UNIQUE via
+        // l'event 'report.responded' dispatché par ReportService::respond().
+        // L'ancien appel direct notifyReportResponse() ici DOUBLAIT l'e-mail
+        // du déclarant (handler + listener) à chaque réponse.
         $session->setFlash('success', 'Réponse enregistrée pour le signalement ' . e($report->reference) . '.');
     } else {
         $status = $result['status'];
@@ -98,8 +137,9 @@ try {
             $session->setFlash('error', 'Erreur lors de l\'enregistrement de la réponse : ' . e($errorMsg));
         }
     }
-} catch (RuntimeException $e) {
+} catch (RuntimeException|InvalidArgumentException $e) {
     // @silent-ok: handler boundary — flash error shown to the user, standard pattern.
+    // Audit lifecycle — InvalidArgumentException gérée symétriquement (race).
     $session->setFlash('error', e($e->getMessage()));
     setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('report_respond', ['uuid' => $reportUuid]));

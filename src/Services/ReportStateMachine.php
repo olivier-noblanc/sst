@@ -73,7 +73,9 @@ final class ReportStateMachine
         $available = [];
         foreach ($transitions as $toValue => $allowedRoles) {
             if (in_array($role, $allowedRoles, true)) {
-                $available[] = ReportState::from($toValue);
+                // Valeur interne de la matrice (toujours un ReportState connu) —
+                // PHPStan infère le non-null depuis la constante typée.
+                $available[] = ReportState::tryFrom($toValue);
             }
         }
 
@@ -88,7 +90,14 @@ final class ReportStateMachine
      */
     public function validateTransition(ReportData $report, ReportState $newState, UserRole $userRole): void
     {
-        $currentState = ReportState::from($report->etat);
+        // tryFrom — un état DB inconnu (hors CHECK constraint) doit produire
+        // une exception métier claire, jamais une ValueError fatale (AGENTS.md).
+        $currentState = ReportState::tryFrom($report->etat);
+        if ($currentState === null) {
+            throw new InvalidArgumentException(
+                sprintf('L\'état du signalement "%s" n\'est pas reconnu.', $report->etat)
+            );
+        }
 
         // Transition invalide (n'existe pas dans la matrice)
         if (!$this->transitionExists($currentState, $newState)) {

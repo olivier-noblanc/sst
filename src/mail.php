@@ -1,5 +1,6 @@
 <?php
 
+use App\Repository\AnonymizationPolicy;
 
 /**
  * Mail Module — Application SST DREETS BFC
@@ -25,6 +26,15 @@ require_once __DIR__ . '/mail_notifications.php';
  */
 function sendMail(string $to, string $subject, string $body, string $from = ''): bool
 {
+    // Invariant sentinelle (décision produit) — la sentinelle d'anonymisation
+    // (AnonymizationPolicy::ANONYMIZED_EMAIL, domaine .invalid RFC 2606) ne
+    // doit JAMAIS recevoir de mail. Le chokepoint neutralise tout envoi :
+    // aucun échec (succès sémantique « aucun envoi requis ») + journalisation.
+    if (AnonymizationPolicy::isAnonymizedEmail($to)) {
+        error_log('[SST-MAIL] Envoi bloqué vers la sentinelle d\'anonymisation — aucun envoi requis.');
+        return true;
+    }
+
     $smtpHost = getConfigService()->get('smtp_host', '');
     $smtpFrom = $from !== '' ? $from : getConfigService()->get('smtp_from', 'noreply@dreets-bfc.gouv.fr');
     $appName = str_replace(["\r", "\n"], '', getConfigService()->get('app_nom_organisation', 'DREETS BFC'));

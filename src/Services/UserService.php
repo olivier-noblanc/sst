@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repository\SiteRepository;
 use App\Enum\UserRole;
 use RuntimeException;
+use App\Repository\AnonymizationPolicy;
 use App\Repository\UserRepository;
 use App\Event\EventDispatcher;
 use App\DTO\UserEventData;
@@ -198,8 +199,16 @@ class UserService
         }
 
         $email = trim((string) $command->email);
-        if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        // Invariant users.email NOT NULL (décision produit) — email réel
+        // obligatoire ; la sentinelle d'anonymisation est réservée au système
+        // et ne doit jamais être saisie. L'anonymisation elle-même n'appelle
+        // PAS validate() (écriture directe en repository).
+        if (empty($email)) {
+            $errors['email'] = 'L\'adresse email est requise.';
+        } elseif (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             $errors['email'] = 'Adresse email invalide.';
+        } elseif (AnonymizationPolicy::isAnonymizedEmail($email)) {
+            $errors['email'] = 'Cette adresse est réservée au système (anonymisation).';
         }
 
         return $errors;

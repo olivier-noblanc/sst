@@ -58,9 +58,7 @@ class SessionInvalidationTest extends TestCase
     {
         // Audit #9 + #22 — bump the marker on user deactivation
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9101, 'test.sess.sup', 'Sup', 'Anna', 'superviseur', NULL, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9102, 'test.sess.admin', 'Admin', 'Bob', 'superviseur', NULL, 1)");
-
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9101, 'test.sess.sup', 'Sup', 'Anna', 'superviseur', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9102, 'test.sess.admin', 'Admin', 'Bob', 'superviseur', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");
         $before = $pdo->query("SELECT sessions_invalid_before FROM users WHERE id = 9101")->fetchColumn();
         $this->assertNull($before, 'Marker should be NULL initially');
 
@@ -78,9 +76,7 @@ class SessionInvalidationTest extends TestCase
     {
         // Audit #23 — bump the marker on role change
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9103, 'test.sess.role1', 'Agent1', 'Tom', 'agent', NULL, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9104, 'test.sess.role2', 'Agent2', 'Bob', 'superviseur', NULL, 1)");
-
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9103, 'test.sess.role1', 'Agent1', 'Tom', 'agent', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9104, 'test.sess.role2', 'Agent2', 'Bob', 'superviseur', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");
         $repo = new \App\Repository\UserRepository($pdo);
         $events = new \App\Event\EventDispatcher();
         $service = new \App\Services\UserService($repo, $events);
@@ -91,7 +87,7 @@ class SessionInvalidationTest extends TestCase
             prenom: 'Tom',
             role: 'superviseur',
             siteId: \App\DTO\SiteId::none(),
-            email: '',
+            email: 'session.update@dreets-bfc.gouv.fr',
         );
         $service->update(9103, $cmd, 9104);
 
@@ -103,9 +99,7 @@ class SessionInvalidationTest extends TestCase
     {
         // Safety check — only role changes should bump the marker
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9105, 'test.sess.same', 'Same', 'User', 'agent', NULL, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9106, 'test.sess.admin3', 'Admin', 'User', 'superviseur', NULL, 1)");
-
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9105, 'test.sess.same', 'Same', 'User', 'agent', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9106, 'test.sess.admin3', 'Admin', 'User', 'superviseur', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");
         $repo = new \App\Repository\UserRepository($pdo);
         $events = new \App\Event\EventDispatcher();
         $service = new \App\Services\UserService($repo, $events);
@@ -117,7 +111,7 @@ class SessionInvalidationTest extends TestCase
             prenom: 'Updated Pre',
             role: 'agent',
             siteId: \App\DTO\SiteId::none(),
-            email: '',
+            email: 'session.update@dreets-bfc.gouv.fr',
         );
         $service->update(9105, $cmd, 9106);
 
@@ -129,8 +123,7 @@ class SessionInvalidationTest extends TestCase
     {
         // Audit #9 — UserRepository::findSessionState returns is_active=0
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9107, 'test.sess.inactive', 'Inact', 'Bob', 'agent', NULL, 0)");
-
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9107, 'test.sess.inactive', 'Inact', 'Bob', 'agent', NULL, 0, 'fixture@dreets-bfc.gouv.fr')");
         $repo = new \App\Repository\UserRepository($pdo);
         $state = $repo->findSessionState(9107);
         $this->assertNotNull($state);
@@ -140,8 +133,7 @@ class SessionInvalidationTest extends TestCase
     public function testFindSessionStateDetectsMarkerNewerThanSessionStart(): void
     {
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9108, 'test.sess.marker', 'Mark', 'Bob', 'agent', NULL, 1)");
-        // Use PHP time() to avoid timezone mismatch: SQLite datetime('now')
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9108, 'test.sess.marker', 'Mark', 'Bob', 'agent', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");        // Use PHP time() to avoid timezone mismatch: SQLite datetime('now')
         // returns UTC, but strtotime() interprets strings in PHP's local
         // timezone — in UTC+2 this shifts the marker 2h into the past.
         $now = date('Y-m-d H:i:s');
@@ -163,8 +155,7 @@ class SessionInvalidationTest extends TestCase
     public function testFindSessionStateReturnsNullMarkerWhenClean(): void
     {
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9109, 'test.sess.clean', 'Clean', 'Bob', 'agent', NULL, 1)");
-
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9109, 'test.sess.clean', 'Clean', 'Bob', 'agent', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");
         $repo = new \App\Repository\UserRepository($pdo);
         $state = $repo->findSessionState(9109);
         $this->assertNotNull($state);

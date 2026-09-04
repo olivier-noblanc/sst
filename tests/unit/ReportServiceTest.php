@@ -55,11 +55,9 @@ class ReportServiceTest extends TestCase
         $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD_SVC', 'ReportService Site', 1)");
         $this->siteId = (int) $this->pdo->query("SELECT id FROM sites WHERE code = 'UD_SVC'")->fetchColumn();
 
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('svc.agent', 'Agent', 'Test', 'agent', {$this->siteId}, 1)");
-        $this->userId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'svc.agent'")->fetchColumn();
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('svc.agent', 'Agent', 'Test', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");        $this->userId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'svc.agent'")->fetchColumn();
 
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('svc.sup', 'Sup', 'Test', 'superviseur', {$this->siteId}, 1)");
-        $this->supervisorId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'svc.sup'")->fetchColumn();
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('svc.sup', 'Sup', 'Test', 'superviseur', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");        $this->supervisorId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'svc.sup'")->fetchColumn();
     }
 
     private function createReport(ReportType $type = ReportType::Rsst, int $declarantId = 0, ?int $siteId = null): \App\DTO\ReportData

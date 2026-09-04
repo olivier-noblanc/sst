@@ -246,6 +246,107 @@ class PHPStanRulesTest extends TestCase
     }
 
     /**
+     * Verify that UserRole enum values never appear as magic strings in
+     * production code (oracle P1).
+     *
+     * Détection exacte par tokens PHP (T_CONSTANT_ENCAPSED_STRING) : les mots
+     * français contenant 'agent' ("Choix de l'agent") ne sont PAS des
+     * violations — seule la littérale exacte 'agent' l'est.
+     *
+     * Oracle — RespondStatus volontairement HORS périmètre ('ok'/'concurrent'/
+     * 'error' trop génériques → faux positifs potentiels, cf. setFlash) ;
+     * actions POST ('delete_site'...) et valeurs HTML non enumifiées.
+     *
+     * Exception documentée : database.php (seed des comptes de développement —
+     * AGENTS.md « seed data »). FormattingService.php n'est plus whitelisté :
+     * son match de rôles est corrigé (clés UserRole::*->value).
+     */
+    public function testNoMagicRoleAndRespondStatusStringsInProductionCode(): void
+    {
+        $blockedValues = [
+            // UserRole
+            'agent', 'superviseur', 'chsct',
+        ];
+        $whitelistedFiles = ['database.php'];
+        $productionFiles = $this->getProductionFiles();
+
+        $violations = [];
+        foreach ($productionFiles as $file) {
+            if (in_array(basename($file), $whitelistedFiles, true)) {
+                continue;
+            }
+
+            $content = file_get_contents($file);
+            if ($content === false) {
+                continue;
+            }
+
+            $tokens = token_get_all($content);
+            $line = 1;
+            foreach ($tokens as $token) {
+                if (is_array($token)) {
+                    [$id, $text, $tokenLine] = $token;
+                    $line = $tokenLine;
+                    if ($id === T_CONSTANT_ENCAPSED_STRING) {
+                        // Détokenizer pour la valeur EXACTE ('agent' ≠ "Choix de l'agent")
+                        $value = eval('return ' . $text . ';');
+                        if (in_array($value, $blockedValues, true)) {
+                            $violations[] = basename($file) . ':' . $line . " — '" . $value . "'";
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->assertEmpty(
+            $violations,
+            "Magic strings de rôle/statut détectées — utiliser UserRole::*->value ou RespondStatus::*->value : "
+            . implode(', ', $violations)
+        );
+    }
+
+    /**
+     * Non-dérive enums ↔ NoMagicStringRule (oracle) — BLOCKED_VALUES doit
+     * couvrir EXACTEMENT les valeurs des enums contractuels : si un case est
+     * ajouté à un enum sans mise à jour de la règle, ce test échoue.
+     *
+     * Enums couverts : ReportType, ReportState, VisibilityMode, UserRole.
+     *
+     * Exclusions volontaires (hors périmètre garde-fou, à planifier séparément
+     * pour FieldType/SmtpEncryption/ChsctScope) :
+     * - RespondStatus : 'ok'/'concurrent'/'error' trop génériques → faux
+     *   positifs massifs (setFlash('error'), etc.)
+     * - actions POST ('delete_site'...), valeurs HTML, types de champ
+     *   ('text'/'select'...) : valeurs de protocole, pas des codes métier.
+     */
+    public function testBlockedValuesCoverContractualEnumValues(): void
+    {
+        $contractualValues = [
+            ...array_map(fn($c) => $c->value, \App\Enum\ReportType::cases()),
+            ...array_map(fn($c) => $c->value, \App\Enum\ReportState::cases()),
+            ...array_map(fn($c) => $c->value, \App\Enum\VisibilityMode::cases()),
+            ...array_map(fn($c) => $c->value, \App\Enum\UserRole::cases()),
+        ];
+
+        $ref = new \ReflectionClass(\App\PHPStan\NoMagicStringRule::class);
+        $blocked = $ref->getConstant('BLOCKED_VALUES');
+
+        $missing = array_diff($contractualValues, $blocked);
+        $this->assertSame(
+            [],
+            array_values($missing),
+            'BLOCKED_VALUES de NoMagicStringRule ne couvre pas toutes les valeurs des enums contractuels — mettre à jour la règle'
+        );
+
+        $unknown = array_diff($blocked, $contractualValues);
+        $this->assertSame(
+            [],
+            array_values($unknown),
+            'BLOCKED_VALUES contient des valeurs qui ne correspondent à aucun enum contractuel (dérive inverse)'
+        );
+    }
+
+    /**
      * Get all production PHP files (excluding tests, vendor, seed, tools).
      *
      * @return list<string>
@@ -272,7 +373,14 @@ class PHPStanRulesTest extends TestCase
                 }
 
                 $relativePath = str_replace(['\\', '/'], '/', $file->getPathname());
-                $relativePath = str_replace(str_replace(['\\', '/'], '/', __DIR__ . '/../../') . '/', '', $relativePath);
+                // Fiabilisation (audit couverture) — l'ancien préfixe concaténait
+                // un '/' EN PLUS (__DIR__ . '/../../' finit déjà par '/') → le
+                // préfixe ne matchait jamais → $relativePath restait ABSOLU et
+                // contenait 'tests' → TOUT était exclu → getProductionFiles()
+                // retournait 0 et TOUS les tests de scan de cette classe étaient
+                // creux depuis leur création.
+                $prefix = str_replace(['\\', '/'], '/', __DIR__ . '/../../');
+                $relativePath = str_replace($prefix, '', $relativePath);
 
                 $skip = false;
                 $segments = explode('/', $relativePath);

@@ -47,6 +47,13 @@ return RectorConfig::configure()
             'traite'    => 'App\Enum\ReportState::Traite',
             'reouvert'  => 'App\Enum\ReportState::Reouvert',
             'abandonne' => 'App\Enum\ReportState::Abandonne',
+            // UserRole (oracle P1) — 'error'/'ok'/'concurrent' (RespondStatus)
+            // volontairement NON mappés : collision avec le type de flash UI
+            // setFlash('error', …) → la réécriture automatique corromprait les
+            // appels. RespondStatus est comparé exclusivement via l'enum.
+            'agent'       => 'App\Enum\UserRole::Agent',
+            'superviseur' => 'App\Enum\UserRole::Superviseur',
+            'chsct'       => 'App\Enum\UserRole::Chsct',
         ],
         'constToEnum' => [
             // UserRole constants

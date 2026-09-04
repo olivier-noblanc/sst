@@ -74,7 +74,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Site',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $id = $this->repo->create($cmd);
         $user = $this->repo->findById($id);
@@ -89,7 +89,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Role',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $id = $this->repo->create($cmd);
         $user = $this->repo->findById($id);
@@ -106,7 +106,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $id = $this->repo->create($createCmd);
 
@@ -116,7 +116,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $result = $this->repo->update($id, $updateCmd);
         $this->assertTrue($result);
@@ -133,7 +133,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Site',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $id = $this->repo->create($createCmd);
 
@@ -143,7 +143,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Site',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $this->repo->update($id, $updateCmd);
         $user = $this->repo->findById($id);
@@ -160,7 +160,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertEmpty($errors);
@@ -174,7 +174,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertEmpty($errors);
@@ -188,7 +188,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('nom', $errors);
@@ -202,7 +202,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: '',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('prenom', $errors);
@@ -216,7 +216,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('username', $errors);
@@ -230,7 +230,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Jean',
             role: 'invalid_role',
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('role', $errors);
@@ -250,7 +250,7 @@ class UserIdPhase1DtoTest extends TestCase
         $this->assertArrayHasKey('email', $errors);
     }
 
-    public function testServiceValidateAllowsEmptyEmailOnCreateCommand(): void
+    public function testServiceValidateRejectsEmptyEmailOnCreateCommand(): void
     {
         $cmd = new CreateUserCommand(
             username: 'svc.val7',
@@ -261,13 +261,13 @@ class UserIdPhase1DtoTest extends TestCase
             email: '',
         );
         $errors = $this->service->validate($cmd);
-        $this->assertArrayNotHasKey('email', $errors);
+        $this->assertArrayHasKey('email', $errors, 'Invariant NOT NULL - email vide refuse');
     }
 
     public function testServiceValidateRejectsDuplicateUsernameOnCreateCommand(): void
     {
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?)')
-            ->execute(['dup_user', 'Test', 'User', 'agent', 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, ?)')
+            ->execute(['dup_user', 'Test', 'User', 'agent', 1, 'fixture@dreets-bfc.gouv.fr']);
 
         $cmd = new CreateUserCommand(
             username: 'dup_user',
@@ -275,7 +275,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('username', $errors);
@@ -283,8 +283,8 @@ class UserIdPhase1DtoTest extends TestCase
 
     public function testServiceValidateAllowsSameUsernameWithExcludeIdOnUpdateCommand(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([42, 'same_user', 'Test', 'User', 'agent', 1]);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([42, 'same_user', 'Test', 'User', 'agent', 1, 'fixture@dreets-bfc.gouv.fr']);
 
         $cmd = new UpdateUserCommand(
             username: 'same_user',
@@ -292,7 +292,7 @@ class UserIdPhase1DtoTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd, 42);
         $this->assertEmpty($errors);
@@ -302,34 +302,34 @@ class UserIdPhase1DtoTest extends TestCase
 
     public function testCanDemoteAcceptsStringCurrentRole(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 1]);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 1, 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, ROLE_AGENT, ROLE_SUPERVISEUR);
         $this->assertArrayHasKey('role', $errors);
     }
 
     public function testCanDemoteReturnsEmptyForNonLastSuperviseur(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 1]);
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([2, 'sup2', 'C', 'D', 'superviseur', 1]);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 1, 'fixture@dreets-bfc.gouv.fr']);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([2, 'sup2', 'C', 'D', 'superviseur', 1, 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, ROLE_AGENT, ROLE_SUPERVISEUR);
         $this->assertEmpty($errors);
     }
 
     public function testCanDemoteReturnsEmptyForAgentToChsct(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([1, 'agent1', 'A', 'B', 'agent', 1]);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([1, 'agent1', 'A', 'B', 'agent', 1, 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, ROLE_CHSCT, ROLE_AGENT);
         $this->assertEmpty($errors);
     }
 
     public function testCanDemoteReturnsErrorWhenLastSuperviseur(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 1]);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 1, 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, ROLE_AGENT, ROLE_SUPERVISEUR);
         $this->assertArrayHasKey('role', $errors);
         $this->assertStringContainsString('dernier superviseur', $errors['role']);
@@ -337,8 +337,8 @@ class UserIdPhase1DtoTest extends TestCase
 
     public function testCanDemoteReturnsEmptyForSuperviseurStayingSuperviseur(): void
     {
-        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 1]);
+        $this->pdo->prepare('INSERT INTO users (id, username, nom, prenom, role, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([1, 'sup1', 'A', 'B', 'superviseur', 1, 'fixture@dreets-bfc.gouv.fr']);
         $errors = $this->service->canDemote(1, ROLE_SUPERVISEUR, ROLE_SUPERVISEUR);
         $this->assertEmpty($errors);
     }

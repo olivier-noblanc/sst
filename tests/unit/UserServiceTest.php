@@ -68,7 +68,7 @@ class UserServiceTest extends TestCase
             prenom: 'Sophie',
             role: ROLE_SUPERVISEUR,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $user = $this->service->findById($userId);
@@ -93,7 +93,7 @@ class UserServiceTest extends TestCase
             prenom: 'Test',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $this->service->create($cmd);
         $this->assertTrue($dispatched);
@@ -111,7 +111,7 @@ class UserServiceTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
 
@@ -121,7 +121,7 @@ class UserServiceTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $result = $this->service->update($userId, $updateCmd, $userId);
         $this->assertTrue($result);
@@ -144,7 +144,7 @@ class UserServiceTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
 
@@ -154,7 +154,7 @@ class UserServiceTest extends TestCase
             prenom: 'User',
             role: ROLE_CHSCT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $result = $this->service->update($userId, $updateCmd, 999999);
         $this->assertTrue($result);
@@ -172,7 +172,7 @@ class UserServiceTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->assertGreaterThan(0, $userId);
@@ -189,7 +189,7 @@ class UserServiceTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $this->expectException(\RuntimeException::class);
         $this->service->update(999999, $updateCmd, 1);
@@ -208,7 +208,7 @@ class UserServiceTest extends TestCase
             prenom: 'Event',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
 
@@ -218,7 +218,7 @@ class UserServiceTest extends TestCase
             prenom: 'Event',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $this->service->update($userId, $updateCmd, $userId);
         $this->assertTrue($dispatched);
@@ -232,8 +232,7 @@ class UserServiceTest extends TestCase
         });
 
         // Create a second superviseur so demote is allowed
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('svc.multi_sup', 'Multi', 'Sup', 'superviseur', {$this->siteId}, 1)");
-        $otherSupId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'svc.multi_sup'")->fetchColumn();
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('svc.multi_sup', 'Multi', 'Sup', 'superviseur', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");        $otherSupId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'svc.multi_sup'")->fetchColumn();
 
         $cmd = new CreateUserCommand(
             username: 'svc.role_chg',
@@ -241,7 +240,7 @@ class UserServiceTest extends TestCase
             prenom: 'Change',
             role: ROLE_SUPERVISEUR,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
 
@@ -251,7 +250,7 @@ class UserServiceTest extends TestCase
             prenom: 'Change',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $this->service->update($userId, $updateCmd, $userId);
         $this->assertTrue($roleChanged);
@@ -269,7 +268,7 @@ class UserServiceTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $result = $this->service->deactivate($userId, $userId + 1);
@@ -287,7 +286,7 @@ class UserServiceTest extends TestCase
             prenom: 'Deact',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->expectException(\RuntimeException::class);
@@ -302,7 +301,7 @@ class UserServiceTest extends TestCase
             prenom: 'Sup',
             role: ROLE_SUPERVISEUR,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->expectException(\RuntimeException::class);
@@ -322,7 +321,7 @@ class UserServiceTest extends TestCase
             prenom: 'Event',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->service->deactivate($userId, $userId + 1);
@@ -341,7 +340,7 @@ class UserServiceTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->service->deactivate($userId, $userId + 1);
@@ -360,7 +359,7 @@ class UserServiceTest extends TestCase
             prenom: 'Active',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->expectException(\RuntimeException::class);
@@ -380,7 +379,7 @@ class UserServiceTest extends TestCase
             prenom: 'Event',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->service->deactivate($userId, $userId + 1);
@@ -400,7 +399,7 @@ class UserServiceTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertEmpty($errors);
@@ -414,7 +413,7 @@ class UserServiceTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('nom', $errors);
@@ -428,7 +427,7 @@ class UserServiceTest extends TestCase
             prenom: '',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('prenom', $errors);
@@ -442,7 +441,7 @@ class UserServiceTest extends TestCase
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('username', $errors);
@@ -450,14 +449,13 @@ class UserServiceTest extends TestCase
 
     public function testValidateDuplicateUsernameReturnsError(): void
     {
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active) VALUES ('existing_user', 'Test', 'User', 'agent', 1)");
-        $cmd = new CreateUserCommand(
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active, email) VALUES ('existing_user', 'Test', 'User', 'agent', 1, 'fixture@dreets-bfc.gouv.fr')");        $cmd = new CreateUserCommand(
             username: 'existing_user',
             nom: 'Dupont',
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('username', $errors);
@@ -465,15 +463,14 @@ class UserServiceTest extends TestCase
 
     public function testValidateDuplicateUsernameWithExcludeIdAllowsSameUser(): void
     {
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active) VALUES ('same_user', 'Test', 'User', 'agent', 1)");
-        $userId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'same_user'")->fetchColumn();
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, is_active, email) VALUES ('same_user', 'Test', 'User', 'agent', 1, 'fixture@dreets-bfc.gouv.fr')");        $userId = (int) $this->pdo->query("SELECT id FROM users WHERE username = 'same_user'")->fetchColumn();
         $cmd = new CreateUserCommand(
             username: 'same_user',
             nom: 'Dupont',
             prenom: 'Jean',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd, $userId);
         $this->assertEmpty($errors);
@@ -487,7 +484,7 @@ class UserServiceTest extends TestCase
             prenom: 'Jean',
             role: 'invalid_role',
             siteId: SiteId::none(),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $errors = $this->service->validate($cmd);
         $this->assertArrayHasKey('role', $errors);
@@ -507,8 +504,10 @@ class UserServiceTest extends TestCase
         $this->assertArrayHasKey('email', $errors);
     }
 
-    public function testValidateEmptyEmailIsAllowed(): void
+    public function testValidateEmptyEmailIsRejected(): void
     {
+        // Invariant users.email NOT NULL (décision produit, cf. EmailInvariantTest) :
+        // l'email réel est obligatoire, un email vide est refusé à la validation.
         $cmd = new CreateUserCommand(
             username: 'test_val',
             nom: 'Dupont',
@@ -518,7 +517,7 @@ class UserServiceTest extends TestCase
             email: '',
         );
         $errors = $this->service->validate($cmd);
-        $this->assertArrayNotHasKey('email', $errors);
+        $this->assertArrayHasKey('email', $errors);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -533,7 +532,7 @@ class UserServiceTest extends TestCase
             prenom: 'Deact',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->assertTrue($this->service->canDeactivate($userId));
@@ -547,7 +546,7 @@ class UserServiceTest extends TestCase
             prenom: 'Sup',
             role: ROLE_SUPERVISEUR,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $this->assertFalse($this->service->canDeactivate($userId));
@@ -570,7 +569,7 @@ class UserServiceTest extends TestCase
             prenom: 'Demote',
             role: ROLE_SUPERVISEUR,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $errors = $this->service->canDemote($userId, ROLE_AGENT, ROLE_SUPERVISEUR);
@@ -580,15 +579,14 @@ class UserServiceTest extends TestCase
 
     public function testCanDemoteSuperviseurToAgentReturnsEmptyWhenNotLast(): void
     {
-        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES ('svc.multi2', 'Multi', 'Sup2', 'superviseur', {$this->siteId}, 1)");
-
+        $this->pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('svc.multi2', 'Multi', 'Sup2', 'superviseur', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");
         $cmd = new CreateUserCommand(
             username: 'svc.can_demote2',
             nom: 'Can',
             prenom: 'Demote',
             role: ROLE_SUPERVISEUR,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $errors = $this->service->canDemote($userId, ROLE_AGENT, ROLE_SUPERVISEUR);
@@ -603,7 +601,7 @@ class UserServiceTest extends TestCase
             prenom: 'Demote',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $errors = $this->service->canDemote($userId, ROLE_CHSCT, ROLE_AGENT);
@@ -622,7 +620,7 @@ class UserServiceTest extends TestCase
             prenom: 'Me',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'fixture@dreets-bfc.gouv.fr',
         );
         $userId = $this->service->create($cmd);
         $user = $this->service->findById($userId);

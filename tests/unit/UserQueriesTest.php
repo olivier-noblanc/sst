@@ -58,11 +58,11 @@ class UserQueriesTest extends TestCase
     {
         $id = $this->users->create(new CreateUserCommand(
             username: 'min.user', nom: 'User', prenom: 'Min',
-            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'minimal@dreets-bfc.gouv.fr',
         ));
         $this->assertGreaterThan(0, $id);
         $user = $this->users->findById($id);
-        $this->assertNull($user->email);
+        $this->assertSame('minimal@dreets-bfc.gouv.fr', $user->email);
     }
 
     // ─── getUserById() ─────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ class UserQueriesTest extends TestCase
     {
         $this->users->create(new CreateUserCommand(
             username: 'sophie.dupont', nom: 'Dupont', prenom: 'Sophie',
-            role: ROLE_SUPERVISEUR, siteId: SiteId::fromInput(2), email: null,
+            role: ROLE_SUPERVISEUR, siteId: SiteId::fromInput(2), email: 'user.fill@dreets-bfc.gouv.fr',
         ));
         $user = $this->users->findByUsername('sophie.dupont');
         $this->assertNotNull($user);
@@ -109,7 +109,7 @@ class UserQueriesTest extends TestCase
     {
         $id = $this->users->create(new CreateUserCommand(
             username: 'inactive.user', nom: 'Inactive', prenom: 'User',
-            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr',
         ));
         $this->users->deactivate($id);
         $user = $this->users->findByUsername('inactive.user');
@@ -126,16 +126,16 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersReturnsAllActive(): void
     {
-        $this->users->create(new CreateUserCommand(username: 'user1', nom: 'Un', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
-        $this->users->create(new CreateUserCommand(username: 'user2', nom: 'Deux', prenom: 'User', role: ROLE_SUPERVISEUR, siteId: SiteId::fromInput(2), email: null));
+        $this->users->create(new CreateUserCommand(username: 'user1', nom: 'Un', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr'));
+        $this->users->create(new CreateUserCommand(username: 'user2', nom: 'Deux', prenom: 'User', role: ROLE_SUPERVISEUR, siteId: SiteId::fromInput(2), email: 'user.fill@dreets-bfc.gouv.fr'));
         $users = $this->users->findAll();
         $this->assertCount(2, $users);
     }
 
     public function testGetAllUsersFiltersBySite(): void
     {
-        $this->users->create(new CreateUserCommand(username: 'user1', nom: 'Un', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
-        $this->users->create(new CreateUserCommand(username: 'user2', nom: 'Deux', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(2), email: null));
+        $this->users->create(new CreateUserCommand(username: 'user1', nom: 'Un', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr'));
+        $this->users->create(new CreateUserCommand(username: 'user2', nom: 'Deux', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(2), email: 'user.fill@dreets-bfc.gouv.fr'));
         $users = $this->users->findAll(1);
         $this->assertCount(1, $users);
         $this->assertEquals('user1', $users[0]['username']);
@@ -143,8 +143,8 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersExcludesInactive(): void
     {
-        $id = $this->users->create(new CreateUserCommand(username: 'active', nom: 'Active', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
-        $this->users->create(new CreateUserCommand(username: 'inactive', nom: 'Inactive', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
+        $id = $this->users->create(new CreateUserCommand(username: 'active', nom: 'Active', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr'));
+        $this->users->create(new CreateUserCommand(username: 'inactive', nom: 'Inactive', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr'));
         $this->users->deactivate($id);
         $users = $this->users->findAll(0, true);
         $this->assertCount(1, $users);
@@ -153,7 +153,7 @@ class UserQueriesTest extends TestCase
 
     public function testGetAllUsersIncludesInactiveWhenAsked(): void
     {
-        $id = $this->users->create(new CreateUserCommand(username: 'active', nom: 'Active', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
+        $id = $this->users->create(new CreateUserCommand(username: 'active', nom: 'Active', prenom: 'User', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr'));
         $this->users->deactivate($id);
         $users = $this->users->findAll(0, false);
         $this->assertCount(1, $users);
@@ -165,7 +165,7 @@ class UserQueriesTest extends TestCase
     {
         $id = $this->users->create(new CreateUserCommand(
             username: 'edit.me', nom: 'Old', prenom: 'Name',
-            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr',
         ));
         $result = $this->users->update($id, new UpdateUserCommand(
             nom: 'New', prenom: 'Name', email: 'new@test.fr',
@@ -184,7 +184,7 @@ class UserQueriesTest extends TestCase
     {
         $id = $this->users->create(new CreateUserCommand(
             username: 'deac', nom: 'Deac', prenom: 'User',
-            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr',
         ));
         $result = $this->users->deactivate($id);
         $this->assertTrue($result);
@@ -196,7 +196,7 @@ class UserQueriesTest extends TestCase
     {
         $id = $this->users->create(new CreateUserCommand(
             username: 'react', nom: 'React', prenom: 'User',
-            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr',
         ));
         $this->users->deactivate($id);
         $this->users->reactivate($id);
@@ -210,7 +210,7 @@ class UserQueriesTest extends TestCase
     {
         $id = $this->users->create(new CreateUserCommand(
             username: 'promo', nom: 'Promo', prenom: 'User',
-            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null,
+            role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'user.fill@dreets-bfc.gouv.fr',
         ));
         $user = $this->users->findById($id);
         $this->assertNotNull($user);

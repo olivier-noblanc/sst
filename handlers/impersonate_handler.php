@@ -49,7 +49,7 @@ if ($action === 'start') {
 
     // Only allow impersonating agent or chsct
     if (!in_array($targetRole, [UserRole::Agent->value, UserRole::Chsct->value], true)) {
-        $sessionService->setFlash('error', 'Rôle cible invalide. Seuls Agent et ' . getRoleLabelShort('chsct') . ' peuvent être incarnés.');
+        $sessionService->setFlash('error', 'Rôle cible invalide. Seuls Agent et ' . getRoleLabelShort(UserRole::Chsct->value) . ' peuvent être incarnés.');
         $http->redirect($http->url('home'));
     }
 

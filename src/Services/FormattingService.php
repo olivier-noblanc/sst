@@ -8,6 +8,7 @@ use App\Repository\ReportRepository;
 use App\Repository\RegistryRepository;
 use DateTimeZone;
 use App\Enum\ReportState;
+use App\Enum\UserRole;
 use App\Enum\ReportType;
 use DateTime;
 use PDO;
@@ -162,9 +163,9 @@ class FormattingService
     public function getRoleBadgeClass(mixed $role): string
     {
         return match ((string) $role) {
-            'agent'       => 'badge--agent',
-            'superviseur' => 'badge--superviseur',
-            'chsct'       => 'badge--chsct',
+            UserRole::Agent->value       => 'badge--agent',
+            UserRole::Superviseur->value => 'badge--superviseur',
+            UserRole::Chsct->value       => 'badge--chsct',
             default       => '',
         };
     }

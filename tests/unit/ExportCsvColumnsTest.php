@@ -36,7 +36,7 @@ class ExportCsvColumnsTest extends TestCase
         $pdo = getDB();
         $pdo->exec("INSERT OR IGNORE INTO sites (code, nom, is_active) VALUES ('UR21_EXPORT', 'UR Export Test', 1)");
         self::$siteId = (int) $pdo->query("SELECT id FROM sites WHERE code = 'UR21_EXPORT'")->fetchColumn();
-        $pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'test.agent.export', 'Dupont', 'Jean', 'agent', " . self::$siteId . ", 1)");
+        $pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (1, 'test.agent.export', 'Dupont', 'Jean', 'agent', " . self::$siteId . ", 1, 'fixture@dreets-bfc.gouv.fr')");
     }
 
     protected function setUp(): void

@@ -33,7 +33,12 @@ $userSiteId = $sessionUser ? $sessionUser->siteId ?? 0 : 0;
 $userId = $sessionUser ? $sessionUser->id : 0;
 $isDeclarant = ((int) $report->declarantId === $userId);
 $canEdit = new \App\Services\AccessService()->canEditReport($report, $userId);
-$canAbandon = $isDeclarant && !in_array($report->etat, [\App\Enum\ReportState::Abandonne->value, \App\Enum\ReportState::Traite->value], true);
+// Audit lifecycle (F-2) — aligné sur la matrice (autorité) : Abandonne est
+// atteignable depuis Nouveau/EnCours/Traite/Reouvert pour l'Agent déclarant.
+$abandonState = \App\Enum\ReportState::tryFrom($report->etat);
+$abandonRole = \App\Enum\UserRole::tryFrom((string) $userRole);
+$canAbandon = $isDeclarant && $abandonState !== null && $abandonRole !== null
+    && new \App\Services\ReportStateMachine()->canTransition($abandonState, \App\Enum\ReportState::Abandonne, $abandonRole);
 $canRespondToReport = new \App\Services\AccessService()->canRespondToReport($report, $userRole);
 $canReopen = in_array($report->etat, [\App\Enum\ReportState::Traite->value, \App\Enum\ReportState::Abandonne->value], true) && in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true);
 
@@ -150,7 +155,7 @@ if (!isset($csrfToken)) {
                 </tr>
                 <?php endif; ?>
                 <tr>
-                    <th>Transmission aux <?php echo $fmt->e(getConfigService()->getRoleLabel('chsct')); ?>s</th>
+                    <th>Transmission aux <?php echo $fmt->e(getConfigService()->getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?>s</th>
                     <td><?php echo (bool) $report->consentSyndicat ? '✅ Acceptée' : '❌ Refusée'; ?></td>
                 </tr>
                 <tr>

@@ -17,7 +17,9 @@ final readonly class UserEventData
     public function __construct(
         public ?SessionUser $user = null,
         public ?int $userId = null,
+        /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for future event listeners — le listener de notification role_changed a été retiré : chemin unique = handler) */
         public ?string $oldRole = null,
+        /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for future event listeners — idem $oldRole) */
         public ?string $newRole = null,
         /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for DB access in listeners) */
         public ?PDO $pdo = null,
@@ -51,25 +53,15 @@ final readonly class UserEventData
 
     /**
      * Convenience accessor — always returns an int userId (0 if null).
+     *
+     * Ancré par DtoDefaultValuesMutationTest (mutants Infection) et réservé
+     * aux futurs listeners d'événements user.* — même justification que les
+     * propriétés $motif/$pdo ci-dessus.
+     *
+     * @phpstan-ignore shipmonk.deadMethod
      */
     public function userIdInt(): int
     {
         return $this->userId ?? ($this->user !== null ? $this->user->id : 0);
-    }
-
-    /**
-     * Convenience accessor — always returns a string oldRole (empty if null).
-     */
-    public function oldRoleString(): string
-    {
-        return $this->oldRole ?? '';
-    }
-
-    /**
-     * Convenience accessor — always returns a string newRole (empty if null).
-     */
-    public function newRoleString(): string
-    {
-        return $this->newRole ?? '';
     }
 }

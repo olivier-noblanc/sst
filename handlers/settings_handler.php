@@ -36,34 +36,64 @@ $notifRepo = NotificationRepository::instance();
 $configService = getConfigService();
 
 if ($tab === 'sites') {
-    $notifRepo->deleteByType('site');
-    /** @var array<string, string> $siteEmails */
+    // Fiabilisation (council) — validation AVANT écriture : toute adresse
+    // invalide annule l'enregistrement (tout ou rien), au lieu d'être
+    // silencieusement ignorée pendant que le reste était persisté.
     $siteEmails = $_POST['site_emails'] ?? [];
-    if (!empty($siteEmails)) {
-        foreach ($siteEmails as $siteId => $emailText) {
-            $siteId = (int) $siteId;
-            $lines = preg_split('/[\r\n]+/', (string) $emailText) !== false ? preg_split('/[\r\n]+/', (string) $emailText) : [];
-            foreach ($lines as $email) {
-                $email = trim($email);
-                if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
-                    $notifRepo->save($siteId, 'site', 'all', $email);
-                }
+    $parsedSiteEmails = [];
+    $invalidEmails = [];
+    /** @var array<string, string> $siteEmails */
+    foreach ($siteEmails as $siteId => $emailText) {
+        $siteId = (int) $siteId;
+        $lines = preg_split('/[\r\n]+/', (string) $emailText) !== false ? preg_split('/[\r\n]+/', (string) $emailText) : [];
+        foreach ($lines as $email) {
+            $email = trim($email);
+            if ($email === '') {
+                continue;
+            }
+            if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
+                $parsedSiteEmails[] = [$siteId, $email];
+            } else {
+                $invalidEmails[] = $email;
             }
         }
+    }
+    if (!empty($invalidEmails)) {
+        $session->setFlash('error', 'Enregistrement annulé — adresse(s) e-mail invalide(s) : ' . e(implode(', ', array_slice($invalidEmails, 0, 5))) . '. Corrigez-les puis réenregistrez.');
+        $http->redirect($http->url('settings', ['tab' => 'sites']));
+    }
+    $notifRepo->deleteByType('site');
+    foreach ($parsedSiteEmails as [$siteId, $email]) {
+        $notifRepo->save($siteId, 'site', 'all', $email);
     }
 }
 
 if ($tab === 'global') {
-    $notifRepo->deleteByType('global');
+    // Fiabilisation (council) — validation AVANT écriture (tout ou rien).
     $globalEmailsText = trim((string) ($_POST['global_emails'] ?? ''));
+    $parsedGlobalEmails = [];
+    $invalidGlobalEmails = [];
     if ($globalEmailsText !== '') {
         $lines = preg_split('/[\r\n]+/', $globalEmailsText) !== false ? preg_split('/[\r\n]+/', $globalEmailsText) : [];
         foreach ($lines as $email) {
             $email = trim($email);
-            if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
-                $notifRepo->save(null, 'global', 'all', $email);
+            if ($email === '') {
+                continue;
+            }
+            if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
+                $parsedGlobalEmails[] = $email;
+            } else {
+                $invalidGlobalEmails[] = $email;
             }
         }
+    }
+    if (!empty($invalidGlobalEmails)) {
+        $session->setFlash('error', 'Enregistrement annulé — adresse(s) e-mail invalide(s) : ' . e(implode(', ', array_slice($invalidGlobalEmails, 0, 5))) . '. Corrigez-les puis réenregistrez.');
+        $http->redirect($http->url('settings', ['tab' => 'global']));
+    }
+    $notifRepo->deleteByType('global');
+    foreach ($parsedGlobalEmails as $email) {
+        $notifRepo->save(null, 'global', 'all', $email);
     }
 }
 
@@ -82,14 +112,19 @@ if ($tab === 'smtp') {
         $smtpPort = '25';
     }
 
-    $configService->set('smtp_host', $smtpHost);
-    $configService->set('smtp_port', $smtpPort);
-    $configService->set('smtp_user', $smtpUser);
+    // Fiabilisation (council) — écriture ATOMIQUE des clés SMTP (une
+    // transaction, tout ou rien) au lieu de 6 set() indépendants.
+    $smtpValues = [
+        'smtp_host' => $smtpHost,
+        'smtp_port' => $smtpPort,
+        'smtp_user' => $smtpUser,
+        'smtp_from' => $smtpFrom,
+        'smtp_encryption' => $smtpEncryption,
+    ];
     if (!empty($smtpPass)) {
-        $configService->set('smtp_pass', encryptConfigValue($smtpPass));
+        $smtpValues['smtp_pass'] = encryptConfigValue($smtpPass);
     }
-    $configService->set('smtp_from', $smtpFrom);
-    $configService->set('smtp_encryption', $smtpEncryption);
+    $configService->setMany($smtpValues);
 
     if (!empty($smtpHost)) {
         require_once __DIR__ . '/../src/mail.php';

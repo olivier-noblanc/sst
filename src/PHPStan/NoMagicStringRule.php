@@ -25,6 +25,16 @@ final class NoMagicStringRule implements Rule
         'rsst', 'rami', 'dgi',
         // ReportState
         'nouveau', 'en_cours', 'traite', 'reouvert', 'abandonne',
+        // UserRole (oracle P1)
+        'agent', 'superviseur', 'chsct',
+        // Exclusions volontaires (test de non-dérive : PHPStanRulesTest) :
+        // - RespondStatus ('ok'/'concurrent'/'error') : valeurs trop génériques,
+        //   faux positifs massifs (setFlash('error'), etc.)
+        // - actions POST ('delete_site'...), valeurs HTML de formulaire, types
+        //   de champ ('text'/'select'...), encodage SMTP ('none'/'tls') :
+        //   valeurs de protocole, pas des codes métier
+        // - enums candidats À PLANIFIER séparément : FieldType, SmtpEncryption,
+        //   ChsctScope
     ];
 
     /** @var list<string> Chemins whitelistés (pas de contrôle) */
@@ -44,6 +54,8 @@ final class NoMagicStringRule implements Rule
         'statistics.php',
         'seed.php',
         'rector.php',
+        // Seed des comptes de développement (AGENTS.md « seed data »)
+        'database.php',
     ];
 
     public function getNodeType(): string

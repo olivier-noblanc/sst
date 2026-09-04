@@ -97,8 +97,18 @@ class ReportService
             throw new RuntimeException('Signalement introuvable.');
         }
 
-        $userRole = UserRole::from(currentUserRole());
-        $currentState = ReportState::from($report->etat);
+        // AGENTS.md / NoForbiddenEnumMethodRule — tryFrom + exception contrôlée,
+        // jamais de ValueError fatal sur une valeur non contrôlée.
+        $respondRole = UserRole::tryFrom((string) currentUserRole());
+        if ($respondRole === null) {
+            throw new RuntimeException('Votre rôle de session n\'est pas reconnu.');
+        }
+        $userRole = $respondRole;
+        $respondState = ReportState::tryFrom($report->etat);
+        if ($respondState === null) {
+            throw new RuntimeException('L\'état de ce signalement n\'est pas reconnu.');
+        }
+        $currentState = $respondState;
 
         // Validate transition using state machine
         $this->stateMachine->validateTransition($report, $cmd->nouvelEtat, $userRole);
@@ -157,8 +167,16 @@ class ReportService
             throw new RuntimeException('Signalement introuvable.');
         }
 
-        $userRole = UserRole::from(currentUserRole());
-        $currentState = ReportState::from($report->etat);
+        // tryFrom — jamais ::from sur une valeur non contrôlée (AGENTS.md).
+        $abandonRole = UserRole::tryFrom((string) currentUserRole());
+        if ($abandonRole === null) {
+            throw new RuntimeException('Votre rôle de session n\'est pas reconnu.');
+        }
+        $userRole = $abandonRole;
+        $currentState = ReportState::tryFrom($report->etat);
+        if ($currentState === null) {
+            throw new RuntimeException('L\'état de ce signalement n\'est pas reconnu.');
+        }
 
         // Validate transition using state machine
         $this->stateMachine->validateTransition($report, ReportState::Abandonne, $userRole);
@@ -185,7 +203,12 @@ class ReportService
             throw new RuntimeException('Signalement introuvable.');
         }
 
-        $userRole = UserRole::from(currentUserRole());
+        // tryFrom — jamais ::from sur une valeur non contrôlée (AGENTS.md).
+        $reopenRole = UserRole::tryFrom((string) currentUserRole());
+        if ($reopenRole === null) {
+            throw new RuntimeException('Votre rôle de session n\'est pas reconnu.');
+        }
+        $userRole = $reopenRole;
 
         // Validate transition using state machine
         $this->stateMachine->validateTransition($report, ReportState::Reouvert, $userRole);
@@ -213,6 +236,7 @@ class ReportService
                 $report,
                 userId: $userId,
                 pdo: $this->repo->getPdo(),
+                motif: $cmd->motif,
             ));
         }
 

@@ -50,9 +50,7 @@ class UserAnonymizeTest extends TestCase
         $pdo = self::$pdo;
 
         // Insert a supervisor with one response on a report
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9001, 'test.anon.sup', 'Dupont', 'Pierre', 'superviseur', NULL, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9002, 'test.anon.agent', 'Martin', 'Jean', 'agent', NULL, 1)");
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('aaaa-1111-test', 'RSST-25-001', 'rsst', 'Test', 'Desc', '2025-01-01', 9002, 'Martin', 'Jean', NULL, 'traite')");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9001, 'test.anon.sup', 'Dupont', 'Pierre', 'superviseur', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9002, 'test.anon.agent', 'Martin', 'Jean', 'agent', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('aaaa-1111-test', 'RSST-25-001', 'rsst', 'Test', 'Desc', '2025-01-01', 9002, 'Martin', 'Jean', NULL, 'traite')");
         $pdo->exec("INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat) VALUES ('aaaa-1111-test', 9001, 'Réponse test', 'traite')");
 
         $repo = new \App\Repository\UserRepository($pdo);
@@ -67,7 +65,7 @@ class UserAnonymizeTest extends TestCase
 
         $this->assertSame('Anonymisé', $user['nom'], 'nom should be anonymized');
         $this->assertSame('Utilisateur', $user['prenom'], 'prenom should be anonymized');
-        $this->assertNull($user['email'], 'email should be NULL');
+        $this->assertSame(\App\Repository\AnonymizationPolicy::ANONYMIZED_EMAIL, $user['email'], 'email should be the anonymization sentinel, never NULL');
         $this->assertSame('0', (string) $user['is_active'], 'is_active should be 0');
         // Audit #24 — username must be anonymized too
         $this->assertStringStartsWith('anonymized_', $user['username'], 'username should start with "anonymized_"');
@@ -89,8 +87,7 @@ class UserAnonymizeTest extends TestCase
 
         // Simpler: test that anonymize returns true for a user without responses
         $pdo = self::$pdo;
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9003, 'test.anon.clean', 'Clean', 'User', 'agent', NULL, 1)");
-
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9003, 'test.anon.clean', 'Clean', 'User', 'agent', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");
         $repo = new \App\Repository\UserRepository($pdo);
         $result = $repo->anonymize(9003);
         $this->assertTrue($result, 'anonymize() should return true for a user without responses');
@@ -102,9 +99,7 @@ class UserAnonymizeTest extends TestCase
         // (audit trail integrity)
         $pdo = self::$pdo;
 
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9004, 'test.anon.sup2', 'Smith', 'Anna', 'superviseur', NULL, 1)");
-        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (9005, 'test.anon.agent2', 'Brown', 'Bob', 'agent', NULL, 1)");
-        $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('bbbb-2222-test', 'RSST-25-002', 'rsst', 'Test 2', 'Desc 2', '2025-01-02', 9005, 'Brown', 'Bob', NULL, 'traite')");
+        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9004, 'test.anon.sup2', 'Smith', 'Anna', 'superviseur', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");        $pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (9005, 'test.anon.agent2', 'Brown', 'Bob', 'agent', NULL, 1, 'fixture@dreets-bfc.gouv.fr')");        $pdo->exec("INSERT OR IGNORE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('bbbb-2222-test', 'RSST-25-002', 'rsst', 'Test 2', 'Desc 2', '2025-01-02', 9005, 'Brown', 'Bob', NULL, 'traite')");
         $pdo->exec("INSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat) VALUES ('bbbb-2222-test', 9004, 'Ma réponse préservée', 'traite')");
 
         $repo = new \App\Repository\UserRepository($pdo);

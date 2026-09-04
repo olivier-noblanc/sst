@@ -50,11 +50,9 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD25', 'Doubs', 1)");
         $this->siteId2 = (int) $this->pdo->lastInsertId();
 
-        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Agent', 'Un', 'agent1', 'agent', {$this->siteId}, 1)");
-        $this->agentId1 = (int) $this->pdo->lastInsertId();
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Agent', 'Un', 'agent1', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");        $this->agentId1 = (int) $this->pdo->lastInsertId();
 
-        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Agent', 'Deux', 'agent2', 'agent', {$this->siteId2}, 1)");
-        $this->agentId2 = (int) $this->pdo->lastInsertId();
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Agent', 'Deux', 'agent2', 'agent', {$this->siteId2}, 1, 'fixture@dreets-bfc.gouv.fr')");        $this->agentId2 = (int) $this->pdo->lastInsertId();
     }
 
     private function createReport(int $declarantId, string $objet, int $isConfidential = 0, ?int $siteId = null): string

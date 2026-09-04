@@ -4,6 +4,7 @@ use App\DTO\FormData;
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Enum\UserRole;
+use App\Services\NotificationService;
 
 /**
  * User Edit Handler — Application SST DREETS BFC
@@ -109,12 +110,15 @@ $service->update($userId, $cmd, $sessionUser->id);
 
 // Bug #30 — Audit log écrit AVANT l'envoi de l'email. Si sendMail échoue,
 // l'audit log ment (notified=true). Maintenant on track le résultat réel.
+// Fiabilisation (council) — chemin UNIQUE de notification du changement de
+// rôle : ce handler via NotificationService (la checkbox notify_role_change
+// est respectée ici ; l'ancien listener 'user.role_changed' envoyait un
+// e-mail inconditionnel EN PLUS, ignorant la checkbox).
 $emailSent = false;
 $emailError = '';
 if ($notifyRoleChange) {
-    require_once __DIR__ . '/../src/mail.php';
     try {
-        notifyRoleChange($pdo, $userId, $oldRole, $cmd->role);
+        getContainer()->get(NotificationService::class)->notifyRoleChange($userId, $oldRole, $cmd->role);
         $emailSent = true;
     } catch (Throwable $e) {
         // @silent-ok: best-effort notification email — the role change itself already

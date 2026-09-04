@@ -13,6 +13,9 @@
 namespace App\Services;
 
 use App\Enum\ReportType;
+use App\Repository\RegistryFieldRepository;
+use App\Repository\RegistryRepository;
+use App\Repository\StatsRepository;
 
 class ExportService
 {
@@ -64,6 +67,111 @@ class ExportService
     public function __construct(
         private readonly ConfigService $config
     ) {}
+
+    /**
+     * Clés de ligne déjà émises par les colonnes standard (BASE + site +
+     * FOOTER, y compris les clés agrégées : pour_compte_* → "Déclaré pour
+     * le compte de", nature_auteur/type_acte → colonnes RAMI dédiées).
+     * Un registry_field dont field_code figure ici ne doit PAS être dupliqué
+     * en colonne dynamique (même règle que StatsQueryRepository::getExportData
+     * pour le SELECT — pas de doublon en-tête/valeur).
+     */
+    private const array EMITTED_KEYS = [
+        'reference', 'type', 'date_evenement', 'heure_evenement', 'lieu',
+        'pole', 'service_affectation', 'telephone_mobile', 'site_text',
+        'objet', 'description', 'declarant_nom', 'declarant_prenom',
+        'site_code', 'site_nom', 'etat', 'is_confidential', 'consent_syndicat',
+        'created_at', 'pour_compte_de', 'pour_compte_nom', 'pour_compte_prenom',
+        'nature_auteur', 'type_acte', 'reponse', 'repondant_prenom',
+        'repondant_nom', 'date_reponse',
+    ];
+
+    /**
+     * Résout le code du registre qui pilote les colonnes dynamiques de
+     * l'export, à partir du VRAI POST du formulaire pages/export.php.
+     *
+     * Fiabilisation (audit A2) : l'handler lisait $_POST['registry'], champ
+     * qui n'existait dans aucun formulaire → registryCode toujours null →
+     * les champs custom des registres custom n'étaient jamais exportés.
+     *
+     * @param array<string, string> $post Données du formulaire ($_POST)
+     */
+    public function resolveRegistryCodeFromPost(array $post): ?string
+    {
+        // Champ legacy explicite — compatibilité ascendante, prioritaire
+        if (!empty($post['registry'])) {
+            return (string) $post['registry'];
+        }
+        // Formulaire réel : un registre unique sélectionné (case
+        // all_registries décochée + select type) pilote les colonnes dynamiques
+        if (empty($post['all_registries']) && !empty($post['type'])) {
+            return (string) $post['type'];
+        }
+        return null;
+    }
+
+    /**
+     * Champs custom du registre à exporter en colonnes dynamiques, dans
+     * l'ordre de registry_fields — EXCLUS :
+     * (a) les codes déjà émis par les colonnes standard (pas de doublon),
+     * (b) les codes sans colonne physique dans la table reports (oracle R1 —
+     *     même filtre PRAGMA que StatsQueryRepository::getExportData() :
+     *     une colonne annoncée est toujours réellement sélectionnée, jamais
+     *     une colonne vide sans données),
+     * avec la même sanitization de clé que getExportData() (les clés de
+     * lignes correspondent exactement).
+     *
+     * Oracle R3 — résultat mis en cache PAR INSTANCE et PAR registre :
+     * export_handler appelle cette méthode pour les en-têtes puis pour
+     * CHAQUE ligne CSV — un seul calcul par registre et par requête (le
+     * container réinstancie le service à chaque requête, pas de cache
+     * inter-requêtes périmé).
+     *
+     * @return list<array{code: string, label: string}>
+     */
+    public function getDynamicExportFields(?string $registryCode): array
+    {
+        if ($registryCode === null || $registryCode === '') {
+            return [];
+        }
+        if (isset($this->dynamicExportFieldsCache[$registryCode])) {
+            return $this->dynamicExportFieldsCache[$registryCode];
+        }
+
+        $fields = $this->computeDynamicExportFields($registryCode);
+        return $this->dynamicExportFieldsCache[$registryCode] = $fields;
+    }
+
+    /** @var array<string, list<array{code: string, label: string}>> */
+    private array $dynamicExportFieldsCache = [];
+
+    /**
+     * @return list<array{code: string, label: string}>
+     */
+    private function computeDynamicExportFields(string $registryCode): array
+    {
+        $registry = RegistryRepository::instance()->findByCode($registryCode);
+        if ($registry === null) {
+            return [];
+        }
+        $fields = RegistryFieldRepository::instance()->findByRegistry((int) $registry['id']);
+        $physicalColumns = StatsRepository::instance()->getReportPhysicalColumns();
+
+        $dynamic = [];
+        foreach ($fields as $field) {
+            // Même sanitization que getExportData() — la clé de la ligne CSV
+            // correspond exactement à la clé sélectionnée en SQL
+            $code = (string) preg_replace('/[^a-zA-Z_]/', '', (string) $field['field_code']);
+            if ($code === '' || in_array($code, self::EMITTED_KEYS, true)) {
+                continue;
+            }
+            if (!in_array($code, $physicalColumns, true)) {
+                continue;
+            }
+            $dynamic[] = ['code' => $code, 'label' => (string) $field['label']];
+        }
+        return $dynamic;
+    }
 
     /**
      * Construit les filtres d'export depuis les données POST du formulaire d'export.
@@ -127,9 +235,11 @@ class ExportService
      * Génère les en-têtes CSV.
      *
      * @param bool $noSiteMode true si mode sans site activé
+     * @param string|null $registryCode Code du registre — ajoute en fin
+     *        d'en-têtes les labels des champs custom non déjà émis
      * @return list<string>
      */
-    public function buildHeaders(bool $noSiteMode): array
+    public function buildHeaders(bool $noSiteMode, ?string $registryCode = null): array
     {
         $headers = self::BASE_COLUMNS;
 
@@ -144,7 +254,15 @@ class ExportService
             $siteColumns = self::SITE_COLUMNS;
         }
 
-        return array_merge($headers, self::FOOTER_COLUMNS);
+        $headers = array_merge($headers, self::FOOTER_COLUMNS);
+
+        // Colonnes dynamiques du registre (champs custom, même liste et
+        // même ordre que buildCsvRow → alignement en-têtes/valeurs garanti)
+        foreach ($this->getDynamicExportFields($registryCode) as $field) {
+            $headers[] = $field['label'];
+        }
+
+        return $headers;
     }
 
     /**
@@ -153,9 +271,12 @@ class ExportService
      * @param array<string, string> $row Données brutes depuis la BDD
      * @param list<array{id: int, report_uuid: string, user_id: int|null, reponse: string|null, nouvel_etat: string|null, attachment_blob: string|null, attachment_name: string|null, attachment_mime: string|null, created_at: string, nom: string|null, prenom: string|null}> $responses Historique des réponses pour ce signalement
      * @param bool $noSiteMode true si mode sans site activé
+     * @param string|null $registryCode Code du registre — ajoute en fin de
+     *        ligne les valeurs des champs custom (mêmes champs, même ordre
+     *        que buildHeaders)
      * @return list<string>
      */
-    public function buildCsvRow(array $row, array $responses, bool $noSiteMode): array
+    public function buildCsvRow(array $row, array $responses, bool $noSiteMode, ?string $registryCode = null): array
     {
         // Construction du champ "Pour le compte de"
         $pourCompte = '';
@@ -194,7 +315,7 @@ class ExportService
         }
 
         // Colonnes de fin
-        return array_merge($csvRow, [
+        $csvRow = array_merge($csvRow, [
             $this->escapeCsvField($this->getEtatLabel($row['etat'] ?? '')),
             !empty($row['is_confidential']) ? 'Oui' : 'Non',
             !empty($row['consent_syndicat']) ? 'Acceptée' : 'Refusée',
@@ -208,6 +329,20 @@ class ExportService
             $this->escapeCsvField($row['date_reponse'] ?? ''),
             $this->escapeCsvField($historyText),
         ]);
+
+        // Valeurs des champs custom du registre (mêmes champs, même ordre que
+        // buildHeaders → alignement en-têtes/valeurs garanti). Les champs de
+        // type select sont traduits via leurs options (même règle que les
+        // colonnes RAMI standard ci-dessus).
+        foreach ($this->getDynamicExportFields($registryCode) as $field) {
+            $value = (string) ($row[$field['code']] ?? '');
+            if ($value !== '') {
+                $value = $this->getRegistryFieldLabel($registryCode ?? '', $field['code'], $value);
+            }
+            $csvRow[] = $this->escapeCsvField($value);
+        }
+
+        return $csvRow;
     }
 
     /**

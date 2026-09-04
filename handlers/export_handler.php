@@ -31,7 +31,11 @@ $reportRepo = ReportRepository::instance();
 $filters = $exportService->buildFiltersFromPost($_POST);
 
 // Get data (with optional registryCode for dynamic columns)
-$registryCode = !empty($_POST['registry']) ? (string) $_POST['registry'] : null;
+// Fiabilisation (audit A2) — l'ancien code lisait $_POST['registry'], champ
+// qui n'existait dans AUCUN formulaire (pages/export.php poste `type` +
+// `all_registries`) → registryCode toujours null → les champs custom des
+// registres custom n'étaient JAMAIS exportés (ni en en-têtes, ni en valeurs).
+$registryCode = $exportService->resolveRegistryCodeFromPost($_POST);
 $reports = StatsRepository::instance()->getExportData($filters, $registryCode);
 $count = count($reports);
 $truncated = $count >= StatsRepository::EXPORT_MAX_ROWS;
@@ -59,7 +63,8 @@ auditLog($pdo, 'export', 'csv_export', 'Export CSV — ' . $count . ' signalemen
 fwrite($tmpFile, "\xEF\xBB\xBF");
 
 // Header row — includes multi-response columns (declarative via ExportService)
-$headers = $exportService->buildHeaders($noSiteMode);
+// + colonnes dynamiques du registre quand un registre unique est exporté
+$headers = $exportService->buildHeaders($noSiteMode, $registryCode);
 fputcsv($tmpFile, $headers, ';', escape: '');
 
 // Bulk-fetch all responses for the reports being exported (avoids N+1 queries)
@@ -75,8 +80,8 @@ foreach ($reports as $row) {
     // Get response history for this report (from bulk-fetched data)
     $responses = $allResponses[(string) ($row['uuid'] ?? '')] ?? [];
 
-    // Build CSV row using ExportService
-    $csvRow = $exportService->buildCsvRow($row, $responses, $noSiteMode);
+    // Build CSV row using ExportService (with dynamic registry columns)
+    $csvRow = $exportService->buildCsvRow($row, $responses, $noSiteMode, $registryCode);
 
     fputcsv($tmpFile, $csvRow, ';', escape: '');
 }

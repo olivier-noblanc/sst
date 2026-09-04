@@ -223,10 +223,10 @@ class SiteRepositoryMutationTest extends TestCase
     public function testCountUsersReturnsActiveUsersOnly(): void
     {
         $id = $this->seedSite('UR21', 'UR 21');
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['u1', 'A', 'B', 'agent', $id, 1]);
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['u2', 'C', 'D', 'agent', $id, 0]); // inactive
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['u1', 'A', 'B', 'agent', $id, 1, 'fixture@dreets-bfc.gouv.fr']);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['u2', 'C', 'D', 'agent', $id, 0, 'fixture@dreets-bfc.gouv.fr']); // inactive
         $this->assertSame(1, $this->repo->countUsers($id), 'inactive users must be excluded');
     }
 
@@ -242,8 +242,8 @@ class SiteRepositoryMutationTest extends TestCase
     {
         $siteId = $this->seedSite('UR21', 'UR 21');
         $otherSite = $this->seedSite('UR25', 'UR 25');
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['decl', 'D', 'E', 'agent', $siteId, 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['decl', 'D', 'E', 'agent', $siteId, 1, 'fixture@dreets-bfc.gouv.fr']);
         $declarantId = (int) $this->pdo->lastInsertId();
 
         $this->pdo->prepare('INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
@@ -259,8 +259,8 @@ class SiteRepositoryMutationTest extends TestCase
     public function testDeleteReturnsFalseWhenSiteHasUsers(): void
     {
         $id = $this->seedSite('UR21', 'UR 21');
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['u1', 'A', 'B', 'agent', $id, 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['u1', 'A', 'B', 'agent', $id, 1, 'fixture@dreets-bfc.gouv.fr']);
         $this->assertFalse($this->repo->delete($id), 'cannot delete site with users');
         // Site must still exist
         $this->assertNotNull($this->repo->findById($id));
@@ -269,8 +269,8 @@ class SiteRepositoryMutationTest extends TestCase
     public function testDeleteReturnsFalseWhenSiteHasReports(): void
     {
         $id = $this->seedSite('UR21', 'UR 21');
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute(['decl', 'D', 'E', 'agent', $id, 1]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['decl', 'D', 'E', 'agent', $id, 1, 'fixture@dreets-bfc.gouv.fr']);
         $declarantId = (int) $this->pdo->lastInsertId();
         $this->pdo->prepare('INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute(['uuid1', 'rsst-25-001', 'rsst', 'Obj1', 'Desc1', '2026-01-01', $declarantId, 'D', 'E', $id, 'nouveau']);

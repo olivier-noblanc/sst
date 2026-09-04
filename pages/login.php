@@ -98,7 +98,7 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
                         <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e(new \App\Services\SessionService()->generateCsrfToken()); ?>">
                         <input type="hidden" name="username" value="chsct.dev">
                         <input type="hidden" name="password" value="test">
-                        <button type="submit" class="btn btn--primary login-btn--chsct"><?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabel('chsct')); ?></button>
+                        <button type="submit" class="btn btn--primary login-btn--chsct"><?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?></button>
                     </form>
                     <span class="login-btn-desc">Consultation et synthèse</span>
                 </div>

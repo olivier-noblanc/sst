@@ -46,8 +46,8 @@ class UserRepositoryMutationTest extends TestCase
 
     private function seedUser(string $username, string $role = 'agent', int $isActive = 1, ?int $siteId = null): int
     {
-        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([$username, 'Nom' . $username, 'Prenom' . $username, $role, $siteId ?? $this->siteId, $isActive]);
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$username, 'Nom' . $username, 'Prenom' . $username, $role, $siteId ?? $this->siteId, $isActive, 'fixture@dreets-bfc.gouv.fr']);
         return (int) $this->pdo->lastInsertId();
     }
 
@@ -231,7 +231,7 @@ class UserRepositoryMutationTest extends TestCase
             prenom: 'User',
             role: ROLE_AGENT,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $id = $this->repo->create($cmd);
         $this->assertGreaterThan(0, $id);
@@ -245,7 +245,7 @@ class UserRepositoryMutationTest extends TestCase
             prenom: 'Site',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $id = $this->repo->create($cmd);
         $user = $this->repo->findById($id);
@@ -260,7 +260,7 @@ class UserRepositoryMutationTest extends TestCase
             prenom: 'R',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $id = $this->repo->create($cmd);
         $user = $this->repo->findById($id);
@@ -278,7 +278,7 @@ class UserRepositoryMutationTest extends TestCase
             prenom: 'User',
             role: ROLE_SUPERVISEUR,
             siteId: SiteId::fromInput($this->siteId),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $result = $this->repo->update($id, $cmd);
         $this->assertTrue($result);
@@ -296,7 +296,7 @@ class UserRepositoryMutationTest extends TestCase
             prenom: 'P',
             role: ROLE_AGENT,
             siteId: SiteId::none(),
-            email: null,
+            email: 'user.fill@dreets-bfc.gouv.fr',
         );
         $this->repo->update($id, $cmd);
         $user = $this->repo->findById($id);

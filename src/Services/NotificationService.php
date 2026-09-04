@@ -97,8 +97,11 @@ class NotificationService
 
     /**
      * Notify the declarant and linked agents that their report has been reopened.
+     *
+     * Fiabilisation (council) — $motif préserve le contenu de l'ancien envoi
+     * direct du handler (le motif figurait dans l'e-mail).
      */
-    public function notifyReportReopen(string $reportUuid, int $userId): void
+    public function notifyReportReopen(string $reportUuid, int $userId, ?string $motif = null): void
     {
         $report = ReportRepository::instance()->findById($reportUuid);
         if ($report === null) {
@@ -111,6 +114,10 @@ class NotificationService
         $type = $report->type;
         $registryLabel = getRegistryShortLabel($type);
 
+        $motifHtml = ($motif !== null && $motif !== '')
+            ? '<p><strong>Motif :</strong> ' . e($motif) . '</p>'
+            : '';
+
         // Notify declarant
         /** @var int */
         $declarantId = $report->declarantId;
@@ -120,6 +127,7 @@ class NotificationService
             $body = '<html><body>';
             $body .= '<h2>Votre signalement a été réouvert</h2>';
             $body .= '<p><strong>Référence :</strong> ' . e($report->reference) . '</p>';
+            $body .= $motifHtml;
             $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
             sendMail($declarant->email, $subject, $body);
@@ -134,6 +142,7 @@ class NotificationService
                 $linkedBody .= '<h2>Signalement réouvert</h2>';
                 $linkedBody .= '<p>Bonjour ' . e($linkedAgent['prenom']) . ',</p>';
                 $linkedBody .= '<p>Le signalement <strong>' . e($report->reference) . '</strong> auquel vous êtes rattaché(e) a été réouvert.</p>';
+                $linkedBody .= $motifHtml;
                 $linkedBody .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
                 $linkedBody .= '</body></html>';
                 sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);

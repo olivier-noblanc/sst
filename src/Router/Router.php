@@ -134,4 +134,17 @@ class Router
     {
         return $this->postHandlers;
     }
+
+    /**
+     * Audit lifecycle (gap 3) — expose les middlewares d'une route POST pour
+     * les tests de cohérence guards ↔ matrice (RouterRoleMappingTest).
+     *
+     * @return list<callable>
+     *
+     * @phpstan-ignore shipmonk.deadMethod (API d'introspection consommée par les tests)
+     */
+    public function getPostMiddleware(string $name): array
+    {
+        return $this->postMiddlewares[$name] ?? [];
+    }
 }

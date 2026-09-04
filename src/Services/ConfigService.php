@@ -43,6 +43,21 @@ class ConfigService
     }
 
     /**
+     * Écrit plusieurs clés dans UNE transaction (tout ou rien), puis
+     * invalide le cache.
+     *
+     * Fiabilisation (council) — remplace les séries de set() des onglets de
+     * paramétrage pour empêcher toute persistance partielle.
+     *
+     * @param array<string, string> $values
+     */
+    public function setMany(array $values): void
+    {
+        ConfigRepository::instance()->setMany($values);
+        $this->clearCache();
+    }
+
+    /**
      * Clear the config cache.
      */
     public function clearCache(): void

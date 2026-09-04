@@ -47,6 +47,10 @@ function createRouter(): Router
 
     // Role-based middlewares (override CSRF-only for specific handlers)
     $superviseur = new RoleMiddleware([UserRole::Superviseur->value]);
+    // Audit lifecycle (gap 3) — la matrice ReportStateMachine est l'autorité :
+    // Traite/Abandonne→Reouvert [Superviseur, Chsct] → la route doit accepter
+    // le CHSCT comme l'UI expose déjà le bouton Réouvrir.
+    $reopenRoles = new RoleMiddleware([UserRole::Superviseur->value, UserRole::Chsct->value]);
     $router->setPostMiddleware('export', [$csrf, $superviseur]);
     $router->setPostMiddleware('settings', [$csrf, $superviseur]);
     $router->setPostMiddleware('site_edit', [$csrf, $superviseur]);
@@ -56,7 +60,7 @@ function createRouter(): Router
     $router->setPostMiddleware('user_delete', [$csrf, $superviseur]);
     $router->setPostMiddleware('user_reactivate', [$csrf, $superviseur]);
     $router->setPostMiddleware('report_respond', [$csrf, $superviseur]);
-    $router->setPostMiddleware('report_reopen', [$csrf, $superviseur]);
+    $router->setPostMiddleware('report_reopen', [$csrf, $reopenRoles]);
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // GET pages (with standard layout)

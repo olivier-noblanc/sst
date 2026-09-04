@@ -63,8 +63,8 @@ class AccessHelperVisibilityTest extends TestCase
         $pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES (" . $pdo->quote($code) . ", 'Site Test', 1)");
         $siteId = (int) $pdo->lastInsertId();
         $username = 'u' . str_replace('.', '', uniqid('', true));
-        $pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active) VALUES ("
-            . $pdo->quote($username) . ", 'Test', 'User', " . $pdo->quote($role) . ", $siteId, 1)");
+        $pdo->exec("INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ("
+            . $pdo->quote($username) . ", 'Test', 'User', " . $pdo->quote($role) . ", $siteId, 1, 'fixture@dreets-bfc.gouv.fr')");
         return (int) $pdo->lastInsertId();
     }
 

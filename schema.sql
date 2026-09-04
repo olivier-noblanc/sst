@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     username        TEXT NOT NULL UNIQUE,            -- Windows login (e.g. "jean.martin")
     nom             TEXT NOT NULL,                   -- Last name
     prenom          TEXT NOT NULL,                   -- First name
-    email           TEXT,                            -- Email address
+    email           TEXT NOT NULL CHECK (email <> ''), -- Invariant NOT NULL (décision produit) — sentinelle = AnonymizationPolicy::ANONYMIZED_EMAIL
     role            TEXT NOT NULL DEFAULT 'agent',   -- 'agent'|'superviseur'|'chsct'
     site_id         INTEGER,                         -- FK to sites (NULL until agent chooses on first login)
     site_chosen_at  TEXT,                            -- When the agent first chose their site (for 7-day grace period)

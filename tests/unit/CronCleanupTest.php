@@ -21,7 +21,7 @@ class CronCleanupTest extends TestCase
         $this->pdo->exec('DELETE FROM sites');
         $this->pdo->exec('DELETE FROM audit_log');
         $this->pdo->exec("INSERT INTO sites (id, code, nom, is_active) VALUES (1, 'UR21', 'Test', 1)");
-        $this->pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active) VALUES (1, 'jean', 'M', 'J', 'agent', 1, 1)");
+        $this->pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email) VALUES (1, 'jean', 'M', 'J', 'agent', 1, 1, 'fixture@dreets-bfc.gouv.fr')");
         $this->pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat) VALUES ('r1', 'rsst-26-001', 'rsst', 'O', 'D', '2026-01-01', 1, 'M', 'J', 1, 'nouveau')");
     }
 

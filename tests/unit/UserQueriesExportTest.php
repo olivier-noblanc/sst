@@ -41,9 +41,9 @@ class UserQueriesExportTest extends TestCase
     public function testCountActiveUsers(): void
     {
         $this->assertEquals(0, $this->users->countActive());
-        $this->users->create(new CreateUserCommand(username: 'u1', nom: 'U1', prenom: 'Test', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
+        $this->users->create(new CreateUserCommand(username: 'u1', nom: 'U1', prenom: 'Test', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'userqueriesexport@dreets-bfc.gouv.fr'));
         $this->assertEquals(1, $this->users->countActive());
-        $id = $this->users->create(new CreateUserCommand(username: 'u2', nom: 'U2', prenom: 'Test', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: null));
+        $id = $this->users->create(new CreateUserCommand(username: 'u2', nom: 'U2', prenom: 'Test', role: ROLE_AGENT, siteId: SiteId::fromInput(1), email: 'userqueriesexport@dreets-bfc.gouv.fr'));
         $this->assertEquals(2, $this->users->countActive());
         $this->users->deactivate($id);
         $this->assertEquals(1, $this->users->countActive());
@@ -78,7 +78,7 @@ class UserQueriesExportTest extends TestCase
         $user = $this->users->findById($id);
         $this->assertEquals('Anonymisé', $user->nom);
         $this->assertEquals('Utilisateur', $user->prenom);
-        $this->assertNull($user->email);
+        $this->assertSame(\App\Repository\AnonymizationPolicy::ANONYMIZED_EMAIL, $user->email);
         $this->assertEquals(0, (int) $user->isActive);
     }
 
@@ -100,7 +100,7 @@ class UserQueriesExportTest extends TestCase
     {
         $id = $this->users->create(new CreateUserCommand(
             username: 'no.site', nom: 'NoSite', prenom: 'User',
-            role: ROLE_AGENT, siteId: SiteId::none(), email: null,
+            role: ROLE_AGENT, siteId: SiteId::none(), email: 'user.fill@dreets-bfc.gouv.fr',
         ));
         $user = $this->users->findById($id);
         $this->assertNull($user->siteCode);

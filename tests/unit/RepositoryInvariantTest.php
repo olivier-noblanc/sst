@@ -38,14 +38,12 @@ class RepositoryInvariantTest extends TestCase
 
     private function seedUser(int $siteId, string $role = 'agent'): int
     {
-        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Martin', 'Jean', 'jean.martin', '$role', $siteId, 1)");
-        return (int) $this->pdo->lastInsertId();
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Martin', 'Jean', 'jean.martin', '$role', $siteId, 1, 'fixture@dreets-bfc.gouv.fr')");        return (int) $this->pdo->lastInsertId();
     }
 
     private function seedUserWithUsername(int $siteId, string $username, string $role = 'agent'): int
     {
-        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active) VALUES ('Dupont', 'Paul', '$username', '$role', $siteId, 1)");
-        return (int) $this->pdo->lastInsertId();
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Dupont', 'Paul', '$username', '$role', $siteId, 1, 'fixture@dreets-bfc.gouv.fr')");        return (int) $this->pdo->lastInsertId();
     }
 
     private function seedReport(int $siteId, int $userId, string $etat = 'nouveau', string $type = 'rsst'): string

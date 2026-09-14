@@ -60,7 +60,15 @@ if ($changelogExists) {
             require_once $parsedownReal;
             $parsedown = new Parsedown();
             $parsedown->setSafeMode(true);  // Strip raw HTML blocks — prevents XSS via Markdown
-            $htmlContent = $parsedown->text($mdContent);
+            // [Unreleased] is maintained in the source changelog but the
+            // application page presents published versions only. This keeps
+            // the first rendered version aligned with getAppVersion().
+            $publishedContent = preg_replace(
+                '/^##\s*\[Unreleased\].*?(?=^##\s*\[\d+\.\d+\.\d+\]|\z)/ms',
+                '',
+                $mdContent
+            );
+            $htmlContent = $parsedown->text($publishedContent ?? $mdContent);
             /** @var string */
             $htmlContentStr = $htmlContent;
             if (empty(trim($htmlContentStr))) {

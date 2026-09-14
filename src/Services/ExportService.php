@@ -15,7 +15,6 @@ namespace App\Services;
 use App\Enum\ReportType;
 use App\Repository\RegistryFieldRepository;
 use App\Repository\RegistryRepository;
-use App\Repository\StatsRepository;
 
 class ExportService
 {

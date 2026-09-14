@@ -320,7 +320,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     // valeur vient des données POST (case décochée = absente
                     // = '') ; sinon, en édition, de la valeur persistée.
                     $fieldValue = $stickySubmitted
-                        ? (string) (isset($formData[$fieldCode]) ? $formData[$fieldCode] : '')
+                        ? (string) ($formData[$fieldCode] ?? '')
                         : ($isEdit ? (string) ($customFieldValues[$fieldCode] ?? '') : '');
                     $hasError = isset($formErrors[$fieldCode]);
                     $errId = $hasError ? ' id="err_' . e($fieldCode) . '"' : '';

@@ -7,6 +7,7 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 ### Fiabilisation — champs personnalisés, migration et exports
 
+- **Architecture** — Le contrat des codes de champs réservés est partagé par un composant de repository dédié ; les repositories ne dépendent plus du service métier des champs personnalisés.
 - **Champs personnalisés** — Persistance atomique des valeurs de champs dynamiques par signalement, avec validation par registre et intégration aux formulaires et exports.
 - **Migration et index** — Création idempotente de `registry_field_values` et de son index de recherche, avec mise à niveau des anciennes contraintes uniques sans perte des index applicatifs.
 - **Cron** — Retry borné des tâches lazy cron échouées, sans masquer l'erreur finale.

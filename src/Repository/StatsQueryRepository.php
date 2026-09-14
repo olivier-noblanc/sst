@@ -9,7 +9,6 @@ use App\DTO\RamiStats;
 use App\DTO\SiteStatsRow;
 use App\DTO\SynthesisRow;
 use App\Enum\ReportState;
-use App\Services\CustomFieldsService;
 use PDO;
 
 class StatsQueryRepository
@@ -173,7 +172,7 @@ class StatsQueryRepository
                         || isset($baseSelected[$safeKey])) {
                         continue;
                     }
-                    if (in_array($safeKey, CustomFieldsService::COMMAND_MAPPED_CODES, true)
+                    if (in_array($safeKey, CustomFieldContract::COMMAND_MAPPED_CODES, true)
                         && !isset($existingColumns[$safeKey])) {
                         continue;
                     }

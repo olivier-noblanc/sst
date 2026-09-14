@@ -7,7 +7,6 @@ namespace App\Repository;
 use App\DTO\CreateRegistryFieldCommand;
 use PDO;
 use InvalidArgumentException;
-use App\Services\CustomFieldsService;
 
 class RegistryFieldRepository
 {
@@ -53,8 +52,8 @@ class RegistryFieldRepository
     public function create(int $registryId, CreateRegistryFieldCommand $command, bool $allowLegacyDefinition = false): int
     {
         $isAllowedLegacy = $allowLegacyDefinition
-            && in_array($command->fieldCode, CustomFieldsService::LEGACY_DEFINITION_CODES, true);
-        if ((!$isAllowedLegacy && in_array($command->fieldCode, CustomFieldsService::COMMAND_MAPPED_CODES, true))
+            && in_array($command->fieldCode, CustomFieldContract::LEGACY_DEFINITION_CODES, true);
+        if ((!$isAllowedLegacy && in_array($command->fieldCode, CustomFieldContract::COMMAND_MAPPED_CODES, true))
             || str_starts_with($command->fieldCode, 'attachment')
             || !preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $command->fieldCode)
         ) {

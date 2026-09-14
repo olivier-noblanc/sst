@@ -137,6 +137,32 @@ if (!isset($csrfToken)) {
                     <td><?php echo $fmt->e($report->pourComptePrenom . ' ' . $report->pourCompteNom); ?></td>
                 </tr>
                 <?php endif; ?>
+                <?php
+                // Champs dynamiques du registre (définitions + valeurs passées
+                // par pages/report_view.php) — les codes legacy (nature_auteur,
+                // type_acte, pour_compte_*) n'ont pas de valeur persistée dans
+                // registry_field_values → naturellement absents de la boucle.
+                if (!isset($registryCustomFields)) $registryCustomFields = [];
+                if (!isset($customFieldValues)) $customFieldValues = [];
+                $customFieldsFormatter = new \App\Services\CustomFieldsService(
+                    \App\Repository\RegistryFieldRepository::instance(),
+                    \App\Repository\RegistryRepository::instance(),
+                );
+                foreach ($registryCustomFields as $customFieldDef):
+                    $customFieldCode = (string) $customFieldDef['field_code'];
+                    $customFieldText = $customFieldsFormatter->formatFieldValue(
+                        $customFieldDef,
+                        isset($customFieldValues[$customFieldCode]) ? (string) $customFieldValues[$customFieldCode] : null
+                    );
+                    if ($customFieldText === '') {
+                        continue; // non renseigné → pas de ligne vide
+                    }
+                ?>
+                <tr>
+                    <th><?php echo $fmt->e((string) $customFieldDef['label']); ?></th>
+                    <td><?php echo nl2br($fmt->e($customFieldText)); ?></td>
+                </tr>
+                <?php endforeach; ?>
                 <?php if (!empty($linkedAgents) || !empty($pendingInvites)): ?>
                 <tr>
                     <th>Agents rattachés</th>

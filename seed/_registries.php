@@ -23,7 +23,7 @@ if ($rami !== null) {
             options: null,
             isRequired: 0,
             sortOrder: 0,
-        ));
+        ), true);
     }
     // Modular-audit P1.5 — pour_compte_nom/prenom aussi via registry_fields.
     // Before this fix, these fields were rendered by the dead code in
@@ -39,7 +39,7 @@ if ($rami !== null) {
             options: null,
             isRequired: 0,
             sortOrder: 3,
-        ));
+        ), true);
     }
     if ($fieldRepo->findByCode((int) $rami['id'], 'pour_compte_prenom') === null) {
         $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
@@ -49,7 +49,7 @@ if ($rami !== null) {
             options: null,
             isRequired: 0,
             sortOrder: 4,
-        ));
+        ), true);
     }
     if ($fieldRepo->findByCode((int) $rami['id'], 'nature_auteur') === null) {
         $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
@@ -64,7 +64,7 @@ if ($rami !== null) {
             ]) ?: null,
             isRequired: 0,
             sortOrder: 1,
-        ));
+        ), true);
     }
     if ($fieldRepo->findByCode((int) $rami['id'], 'type_acte') === null) {
         $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
@@ -80,7 +80,7 @@ if ($rami !== null) {
             ]) ?: null,
             isRequired: 0,
             sortOrder: 2,
-        ));
+        ), true);
     }
 }
 

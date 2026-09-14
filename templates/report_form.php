@@ -304,13 +304,24 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             $fieldRepo = \App\Repository\RegistryFieldRepository::instance();
             $registry = $registryRepo->findByCode($type);
             if ($registry !== null) {
+                // Valeurs persistées des champs dynamiques (relecture en
+                // édition) — double source interdite : le formulaire lit
+                // registry_field_values, jamais une autre copie.
+                $customFieldValues = ($isEdit && $report !== null)
+                    ? \App\Repository\RegistryFieldValueRepository::instance()->findByReport($report->uuid)
+                    : [];
                 $fields = $fieldRepo->findByRegistry((int) $registry['id']);
                 foreach ($fields as $field):
                     $fieldCode = (string) $field['field_code'];
                     $fieldLabel = (string) $field['label'];
                     $fieldType = (string) $field['field_type'];
                     $isRequired = (int) $field['is_required'] === 1;
-                    $fieldValue = $val($fieldCode);
+                    // Sticky (audit #98) : si le formulaire a été soumis, la
+                    // valeur vient des données POST (case décochée = absente
+                    // = '') ; sinon, en édition, de la valeur persistée.
+                    $fieldValue = $stickySubmitted
+                        ? (string) (isset($formData[$fieldCode]) ? $formData[$fieldCode] : '')
+                        : ($isEdit ? (string) ($customFieldValues[$fieldCode] ?? '') : '');
                     $hasError = isset($formErrors[$fieldCode]);
                     $errId = $hasError ? ' id="err_' . e($fieldCode) . '"' : '';
                     $errAttr = $hasError ? ' aria-describedby="err_' . e($fieldCode) . '" aria-invalid="true"' : '';

@@ -72,14 +72,16 @@ class ReportRepository
     // Write — Reports
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    public function create(CreateReportCommand $cmd): string
+    /** @param array<string, string|null> $customFieldValues */
+    public function create(CreateReportCommand $cmd, array $customFieldValues = []): string
     {
-        return ReportWriteRepository::instance()->create($cmd);
+        return ReportWriteRepository::instance()->create($cmd, $customFieldValues);
     }
 
-    public function update(string $uuid, UpdateReportCommand $cmd, int $userId): bool
+    /** @param array<string, string|null> $customFieldValues */
+    public function update(string $uuid, UpdateReportCommand $cmd, int $userId, ?string $registryCode = null, array $customFieldValues = []): bool
     {
-        return ReportWriteRepository::instance()->update($uuid, $cmd, $userId);
+        return ReportWriteRepository::instance()->update($uuid, $cmd, $userId, $registryCode, $customFieldValues);
     }
 
     public function getPdo(): PDO

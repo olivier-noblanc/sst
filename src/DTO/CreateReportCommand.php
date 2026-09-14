@@ -44,6 +44,17 @@ class CreateReportCommand
         public readonly ?string $attachmentBlob,
         public readonly ?string $attachmentName,
         public readonly ?string $attachmentMime,
+        /**
+         * Valeurs des champs dynamiques du registre (registry_fields),
+         * extraites et validées côté handler via CustomFieldsService.
+         * Clé = field_code, valeur = string non vide ou null (absent).
+         * Les codes à chemin dédié (nature_auteur, type_acte,
+         * pour_compte_*) n'y figurent JAMAIS — ils transitent par les
+         * propriétés dédiées ci-dessus (pas de double source de vérité).
+         *
+         * @var array<string, string|null>
+         */
+        public readonly array $customFields = [],
     ) {}
 
     /**
@@ -122,15 +133,24 @@ class CreateReportCommand
      *     pourComptePrenom: ?string,
      *     attachmentBlob: ?string,
      *     attachmentName: ?string,
-     *     attachmentMime: ?string
+     *     attachmentMime: ?string,
+     *     customFields: array<string, string|null>
      * }
      */
     public function toArray(): array
     {
-        /** @var array{type: string, objet: string, description: string, dateEvenement: string, heureEvenement: ?string, lieu: ?string, declarantId: int, declarantNom: string, declarantPrenom: string, siteId: ?int, siteText: ?string, pole: ?string, serviceAffectation: ?string, telephoneMobile: ?string, isConfidential: bool, consentSyndicat: bool, natureAuteur: ?string, typeActe: ?string, pourCompteNom: ?string, pourComptePrenom: ?string, attachmentBlob: ?string, attachmentName: ?string, attachmentMime: ?string} $data */
-        $data = get_object_vars($this);
-        // SiteId is a value object — convert to ?int for downstream consumers
-        $data['siteId'] = $this->siteId->toSql();
-        return $data;
+        return [
+            'type' => $this->type, 'objet' => $this->objet, 'description' => $this->description,
+            'dateEvenement' => $this->dateEvenement, 'heureEvenement' => $this->heureEvenement,
+            'lieu' => $this->lieu, 'declarantId' => $this->declarantId,
+            'declarantNom' => $this->declarantNom, 'declarantPrenom' => $this->declarantPrenom,
+            'siteId' => $this->siteId->toSql(), 'siteText' => $this->siteText, 'pole' => $this->pole,
+            'serviceAffectation' => $this->serviceAffectation, 'telephoneMobile' => $this->telephoneMobile,
+            'isConfidential' => $this->isConfidential, 'consentSyndicat' => $this->consentSyndicat,
+            'natureAuteur' => $this->natureAuteur, 'typeActe' => $this->typeActe,
+            'pourCompteNom' => $this->pourCompteNom, 'pourComptePrenom' => $this->pourComptePrenom,
+            'attachmentBlob' => $this->attachmentBlob, 'attachmentName' => $this->attachmentName,
+            'attachmentMime' => $this->attachmentMime, 'customFields' => $this->customFields,
+        ];
     }
 }

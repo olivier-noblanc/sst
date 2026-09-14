@@ -55,7 +55,7 @@ class RegistryFieldRepositoryTest extends TestCase
             options: json_encode(['usager' => 'Usager', 'collegue' => 'Collègue']),
             isRequired: 0,
             sortOrder: 1,
-        ));
+        ), true);
         $this->assertIsInt($id);
         $this->assertGreaterThan(0, $id);
     }
@@ -70,7 +70,7 @@ class RegistryFieldRepositoryTest extends TestCase
             options: json_encode(['usager' => 'Usager']),
             isRequired: 0,
             sortOrder: 1,
-        ));
+        ), true);
         $this->fields->create($regId, new CreateRegistryFieldCommand(
             fieldCode: 'type_acte',
             label: 'Type d\'acte',
@@ -78,11 +78,38 @@ class RegistryFieldRepositoryTest extends TestCase
             options: json_encode(['verbal' => 'Verbal']),
             isRequired: 0,
             sortOrder: 2,
-        ));
+        ), true);
         $result = $this->fields->findByRegistry($regId);
         $this->assertCount(2, $result);
         $this->assertSame('nature_auteur', $result[0]['field_code']);
         $this->assertSame('type_acte', $result[1]['field_code']);
+    }
+
+    public function testNewFieldRejectsLegacyPhysicalCode(): void
+    {
+        $regId = $this->createRegistry('admin');
+        $this->expectException(InvalidArgumentException::class);
+        $this->fields->create($regId, new CreateRegistryFieldCommand(
+            fieldCode: 'nature_auteur', label: 'Nature', fieldType: 'select'
+        ), false);
+    }
+
+    public function testLegacyDefinitionWithoutExplicitAuthorizationIsRejected(): void
+    {
+        $regId = $this->createRegistry('standard');
+        $this->expectException(InvalidArgumentException::class);
+        $this->fields->create($regId, new CreateRegistryFieldCommand(
+            fieldCode: 'nature_auteur', label: 'Nature', fieldType: 'select'
+        ));
+    }
+
+    public function testReservedStandardCodeIsRejectedEvenWhenLegacyAuthorizationIsRequested(): void
+    {
+        $regId = $this->createRegistry('standard');
+        $this->expectException(InvalidArgumentException::class);
+        $this->fields->create($regId, new CreateRegistryFieldCommand(
+            fieldCode: 'csrf_token', label: 'Jeton', fieldType: 'text'
+        ), true);
     }
 
     public function testFindByRegistryRespectsSortOrder(): void

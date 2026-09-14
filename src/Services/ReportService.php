@@ -11,6 +11,8 @@ use App\Enum\VisibilityMode;
 use RuntimeException;
 use InvalidArgumentException;
 use App\Repository\ReportRepository;
+use App\Repository\RegistryFieldRepository;
+use App\Repository\RegistryRepository;
 use App\Repository\ReportLifecycleRepository;
 use App\Event\EventDispatcher;
 use App\DTO\ReportEventData;
@@ -72,8 +74,13 @@ class ReportService
     public function create(CreateReportCommand $cmd): ReportData
     {
         $this->validateForCreation($cmd);
+        $this->validateCustomFields($cmd->type, $cmd->customFields);
         $cmd = $this->enforceVisibility($cmd);
-        $uuid = $this->repo->create($cmd);
+        // Champs dynamiques : filtrage défensif (jamais de code à chemin
+        // dédié ni de code inconnu en base) puis écriture atomique dans la
+        // transaction du repository.
+        $customFieldValues = $this->persistableCustomFields($cmd->type, $cmd->customFields);
+        $uuid = $this->repo->create($cmd, $customFieldValues);
         $report = $this->repo->findById($uuid);
         if ($report === null) {
             throw new RuntimeException('Signalement introuvable après création.');
@@ -147,7 +154,9 @@ class ReportService
         // Now we enforce it on update too.
         $cmd = $this->enforceVisibilityOnUpdate($cmd, $report->type);
 
-        $result = $this->repo->update($uuid, $cmd, $userId);
+        $this->validateCustomFields($report->type, $cmd->customFields);
+        $customFieldValues = $this->persistableCustomFields($report->type, $cmd->customFields);
+        $result = $this->repo->update($uuid, $cmd, $userId, $report->type, $customFieldValues);
 
         // Audit #12 — ne pas dispatcher si l'UPDATE a échoué.
         if ($result) {
@@ -266,6 +275,55 @@ class ReportService
         if (!empty($errors)) {
             throw new InvalidArgumentException(implode(', ', $errors));
         }
+    }
+
+    /**
+     * Champs dynamiques — défense en profondeur (le handler valide déjà
+     * depuis le POST brut). Valide les valeurs transportées par le DTO ; les
+     * codes à chemin dédié (nature_auteur, etc.) n'y figurent pas et sont
+     * couverts par validateForCreation / validatePourCompte.
+     */
+    /** @param array<string, string|null> $customFields */
+    private function validateCustomFields(string $registryCode, array $customFields): void
+    {
+        $service = $this->customFieldsService();
+        $defs = $service->getDefinitions($registryCode);
+        if ($defs === []) {
+            return;
+        }
+        $errors = $service->validateValues(
+            $service->filterPersistable($customFields, $defs),
+            $defs
+        );
+        if (!empty($errors)) {
+            throw new InvalidArgumentException(implode(', ', array_values($errors)));
+        }
+    }
+
+    /**
+     * Valeurs dynamiques réellement persistables (codes inconnus et codes à
+     * chemin dédié retirés — pas de double source de vérité).
+     *
+     * @param array<string, string|null> $customFields
+     * @return array<string, string|null>
+     */
+    private function persistableCustomFields(string $registryCode, array $customFields): array
+    {
+        $service = $this->customFieldsService();
+        $defs = $service->getDefinitions($registryCode);
+        if ($defs === [] || $customFields === []) {
+            return [];
+        }
+        return $service->filterPersistable($customFields, $defs);
+    }
+
+    private function customFieldsService(): CustomFieldsService
+    {
+        // Instantiation inline (pattern RegistryPolicy) — service sans état.
+        return new CustomFieldsService(
+            RegistryFieldRepository::instance(),
+            RegistryRepository::instance(),
+        );
     }
 
     private function enforceVisibility(CreateReportCommand $cmd): CreateReportCommand

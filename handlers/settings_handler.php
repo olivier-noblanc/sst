@@ -19,6 +19,10 @@ use App\Repository\NotificationRepository;
  * rollBack() sur toutes les tabs annulait silencieusement les opérations
  * DELETE/INSERT (le finally s'exécute même après exit dans un redirect).
  * AGENTS.md : « Ne JAMAIS catcher silencieusement les erreurs ».
+ *
+ * Les onglets notifications (sites/global) sont atomiques au niveau du
+ * repository : replaceByType() remplace deleteByType() + N save() dans
+ * UNE transaction (rollback + rethrow en cas d'échec au milieu).
  */
 
 require_once __DIR__ . '/settings_handler_app.php';
@@ -52,7 +56,7 @@ if ($tab === 'sites') {
                 continue;
             }
             if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
-                $parsedSiteEmails[] = [$siteId, $email];
+                $parsedSiteEmails[] = ['site_id' => $siteId, 'email' => $email];
             } else {
                 $invalidEmails[] = $email;
             }
@@ -62,10 +66,9 @@ if ($tab === 'sites') {
         $session->setFlash('error', 'Enregistrement annulé — adresse(s) e-mail invalide(s) : ' . e(implode(', ', array_slice($invalidEmails, 0, 5))) . '. Corrigez-les puis réenregistrez.');
         $http->redirect($http->url('settings', ['tab' => 'sites']));
     }
-    $notifRepo->deleteByType('site');
-    foreach ($parsedSiteEmails as [$siteId, $email]) {
-        $notifRepo->save($siteId, 'site', 'all', $email);
-    }
+    // Correctif moyen (audit) — remplacement atomique (une transaction dans
+    // le repository : delete + N insert tout ou rien, rollback + rethrow).
+    $notifRepo->replaceByType('site', $parsedSiteEmails);
 }
 
 if ($tab === 'global') {
@@ -81,7 +84,7 @@ if ($tab === 'global') {
                 continue;
             }
             if (filter_var($email, FILTER_VALIDATE_EMAIL) !== false) {
-                $parsedGlobalEmails[] = $email;
+                $parsedGlobalEmails[] = ['site_id' => null, 'email' => $email];
             } else {
                 $invalidGlobalEmails[] = $email;
             }
@@ -91,10 +94,10 @@ if ($tab === 'global') {
         $session->setFlash('error', 'Enregistrement annulé — adresse(s) e-mail invalide(s) : ' . e(implode(', ', array_slice($invalidGlobalEmails, 0, 5))) . '. Corrigez-les puis réenregistrez.');
         $http->redirect($http->url('settings', ['tab' => 'global']));
     }
-    $notifRepo->deleteByType('global');
-    foreach ($parsedGlobalEmails as $email) {
-        $notifRepo->save(null, 'global', 'all', $email);
-    }
+    // Correctif moyen (audit) — remplacement atomique (une transaction dans
+    // le repository : delete + N insert tout ou rien, rollback + rethrow).
+    // site_id NULL = portée global (vérité DB, jamais 0).
+    $notifRepo->replaceByType('global', $parsedGlobalEmails);
 }
 
 if ($tab === 'smtp') {

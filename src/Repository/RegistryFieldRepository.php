@@ -6,6 +6,8 @@ namespace App\Repository;
 
 use App\DTO\CreateRegistryFieldCommand;
 use PDO;
+use InvalidArgumentException;
+use App\Services\CustomFieldsService;
 
 class RegistryFieldRepository
 {
@@ -44,8 +46,20 @@ class RegistryFieldRepository
         return is_array($row) ? $row : null;
     }
 
-    public function create(int $registryId, CreateRegistryFieldCommand $command): int
+    /**
+     * @param bool $allowLegacyDefinition Internal seed/import path flag.
+     * Legacy physical definitions require explicit authorization.
+     */
+    public function create(int $registryId, CreateRegistryFieldCommand $command, bool $allowLegacyDefinition = false): int
     {
+        $isAllowedLegacy = $allowLegacyDefinition
+            && in_array($command->fieldCode, CustomFieldsService::LEGACY_DEFINITION_CODES, true);
+        if ((!$isAllowedLegacy && in_array($command->fieldCode, CustomFieldsService::COMMAND_MAPPED_CODES, true))
+            || str_starts_with($command->fieldCode, 'attachment')
+            || !preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $command->fieldCode)
+        ) {
+            throw new InvalidArgumentException('Le code de champ « ' . $command->fieldCode . ' » est réservé.');
+        }
         $stmt = $this->pdo->prepare('
             INSERT INTO registry_fields (registry_id, field_code, label, field_type, options, is_required, sort_order)
             VALUES (:rid, :fc, :label, :ft, :opts, :req, :so)

@@ -33,6 +33,17 @@ class UpdateReportCommand
          * restait en DB même après "Supprimer la pièce jointe".
          */
         public readonly bool $removeAttachment = false,
+        /**
+         * Valeurs des champs dynamiques du registre (registry_fields),
+         * extraites et validées côté handler via CustomFieldsService.
+         * Clé = field_code, valeur = string non vide ou null (absent/vidé =
+         * suppression explicite de la ligne en base). Les codes à chemin
+         * dédié (nature_auteur, type_acte, pour_compte_*) n'y figurent
+         * JAMAIS — ils transitent par les propriétés dédiées ci-dessus.
+         *
+         * @var array<string, string|null>
+         */
+        public readonly array $customFields = [],
     ) {}
 
     /** @param array<string, string> $post */
@@ -86,7 +97,8 @@ class UpdateReportCommand
      *     attachmentBlob: ?string,
      *     attachmentName: ?string,
      *     attachmentMime: ?string,
-     *     removeAttachment: bool
+     *     removeAttachment: bool,
+     *     customFields: array<string, string|null>
      * }
      */
     public function toArray(): array
@@ -115,6 +127,7 @@ class UpdateReportCommand
             'attachmentName' => $attachmentName,
             'attachmentMime' => $attachmentMime,
             'removeAttachment' => $this->removeAttachment,
+            'customFields' => $this->customFields,
         ];
     }
 }

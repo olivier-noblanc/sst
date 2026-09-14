@@ -134,4 +134,26 @@ class ConfigRepository
             return false; // Fail safe — don't run if we can't claim
         }
     }
+
+    /**
+     * Libère le verrou lazy-cron après un ÉCHEC de la tâche.
+     *
+     * claimLazyCronLock() écrit le timestamp AVANT l'exécution du callback :
+     * sans libération, un échec laisserait un timestamp frais et empêcherait
+     * toute nouvelle tentative pendant toute la fenêtre (24h/7j). Cette
+     * méthode remet la clé à '' (état « jamais exécuté », identique au
+     * pré-seed de migration_config) pour que la prochaine tentative puisse
+     * re-claimer. La clé ne porte donc jamais qu'un timestamp de SUCCÈS
+     * (ou '' si la tâche n'a jamais réussi).
+     *
+     * À n'appeler qu'APRÈS la fin du callback : tant que le callback tourne,
+     * le timestamp frais fait office de verrou anti double-exécution
+     * concurrente. Ne jamais appeler après un succès.
+     *
+     * @param string $cle Clé config (ex. "last_lazy_cron_check_delays")
+     */
+    public function releaseLazyCronLock(string $cle): void
+    {
+        $this->set($cle, '');
+    }
 }

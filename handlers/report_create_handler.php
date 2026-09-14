@@ -11,6 +11,7 @@ use App\DTO\FormData;
 use App\DTO\CreateReportCommand;
 use App\DTO\SiteId;
 use App\Services\ReportService;
+use App\Services\CustomFieldsService;
 
 /** @var array<string, string> $_POST */
 
@@ -73,6 +74,17 @@ if (!empty($linkedEmailsRaw)) {
     }
 }
 
+// Champs dynamiques du registre — validation serveur par champ
+// (obligatoire, options de select, longueurs) avant toute écriture.
+$customFieldsService = getContainer()->get(CustomFieldsService::class);
+$customFieldDefs = $customFieldsService->getDefinitions($type);
+$customFieldErrors = $customFieldsService->validateSubmission($_POST, $customFieldDefs);
+if (!empty($customFieldErrors)) {
+    setFormErrors($customFieldErrors);
+    setFormData(FormData::fromPost($_POST));
+    $http->redirect($http->url('report_create', ['type' => $type]));
+}
+
 try {
     $errors = [];
     $attachment = validateReportAttachment($errors);
@@ -83,6 +95,7 @@ try {
         'attachmentBlob' => $attachment['blob'],
         'attachmentName' => $attachment['name'],
         'attachmentMime' => $attachment['mime'],
+        'customFields' => $customFieldsService->extractSubmission($_POST, $customFieldDefs),
     ]);
     $cmdData['siteId'] = SiteId::fromInput((int) ($cmdData['siteId'] ?? 0));
     $cmd = new CreateReportCommand(...$cmdData);

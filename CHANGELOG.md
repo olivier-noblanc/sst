@@ -3,6 +3,22 @@
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 
+## [Unreleased]
+
+### Fiabilisation — champs personnalisés, migration et exports
+
+- **Champs personnalisés** — Persistance atomique des valeurs de champs dynamiques par signalement, avec validation par registre et intégration aux formulaires et exports.
+- **Migration et index** — Création idempotente de `registry_field_values` et de son index de recherche, avec mise à niveau des anciennes contraintes uniques sans perte des index applicatifs.
+- **Cron** — Retry borné des tâches lazy cron échouées, sans masquer l'erreur finale.
+- **Notifications** — Écritures de notifications regroupées dans une transaction atomique afin d'éviter les états partiels.
+- **Export des réponses** — Chargement des réponses par chunks bornés pour rester sous la limite SQLite des variables SQL, y compris pour les exports volumineux.
+
+### Métriques
+
+- Tests : **1912** (4870 assertions)
+- PHPStan : **0 errors** (level 8)
+
+
 ## [3.66.0] — 2026-09-04
 
 ### Fiabilisation — notifications, settings, export, lifecycle, migration email

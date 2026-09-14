@@ -9,6 +9,7 @@ use App\DTO\RamiStats;
 use App\DTO\SiteStatsRow;
 use App\DTO\SynthesisRow;
 use App\Enum\ReportState;
+use App\Services\CustomFieldsService;
 use PDO;
 
 class StatsQueryRepository
@@ -139,6 +140,7 @@ class StatsQueryRepository
     {
         // Build dynamic columns from registry_fields if registryCode is provided
         $dynamicColumns = '';
+        $dynamicParams = [];
         if ($registryCode !== null) {
             $registryRepo = RegistryRepository::instance();
             $registry = $registryRepo->findByCode($registryCode);
@@ -149,27 +151,41 @@ class StatsQueryRepository
                 $stmt->execute([$registryId]);
                 $fieldKeys = array_column($stmt->fetchAll(), 'field_code');
 
-                // Only add registry fields that are (a) real columns of the
-                // reports table and (b) not already selected in $baseColumns.
-                // Real RAMI registry_fields include 'pour_compte' (a form
-                // checkbox, not a physical column) — adding it verbatim
-                // generated "r.pour_compte" → PDOException "no such column"
-                // and every RAMI export crashed. 'nature_auteur', 'type_acte',
-                // 'pour_compte_nom', 'pour_compte_prenom' are real columns but
-                // already selected in the base SELECT (duplicates).
+                // Only add registry fields that are not already selected in
+                // $baseColumns. Two sources of value:
+                // (a) real columns of the reports table → r.$safeKey (RAMI
+                //     legacy : 'nature_auteur', 'type_acte',
+                //     'pour_compte_nom', 'pour_compte_prenom' — historique
+                //     inchangé) ;
+                // (b) otherwise → valeur lue dans registry_field_values via
+                //     une sous-requête scalaire corrélée (persistance des
+                //     champs dynamiques). La clé est sanitizée [a-zA-Z_]
+                //     avant toute interpolation.
                 // Oracle R1 — le filtre PRAGMA est factorisé dans
                 // getReportPhysicalColumns(), réutilisé par ExportService pour
                 // n'annoncer en CSV que des colonnes réellement sélectionnées.
                 $existingColumns = array_flip($this->getReportPhysicalColumns());
                 $baseSelected = array_flip(self::BASE_EXPORT_COLUMNS);
 
-                foreach ($fieldKeys as $fieldKey) {
-                    // Sanitize field key to prevent SQL injection
-                    // (string) normalise le null de preg_replace en '' — rejeté
-                    // par le check ci-dessous, comportement runtime inchangé
-                    $safeKey = (string) preg_replace('/[^a-zA-Z_]/', '', (string) $fieldKey);
-                    if ($safeKey !== '' && isset($existingColumns[$safeKey]) && !isset($baseSelected[$safeKey])) {
+                foreach ($fieldKeys as $fieldIndex => $fieldKey) {
+                    $safeKey = (string) $fieldKey;
+                    if ($safeKey === '' || !preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $safeKey)
+                        || isset($baseSelected[$safeKey])) {
+                        continue;
+                    }
+                    if (in_array($safeKey, CustomFieldsService::COMMAND_MAPPED_CODES, true)
+                        && !isset($existingColumns[$safeKey])) {
+                        continue;
+                    }
+                    if (isset($existingColumns[$safeKey])) {
                         $dynamicColumns .= ', r.' . $safeKey;
+                    } else {
+                        $fieldParam = ':registry_field_' . $fieldIndex;
+                        $dynamicColumns .= ', (SELECT v.value FROM registry_field_values v'
+                            . ' WHERE v.report_uuid = r.uuid AND v.registry_id = ' . $fieldParam
+                            . " AND v.field_code = '" . $safeKey . "')"
+                            . ' AS ' . $safeKey;
+                        $dynamicParams[$fieldParam] = $registryId;
                     }
                 }
             }
@@ -197,7 +213,7 @@ class StatsQueryRepository
             LEFT JOIN users rep ON r.repondant_id = rep.id
             WHERE 1=1
         ';
-        $params = [];
+        $params = $dynamicParams;
 
         if (!empty($filters['type'])) {
             $sql .= ' AND r.type = :type';

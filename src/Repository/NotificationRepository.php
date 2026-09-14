@@ -5,6 +5,7 @@
 namespace App\Repository;
 
 use PDO;
+use Throwable;
 
 class NotificationRepository
 {
@@ -39,14 +40,6 @@ class NotificationRepository
 
     public function save(?int $siteId, string $type, string $registry, string $email): int
     {
-        $stmt = $this->pdo->prepare('DELETE FROM notification_settings WHERE site_id = :site_id AND type = :type AND registry = :registry AND email = :email');
-        $stmt->execute([
-            ':site_id'  => $siteId,
-            ':type'     => $type,
-            ':registry' => $registry,
-            ':email'    => $email,
-        ]);
-
         $stmt = $this->pdo->prepare('
             INSERT INTO notification_settings (site_id, type, registry, email)
             VALUES (:site_id, :type, :registry, :email)
@@ -65,6 +58,42 @@ class NotificationRepository
         $stmt = $this->pdo->prepare('DELETE FROM notification_settings WHERE type = :type');
         $stmt->execute([':type' => $type]);
         return $stmt->rowCount();
+    }
+
+    /**
+     * Remplace la totalité des notifications d'un type de portée par les
+     * entrées fournies, dans UNE transaction (tout ou rien).
+     *
+     * Correctif moyen (audit) — les onglets settings « sites » et « global »
+     * (handlers/settings_handler.php) enchaînaient deleteByType() + N save()
+     * hors transaction : un échec au milieu (FK site_id inexistant, disque
+     * plein, perte de connexion) laissait la table dans un état partiel —
+     * anciennes notifications déjà supprimées, nouvelles partiellement
+     * insérées. Toute entrée invalide ici invalide l'ensemble : rollback
+     * complet + rethrow de l'exception d'origine (crash hard, jamais
+     * d'échec silencieux — AGENTS.md).
+     *
+     * Entrées vides = vide la portée (comportement existant : deleteByType
+     * + 0 save), dans la même transaction.
+     *
+     * @param string $type Type de portée ('site'|'global') — valeur métier existante
+     * @param list<array{site_id: ?int, email: string}> $entries
+     *        site_id : NULL pour la portée global (vérité DB, jamais 0).
+     *        registry : 'all' (valeur utilisée par les deux onglets settings).
+     */
+    public function replaceByType(string $type, array $entries): void
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $this->deleteByType($type);
+            foreach ($entries as $entry) {
+                $this->save($entry['site_id'], $type, 'all', $entry['email']);
+            }
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
     /** @return list<string> */

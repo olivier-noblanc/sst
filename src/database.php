@@ -169,7 +169,7 @@ function seedDefaultData(PDO $pdo): void
                     options: is_string($options) ? $options : null,
                     isRequired: 0,
                     sortOrder: $sortOrder,
-                ));
+                ), true);
             }
         }
     }

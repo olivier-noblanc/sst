@@ -51,8 +51,9 @@ class ExportRegistryCodeWiringTest extends TestCase
         $pdo->exec("INSERT INTO registry_fields (registry_id, field_code, label, field_type) VALUES (" . self::REGISTRY_ID . ", 'pole', 'Pole custom', 'text')");
         $pdo->exec("INSERT INTO registry_fields (registry_id, field_code, label, field_type) VALUES (" . self::REGISTRY_ID . ", 'attachment_name', 'Piece jointe personnalisee', 'text')");
         // Champ NON physique (aucune colonne reports correspondante — cas réel :
-        // métadonnée / case à cocher de formulaire) — oracle R1 : ne doit JAMAIS
-        // être annoncé en colonne CSV, aucune donnée ne peut exister derrière.
+        // métadonnée / case à cocher de formulaire) — depuis la persistance des
+        // champs dynamiques, il est annoncé en colonne CSV : sa valeur est lue
+        // dans registry_field_values (sous-requête dans getExportData()).
         $pdo->exec("INSERT INTO registry_fields (registry_id, field_code, label, field_type) VALUES (" . self::REGISTRY_ID . ", 'metadata_externe', 'Metadonnee externe', 'text')");
     }
 
@@ -172,21 +173,24 @@ class ExportRegistryCodeWiringTest extends TestCase
         );
     }
 
-    // ─── 3. Filtre colonnes physiques (oracle R1) + cache (oracle R3) ────
+    // ─── 3. Sources de données des colonnes dynamiques + cache (oracle R3) ──
 
-    public function testNonPhysicalFieldIsNeverAnnounced(): void
+    public function testNonPhysicalFieldIsAnnouncedAndBackedByRegistryFieldValues(): void
     {
         $this->seedReport();
         $service = new \App\Services\ExportService(new \App\Services\ConfigService());
 
+        // Persistance des champs dynamiques : un champ sans colonne physique
+        // est annoncé ET rattaché à registry_field_values (la donnée existe).
         $headers = $service->buildHeaders(false, self::REGISTRY_CODE);
-        $this->assertNotContains(
+        $this->assertContains(
             'Metadonnee externe',
             $headers,
-            'Un registry_field sans colonne physique reports ne doit jamais être annoncé en en-tête CSV (aucune donnée possible derrière)'
+            'Un registry_field sans colonne physique est annoncé : sa valeur vit dans registry_field_values'
         );
         $this->assertContains('Piece jointe personnalisee', $headers, 'Le vrai champ physique reste annoncé');
 
+        // Valeur absente → cellule vide, alignement conservé
         $repo = new \App\Repository\StatsRepository(getDB());
         $rows = $repo->getExportData(['type' => self::REGISTRY_CODE], self::REGISTRY_CODE);
         $row = null;
@@ -200,6 +204,23 @@ class ExportRegistryCodeWiringTest extends TestCase
 
         $csvRow = $service->buildCsvRow($row, [], false, self::REGISTRY_CODE);
         $this->assertCount(count($headers), $csvRow, 'En-têtes et valeurs restent alignés');
+        $idx = array_search('Metadonnee externe', $headers, true);
+        $this->assertNotFalse($idx);
+        $this->assertSame('', $csvRow[$idx], 'Pas de valeur persistée → cellule vide (pas de fausse donnée)');
+
+        // Valeur persistée dans registry_field_values → exportée
+        getDB()->prepare('INSERT INTO registry_field_values (report_uuid, registry_id, field_code, value) VALUES (?, ?, ?, ?)')
+            ->execute([self::TEST_UUID, self::REGISTRY_ID, 'metadata_externe', 'Valeur metier']);
+        $rows = $repo->getExportData(['type' => self::REGISTRY_CODE], self::REGISTRY_CODE);
+        foreach ($rows as $r) {
+            if (($r['uuid'] ?? '') === self::TEST_UUID) {
+                $row = $r;
+                break;
+            }
+        }
+        $this->assertSame('Valeur metier', $row['metadata_externe'], 'La valeur lue depuis registry_field_values alimente le SELECT');
+        $csvRow = $service->buildCsvRow($row, [], false, self::REGISTRY_CODE);
+        $this->assertSame('Valeur metier', $csvRow[$idx]);
     }
 
     public function testDynamicFieldsAreStableAcrossCalls(): void
@@ -212,8 +233,8 @@ class ExportRegistryCodeWiringTest extends TestCase
         $this->assertNotEmpty($first);
 
         $codes = array_column($first, 'code');
-        $this->assertContains('attachment_name', $codes, 'Champ physique non émis → colonne dynamique');
-        $this->assertNotContains('metadata_externe', $codes, 'Champ non physique → exclu');
+        $this->assertContains('attachment_name', $codes, 'Champ physique non émis → colonne dynamique (r.attachment_name)');
+        $this->assertContains('metadata_externe', $codes, 'Champ non physique → colonne dynamique (registry_field_values)');
         $this->assertNotContains('pole', $codes, 'Champ déjà émis en standard → exclu (pas de doublon)');
     }
 
@@ -226,7 +247,7 @@ class ExportRegistryCodeWiringTest extends TestCase
         // Avec un registre custom : la baseline est conservée en préfixe, les
         // colonnes dynamiques s'ajoutent en fin d'en-têtes.
         $withRegistry = $service->buildHeaders(false, self::REGISTRY_CODE);
-        $this->assertCount(count($baseline) + 1, $withRegistry, 'Une colonne dynamique (champ non émis) doit s\'ajouter');
+        $this->assertCount(count($baseline) + 2, $withRegistry, 'Les deux colonnes dynamiques (champs non émis) s\'ajoutent');
         $this->assertSame($baseline, array_slice($withRegistry, 0, count($baseline)), 'Les en-têtes standard ne doivent pas être altérés');
 
         $noSite = $service->buildHeaders(true);

@@ -76,7 +76,7 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             options: $fieldOptions !== '' ? $fieldOptions : null,
             isRequired: $isRequired,
             sortOrder: $sortOrder,
-        ));
+        ), false);
 
         $session->setFlash('success', 'Champ « ' . $fieldLabel . ' » ajouté.');
         $http->redirect($http->url('settings', ['tab' => 'registres']));

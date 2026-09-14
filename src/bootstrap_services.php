@@ -12,6 +12,7 @@ use App\Repository\StatsRepository;
 use App\Repository\StatsQueryRepository;
 use App\Repository\RegistryRepository;
 use App\Repository\RegistryFieldRepository;
+use App\Repository\RegistryFieldValueRepository;
 use App\Repository\AuditRepository;
 use App\Repository\SessionRepository;
 use App\Repository\ConfigRepository;
@@ -32,6 +33,7 @@ use App\Services\AssetService;
 use App\Services\RegistryCardService;
 use App\Services\StatisticsService;
 use App\Services\RegistryPolicy;
+use App\Services\CustomFieldsService;
 use App\Services\ReportStateMachine;
 use App\Services\CronService;
 use App\Services\ExportService;
@@ -86,6 +88,9 @@ function createContainer(): Container
     $container->set(RegistryFieldRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new RegistryFieldRepository($pdo);
     });
+    $container->set(RegistryFieldValueRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new RegistryFieldValueRepository($pdo);
+    });
     $container->set(AuditRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new AuditRepository($pdo);
     });
@@ -111,6 +116,11 @@ function createContainer(): Container
     $container->set(SessionDataService::class, fn() => new SessionDataService());
     $container->set(SessionTokenService::class, fn() => new SessionTokenService());
     $container->set(RegistryPolicy::class, fn() => new RegistryPolicy());
+    $container->set(CustomFieldsService::class, function (Container $c) {
+        /** @var RegistryFieldRepository $fields */ $fields = $c->get(RegistryFieldRepository::class);
+        /** @var RegistryRepository $registries */ $registries = $c->get(RegistryRepository::class);
+        return new CustomFieldsService($fields, $registries);
+    });
     $container->set(ReportStateMachine::class, fn() => new ReportStateMachine());
 
 

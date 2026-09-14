@@ -233,6 +233,31 @@ CREATE TABLE IF NOT EXISTS registry_fields (
 );
 
 -- ============================================================
+-- Table: registry_field_values
+-- Submitted values of the dynamic registry_fields, one row per
+-- (report, field). Values for codes that have a dedicated path
+-- (nature_auteur, type_acte, pour_compte_* → physical reports
+-- columns) are NOT stored here — single source of truth.
+-- FK composites:
+--   - reports(uuid)            → delete report    cascades values
+--   - registry_fields composite → delete field/registry cascades values
+-- ============================================================
+CREATE TABLE IF NOT EXISTS registry_field_values (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_uuid TEXT NOT NULL,
+    registry_id INTEGER NOT NULL,
+    field_code  TEXT NOT NULL,
+    value       TEXT,                            -- NULL = "not filled" (explicit)
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (report_uuid) REFERENCES reports(uuid) ON DELETE CASCADE,
+    FOREIGN KEY (registry_id, field_code) REFERENCES registry_fields(registry_id, field_code) ON DELETE CASCADE,
+    UNIQUE(report_uuid, registry_id, field_code)
+);
+
+CREATE INDEX IF NOT EXISTS idx_registry_field_values_registry ON registry_field_values(registry_id, field_code);
+
+-- ============================================================
 -- Table: schema_version
 -- Tracks which migration versions have been applied.
 -- Prevents re-running migrations and provides auditability.

@@ -48,12 +48,25 @@ class CronService
      */
     private function runLazyCronTask(string $taskName, int $minInterval, callable $callback): void
     {
+        $lockKey = "last_lazy_cron_{$taskName}";
+
         try {
-            if (!$this->configRepo->claimLazyCronLock("last_lazy_cron_{$taskName}", $minInterval)) {
+            if (!$this->configRepo->claimLazyCronLock($lockKey, $minInterval)) {
                 return; // Another caller already claimed it
             }
 
-            $callback();
+            try {
+                $callback();
+            } catch (Throwable $e) {
+                // Échec de la tâche : libère le verrou pour que la prochaine
+                // connexion retente sans attendre la fin de la fenêtre (24h/7j).
+                // Appel APRÈS la fin du callback → le timestamp frais a protégé
+                // toute la durée d'exécution contre toute double exécution
+                // concurrente ; le rethrow vers le catch extérieur préserve
+                // l'isolation des autres tâches et le journalisation.
+                $this->configRepo->releaseLazyCronLock($lockKey);
+                throw $e;
+            }
         } catch (Throwable $e) {
             // @silent-ok: lazy-cron dispatcher — one task failing must not stop the others
             error_log("[SST-CRON] Lazy cron task '{$taskName}' failed: " . $e->getMessage());

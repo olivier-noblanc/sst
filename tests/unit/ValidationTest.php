@@ -46,7 +46,7 @@ class ValidationTest extends TestCase
                     options: json_encode(['usager' => 'Usager', 'collegue' => 'Collègue', 'hierarchie' => 'Hiérarchie', 'tiers' => 'Tiers']),
                     isRequired: 0,
                     sortOrder: 1,
-                ));
+                ), true);
             }
             if ($fieldRepo->findByCode((int) $rami['id'], 'type_acte') === null) {
                 $fieldRepo->create((int) $rami['id'], new CreateRegistryFieldCommand(
@@ -56,7 +56,7 @@ class ValidationTest extends TestCase
                     options: json_encode(['verbal' => 'Verbal', 'physique' => 'Physique', 'moral' => 'Moral', 'sexiste' => 'Sexiste', 'autre' => 'Autre']),
                     isRequired: 0,
                     sortOrder: 2,
-                ));
+                ), true);
             }
         }
     }

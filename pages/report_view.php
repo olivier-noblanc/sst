@@ -44,6 +44,15 @@ $responses = \App\Repository\ReportRepository::instance()->getResponses($uuid);
 $linkedAgents = \App\Repository\ReportAgentRepository::instance()->getLinkedAgents($report->uuid);
 $pendingInvites = \App\Repository\ReportAgentRepository::instance()->getPendingInvites($report->uuid);
 
+// Champs dynamiques du registre : définitions + valeurs persistées
+// (fetch en page — même principe que les réponses/agents rattachés).
+$customFieldsService = new \App\Services\CustomFieldsService(
+    \App\Repository\RegistryFieldRepository::instance(),
+    \App\Repository\RegistryRepository::instance(),
+);
+$registryCustomFields = $customFieldsService->getDefinitions($report->type);
+$customFieldValues = \App\Repository\RegistryFieldValueRepository::instance()->findByReport($report->uuid);
+
 // Breadcrumb data
 $reportType = $report->type;
 $reportShortLabel = getRegistryShortLabel($reportType);

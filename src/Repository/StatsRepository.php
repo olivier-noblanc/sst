@@ -50,18 +50,6 @@ class StatsRepository
         return $this->query->getExportData($filters, $registryCode);
     }
 
-    /**
-     * Colonnes physiques réelles de la table reports (oracle R1 — partagé
-     * avec ExportService pour n'annoncer en CSV que des colonnes réellement
-     * sélectionnées).
-     *
-     * @return list<string>
-     */
-    public function getReportPhysicalColumns(): array
-    {
-        return $this->query->getReportPhysicalColumns();
-    }
-
     public function getIndicateurs(string $year = '', int $siteId = 0): IndicateursData
     {
         return $this->query->getIndicateurs($year, $siteId);

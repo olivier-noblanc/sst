@@ -265,7 +265,7 @@ class RegistryPhase2DtoTest extends TestCase
             isRequired: 1,
             sortOrder: 2,
         );
-        $fieldId = $fieldRepo->create($regId, $cmd);
+        $fieldId = $fieldRepo->create($regId, $cmd, true);
         $this->assertIsInt($fieldId);
         $this->assertGreaterThan(0, $fieldId);
         reseedDefaultRegistries($pdo);

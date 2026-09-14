@@ -10,6 +10,7 @@ use App\Enum\ReportType;
 use App\DTO\FormData;
 use App\DTO\UpdateReportCommand;
 use App\Services\ReportService;
+use App\Services\CustomFieldsService;
 
 /** @var array<string, string> $_POST */
 
@@ -51,6 +52,12 @@ if ($type === ReportType::Rami->value) {
     $errors = array_merge($errors, validatePourCompte($pourCompte, $pourCompteNom, $pourComptePrenom));
 }
 
+// Champs dynamiques du registre — validation serveur par champ
+// (obligatoire, options de select, longueurs), même règles qu'à la création.
+$customFieldsService = getContainer()->get(CustomFieldsService::class);
+$customFieldDefs = $customFieldsService->getDefinitions($type);
+$errors = array_merge($errors, $customFieldsService->validateSubmission($_POST, $customFieldDefs));
+
 if (!empty($errors)) {
     setFormErrors($errors);
     setFormData(FormData::fromPost($_POST));
@@ -58,20 +65,24 @@ if (!empty($errors)) {
 }
 
 $cmd = UpdateReportCommand::fromPost($_POST);
+/** @var array<string, mixed> $cmdData */
+$cmdData = array_merge($cmd->toArray(), [
+    'customFields' => $customFieldsService->extractSubmission($_POST, $customFieldDefs),
+]);
 
 // Audit #4-High — Si l'utilisateur a uploadé un nouveau fichier, il prime sur
 // le flag removeAttachment (logique : cocher "remove" puis changer d'avis en
 // uploadant un nouveau = on garde le nouveau). Si removeAttachment=true et
 // pas de nouveau fichier → toArray() set attachment_blob=NULL dans le UPDATE.
 if (!empty($attachment['blob'])) {
-    $cmdData = array_merge($cmd->toArray(), [
+    $cmdData = array_merge($cmdData, [
         'attachmentBlob' => $attachment['blob'],
         'attachmentName' => $attachment['name'],
         'attachmentMime' => $attachment['mime'],
         'removeAttachment' => false,
     ]);
-    $cmd = new UpdateReportCommand(...$cmdData);
 }
+$cmd = new UpdateReportCommand(...$cmdData);
 
 try {
     $service = getContainer()->get(ReportService::class);

@@ -5,7 +5,7 @@
 - Windows Server 2016+ avec IIS 10+
 - PHP 8.5 installé (Non-Thread-Safe recommandé pour IIS/FastCGI)
 - **PAS BESOIN** de Composer (FPDF est inclus directement)
-- **PAS BESOIN** du module URL Rewrite (l'app utilise un routage par query string)
+- **PAS BESOIN** du module URL Rewrite — l'application n'utilise aucun rewrite entrant, tout le routage passe par query string (`?page=xxx`)
 - Active Directory DREETS BFC accessible (pour l'authentification Windows)
 - Module IIS **Windows Authentication** installé
 
@@ -108,7 +108,7 @@ define('APP_ENV_FORCE', 'prod');
     C:\inetpub\sst\
     ├── public\           ← RACINE DU SITE IIS
     │   ├── index.php
-    │   ├── web.config    ← Configuration IIS
+    │   ├── web.config    ← Configuration IIS (optionnel)
     │   └── css\
     ├── src\              ← Inaccessible depuis le web (hiddenSegments)
     │   ├── Enum/         ← Enums PHP 8.1+ (ReportState, ReportType, UserRole, VisibilityMode)
@@ -119,7 +119,6 @@ define('APP_ENV_FORCE', 'prod');
     │   ├── helpers/      ← Modules utilitaires (access, formatting, http, config, crypto, assets)
     │   ├── middleware/   ← Contrôle d'accès + bootstrap
     │   ├── mail/         ← Templates email + renderer
-    │   ├── queries/      ← Fonctions procédurales (wrappers vers Repository, legacy)
     │   ├── auth.php      ← Authentification (AUTH_USER / mock login)
     │   ├── database.php  ← Connexion SQLite + auto-migration
     │   ├── config.php    ← Configuration (APP_ENV, modes visibilité)
@@ -133,7 +132,7 @@ define('APP_ENV_FORCE', 'prod');
     ```
 3. Créer un site IIS pointant vers `C:\inetpub\sst\public\`
 5. Configurer le binding (port 80 ou 443)
-6. `index.php` est déjà défini comme document par défaut dans web.config
+6. `index.php` est défini comme document par défaut (via `web.config` s'il est présent, sinon directement dans IIS → Default Document)
 
 > **Note** : PAS besoin de dossier `vendor/` — FPDF est inclus directement dans `src/lib/fpdf/`.
 
@@ -162,16 +161,34 @@ Donner les permissions **IIS_IUSRS** (lecture seule) sur :
    - Activer : Extended Protection
    - Providers : Negotiate, NTLM
 
-### 6. web.config
+### 6. web.config — optionnel
 
-Le fichier `public/web.config` est déjà configuré avec :
+> **`public/web.config` n'est pas requis dans l'environnement actuel.** L'application
+> fonctionne avec la seule configuration IIS (Handler Mapping FastCGI, document par
+> défaut, authentification Windows). Ce fichier n'apporte que des durcissements
+> (filtrage d'extensions, segments cachés, MIME types) et peut être retiré sans
+> impact fonctionnel.
+
+Lorsqu'il est présent, `public/web.config` apporte :
 - **Document par défaut** : `index.php` (avec `<clear />` pour éviter les doublons avec la config IIS parente)
-- **Sécurité** : blocage d'accès aux fichiers `.sql`, `.db`, `.sqlite`, `.log`, `.env`, `.bak`
-- **Hidden segments** : dossiers `data/`, `src/`, `handlers/`, `pages/`, `templates/`, `queries/`, `middleware/`, `vendor/` inaccessibles
-- **En-têtes de sécurité** : X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
-- **Erreurs détaillées** : `errorMode="Detailed"` pour voir les erreurs IIS
+- **Sécurité** : blocage d'accès aux fichiers `.sql`, `.db`, `.sqlite`, `.sqlite3`, `.log`, `.env`, `.bak`
+- **Hidden segments** : dossiers `data/`, `src/`, `handlers/`, `pages/`, `templates/`, `middleware/`, `vendor/`, `.git/`, ainsi que les assets statiques (`css/`, `img/`, `fonts/`, `js/`) inaccessibles en HTTP direct (servis uniquement via `asset.php`)
+- **En-tête de sécurité** : `X-Content-Type-Options: nosniff` et un CSP de **fallback** (le CSP effectif est émis par PHP — voir `templates/header.php`, `pages/login.php`, `pages/choose_site.php`) ; `X-Powered-By` est retiré
+- **MIME types** : déclaration de `.woff`, `.woff2`, `.svg`
+- **Authentification** : Windows Authentication activée, Anonymous désactivée
 
-**Note** : PAS besoin du module URL Rewrite. L'application utilise un routage par query string (`?page=xxx`).
+**URL Rewrite — non utilisé, facultatif et inopérant sans module**
+
+L'application **n'utilise pas** le module URL Rewrite : le routage passe intégralement
+par la query string (`?page=xxx`). `web.config` contient une unique règle **outbound**
+« Remove Server Header » qui vise à masquer le header `Server` d'IIS ; cette règle
+**ne s'exécute que si le module URL Rewrite est installé**. Sans le module, elle est
+**inopérante** : elle n'empêche pas le démarrage de l'application et ne doit pas être
+considérée comme un prérequis.
+
+> **Ne pas installer le module URL Rewrite pour cette seule règle.** Le masquage du
+> header `Server` est un durcissement facultatif, sans incidence sur le routage ni sur
+> les fonctionnalités de l'application, qui n'en dépend pas.
 
 ### 7. Initialiser la base de données
 

@@ -274,6 +274,119 @@ class ReportCreateHandlerTest extends TestCase
         $this->assertEquals(0, $result['queries']['report_count']);
     }
 
+    /**
+     * Bug confirmé — une pièce jointe invalide (erreur d'upload PHP) était
+     * silencieusement ignorée : le handler collectait $errors via
+     * validateReportAttachment() mais ne les vérifiait jamais, créant le
+     * signalement sans pièce jointe ET sans message.
+     */
+    public function testRejectsFailedAttachmentUploadOnCreate(): void
+    {
+        $this->createTestDb();
+
+        $token = bin2hex(random_bytes(32));
+        $session = array_merge(
+            $this->makeAgentSession(1, 1),
+            ['csrf_tokens' => [$token => time()]]
+        );
+
+        $result = $this->runHandler([
+            'handler' => 'report_create_handler.php',
+            'session' => $session,
+            'post' => [
+                'csrf_token' => $token,
+                'type' => 'rsst',
+                'objet' => 'Test piece jointe en erreur',
+                'description' => 'Description du test',
+                'date_evenement' => '2026-01-15',
+                'site_id' => '1',
+            ],
+            'files' => [
+                'attachment' => [
+                    'name' => 'photo.jpg',
+                    'type' => 'image/jpeg',
+                    'tmp_name' => '',
+                    'error' => UPLOAD_ERR_INI_SIZE,
+                    'size' => 0,
+                ],
+            ],
+            'db_seed' => "INSERT INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote d Or', 1);\nINSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('jean.martin', 'Martin', 'Jean', 'agent', 1, 1, 'jean.martin@dreets-bfc.gouv.fr');",
+            'assertions' => [
+                'report_count' => "SELECT COUNT(*) FROM reports",
+                'attachment_count' => "SELECT COUNT(*) FROM reports WHERE attachment_blob IS NOT NULL",
+            ],
+        ]);
+
+        // Le flux doit être interrompu, pas poursuivi silencieusement
+        $this->assertNotNull($result['redirect']);
+        $this->assertStringContainsString('page=report_create', $result['redirect']);
+        $this->assertNotEmpty($result['form_errors'], 'Expected a form error for the failed attachment upload');
+        $this->assertArrayHasKey('attachment', $result['form_errors']);
+
+        // Les données saisies sont préservées pour le ré-affichage du formulaire
+        $this->assertSame('Test piece jointe en erreur', $result['form_data']['objet'] ?? null);
+
+        // Aucun signalement créé sans sa pièce jointe
+        $this->assertEquals(0, $result['queries']['report_count']);
+        $this->assertEquals(0, $result['queries']['attachment_count']);
+    }
+
+    /**
+     * Même bug, second chemin : un type MIME non autorisé doit aussi
+     * interrompre la création au lieu d'être ignoré.
+     */
+    public function testRejectsDisallowedAttachmentMimeOnCreate(): void
+    {
+        $this->createTestDb();
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'sst_att_');
+        $this->assertNotFalse($tmpFile, 'Unable to create temp attachment fixture');
+        file_put_contents($tmpFile, 'not an image, just text');
+
+        $token = bin2hex(random_bytes(32));
+        $session = array_merge(
+            $this->makeAgentSession(1, 1),
+            ['csrf_tokens' => [$token => time()]]
+        );
+
+        try {
+            $result = $this->runHandler([
+                'handler' => 'report_create_handler.php',
+                'session' => $session,
+                'post' => [
+                    'csrf_token' => $token,
+                    'type' => 'rsst',
+                    'objet' => 'Test mime interdit',
+                    'description' => 'Description du test',
+                    'date_evenement' => '2026-01-15',
+                    'site_id' => '1',
+                ],
+                'files' => [
+                    'attachment' => [
+                        'name' => 'document.txt',
+                        'type' => 'text/plain',
+                        'tmp_name' => $tmpFile,
+                        'error' => UPLOAD_ERR_OK,
+                        'size' => filesize($tmpFile),
+                    ],
+                ],
+                'db_seed' => "INSERT INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote d Or', 1);\nINSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('jean.martin', 'Martin', 'Jean', 'agent', 1, 1, 'jean.martin@dreets-bfc.gouv.fr');",
+                'assertions' => [
+                    'report_count' => "SELECT COUNT(*) FROM reports",
+                ],
+            ]);
+        } finally {
+            unlink($tmpFile);
+        }
+
+        $this->assertNotNull($result['redirect']);
+        $this->assertStringContainsString('page=report_create', $result['redirect']);
+        $this->assertNotEmpty($result['form_errors'], 'Expected a form error for the disallowed attachment MIME type');
+        $this->assertArrayHasKey('attachment', $result['form_errors']);
+
+        $this->assertEquals(0, $result['queries']['report_count']);
+    }
+
     protected function tearDown(): void
     {
         if (file_exists($this->dbPath)) {

@@ -47,6 +47,7 @@ if (session_status() === PHP_SESSION_NONE) {
 // Set up environment
 $_SESSION = $config['session'] ?? [];
 $_POST = $config['post'] ?? [];
+$_FILES = $config['files'] ?? [];
 // Support GET pages (page mode) — handlers keep the previous behavior ($_GET = []).
 $_GET = $config['get'] ?? [];
 $_SERVER['REQUEST_METHOD'] = $config['server']['REQUEST_METHOD'] ?? 'POST';

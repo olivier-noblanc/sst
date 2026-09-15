@@ -51,7 +51,12 @@ function createRouter(): Router
     // Traite/Abandonne→Reouvert [Superviseur, Chsct] → la route doit accepter
     // le CHSCT comme l'UI expose déjà le bouton Réouvrir.
     $reopenRoles = new RoleMiddleware([UserRole::Superviseur->value, UserRole::Chsct->value]);
-    $router->setPostMiddleware('export', [$csrf, $superviseur]);
+    // Export — pages/export.php ET handlers/export_handler.php documentent le
+    // contrat « Access: superviseur, chsct ». Le POST doit refléter ce contrat
+    // existant, sinon le CHSCT (autorisé au GET, il voit le formulaire) est
+    // refusé au submit → « Accès refusé ». Aucune permission élargie au-delà.
+    $exportRoles = new RoleMiddleware([UserRole::Superviseur->value, UserRole::Chsct->value]);
+    $router->setPostMiddleware('export', [$csrf, $exportRoles]);
     $router->setPostMiddleware('settings', [$csrf, $superviseur]);
     $router->setPostMiddleware('site_edit', [$csrf, $superviseur]);
     $router->setPostMiddleware('smtp_test', [$csrf, $superviseur]);

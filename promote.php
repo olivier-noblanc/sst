@@ -19,6 +19,8 @@
  *   4. Recharger la page → jean.martin est maintenant superviseur
  */
 
+use App\Enum\UserRole;
+
 // Only allow CLI execution
 if (php_sapi_name() !== 'cli') {
     echo "Ce script ne peut être exécuté qu'en ligne de commande.\n";
@@ -34,16 +36,15 @@ if (!isset($_SERVER['SST_CONFIRM_PROMOTE']) || $_SERVER['SST_CONFIRM_PROMOTE'] !
 
 echo "=== DREETS BFC SST — Promotion d'utilisateur ===\n\n";
 
-// Load config
-require_once __DIR__ . '/src/config.php';
+// Bootstrap applicatif : autoloader PSR-4 + config/helpers (src/autoload.php),
+// puis connexion base. Même pattern que les autres points d'entrée CLI.
+require_once __DIR__ . '/src/autoload.php';
 require_once __DIR__ . '/src/database.php';
-require_once __DIR__ . '/src/helpers.php';
-require_once __DIR__ . '/src/queries/user_queries.php';
 
 $username = $argv[1] ?? null;
-$role = $argv[2] ?? 'superviseur';
+$role = $argv[2] ?? UserRole::Superviseur->value;
 
-$validRoles = ['agent', 'superviseur', 'chsct'];
+$validRoles = array_map(static fn (UserRole $case): string => $case->value, UserRole::cases());
 
 if (empty($username)) {
     echo "Usage: php promote.php <username> [role]\n";

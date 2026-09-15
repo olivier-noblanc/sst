@@ -30,6 +30,7 @@ final class NoSqlOutsideRepositoryRule implements Rule
         '/tools/',
         '/cron',
         '/nuclear-reset',
+        '/promote',
         '/database.php',
         '/audit.php',
         '/SQLiteSessionHandler', // Implements SessionHandlerInterface

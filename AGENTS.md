@@ -11,7 +11,8 @@
 ### Fichiers CSS
 - Le CSS de l'application est dans **`public/css/style.css`** (fichier statique, inliné via `inlineCss()` dans les templates).
 - Il n'y a **pas de `style.php`**. Ne pas créer de fichier PHP pour le CSS.
-- **Pas de styles inline** dans le PHP — le CSP (`web.config`) interdit `style-src 'unsafe-inline'`. Tous les styles doivent aller dans `public/css/style.css` avec des classes CSS.
+- **Pas de styles inline** dans le PHP — tous les styles doivent aller dans `public/css/style.css` avec des classes CSS.
+- Le **CSP effectif est émis par PHP** : `templates/header.php`, `pages/login.php` et `pages/choose_site.php`. `public/web.config` ne fournit qu'un CSP de **fallback**, limité aux rares fichiers servis directement par IIS ; ce n'est pas la source de la politique de sécurité.
 
 ### Terminologie
 - Toujours utiliser **CSA/CHSCT** (et non CHSCT seul) dans tout texte visible par l'utilisateur.
@@ -155,7 +156,7 @@ Puis ajouter une step `dorny/test-reporter` dédiée pour les mutants.
 ### Structure du dépôt
 - `docs/screenshots/` : captures HTML source + PNG annotés + CAPTURES.md
 - `tools/` : scripts CLI manuels (capture_screenshots.py, annotate_screenshots.py, anonymize_old_reports.php, check_delays.php, backup_sst_db.ps1)
-- `src/` : logique métier (queries, auth, mail, helpers, database, audit, config, cron)
+- `src/` : logique métier (auth, mail, helpers, database, audit, config, cron ; couches `Enum/`, `DTO/`, `Repository/`, `Services/`) — plus de `src/queries/` (queries procédurales supprimées)
 - `src/helpers/` : modules utilitaires (access.php, formatting.php, http.php, config.php, crypto.php, assets.php)
 - `src/cron.php` : lazy cron — tâches de maintenance déclenchées au login (check_delays + anonymize). Pas de cron système.
 - `pages/` : pages PHP rendues côté serveur

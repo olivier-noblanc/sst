@@ -47,6 +47,12 @@ function getDB(): PDO
     // Enable foreign keys and WAL mode
     $pdo->exec('PRAGMA foreign_keys = ON;');
     $pdo->exec('PRAGMA journal_mode = WAL;');
+    // Bound how long a writer waits for a concurrent lock instead of failing
+    // (or hanging). Only one writer is allowed at a time even in WAL mode, and
+    // background work (lazy cron, backups, FTS syncs) can collide with a web
+    // request. Without this PRAGMA the connection inherits PDO_SQLITE's implicit
+    // 60 s timeout; pinning it to 5 s bounds the worst-case request latency.
+    $pdo->exec('PRAGMA busy_timeout = 5000;');
 
     // Initialize schema if this is a new database
     if ($isNew) {

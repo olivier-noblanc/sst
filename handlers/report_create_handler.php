@@ -88,6 +88,15 @@ if (!empty($customFieldErrors)) {
 try {
     $errors = [];
     $attachment = validateReportAttachment($errors);
+    if (!empty($errors)) {
+        // Bug confirmé — avant ce fix, $errors était collecté puis ignoré :
+        // une pièce jointe invalide (erreur upload, taille, MIME) créait quand
+        // même le signalement, sans pièce jointe ni message. Pattern aligné sur
+        // report_edit_handler.php : interrompre, préserver la saisie, afficher l'erreur.
+        setFormErrors($errors);
+        setFormData(FormData::fromPost($_POST));
+        $http->redirect($http->url('report_create', ['type' => $type]));
+    }
     $cmd = CreateReportCommand::fromPost($_POST, ['id' => $user->id ?? 0, 'nom' => $user->nom ?? '', 'prenom' => $user->prenom ?? '']);
     /** @var array<string, mixed> $cmdData */
     $cmdData = array_merge($cmd->toArray(), [

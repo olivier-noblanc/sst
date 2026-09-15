@@ -9,9 +9,6 @@
 require_once __DIR__ . '/src/config.php';
 require_once __DIR__ . '/src/database.php';
 require_once __DIR__ . '/src/helpers.php';
-require_once __DIR__ . '/src/queries/report_queries.php';
-require_once __DIR__ . '/src/queries/user_queries.php';
-require_once __DIR__ . '/src/queries/site_queries.php';
 
 echo "=== SST DREETS BFC — Seed Script ===\n\n";
 
@@ -30,7 +27,6 @@ require __DIR__ . '/seed/_registries.php';
 require __DIR__ . '/seed/_sites.php';
 require __DIR__ . '/seed/_users.php';
 require __DIR__ . '/seed/_reports.php';
-require __DIR__ . '/seed/_notifications.php';
 
 // ================================================================
 // FINAL SUMMARY

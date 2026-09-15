@@ -230,16 +230,21 @@ function getNotificationRecipients(PDO $pdo, ?int $siteId): array
 /**
  * Notify a user that their role has been changed.
  *
+ * Décision Oracle SMTP — retourne le verdict réel de sendMail() (bool) au lieu
+ * d'un void que l'appelant supposait toujours vrai. false si l'utilisateur est
+ * introuvable/sans email ou si l'envoi échoue.
+ *
  * @param PDO    $pdo     Database connection
  * @param int    $userId  The user whose role changed
  * @param string $oldRole Previous role
  * @param string $newRole New role
+ * @return bool True si l'e-mail est parti, false sinon
  */
-function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRole): void
+function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRole): bool
 {
     $user = UserRepository::instance()->findById($userId);
     if ($user === null || empty($user->email)) {
-        return;
+        return false;
     }
     $appName = getConfigService()->get('app_nom_organisation', 'DREETS BFC');
     $oldLabel = ROLE_LABELS[$oldRole] ?? $oldRole;
@@ -264,20 +269,28 @@ function notifyRoleChange(PDO $pdo, int $userId, string $oldRole, string $newRol
     $body .= '<hr style="margin:16px 0; border:none; border-top:1px solid #ddd;">';
     $body .= "<p style=\"font-size:12px; color:#888;\">Cet e-mail a été envoyé automatiquement par l'application $appName. Ne pas répondre directement à ce message.</p>";
     $body .= '</body></html>';
-    sendMail($user->email, $subject, $body);
+    return sendMail($user->email, $subject, $body);
 }
 
 /**
  * Send confirmation emails to agents invited to be linked to a report.
  * Each agent receives a unique token link they must click to confirm.
+ *
+ * Décision Oracle SMTP (bug #10) — l'invite n'est persistée QUE si sendMail()
+ * retourne true : un échec d'envoi ne doit jamais laisser une invite orpheline
+ * dont le token n'arrivera jamais au destinataire. Les emails en échec sont
+ * retournés à l'appelant (best-effort : un échec n'arrête pas les autres).
+ *
  * @param array<string> $emails  List of email addresses
+ * @return list<string> Emails dont l'envoi a échoué (invite NON persistée)
  */
-function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): void
+function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): array
 {
     $report = ReportRepository::instance()->findById($reportUuid);
     if ($report === null) {
-        return;
+        return [];
     }
+    $failed = [];
     foreach ($emails as $email) {
         $email = trim($email);
         if (empty($email)) {
@@ -301,15 +314,22 @@ function sendAgentInviteEmails(PDO $pdo, string $reportUuid, array $emails): voi
                 . renderEmailButton($confirmUrl, 'Confirmer mon rattachement')
                 . '<p style="font-size:13px; color:#888;">Si vous ne souhaitez pas être rattaché(e), ignorez cet e-mail. Aucune action ne sera effectuée.</p>'
             );
-            sendMail($email, $subject, $body);
+            if (!sendMail($email, $subject, $body)) {
+                // Verdict consommé : PAS de persistance sur échec d'envoi.
+                $failed[] = $email;
+                error_log('[SST-MAIL] sendAgentInviteEmails: envoi échoué pour ' . $email . ' — invite NON persistée.');
+                continue;
+            }
             // Email sent successfully — NOW persist the invite in DB
             ReportAgentRepository::instance()->createAgentInviteWithToken($reportUuid, $email, $token);
         } catch (Throwable $e) {
             // @silent-ok: best-effort per-invite in a loop — one failed invite must not
             // stop the others from being sent.
+            $failed[] = $email;
             error_log('[SST-MAIL] sendAgentInviteEmails failed for ' . $email . ': ' . $e->getMessage());
         }
     }
+    return $failed;
 }
 
 /**

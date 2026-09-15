@@ -152,10 +152,14 @@ class NotificationService
 
     /**
      * Notify a user that their role has been changed.
+     *
+     * Décision Oracle SMTP — délègue et retourne le verdict réel de l'envoi.
+     *
+     * @return bool True si l'e-mail est parti, false sinon
      */
-    public function notifyRoleChange(int $userId, string $oldRole, string $newRole): void
+    public function notifyRoleChange(int $userId, string $oldRole, string $newRole): bool
     {
-        notifyRoleChange($this->pdo, $userId, $oldRole, $newRole);
+        return notifyRoleChange($this->pdo, $userId, $oldRole, $newRole);
     }
 
 }

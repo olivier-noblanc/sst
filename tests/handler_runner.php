@@ -19,6 +19,17 @@ if (!$config) {
 // Load bootstrap (includes Composer autoloader)
 require_once __DIR__ . '/bootstrap.php';
 
+// Mailer seam injection (tests only) — lets a handler subprocess exercise the
+// real handler flow with a deterministic sendMail() verdict, without a socket.
+// 'ok' → toujours true, 'fail' → toujours false. Absent → transport réel.
+require_once __DIR__ . '/../src/mail.php';
+$seamMode = $config['mailer_seam'] ?? null;
+if ($seamMode === 'ok') {
+    setMailerSeam(static fn(string $to, string $subject, string $body, string $from = ''): bool => true);
+} elseif ($seamMode === 'fail') {
+    setMailerSeam(static fn(string $to, string $subject, string $body, string $from = ''): bool => false);
+}
+
 // Load middleware + audit
 require_once __DIR__ . '/../src/Middleware/require_role.php';
 require_once __DIR__ . '/../src/audit.php';

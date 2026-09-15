@@ -140,7 +140,7 @@ class ExportRegistryCodeWiringTest extends TestCase
         $service = new \App\Services\ExportService(new \App\Services\ConfigService());
 
         $post = $this->realFormPost();
-        $filters = $service->buildFiltersFromPost($post);
+        $filters = $service->buildFiltersFromPost($post, \App\Enum\UserRole::Superviseur);
         $registryCode = $service->resolveRegistryCodeFromPost($post);
         $this->assertNotNull($registryCode);
 

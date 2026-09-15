@@ -13,6 +13,7 @@
 namespace App\Services;
 
 use App\Enum\ReportType;
+use App\Enum\UserRole;
 use App\Repository\RegistryFieldRepository;
 use App\Repository\RegistryRepository;
 
@@ -187,12 +188,22 @@ class ExportService
      * list, or un POST forgé peut contenir des clés non séquentielles
      * (ex: etats[5]=nouveau) et array_map préserve les clés d'origine.
      *
+     * Portée CSA/CHSCT — l'export doit appliquer la même visibilité que la
+     * liste des signalements (décision Oracle) :
+     *   - CHSCT + app_chsct_report_scope=consent_only → filtre consentement ;
+     *   - CHSCT + app_chsct_report_scope=all         → aucun filtre ;
+     *   - tout autre rôle (Superviseur)              → aucun filtre.
+     * Sans cela, un CHSCT en mode consent_only exportait des signalements non
+     * consentis qu'il ne pouvait pas consulter dans la liste (fuite de données).
+     * Le rôle est typé UserRole (jamais de string métier 'chsct'/'superviseur').
+     *
      * @param array<string, string> $post Données du formulaire ($_POST) —
      *        convention du codebase (cf. CreateReportCommand) : les valeurs
      *        multi (etats[]) sont couvertes au runtime par le cast (array).
-     * @return array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: list<string>}
+     * @param UserRole $role Rôle effectif de l'utilisateur qui lance l'export.
+     * @return array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: list<string>, chsct_consent_only?: bool}
      */
-    public function buildFiltersFromPost(array $post): array
+    public function buildFiltersFromPost(array $post, UserRole $role): array
     {
         $filters = [];
 
@@ -230,6 +241,14 @@ class ExportService
                 $etats[] = (string) $etatValue;
             }
             $filters['etats'] = $etats;
+        }
+
+        // Portée CSA/CHSCT — même règle que la liste (canAccessReport /
+        // findPaginated, cf. pages/report_list.php) : en mode consent_only, le
+        // CHSCT n'exporte que les signalements dont le déclarant a coché la
+        // case de consentement de transmission syndicale.
+        if ($role === UserRole::Chsct && getAccessService()->getChsctReportScope() === 'consent_only') {
+            $filters['chsct_consent_only'] = true;
         }
 
         return $filters;

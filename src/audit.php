@@ -53,7 +53,7 @@ function getAuditLog(PDO $pdo, array $filters = [], int $page = 1, int $perPage 
  * Cette fonction aplatit tous les filtres en clés scalaires filter_*,
  * compatibles avec array<string, string|int|bool|null>.
  *
- * @param array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: string|list<string>} $filters
+ * @param array{type?: string, site_id?: int, declarant_id?: int, date_from?: string, date_to?: string, etats?: string|list<string>, chsct_consent_only?: bool} $filters
  * @param int $count  Number of exported reports
  * @return array<string, string|int|bool|null>  Flat context (JSON-encodable sans nested array)
  */
@@ -80,6 +80,11 @@ function buildExportAuditContext(array $filters, int $count): array
         $etats = $filters['etats'];
         $etatsList = is_array($etats) ? $etats : [$etats];
         $context['filter_etats'] = implode(',', array_map(strval(...), $etatsList));
+    }
+    // Décision Oracle — tracer le filtre de portée CSA/CHSCT réellement appliqué
+    // (mode consent_only) : l'audit doit refléter le périmètre exporté.
+    if (isset($filters['chsct_consent_only'])) {
+        $context['filter_chsct_consent_only'] = (bool) $filters['chsct_consent_only'];
     }
 
     return $context;

@@ -13,8 +13,9 @@ use App\Services\SessionService;
  *
  * REFACTORED: Previously reimplemented the entire SMTP protocol
  * (fsockopen → EHLO → STARTTLS → AUTH → MAIL FROM → RCPT TO → DATA → QUIT).
- * Now uses sendMail() which internally calls sendViaSMTP(), eliminating
- * ~120 lines of duplicated socket code.
+ * Now uses sendSmtpTest() — envoi STRICTEMENT SMTP, SANS repli PHP mail() :
+ * le flash doit refléter le verdict réel du serveur SMTP, pas un faux succès
+ * dû à un repli mail() (décision Oracle SMTP).
  */
 
 // ── Parameters ────────────────────────────────────────────────────────────────
@@ -53,7 +54,7 @@ if (empty($from) || filter_var($from, FILTER_VALIDATE_EMAIL) === false) {
     $http->redirect($http->url('settings', ['tab' => 'smtp']));
 }
 
-// ── Send test email via shared sendMail() ─────────────────────────────────────
+// ── Send test email via direct SMTP (no mail() fallback) ──────────────────────
 
 require_once __DIR__ . '/../src/mail.php';
 
@@ -69,7 +70,7 @@ $body = '<html><body>'
       . "<strong>Date :</strong> $date</p>"
       . '</body></html>';
 
-$result = sendMail($to, $subject, $body);
+$result = sendSmtpTest($to, $subject, $body);
 
 if ($result) {
     $session->setFlash('success', "E-mail de test envoyé avec succès à $to via $host:$port.");

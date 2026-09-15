@@ -226,7 +226,7 @@ use App\Enum\VisibilityMode;
 
         <div class="separator">
             <h4 class="card__subtitle">&#x1F512; Visibilité des signalements</h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs et membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> voient toujours tous les signalements.</p>
+            <p class="text-muted text-small mb-3">Détermine quels signalements les agents peuvent consulter dans chaque registre. Les superviseurs voient toujours tous les signalements ; la portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> se règle dans la section « Portée des signalements » ci-dessous.</p>
 
             <?php foreach (\App\Enum\ReportType::cases() as $type):
                 $configKey = 'app_report_visibility_' . $type->value;
@@ -278,7 +278,7 @@ use App\Enum\VisibilityMode;
             <?php endforeach; ?>
 
             <div class="info-panel agent-visibility-warning">
-                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs et les membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> voient tous les signalements, y compris les confidentiels.
+                &#x2139;&#xFE0F; <strong>Information :</strong> Quel que soit le mode, les superviseurs voient tous les signalements, y compris les confidentiels. La portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> dépend du réglage « Portée des signalements » ci-dessous.
             </div>
         </div>
 

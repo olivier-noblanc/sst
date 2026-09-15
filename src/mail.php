@@ -15,16 +15,81 @@ use App\Repository\AnonymizationPolicy;
 require_once __DIR__ . '/mail_notifications.php';
 
 /**
- * Send an email using configured SMTP settings.
- * Falls back to PHP mail() if SMTP is not configured.
+ * Injectable mailer seam — tests uniquement.
  *
- * @param string $to      Recipient email
- * @param string $subject Email subject
- * @param string $body    Email body (HTML)
- * @param string $from    Sender email (optional, uses config)
+ * Quand un callable est posé, sendMail() lui délègue l'essai de transport et
+ * retourne son verdict booléen (la sentinelle d'anonymisation est toujours
+ * court-circuitée AVANT). Null = transport réel (SMTP puis repli mail()).
+ * Permet de tester la consommation des verdicts sans socket SMTP.
+ *
+ * @param (callable(string, string, string, string): bool)|null $seam
+ */
+function setMailerSeam(?callable $seam): void
+{
+    $GLOBALS['__sst_mailer_seam'] = $seam;
+}
+
+/**
+ * @return (callable(string, string, string, string): bool)|null
+ */
+function getMailerSeam(): ?callable
+{
+    $seam = $GLOBALS['__sst_mailer_seam'] ?? null;
+    return is_callable($seam) ? $seam : null;
+}
+
+/**
+ * Build the shared MIME headers block.
+ *
+ * Source unique des en-têtes (chokepoint sendMail() + envois directs SMTP).
+ * Ne porte PAS de CRLF terminal : l'appelant DATA ajoute la ligne vide
+ * séparatrice.
+ */
+function buildMailHeaders(string $from = ''): string
+{
+    $smtpFrom = $from !== '' ? $from : getConfigService()->get('smtp_from', 'noreply@dreets-bfc.gouv.fr');
+    $appName = str_replace(["\r", "\n"], '', getConfigService()->get('app_nom_organisation', 'DREETS BFC'));
+
+    $headers = "From: $appName <$smtpFrom>\r\n";
+    $headers .= "Reply-To: $smtpFrom\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $headers .= 'X-Mailer: PHP/' . phpversion();
+    return $headers;
+}
+
+/**
+ * Normalise un payload SMTP DATA (helper PUR, sans I/O).
+ *
+ * 1. Uniformise les fins de ligne en CRLF (RFC 5321) ;
+ * 2. « Dot-stuffing » (RFC 5321 §4.5.2) : toute ligne commençant par '.'
+ *    reçoit un '.' supplémentaire, sinon une ligne de corps valant '.' serait
+ *    interprétée par le serveur comme la fin du message (troncature).
+ */
+function normalizeSmtpData(string $data): string
+{
+    $normalized = preg_replace("/\r\n|\r|\n/", "\r\n", $data);
+    $normalized = $normalized ?? $data;
+    $stuffed = preg_replace('/^\./m', '..', $normalized);
+    return $stuffed ?? $normalized;
+}
+
+/**
+ * Send an email using configured SMTP settings.
+ *
+ * CONTRAIT (décision Oracle SMTP) : best-effort, retourne TOUJOURS un bool,
+ * ne laisse JAMAIS remonter d'exception transport. Le repli PHP mail() est
+ * utilisé par défaut ; passer $allowFallback = false (voir sendSmtpTest) pour
+ * obtenir un verdict SMTP strict.
+ *
+ * @param string $to            Recipient email
+ * @param string $subject       Email subject
+ * @param string $body          Email body (HTML)
+ * @param string $from          Sender email (optional, uses config)
+ * @param bool   $allowFallback Autorise le repli PHP mail() si SMTP échoue
  * @return bool True if sent successfully
  */
-function sendMail(string $to, string $subject, string $body, string $from = ''): bool
+function sendMail(string $to, string $subject, string $body, string $from = '', bool $allowFallback = true): bool
 {
     // Invariant sentinelle (décision produit) — la sentinelle d'anonymisation
     // (AnonymizationPolicy::ANONYMIZED_EMAIL, domaine .invalid RFC 2606) ne
@@ -35,30 +100,53 @@ function sendMail(string $to, string $subject, string $body, string $from = ''):
         return true;
     }
 
-    $smtpHost = getConfigService()->get('smtp_host', '');
-    $smtpFrom = $from !== '' ? $from : getConfigService()->get('smtp_from', 'noreply@dreets-bfc.gouv.fr');
-    $appName = str_replace(["\r", "\n"], '', getConfigService()->get('app_nom_organisation', 'DREETS BFC'));
-
-    // Build email headers
-    $headers = "From: $appName <$smtpFrom>\r\n";
-    $headers .= "Reply-To: $smtpFrom\r\n";
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $headers .= 'X-Mailer: PHP/' . phpversion();
-
-    // If SMTP is configured, try SMTP
-    if (!empty($smtpHost)) {
-        $result = sendViaSMTP($to, $subject, $body, $headers);
-        if ($result) {
-            return true;
+    try {
+        $seam = getMailerSeam();
+        if ($seam !== null) {
+            return $seam($to, $subject, $body, $from);
         }
-        // Fall through to mail() on SMTP failure
-        error_log("[SST-MAIL] SMTP send failed for $to, falling back to mail()");
-    }
 
-    // Fallback to PHP mail()
-    $fullSubject = "[$appName] $subject";
-    return mail($to, $fullSubject, $body, $headers);
+        $appName = str_replace(["\r", "\n"], '', getConfigService()->get('app_nom_organisation', 'DREETS BFC'));
+        $smtpHost = getConfigService()->get('smtp_host', '');
+        $headers = buildMailHeaders($from);
+
+        // If SMTP is configured, try SMTP
+        if (!empty($smtpHost)) {
+            if (sendViaSMTP($to, $subject, $body, $headers)) {
+                return true;
+            }
+            error_log($allowFallback
+                ? "[SST-MAIL] SMTP send failed for $to, falling back to mail()"
+                : "[SST-MAIL] SMTP send failed for $to (repli mail() désactivé)");
+            if (!$allowFallback) {
+                return false;
+            }
+        } elseif (!$allowFallback) {
+            error_log("[SST-MAIL] SMTP non configuré — envoi direct impossible pour $to");
+            return false;
+        }
+
+        // Fallback to PHP mail()
+        $fullSubject = "[$appName] $subject";
+        return mail($to, $fullSubject, $body, $headers);
+    } catch (Throwable $e) {
+        // @silent-ok: best-effort transport — le contrat sendMail() interdit
+        // tout throw (crash hard impossible depuis un shutdown handler) ;
+        // l'échec est journalisé puis retourné à l'appelant (false).
+        error_log('[SST-MAIL] Transport failure (aucun throw ne doit remonter) : ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Envoi strictement SMTP — sans repli PHP mail().
+ *
+ * Réservé aux boutons « tester la configuration SMTP » : un repli mail()
+ * masquerait un échec SMTP et donnerait un faux succès.
+ */
+function sendSmtpTest(string $to, string $subject, string $body, string $from = ''): bool
+{
+    return sendMail($to, $subject, $body, $from, false);
 }
 
 /**
@@ -189,14 +277,16 @@ function sendViaSMTP(string $to, string $subject, string $body, string $headers)
         return false;
     }
 
-    // Send email content
+    // Send email content — payload SMTP DATA normalisé (CRLF + dot-stuffing).
+    // Le dot-stuffing empêche une ligne de corps valant '.' d'être prise pour
+    // la fin du message par le serveur.
     $appName = getConfigService()->get('app_nom_organisation', 'DREETS BFC');
-    fwrite($socket, "Subject: [$appName] $subject\r\n");
-    fwrite($socket, "To: $to\r\n");
-    fwrite($socket, $headers . "\r\n");
-    fwrite($socket, "\r\n");
-    fwrite($socket, $body . "\r\n");
-    fwrite($socket, ".\r\n");
+    $message = "Subject: [$appName] $subject\r\n"
+        . "To: $to\r\n"
+        . $headers . "\r\n"
+        . "\r\n"
+        . $body;
+    fwrite($socket, normalizeSmtpData($message) . "\r\n.\r\n");
     $response = fgets($socket);
 
     // QUIT

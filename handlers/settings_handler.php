@@ -135,7 +135,9 @@ if ($tab === 'smtp') {
         if ($testTo !== '' && filter_var($testTo, FILTER_VALIDATE_EMAIL) !== false) {
             $testSubject = 'Test de connexion SMTP';
             $testBody = '<html><body><h2>Test SMTP</h2><p>Ce message confirme que la connexion SMTP est fonctionnelle.</p></body></html>';
-            $sent = sendMail($testTo, $testSubject, $testBody);
+            // Décision Oracle SMTP — test STRICTEMENT SMTP (sendSmtpTest, sans
+            // repli mail()) : le verdict du test doit refléter le serveur SMTP.
+            $sent = sendSmtpTest($testTo, $testSubject, $testBody);
             if ($sent) {
                 $session->setFlash('success', 'Configuration SMTP enregistrée. Un e-mail de test a été envoyé à ' . e($testTo) . '.');
             } else {

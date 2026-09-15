@@ -162,7 +162,7 @@ Puis ajouter une step `dorny/test-reporter` dédiée pour les mutants.
 - `pages/` : pages PHP rendues côté serveur
 - `handlers/` : handlers POST (création, édition, réponse, export)
 - `templates/` : composants réutilisables (header, footer, form, user_form_fields, breadcrumb, etc.)
-- `tests/` : tests unitaires PHPUnit (1556 tests, 3904 assertions)
+- `tests/` : tests unitaires PHPUnit (1919 tests, 4914 assertions)
 - `nuclear-reset.php` : purge des signalements (CLI uniquement, guard php_sapi_name)
 
 ## Générer les captures d'écran

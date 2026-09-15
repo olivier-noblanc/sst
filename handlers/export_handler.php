@@ -9,6 +9,7 @@
  * Uses fputcsv() for proper field enclosure (handles semicolons,
  * quotes, and newlines inside fields). Exports multi-response history.
  */
+use App\Enum\UserRole;
 use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Services\ExportService;
@@ -26,9 +27,18 @@ $pdo = getDB();
 $noSiteMode = isNoSiteMode($pdo);
 $reportRepo = ReportRepository::instance();
 
+// Rôle effectif (la route POST export n'autorise que Superviseur | CHSCT).
+// Un rôle inconnu ici est un état impossible → crash hard plutôt qu'un export
+// silencieusement élargi (pas de repli permissif).
+$exportRole = UserRole::tryFrom((string) currentUserRole());
+if ($exportRole === null) {
+    throw new RuntimeException('Rôle utilisateur inconnu pour l\'export CSV.');
+}
+
 // Build filters from form data (delegated to ExportService — testable,
-// etats normalisé en list<string> pour le contrat de getExportData())
-$filters = $exportService->buildFiltersFromPost($_POST);
+// etats normalisé en list<string> pour le contrat de getExportData(),
+// + portée CSA/CHSCT appliquée depuis le rôle)
+$filters = $exportService->buildFiltersFromPost($_POST, $exportRole);
 
 // Get data (with optional registryCode for dynamic columns)
 // Fiabilisation (audit A2) — l'ancien code lisait $_POST['registry'], champ

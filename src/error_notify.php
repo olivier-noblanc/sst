@@ -75,25 +75,22 @@ function sstNotifyAdminError(string $levelName, string $message, string $file, i
     $body .= 'Consultez le <a href="' . htmlspecialchars($requestUri) . "\">journal d'erreurs</a> dans l'interface pour voir toutes les entrées.</p>";
     $body .= '</body></html>';
 
-    // Send email (defer to mail module if available, otherwise use error_log)
-    // Audit #49 — wrap sendMail in try/catch so a SMTP failure doesn't prevent
-    // the error page from rendering. error_notify is called from the shutdown
-    // handler; if sendMail throws, the user would see a blank page instead of
-    // the proper error display.
+    // Send email (defer to mail module if available, otherwise use error_log).
+    // Décision Oracle SMTP — le throttle a déjà été marqué (tentative) ; on
+    // CONSOMME le verdict bool de sendMail() pour logguer sent/FAILED. Le
+    // contrat sendMail() interdit tout throw transport, donc plus besoin de
+    // try/catch ici (Audit #49 : ne jamais casser le rendu de la page d'erreur).
     if (function_exists('sendMail')) {
-        try {
-            sendMail($adminEmail, $subject, $body);
-        } catch (Throwable $e) {
-            // @silent-ok: this IS the error-notification mailer — a failure to send the
-            // admin alert must not itself crash the error handler that's reporting it.
-            error_log('[SST-ERROR-MAIL] sendMail failed: ' . $e->getMessage() . " — would have sent: $levelName — $message in $file:$line");
+        $sent = sendMail($adminEmail, $subject, $body);
+        if ($sent) {
+            error_log("[SST-ERROR-MAIL] Notification sent to $adminEmail for $levelName in " . basename($file) . ":$line");
+        } else {
+            error_log("[SST-ERROR-MAIL] FAILED to notify $adminEmail for $levelName in " . basename($file) . ":$line");
         }
     } else {
         // Mail module not loaded yet (early bootstrap) — log instead
-        error_log("[SST-ERROR-MAIL] Would notify admin $adminEmail: $levelName — $message in $file:$line");
+        error_log("[SST-ERROR-MAIL] FAILED to notify $adminEmail for $levelName in " . basename($file) . ":$line");
     }
-
-    error_log("[SST-ERROR-MAIL] Notification sent to $adminEmail for $levelName in " . basename($file) . ":$line");
 }
 
 /**

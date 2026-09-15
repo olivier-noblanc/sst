@@ -118,11 +118,13 @@ $emailSent = false;
 $emailError = '';
 if ($notifyRoleChange) {
     try {
-        getContainer()->get(NotificationService::class)->notifyRoleChange($userId, $oldRole, $cmd->role);
-        $emailSent = true;
+        // Décision Oracle SMTP — on CONSOMME le verdict bool de
+        // notifyRoleChange() au lieu de supposer l'envoi réussi.
+        $emailSent = getContainer()->get(NotificationService::class)->notifyRoleChange($userId, $oldRole, $cmd->role);
     } catch (Throwable $e) {
         // @silent-ok: best-effort notification email — the role change itself already
         // committed, this must not roll it back or block the response.
+        $emailSent = false;
         $emailError = $e->getMessage();
         error_log('[SST-MAIL] notifyRoleChange failed: ' . $emailError);
     }

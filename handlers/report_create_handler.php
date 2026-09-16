@@ -110,15 +110,11 @@ try {
     $cmd = new CreateReportCommand(...$cmdData);
 
     $service = getContainer()->get(ReportService::class);
-    $report = $service->create($cmd);
+    // Les invitations d'agents transitent DANS la transaction de création :
+    // signalement + invites + enqueue outbox sont atomiques (un échec annule tout).
+    $report = $service->create($cmd, $linkedEmails);
     // Audit log
     auditLog(getDB(), 'report', 'create', 'Signalement créé : ' . (string) $report->reference, null, 'report', ['reference' => $report->reference, 'type' => $type, 'site_id' => $siteId], $report->uuid);
-
-    // Send linked agent invite emails (non-blocking)
-    if (!empty($linkedEmails)) {
-        require_once __DIR__ . '/../src/mail.php';
-        sendAgentInviteEmails($pdo, (string) $report->uuid, $linkedEmails);
-    }
 
     $session->setFlash('created', 'Signalement enregistré avec la référence ' . e((string) $report->reference));
     $http->redirect($http->url('report_view', ['uuid' => $report->uuid]));
@@ -126,6 +122,13 @@ try {
 } catch (InvalidArgumentException $e) {
     // @silent-ok: form validation error surfaced via setFormErrors(), shown to the user.
     setFormErrors(['general' => $e->getMessage()]);
+    setFormData(FormData::fromPost($_POST));
+    $http->redirect($http->url('report_create', ['type' => $type]));
+} catch (RuntimeException $e) {
+    // @silent-ok: handler boundary — l'échec est surfacé à l'utilisateur (flash
+    // + saisie conservée), pas avalé. La transaction métier a été annulée :
+    // aucun signalement, aucune ligne outbox orpheline.
+    $session->setFlash('error', 'Le signalement n\'a pas pu être enregistré : ' . e($e->getMessage()));
     setFormData(FormData::fromPost($_POST));
     $http->redirect($http->url('report_create', ['type' => $type]));
 }

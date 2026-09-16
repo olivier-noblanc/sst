@@ -14,6 +14,7 @@ use App\Repository\ReportRepository;
 use App\Repository\RegistryFieldRepository;
 use App\Repository\RegistryRepository;
 use App\Repository\ReportLifecycleRepository;
+use App\Repository\TransactionManager;
 use App\Event\EventDispatcher;
 use App\DTO\ReportEventData;
 use App\DTO\CreateReportCommand;
@@ -28,8 +29,29 @@ class ReportService
     public function __construct(
         private readonly ReportRepository $repo,
         private readonly EventDispatcher $events,
-        private readonly ReportStateMachine $stateMachine
+        private readonly ReportStateMachine $stateMachine,
+        private readonly ?NotificationService $notifications = null,
+        private readonly ?TransactionManager $transactionManager = null,
     ) {}
+
+    /**
+     * TransactionManager de l'action : partagé si injecté (container), sinon
+     * construit sur le PDO du repository. Aucun SMTP n'y transite.
+     */
+    private function transactionManager(): TransactionManager
+    {
+        return $this->transactionManager ?? new TransactionManager($this->repo->getPdo());
+    }
+
+    /**
+     * Flush opportuniste APRÈS le commit (jamais dans la transaction) : le
+     * listener a appelé flushOutbox() mais la garde `inTransaction()` l'a
+     * neutralisé ; on draine une fois la transaction métier close.
+     */
+    private function flushOutboxAfterCommit(): void
+    {
+        $this->notifications?->flushOutbox();
+    }
 
     /**
      * Validate linked agent emails: format + same domain as declarant.
@@ -71,7 +93,12 @@ class ReportService
         return $validEmails;
     }
 
-    public function create(CreateReportCommand $cmd): ReportData
+    /**
+     * @param list<string> $linkedEmails E-mails d'agents à rattacher : traités
+     *        DANS la transaction de création (invite + enqueue atomiques avec
+     *        le signalement), et non après le commit.
+     */
+    public function create(CreateReportCommand $cmd, array $linkedEmails = []): ReportData
     {
         $this->validateForCreation($cmd);
         $this->validateCustomFields($cmd->type, $cmd->customFields);
@@ -80,22 +107,34 @@ class ReportService
         // dédié ni de code inconnu en base) puis écriture atomique dans la
         // transaction du repository.
         $customFieldValues = $this->persistableCustomFields($cmd->type, $cmd->customFields);
-        $uuid = $this->repo->create($cmd, $customFieldValues);
-        $report = $this->repo->findById($uuid);
-        if ($report === null) {
-            throw new RuntimeException('Signalement introuvable après création.');
-        }
 
-        $this->events->dispatch('report.created', ReportEventData::fromReport(
-            $report,
-            pdo: $this->repo->getPdo(),
-        ));
+        /** @var ReportData $report */
+        $report = $this->transactionManager()->run(function () use ($cmd, $customFieldValues, $linkedEmails): ReportData {
+            $uuid = $this->repo->create($cmd, $customFieldValues);
+            $report = $this->repo->findById($uuid);
+            if ($report === null) {
+                throw new RuntimeException('Signalement introuvable après création.');
+            }
+
+            // Enqueue (outbox) DANS la transaction : un rollback annule signalement ET notification.
+            $this->events->dispatch('report.created', ReportEventData::fromReport(
+                $report,
+                pdo: $this->repo->getPdo(),
+            ));
+
+            if ($linkedEmails !== []) {
+                require_once __DIR__ . '/../mail.php';
+                sendAgentInviteEmails($this->repo->getPdo(), $uuid, $linkedEmails);
+            }
+
+            return $report;
+        }, $this->flushOutboxAfterCommit(...));
 
         return $report;
     }
 
     /**
-     * @return array{status: RespondStatus, message?: string}
+     * @return array{status: RespondStatus, message?: string, responseId?: int}
      */
     public function respond(string $uuid, RespondToReportCommand $cmd, int $userId): array
     {
@@ -120,25 +159,34 @@ class ReportService
         // Validate transition using state machine
         $this->stateMachine->validateTransition($report, $cmd->nouvelEtat, $userRole);
 
-        $result = ReportLifecycleRepository::instance()->respond($uuid, $cmd, $userId);
+        /** @var array{status: RespondStatus, message?: string, responseId?: int} $result */
+        $result = $this->transactionManager()->run(function () use ($uuid, $cmd, $userId, $report): array {
+            $result = ReportLifecycleRepository::instance()->respond($uuid, $cmd, $userId);
 
-        // Audit #12 — ne pas dispatcher les events si l'opération a échoué
-        // (status='concurrent' = race condition : un autre superviseur a déjà
-        // répondu). Avant ce fix, l'event 'report.responded' était dispatché
-        // même en cas d'échec → ghost events → notifications email mentant
-        // sur l'état réel du signalement.
-        if ($result['status'] === RespondStatus::Ok) {
-            $this->events->dispatch('report.responded', ReportEventData::fromReport(
-                $report,
-                userId: $userId,
-                pdo: $this->repo->getPdo(),
-            ));
-        }
+            // Audit #12 — ne pas dispatcher les events si l'opération a échoué
+            // (status='concurrent' = race condition). Enqueue DANS la transaction :
+            // un rollback métier annule la notification (et inversement).
+            if ($result['status'] === RespondStatus::Ok) {
+                $this->events->dispatch('report.responded', ReportEventData::fromReport(
+                    $report,
+                    userId: $userId,
+                    pdo: $this->repo->getPdo(),
+                    actionId: $result['responseId'] ?? null,
+                ));
+            }
+
+            return $result;
+        }, $this->flushOutboxAfterCommit(...));
 
         return $result;
     }
 
-    public function update(string $uuid, UpdateReportCommand $cmd, int $userId): bool
+    /**
+     * @param list<string> $inviteEmails Nouveaux e-mails d'agents à rattacher :
+     *        traités DANS la transaction de modification (invite + enqueue
+     *        atomiques avec l'édition).
+     */
+    public function update(string $uuid, UpdateReportCommand $cmd, int $userId, array $inviteEmails = []): bool
     {
         $report = $this->repo->findById($uuid);
         if ($report === null) {
@@ -156,17 +204,25 @@ class ReportService
 
         $this->validateCustomFields($report->type, $cmd->customFields);
         $customFieldValues = $this->persistableCustomFields($report->type, $cmd->customFields);
-        $result = $this->repo->update($uuid, $cmd, $userId, $report->type, $customFieldValues);
 
-        // Audit #12 — ne pas dispatcher si l'UPDATE a échoué.
-        if ($result) {
-            $this->events->dispatch('report.updated', ReportEventData::fromReport(
-                $report,
-                pdo: $this->repo->getPdo(),
-            ));
-        }
+        return $this->transactionManager()->run(function () use ($uuid, $cmd, $userId, $report, $customFieldValues, $inviteEmails): bool {
+            $result = $this->repo->update($uuid, $cmd, $userId, $report->type, $customFieldValues);
 
-        return $result;
+            // Audit #12 — ne pas dispatcher si l'UPDATE a échoué.
+            if ($result) {
+                $this->events->dispatch('report.updated', ReportEventData::fromReport(
+                    $report,
+                    pdo: $this->repo->getPdo(),
+                ));
+
+                if ($inviteEmails !== []) {
+                    require_once __DIR__ . '/../mail.php';
+                    sendAgentInviteEmails($this->repo->getPdo(), $uuid, $inviteEmails);
+                }
+            }
+
+            return $result;
+        }, $this->flushOutboxAfterCommit(...));
     }
 
     public function abandon(string $uuid, int $userId): bool
@@ -190,19 +246,25 @@ class ReportService
         // Validate transition using state machine
         $this->stateMachine->validateTransition($report, ReportState::Abandonne, $userRole);
 
-        $result = ReportLifecycleRepository::instance()->abandon($uuid, $userId);
+        $stateHistoryId = $this->transactionManager()->run(function () use ($uuid, $userId, $report): int {
+            $stateHistoryId = ReportLifecycleRepository::instance()->abandon($uuid, $userId);
 
-        // Audit: dispatch report.abandoned so listeners can notify supervisors
-        // (parallels report.reopened). Skipped on failure — no spurious email.
-        if ($result) {
-            $this->events->dispatch('report.abandoned', ReportEventData::fromReport(
-                $report,
-                userId: $userId,
-                pdo: $this->repo->getPdo(),
-            ));
-        }
+            // Audit: dispatch report.abandoned so listeners can notify supervisors
+            // (parallels report.reopened). Skipped on failure — no spurious email.
+            // Enqueue DANS la transaction : un rollback annule la notification.
+            if ($stateHistoryId > 0) {
+                $this->events->dispatch('report.abandoned', ReportEventData::fromReport(
+                    $report,
+                    userId: $userId,
+                    pdo: $this->repo->getPdo(),
+                    actionId: $stateHistoryId,
+                ));
+            }
 
-        return $result;
+            return $stateHistoryId;
+        }, $this->flushOutboxAfterCommit(...));
+
+        return $stateHistoryId > 0;
     }
 
     public function reopen(string $uuid, ReopenReportCommand $cmd, int $userId): bool
@@ -237,19 +299,25 @@ class ReportService
             }
         }
 
-        $result = ReportLifecycleRepository::instance()->reopen($uuid, $userId, $cmd->motif);
+        $stateHistoryId = $this->transactionManager()->run(function () use ($uuid, $userId, $cmd, $report): int {
+            $stateHistoryId = ReportLifecycleRepository::instance()->reopen($uuid, $userId, $cmd->motif);
 
-        // Audit #12 — ne pas dispatcher si la réouverture a échoué.
-        if ($result) {
-            $this->events->dispatch('report.reopened', ReportEventData::fromReport(
-                $report,
-                userId: $userId,
-                pdo: $this->repo->getPdo(),
-                motif: $cmd->motif,
-            ));
-        }
+            // Audit #12 — ne pas dispatcher si la réouverture a échoué.
+            // Enqueue DANS la transaction : un rollback annule la notification.
+            if ($stateHistoryId > 0) {
+                $this->events->dispatch('report.reopened', ReportEventData::fromReport(
+                    $report,
+                    userId: $userId,
+                    pdo: $this->repo->getPdo(),
+                    motif: $cmd->motif,
+                    actionId: $stateHistoryId,
+                ));
+            }
 
-        return $result;
+            return $stateHistoryId;
+        }, $this->flushOutboxAfterCommit(...));
+
+        return $stateHistoryId > 0;
     }
 
     private function validateForCreation(CreateReportCommand $cmd): void

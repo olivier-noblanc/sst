@@ -76,9 +76,10 @@ class NotificationServiceTest extends TestCase
         $service = new NotificationService($this->pdo);
         $ref = new ReflectionMethod($service, 'notifyReportResponse');
         $params = $ref->getParameters();
-        $this->assertCount(2, $params);
+        $this->assertCount(3, $params);
         $this->assertEquals('reportUuid', $params[0]->getName());
         $this->assertEquals('userId', $params[1]->getName());
+        $this->assertEquals('responseId', $params[2]->getName());
     }
 
     public function testNotifyRoleChangeAcceptsCorrectParameters(): void
@@ -86,17 +87,18 @@ class NotificationServiceTest extends TestCase
         $service = new NotificationService($this->pdo);
         $ref = new ReflectionMethod($service, 'notifyRoleChange');
         $params = $ref->getParameters();
-        $this->assertCount(3, $params);
+        $this->assertCount(4, $params);
         $this->assertEquals('userId', $params[0]->getName());
         $this->assertEquals('oldRole', $params[1]->getName());
         $this->assertEquals('newRole', $params[2]->getName());
+        $this->assertEquals('eventKey', $params[3]->getName());
     }
 
     public function testNotifyReportAbandonReturnsEarlyForUnknownUuid(): void
     {
         $service = new NotificationService($this->pdo);
         // Should not throw — method returns early when report not found
-        $service->notifyReportAbandon('nonexistent-uuid', 1);
+        $service->notifyReportAbandon('nonexistent-uuid', 1, 0);
         $this->assertTrue(true); // No exception = pass
     }
 
@@ -104,7 +106,7 @@ class NotificationServiceTest extends TestCase
     {
         $service = new NotificationService($this->pdo);
         // Should not throw — method returns early when report not found
-        $service->notifyReportReopen('nonexistent-uuid', 1);
+        $service->notifyReportReopen('nonexistent-uuid', 1, null, 0);
         $this->assertTrue(true); // No exception = pass
     }
 
@@ -141,14 +143,14 @@ class NotificationServiceTest extends TestCase
     public function testNotifyReportResponseReturnsEarlyForUnknownUuid(): void
     {
         $service = new NotificationService($this->pdo);
-        $service->notifyReportResponse('nonexistent-uuid', 1);
+        $service->notifyReportResponse('nonexistent-uuid', 1, 0);
         $this->assertTrue(true); // No exception = pass
     }
 
     public function testNotifyRoleChangeReturnsEarlyForUnknownUserId(): void
     {
         $service = new NotificationService($this->pdo);
-        $service->notifyRoleChange(999999, 'agent', 'superviseur');
+        $service->notifyRoleChange(999999, 'agent', 'superviseur', 'key');
         $this->assertTrue(true); // No exception = pass
     }
 

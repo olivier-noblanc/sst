@@ -151,7 +151,7 @@ class ReportQueriesTest extends TestCase
         ]));
 
         $result = ReportLifecycleRepository::instance()->abandon($uuid, self::$userId);
-        $this->assertTrue($result);
+        $this->assertGreaterThan(0, $result, 'abandon() retourne l\'id de transition (occurrence) > 0');
 
         $report = self::$reports->findById($uuid);
         $this->assertEquals('abandonne', $report->etat);

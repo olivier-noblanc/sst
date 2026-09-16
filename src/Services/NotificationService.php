@@ -9,6 +9,8 @@
 
 namespace App\Services;
 
+use App\Enum\OutboxEvent;
+use App\Repository\EmailOutboxRepository;
 use App\Repository\ReportAgentRepository;
 use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
@@ -16,15 +18,15 @@ use PDO;
 
 // Audit #79 — NotificationService délègue chaque méthode à une fonction
 // globale de mail_notifications.php (notifyNewReport, notifyReportResponse,
-// etc.), qui elles-mêmes appellent sendMail()/sendViaSMTP() définies dans
-// mail.php. Rien ici ne garantissait que mail.php soit chargé avant qu'un
-// listener d'event (event_listeners.php, enregistré dans
-// bootstrap_services.php dès le démarrage de la requête) n'appelle une de
-// ces méthodes. Chaque handler faisait son propre `require_once mail.php`,
-// mais toujours APRÈS avoir appelé le Service qui déclenche l'event
-// (report_create_handler.php, report_respond_handler.php,
-// report_reopen_handler.php, user_edit_handler.php) — donc toujours trop
-// tard pour le listener. Résultat en production : notifyNewReport()
+// notifyRoleChange), qui mettent désormais les messages EN FILE dans l'outbox
+// (le transport est porté par EmailOutboxWorker). Rien ici ne garantissait que
+// mail.php soit chargé avant qu'un listener d'event (event_listeners.php,
+// enregistré dans bootstrap_services.php dès le démarrage de la requête)
+// n'appelle une de ces méthodes. Chaque handler faisait son propre
+// `require_once mail.php`, mais toujours APRÈS avoir appelé le Service qui
+// déclenche l'event (report_create_handler.php, report_respond_handler.php,
+// report_reopen_handler.php, user_edit_handler.php) — donc toujours trop tard
+// pour le listener. Résultat en production : notifyNewReport()
 // (notification légale L4131-2 pour les DGI), notifyReportResponse(),
 // notifyReportReopen() et notifyRoleChange() échouaient silencieusement à
 // CHAQUE appel ("Call to undefined function App\Services\notifyNewReport()"
@@ -47,20 +49,29 @@ class NotificationService
     public function notifyNewReport(string $reportUuid, string $type, int $siteId): void
     {
         notifyNewReport($this->pdo, $reportUuid, $type, $siteId);
+        $this->flushOutbox();
     }
 
     /**
      * Notify the declarant and linked agents that their report has received a response.
+     *
+     * $responseId (report_responses.id) est l'identité d'OCCURRENCE : deux
+     * réponses successives du même répondant au même signalement ont des id
+     * distincts, donc deux dedup_key distincts — aucune notification perdue.
      */
-    public function notifyReportResponse(string $reportUuid, int $userId): void
+    public function notifyReportResponse(string $reportUuid, int $userId, int $responseId): void
     {
-        notifyReportResponse($this->pdo, $reportUuid, $userId);
+        notifyReportResponse($this->pdo, $reportUuid, $userId, $responseId);
+        $this->flushOutbox();
     }
 
     /**
      * Notify supervisors that a report has been abandoned.
+     *
+     * $stateHistoryId (report_state_history.id) est l'identité d'OCCURRENCE :
+     * deux abandons successifs (cycles reopen→abandon) ne partagent pas la clé.
      */
-    public function notifyReportAbandon(string $reportUuid, int $userId): void
+    public function notifyReportAbandon(string $reportUuid, int $userId, int $stateHistoryId): void
     {
         $report = ReportRepository::instance()->findById($reportUuid);
         if ($report === null) {
@@ -91,8 +102,9 @@ class NotificationService
         $body .= '</body></html>';
 
         foreach ($recipients as $email) {
-            sendMail($email, $subject, $body);
+            enqueueNotification($this->pdo, OutboxEvent::ReportAbandoned, $reportUuid . ':' . $stateHistoryId, $email, $subject, $body);
         }
+        $this->flushOutbox();
     }
 
     /**
@@ -101,7 +113,7 @@ class NotificationService
      * Fiabilisation (council) — $motif préserve le contenu de l'ancien envoi
      * direct du handler (le motif figurait dans l'e-mail).
      */
-    public function notifyReportReopen(string $reportUuid, int $userId, ?string $motif = null): void
+    public function notifyReportReopen(string $reportUuid, int $userId, ?string $motif, int $stateHistoryId): void
     {
         $report = ReportRepository::instance()->findById($reportUuid);
         if ($report === null) {
@@ -130,7 +142,14 @@ class NotificationService
             $body .= $motifHtml;
             $body .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
             $body .= '</body></html>';
-            sendMail($declarant->email, $subject, $body);
+            enqueueNotification(
+                $this->pdo,
+                OutboxEvent::ReportReopened,
+                $reportUuid . ':' . $stateHistoryId,
+                $declarant->email,
+                $subject,
+                $body,
+            );
         }
 
         // Also notify linked agents
@@ -145,21 +164,53 @@ class NotificationService
                 $linkedBody .= $motifHtml;
                 $linkedBody .= '<p><a href="' . absoluteUrl('report_view', ['uuid' => $reportUuid]) . '">Consulter le signalement</a></p>';
                 $linkedBody .= '</body></html>';
-                sendMail($linkedAgent['email'], $linkedSubject, $linkedBody);
+                enqueueNotification(
+                    $this->pdo,
+                    OutboxEvent::ReportReopened,
+                    $reportUuid . ':' . $stateHistoryId,
+                    $linkedAgent['email'],
+                    $linkedSubject,
+                    $linkedBody,
+                );
             }
         }
+        $this->flushOutbox();
     }
 
     /**
      * Notify a user that their role has been changed.
      *
-     * Décision Oracle SMTP — délègue et retourne le verdict réel de l'envoi.
+     * Option A outbox — délègue l'enqueue durable et retourne la mise en file
+     * (true) ou son impossibilité. Le transport appartient au worker outbox.
      *
-     * @return bool True si l'e-mail est parti, false sinon
+     * @return bool True si le message a été mis en file, false sinon
      */
-    public function notifyRoleChange(int $userId, string $oldRole, string $newRole): bool
+    public function notifyRoleChange(int $userId, string $oldRole, string $newRole, string $eventKey): bool
     {
-        return notifyRoleChange($this->pdo, $userId, $oldRole, $newRole);
+        $enqueued = notifyRoleChange($this->pdo, $userId, $oldRole, $newRole, $eventKey);
+        $this->flushOutbox();
+
+        return $enqueued;
+    }
+
+    /**
+     * Drain opportuniste post-enqueue.
+     *
+     * En SAPI web uniquement (jamais en CLI — tests et scripts s'appuient sur
+     * le lazy cron `mail_drain`), et hors transaction : un run borné du worker
+     * vide la file sans attendre la fenêtre de 5 min. Un échec transport reste
+     * porté par la ligne outbox (retry/backoff) — jamais perdu.
+     */
+    public function flushOutbox(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+        if ($this->pdo->inTransaction()) {
+            return;
+        }
+
+        new EmailOutboxWorker(new EmailOutboxRepository($this->pdo))->run();
     }
 
 }

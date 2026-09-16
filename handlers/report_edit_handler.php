@@ -84,35 +84,32 @@ if (!empty($attachment['blob'])) {
 }
 $cmd = new UpdateReportCommand(...$cmdData);
 
+// Nouveaux e-mails d'agents à rattacher — calculés AVANT l'édition pour
+// rejoindre SA transaction : invitation + message = atomiques avec la
+// modification (un échec annule l'édition, pas d'invitation perdue en silence).
+$inviteEmails = [];
+$linkedEmailsRaw = trim((string) ($_POST['linked_emails'] ?? ''));
+if ($linkedEmailsRaw !== '') {
+    $service = getContainer()->get(ReportService::class);
+    try {
+        $linkedEmails = $service->validateLinkedEmails($linkedEmailsRaw, ['email' => $user?->email]);
+    } catch (InvalidArgumentException) {
+        // @silent-ok: malformed linked-email input — falls back to "no linked agents"
+        // rather than blocking the whole report edit over one bad email field.
+        $linkedEmails = [];
+    }
+
+    if (!empty($linkedEmails)) {
+        $existingEmails = array_column(ReportAgentRepository::instance()->getLinkedAgents($reportUuid), 'email');
+        $inviteEmails = array_values(array_diff($linkedEmails, $existingEmails));
+    }
+}
+
 try {
     $service = getContainer()->get(ReportService::class);
-    $updated = $service->update($reportUuid, $cmd, $userId);
+    $updated = $service->update($reportUuid, $cmd, $userId, $inviteEmails);
 
     if ($updated) {
-        // Send invite emails for newly linked agents (non-blocking)
-        $linkedEmailsRaw = trim((string) ($_POST['linked_emails'] ?? ''));
-        if (!empty($linkedEmailsRaw)) {
-            try {
-                $service = getContainer()->get(ReportService::class);
-                $linkedEmails = $service->validateLinkedEmails($linkedEmailsRaw, ['email' => $user?->email]);
-            } catch (InvalidArgumentException $e) {
-                // @silent-ok: malformed linked-email input — falls back to "no linked agents"
-                // rather than blocking the whole report edit over one bad email field.
-                $linkedEmails = [];
-            }
-
-            if (!empty($linkedEmails)) {
-                $pdo = getDB();
-                $existingLinked = ReportAgentRepository::instance()->getLinkedAgents($reportUuid);
-                $existingEmails = array_column($existingLinked, 'email');
-                $newEmails = array_diff($linkedEmails, $existingEmails);
-                if (!empty($newEmails)) {
-                    require_once __DIR__ . '/../src/mail.php';
-                    sendAgentInviteEmails($pdo, $reportUuid, $newEmails);
-                }
-            }
-        }
-
         auditLog(getDB(), 'report', 'edit', 'Signalement modifié : ' . (string) $report->reference, null, 'report', ['reference' => $report->reference], $report->uuid);
         $session->setFlash('success', 'Signalement ' . e((string) $report->reference) . ' modifié avec succès.');
     } else {

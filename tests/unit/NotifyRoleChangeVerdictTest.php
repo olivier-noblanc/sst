@@ -1,15 +1,17 @@
 <?php
+
 /**
- * notifyRoleChange() verdict — bool remonté jusqu'au handler.
+ * notifyRoleChange() — enqueue durable (Option A outbox).
  *
- * Décision Oracle SMTP : la notification de changement de rôle retourne le
- * verdict réel de sendMail (bool) au lieu d'un void que l'appelant supposait
- * toujours vrai. NotificationService délègue ce bool ; user_edit_handler le
- * consomme pour son audit et son flash.
+ * Le changement de rôle est notifié par user_edit_handler.php SEUL (aucun
+ * listener) ; la notification est désormais MISE EN FILE (durable) au lieu
+ * d'être envoyée en direct. Le bool retourné signale la mise en file, plus un
+ * verdict SMTP — le transport appartient au worker outbox.
  */
 
-use PHPUnit\Framework\TestCase;
+use App\Enum\OutboxEvent;
 use App\Services\NotificationService;
+use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../../src/mail.php';
@@ -18,55 +20,79 @@ class NotifyRoleChangeVerdictTest extends TestCase
 {
     private PDO $pdo;
     private int $userId = 9301;
+    private const EMAIL = 'rolechg@dreets-bfc.gouv.fr';
 
     protected function setUp(): void
     {
         setMailerSeam(null);
         $this->pdo = getDB();
         cleanupAllForTest($this->pdo);
+        $this->pdo->exec('DELETE FROM email_outbox');
         $this->pdo->exec("INSERT INTO users (id, username, nom, prenom, role, site_id, is_active, email)
-            VALUES ({$this->userId}, 'test.rolechg', 'Nom', 'Pre', 'agent', NULL, 1, 'rolechg@dreets-bfc.gouv.fr')");
+            VALUES ({$this->userId}, 'test.rolechg', 'Nom', 'Pre', 'agent', NULL, 1, '" . self::EMAIL . "')");
     }
 
     protected function tearDown(): void
     {
         setMailerSeam(null);
+        $this->pdo->exec('DELETE FROM email_outbox');
+        cleanupAllForTest($this->pdo);
     }
 
-    public function testGlobalNotifyRoleChangeReturnsFalseWhenSendFails(): void
+    private function outboxCount(): int
     {
-        setMailerSeam(static fn(string $to, string $subject, string $body, string $from = ''): bool => false);
-
-        $this->assertFalse(notifyRoleChange($this->pdo, $this->userId, 'agent', 'superviseur'));
+        return (int) $this->pdo->query('SELECT COUNT(*) FROM email_outbox')->fetchColumn();
     }
 
-    public function testGlobalNotifyRoleChangeReturnsTrueWhenSendSucceeds(): void
+    public function testGlobalNotifyRoleChangeEnqueuesWithoutDirectSend(): void
     {
-        setMailerSeam(static fn(string $to, string $subject, string $body, string $from = ''): bool => true);
+        $sent = [];
+        setMailerSeam(static function (string $to, string $subject, string $body, string $from = '') use (&$sent): bool {
+            $sent[] = $to;
+            return false;
+        });
 
-        $this->assertTrue(notifyRoleChange($this->pdo, $this->userId, 'agent', 'superviseur'));
+        $result = notifyRoleChange($this->pdo, $this->userId, 'agent', 'superviseur', 'event-key-1');
+
+        $this->assertTrue($result, 'true = message mis en file (durable), indépendamment du transport');
+        $this->assertSame([], $sent, 'Aucun envoi direct : le worker outbox transportera le message');
+        $this->assertSame(1, $this->outboxCount());
+
+        $key = OutboxEvent::RoleChanged->value . ':' . $this->userId . ':event-key-1:' . strtolower(self::EMAIL);
+        $stmt = $this->pdo->prepare('SELECT subject, body FROM email_outbox WHERE dedup_key = :k');
+        $stmt->execute([':k' => $key]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->assertIsArray($row, 'La clé de dédup encode utilisateur + eventKey (occurrence) + destinataire');
+        $this->assertStringContainsString('Changement', (string) $row['subject']);
+        $this->assertStringContainsString('superviseur', strtolower((string) $row['body']));
     }
 
-    public function testUnknownUserReturnsFalseWithoutSending(): void
+    public function testUnknownUserReturnsFalseWithoutEnqueue(): void
     {
-        $called = false;
-        setMailerSeam(static function (string $to, string $subject, string $body, string $from = '') use (&$called): bool {
-            $called = true;
+        $sent = false;
+        setMailerSeam(static function (string $to, string $subject, string $body, string $from = '') use (&$sent): bool {
+            $sent = true;
             return true;
         });
 
-        $this->assertFalse(notifyRoleChange($this->pdo, 999999, 'agent', 'superviseur'));
-        $this->assertFalse($called, 'Aucun envoi pour un utilisateur introuvable');
+        $this->assertFalse(notifyRoleChange($this->pdo, 999999, 'agent', 'superviseur', 'unknown-key'));
+        $this->assertFalse($sent, 'Aucun envoi pour un utilisateur introuvable');
+        $this->assertSame(0, $this->outboxCount());
     }
 
-    public function testServiceDelegatesVerdict(): void
+    public function testRoleChangeEnqueueIsDeduplicated(): void
     {
-        setMailerSeam(static fn(string $to, string $subject, string $body, string $from = ''): bool => false);
+        notifyRoleChange($this->pdo, $this->userId, 'agent', 'superviseur', 'same-key');
+        notifyRoleChange($this->pdo, $this->userId, 'agent', 'superviseur', 'same-key');
+
+        $this->assertSame(1, $this->outboxCount(), 'Une même transition (même eventKey) ne produit qu\'un message');
+    }
+
+    public function testServiceDelegatesEnqueue(): void
+    {
         $service = new NotificationService($this->pdo);
 
-        $this->assertFalse($service->notifyRoleChange($this->userId, 'agent', 'superviseur'));
-
-        setMailerSeam(static fn(string $to, string $subject, string $body, string $from = ''): bool => true);
-        $this->assertTrue($service->notifyRoleChange($this->userId, 'agent', 'superviseur'));
+        $this->assertTrue($service->notifyRoleChange($this->userId, 'agent', 'superviseur', 'svc-key'));
+        $this->assertSame(1, $this->outboxCount());
     }
 }

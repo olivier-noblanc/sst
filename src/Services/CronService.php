@@ -18,12 +18,19 @@ use Throwable;
 
 class CronService
 {
+    /**
+     * Intervalle du drain outbox (5 min) — bien plus court que la maintenance
+     * (24h/7j) : l'outbox est une file d'envoi qui doit se vider vite.
+     */
+    private const int MAIL_DRAIN_INTERVAL_SECONDS = 300;
+
     public function __construct(
         private readonly PDO $pdo,
         private readonly ConfigRepository $configRepo,
         private readonly ReportRepository $reportRepo,
         private readonly AuditRepository $auditRepo,
-        private readonly SessionRepository $sessionRepo
+        private readonly SessionRepository $sessionRepo,
+        private readonly EmailOutboxWorker $outboxWorker
     ) {}
 
     /**
@@ -37,6 +44,7 @@ class CronService
         $this->runLazyCronTask('session_gc', 24 * 3600, fn() => $this->purgeSessions());
         $this->runLazyCronTask('audit_purge', 7 * 24 * 3600, fn() => $this->purgeAuditLog());
         $this->runLazyCronTask('access_purge', 7 * 24 * 3600, fn() => $this->purgeAccessLog());
+        $this->runLazyCronTask('mail_drain', self::MAIL_DRAIN_INTERVAL_SECONDS, fn() => $this->drainOutbox());
     }
 
     /**
@@ -163,7 +171,7 @@ class CronService
      */
     private function anonymize(): void
     {
-        require_once __DIR__ . '/cron_anonymize.php';
+        require_once __DIR__ . '/../cron_anonymize.php';
         lazyCronAnonymize($this->pdo);
     }
 
@@ -172,7 +180,7 @@ class CronService
      */
     private function cleanup(): void
     {
-        require_once __DIR__ . '/cron_cleanup.php';
+        require_once __DIR__ . '/../cron_cleanup.php';
         lazyCronCleanup($this->pdo);
     }
 
@@ -227,5 +235,19 @@ class CronService
                 context: ['source' => 'lazy_cron', 'access_entries_deleted' => $count],
             );
         }
+    }
+
+    /**
+     * Tâche 7 : Drain de l'outbox SMTP (mail_drain).
+     *
+     * Réclame un lot borné de messages pending puis les envoie hors transaction
+     * via EmailOutboxWorker (claim atomique, retry + backoff exponentiel portés
+     * par le worker). Sans perte : un échec temporaire reste pending et sera
+     * rejoué, un échec définitif reste failed (conservé). L'intervalle court
+     * (5 min) vide l'outbox bien plus vite que la maintenance 24h/7j.
+     */
+    private function drainOutbox(): void
+    {
+        $this->outboxWorker->run();
     }
 }

@@ -70,7 +70,13 @@ class ReportWriteRepository
         $data = $cmd->toArray();
         unset($data['customFields']);
         $data = $this->toSnakeCase($data);
-        $this->pdo->beginTransaction();
+        // Join-if-active : si une transaction est déjà ouverte (action métier
+        // englobante — TransactionManager), on la rejoint sans committer ;
+        // sinon on possède la transaction et on la clôt nous-mêmes.
+        $ownsTransaction = !$this->pdo->inTransaction();
+        if ($ownsTransaction) {
+            $this->pdo->beginTransaction();
+        }
         try {
             $year = (int) date('Y');
             $seq = getNextSequence($this->pdo, $cmd->type, $year);
@@ -132,10 +138,12 @@ class ReportWriteRepository
             // signalement (atomique) ; [] = aucun champ custom, no-op.
             $this->replaceCustomFieldValues($uuid, $cmd->type, $customFieldValues);
 
-            $this->pdo->commit();
+            if ($ownsTransaction) {
+                $this->pdo->commit();
+            }
             return $uuid;
         } catch (Exception $e) {
-            $this->pdo->rollBack();
+            $this->rollBackIfOwned($ownsTransaction);
             error_log('[SST-DB] createReport failed: ' . $e->getMessage());
             throw $e;
         }
@@ -200,7 +208,10 @@ class ReportWriteRepository
         $sql = 'UPDATE reports SET ' . implode(', ', $setClauses)
             . " WHERE uuid = :uuid AND declarant_id = :user_id AND etat IN ('" . ReportState::Nouveau->value . "', '" . ReportState::EnCours->value . "')";
 
-        $this->pdo->beginTransaction();
+        $ownsTransaction = !$this->pdo->inTransaction();
+        if ($ownsTransaction) {
+            $this->pdo->beginTransaction();
+        }
         try {
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
@@ -217,12 +228,25 @@ class ReportWriteRepository
                 $this->replaceCustomFieldValues($uuid, $registryCode, $customFieldValues);
             }
 
-            $this->pdo->commit();
+            if ($ownsTransaction) {
+                $this->pdo->commit();
+            }
             return $updated;
         } catch (Exception $e) {
-            $this->pdo->rollBack();
+            $this->rollBackIfOwned($ownsTransaction);
             error_log('[SST-DB] updateReport failed: ' . $e->getMessage());
             throw $e;
+        }
+    }
+
+    /**
+     * Annule la transaction seulement si CET appel l'a ouverte et qu'elle est
+     * encore active (check isolé : PHPStan replierait un test inline).
+     */
+    private function rollBackIfOwned(bool $ownsTransaction): void
+    {
+        if ($ownsTransaction && $this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
         }
     }
 

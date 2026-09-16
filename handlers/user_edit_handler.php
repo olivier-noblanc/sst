@@ -5,6 +5,7 @@ use App\Services\HttpService;
 use App\Services\SessionService;
 use App\Enum\UserRole;
 use App\Services\NotificationService;
+use App\Repository\TransactionManager;
 
 /**
  * User Edit Handler — Application SST DREETS BFC
@@ -106,28 +107,37 @@ $oldRole = $user->role;
 $roleChanged = ($cmd->role !== $oldRole);
 $notifyRoleChange = ($roleChanged && !empty($_POST['notify_role_change']) && !empty($cmd->email));
 
-$service->update($userId, $cmd, $sessionUser->id);
-
-// Bug #30 — Audit log écrit AVANT l'envoi de l'email. Si sendMail échoue,
-// l'audit log ment (notified=true). Maintenant on track le résultat réel.
-// Fiabilisation (council) — chemin UNIQUE de notification du changement de
-// rôle : ce handler via NotificationService (la checkbox notify_role_change
-// est respectée ici ; l'ancien listener 'user.role_changed' envoyait un
-// e-mail inconditionnel EN PLUS, ignorant la checkbox).
+// Bug #30 / Fiabilisation (council) — chemin UNIQUE de notification : ce
+// handler via NotificationService (checkbox notify_role_change respectée).
+// Atomicité : la modification du rôle et la mise en file de sa notification
+// partagent UNE transaction — un échec d'enqueue annule la modification (pas
+// de changement de rôle silencieux sans notification).
+$notifications = getContainer()->get(NotificationService::class);
 $emailSent = false;
 $emailError = '';
-if ($notifyRoleChange) {
-    try {
-        // Décision Oracle SMTP — on CONSOMME le verdict bool de
-        // notifyRoleChange() au lieu de supposer l'envoi réussi.
-        $emailSent = getContainer()->get(NotificationService::class)->notifyRoleChange($userId, $oldRole, $cmd->role);
-    } catch (Throwable $e) {
-        // @silent-ok: best-effort notification email — the role change itself already
-        // committed, this must not roll it back or block the response.
-        $emailSent = false;
-        $emailError = $e->getMessage();
-        error_log('[SST-MAIL] notifyRoleChange failed: ' . $emailError);
-    }
+try {
+    $transactionManager = new TransactionManager($pdo);
+    $transactionManager->run(
+        function () use ($service, $userId, $cmd, $sessionUser, $notifyRoleChange, $oldRole, $notifications, &$emailSent): void {
+            $service->update($userId, $cmd, $sessionUser->id);
+            if (!$notifyRoleChange) {
+                return;
+            }
+            // Décision Oracle SMTP — on CONSOMME le verdict bool de
+            // notifyRoleChange(). eventKey : identité d'OCCURRENCE générée UNE
+            // fois pour cette transition (cycles A→B→A→B sans collision).
+            $emailSent = $notifications->notifyRoleChange($userId, $oldRole, $cmd->role, bin2hex(random_bytes(16)));
+        },
+        fn() => $notifications->flushOutbox(),
+    );
+} catch (Throwable $e) {
+    // @silent-ok: handler boundary — la transaction a été annulée (rôle non
+    // modifié, notification non perdue) ; l'échec est surfacé à l'utilisateur,
+    // jamais avalé silencieusement.
+    $emailError = $e->getMessage();
+    error_log('[SST-MAIL] user update/notifyRoleChange failed: ' . $emailError);
+    $session->setFlash('error', 'La modification a échoué : ' . e($emailError) . ' Aucune donnée n\'a été enregistrée.');
+    $http->redirect($http->url('user_edit', ['id' => $userId]));
 }
 
 // Audit log APRÈS l'envoi — reflète l'état réel
@@ -141,10 +151,10 @@ auditLog($pdo, 'user', 'edit', 'Utilisateur modifié : ' . $cmd->prenom . ' ' . 
 
 $successMsg = 'Utilisateur ' . e($cmd->prenom . ' ' . $cmd->nom) . ' mis à jour avec succès.';
 if ($notifyRoleChange && $emailSent) {
-    $successMsg .= ' Un e-mail de notification a été envoyé à ' . e($cmd->email) . '.';
+    $successMsg .= ' Un e-mail de notification a été mis en file d\'envoi pour ' . e($cmd->email) . '.';
 } elseif ($notifyRoleChange) {
     // $emailSent is false here (if it were true, the if above would have matched)
-    $successMsg .= " ⚠ Le rôle a changé mais l'e-mail de notification a échoué (" . e($emailError) . "). L'utilisateur devra être informé manuellement.";
+    $successMsg .= " ⚠ Le rôle a changé mais la notification n'a pas pu être mise en file d'envoi (" . e($emailError) . "). L'utilisateur devra être informé manuellement.";
 } elseif ($roleChanged) {
     // $notifyRoleChange is false here, which means $cmd->email is empty
     $successMsg .= " ⚠ Le rôle a changé mais aucun e-mail n'a été envoyé (adresse manquante).";

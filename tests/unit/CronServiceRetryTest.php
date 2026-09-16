@@ -15,10 +15,12 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Services\CronService;
+use App\Services\EmailOutboxWorker;
 use App\Repository\ConfigRepository;
 use App\Repository\ReportRepository;
 use App\Repository\AuditRepository;
 use App\Repository\SessionRepository;
+use App\Repository\EmailOutboxRepository;
 
 class CronServiceRetryTest extends TestCase
 {
@@ -41,6 +43,7 @@ class CronServiceRetryTest extends TestCase
             new ReportRepository($this->pdo),
             new AuditRepository($this->pdo),
             new SessionRepository($this->pdo),
+            new EmailOutboxWorker(new EmailOutboxRepository($this->pdo)),
         );
     }
 

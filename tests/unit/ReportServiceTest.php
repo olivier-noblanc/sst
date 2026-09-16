@@ -367,8 +367,11 @@ class ReportServiceTest extends TestCase
         // Vérification que le tableau contient la clé 'status' avec la bonne valeur
         $this->assertArrayHasKey('status', $result);
         $this->assertEquals(RespondStatus::Ok, $result['status']);
-        // Vérifie que le tableau a exactement une clé (pour tuer le mutant ArrayOneItem)
-        $this->assertCount(1, $result);
+        // responseId = identité d'occurrence de la réponse (dedup_key outbox).
+        $this->assertArrayHasKey('responseId', $result);
+        $this->assertGreaterThan(0, $result['responseId']);
+        // Vérifie que le tableau a exactement deux clés (tue le mutant ArrayOneItem)
+        $this->assertCount(2, $result);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

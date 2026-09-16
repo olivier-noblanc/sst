@@ -96,3 +96,13 @@ $options = ['none' => 'Aucun', 'tls' => 'TLS', 'starttls' => 'STARTTLS'];
         </div>
     </div>
 </form>
+
+<!-- Outbox recovery (separate form — POST + redirect, no JavaScript) -->
+<form method="POST" action="<?php echo new \App\Services\HttpService()->url('outbox_retry'); ?>" class="smtp-test-section">
+    <input type="hidden" name="csrf_token" value="<?php echo new \App\Services\FormattingService()->e($csrfToken); ?>">
+    <div class="card smtp-test-section">
+        <h4 class="card__subtitle">&#x1F501; Messages en échec</h4>
+        <p class="text-muted text-small mb-3">Reprogramme pour un nouvel envoi les messages dont l'envoi a définitivement échoué (après correction de la configuration). Aucun message n'est supprimé.</p>
+        <button type="submit" class="btn btn--outline">Reprogrammer les envois en échec</button>
+    </div>
+</form>

@@ -213,7 +213,33 @@ function migrateTables(PDO $pdo): void
         }
     }
 
-    // ── Sessions table (SQLite-backed session handler) ──────────────────────
+    // ── email_outbox table (transactional SMTP outbox) ─────────────────────
+    // Même DDL que schema.sql (source de vérité pour les installations
+    // fraîches) — cette clause IF NOT EXISTS couvre les bases existantes :
+    // migrateTables() tourne à chaque requête (migrateSchema()).
+    // enqueue() est idempotent via UNIQUE(dedup_key) ; claimBatch() réclame
+    // atomiquement (pending → processing) et le backoff s'appuie sur
+    // next_attempt_at. La sentinelle d'anonymisation n'y est jamais écrite.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS email_outbox (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        dedup_key       TEXT NOT NULL UNIQUE,
+        recipient       TEXT NOT NULL,
+        subject         TEXT NOT NULL,
+        body            TEXT NOT NULL,
+        headers         TEXT NOT NULL DEFAULT '',
+        status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','sent','failed')),
+        attempts        INTEGER NOT NULL DEFAULT 0,
+        last_error      TEXT,
+        next_attempt_at TEXT,
+        processing_at   TEXT,
+        sent_at         TEXT,
+        failed_at       TEXT,
+        created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    )");
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_email_outbox_claim ON email_outbox(status, next_attempt_at)');
+
+    // ── Sessions table (SQLite-backed session handler) ─────────────────────
     $pdo->exec("CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
         data TEXT NOT NULL DEFAULT '',

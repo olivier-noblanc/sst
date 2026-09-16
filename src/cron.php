@@ -18,6 +18,7 @@ use App\Services\CronService;
  *   4. session_gc     — Purge des sessions expirées (>24h)
  *   5. audit_purge    — Purge des logs d'audit > 180 jours
  *   6. access_purge   — Purge des logs de consultation > 2 ans
+ *   7. mail_drain     — Drain de l'outbox SMTP (batch borné, retry/backoff)
  */
 
 require_once __DIR__ . '/bootstrap_services.php';

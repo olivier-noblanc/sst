@@ -31,6 +31,7 @@ function createRouter(): Router
     $router->addPostHandler('settings', "$handlers/settings_handler.php");
     $router->addPostHandler('site_edit', "$handlers/site_edit_handler.php");
     $router->addPostHandler('smtp_test', "$handlers/smtp_test_handler.php");
+    $router->addPostHandler('outbox_retry', "$handlers/outbox_retry_handler.php");
     $router->addPostHandler('user_edit', "$handlers/user_edit_handler.php");
     $router->addPostHandler('user_create', "$handlers/user_create_handler.php");
     $router->addPostHandler('user_delete', "$handlers/user_delete_handler.php");
@@ -60,6 +61,9 @@ function createRouter(): Router
     $router->setPostMiddleware('settings', [$csrf, $superviseur]);
     $router->setPostMiddleware('site_edit', [$csrf, $superviseur]);
     $router->setPostMiddleware('smtp_test', [$csrf, $superviseur]);
+    // Requalification outbox (failed → pending) : action opérateur réservée au
+    // Superviseur, comme les autres actions SMTP/paramètres.
+    $router->setPostMiddleware('outbox_retry', [$csrf, $superviseur]);
     $router->setPostMiddleware('user_edit', [$csrf, $superviseur]);
     $router->setPostMiddleware('user_create', [$csrf, $superviseur]);
     $router->setPostMiddleware('user_delete', [$csrf, $superviseur]);

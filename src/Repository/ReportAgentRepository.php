@@ -90,6 +90,27 @@ class ReportAgentRepository
         return $rows;
     }
 
+    /**
+     * Une invitation NON CONFIRMÉE existe-t-elle déjà pour ce couple
+     * (signalement, e-mail) ? Sert d'idempotence à sendAgentInviteEmails() :
+     * tant qu'une invite est vivante, inutile d'en ré-émettre une ; une fois
+     * l'invite confirmée ou purgée (lazy cron >30j), la ré-invitation redevient
+     * possible (nouveau token → nouveau dedup_key, aucune perte).
+     *
+     * Comparaison insensible à la casse : deux saisies ne diffèrent que par la
+     * casse et désignent le même destinataire.
+     */
+    public function hasUnconfirmedInvite(string $reportUuid, string $email): bool
+    {
+        $stmt = $this->pdo->prepare('
+            SELECT 1 FROM report_agent_invites
+            WHERE report_uuid = :uuid AND confirmed = 0 AND LOWER(email) = LOWER(:email)
+            LIMIT 1
+        ');
+        $stmt->execute([':uuid' => $reportUuid, ':email' => $email]);
+        return (bool) $stmt->fetch();
+    }
+
     /** @return array{id: int, report_uuid: string, email: string, token: string, confirmed: int, confirmed_at: string|null, created_at: string}|null */
     public function getAgentInviteByToken(string $token): ?array
     {

@@ -103,6 +103,7 @@ $auditActionLabels = [
     'auto_backup' => 'Sauvegarde automatique',
     'pre_migration_backup' => 'Sauvegarde pré-migration',
     'data_export' => 'Export de données', 'anonymize' => 'Anonymisation',
+    'outbox_retry' => 'Reprogrammation outbox',
 ];
 ?>
 

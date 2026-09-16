@@ -17,6 +17,19 @@ use App\Event\EventDispatcher;
 use App\Services\NotificationService;
 
 /**
+ * Un échec de mise en file (enqueue outbox) doit-il être repropagé au boundary ?
+ *
+ * Dans une transaction métier ouverte, OUI : le listener participe à l'action
+ * (l'enqueue est atomique avec elle), donc l'échec doit déclencher le rollback.
+ * Hors transaction, NON : l'action est déjà committée, on reste best-effort
+ * (un mail en échec ne doit pas casser une requête dont l'action a abouti).
+ */
+function listenerMustPropagate(?PDO $pdo): bool
+{
+    return $pdo !== null && $pdo->inTransaction();
+}
+
+/**
  * Register all production event listeners on the dispatcher.
  *
  * Called from bootstrap_services.php after the container is built.
@@ -42,8 +55,12 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             $notifications->notifyNewReport($reportUuid, $type, $siteId);
         } catch (Throwable $e) {
-            // @silent-ok: notifications must not break the request — log and continue.
-            // The report is already in DB, the user sees a success page.
+            if (listenerMustPropagate($data->pdo)) {
+                // Atomicité : dans la transaction métier, un échec d'enqueue doit
+                // déclencher le rollback (pas d'action sans sa notification).
+                throw $e;
+            }
+            // @silent-ok: hors transaction, notifications must not break the request.
             error_log('[SST-EVENT] notifyNewReport failed: ' . $e->getMessage());
         }
     });
@@ -61,8 +78,11 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         }
 
         try {
-            $notifications->notifyReportResponse($reportUuid, $userId);
+            $notifications->notifyReportResponse($reportUuid, $userId, $data->actionId ?? 0);
         } catch (Throwable $e) {
+            if (listenerMustPropagate($data->pdo)) {
+                throw $e;
+            }
             // @silent-ok: best-effort notification after main action succeeded.
             error_log('[SST-EVENT] notifyReportResponse failed: ' . $e->getMessage());
         }
@@ -83,9 +103,13 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         try {
             // Fiabilisation (council) — le motif de réouverture transite par
             // ReportEventData::motif pour préserver le contenu de l'e-mail
-            // (l'ancien envoi direct du handler l'incluait).
-            $notifications->notifyReportReopen($reportUuid, $userId, $data->motif);
+            // (l'ancien envoi direct du handler l'incluait). actionId (id de la
+            // transition d'état) rend le dedup_key unique par occurrence.
+            $notifications->notifyReportReopen($reportUuid, $userId, $data->motif, $data->actionId ?? 0);
         } catch (Throwable $e) {
+            if (listenerMustPropagate($data->pdo)) {
+                throw $e;
+            }
             // @silent-ok: best-effort notification after main action succeeded.
             error_log('[SST-EVENT] notifyReportReopen failed: ' . $e->getMessage());
         }
@@ -104,8 +128,11 @@ function registerEventListeners(EventDispatcher $events, Container $c): void
         }
 
         try {
-            $notifications->notifyReportAbandon($reportUuid, $userId);
+            $notifications->notifyReportAbandon($reportUuid, $userId, $data->actionId ?? 0);
         } catch (Throwable $e) {
+            if (listenerMustPropagate($data->pdo)) {
+                throw $e;
+            }
             // @silent-ok: best-effort notification after main action succeeded.
             error_log('[SST-EVENT] notifyReportAbandon failed: ' . $e->getMessage());
         }

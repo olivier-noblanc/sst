@@ -95,4 +95,5 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
         </div>
         <?php endif; ?>
     </header>
+    <?php require __DIR__ . '/outbox_banner.php'; ?>
     <?php require __DIR__ . '/impersonate_banner.php'; ?>

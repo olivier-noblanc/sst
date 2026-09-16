@@ -267,7 +267,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
     {
         $uuid = $this->seedReport('rsst', ReportState::Nouveau->value);
         $result = ReportLifecycleRepository::instance()->abandon($uuid, $this->declarantId);
-        $this->assertTrue($result);
+        $this->assertGreaterThan(0, $result, 'abandon() retourne l\'id de transition (occurrence) > 0');
 
         $report = $this->repo->findById($uuid);
         $this->assertSame(ReportState::Abandonne->value, $report->etat);
@@ -275,7 +275,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
 
     public function testAbandonReturnsFalseForMissingReport(): void
     {
-        $this->assertFalse(ReportLifecycleRepository::instance()->abandon('nonexistent-uuid', $this->declarantId));
+        $this->assertSame(0, ReportLifecycleRepository::instance()->abandon('nonexistent-uuid', $this->declarantId), '0 = aucun abandon');
     }
 
     // ═══ reopen() ═══
@@ -284,7 +284,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
     {
         $uuid = $this->seedReport('rsst', ReportState::Traite->value);
         $result = ReportLifecycleRepository::instance()->reopen($uuid, $this->supervisorId, 'Motif de réouverture');
-        $this->assertTrue($result);
+        $this->assertGreaterThan(0, $result, 'reopen() retourne l\'id de transition (occurrence) > 0');
 
         $report = $this->repo->findById($uuid);
         $this->assertSame(ReportState::Reouvert->value, $report->etat);
@@ -292,7 +292,7 @@ class ReportRepositoryMethodsMutationTest extends TestCase
 
     public function testReopenReturnsFalseForMissingReport(): void
     {
-        $this->assertFalse(ReportLifecycleRepository::instance()->reopen('nonexistent-uuid', $this->supervisorId, 'motif'));
+        $this->assertSame(0, ReportLifecycleRepository::instance()->reopen('nonexistent-uuid', $this->supervisorId, 'motif'), '0 = aucune réouverture');
     }
 
     // ═══ update() ═══

@@ -16,6 +16,7 @@ use App\Repository\RegistryFieldValueRepository;
 use App\Repository\AuditRepository;
 use App\Repository\SessionRepository;
 use App\Repository\ConfigRepository;
+use App\Repository\EmailOutboxRepository;
 use App\Services\ReportService;
 use App\Services\UserService;
 use App\Services\AuthService;
@@ -36,6 +37,7 @@ use App\Services\RegistryPolicy;
 use App\Services\CustomFieldsService;
 use App\Services\ReportStateMachine;
 use App\Services\CronService;
+use App\Services\EmailOutboxWorker;
 use App\Services\ExportService;
 use App\Event\EventDispatcher;
 
@@ -100,6 +102,9 @@ function createContainer(): Container
     $container->set(ConfigRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new ConfigRepository($pdo);
     });
+    $container->set(EmailOutboxRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new EmailOutboxRepository($pdo);
+    });
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // Services — standalone (no constructor dependencies)
@@ -137,7 +142,8 @@ function createContainer(): Container
         /** @var ReportRepository $repo */ $repo = $c->get(ReportRepository::class);
         /** @var EventDispatcher $events */ $events = $c->get(EventDispatcher::class);
         /** @var ReportStateMachine $stateMachine */ $stateMachine = $c->get(ReportStateMachine::class);
-        return new ReportService($repo, $events, $stateMachine);
+        /** @var NotificationService $notifications */ $notifications = $c->get(NotificationService::class);
+        return new ReportService($repo, $events, $stateMachine, $notifications);
     });
     $container->set(UserService::class, function (Container $c) {
         /** @var UserRepository $repo */ $repo = $c->get(UserRepository::class);
@@ -158,13 +164,18 @@ function createContainer(): Container
         /** @var StatsRepository $statsRepo */ $statsRepo = $c->get(StatsRepository::class);
         return new StatisticsService($statsRepo);
     });
+    $container->set(EmailOutboxWorker::class, function (Container $c) {
+        /** @var EmailOutboxRepository $outbox */ $outbox = $c->get(EmailOutboxRepository::class);
+        return new EmailOutboxWorker($outbox);
+    });
     $container->set(CronService::class, function (Container $c) {
         /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         /** @var ConfigRepository $configRepo */ $configRepo = $c->get(ConfigRepository::class);
         /** @var ReportRepository $reportRepo */ $reportRepo = $c->get(ReportRepository::class);
         /** @var AuditRepository $auditRepo */ $auditRepo = $c->get(AuditRepository::class);
         /** @var SessionRepository $sessionRepo */ $sessionRepo = $c->get(SessionRepository::class);
-        return new CronService($pdo, $configRepo, $reportRepo, $auditRepo, $sessionRepo);
+        /** @var EmailOutboxWorker $outboxWorker */ $outboxWorker = $c->get(EmailOutboxWorker::class);
+        return new CronService($pdo, $configRepo, $reportRepo, $auditRepo, $sessionRepo, $outboxWorker);
     });
     $container->set(ExportService::class, function (Container $c) {
         /** @var ConfigService $config */ $config = $c->get(ConfigService::class);

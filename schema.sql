@@ -134,6 +134,34 @@ CREATE TABLE IF NOT EXISTS notification_settings (
 );
 
 -- ============================================================
+-- Table: email_outbox
+-- Transactional SMTP outbox: emails are queued, then drained by a worker
+-- (atomic claim pending → processing) with bounded exponential retry backoff.
+-- dedup_key is the LOGICAL event identity — re-enqueuing the same event is a
+-- no-op (idempotent). The anonymization sentinel
+-- (AnonymizationPolicy::ANONYMIZED_EMAIL) is never enqueued.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS email_outbox (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    dedup_key       TEXT NOT NULL UNIQUE,            -- logical event identity (idempotency)
+    recipient       TEXT NOT NULL,                   -- never the anonymization sentinel
+    subject         TEXT NOT NULL,
+    body            TEXT NOT NULL,
+    headers         TEXT NOT NULL DEFAULT '',
+    status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','sent','failed')),
+    attempts        INTEGER NOT NULL DEFAULT 0,      -- incremented atomically at claim
+    last_error      TEXT,                            -- last failure reason
+    next_attempt_at TEXT,                            -- NULL = immediately eligible; backoff otherwise
+    processing_at   TEXT,                            -- when claimed by a worker
+    sent_at         TEXT,                            -- success timestamp
+    failed_at       TEXT,                            -- terminal failure timestamp
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_outbox_claim ON email_outbox(status, next_attempt_at);
+
+-- ============================================================
 -- Table: report_sequence
 -- Auto-incrementing sequence per registry+year for references.
 -- ============================================================

@@ -285,7 +285,7 @@ class PageRenderingTest extends TestCase
     {
         $pagesDir = __DIR__ . '/../../pages';
         // These pages are handled by index.php or handlers, not by a page file
-        $exceptions = ['logout', 'impersonate', 'user_create', 'user_delete', 'user_reactivate', 'smtp_test'];
+        $exceptions = ['logout', 'impersonate', 'user_create', 'user_delete', 'user_reactivate', 'smtp_test', 'outbox_retry'];
         $missing = [];
 
         $router = getRouter();

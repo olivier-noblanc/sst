@@ -24,6 +24,15 @@ final readonly class ReportEventData
         public ?string $motif = null,
         /** @phpstan-ignore shipmonk.deadProperty.neverRead (kept for DB access in listeners) */
         public ?PDO $pdo = null,
+        /**
+         * Identité d'OCCURRENCE de l'action (id de la ligne qui matérialise
+         * l'action : report_responses.id pour une réponse, report_state_history.id
+         * pour une réouverture/un abandon). Elle rend le dedup_key outbox unique
+         * par occurrence — sans elle, deux actions successives (2e réponse,
+         * reopen/abandon répétés) partagent la clé et la 2e notification est
+         * perdue par `ON CONFLICT DO NOTHING`.
+         */
+        public ?int $actionId = null,
     ) {}
 
     /**
@@ -33,8 +42,13 @@ final readonly class ReportEventData
      * réouverture jusqu'aux listeners de notification (l'ancien envoi direct
      * du handler report_reopen l'incluait dans l'e-mail).
      */
-    public static function fromReport(ReportData $report, ?int $userId = null, ?PDO $pdo = null, ?string $motif = null): self
-    {
+    public static function fromReport(
+        ReportData $report,
+        ?int $userId = null,
+        ?PDO $pdo = null,
+        ?string $motif = null,
+        ?int $actionId = null,
+    ): self {
         return new self(
             report: $report,
             reportUuid: $report->uuid,
@@ -43,6 +57,7 @@ final readonly class ReportEventData
             userId: $userId,
             motif: $motif,
             pdo: $pdo,
+            actionId: $actionId,
         );
     }
 

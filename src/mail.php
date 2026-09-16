@@ -69,7 +69,7 @@ function buildMailHeaders(string $from = ''): string
 function normalizeSmtpData(string $data): string
 {
     $normalized = preg_replace("/\r\n|\r|\n/", "\r\n", $data);
-    $normalized = $normalized ?? $data;
+    $normalized ??= $data;
     $stuffed = preg_replace('/^\./m', '..', $normalized);
     return $stuffed ?? $normalized;
 }

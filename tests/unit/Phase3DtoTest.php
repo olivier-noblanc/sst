@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use App\DTO\AttachmentData;
 use App\DTO\UpdateAppSettingsCommand;
 use App\DTO\AdjacentUuids;
+use App\DTO\ReportFilter;
 use App\Repository\ReportRepository;
 
 class Phase3DtoTest extends TestCase
@@ -226,7 +227,7 @@ class Phase3DtoTest extends TestCase
             $userId, 'Dupont', 'Jean', null, 'nouveau', '2026-02-01 10:00:00',
         ]);
 
-        $result = $repo->getAdjacentUuids('rsst', '2026-01-01 10:00:00', 'uuid-old');
+        $result = $repo->getAdjacentUuids(new ReportFilter(type: 'rsst'), '2026-01-01 10:00:00', 'uuid-old');
         $this->assertInstanceOf(AdjacentUuids::class, $result);
         $this->assertSame('uuid-new', $result->prev, 'prev = newer report');
         $this->assertNull($result->next, 'oldest has no next');
@@ -235,7 +236,7 @@ class Phase3DtoTest extends TestCase
     public function testGetAdjacentUuidsEmptyScalarsReturnsNulls(): void
     {
         $repo = new ReportRepository($this->pdo);
-        $result = $repo->getAdjacentUuids('rsst', '', '');
+        $result = $repo->getAdjacentUuids(new ReportFilter(type: 'rsst'), '', '');
         $this->assertNull($result->prev);
         $this->assertNull($result->next);
     }

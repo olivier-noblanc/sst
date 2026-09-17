@@ -89,8 +89,12 @@ if ($justCreated):
 <?php endif; ?>
 
 <?php
-    // Previous/Next navigation for the same registry list
-    $adjacent = \App\Repository\ReportRepository::instance()->getAdjacentUuids($report->type, $report->createdAt, $report->uuid);
+    // Previous/Next navigation, scopée à la MÊME visibilité que la liste du
+    // registre (BUG-3) : construit via AccessService (source unique) pour ne
+    // jamais proposer un rapport abandonné ou inaccessible (confidentiel d'un
+    // tiers non rattaché, hors périmètre site/CHSCT).
+    $listFilter = new \App\Services\AccessService()->buildListFilter($user, $report->type);
+$adjacent = \App\Repository\ReportRepository::instance()->getAdjacentUuids($listFilter, $report->createdAt, $report->uuid);
 ?>
 
 <?php

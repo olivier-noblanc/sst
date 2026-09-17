@@ -26,9 +26,11 @@
  * façon synchrone pendant des requêtes utilisateur (lazy cron au login, flush
  * post-enqueue) : un transport SMTP en trou noir fait payer ~90 s de timeout
  * par message, donc un lot de 20 bloquerait la requête ~30 min. Passé le
- * budget, le run s'arrête SANS clore les messages restants — ils demeurent en
- * processing et sont récupérés par requeueStaleProcessing() au prochain run,
- * jamais marqués en échec à tort, jamais perdus.
+ * budget, le run s'arrête : les messages non tentés sont RELÂCHÉS
+ * (processing → pending, attempts décrémenté, processing_at effacé) par
+ * EmailOutboxRepository::releaseUnclaimed(), donc immédiatement réclamables au
+ * prochain run — jamais marqués en échec à tort, jamais perdus, et `attempts`
+ * ne compte que les tentatives réellement effectuées.
  *
  * Le worker est appelé par le lazy cron (CronService) : pas de cron système.
  */
@@ -56,14 +58,10 @@ final readonly class EmailOutboxWorker
      *
      * Borne la durée d'un drain synchrone : un SMTP en trou noir fait payer
      * ~90 s de timeout par message, donc un lot de 20 bloquerait la requête
-     * hôte ~30 min. Passé ce budget, le run s'arrête sans clore les messages
-     * non traités (ils restent en processing, récupérables par
-     * requeueStaleProcessing()).
+     * hôte ~30 min. Passé ce budget, le run s'arrête et relâche les messages
+     * non tentés (releaseUnclaimed → pending, attempts décrémenté).
      */
     public const int DEFAULT_DRAIN_BUDGET_SECONDS = 5;
-
-    /** @var (Closure(): float)|null Horloge du run (seam de test) — null = horloge monotone réelle. */
-    private ?Closure $clock;
 
     public function __construct(
         private EmailOutboxRepository $outbox,
@@ -71,10 +69,9 @@ final readonly class EmailOutboxWorker
         private int $maxAttempts = self::DEFAULT_MAX_ATTEMPTS,
         private int $staleAfterSeconds = self::DEFAULT_STALE_AFTER_SECONDS,
         private int $drainBudgetSeconds = self::DEFAULT_DRAIN_BUDGET_SECONDS,
-        ?Closure $clock = null,
-    ) {
-        $this->clock = $clock;
-    }
+        /** @var (Closure(): float)|null Horloge du run (seam de test) — null = horloge monotone réelle. */
+        private ?Closure $clock = null
+    ) {}
 
     /**
      * Exécute un cycle de drainage, borné dans le temps.
@@ -95,34 +92,56 @@ final readonly class EmailOutboxWorker
         $sent = 0;
         $retried = 0;
         $failed = 0;
-        $processed = 0;
         $deferred = 0;
 
-        foreach ($claimed as $message) {
+        foreach ($claimed as $index => $message) {
             if ($this->clockSeconds() - $startedAt >= $budget) {
-                // Budget épuisé : arrêt SANS clore les messages restants. Ils
-                // restent en processing (ni sent, ni retry, ni failed) et ne
-                // sont jamais perdus — requeueStaleProcessing() les repassera
-                // en pending dès qu'ils seront considérés orphelins.
-                $deferred = count($claimed) - $processed;
+                // Budget épuisé : arrêt AVANT toute tentative sur les messages
+                // restants. Ces messages ont pourtant déjà été réclamés (le
+                // claimBatch a incrémenté leur attempts) : on les RELÂCHE
+                // (processing → pending, attempts décrémenté, processing_at
+                // effacé) sinon un drain budget-court répété gonflerait
+                // attempts jusqu'à un `failed` pour un message jamais tenté.
+                // Ils redeviennent immédiatement éligibles — ni perdus, ni en échec.
+                /** @var list<int> $unclaimedIds */
+                $unclaimedIds = array_map(
+                    static fn(array $m): int => $m['id'],
+                    array_slice($claimed, $index)
+                );
+                $this->outbox->releaseUnclaimed($unclaimedIds, $now);
+                $deferred = count($unclaimedIds);
                 break;
             }
-            $processed++;
 
             if ($this->deliver($message)) {
+                // RISK-4 — consomme le verdict de clôture comme les autres :
+                // un false signifie que la ligne n'est plus en processing (déjà
+                // close par un autre chemin) — on ne l'a pas envoyée « en plus »,
+                // donc on ne l'incrémente pas et on trace explicitement.
                 if ($this->outbox->markSent($message['id'], $now)) {
                     $sent++;
+                } else {
+                    $this->logRefusedClose('markSent', $message);
                 }
                 continue;
             }
 
             $error = $this->failureReason($message);
             if ($message['attempts'] >= $this->maxAttempts) {
-                $this->outbox->markFailed($message['id'], $error, $now);
-                $failed++;
+                // RISK-4 — compteur aligné sur la transition réellement effectuée.
+                if ($this->outbox->markFailed($message['id'], $error, $now)) {
+                    $failed++;
+                } else {
+                    $this->logRefusedClose('markFailed', $message);
+                }
             } else {
-                $this->outbox->scheduleRetry($message['id'], $error, $now);
-                $retried++;
+                // RISK-4 — idem scheduleRetry : pas de compteur « retried »
+                // fantôme si la ligne a déjà été close entre-temps.
+                if ($this->outbox->scheduleRetry($message['id'], $error, $now)) {
+                    $retried++;
+                } else {
+                    $this->logRefusedClose('scheduleRetry', $message);
+                }
             }
         }
 
@@ -179,5 +198,23 @@ final readonly class EmailOutboxWorker
             $message['attempts'],
             $this->maxAttempts
         );
+    }
+
+    /**
+     * RISK-4 — une clôture refusée (rowCount = 0) signifie que la ligne n'est
+     * plus en processing : un autre chemin l'a déjà close. Le compteur du run
+     * n'est donc PAS incrémenté (aucune transition fantôme) ; on trace
+     * explicitement la non-transition pour ne jamais l'avaler silencieusement.
+     *
+     * @param array{id:int, dedup_key:string, recipient:string, subject:string, body:string, headers:string, attempts:int} $message
+     */
+    private function logRefusedClose(string $method, array $message): void
+    {
+        error_log(sprintf(
+            '[SST-OUTBOX] %s sans effet — message %d (dedup_key=%s) déjà clôturé par un autre chemin (transition refusée).',
+            $method,
+            $message['id'],
+            $message['dedup_key']
+        ));
     }
 }

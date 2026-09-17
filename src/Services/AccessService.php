@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use App\DTO\ReportData;
+use App\DTO\ReportFilter;
 use App\DTO\SessionUser;
 use App\Enum\ReportState;
 use App\Enum\ReportType;
@@ -186,6 +187,58 @@ class AccessService
             return 'all';
         }
         return $this->getReportVisibilityMode($type);
+    }
+
+    /**
+     * Construit le ReportFilter de la LISTE pour un utilisateur et un registre
+     * donnés — SOURCE UNIQUE de la construction (auparavant inline dans
+     * report_list.php). Garantit que la navigation précédent/suivant de
+     * report_view (getAdjacentUuids) et la liste findPaginated appliquent
+     * EXACTEMENT les mêmes restrictions de visibilité/site/CHSCT.
+     *
+     * $etat/$siteId/$search sont les filtres UI (GET) propres à report_list ;
+     * report_view les laisse vides (liste par défaut du registre).
+     */
+    public function buildListFilter(
+        SessionUser $user,
+        string $type,
+        string $etat = '',
+        int $siteId = 0,
+        ?string $search = null,
+    ): ReportFilter {
+        $userId = $user->id;
+        $userSiteId = $user->siteId ?? 0;
+        $agentVisibility = $this->getReportVisibility($type, $user->role);
+        $seeAllSites = $this->canSeeAllSites($user->role);
+        $chsctScope = $user->role === UserRole::Chsct->value ? $this->getChsctReportScope() : null;
+
+        $forceSiteId = null;
+        $linkedAgentId = null;
+        $linkedAgentVisibility = null;
+
+        if ($agentVisibility === VisibilityMode::Confidential->value) {
+            $forceSiteId = $userSiteId;
+            $linkedAgentId = $userId;
+            $linkedAgentVisibility = $agentVisibility;
+        } elseif ($agentVisibility === VisibilityMode::AgentChoice->value) {
+            $forceSiteId = $userSiteId;
+            $linkedAgentId = $userId;
+            $linkedAgentVisibility = $agentVisibility;
+        } elseif ($agentVisibility === VisibilityMode::Public->value) {
+            $forceSiteId = $userSiteId;
+        }
+
+        return new ReportFilter(
+            type: $type,
+            etat: $etat,
+            siteId: $siteId,
+            forceSiteId: $forceSiteId,
+            search: $search,
+            seeAllSites: $seeAllSites,
+            chsctConsentOnly: $chsctScope === 'consent_only',
+            linkedAgentId: $linkedAgentId,
+            linkedAgentVisibility: $linkedAgentVisibility,
+        );
     }
 
     /**

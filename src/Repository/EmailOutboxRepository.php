@@ -217,6 +217,52 @@ final readonly class EmailOutboxRepository
     }
 
     /**
+     * Relâche des lignes réclamées (processing) mais NON traitées : le budget
+     * de drain peut épuiser le run avant leur tentative. Le claim a pourtant
+     * déjà incrémenté attempts ; sans release, un drain budget-court répété
+     * gonflerait attempts jusqu'à un `failed` pour un message jamais tenté.
+     *
+     * processing → pending, attempts décrémenté (jamais sous 0),
+     * processing_at effacé, updated_at rafraîchi. La ligne redevient
+     * immédiatement éligible au prochain claim.
+     *
+     * Périmètre strict : uniquement les ids fournis ET status = processing —
+     * une ligne déjà close par un autre chemin (sent/retry/failed) n'est
+     * jamais ressuscitée, et les lignes d'un autre lot ne sont pas touchées
+     * (pas de double relâchement).
+     *
+     * @param list<int> $ids
+     * @return int Nombre de lignes relâchées (0 si aucune)
+     *
+     * @phpstan-ignore shipmonk.deadMethod
+     */
+    public function releaseUnclaimed(array $ids, ?string $now = null): int
+    {
+        if ($ids === []) {
+            return 0;
+        }
+        $now ??= self::nowUtc();
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->pdo->prepare(sprintf('
+            UPDATE email_outbox
+            SET status = ?,
+                attempts = CASE WHEN attempts > 0 THEN attempts - 1 ELSE 0 END,
+                processing_at = NULL,
+                updated_at = ?
+            WHERE status = ? AND id IN (%s)
+        ', $placeholders));
+
+        $params = [OutboxStatus::Pending->value, $now, OutboxStatus::Processing->value];
+        foreach ($ids as $id) {
+            $params[] = $id;
+        }
+        $stmt->execute($params);
+
+        return $stmt->rowCount();
+    }
+
+    /**
      * processing → sent (succès terminal). Retourne false si la ligne n'était
      * pas en processing (déjà traitée par un autre chemin).
      *

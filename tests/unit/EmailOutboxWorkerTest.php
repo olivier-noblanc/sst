@@ -329,22 +329,33 @@ class EmailOutboxWorkerTest extends TestCase
         $this->assertSame(0, $stats['failed'], 'Aucun message non traité n\'est marqué en échec');
         $this->assertSame(19, $stats['deferred'], 'Les 19 messages non traités sont différés');
 
-        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM email_outbox WHERE status = :s');
-        $stmt->execute([':s' => OutboxStatus::Processing->value]);
+        // BUG-2 — les messages NON tentés sont RELÂCHÉS (processing → pending,
+        // attempts décrémenté) : le claim ne doit pas laisser croire qu'ils ont
+        // été tentés. Ils restent éligibles au prochain run sans attendre
+        // l'orphelinage, et aucun n'est passé en échec.
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM email_outbox WHERE status = :s AND attempts = 0');
+        $stmt->execute([':s' => OutboxStatus::Pending->value]);
         $this->assertSame(
             19,
             (int) $stmt->fetchColumn(),
-            'Les messages différés restent en processing (ni échec, ni perte) pour requeueStaleProcessing()'
+            'Les messages différés sont relâchés en pending, attempts NON consommé'
         );
+
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM email_outbox WHERE status = :s');
+        $stmt->execute([':s' => OutboxStatus::Processing->value]);
+        $this->assertSame(0, (int) $stmt->fetchColumn(), 'Aucun message différé ne reste coincé en processing');
+
+        $tried = $this->rowByDedupKey('w-budget-0');
+        $this->assertSame(1, (int) $tried['attempts'], 'Seul le message réellement tenté consomme un attempt');
         $this->assertSame(20, $this->countAll(), 'Aucune ligne n\'est perdue');
     }
 
     /**
-     * Les messages différés par le budget sont récupérables : au run suivant,
-     * requeueStaleProcessing() (orphanage processing) les repasse en pending,
-     * ils sont réclamés puis envoyés. Rien ne reste coincé.
+     * Les messages différés par le budget sont relâchés en pending (attempts
+     * non consommé) : le run suivant les réclame DIRECTEMENT, sans attendre le
+     * délai d'orphelinage. Rien ne reste coincé.
      */
-    public function testBudgetDeferredMessagesAreRecoveredByRequeueStaleProcessing(): void
+    public function testBudgetDeferredMessagesAreReleasedAndDrainedOnNextRun(): void
     {
         for ($i = 0; $i < 3; $i++) {
             $this->repo->enqueue($this->message('w-defer-' . $i));
@@ -363,17 +374,23 @@ class EmailOutboxWorkerTest extends TestCase
             drainBudgetSeconds: 5,
         )->run('2026-09-15 10:00:00');
 
+        $this->assertSame(0, $first['recovered']);
         $this->assertSame(1, $first['retried']);
         $this->assertSame(2, $first['deferred']);
 
-        // Run suivant 20 min plus tard : les 2 différés (processing à 10:00)
-        // sont orphelins (cutoff now - 15 min = 10:05) → récupérés ; le retry
-        // du 1er message (backoff 60 s échu) est lui aussi réclamé.
+        // Les 2 différés sont pending attempts=0 : réclamables dès maintenant.
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM email_outbox WHERE status = :s AND attempts = 0");
+        $stmt->execute([':s' => OutboxStatus::Pending->value]);
+        $this->assertSame(2, (int) $stmt->fetchColumn());
+
+        // Run suivant : plus aucun processing orphelin (recovered = 0), le
+        // retry du 1er message (backoff 60 s échu à 10:20) et les 2 différés
+        // relâchés sont réclamés puis envoyés.
         setMailerSeam(fn(string $to, string $subject, string $body, string $from = ''): bool => true);
 
         $second = $this->worker()->run('2026-09-15 10:20:00');
 
-        $this->assertSame(2, $second['recovered'], 'requeueStaleProcessing récupère les messages différés');
+        $this->assertSame(0, $second['recovered'], 'Les différés ont été relâchés : rien à orpheliner');
         $this->assertSame(3, $second['sent'], 'Les 3 messages finissent envoyés — aucun n\'est perdu');
 
         $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM email_outbox WHERE status = :s');
@@ -405,5 +422,178 @@ class EmailOutboxWorkerTest extends TestCase
         $this->assertSame(0, $attempts, 'Budget nul : aucune tentative de transport (arrêt immédiat)');
         $this->assertSame(0, $stats['sent']);
         $this->assertSame(3, $stats['deferred']);
+
+        // BUG-2 — budget nul ⇒ AUCUN attempt consommé : le claim est intégralement relâché.
+        $stmt = $this->pdo->query("SELECT COUNT(*) FROM email_outbox WHERE status = 'pending' AND attempts = 0 AND processing_at IS NULL");
+        $this->assertSame(
+            3,
+            (int) $stmt->fetchColumn(),
+            'Budget nul : tout le lot est pending, attempts=0, processing_at effacé'
+        );
+    }
+
+    /**
+     * BUG-2 — un defer répété (budget court à chaque run) ne doit pas gonfler
+     * `attempts` : sinon un échec réel ultérieur atteindrait max_attempts et
+     * marquerait `failed` un message qui n'a jamais été tenté.
+     */
+    public function testRepeatedDeferralThenRealFailureDoesNotFailPrematurely(): void
+    {
+        $this->repo->enqueue($this->message('w-defer-real'));
+
+        // 6 runs à budget nul : le message est différé 6 fois sans être tenté.
+        for ($i = 0; $i < 6; $i++) {
+            $stats = $this->workerWithClock(
+                clock: static fn(): float => 0.0,
+                drainBudgetSeconds: 0,
+            )->run(sprintf('2026-09-15 10:0%d:00', $i));
+
+            $this->assertSame(1, $stats['deferred']);
+            $this->assertSame(0, $stats['failed']);
+        }
+
+        $deferred = $this->rowByDedupKey('w-defer-real');
+        $this->assertSame(0, (int) $deferred['attempts'], 'Aucun attempt consommé par les defers');
+        $this->assertSame(OutboxStatus::Pending->value, $deferred['status']);
+
+        // Échec RÉEL : 1re tentative réelle (attempts=1 < maxAttempts=5) → retry, jamais failed.
+        setMailerSeam(fn(string $to, string $subject, string $body, string $from = ''): bool => false);
+        $real = $this->worker(maxAttempts: 5)->run('2026-09-15 10:10:00');
+
+        $this->assertSame(0, $real['failed'], 'Un defer répété ne doit pas rendre failed prématurément');
+        $this->assertSame(1, $real['retried']);
+
+        $after = $this->rowByDedupKey('w-defer-real');
+        $this->assertSame(OutboxStatus::Pending->value, $after['status']);
+        $this->assertSame(1, (int) $after['attempts'], 'Une seule tentative réelle a été consommée');
+    }
+
+    // ══ RISK-4 : verdicts de clôture consommés (compteurs cohérents + trace) ══
+
+    /**
+     * @return array{stats: array<string, int>, logged: string}
+     */
+    private function runCapturingWorkerLog(callable $configure): array
+    {
+        /** @var string $logFile */
+        $logFile = tempnam(sys_get_temp_dir(), 'sst_worker_log_');
+        $previousLog = ini_get('error_log');
+        ini_set('error_log', $logFile);
+
+        try {
+            $configure();
+            $stats = $this->worker(maxAttempts: 5)->run('2026-09-15 10:00:00');
+            /** @var array{recovered:int, sent:int, retried:int, failed:int, deferred:int} $stats */
+            $logged = (string) file_get_contents($logFile);
+        } finally {
+            ini_set('error_log', $previousLog === false ? '' : $previousLog);
+            @unlink($logFile);
+        }
+
+        return ['stats' => $stats, 'logged' => $logged];
+    }
+
+    public function testRunDoesNotCountSentWhenCloseIsRefusedAndLogsTrace(): void
+    {
+        $this->repo->enqueue($this->message('w-noop-sent'));
+
+        $outcome = $this->runCapturingWorkerLog(function (): void {
+            setMailerSeam(function (string $to, string $subject, string $body, string $from = ''): bool {
+                // Un autre worker a clos la ligne avant notre markSent.
+                $this->pdo->exec("UPDATE email_outbox SET status = 'sent' WHERE dedup_key = 'w-noop-sent'");
+                return true;
+            });
+        });
+
+        $this->assertSame(0, $outcome['stats']['sent'], 'markSent refusé (déjà clos) ⇒ compteur non incrémenté');
+        $this->assertStringContainsString('markSent sans effet', $outcome['logged'], 'Clôture refusée tracée');
+    }
+
+    public function testRunDoesNotCountRetryWhenCloseIsRefusedAndLogsTrace(): void
+    {
+        $this->repo->enqueue($this->message('w-noop-retry'));
+
+        $outcome = $this->runCapturingWorkerLog(function (): void {
+            setMailerSeam(function (string $to, string $subject, string $body, string $from = ''): bool {
+                $this->pdo->exec("UPDATE email_outbox SET status = 'failed' WHERE dedup_key = 'w-noop-retry'");
+                return false;
+            });
+        });
+
+        $this->assertSame(0, $outcome['stats']['retried'], 'scheduleRetry refusé ⇒ compteur non incrémenté');
+        $this->assertSame(0, $outcome['stats']['failed']);
+        $this->assertStringContainsString('scheduleRetry sans effet', $outcome['logged']);
+    }
+
+    public function testRunDoesNotCountFailedWhenCloseIsRefusedAndLogsTrace(): void
+    {
+        $this->repo->enqueue($this->message('w-noop-failed'));
+        $this->pdo->exec("UPDATE email_outbox SET attempts = 4 WHERE dedup_key = 'w-noop-failed'");
+
+        $outcome = $this->runCapturingWorkerLog(function (): void {
+            setMailerSeam(function (string $to, string $subject, string $body, string $from = ''): bool {
+                $this->pdo->exec("UPDATE email_outbox SET status = 'sent' WHERE dedup_key = 'w-noop-failed'");
+                return false;
+            });
+        });
+
+        $this->assertSame(0, $outcome['stats']['failed'], 'markFailed refusé ⇒ compteur non incrémenté');
+        $this->assertStringContainsString('markFailed sans effet', $outcome['logged']);
+    }
+
+    // ══ releaseUnclaimed : transitions & dedup (BUG-2) ═══════════════════════
+
+    public function testReleaseUnclaimedIsScopedToGivenIdsAndNeverBelowZero(): void
+    {
+        for ($i = 0; $i < 3; $i++) {
+            $this->repo->enqueue($this->message('w-release-' . $i));
+        }
+
+        $claimed = $this->repo->claimBatch(3, '2026-09-15 10:00:00');
+        $this->assertCount(3, $claimed);
+        $this->assertSame([1, 1, 1], array_column($claimed, 'attempts'));
+
+        $releasedId = $claimed[0]['id'];
+        $keptIds = [$claimed[1]['id'], $claimed[2]['id']];
+
+        $this->assertSame(1, $this->repo->releaseUnclaimed([$releasedId], '2026-09-15 10:00:05'));
+
+        $released = $this->rowByDedupKey('w-release-0');
+        $this->assertSame(OutboxStatus::Pending->value, $released['status'], 'processing → pending');
+        $this->assertSame(0, (int) $released['attempts'], 'attempts décrémenté');
+        $this->assertNull($released['processing_at'], 'processing_at effacé');
+
+        // Les ids non fournis restent en processing (jamais touchés).
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM email_outbox WHERE status = :s AND id IN (?, ?)');
+        $stmt->execute([OutboxStatus::Processing->value, $keptIds[0], $keptIds[1]]);
+        $this->assertSame(2, (int) $stmt->fetchColumn(), 'releaseUnclaimed ne touche que les ids fournis');
+
+        // Idempotence / dedup : relâcher une ligne déjà pending ne fait rien.
+        $this->assertSame(0, $this->repo->releaseUnclaimed([$releasedId], '2026-09-15 10:00:06'));
+        // Liste vide : no-op.
+        $this->assertSame(0, $this->repo->releaseUnclaimed([], '2026-09-15 10:00:06'));
+    }
+
+    public function testReleaseUnclaimedDoesNotResurrectAClosedRow(): void
+    {
+        $this->repo->enqueue($this->message('w-release-closed'));
+        $claimed = $this->repo->claimBatch(1, '2026-09-15 10:00:00');
+        $id = $claimed[0]['id'];
+
+        // Un autre chemin a déjà clos la ligne (ex. sent) avant le release.
+        $this->assertTrue($this->repo->markSent($id, '2026-09-15 10:00:01'));
+
+        $this->assertSame(0, $this->repo->releaseUnclaimed([$id], '2026-09-15 10:00:02'));
+        $this->assertSame(OutboxStatus::Sent->value, $this->rowByDedupKey('w-release-closed')['status']);
+    }
+
+    public function testReleaseUnclaimedFloorsAttemptsAtZeroOnInconsistentState(): void
+    {
+        $this->repo->enqueue($this->message('w-release-floor'));
+        $this->pdo->exec("UPDATE email_outbox SET status = 'processing', attempts = 0, processing_at = '2026-09-15 10:00:00' WHERE dedup_key = 'w-release-floor'");
+        $id = (int) $this->pdo->query("SELECT id FROM email_outbox WHERE dedup_key = 'w-release-floor'")->fetchColumn();
+
+        $this->assertSame(1, $this->repo->releaseUnclaimed([$id], '2026-09-15 10:00:05'));
+        $this->assertSame(0, (int) $this->rowByDedupKey('w-release-floor')['attempts'], 'attempts ne passe jamais sous zéro');
     }
 }

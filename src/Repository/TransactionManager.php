@@ -44,7 +44,24 @@ final readonly class TransactionManager
             if ($ownsTransaction) {
                 $this->pdo->commit();
                 if ($afterCommit !== null) {
-                    $afterCommit();
+                    try {
+                        $afterCommit();
+                    } catch (Throwable $e) {
+                        // @silent-ok: dérogation crash-hard CIBLÉE et justifiée ci-dessous.
+                        // Dérogation explicite à la règle « crash hard » (AGENTS.md) —
+                        // périmètre strictement limité au callback POST-COMMIT :
+                        // à ce stade la transaction métier est DÉJÀ committée. Ce
+                        // callback est le flush opportuniste de l'outbox (drain
+                        // synchrone post-enqueue) ; un échec du worker (SMTP/DB) ne
+                        // doit jamais être présenté à l'appelant comme un échec de
+                        // l'action — sinon le handler affiche « non enregistré »,
+                        // l'utilisateur resoumet et crée un doublon. L'outbox est
+                        // durable (aucune ligne perdue), le retry est porté par le
+                        // lazy cron (mail_drain), et l'action est déjà persistée.
+                        // On trace sans avaler : les erreurs métier AVANT commit
+                        // (dans $fn()) remontent toujours via le catch ci-dessous.
+                        error_log('[SST-OUTBOX] flush opportuniste post-commit ignoré : ' . $e->getMessage());
+                    }
                 }
             }
 

@@ -32,13 +32,15 @@ $pageTitle = 'Liste des fiches du registre — ' . getRegistryShortLabel($type);
 $pdo = getContainer()->get(\PDO::class);
 /** @var PDO $pdo */
 $user = $session->getUserSession();
-$userSiteId = $user->siteId ?? 0;
-$userId = $user->id ?? 0;
-$userRole = $user->role ?? '';
-$agentVisibility = $access->getReportVisibility($type);
-$seeAllSites = $access->canSeeAllSites();
+if ($user === null) {
+    $session->setFlash('error', 'Accès refusé.');
+    $http->redirect($http->url('home'));
+    exit;
+}
+$userId = $user->id;
+$userRole = $user->role;
+$seeAllSites = $access->canSeeAllSites($userRole);
 $noSiteMode = $config->isNoSiteMode();
-$chsctScope = $userRole === \App\Enum\UserRole::Chsct->value ? $access->getChsctReportScope() : null;
 
 // Build filters from GET params
 /** @var array<string, mixed> $filters */
@@ -48,40 +50,24 @@ $filters = [
     'q'       => trim((string) ($_GET['q'] ?? '')),
 ];
 
-// Apply agent visibility restrictions
-if ($agentVisibility === \App\Enum\VisibilityMode::Confidential->value) {
-    $filters['force_site_id'] = $userSiteId;
-    $filters['linked_agent_id'] = $userId;
-    $filters['linked_agent_visibility'] = $agentVisibility;
-} elseif ($agentVisibility === \App\Enum\VisibilityMode::AgentChoice->value) {
-    $filters['force_site_id'] = $userSiteId;
-    $filters['linked_agent_id'] = $userId;
-    $filters['linked_agent_visibility'] = $agentVisibility;
-} elseif ($agentVisibility === \App\Enum\VisibilityMode::Public->value) {
-    $filters['force_site_id'] = $userSiteId;
-}
-
 // Pagination
 $pageNum = max(1, (int) ($_GET['p'] ?? 1));
 $perPage = ITEMS_PER_PAGE;
 // Audit #73 — see findPaginated, which now clamps the page internally
 // to totalPages (avoids blank page when ?p=100 is requested on a 5-page list).
 
-// Fetch reports
+// Fetch reports — le filtre de visibilité/site/CHSCT provient de la source
+// unique AccessService::buildListFilter (partagée avec report_view/getAdjacentUuids).
 /** @var string */
 $filterSiteIdStr = $filters['site_id'] ?? '';
 $filterSiteId = (int) $filterSiteIdStr;
-/** @var string */
-$declarantIdRaw = $filters['declarant_id'] ?? '';
-$declarantIdFilter = !empty($declarantIdRaw) ? (int) $declarantIdRaw : null;
-/** @var string */
-$forceSiteIdRaw = $filters['force_site_id'] ?? '';
-$forceSiteIdFilter = !empty($forceSiteIdRaw) ? (int) $forceSiteIdRaw : null;
-/** @var string|null */
-$filterSearch = $filters['q'] ?? null;
-$linkedAgentIdFilter = !empty($filters['linked_agent_id']) ? (int) $filters['linked_agent_id'] : null;
-$linkedAgentVisibilityFilter = $filters['linked_agent_visibility'] ?? null;
-$pager = \App\Repository\ReportRepository::instance()->findPaginated(new \App\DTO\ReportFilter(type: $type, etat: $filters['etat'] ?? '', siteId: $filterSiteId, declarantId: $declarantIdFilter, forceSiteId: $forceSiteIdFilter, search: $filterSearch, seeAllSites: $seeAllSites, chsctConsentOnly: $chsctScope === 'consent_only', linkedAgentId: $linkedAgentIdFilter, linkedAgentVisibility: $linkedAgentVisibilityFilter), $pageNum, $perPage);
+/** @var string $filterSearch */
+$filterSearch = $filters['q'] ?? '';
+$pager = \App\Repository\ReportRepository::instance()->findPaginated(
+    $access->buildListFilter($user, $type, (string) ($filters['etat'] ?? ''), $filterSiteId, $filterSearch === '' ? null : $filterSearch),
+    $pageNum,
+    $perPage,
+);
 $reports = $pager->reports;
 $totalItems = $pager->total;
 

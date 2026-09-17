@@ -129,6 +129,66 @@ class ReportQueryRepository
         $page = max(1, $page);
         $perPage = max(1, min(100, $perPage));
 
+        ['where' => $where, 'params' => $params] = $this->buildFilterWhere($filter);
+
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reports r WHERE $where");
+        $stmt->execute($params);
+        $total = (int) $stmt->fetchColumn();
+
+        // Audit #73 — clamp page to totalPages now that we know the total.
+        // If ?p=100 is requested on a 5-page list, return the last page
+        // instead of a blank list. Avoids the confusing "empty list + pagination
+        // showing page 5" UX.
+        $totalPages = (int) ceil($total / $perPage);
+        if ($totalPages > 0 && $page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        $params[':limit'] = $perPage;
+        $params[':offset'] = ($page - 1) * $perPage;
+        $stmt = $this->pdo->prepare($this->baseSelect() . " WHERE $where ORDER BY r.created_at DESC, r.uuid DESC LIMIT :limit OFFSET :offset");
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+        $reports = [];
+        foreach ($rows as $row) {
+            $reports[] = new ReportListItem(
+                uuid: (string) $row['uuid'],
+                reference: (string) ($row['reference'] ?? ''),
+                type: (string) $row['type'],
+                objet: (string) ($row['objet'] ?? ''),
+                dateEvenement: (string) ($row['date_evenement'] ?? ''),
+                // Audit #79 — was missing entirely: report_list.php's
+                // $canEdit = $access->canEditReport($reportArr, $userId)
+                // needs declarant_id to know whether the current user IS
+                // the declarant. Without it, canEditReport() read an
+                // undefined array key (warning in prod), (int) null = 0,
+                // and no declarant ever saw "Modifier" on the list page —
+                // the same user-facing symptom as the report_card.php
+                // (array) cast bug fixed earlier this session, different
+                // root cause (DTO missing the field, not a bad cast).
+                declarantId: (int) ($row['declarant_id'] ?? 0),
+                declarantNom: (string) ($row['declarant_nom'] ?? ''),
+                declarantPrenom: (string) ($row['declarant_prenom'] ?? ''),
+                siteCode: (string) ($row['site_code'] ?? ''),
+                etat: (string) $row['etat'],
+                isConfidential: (int) ($row['is_confidential'] ?? 0),
+            );
+        }
+        return new PaginatedReports(reports: $reports, total: $total);
+    }
+
+    /**
+     * Construit le WHERE + les paramètres du filtre de liste — SOURCE UNIQUE
+     * partagée par findPaginated() (liste) et getAdjacentUuids() (navigation
+     * précédent/suivant, BUG-3). La navigation doit refléter EXACTEMENT la même
+     * visibilité et le même état que la liste : un rapport abandonné (exclu par
+     * défaut) ou inaccessible (confidentiel d'un tiers non rattaché, hors
+     * périmètre site/CHSCT) ne doit jamais être proposé.
+     *
+     * @return array{where: string, params: array<string, string|int|null>}
+     */
+    private function buildFilterWhere(ReportFilter $filter): array
+    {
         $builder = new QueryFilterBuilder();
         $builder->addEqual('r.type', $filter->type);
         $filters = $filter->toArray();
@@ -238,58 +298,23 @@ class ReportQueryRepository
             }
         }
 
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM reports r WHERE $where");
-        $stmt->execute($params);
-        $total = (int) $stmt->fetchColumn();
-
-        // Audit #73 — clamp page to totalPages now that we know the total.
-        // If ?p=100 is requested on a 5-page list, return the last page
-        // instead of a blank list. Avoids the confusing "empty list + pagination
-        // showing page 5" UX.
-        $totalPages = (int) ceil($total / $perPage);
-        if ($totalPages > 0 && $page > $totalPages) {
-            $page = $totalPages;
-        }
-
-        $params[':limit'] = $perPage;
-        $params[':offset'] = ($page - 1) * $perPage;
-        $stmt = $this->pdo->prepare($this->baseSelect() . " WHERE $where ORDER BY r.created_at DESC, r.uuid DESC LIMIT :limit OFFSET :offset");
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll();
-        $reports = [];
-        foreach ($rows as $row) {
-            $reports[] = new ReportListItem(
-                uuid: (string) $row['uuid'],
-                reference: (string) ($row['reference'] ?? ''),
-                type: (string) $row['type'],
-                objet: (string) ($row['objet'] ?? ''),
-                dateEvenement: (string) ($row['date_evenement'] ?? ''),
-                // Audit #79 — was missing entirely: report_list.php's
-                // $canEdit = $access->canEditReport($reportArr, $userId)
-                // needs declarant_id to know whether the current user IS
-                // the declarant. Without it, canEditReport() read an
-                // undefined array key (warning in prod), (int) null = 0,
-                // and no declarant ever saw "Modifier" on the list page —
-                // the same user-facing symptom as the report_card.php
-                // (array) cast bug fixed earlier this session, different
-                // root cause (DTO missing the field, not a bad cast).
-                declarantId: (int) ($row['declarant_id'] ?? 0),
-                declarantNom: (string) ($row['declarant_nom'] ?? ''),
-                declarantPrenom: (string) ($row['declarant_prenom'] ?? ''),
-                siteCode: (string) ($row['site_code'] ?? ''),
-                etat: (string) $row['etat'],
-                isConfidential: (int) ($row['is_confidential'] ?? 0),
-            );
-        }
-        return new PaginatedReports(reports: $reports, total: $total);
+        return ['where' => $where, 'params' => $params];
     }
 
-    public function getAdjacentUuids(string $type, ?string $createdAt, string $currentUuid): AdjacentUuids
+    public function getAdjacentUuids(ReportFilter $filter, ?string $createdAt, string $currentUuid): AdjacentUuids
     {
         $createdAt ??= '';
         $uuid = $currentUuid;
         $prev = null;
         $next = null;
+
+        // BUG-3 — la navigation s'appuie sur le MÊME filtre que la liste
+        // (buildFilterWhere) : état exclu (abandonné), visibilité (confidentiel/
+        // rattachés), périmètre site et CHSCT sont identiques. Un rapport
+        // inaccessible ou abandonné n'est jamais proposé.
+        ['where' => $where, 'params' => $params] = $this->buildFilterWhere($filter);
+        $params[':adj_created_at'] = $createdAt;
+        $params[':adj_uuid'] = $uuid;
 
         // Audit #63 — La liste des signalements est triée par created_at DESC.
         // "Précédent" = plus récent (au-dessus dans la liste) = created_at > current.
@@ -297,27 +322,29 @@ class ReportQueryRepository
         // Avant ce fix, les sens étaient inversés.
 
         // prev = newer report (appears above current in DESC list)
-        $stmt = $this->pdo->prepare('
-            SELECT uuid, created_at FROM reports
-            WHERE type = :type AND (created_at > :created_at OR (created_at = :created_at AND uuid > :uuid))
-            ORDER BY created_at ASC, uuid ASC LIMIT 1
-        ');
-        $stmt->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
+        $stmt = $this->pdo->prepare("
+            SELECT r.uuid FROM reports r
+            WHERE $where
+              AND (r.created_at > :adj_created_at OR (r.created_at = :adj_created_at AND r.uuid > :adj_uuid))
+            ORDER BY r.created_at ASC, r.uuid ASC LIMIT 1
+        ");
+        $stmt->execute($params);
         $row = $stmt->fetch();
         if (is_array($row) && isset($row['uuid'])) {
-            $prev = $row['uuid'];
+            $prev = (string) $row['uuid'];
         }
 
         // next = older report (appears below current in DESC list)
-        $stmt2 = $this->pdo->prepare('
-            SELECT uuid, created_at FROM reports
-            WHERE type = :type AND (created_at < :created_at OR (created_at = :created_at AND uuid < :uuid))
-            ORDER BY created_at DESC, uuid DESC LIMIT 1
-        ');
-        $stmt2->execute([':type' => $type, ':created_at' => $createdAt, ':uuid' => $uuid]);
+        $stmt2 = $this->pdo->prepare("
+            SELECT r.uuid FROM reports r
+            WHERE $where
+              AND (r.created_at < :adj_created_at OR (r.created_at = :adj_created_at AND r.uuid < :adj_uuid))
+            ORDER BY r.created_at DESC, r.uuid DESC LIMIT 1
+        ");
+        $stmt2->execute($params);
         $row2 = $stmt2->fetch();
         if (is_array($row2) && isset($row2['uuid'])) {
-            $next = $row2['uuid'];
+            $next = (string) $row2['uuid'];
         }
 
         return new AdjacentUuids(prev: $prev, next: $next);

@@ -44,9 +44,9 @@ class ReportRepository
         return ReportQueryRepository::instance()->findPaginated($filter, $page, $perPage);
     }
 
-    public function getAdjacentUuids(string $type, ?string $createdAt, string $currentUuid): AdjacentUuids
+    public function getAdjacentUuids(ReportFilter $filter, ?string $createdAt, string $currentUuid): AdjacentUuids
     {
-        return ReportQueryRepository::instance()->getAdjacentUuids($type, $createdAt, $currentUuid);
+        return ReportQueryRepository::instance()->getAdjacentUuids($filter, $createdAt, $currentUuid);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════

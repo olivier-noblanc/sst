@@ -83,6 +83,24 @@ class LinkedAgentVisibilityTest extends TestCase
             ->execute([':uuid' => $reportUuid, ':user_id' => $userId]);
     }
 
+    /** Fixe created_at (tri DESC de la liste = tri de navigation getAdjacentUuids). */
+    private function setCreatedAt(string $reportUuid, string $createdAt): void
+    {
+        $this->pdo->prepare('UPDATE reports SET created_at = :created_at WHERE uuid = :uuid')
+            ->execute([':created_at' => $createdAt, ':uuid' => $reportUuid]);
+    }
+
+    /** Filtre de liste d'un agent en mode AgentChoice (celui de report_list/report_view). */
+    private function agentChoiceFilter(int $agentId, int $siteId): ReportFilter
+    {
+        return new ReportFilter(
+            type: ReportType::Rsst->value,
+            forceSiteId: $siteId,
+            linkedAgentId: $agentId,
+            linkedAgentVisibility: VisibilityMode::AgentChoice->value,
+        );
+    }
+
     // ─── countVisibleForAgent ─────────────────────────────────────────
 
     public function testCountVisibleForAgent_Confidential_IncludesLinkedReports(): void
@@ -310,5 +328,114 @@ class LinkedAgentVisibilityTest extends TestCase
 
         $this->assertEquals(1, $result->total);
         $this->assertEquals($uuid, $result->reports[0]->uuid);
+    }
+
+    // ─── getAdjacentUuids : respecte l'état/visibilité de la liste (BUG-3) ───
+    //
+    // La navigation précédent/suivant doit s'appuyer sur la MÊME visibilité que
+    // findPaginated (listes report_list/report_view) : jamais de lien vers un
+    // rapport abandonné ou inaccessible (confidentiel d'un tiers non rattaché).
+
+    public function testGetAdjacentUuidsExcludesAbandonedReport(): void
+    {
+        $older = $this->createReport($this->agentId1, 'Ancien visible');
+        $abandoned = $this->createReport($this->agentId1, 'Intermédiaire abandonné');
+        $current = $this->createReport($this->agentId1, 'Courant');
+
+        $this->setCreatedAt($older, '2026-01-01 10:00:00');
+        $this->setCreatedAt($abandoned, '2026-02-01 10:00:00');
+        $this->setCreatedAt($current, '2026-03-01 10:00:00');
+        $this->pdo->prepare('UPDATE reports SET etat = :etat WHERE uuid = :uuid')
+            ->execute([':uuid' => $abandoned, ':etat' => ReportState::Abandonne->value]);
+
+        $result = $this->repo->getAdjacentUuids(
+            $this->agentChoiceFilter($this->agentId1, $this->siteId),
+            '2026-03-01 10:00:00',
+            $current,
+        );
+
+        $this->assertNull($result->prev, 'L\'abandonné (plus récent) ne doit pas être proposé en précédent');
+        $this->assertSame($older, $result->next, 'Le suivant saute l\'abandonné pour le visible réel');
+    }
+
+    public function testGetAdjacentUuidsExcludesInaccessibleConfidentialReport(): void
+    {
+        $older = $this->createReport($this->agentId1, 'Ancien agent1');
+        $secret = $this->createReport($this->agentId2, 'Confidentiel agent2 non rattaché', 1, $this->siteId2);
+        $current = $this->createReport($this->agentId1, 'Courant agent1');
+
+        $this->setCreatedAt($older, '2026-01-01 10:00:00');
+        $this->setCreatedAt($secret, '2026-02-01 10:00:00');
+        $this->setCreatedAt($current, '2026-03-01 10:00:00');
+
+        $result = $this->repo->getAdjacentUuids(
+            $this->agentChoiceFilter($this->agentId1, $this->siteId),
+            '2026-03-01 10:00:00',
+            $current,
+        );
+
+        $this->assertNull($result->prev, 'Un confidentiel inaccessible ne doit jamais être proposé');
+        $this->assertSame($older, $result->next);
+    }
+
+    public function testGetAdjacentUuidsIncludesLinkedConfidentialReport(): void
+    {
+        // Non-régression : être rattaché EST l'autorisation, même confidentiel
+        // et même cross-site. Le filtre de navigation ne doit pas sur-restreindre.
+        $older = $this->createReport($this->agentId1, 'Ancien agent1');
+        $linked = $this->createReport($this->agentId2, 'Confidentiel agent2 rattaché', 1, $this->siteId2);
+        $current = $this->createReport($this->agentId1, 'Courant agent1');
+        $this->linkAgent($linked, $this->agentId1);
+
+        $this->setCreatedAt($older, '2026-01-01 10:00:00');
+        $this->setCreatedAt($linked, '2026-03-01 10:00:00');
+        $this->setCreatedAt($current, '2026-02-01 10:00:00');
+
+        $result = $this->repo->getAdjacentUuids(
+            $this->agentChoiceFilter($this->agentId1, $this->siteId),
+            '2026-02-01 10:00:00',
+            $current,
+        );
+
+        $this->assertSame($linked, $result->prev, 'Le confidentiel rattaché reste navigable');
+        $this->assertSame($older, $result->next);
+    }
+
+    public function testGetAdjacentUuidsForSupervisorStillReachesConfidential(): void
+    {
+        // Non-régression superviseur : il voit tout (canAccessReport true), la
+        // navigation ne doit pas le restreindre à tort.
+        $older = $this->createReport($this->agentId1, 'Ancien agent1');
+        $secret = $this->createReport($this->agentId2, 'Confidentiel agent2', 1, $this->siteId2);
+        $current = $this->createReport($this->agentId1, 'Courant agent1');
+
+        $this->setCreatedAt($older, '2026-01-01 10:00:00');
+        $this->setCreatedAt($secret, '2026-03-01 10:00:00');
+        $this->setCreatedAt($current, '2026-02-01 10:00:00');
+
+        $filter = new ReportFilter(type: ReportType::Rsst->value);
+        $result = $this->repo->getAdjacentUuids($filter, '2026-02-01 10:00:00', $current);
+
+        $this->assertSame($secret, $result->prev, 'Le superviseur navigue vers un confidentiel');
+        $this->assertSame($older, $result->next);
+    }
+
+    public function testGetAdjacentUuidsHonoursChsctConsentScope(): void
+    {
+        // Non-régression CHSCT : périmètre « consentement seul » identique à la liste.
+        $consentOlder = $this->createReport($this->agentId1, 'Consentement ancien');
+        $notConsent = $this->createReport($this->agentId1, 'Sans consentement');
+        $consentCurrent = $this->createReport($this->agentId1, 'Consentement courant');
+        $this->pdo->exec("UPDATE reports SET consent_syndicat = 1 WHERE uuid IN ('$consentOlder', '$consentCurrent')");
+
+        $this->setCreatedAt($consentOlder, '2026-01-01 10:00:00');
+        $this->setCreatedAt($notConsent, '2026-02-01 10:00:00');
+        $this->setCreatedAt($consentCurrent, '2026-03-01 10:00:00');
+
+        $filter = new ReportFilter(type: ReportType::Rsst->value, chsctConsentOnly: true);
+        $result = $this->repo->getAdjacentUuids($filter, '2026-03-01 10:00:00', $consentCurrent);
+
+        $this->assertNull($result->prev, 'Sans consentement exclu du périmètre CHSCT');
+        $this->assertSame($consentOlder, $result->next);
     }
 }

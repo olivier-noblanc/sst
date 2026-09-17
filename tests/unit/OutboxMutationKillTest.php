@@ -387,6 +387,60 @@ class OutboxMutationKillTest extends TestCase
         $this->pdo->rollBack();
     }
 
+    /**
+     * BUG-1 — le callback post-commit porte le flush opportuniste de l'outbox.
+     *
+     * Si le worker lève APRÈS le commit, la transaction métier est déjà
+     * persistée : laisser remonter l'exception ferait afficher au handler
+     * « aucune donnée n'a été enregistrée » alors que c'est faux, et
+     * l'utilisateur resoumettrait → doublon. L'échec doit donc être absorbé
+     * (jamais remonté) mais TRACÉ (jamais silencieux). Les erreurs métier
+     * AVANT commit, elles, continuent de remonter (voir
+     * testTransactionManagerRollsBackOwnedTransactionOnException).
+     */
+    public function testTransactionManagerAbsorbsAndLogsAfterCommitFailureOnceCommitted(): void
+    {
+        $tm = new TransactionManager($this->pdo);
+
+        $this->pdo->exec('DROP TABLE IF EXISTS tm_commit_probe');
+        $this->pdo->exec('CREATE TEMPORARY TABLE tm_commit_probe (v TEXT)');
+
+        /** @var string $logFile */
+        $logFile = tempnam(sys_get_temp_dir(), 'sst_tm_log_');
+        $previousLog = ini_get('error_log');
+        ini_set('error_log', $logFile);
+        $logged = '';
+
+        try {
+            $result = $tm->run(
+                function (): string {
+                    $this->pdo->exec("INSERT INTO tm_commit_probe (v) VALUES ('kept')");
+                    return 'ok';
+                },
+                static function (): void {
+                    throw new RuntimeException('worker outbox indisponible après commit');
+                },
+            );
+            $logged = (string) file_get_contents($logFile);
+        } finally {
+            ini_set('error_log', $previousLog === false ? '' : $previousLog);
+            @unlink($logFile);
+        }
+
+        $this->assertSame('ok', $result, 'Aucune exception afterCommit ne doit remonter après le commit');
+        $this->assertFalse($this->pdo->inTransaction(), 'La transaction possédée doit rester close');
+        $this->assertSame(
+            1,
+            (int) $this->pdo->query('SELECT COUNT(*) FROM tm_commit_probe')->fetchColumn(),
+            'Le commit est conservé malgré l\'échec du flush post-commit'
+        );
+        $this->assertStringContainsString(
+            'post-commit',
+            $logged,
+            'L\'échec du flush post-commit est tracé (dérogation crash-hard, jamais silencieuse)'
+        );
+    }
+
     // ─────────────────── OutboxHealthService ──────────────────
 
     public function testOutboxHealthServiceSnapshotShapeWhenClean(): void

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Linked Agent Visibility Tests — Application SST DREETS BFC
  *
@@ -50,9 +51,11 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->pdo->exec("INSERT INTO sites (code, nom, is_active) VALUES ('UD25', 'Doubs', 1)");
         $this->siteId2 = (int) $this->pdo->lastInsertId();
 
-        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Agent', 'Un', 'agent1', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");        $this->agentId1 = (int) $this->pdo->lastInsertId();
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Agent', 'Un', 'agent1', 'agent', {$this->siteId}, 1, 'fixture@dreets-bfc.gouv.fr')");
+        $this->agentId1 = (int) $this->pdo->lastInsertId();
 
-        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Agent', 'Deux', 'agent2', 'agent', {$this->siteId2}, 1, 'fixture@dreets-bfc.gouv.fr')");        $this->agentId2 = (int) $this->pdo->lastInsertId();
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('Agent', 'Deux', 'agent2', 'agent', {$this->siteId2}, 1, 'fixture@dreets-bfc.gouv.fr')");
+        $this->agentId2 = (int) $this->pdo->lastInsertId();
     }
 
     private function createReport(int $declarantId, string $objet, int $isConfidential = 0, ?int $siteId = null): string
@@ -136,11 +139,63 @@ class LinkedAgentVisibilityTest extends TestCase
     public function testCountVisibleForAgent_ExcludesAbandonedReports(): void
     {
         $uuid = $this->createReport($this->agentId1, 'Will be abandoned');
-        $this->pdo->prepare("UPDATE reports SET etat = :etat WHERE uuid = :uuid")
+        $this->pdo->prepare('UPDATE reports SET etat = :etat WHERE uuid = :uuid')
             ->execute([':uuid' => $uuid, ':etat' => ReportState::Abandonne->value]);
 
         $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
         $this->assertEquals(0, $count);
+    }
+
+    // ─── countVisibleForAgent vs findPaginated : parité cross-site ─────
+    //
+    // Le compteur des cartes de registre (countVisibleForAgent) et la liste
+    // (ReportQueryRepository::findPaginated) doivent appliquer la MÊME
+    // logique de visibilité. findPaginated restreint le site de force
+    // (force_site_id) uniquement à la branche « rapports publics des autres »
+    // (r.is_confidential = 0) : un signalement dont l'agent est déclarant ou
+    // rattaché reste visible quel que soit son site (Audit #80). Avant ces
+    // tests, countVisibleForAgent ANDait le filtre site sur TOUT le OR et
+    // sous-comptait donc les rattachés cross-site visibles dans la liste.
+
+    public function testCountVisibleForAgent_AgentChoice_IncludesLinkedReportFromOtherSite(): void
+    {
+        $uuid = $this->createReport($this->agentId2, 'Linked, filed at another site', 1, $this->siteId2);
+        $this->linkAgent($uuid, $this->agentId1);
+
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::AgentChoice->value);
+
+        $this->assertEquals(1, $count, 'AgentChoice : un signalement rattaché doit être compté même si son site diffère (contrat findPaginated).');
+    }
+
+    public function testCountVisibleForAgent_AgentChoice_IncludesLinkedPublicReportFromOtherSite(): void
+    {
+        $uuid = $this->createReport($this->agentId2, 'Linked public, filed at another site', 0, $this->siteId2);
+        $this->linkAgent($uuid, $this->agentId1);
+
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::AgentChoice->value);
+
+        $this->assertEquals(1, $count, 'AgentChoice : un signalement public rattaché doit être compté quel que soit son site.');
+    }
+
+    public function testCountVisibleForAgent_AgentChoice_ExcludesUnlinkedPublicReportFromOtherSite(): void
+    {
+        // Le leak cross-site fermé par l'Audit #3-High doit rester fermé :
+        // le correctif de parité ne doit PAS élargir l'accès.
+        $this->createReport($this->agentId2, 'Public, filed at another site, not linked', 0, $this->siteId2);
+
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::AgentChoice->value);
+
+        $this->assertEquals(0, $count, 'Un signalement public non rattaché d\'un autre site ne doit pas être compté.');
+    }
+
+    public function testCountVisibleForAgent_Confidential_IncludesLinkedReportFromOtherSite(): void
+    {
+        $uuid = $this->createReport($this->agentId2, 'Linked confidential, filed at another site', 1, $this->siteId2);
+        $this->linkAgent($uuid, $this->agentId1);
+
+        $count = $this->agentRepo->countVisibleForAgent(ReportType::Rsst->value, $this->agentId1, $this->siteId, VisibilityMode::Confidential->value);
+
+        $this->assertEquals(1, $count, 'Confidential : le compteur ne filtre pas par site, comme findPaginated.');
     }
 
     // ─── findPaginated with linkedAgentId ─────────────────────────────

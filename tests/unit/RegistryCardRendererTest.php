@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Registry Card Renderer Tests — Application SST DREETS BFC
  *
@@ -34,6 +35,9 @@ class RegistryCardRendererTest extends TestCase
         unset($_SESSION['user']);
         $configService = \getConfigService();
         $configService->set('app_report_visibility_rsst', 'public');
+        // Restore the global visibility to its code default so the per-registry
+        // visibility tests can't leak into the rest of the shared-DB suite.
+        $configService->set('app_report_visibility', 'agent_choice');
         $configService->clearCache();
         // getDB() is a process-wide singleton shared by the whole PHPUnit
         // run (see tests/bootstrap.php) — every other test class that
@@ -68,6 +72,40 @@ class RegistryCardRendererTest extends TestCase
         }
     }
 
+    /** Seeds one report of $type at the test site with an explicit declarant + confidentiality. */
+    private function seedReportWithDeclarant(string $type, int $declarantId, int $isConfidential): void
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO reports (uuid, reference, type, objet, description, date_evenement,
+                declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential)
+            VALUES (:uuid, :reference, :type, 'Test', 'Test', '2026-01-01',
+                :declarant_id, 'RCR', 'Test', 9001, 'nouveau', :is_confidential)
+        ");
+        $stmt->execute([
+            ':uuid' => 'test-rcr-vis-' . uniqid(),
+            ':reference' => strtoupper($type) . '-VIS-' . uniqid(),
+            ':type' => $type,
+            ':declarant_id' => $declarantId,
+            ':is_confidential' => $isConfidential,
+        ]);
+    }
+
+    /** @param list<RegistryCardData> $cards */
+    private function findCard(array $cards, string $type): RegistryCardData
+    {
+        foreach ($cards as $card) {
+            if ($card->type === $type) {
+                return $card;
+            }
+        }
+        $this->fail("Registry card '$type' not found.");
+    }
+
+    private function seedOtherAgent(int $id): void
+    {
+        $this->pdo->exec("INSERT OR IGNORE INTO users (id, username, nom, prenom, role, site_id, email) VALUES ($id, 'test.rcr.other', 'Other', 'Agent', 'agent', 9001, 'fixture@dreets-bfc.gouv.fr')");
+    }
+
     // ─── getRegistryIcon() ──────────────────────────────────────────────────
 
     public function testGetRegistryIconRsst(): void
@@ -95,9 +133,15 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardContainsAllElements(): void
     {
         $card = RegistryCardData::create(
-            type: 'rsst', title: 'Registre RSST', subtitle: 'RSST',
-            desc: 'Description test', count: 5,
-            btnLabel: 'Déposer', btnUrl: '/create', listUrl: '/list', listLabel: 'Voir les signalements',
+            type: 'rsst',
+            title: 'Registre RSST',
+            subtitle: 'RSST',
+            desc: 'Description test',
+            count: 5,
+            btnLabel: 'Déposer',
+            btnUrl: '/create',
+            listUrl: '/list',
+            listLabel: 'Voir les signalements',
         );
 
         $html = renderRegistryCard($card);
@@ -114,9 +158,15 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardSingularCount(): void
     {
         $card = RegistryCardData::create(
-            type: 'rami', title: 'Test', subtitle: 'T',
-            desc: 'Desc', count: 1,
-            btnLabel: 'Btn', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements',
+            type: 'rami',
+            title: 'Test',
+            subtitle: 'T',
+            desc: 'Desc',
+            count: 1,
+            btnLabel: 'Btn',
+            btnUrl: '/a',
+            listUrl: '/b',
+            listLabel: 'Voir les signalements',
         );
 
         $html = renderRegistryCard($card);
@@ -130,9 +180,15 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardExtraClass(): void
     {
         $card = RegistryCardData::create(
-            type: 'dgi', title: 'T', subtitle: 'S',
-            desc: 'D', count: 0,
-            btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements',
+            type: 'dgi',
+            title: 'T',
+            subtitle: 'S',
+            desc: 'D',
+            count: 0,
+            btnLabel: 'B',
+            btnUrl: '/a',
+            listUrl: '/b',
+            listLabel: 'Voir les signalements',
         );
 
         $html = renderRegistryCard($card, 'home-action--large');
@@ -152,10 +208,16 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardUsesCardClassNotType(): void
     {
         $card = RegistryCardData::create(
-            type: 'incident-electrique', cardClass: 'registry-card--violet',
-            title: 'Incident électrique', subtitle: 'IE',
-            desc: 'D', count: 0,
-            btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements',
+            type: 'incident-electrique',
+            cardClass: 'registry-card--violet',
+            title: 'Incident électrique',
+            subtitle: 'IE',
+            desc: 'D',
+            count: 0,
+            btnLabel: 'B',
+            btnUrl: '/a',
+            listUrl: '/b',
+            listLabel: 'Voir les signalements',
         );
 
         $html = renderRegistryCard($card);
@@ -167,9 +229,15 @@ class RegistryCardRendererTest extends TestCase
     public function testRenderRegistryCardEscapesHtml(): void
     {
         $card = RegistryCardData::create(
-            type: 'rsst', title: '<script>alert(1)</script>', subtitle: 'S',
-            desc: 'D', count: 0,
-            btnLabel: 'B', btnUrl: '/a', listUrl: '/b', listLabel: 'Voir les signalements',
+            type: 'rsst',
+            title: '<script>alert(1)</script>',
+            subtitle: 'S',
+            desc: 'D',
+            count: 0,
+            btnLabel: 'B',
+            btnUrl: '/a',
+            listUrl: '/b',
+            listLabel: 'Voir les signalements',
         );
 
         $html = renderRegistryCard($card);
@@ -342,6 +410,59 @@ class RegistryCardRendererTest extends TestCase
         $this->assertSame(10, $cards[0]->count);
         $this->assertSame(20, $cards[1]->count);
         $this->assertSame(30, $cards[2]->count);
+    }
+
+    // ─── count uses the REGISTRY visibility, not the global one ─────────────
+    //
+    // report_list.php computes the page visibility with
+    // AccessService::getReportVisibility($type) — a per-registry setting
+    // (app_report_visibility_{code}, or registries.default_visibility for a
+    // custom registry). The card counter must use the SAME per-registry mode,
+    // otherwise the count contradicts the list the card links to. Before this
+    // fix, RegistryCardService called getReportVisibility(null) once for every
+    // card — the global default — so a registry whose own visibility differed
+    // from the global one always showed a wrong count.
+
+    public function testBuildRegistryCardsCountUsesPerRegistryVisibilityWhenGlobalIsLooser(): void
+    {
+        // Global "public" but rsst explicitly "confidential": the card must
+        // count declarant + linked only (1), not all reports at the site (3).
+        $configService = \getConfigService();
+        $configService->set('app_report_visibility', 'public');
+        $configService->set('app_report_visibility_rsst', 'confidential');
+        $configService->clearCache();
+
+        $_SESSION['user'] = ['id' => 9001, 'role' => ROLE_AGENT, 'siteId' => 9001];
+        $this->seedOtherAgent(9002);
+
+        $this->seedReportWithDeclarant('rsst', 9001, 1); // own
+        $this->seedReportWithDeclarant('rsst', 9002, 1); // other's confidential
+        $this->seedReportWithDeclarant('rsst', 9002, 0); // other's public
+
+        $rsst = $this->findCard(buildRegistryCards(), 'rsst');
+
+        $this->assertSame(1, $rsst->count, 'La carte rsst doit compter selon la visibilité du registre (confidential), pas la visibilité globale (public).');
+    }
+
+    public function testBuildRegistryCardsCountUsesPerRegistryVisibilityWhenGlobalIsStricter(): void
+    {
+        // Global "confidential" but rsst explicitly "public": the card must
+        // count every report at the site (3), not just the agent's own (1).
+        $configService = \getConfigService();
+        $configService->set('app_report_visibility', 'confidential');
+        $configService->set('app_report_visibility_rsst', 'public');
+        $configService->clearCache();
+
+        $_SESSION['user'] = ['id' => 9001, 'role' => ROLE_AGENT, 'siteId' => 9001];
+        $this->seedOtherAgent(9002);
+
+        $this->seedReportWithDeclarant('rsst', 9001, 0);
+        $this->seedReportWithDeclarant('rsst', 9002, 0);
+        $this->seedReportWithDeclarant('rsst', 9002, 1);
+
+        $rsst = $this->findCard(buildRegistryCards(), 'rsst');
+
+        $this->assertSame(3, $rsst->count, 'La carte rsst doit compter selon la visibilité du registre (public), pas la visibilité globale (confidential).');
     }
 
     public function testBuildRegistryCardsHasRequiredProperties(): void

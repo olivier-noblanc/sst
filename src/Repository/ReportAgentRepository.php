@@ -41,11 +41,20 @@ class ReportAgentRepository
             $sql .= " AND $linkedClause";
             $params[':user_id'] = $userId;
         } elseif ($visibility === VisibilityMode::AgentChoice->value) {
+            // Parité avec ReportQueryRepository::findPaginated (branche
+            // linked_agent_id + agent_choice) : le filtre de site ne s'applique
+            // QU'À la branche « rapports publics des autres » (is_confidential = 0).
+            // Un signalement dont l'agent est déclarant ou rattaché reste visible
+            // quel que soit son site (Audit #80). Avant ce correctif, le filtre
+            // site était ANDé sur tout le OR : le compteur sous-comptait les
+            // rattachés cross-site que la liste affichait, et faussait le nombre
+            // porté par la carte de registre.
             if ($siteId > 0) {
-                $sql .= ' AND r.site_id = :site_id';
+                $sql .= ' AND (' . $linkedClause . ' OR (r.is_confidential = 0 AND r.site_id = :site_id))';
                 $params[':site_id'] = $siteId;
+            } else {
+                $sql .= " AND ($linkedClause OR r.is_confidential = 0)";
             }
-            $sql .= " AND (r.is_confidential = 0 OR $linkedClause)";
             $params[':user_id'] = $userId;
         } else {
             // public

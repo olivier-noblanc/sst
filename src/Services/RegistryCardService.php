@@ -42,7 +42,6 @@ class RegistryCardService
         $user = new SessionService()->getUserSession();
         $userId = $user->id ?? 0;
         $userSiteId = $user->siteId ?? 0;
-        $agentVisibility = $this->accessService->getReportVisibility(null);
         $seeAllSites = $this->accessService->canSeeAllSites();
 
         $listLabel = static fn(string $type): string => \getReportVisibility($type) === VisibilityMode::Confidential->value
@@ -53,6 +52,14 @@ class RegistryCardService
         foreach ($enabledRegistries as $reg) {
             $code = $reg['code'];
             $reportCount = 0;
+
+            // Visibilité PAR REGISTRE, comme report_list.php : un registre peut
+            // avoir sa propre app_report_visibility_{code} (ou
+            // registries.default_visibility pour un registre personnalisé), qui
+            // diffère de la visibilité globale. Utiliser null ici appliquait la
+            // visibilité globale à toutes les cartes et faisait diverger le
+            // compteur du contenu réel de la liste liée.
+            $agentVisibility = $this->accessService->getReportVisibility($code);
 
             if ($agentVisibility === VisibilityMode::Confidential->value || $agentVisibility === VisibilityMode::AgentChoice->value) {
                 $reportCount = ReportAgentRepository::instance()->countVisibleForAgent($code, $userId, $userSiteId, $agentVisibility);

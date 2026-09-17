@@ -101,10 +101,17 @@ class OutboxMutationKillTest extends TestCase
     private function minUpdateCommand(): UpdateReportCommand
     {
         return new UpdateReportCommand(
-            objet: 'Updated', description: 'Desc updated', dateEvenement: '2026-02-01',
-            heureEvenement: null, lieu: null, siteText: null, pole: null,
-            serviceAffectation: null, telephoneMobile: null,
-            isConfidential: false, consentSyndicat: false,
+            objet: 'Updated',
+            description: 'Desc updated',
+            dateEvenement: '2026-02-01',
+            heureEvenement: null,
+            lieu: null,
+            siteText: null,
+            pole: null,
+            serviceAffectation: null,
+            telephoneMobile: null,
+            isConfidential: false,
+            consentSyndicat: false,
         );
     }
 
@@ -508,14 +515,29 @@ class OutboxMutationKillTest extends TestCase
     public function testReportWriteCreateCommitsOwnedTransaction(): void
     {
         $cmd = new \App\DTO\CreateReportCommand(
-            type: 'rsst', objet: 'Créé', description: 'Description', dateEvenement: '2026-01-15',
-            heureEvenement: null, lieu: null, declarantId: $this->declarantId,
-            declarantNom: 'Dupont', declarantPrenom: 'Jean',
-            siteId: \App\DTO\SiteId::fromInput($this->siteId), siteText: null, pole: null,
-            serviceAffectation: null, telephoneMobile: null, isConfidential: false,
-            consentSyndicat: false, natureAuteur: null, typeActe: null,
-            pourCompteNom: null, pourComptePrenom: null,
-            attachmentBlob: null, attachmentName: null, attachmentMime: null,
+            type: 'rsst',
+            objet: 'Créé',
+            description: 'Description',
+            dateEvenement: '2026-01-15',
+            heureEvenement: null,
+            lieu: null,
+            declarantId: $this->declarantId,
+            declarantNom: 'Dupont',
+            declarantPrenom: 'Jean',
+            siteId: \App\DTO\SiteId::fromInput($this->siteId),
+            siteText: null,
+            pole: null,
+            serviceAffectation: null,
+            telephoneMobile: null,
+            isConfidential: false,
+            consentSyndicat: false,
+            natureAuteur: null,
+            typeActe: null,
+            pourCompteNom: null,
+            pourComptePrenom: null,
+            attachmentBlob: null,
+            attachmentName: null,
+            attachmentMime: null,
         );
         $repo = new ReportWriteRepository($this->pdo);
 
@@ -642,7 +664,7 @@ class OutboxMutationKillTest extends TestCase
     public function testRespondArchivesPreviousResponseOnReouvert(): void
     {
         $uuid = $this->seedReport('reouvert');
-        $this->pdo->prepare("UPDATE reports SET reponse = ?, repondant_id = ? WHERE uuid = ?")
+        $this->pdo->prepare('UPDATE reports SET reponse = ?, repondant_id = ? WHERE uuid = ?')
             ->execute(['Réponse initiale', $this->declarantId, $uuid]);
 
         $repo = new ReportLifecycleRepository($this->pdo);
@@ -654,6 +676,51 @@ class OutboxMutationKillTest extends TestCase
         $this->assertIsArray($archived, 'la réponse initiale doit être archivée');
         $this->assertSame('[Réponse initiale archivée] Réponse initiale', $archived['reponse']);
         $this->assertSame($this->declarantId, (int) $archived['user_id'], 'l\'archive conserve le répondant d\'origine');
+    }
+
+    /**
+     * B1 — respond → anonymize respondent → reopen → respond.
+     *
+     * L'anonymisation RGPD met reports.repondant_id et report_responses.user_id
+     * à NULL. Quand une nouvelle réponse arrive sur le signalement réouvert,
+     * l'ancienne réponse est archivée : son user_id DOIT rester NULL (nullable
+     * depuis l'audit #8) et NON devenir 0 — 0 ne référence aucun users(id),
+     * la FK explose et toute la réponse est perdue (RespondStatus::Error).
+     */
+    public function testRespondAfterAnonymizedRespondentArchivesWithNullUserId(): void
+    {
+        $uuid = $this->seedReport('nouveau');
+
+        // Répondant superviseur distinct du déclarant.
+        $this->pdo->prepare('INSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute(['mk.respondent', 'Resp', 'Ondant', 'superviseur', $this->siteId, 1, 'respondent@dreets-bfc.gouv.fr']);
+        $respondentId = (int) $this->pdo->lastInsertId();
+
+        $repo = new ReportLifecycleRepository($this->pdo);
+
+        // 1. Réponse initiale → état traité.
+        $first = $repo->respondToReport($uuid, $respondentId, 'Réponse initiale', ReportState::Traite->value);
+        $this->assertSame(\App\Enum\RespondStatus::Ok, $first['status']);
+
+        // 2. Anonymisation RGPD du répondant : repondant_id / user_id → NULL.
+        $this->assertTrue(\App\Repository\UserRepository::instance()->anonymize($respondentId));
+
+        // 3. Réouverture du signalement par le déclarant.
+        $this->assertGreaterThan(0, $repo->reopen($uuid, $this->declarantId, 'Motif de réouverture'));
+
+        // 4. Nouvelle réponse : l'ancienne (repondant_id désormais NULL) est archivée.
+        $second = $repo->respondToReport($uuid, $this->declarantId, 'Nouvelle réponse', ReportState::Traite->value);
+
+        $this->assertSame(
+            \App\Enum\RespondStatus::Ok,
+            $second['status'],
+            'une nouvelle réponse doit réussir après anonymisation du répondant'
+        );
+
+        $archived = $this->pdo->query("SELECT reponse, user_id FROM report_responses WHERE report_uuid = '$uuid' AND reponse LIKE '[Réponse initiale archivée]%'")->fetch(PDO::FETCH_ASSOC);
+        $this->assertIsArray($archived, 'l\'ancienne réponse doit être archivée (historique préservé)');
+        $this->assertSame('[Réponse initiale archivée] Réponse initiale', $archived['reponse']);
+        $this->assertNull($archived['user_id'], 'user_id archivé doit être NULL (répondant anonymisé), jamais 0');
     }
 
     public function testReopenWritesHistoryTransitionFromPreviousState(): void
@@ -682,7 +749,7 @@ class OutboxMutationKillTest extends TestCase
     {
         $uuid = $this->seedReport();
         $repo = new \App\Repository\ReportAgentRepository($this->pdo);
-        $this->pdo->prepare("INSERT INTO report_agent_invites (report_uuid, email, token, confirmed) VALUES (?, ?, ?, 0)")
+        $this->pdo->prepare('INSERT INTO report_agent_invites (report_uuid, email, token, confirmed) VALUES (?, ?, ?, 0)')
             ->execute([$uuid, 'Agent.Lie@Dreets.gouv.fr', 'tok-1']);
 
         $this->assertTrue($repo->hasUnconfirmedInvite($uuid, 'agent.lie@dreets.gouv.fr'));
@@ -885,9 +952,18 @@ class OutboxMutationKillTest extends TestCase
         $uuid = $this->seedReport('nouveau');
         $this->seedAttachment($uuid, 'OLD-BLOB');
         $cmd = new UpdateReportCommand(
-            objet: 'O', description: 'D', dateEvenement: '2026-02-01', heureEvenement: null,
-            lieu: null, siteText: null, pole: null, serviceAffectation: null, telephoneMobile: null,
-            isConfidential: false, consentSyndicat: false, removeAttachment: true,
+            objet: 'O',
+            description: 'D',
+            dateEvenement: '2026-02-01',
+            heureEvenement: null,
+            lieu: null,
+            siteText: null,
+            pole: null,
+            serviceAffectation: null,
+            telephoneMobile: null,
+            isConfidential: false,
+            consentSyndicat: false,
+            removeAttachment: true,
         );
 
         $this->assertTrue((new ReportWriteRepository($this->pdo))->update($uuid, $cmd, $this->declarantId));
@@ -898,10 +974,20 @@ class OutboxMutationKillTest extends TestCase
     {
         $uuid = $this->seedReport('nouveau');
         $cmd = new UpdateReportCommand(
-            objet: 'O', description: 'D', dateEvenement: '2026-02-01', heureEvenement: null,
-            lieu: null, siteText: null, pole: null, serviceAffectation: null, telephoneMobile: null,
-            isConfidential: false, consentSyndicat: false,
-            attachmentBlob: 'NEW-BLOB', attachmentName: 'n.bin', attachmentMime: 'text/plain',
+            objet: 'O',
+            description: 'D',
+            dateEvenement: '2026-02-01',
+            heureEvenement: null,
+            lieu: null,
+            siteText: null,
+            pole: null,
+            serviceAffectation: null,
+            telephoneMobile: null,
+            isConfidential: false,
+            consentSyndicat: false,
+            attachmentBlob: 'NEW-BLOB',
+            attachmentName: 'n.bin',
+            attachmentMime: 'text/plain',
         );
 
         $this->assertTrue((new ReportWriteRepository($this->pdo))->update($uuid, $cmd, $this->declarantId));
@@ -913,9 +999,17 @@ class OutboxMutationKillTest extends TestCase
         $uuid = $this->seedReport('nouveau');
         $this->seedAttachment($uuid, 'KEEP-BLOB');
         $cmd = new UpdateReportCommand(
-            objet: 'O', description: 'D', dateEvenement: '2026-02-01', heureEvenement: null,
-            lieu: null, siteText: null, pole: null, serviceAffectation: null, telephoneMobile: null,
-            isConfidential: false, consentSyndicat: false,
+            objet: 'O',
+            description: 'D',
+            dateEvenement: '2026-02-01',
+            heureEvenement: null,
+            lieu: null,
+            siteText: null,
+            pole: null,
+            serviceAffectation: null,
+            telephoneMobile: null,
+            isConfidential: false,
+            consentSyndicat: false,
         );
 
         $this->assertTrue((new ReportWriteRepository($this->pdo))->update($uuid, $cmd, $this->declarantId));

@@ -22,12 +22,21 @@
  * échec est donc un verdict, pas une exception — seule une erreur DB remonte
  * (crash hard, jamais d'échec silencieux).
  *
+ * Le run est BORNÉ DANS LE TEMPS (drainBudgetSeconds). Le drain s'exécute de
+ * façon synchrone pendant des requêtes utilisateur (lazy cron au login, flush
+ * post-enqueue) : un transport SMTP en trou noir fait payer ~90 s de timeout
+ * par message, donc un lot de 20 bloquerait la requête ~30 min. Passé le
+ * budget, le run s'arrête SANS clore les messages restants — ils demeurent en
+ * processing et sont récupérés par requeueStaleProcessing() au prochain run,
+ * jamais marqués en échec à tort, jamais perdus.
+ *
  * Le worker est appelé par le lazy cron (CronService) : pas de cron système.
  */
 
 namespace App\Services;
 
 use App\Repository\EmailOutboxRepository;
+use Closure;
 
 require_once __DIR__ . '/../mail.php';
 
@@ -42,23 +51,43 @@ final readonly class EmailOutboxWorker
     /** Ancienneté minimale d'un processing pour être considéré orphelin (15 min). */
     public const int DEFAULT_STALE_AFTER_SECONDS = 900;
 
+    /**
+     * Budget de temps (secondes) alloué à UN run de drainage.
+     *
+     * Borne la durée d'un drain synchrone : un SMTP en trou noir fait payer
+     * ~90 s de timeout par message, donc un lot de 20 bloquerait la requête
+     * hôte ~30 min. Passé ce budget, le run s'arrête sans clore les messages
+     * non traités (ils restent en processing, récupérables par
+     * requeueStaleProcessing()).
+     */
+    public const int DEFAULT_DRAIN_BUDGET_SECONDS = 5;
+
+    /** @var (Closure(): float)|null Horloge du run (seam de test) — null = horloge monotone réelle. */
+    private ?Closure $clock;
+
     public function __construct(
         private EmailOutboxRepository $outbox,
         private int $batchSize = self::DEFAULT_BATCH_SIZE,
         private int $maxAttempts = self::DEFAULT_MAX_ATTEMPTS,
         private int $staleAfterSeconds = self::DEFAULT_STALE_AFTER_SECONDS,
-    ) {}
+        private int $drainBudgetSeconds = self::DEFAULT_DRAIN_BUDGET_SECONDS,
+        ?Closure $clock = null,
+    ) {
+        $this->clock = $clock;
+    }
 
     /**
-     * Exécute un cycle de drainage.
+     * Exécute un cycle de drainage, borné dans le temps.
      *
      * @param string|null $now Horodatage UTC injectable (« Y-m-d H:i:s ») — testabilité.
      *
-     * @return array{recovered:int, sent:int, retried:int, failed:int}
+     * @return array{recovered:int, sent:int, retried:int, failed:int, deferred:int}
      */
     public function run(?string $now = null): array
     {
         $now ??= gmdate('Y-m-d H:i:s');
+        $budget = max(0, $this->drainBudgetSeconds);
+        $startedAt = $this->clockSeconds();
 
         $recovered = $this->outbox->requeueStaleProcessing($this->staleAfterSeconds, $now);
         $claimed = $this->outbox->claimBatch($this->batchSize, $now);
@@ -66,8 +95,20 @@ final readonly class EmailOutboxWorker
         $sent = 0;
         $retried = 0;
         $failed = 0;
+        $processed = 0;
+        $deferred = 0;
 
         foreach ($claimed as $message) {
+            if ($this->clockSeconds() - $startedAt >= $budget) {
+                // Budget épuisé : arrêt SANS clore les messages restants. Ils
+                // restent en processing (ni sent, ni retry, ni failed) et ne
+                // sont jamais perdus — requeueStaleProcessing() les repassera
+                // en pending dès qu'ils seront considérés orphelins.
+                $deferred = count($claimed) - $processed;
+                break;
+            }
+            $processed++;
+
             if ($this->deliver($message)) {
                 if ($this->outbox->markSent($message['id'], $now)) {
                     $sent++;
@@ -90,7 +131,24 @@ final readonly class EmailOutboxWorker
             'sent'      => $sent,
             'retried'   => $retried,
             'failed'    => $failed,
+            'deferred'  => $deferred,
         ];
+    }
+
+    /**
+     * Lecture de l'horloge du run, en secondes.
+     *
+     * Défaut : horloge monotone hrtime() — insensible aux sauts d'heure
+     * système. Le seam injectable (constructeur) permet de simuler un
+     * dépassement de budget en test.
+     */
+    private function clockSeconds(): float
+    {
+        if ($this->clock !== null) {
+            return ($this->clock)();
+        }
+
+        return hrtime(true) / 1_000_000_000;
     }
 
     /**

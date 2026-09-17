@@ -1,4 +1,5 @@
 <?php
+
 /**
  * EmailOutboxWorker Tests — Application SST DREETS BFC
  *
@@ -269,5 +270,140 @@ class EmailOutboxWorkerTest extends TestCase
 
         $this->assertSame(1, $stats['sent']);
         $this->assertSame(1, $sends, 'Un dedup_key déjà en file ne produit qu\'un seul envoi');
+    }
+
+    // ══ Budget de temps du run (R1) — le drain ne bloque pas la requête ═════
+
+    /**
+     * Construit un worker dont l'horloge est simulée, pour piloter le budget.
+     *
+     * @param \Closure(): float $clock
+     */
+    private function workerWithClock(
+        \Closure $clock,
+        int $drainBudgetSeconds,
+        int $batchSize = 20,
+    ): EmailOutboxWorker {
+        return new EmailOutboxWorker(
+            outbox: $this->repo,
+            batchSize: $batchSize,
+            maxAttempts: 5,
+            staleAfterSeconds: 900,
+            drainBudgetSeconds: $drainBudgetSeconds,
+            clock: $clock,
+        );
+    }
+
+    /**
+     * R1 : un SMTP en trou noir fait payer ~90 s de timeout par message. Sans
+     * budget, un lot de 20 bloquerait la requête (login / flush) ~30 min. Le
+     * run doit s'arrêter dès le budget épuisé, en laissant les messages non
+     * traités en processing (ni échec, ni perte) pour requeueStaleProcessing().
+     */
+    public function testRunStopsAtTimeBudgetAndDefersUnprocessedMessagesWithoutFailingThem(): void
+    {
+        for ($i = 0; $i < 20; $i++) {
+            $this->repo->enqueue($this->message('w-budget-' . $i));
+        }
+
+        // Transport en trou noir : chaque tentative « consomme » 90 s simulées,
+        // comme un SMTP qui accepte la connexion puis ne répond jamais.
+        $simulatedSeconds = 0.0;
+        $attempts = 0;
+        setMailerSeam(function (string $to, string $subject, string $body, string $from = '') use (&$simulatedSeconds, &$attempts): bool {
+            $attempts++;
+            $simulatedSeconds += 90.0;
+            return false;
+        });
+
+        $stats = $this->workerWithClock(
+            clock: function () use (&$simulatedSeconds): float {
+                return $simulatedSeconds;
+            },
+            drainBudgetSeconds: 5,
+        )->run('2026-09-15 10:00:00');
+
+        $this->assertSame(1, $attempts, 'Le budget coupe après la première tentative (~90 s), pas après les 20');
+        $this->assertSame(0, $stats['sent']);
+        $this->assertSame(1, $stats['retried'], 'Le message tenté sous le budget est traité normalement');
+        $this->assertSame(0, $stats['failed'], 'Aucun message non traité n\'est marqué en échec');
+        $this->assertSame(19, $stats['deferred'], 'Les 19 messages non traités sont différés');
+
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM email_outbox WHERE status = :s');
+        $stmt->execute([':s' => OutboxStatus::Processing->value]);
+        $this->assertSame(
+            19,
+            (int) $stmt->fetchColumn(),
+            'Les messages différés restent en processing (ni échec, ni perte) pour requeueStaleProcessing()'
+        );
+        $this->assertSame(20, $this->countAll(), 'Aucune ligne n\'est perdue');
+    }
+
+    /**
+     * Les messages différés par le budget sont récupérables : au run suivant,
+     * requeueStaleProcessing() (orphanage processing) les repasse en pending,
+     * ils sont réclamés puis envoyés. Rien ne reste coincé.
+     */
+    public function testBudgetDeferredMessagesAreRecoveredByRequeueStaleProcessing(): void
+    {
+        for ($i = 0; $i < 3; $i++) {
+            $this->repo->enqueue($this->message('w-defer-' . $i));
+        }
+
+        $simulatedSeconds = 0.0;
+        setMailerSeam(function (string $to, string $subject, string $body, string $from = '') use (&$simulatedSeconds): bool {
+            $simulatedSeconds += 90.0;
+            return false;
+        });
+
+        $first = $this->workerWithClock(
+            clock: function () use (&$simulatedSeconds): float {
+                return $simulatedSeconds;
+            },
+            drainBudgetSeconds: 5,
+        )->run('2026-09-15 10:00:00');
+
+        $this->assertSame(1, $first['retried']);
+        $this->assertSame(2, $first['deferred']);
+
+        // Run suivant 20 min plus tard : les 2 différés (processing à 10:00)
+        // sont orphelins (cutoff now - 15 min = 10:05) → récupérés ; le retry
+        // du 1er message (backoff 60 s échu) est lui aussi réclamé.
+        setMailerSeam(fn(string $to, string $subject, string $body, string $from = ''): bool => true);
+
+        $second = $this->worker()->run('2026-09-15 10:20:00');
+
+        $this->assertSame(2, $second['recovered'], 'requeueStaleProcessing récupère les messages différés');
+        $this->assertSame(3, $second['sent'], 'Les 3 messages finissent envoyés — aucun n\'est perdu');
+
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM email_outbox WHERE status = :s');
+        $stmt->execute([':s' => OutboxStatus::Sent->value]);
+        $this->assertSame(3, (int) $stmt->fetchColumn());
+    }
+
+    /**
+     * Borne basse : budget nul → aucune tentative de transport, tout le lot
+     * est différé (le run ne « coûte » rien à la requête hôte).
+     */
+    public function testZeroBudgetDefersWholeBatchWithoutAnyTransportAttempt(): void
+    {
+        for ($i = 0; $i < 3; $i++) {
+            $this->repo->enqueue($this->message('w-nobudget-' . $i));
+        }
+
+        $attempts = 0;
+        setMailerSeam(function (string $to, string $subject, string $body, string $from = '') use (&$attempts): bool {
+            $attempts++;
+            return true;
+        });
+
+        $stats = $this->workerWithClock(
+            clock: static fn(): float => 0.0,
+            drainBudgetSeconds: 0,
+        )->run('2026-09-15 10:00:00');
+
+        $this->assertSame(0, $attempts, 'Budget nul : aucune tentative de transport (arrêt immédiat)');
+        $this->assertSame(0, $stats['sent']);
+        $this->assertSame(3, $stats['deferred']);
     }
 }

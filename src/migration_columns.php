@@ -114,6 +114,36 @@ function rebuildReportsTable(PDO $pdo, Closure $buildColumnDefs, string $logMess
     error_log($logMessage);
 }
 
+/**
+ * Read-only detection of the legacy CHECK (type IN (...)) constraint on reports.
+ *
+ * B3 — The reports.type registry CHECK, when present, blocks custom registres and
+ * needs a table rebuild to remove it. It is detected by inspecting the reports
+ * table's CREATE TABLE SQL in sqlite_master: no INSERT probe, no fixed UUID to
+ * collide with, no broad catch that reads an unrelated error as "constraint
+ * present", and — crucially — no write, so the DB fingerprint (and therefore the
+ * backup-skip decision) is left untouched (B4).
+ *
+ * @param PDO $pdo Database connection.
+ * @return bool True when the registres CHECK constraint is present.
+ */
+function reportsTableHasTypeCheckConstraint(PDO $pdo): bool
+{
+    $sqlStmt = $pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name='reports'");
+    if ($sqlStmt === false) {
+        throw new RuntimeException('sqlite_master query for reports failed unexpectedly.');
+    }
+    $tableSql = $sqlStmt->fetchColumn();
+    $sqlStmt = null;
+    if (!is_string($tableSql) || $tableSql === '') {
+        throw new RuntimeException('reports table absent de sqlite_master — schéma inattendu.');
+    }
+    // Match the registry CHECK form only: a CHECK on another column (etat) or a
+    // non-registry type check must not trigger a rebuild, mirroring the old
+    // probe's actual semantics.
+    return preg_match('/CHECK\s*\(\s*type\s+IN\s*\(/i', $tableSql) === 1;
+}
+
 function migrateColumns(PDO $pdo): void
 {
     // ── Make reports.site_id nullable ────────────────────────────────────────
@@ -188,36 +218,16 @@ function migrateColumns(PDO $pdo): void
     // ── Remove CHECK constraint on reports.type ──────────────────────────────
     // The CHECK (type IN ('rsst','rami','dgi')) prevents adding custom registres.
     // Since SQLite has no ALTER TABLE DROP CONSTRAINT, rebuild the table without it.
-    // Check if the constraint exists by trying to insert a custom type — if it
-    // fails, the constraint is present and needs removal.
     //
-    // Audit #43 — Before this fix, the test INSERT used declarant_id=1, which
-    // could fail with a FK violation if user 1 didn't exist (e.g. fresh install
-    // running migrations before seed). The catch block assumed any failure was
-    // the CHECK constraint → infinite rebuild loop on every page load.
-    // Now we disable FK enforcement during the test, so only a real CHECK
-    // constraint can reject the insert.
-    $hasTypeCheck = false;
-    $fkStmt = $pdo->query('PRAGMA foreign_keys');
-    $fkEnabled = ($fkStmt !== false) ? (int) $fkStmt->fetchColumn() : 0;
-    $fkStmt = null;
-    try {
-        $pdo->exec('PRAGMA foreign_keys = OFF');
-        $pdo->exec("INSERT INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, etat) VALUES ('00000000-0000-0000-0000-000000000000', 'test-check-removal', 'custom_test', 'test', 'test', '2025-01-01', 1, 'test', 'test', 'nouveau')");
-        $hasTypeCheck = false; // No constraint — insertion succeeded
-        $pdo->exec("DELETE FROM reports WHERE uuid = '00000000-0000-0000-0000-000000000000'");
-    } catch (Exception) {
-        // @silent-ok: feature-detection probe — does the CHECK constraint already exist?
-        $hasTypeCheck = true; // Constraint rejected the insert
-        try {
-            $pdo->exec("DELETE FROM reports WHERE uuid = '00000000-0000-0000-0000-000000000000'");
-        } catch (Exception) {
-            // @silent-ok: cleanup of the probe row — failure here is inconsequential either way
-            // ignore cleanup failure
-        }
-    } finally {
-        $pdo->exec('PRAGMA foreign_keys = ' . ($fkEnabled ? 'ON' : 'OFF'));
-    }
+    // B3 — Detection is read-only: the constraint is read from the reports table's
+    // CREATE TABLE SQL (sqlite_master.sql), never probed by inserting a row. The
+    // previous probe used a fixed UUID inside a broad catch (Exception): a UUID or
+    // reference collision, a missing FTS trigger, or any unrelated error was read
+    // as "constraint present" and forced a destructive rebuild. Worse, its
+    // INSERT/DELETE dirtied the database on every request, so the backup
+    // fingerprint changed each time and backups never skipped (B4). Reading the
+    // schema has none of those failure modes and writes nothing.
+    $hasTypeCheck = reportsTableHasTypeCheckConstraint($pdo);
 
     if ($hasTypeCheck) {
         $colStmt = $pdo->query('PRAGMA table_info(reports)');

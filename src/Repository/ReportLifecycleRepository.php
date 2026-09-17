@@ -232,7 +232,12 @@ class ReportLifecycleRepository
                     VALUES (:report_uuid, :user_id, :reponse, :nouvel_etat)
                 ');
                 $repondantIdRaw = $current['repondant_id'] ?? null;
-                $archiveUserId = $repondantIdRaw !== null ? (int) $repondantIdRaw : 0;
+                // RGPD (B1) — un répondant anonymisé a repondant_id = NULL.
+                // L'archive doit alors porter user_id = NULL (colonne nullable,
+                // FK vers users(id)) et jamais 0 : 0 ne référence aucun
+                // utilisateur, la FK échoue et toute la nouvelle réponse est
+                // perdue. L'historique (texte de la réponse) est préservé.
+                $archiveUserId = $repondantIdRaw !== null ? (int) $repondantIdRaw : null;
                 $archiveStmt->execute([
                     ':report_uuid' => $uuid,
                     ':user_id'     => $archiveUserId,

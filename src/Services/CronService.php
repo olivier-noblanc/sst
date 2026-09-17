@@ -245,6 +245,11 @@ class CronService
      * par le worker). Sans perte : un échec temporaire reste pending et sera
      * rejoué, un échec définitif reste failed (conservé). L'intervalle court
      * (5 min) vide l'outbox bien plus vite que la maintenance 24h/7j.
+     *
+     * R1 — le run du worker est borné dans le temps (drainBudgetSeconds) : un
+     * SMTP en trou noir ne peut donc plus bloquer la connexion (login) pendant
+     * tout le lot. Les messages non traités au budget restent en processing et
+     * sont récupérés par requeueStaleProcessing() au run suivant.
      */
     private function drainOutbox(): void
     {

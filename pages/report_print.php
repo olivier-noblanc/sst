@@ -1,6 +1,5 @@
 <?php
 
-use App\Enum\UserRole;
 use App\Enum\ReportType;
 use App\Services\SessionService;
 use App\Services\AccessService;
@@ -124,7 +123,7 @@ $fields = [
     'Heure du dépôt'        => $reportHeureEvenement,
     'Lieu'                  => $reportLieu,
     'Objet'                 => $reportObjet,
-    'Transmission aux ' . getConfigService()->getRoleLabel(UserRole::Chsct->value) . 's' => $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée',
+    transmissionLabel() => $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée',
 ];
 
 foreach ($fields as $label => $value) {

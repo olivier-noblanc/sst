@@ -141,14 +141,14 @@ use App\Enum\VisibilityMode;
                            class="toggle-switch__input"
                            <?php echo getConfigService()->get('app_dgi_notify_csa', '1') === '1' ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
-                    <span>Notifier le <?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> lors d'un signalement DGI</span>
+                    <span>Notifier le <?php echo new \App\Services\FormattingService()->e(getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?> lors d'un signalement DGI</span>
                 </label>
                 <small class="text-muted block mt-1">
-                    Conformément à l'article L4131-2 du Code du travail, le <?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?>
+                    Conformément à l'article L4131-2 du Code du travail, le <?php echo new \App\Services\FormattingService()->e(getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?>
                     doit être informé de tout signalement relatif à un danger grave et imminent.
-                    Si activé, les membres <?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> recevront un e-mail de notification
+                    Si activé, les membres <?php echo new \App\Services\FormattingService()->e(getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?> recevront un e-mail de notification
                     pour chaque nouveau signalement DGI.
-                    Pour le registre DGI, l'option « Notification CSA/CHSCT » de la ligne DGI dans l'onglet
+                    Pour le registre DGI, l'option « Notification <?php echo new \App\Services\FormattingService()->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> » de la ligne DGI dans l'onglet
                     « Registres » est prioritaire ; ce réglage global ne s'applique qu'en l'absence de ligne de
                     registre (compatibilité).
                 </small>
@@ -157,7 +157,7 @@ use App\Enum\VisibilityMode;
 
         <div class="separator">
             <h4 class="card__subtitle">&#x1F465; Noms des rôles</h4>
-            <p class="text-muted text-small mb-3">Personnalisez le nom affiché pour chaque rôle dans toute l'application (badge, aide, formulaires...). Par exemple : « Membre FS/CSA » au lieu de « Membre CSA/CHSCT ».</p>
+            <p class="text-muted text-small mb-3">Personnalisez le nom affiché pour chaque rôle dans toute l'application (badge, aide, formulaires...). Nom court actuellement affiché : « <?php echo new \App\Services\FormattingService()->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ».</p>
             <div class="form-group">
                 <label for="app_role_label_agent">Nom du rôle Agent</label>
                 <input type="text" id="app_role_label_agent" name="app_role_label_agent" class="form-control"
@@ -171,10 +171,10 @@ use App\Enum\VisibilityMode;
                        placeholder="Superviseur">
             </div>
             <div class="form-group">
-                <label for="app_role_label_chsct">Nom du rôle FS/CSA</label>
+                <label for="app_role_label_chsct">Nom du rôle <?php echo new \App\Services\FormattingService()->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></label>
                 <input type="text" id="app_role_label_chsct" name="app_role_label_chsct" class="form-control"
-                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?>"
-                       placeholder="Membre FS/CSA">
+                       value="<?php echo new \App\Services\FormattingService()->e(getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?>"
+                       placeholder="<?php echo new \App\Services\FormattingService()->e(\App\Enum\UserRole::Chsct->defaultLabel()); ?>">
             </div>
         </div>
 
@@ -320,16 +320,16 @@ $registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'regi
 ?>
             <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo $fmt->e($chsctRoleLabel); ?></h4>
             <p class="text-muted text-small mb-3">
-                Deux réglages indépendants : <strong>qui reçoit une notification CSA/CHSCT</strong>
-                (par registre, dans l'onglet « Registres ») et <strong>quels signalements le CSA/CHSCT peut consulter</strong>
+                Deux réglages indépendants : <strong>qui reçoit une notification <?php echo $fmt->e($chsctRoleLabel); ?></strong>
+                (par registre, dans l'onglet « Registres ») et <strong>quels signalements le <?php echo $fmt->e($chsctRoleLabel); ?> peut consulter</strong>
                 (ci-dessous). L'un n'entraîne pas l'autre.
             </p>
 
             <div class="scope-summary">
                 <div class="scope-summary__block">
-                    <h5 class="scope-summary__title">&#x1F514; Qui reçoit la notification CSA/CHSCT</h5>
+                    <h5 class="scope-summary__title">&#x1F514; Qui reçoit la notification <?php echo $fmt->e($chsctRoleLabel); ?></h5>
                     <?php if ($notifyChsctRegistries === []): ?>
-                    <p class="scope-summary__empty">Aucun registre n'est configuré pour notifier le CSA/CHSCT.</p>
+                    <p class="scope-summary__empty">Aucun registre n'est configuré pour notifier le <?php echo $fmt->e($chsctRoleLabel); ?>.</p>
                     <?php else: ?>
                     <ul class="scope-summary__list">
                         <?php foreach ($notifyChsctRegistries as $notifyingRegistry): ?>
@@ -349,7 +349,7 @@ $registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'regi
                     </p>
                 </div>
                 <div class="scope-summary__block">
-                    <h5 class="scope-summary__title">&#x1F441;&#xFE0F; Quels signalements le CSA/CHSCT peut consulter</h5>
+                    <h5 class="scope-summary__title">&#x1F441;&#xFE0F; Quels signalements le <?php echo $fmt->e($chsctRoleLabel); ?> peut consulter</h5>
                     <p class="scope-summary__scope"><strong><?php echo $fmt->e($chsctScopeLabel); ?></strong></p>
                     <p class="scope-summary__hint">Se règle avec les options ci-dessous.</p>
                 </div>
@@ -358,8 +358,8 @@ $registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'regi
             <?php if ($chsctNotifyConsultConflict): ?>
             <div class="info-panel info-panel--warning scope-summary__warning" role="note">
                 &#x26A0;&#xFE0F; <strong>Notification possiblement inaccessible :</strong>
-                au moins un registre actif notifie le CSA/CHSCT, mais avec le réglage « Consentement uniquement »,
-                le CSA/CHSCT ne peut pas ouvrir un signalement notifié tant que le déclarant n'a pas coché la case
+                au moins un registre actif notifie le <?php echo $fmt->e($chsctRoleLabel); ?>, mais avec le réglage « Consentement uniquement »,
+                le <?php echo $fmt->e($chsctRoleLabel); ?> ne peut pas ouvrir un signalement notifié tant que le déclarant n'a pas coché la case
                 de consentement de transmission syndicale. La notification peut donc annoncer un signalement
                 inaccessible dans l'application. Il s'agit d'un choix métier à valider localement avec le pilotage :
                 ce message ne préjuge pas de sa conformité juridique.

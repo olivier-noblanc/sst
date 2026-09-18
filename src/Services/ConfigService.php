@@ -126,6 +126,18 @@ class ConfigService
     }
 
     /**
+     * Libellé invariable de la ligne/colonne « Transmission » du signalement.
+     *
+     * Forme figée « Transmission — {libellé du rôle Chsct} » : aucun
+     * « s » de pluriel concaténé (le libellé de rôle est configurable et
+     * peut ne pas être un nom commun) et aucun « CHSCT » en dur.
+     */
+    public function transmissionLabel(): string
+    {
+        return 'Transmission — ' . $this->getRoleLabel(UserRole::Chsct->value);
+    }
+
+    /**
      * Check if there are any active sites in the system.
      */
     public function hasActiveSites(): bool

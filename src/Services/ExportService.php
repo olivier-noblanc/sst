@@ -39,12 +39,20 @@ class ExportService
     ];
 
     /**
-     * Colonnes CSV de fin (toujours présentes)
+     * Colonnes CSV de fin (toujours présentes), AVANT la colonne dynamique
+     * « Transmission » (libellé de rôle configurable, voir ConfigService —
+     * plus de « Transmission FS/CSA » en dur).
      */
-    private const array FOOTER_COLUMNS = [
+    private const array FOOTER_COLUMNS_BEFORE_TRANSMISSION = [
         'État',
         'Confidentiel',
-        'Transmission FS/CSA',
+    ];
+
+    /**
+     * Colonnes CSV de fin (toujours présentes), APRÈS la colonne dynamique
+     * « Transmission » : la position de cette dernière est ainsi conservée.
+     */
+    private const array FOOTER_COLUMNS_AFTER_TRANSMISSION = [
         'Date création',
         'Déclaré pour le compte de',
         'Nature de l\'auteur (RAMI)',
@@ -272,7 +280,11 @@ class ExportService
             $headers[] = 'Nom ' . $labelUnite;
         }
 
-        $headers = array_merge($headers, self::FOOTER_COLUMNS);
+        $headers = array_merge($headers, self::FOOTER_COLUMNS_BEFORE_TRANSMISSION);
+        // Colonne « Transmission » dynamique (libellé de rôle configurable),
+        // insérée à sa position historique.
+        $headers[] = $this->config->transmissionLabel();
+        $headers = array_merge($headers, self::FOOTER_COLUMNS_AFTER_TRANSMISSION);
 
         // Colonnes dynamiques du registre (champs custom, même liste et
         // même ordre que buildCsvRow → alignement en-têtes/valeurs garanti)

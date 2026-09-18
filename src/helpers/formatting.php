@@ -61,6 +61,15 @@ function getRoleBadgeClass(string $role): string
     return getFormattingService()->getRoleBadgeClass($role);
 }
 
+/**
+ * Libellé invariable de la ligne/colonne « Transmission » du signalement,
+ * dérivé du nom de rôle configurable (voir ConfigService::transmissionLabel()).
+ */
+function transmissionLabel(): string
+{
+    return getConfigService()->transmissionLabel();
+}
+
 function getMimeType(string $filePath): string
 {
     return getFormattingService()->getMimeType($filePath);

@@ -134,4 +134,49 @@ class ExportCsvColumnsTest extends TestCase
         $consentLabel = !empty($row['consent_syndicat']) ? 'Acceptée' : 'Refusée';
         $this->assertSame('Refusée', $consentLabel, 'consent_syndicat=0 should display as Refusée');
     }
+
+    /**
+     * En-tête « Transmission » dynamique : le libellé suit le nom de rôle
+     * configurable (app_role_label_chsct) au lieu du « Transmission FS/CSA »
+     * en dur, tout en conservant sa position (juste après « Confidentiel »,
+     * juste avant « Date création »).
+     */
+    public function testBuildHeadersUsesDynamicTransmissionLabelAtSamePosition(): void
+    {
+        getDB()->exec("DELETE FROM config_app WHERE cle = 'app_role_label_chsct'");
+        clearConfigCache();
+
+        $service = new \App\Services\ExportService(new \App\Services\ConfigService());
+        $headers = $service->buildHeaders(true); // mode sans site → en-têtes plus courts
+
+        $expected = 'Transmission — ' . \App\Enum\UserRole::Chsct->defaultLabel();
+        $this->assertContains($expected, $headers, 'En-tête dynamique attendu');
+        $this->assertNotContains('Transmission FS/CSA', $headers, 'Plus de libellé en dur');
+
+        $index = array_search($expected, $headers, true);
+        if ($index === false) {
+            $this->fail('En-tête transmission introuvable');
+        }
+        $index = (int) $index;
+        $this->assertSame('Confidentiel', $headers[$index - 1], 'Position conservée : après Confidentiel');
+        $this->assertSame('Date création', $headers[$index + 1], 'Position conservée : avant Date création');
+    }
+
+    public function testBuildHeadersTransmissionFollowsCustomRoleLabel(): void
+    {
+        $config = getConfigService();
+        $config->set('app_role_label_chsct', 'Délégué local');
+        $config->clearCache();
+
+        try {
+            $service = new \App\Services\ExportService(new \App\Services\ConfigService());
+            $headers = $service->buildHeaders(true);
+
+            $this->assertContains('Transmission — Délégué local', $headers);
+            $this->assertNotContains('Transmission — Membre FS/CSA', $headers);
+        } finally {
+            getDB()->exec("DELETE FROM config_app WHERE cle = 'app_role_label_chsct'");
+            $config->clearCache();
+        }
+    }
 }

@@ -96,15 +96,16 @@ class ChsctNotificationScopeUiTest extends TestCase
 
         $html = $this->renderAppTab();
 
+        $short = getRoleLabelShort(\App\Enum\UserRole::Chsct->value);
         $this->assertStringContainsString(
-            'Qui reçoit la notification CSA/CHSCT',
+            'Qui reçoit la notification ' . $short,
             $html,
-            'The tab must state who receives the CSA/CHSCT notification'
+            'The tab must state who receives the role notification'
         );
         $this->assertStringContainsString(
-            'Quels signalements le CSA/CHSCT peut consulter',
+            'Quels signalements le ' . $short . ' peut consulter',
             $html,
-            'The tab must state which reports the CSA/CHSCT can consult'
+            'The tab must state which reports the role can consult'
         );
         $this->assertStringContainsString(
             'Consentement uniquement',

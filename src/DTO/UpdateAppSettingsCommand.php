@@ -3,6 +3,7 @@
 namespace App\DTO;
 
 use App\Enum\ReportType;
+use App\Enum\UserRole;
 use App\Enum\VisibilityMode;
 
 final readonly class UpdateAppSettingsCommand
@@ -80,9 +81,9 @@ final readonly class UpdateAppSettingsCommand
         if ($roleLabelSuperviseur === '') {
             $roleLabelSuperviseur = 'Superviseur';
         }
-        $roleLabelChsct = trim((string) ($post['app_role_label_chsct'] ?? 'Membre FS/CSA'));
+        $roleLabelChsct = trim((string) ($post['app_role_label_chsct'] ?? UserRole::Chsct->defaultLabel()));
         if ($roleLabelChsct === '') {
-            $roleLabelChsct = 'Membre FS/CSA';
+            $roleLabelChsct = UserRole::Chsct->defaultLabel();
         }
 
         $reportVisibility = (string) ($post['app_report_visibility'] ?? VisibilityMode::AgentChoice->value);

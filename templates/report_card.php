@@ -55,7 +55,7 @@ if (!isset($csrfToken)) {
 <div class="card <?php echo e($cardClass); ?>">
     <?php if (new \App\Services\RegistryPolicy()->hasDgiWarningPanel($type)): ?>
     <div class="danger-panel">
-        &#9888;&#65039; <strong>Procédure prioritaire :</strong> Ce signalement relève du registre DGI (Danger Grave et Imminent). Conformément aux articles L4131-1 et L4132-5 du Code du travail, l'agent a le droit de se retirer de la situation de danger. Le registre DGI doit être tenu à disposition de l'inspecteur du travail et du CHSCT/CSA.
+        &#9888;&#65039; <strong>Procédure prioritaire :</strong> Ce signalement relève du registre DGI (Danger Grave et Imminent). Conformément aux articles L4131-1 et L4132-5 du Code du travail, l'agent a le droit de se retirer de la situation de danger. Le registre DGI doit être tenu à disposition de l'inspecteur du travail et des membres du rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ».
     </div>
     <?php endif; ?>
     <div class="report-detail">
@@ -181,7 +181,7 @@ if (!isset($csrfToken)) {
                 </tr>
                 <?php endif; ?>
                 <tr>
-                    <th>Transmission aux <?php echo $fmt->e(getConfigService()->getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?>s</th>
+                    <th><?php echo $fmt->e(transmissionLabel()); ?></th>
                     <td><?php echo (bool) $report->consentSyndicat ? '✅ Acceptée' : '❌ Refusée'; ?></td>
                 </tr>
                 <tr>

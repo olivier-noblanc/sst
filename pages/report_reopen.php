@@ -24,7 +24,7 @@ $user = new \App\Services\SessionService()->getUserSession();
 $userRole = $user->role ?? \App\Enum\UserRole::Agent->value;
 
 if (!in_array($userRole, [\App\Enum\UserRole::Superviseur->value, \App\Enum\UserRole::Chsct->value], true)) {
-    new \App\Services\SessionService()->setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs et membres du ' . $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)) . ' peuvent réouvrir un signalement.');
+    new \App\Services\SessionService()->setFlash('error', 'Vous n\'êtes pas autorisé à réouvrir ce signalement. Seuls les superviseurs et les membres du rôle « ' . $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)) . ' » peuvent réouvrir un signalement.');
     $http->redirect($http->url('report_view', ['uuid' => $uuid]));
 }
 
@@ -89,7 +89,7 @@ $flash = new \App\Services\SessionService()->getFlash();
     <div class="alert alert--danger" role="alert">
         <strong>Attention — Registre DGI</strong><br>
         La réouverture d'un signalement DGI signifie que le danger grave et imminent n'a pas été résolu. 
-        Conformément à l'article L4131-2 du Code du travail, le CSE/<?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> sera informé de cette réouverture.
+        Conformément à l'article L4131-2 du Code du travail, le rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> » sera informé de cette réouverture.
     </div>
     <?php endif; ?>
 

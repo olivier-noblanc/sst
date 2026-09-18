@@ -6,7 +6,7 @@
  * used a fixed label column width (55mm) that FPDF's Cell() doesn't
  * enforce — a label wider than that just overflows into the value column
  * instead of being wrapped or clipped. This happened out of the box with
- * the default CHSCT role label ("Transmission aux Membre FS/CSAs" — the
+ * the default CHSCT role label ("Transmission — Membre FS/CSA" — the
  * role label is admin-configurable, see ConfigService::getRoleLabel()),
  * not just with an unusually long custom one.
  */
@@ -47,7 +47,7 @@ class ReportPrintHelpersTest extends TestCase
         // The real-world case that triggered this bug: the default CHSCT
         // role label ("Membre FS/CSA") already makes this label wider than
         // the old fixed 55mm column at 10pt bold DejaVu.
-        $label = 'Transmission aux Membre FS/CSAs';
+        $label = 'Transmission — Membre FS/CSA';
         $labelCp = utf8ToCp1252($label);
         $renderedWidth = $pdf->GetStringWidth($labelCp);
 
@@ -86,7 +86,7 @@ class ReportPrintHelpersTest extends TestCase
         // Full integration smoke test through the actual function used by
         // report_print.php, with the exact real-world label.
         $pdf = $this->newPdf();
-        drawField($pdf, 'Transmission aux Membre FS/CSAs', 'Acceptée');
+        drawField($pdf, 'Transmission — Membre FS/CSA', 'Acceptée');
         $output = $pdf->Output('S');
         $this->assertIsString($output);
         $this->assertStringStartsWith('%PDF', $output);

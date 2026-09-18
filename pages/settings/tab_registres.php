@@ -179,7 +179,7 @@ $visibilityModes = [
                     <input type="checkbox" name="registres[<?php echo $regId; ?>][notify_chsct]" value="1"
                            class="toggle-switch__input" <?php echo $notifyChsct ? 'checked' : ''; ?>>
                     <span class="toggle-switch" aria-hidden="true"></span>
-                    <span>Notification CSA/CHSCT (comme DGI)</span>
+                    <span>Notification <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> (comme DGI)</span>
                 </label>
             </div>
         </div>

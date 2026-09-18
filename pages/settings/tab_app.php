@@ -148,6 +148,9 @@ use App\Enum\VisibilityMode;
                     doit être informé de tout signalement relatif à un danger grave et imminent.
                     Si activé, les membres <?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_role_label_chsct', 'Membre FS/CSA')); ?> recevront un e-mail de notification
                     pour chaque nouveau signalement DGI.
+                    Pour le registre DGI, l'option « Notification CSA/CHSCT » de la ligne DGI dans l'onglet
+                    « Registres » est prioritaire ; ce réglage global ne s'applique qu'en l'absence de ligne de
+                    registre (compatibilité).
                 </small>
             </div>
         </div>
@@ -283,12 +286,85 @@ use App\Enum\VisibilityMode;
         </div>
 
         <div class="separator">
-            <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></h4>
-            <p class="text-muted text-small mb-3">Détermine quels signalements les membres du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> peuvent consulter.</p>
             <?php
-                        $chsctScopeValue = getConfigService()->get('app_chsct_report_scope', 'consent_only');
+            $fmt = new \App\Services\FormattingService();
+$chsctRoleLabel = getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value);
+
+// Clarification CSA/CHSCT — deux notions indépendantes :
+//   * `registries.notify_chsct` = QUI reçoit l'e-mail de notification
+//     (configuré par registre dans l'onglet « Registres ») ;
+//   * `app_chsct_report_scope`  = QUELS signalements peuvent être consultés.
+// Récapitulatif en LECTURE SEULE : on ne modifie ni la logique d'envoi
+// ni les valeurs par défaut (DGI reste notifié par défaut, RSST/RAMI non forcés).
+/** @var list<array{code: string, short_label: string, label: string, is_enabled: int, notify_chsct: int}> $notifyChsctRegistries */
+$notifyChsctRegistries = [];
+$notifyChsctEnabledCount = 0;
+foreach (\App\Repository\RegistryRepository::instance()->findAll() as $registry) {
+    if ((int) $registry['notify_chsct'] !== 1) {
+        continue;
+    }
+    $notifyChsctRegistries[] = $registry;
+    if ((int) $registry['is_enabled'] === 1) {
+        $notifyChsctEnabledCount++;
+    }
+}
+
+$chsctScopeValue = getConfigService()->get('app_chsct_report_scope', 'consent_only');
 $chsctScopeValue = new \App\Services\AccessService()->normalizeChsctScope($chsctScopeValue);
+$chsctScopeIsConsentOnly = $chsctScopeValue === 'consent_only';
+$chsctScopeLabel = $chsctScopeIsConsentOnly ? 'Consentement uniquement' : 'Tous les signalements';
+// Alerte seulement si un registre ACTIF notifie : un registre désactivé
+// ne peut pas générer de notification.
+$chsctNotifyConsultConflict = $chsctScopeIsConsentOnly && $notifyChsctEnabledCount > 0;
+$registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'registres']);
 ?>
+            <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo $fmt->e($chsctRoleLabel); ?></h4>
+            <p class="text-muted text-small mb-3">
+                Deux réglages indépendants : <strong>qui reçoit une notification CSA/CHSCT</strong>
+                (par registre, dans l'onglet « Registres ») et <strong>quels signalements le CSA/CHSCT peut consulter</strong>
+                (ci-dessous). L'un n'entraîne pas l'autre.
+            </p>
+
+            <div class="scope-summary">
+                <div class="scope-summary__block">
+                    <h5 class="scope-summary__title">&#x1F514; Qui reçoit la notification CSA/CHSCT</h5>
+                    <?php if ($notifyChsctRegistries === []): ?>
+                    <p class="scope-summary__empty">Aucun registre n'est configuré pour notifier le CSA/CHSCT.</p>
+                    <?php else: ?>
+                    <ul class="scope-summary__list">
+                        <?php foreach ($notifyChsctRegistries as $notifyingRegistry): ?>
+                        <li class="scope-summary__item" data-registry="<?php echo $fmt->e($notifyingRegistry['code']); ?>">
+                            <strong><?php echo $fmt->e($notifyingRegistry['short_label']); ?></strong>
+                            <span class="text-muted">&#x2014; <?php echo $fmt->e($notifyingRegistry['label']); ?></span>
+                            <?php if ((int) $notifyingRegistry['is_enabled'] !== 1): ?>
+                            <span class="scope-summary__badge">désactivé</span>
+                            <?php endif; ?>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php endif; ?>
+                    <p class="scope-summary__hint">
+                        Réglage par registre, modifiable dans l'onglet
+                        <a href="<?php echo $fmt->e($registresUrl); ?>">Registres</a>.
+                    </p>
+                </div>
+                <div class="scope-summary__block">
+                    <h5 class="scope-summary__title">&#x1F441;&#xFE0F; Quels signalements le CSA/CHSCT peut consulter</h5>
+                    <p class="scope-summary__scope"><strong><?php echo $fmt->e($chsctScopeLabel); ?></strong></p>
+                    <p class="scope-summary__hint">Se règle avec les options ci-dessous.</p>
+                </div>
+            </div>
+
+            <?php if ($chsctNotifyConsultConflict): ?>
+            <div class="info-panel info-panel--warning scope-summary__warning" role="note">
+                &#x26A0;&#xFE0F; <strong>Notification possiblement inaccessible :</strong>
+                au moins un registre actif notifie le CSA/CHSCT, mais avec le réglage « Consentement uniquement »,
+                le CSA/CHSCT ne peut pas ouvrir un signalement notifié tant que le déclarant n'a pas coché la case
+                de consentement de transmission syndicale. La notification peut donc annoncer un signalement
+                inaccessible dans l'application. Il s'agit d'un choix métier à valider localement avec le pilotage :
+                ce message ne préjuge pas de sa conformité juridique.
+            </div>
+            <?php endif; ?>
             <fieldset class="form-group visibility-radios">
                 <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></legend>
                 <div class="visibility-radios">

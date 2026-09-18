@@ -2497,6 +2497,69 @@ tr:hover td {
     flex-shrink: 0;
 }
 
+/* CHSCT notification vs consultation scope summary (tab_app.php)
+   Séparates « qui reçoit la notification » from « quels signalements
+   peuvent être consultés ». Responsive via auto-fit (no inline styles). */
+.scope-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.scope-summary__block {
+    padding: 12px 14px;
+    background: var(--grey-50);
+    border: 1px solid var(--grey-200);
+    border-radius: var(--border-radius-lg);
+}
+
+.scope-summary__title {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.scope-summary__list {
+    margin: 0 0 8px;
+    padding-left: 18px;
+    font-size: 12px;
+}
+
+.scope-summary__item {
+    margin-bottom: 4px;
+}
+
+.scope-summary__empty,
+.scope-summary__scope {
+    margin: 0 0 8px;
+    font-size: 12px;
+}
+
+.scope-summary__empty {
+    color: var(--grey-500);
+}
+
+.scope-summary__hint {
+    margin: 0;
+    color: var(--grey-500);
+    font-size: 12px;
+}
+
+.scope-summary__badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    background: var(--grey-200);
+    border-radius: 10px;
+    color: var(--grey-600);
+    font-size: 11px;
+}
+
+.scope-summary__warning {
+    margin-top: 12px;
+}
+
 .checkbox-label {
     display: flex;
     align-items: center;

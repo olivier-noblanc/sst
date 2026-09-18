@@ -475,8 +475,8 @@ class EmailOutboxWorkerTest extends TestCase
      */
     private function runCapturingWorkerLog(callable $configure): array
     {
-        /** @var string $logFile */
         $logFile = tempnam(sys_get_temp_dir(), 'sst_worker_log_');
+        self::assertIsString($logFile, 'tempnam() must return a path');
         $previousLog = ini_get('error_log');
         ini_set('error_log', $logFile);
 

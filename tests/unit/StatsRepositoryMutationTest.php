@@ -391,6 +391,50 @@ class StatsRepositoryMutationTest extends TestCase
         $this->assertSame(1, $total2026);
     }
 
+    public function testGetStructuredStatsForRegistryYearBoundaryUsesParisTime(): void
+    {
+        // B-2 — Un signalement créé à Paris le 1er janvier 00:30 est stocké
+        // 2024-12-31 23:30 UTC. Le dropdown d'années (getAvailableYears) le
+        // classe en 2025 (heure de Paris). Le filtre statistique de l'année
+        // 2025 doit donc le compter aussi — avant le fix, les bornes étaient
+        // interprétées comme des instants UTC ([2025-01-01 00:00 ; 2026-01-01 00:00))
+        // et excluaient ce signalement (31/12/2024 23:30 UTC) : il disparaissait
+        // autour du nouvel an.
+        $this->seedReport('rami', ReportState::Nouveau->value, null, 'usager', 'verbal', '2024-12-31 23:30:00');
+
+        // Le dropdown le classe bien en 2025 (heure de Paris).
+        $this->assertContains('2025', $this->repo->getAvailableYears(), 'le signalement doit être classé en 2025 (heure de Paris)');
+
+        // Le filtre 2025 doit le compter, pas le perdre.
+        $stats2025 = $this->repo->getStructuredStatsForRegistry(ReportType::Rami->value, '2025');
+        $total2025 = 0;
+        foreach ($stats2025->byNatureAuteur as $entry) {
+            $total2025 += (int) $entry['count'];
+        }
+        $this->assertSame(1, $total2025, 'un signalement du 31/12 23:30 UTC (01/01 Paris) doit apparaître dans l\'année 2025');
+
+        // Et il ne doit PAS être compté en 2024 (même convention des deux côtés).
+        $stats2024 = $this->repo->getStructuredStatsForRegistry(ReportType::Rami->value, '2024');
+        $total2024 = 0;
+        foreach ($stats2024->byNatureAuteur as $entry) {
+            $total2024 += (int) $entry['count'];
+        }
+        $this->assertSame(0, $total2024, 'le signalement ne doit pas être compté en 2024');
+    }
+
+    public function testGetIndicateursYearBoundaryUsesParisTime(): void
+    {
+        // B-2 — Même convention pour les indicateurs : le signalement à cheval
+        // sur le nouvel an (01/01 Paris = 31/12 UTC) doit être compté en 2025.
+        $this->seedReport('rsst', ReportState::Nouveau->value, null, null, null, '2024-12-31 23:30:00');
+
+        $result2025 = $this->repo->getIndicateurs('2025');
+        $this->assertSame(1, $result2025->totalReports, 'getIndicateurs(2025) doit compter le signalement du 01/01 Paris');
+
+        $result2024 = $this->repo->getIndicateurs('2024');
+        $this->assertSame(0, $result2024->totalReports, 'getIndicateurs(2024) ne doit pas le compter');
+    }
+
     public function testGetStructuredStatsForRegistryExcludesNullNatureAndType(): void
     {
         // Reports with NULL nature_auteur should not appear in byNatureAuteur

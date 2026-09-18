@@ -405,8 +405,8 @@ class OutboxMutationKillTest extends TestCase
         $this->pdo->exec('DROP TABLE IF EXISTS tm_commit_probe');
         $this->pdo->exec('CREATE TEMPORARY TABLE tm_commit_probe (v TEXT)');
 
-        /** @var string $logFile */
         $logFile = tempnam(sys_get_temp_dir(), 'sst_tm_log_');
+        self::assertIsString($logFile, 'tempnam() must return a path');
         $previousLog = ini_get('error_log');
         ini_set('error_log', $logFile);
         $logged = '';

@@ -55,6 +55,18 @@ class AuthService
                         return null;
                     }
                     \setUserSession($freshUser);
+                    // B-1 — setUserSession() writes the real DB role into the
+                    // session. If the user is currently impersonating, that
+                    // silently restored the real (higher) privileges while
+                    // real_role/impersonated_role stayed set. Re-apply the
+                    // impersonated role — same semantics as refreshCurrentUser().
+                    if (\isImpersonatingRole()) {
+                        $impersonatedRole = \getImpersonatedRole() ?? $freshUser->role;
+                        if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
+                            $_SESSION['user']['role'] = $impersonatedRole;
+                        }
+                        $freshUser = $freshUser->withRole($impersonatedRole);
+                    }
                     $_SESSION['last_session_check'] = time();
                     return $freshUser;
                 }

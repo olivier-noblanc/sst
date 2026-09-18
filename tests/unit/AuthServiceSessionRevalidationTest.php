@@ -150,6 +150,35 @@ class AuthServiceSessionRevalidationTest extends TestCase
         );
     }
 
+    /**
+     * B-1. Après re-validation (> throttle), le re-fetch écrase le rôle de
+     * session avec le rôle réel de la DB alors que real_role/impersonated_role
+     * restent posés : un superviseur qui incarnait un agent retrouvait
+     * silencieusement ses droits réels tout en restant « en incarnation ».
+     * La re-validation doit conserver le rôle incarné (sémantique de
+     * refreshCurrentUser).
+     */
+    public function testHandleAutoAuthPreservesImpersonatedRoleAfterRevalidation(): void
+    {
+        // La DB porte le rôle réel ('superviseur'), la session le rôle incarné ('agent').
+        $id = $this->seedUser('test.sessreval.impersonate');
+        $this->pdo->exec("UPDATE users SET role = 'superviseur' WHERE id = $id");
+        $this->openSession($id, time() - 60, 0);
+        \startImpersonation('superviseur', 'agent');
+        $this->assertTrue(\isImpersonatingRole(), 'fixture : incarnation active avant re-validation');
+
+        $this->service->handleAutoAuth();
+
+        $this->assertTrue(\isUserLoggedIn(), 'la session re-validée reste ouverte');
+        $this->assertTrue(\isImpersonatingRole(), 'l\'incarnation doit survivre à la re-validation');
+        $this->assertSame('agent', \getImpersonatedRole(), 'le rôle incarné doit être conservé');
+        $this->assertSame(
+            'agent',
+            \currentUserRole(),
+            'la re-validation ne doit pas restaurer le rôle réel (superviseur) pendant l\'incarnation'
+        );
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // B. isSessionValid() doit comparer le marqueur DB UTC correctement
     // ══════════════════════════════════════════════════════════════════════════

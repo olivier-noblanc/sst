@@ -9,6 +9,8 @@ use App\DTO\RamiStats;
 use App\DTO\SiteStatsRow;
 use App\DTO\SynthesisRow;
 use App\Enum\ReportState;
+use DateTimeImmutable;
+use DateTimeZone;
 use PDO;
 
 class StatsQueryRepository
@@ -70,7 +72,8 @@ class StatsQueryRepository
                 AND r.created_at >= :year_start AND r.created_at < :year_next
         ";
 
-        $params = [':year_start' => $year . '-01-01 00:00:00', ':year_next' => ((int) $year + 1) . '-01-01 00:00:00'];
+        [$yearStart, $yearNext] = self::parisYearUtcBounds($year);
+        $params = [':year_start' => $yearStart, ':year_next' => $yearNext];
 
         // Audit #61 — site filter must be a WHERE clause on s.id, not added to
         // the LEFT JOIN's ON clause. Before this fix, `AND r.site_id = :site_id`
@@ -302,9 +305,10 @@ class StatsQueryRepository
         ";
 
         if (!empty($year)) {
+            [$yearStart, $yearNext] = self::parisYearUtcBounds($year);
             $sql .= ' AND created_at >= :year_start AND created_at < :year_next';
-            $params[':year_start'] = $year . '-01-01 00:00:00';
-            $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
+            $params[':year_start'] = $yearStart;
+            $params[':year_next'] = $yearNext;
         }
 
         if ($siteId > 0) {
@@ -381,9 +385,10 @@ class StatsQueryRepository
         // Year filter goes in the ON clause to preserve the LEFT JOIN semantics:
         // sites with no reports in the year still appear with total=0.
         if (!empty($year)) {
+            [$yearStart, $yearNext] = self::parisYearUtcBounds($year);
             $onExtra[] = 'r.created_at >= :year_start AND r.created_at < :year_next';
-            $params[':year_start'] = $year . '-01-01 00:00:00';
-            $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
+            $params[':year_start'] = $yearStart;
+            $params[':year_next'] = $yearNext;
         }
 
         if (!empty($onExtra)) {
@@ -424,6 +429,29 @@ class StatsQueryRepository
         return $result;
     }
 
+    /**
+     * Bornes UTC [début inclus, fin exclue) d'une année civile Europe/Paris.
+     *
+     * `created_at` est stocké en UTC (SQLite `datetime('now')`). Le contrat UI
+     * expose les années en heure de Paris (voir getAvailableYears()) : un
+     * signalement créé à Paris le 1er janvier 00:30 (31 décembre 23:30 UTC)
+     * doit donc être compté dans l'année Paris correspondante. On convertit les
+     * bornes de l'année Paris en instants UTC via DateTimeZone('Europe/Paris')
+     * — le calcul est DST-correct (les bornes d'année tombent toujours en CET,
+     * UTC+1, mais aucun offset n'est codé en dur).
+     *
+     * @return array{0: string, 1: string} [start inclus, end exclu] en 'Y-m-d H:i:s'
+     */
+    private static function parisYearUtcBounds(string $year): array
+    {
+        $paris = new DateTimeZone('Europe/Paris');
+        $utc = new DateTimeZone('UTC');
+        $start = new DateTimeImmutable($year . '-01-01 00:00:00', $paris)->setTimezone($utc);
+        $end = new DateTimeImmutable(((int) $year + 1) . '-01-01 00:00:00', $paris)->setTimezone($utc);
+
+        return [$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')];
+    }
+
     /** @return list<array{year: string}> */
     public function getAvailableYears(): array
     {
@@ -431,9 +459,11 @@ class StatsQueryRepository
         // the year. Otherwise a report created at Paris 2025-01-01 00:30 (which is
         // 2024-12-31 23:30 UTC) would appear in year 2024 instead of 2025 in the
         // year filter dropdown.
-        // +1 hour shifts UTC to Europe/Paris winter time (CET). DST is ignored —
-        // for accurate DST handling we'd need full timezone logic, but for a
-        // year filter dropdown, +/-1h is good enough.
+        // +1 hour shifts UTC to Europe/Paris winter time (CET). Ce décalage fixe
+        // est DST-safe pour l'extraction d'ANNÉE : les changements d'année se
+        // produisent toujours fin décembre / début janvier, quand Paris est en
+        // CET (UTC+1) — jamais en CEST. On reste donc cohérent avec
+        // parisYearUtcBounds(), utilisé par tous les filtres d'année ci-dessous.
         //
         // NOTE: strftime() is a SQLite function but some CI environments (older
         // SQLite or PHP 8.5 with deprecated strftime) may return NULL. Using
@@ -478,9 +508,10 @@ class StatsQueryRepository
         $params = [];
         $yearFilter = '';
         if (!empty($year)) {
+            [$yearStart, $yearNext] = self::parisYearUtcBounds($year);
             $yearFilter = ' AND created_at >= :year_start AND created_at < :year_next';
-            $params[':year_start'] = $year . '-01-01 00:00:00';
-            $params[':year_next'] = ((int) $year + 1) . '-01-01 00:00:00';
+            $params[':year_start'] = $yearStart;
+            $params[':year_next'] = $yearNext;
         }
 
         $params[':type'] = $registryCode;

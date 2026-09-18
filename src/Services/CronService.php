@@ -249,7 +249,7 @@ class CronService
      * R1 — le run du worker est borné dans le temps (drainBudgetSeconds) : un
      * SMTP en trou noir ne peut donc plus bloquer la connexion (login) pendant
      * tout le lot. Les messages non traités au budget restent en processing et
-     * sont récupérés par requeueStaleProcessing() au run suivant.
+     * sont relâchés (pending) par releaseUnclaimed() au run suivant.
      */
     private function drainOutbox(): void
     {

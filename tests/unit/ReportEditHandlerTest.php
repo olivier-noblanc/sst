@@ -174,6 +174,52 @@ class ReportEditHandlerTest extends TestCase
         $this->assertEquals('error', $result['flash']['type'] ?? null);
     }
 
+    /**
+     * Un agent déjà rattaché ne doit jamais être ré-invité lorsque le déclarant
+     * ressaisit son e-mail avec une casse différente. Avant ce correctif, le
+     * diff des invitations (array_diff) était sensible à la casse : l'e-mail
+     * saisi en minuscules ne matchait pas l'e-mail stocké (casse mixte), une
+     * nouvelle invitation était émise vers un agent déjà lié.
+     */
+    public function testEditDoesNotReinviteAlreadyLinkedAgentWithDifferentCase(): void
+    {
+        $reportUuid = '22222222-3333-4444-a555-666666666666';
+        $token = bin2hex(random_bytes(32));
+        $session = array_merge($this->makeAgentSession(), ['csrf_tokens' => [$token => time()]]);
+
+        $seed = $this->seedWithReport($reportUuid)
+            . "\nINSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('agent.lie', 'Lie', 'Agent', 'agent', 1, 1, 'Agent.Lie@DREETS-BFC.gouv.fr');"
+            . "\nINSERT INTO report_agents (report_uuid, user_id) VALUES ('$reportUuid', (SELECT id FROM users WHERE username = 'agent.lie'));";
+
+        $result = $this->runHandler([
+            'handler' => 'report_edit_handler.php',
+            'mailer_seam' => 'ok',
+            'session' => $session,
+            'post' => [
+                'csrf_token' => $token,
+                'report_uuid' => $reportUuid,
+                'objet' => 'Objet modifie',
+                'description' => 'Description modifiee',
+                'date_evenement' => '2026-01-15',
+                'lieu' => 'Bureau',
+                'is_confidential' => '0',
+                'linked_emails' => 'agent.lie@dreets-bfc.gouv.fr',
+            ],
+            'db_seed' => $seed,
+            'assertions' => [
+                'invite_count' => "SELECT COUNT(*) FROM report_agent_invites WHERE report_uuid = '$reportUuid'",
+            ],
+        ]);
+
+        $this->assertNotNull($result['redirect']);
+        $this->assertStringContainsString('page=report_view', $result['redirect']);
+        $this->assertSame(
+            0,
+            (int) $result['queries']['invite_count'],
+            'Un agent déjà rattaché (même e-mail, casse différente) ne doit pas recevoir de nouvelle invitation.'
+        );
+    }
+
     public function testEditReportWithEmptyObjetFails(): void
     {
         // The edit handler validates objet emptiness — empty objet returns form errors.

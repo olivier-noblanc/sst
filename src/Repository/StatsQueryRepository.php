@@ -515,7 +515,7 @@ class StatsQueryRepository
         );
     }
 
-    public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int
+    public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false, bool $chsctConsentOnly = false): int
     {
         $sql = "SELECT COUNT(*) FROM reports WHERE type = :type AND etat != '" . ReportState::Abandonne->value . "'";
         $params = [':type' => $type];
@@ -527,6 +527,12 @@ class StatsQueryRepository
         if ($confidentialMode && $userId > 0) {
             $sql .= ' AND (is_confidential = 0 OR declarant_id = :user_id)';
             $params[':user_id'] = $userId;
+        }
+        // Périmètre CHSCT (app_chsct_report_scope=consent_only) : parité avec la
+        // liste (ReportQueryRepository::buildFilterWhere) — la carte ne doit pas
+        // compter des signalements non consentis que le CHSCT ne peut pas voir.
+        if ($chsctConsentOnly) {
+            $sql .= ' AND consent_syndicat = 1';
         }
 
         $stmt = $this->pdo->prepare($sql);

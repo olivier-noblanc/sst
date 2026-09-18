@@ -116,7 +116,11 @@ class AuthService
         if ($invalidBefore === null) {
             return true; // No invalidation marker
         }
-        $invalidBeforeTs = strtotime($invalidBefore);
+        // The marker is written in UTC by SQLite datetime('now') (invalidateSessions,
+        // UserService bumps). strtotime() would otherwise interpret it in PHP's
+        // local timezone (Europe/Paris) and see it 1–2h too early, wrongly keeping
+        // the session valid. Parse it explicitly as UTC.
+        $invalidBeforeTs = strtotime($invalidBefore . ' UTC');
         if ($invalidBeforeTs === false) {
             return true; // Malformed — fail open
         }
@@ -296,6 +300,12 @@ class AuthService
     public function handleAutoAuth(): void
     {
         if (\isUserLoggedIn()) {
+            // Audit #9 — a session that already exists must still be re-validated
+            // on the existing throttle. getAuthenticatedUser() carries that logic
+            // (clearSession + null when the user is deactivated, the marker is
+            // newer, etc.). Without it, a deactivated/demoted/logged-out-
+            // everywhere/anonymized user kept their session until the 24h expiry.
+            $this->getAuthenticatedUser();
             return;
         }
 

@@ -73,9 +73,9 @@ class StatsRepository
         return $this->query->getStructuredStatsForRegistry($registryCode, $year);
     }
 
-    public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false): int
+    public function countActive(string $type, int $siteId = 0, int $userId = 0, bool $confidentialMode = false, bool $chsctConsentOnly = false): int
     {
-        return $this->query->countActive($type, $siteId, $userId, $confidentialMode);
+        return $this->query->countActive($type, $siteId, $userId, $confidentialMode, $chsctConsentOnly);
     }
 
     public function countByDeclarantId(int $declarantId): int

@@ -38,6 +38,9 @@ class RegistryCardRendererTest extends TestCase
         // Restore the global visibility to its code default so the per-registry
         // visibility tests can't leak into the rest of the shared-DB suite.
         $configService->set('app_report_visibility', 'agent_choice');
+        // Restore the CHSCT report scope to its production default so the
+        // card-count tests can't leak into the rest of the shared-DB suite.
+        $configService->set('app_chsct_report_scope', 'consent_only');
         $configService->clearCache();
         // getDB() is a process-wide singleton shared by the whole PHPUnit
         // run (see tests/bootstrap.php) — every other test class that
@@ -87,6 +90,23 @@ class RegistryCardRendererTest extends TestCase
             ':type' => $type,
             ':declarant_id' => $declarantId,
             ':is_confidential' => $isConfidential,
+        ]);
+    }
+
+    /** Seeds one report of $type at the test site with an explicit syndicate consent flag. */
+    private function seedReportWithConsent(string $type, int $consentSyndicat): void
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO reports (uuid, reference, type, objet, description, date_evenement,
+                declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential, consent_syndicat)
+            VALUES (:uuid, :reference, :type, 'Test', 'Test', '2026-01-01',
+                9001, 'RCR', 'Test', 9001, 'nouveau', 0, :consent)
+        ");
+        $stmt->execute([
+            ':uuid' => 'test-rcr-consent-' . uniqid(),
+            ':reference' => strtoupper($type) . '-CONSENT-' . uniqid(),
+            ':type' => $type,
+            ':consent' => $consentSyndicat,
         ]);
     }
 
@@ -463,6 +483,69 @@ class RegistryCardRendererTest extends TestCase
         $rsst = $this->findCard(buildRegistryCards(), 'rsst');
 
         $this->assertSame(3, $rsst->count, 'La carte rsst doit compter selon la visibilité du registre (public), pas la visibilité globale (confidential).');
+    }
+
+    // ─── Carte CHSCT en périmètre consent_only ─────────────────────────────
+    //
+    // La liste CHSCT (AccessService::buildListFilter → ReportQueryRepository::
+    // findPaginated) applique r.consent_syndicat = 1 quand
+    // app_chsct_report_scope=consent_only. Le compteur de la carte doit refléter
+    // le même périmètre, sinon la carte annonce des signalements que le CHSCT ne
+    // voit pas dans la liste liée. En mode 'all' — et pour un superviseur, qui
+    // n'est jamais soumis à la portée CHSCT — aucun filtre consentement ne doit
+    // s'appliquer.
+
+    public function testBuildRegistryCardsChsctConsentOnlyExcludesNonConsentedReports(): void
+    {
+        $configService = \getConfigService();
+        $configService->set('app_chsct_report_scope', 'consent_only');
+        $configService->clearCache();
+
+        $_SESSION['user'] = ['id' => 9100, 'role' => ROLE_CHSCT, 'siteId' => 9001];
+
+        $this->seedReportWithConsent('rsst', 1);
+        $this->seedReportWithConsent('rsst', 1);
+        $this->seedReportWithConsent('rsst', 0);
+
+        $rsst = $this->findCard(buildRegistryCards(), 'rsst');
+
+        $this->assertSame(2, $rsst->count, 'CHSCT consent_only : la carte ne doit compter que les signalements consentis (consent_syndicat = 1).');
+    }
+
+    public function testBuildRegistryCardsChsctAllScopeKeepsGlobalCount(): void
+    {
+        $configService = \getConfigService();
+        $configService->set('app_chsct_report_scope', 'all');
+        $configService->clearCache();
+
+        $_SESSION['user'] = ['id' => 9101, 'role' => ROLE_CHSCT, 'siteId' => 9001];
+
+        $this->seedReportWithConsent('rsst', 1);
+        $this->seedReportWithConsent('rsst', 1);
+        $this->seedReportWithConsent('rsst', 0);
+
+        $rsst = $this->findCard(buildRegistryCards(), 'rsst');
+
+        $this->assertSame(3, $rsst->count, 'CHSCT en mode all : aucun filtre consentement ne doit être appliqué à la carte.');
+    }
+
+    public function testBuildRegistryCardsSuperviseurIgnoresChsctConsentScope(): void
+    {
+        // La portée consent_only ne concerne que le rôle CHSCT. Un superviseur
+        // voit tous les signalements de tous les sites, y compris non consentis.
+        $configService = \getConfigService();
+        $configService->set('app_chsct_report_scope', 'consent_only');
+        $configService->clearCache();
+
+        $_SESSION['user'] = ['id' => 9102, 'role' => ROLE_SUPERVISEUR, 'siteId' => 9001];
+
+        $this->seedReportWithConsent('rsst', 1);
+        $this->seedReportWithConsent('rsst', 1);
+        $this->seedReportWithConsent('rsst', 0);
+
+        $rsst = $this->findCard(buildRegistryCards(), 'rsst');
+
+        $this->assertSame(3, $rsst->count, 'Un superviseur doit voir le compteur global, sans filtre consentement CHSCT.');
     }
 
     public function testBuildRegistryCardsHasRequiredProperties(): void

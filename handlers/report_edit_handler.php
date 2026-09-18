@@ -100,8 +100,18 @@ if ($linkedEmailsRaw !== '') {
     }
 
     if (!empty($linkedEmails)) {
-        $existingEmails = array_column(ReportAgentRepository::instance()->getLinkedAgents($reportUuid), 'email');
-        $inviteEmails = array_values(array_diff($linkedEmails, $existingEmails));
+        // Comparaison insensible à la casse (parité avec LOWER(email) côté
+        // hasUnconfirmedInvite) : un e-mail ressaisi avec une casse différente
+        // désigne le même agent. Avant ce correctif, array_diff (sensible à la
+        // casse) laissait passer l'e-mail et ré-invitait un agent déjà rattaché.
+        $existingEmails = array_map(
+            strtolower(...),
+            array_column(ReportAgentRepository::instance()->getLinkedAgents($reportUuid), 'email')
+        );
+        $inviteEmails = array_values(array_filter(
+            $linkedEmails,
+            static fn(string $email): bool => !in_array(strtolower($email), $existingEmails, true)
+        ));
     }
 }
 

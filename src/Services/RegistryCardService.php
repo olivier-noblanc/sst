@@ -5,6 +5,7 @@
 namespace App\Services;
 
 use App\DTO\RegistryCardData;
+use App\Enum\UserRole;
 use App\Enum\VisibilityMode;
 use App\Repository\RegistryRepository;
 use App\Repository\ReportAgentRepository;
@@ -44,6 +45,14 @@ class RegistryCardService
         $userSiteId = $user->siteId ?? 0;
         $seeAllSites = $this->accessService->canSeeAllSites();
 
+        // Périmètre CHSCT (app_chsct_report_scope=consent_only) : la liste
+        // (AccessService::buildListFilter) restreint le CHSCT aux signalements
+        // consentis (consent_syndicat = 1). Le compteur de carte doit appliquer
+        // le même filtre, sinon il annonce des signalements absents de la liste.
+        // Un superviseur n'est jamais soumis à cette portée.
+        $chsctConsentOnly = ($user->role ?? '') === UserRole::Chsct->value
+            && $this->accessService->getChsctReportScope() === 'consent_only';
+
         $listLabel = static fn(string $type): string => \getReportVisibility($type) === VisibilityMode::Confidential->value
             ? 'Voir mes signalements'
             : 'Voir les signalements';
@@ -65,7 +74,7 @@ class RegistryCardService
                 $reportCount = ReportAgentRepository::instance()->countVisibleForAgent($code, $userId, $userSiteId, $agentVisibility);
             } else {
                 $siteIdFilter = $seeAllSites ? 0 : $userSiteId;
-                $reportCount = StatsRepository::instance()->countActive($code, $siteIdFilter);
+                $reportCount = StatsRepository::instance()->countActive($code, $siteIdFilter, 0, false, $chsctConsentOnly);
             }
 
             $colorTheme = $reg['color_theme'];

@@ -2626,6 +2626,10 @@ tr:hover td {
     margin-top: 12px;
 }
 
+.scope-summary__scope-note {
+    margin-top: 12px;
+}
+
 .checkbox-label {
     display: flex;
     align-items: center;

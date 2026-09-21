@@ -534,8 +534,12 @@ Le script affiche le nombre de signalements qui seront supprimés et demande une
 **Ce qui est supprimé :**
 - `reports` — tous les signalements
 - `report_responses` — toutes les réponses des superviseurs
+- `report_agents`, `report_agent_invites`, `report_access_log`, `report_state_history` — rattachements, invitations, journal de consultation et historique d'état
+- `registry_field_values` — les valeurs des champs de registre
 - `report_sequence` — les compteurs de référence (rsst-25-001, etc.)
 - `audit_log` — le journal d'audit
+
+> Ces tables sont purgées via la séquence FK-safe factorisée `PurgeRepository::REPORT_PURGE_TABLES`, partagée avec la purge supervisée web (voir ci-dessous).
 
 **Ce qui est conservé :**
 - `users` — tous les comptes utilisateurs
@@ -544,6 +548,37 @@ Le script affiche le nombre de signalements qui seront supprimés et demande une
 - `notification_settings` — les paramètres de notification email
 
 > **Note** : après un nuclear reset, les prochains signalements repartent à la séquence 001 de l'année en cours.
+
+### Purge supervisée depuis l'interface (superviseur)
+
+Depuis l'onglet **Paramètres → Maintenance**, un superviseur peut purger tous les
+signalements **sans accès CLI**. Le bouton est toujours affiché ; la purge est
+protégée par une double barrière :
+
+1. **Confirmation explicite** — la case `confirm_purge` est obligatoire au POST.
+2. **Sentinelle `erase.txt`** — un technicien doit déposer un fichier vide
+   `erase.txt` à la racine de l'application (`C:\inetpub\sst\erase.txt`). Sa
+   présence est vérifiée au dernier moment (côté POST) ; en son absence, la purge
+   est refusée et rien n'est supprimé.
+
+Le fichier `erase.txt` est **supprimé automatiquement après une purge réussie** ;
+en cas d'échec, il est conservé et la purge peut être relancée.
+
+**Périmètre** — la purge supprime, dans une transaction FK-safe :
+- les signalements et leurs données liées (réponses, rattachements, invitations,
+  historique d'état, journal d'audit, valeurs de champs de registre) ;
+- la file d'attente des e-mails (`email_outbox`) ;
+- les sessions (`sessions`).
+
+**Conservés** : comptes utilisateurs, sites, configuration, registres et
+définitions de champs de registre.
+
+> **⚠️ Sauvegarde préalable recommandée** : l'opération est **irréversible**.
+> Exécuter `tools\backup_sst_db.ps1` (ou copier `data\sst.db`) avant de la
+> lancer. Voir « Sécurité supplémentaire » plus haut pour la sauvegarde planifiée.
+
+> **Note** : après une purge, les prochains signalements repartent à la
+> séquence 001 de l'année en cours.
 
 ### Conservation et anonymisation des signalements (RGPD)
 

@@ -107,7 +107,27 @@ deptrac analyse
 | **Choix de l'agent** | L'agent choisit par signalement (public/confidentiel). Confidentiel par défaut. |
 | **Visibilité publique** | Tous les signalements du site sont visibles par tous les agents du site. |
 
-Les superviseurs et membres du CSA/CHSCT voient tous les signalements, y compris confidentiels, quel que soit le mode.
+Les superviseurs et membres du CSA/CHSCT voient tous les signalements, y compris confidentiels, quel que soit le mode. L'accès des membres CSA/CHSCT est indépendant du consentement syndical et de la confidentialité.
+
+## Transmission CSA/CHSCT — action manuelle du superviseur
+
+La case « consentement syndical » du formulaire est une **consigne** pour le
+superviseur, pas un envoi automatique : elle indique que le signalement doit être
+transmis aux organisations syndicales. Aucun e-mail n'est envoyé à la création.
+Le superviseur déclenche lui-même la transmission depuis la fiche du signalement
+(bouton « Transmettre aux organisations syndicales », route `report_transmit`),
+via l'outbox transactionnelle (dédupliquée par signalement × destinataire) et
+journalisée dans l'audit.
+
+## Purge supervisée des signalements
+
+L'onglet **Paramètres → Maintenance** (superviseur) permet de purger tous les
+signalements et leurs données liées, la file d'attente e-mail (`email_outbox`) et
+les sessions, sans accès CLI. Le bouton est toujours visible ; la purge exige une confirmation
+et la présence d'un fichier sentinelle `erase.txt` à la racine (déposé par un
+technicien), supprimé après un succès complet. Utilisateurs, sites, configuration
+et registres sont conservés. Une **sauvegarde préalable** de `data/sst.db` est
+recommandée (voir `DEPLOY.md`).
 
 ## Structure
 

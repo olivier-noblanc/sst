@@ -1137,6 +1137,9 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--rsst      { background: var(--rsst-color); color: white; }
 .btn--rami      { background: var(--rami-color); color: white; }
 .btn--dgi       { background: var(--dgi-color); color: white; }
+/* Dedicated class for the manual CSA/CHSCT transmission action — it must read
+   as the active action on the report card, not as a generic outline button. */
+.btn--transmit  { background: var(--color-primary); color: white; }
 
 .btn--sm   { padding: 6px 14px; font-size: 13px; min-height: 36px; }
 .btn--full { width: 100%; display: block; }
@@ -1255,6 +1258,49 @@ img { max-width: 100%; height: auto; display: block; }
     color: var(--grey-600);
     margin-top: 4px;
     line-height: 1.5;
+}
+
+/* ============================================================
+   Accessible tooltip — CSS-only (hover / keyboard focus), no JS.
+   The tooltip stays in the accessibility tree (role="tooltip",
+   referenced by aria-describedby) and is revealed on hover or
+   focus-within. All styling lives here — no inline style.
+   ============================================================ */
+.consent-consigne {
+    position: relative;
+}
+
+.consent-consigne .tooltip {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 10;
+    max-width: 34rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--grey-800, #1f2937);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    white-space: normal;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    /* Visually hidden by default, but kept available to assistive tech. */
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+}
+
+.consent-consigne:hover .tooltip,
+.consent-consigne:focus-within .tooltip {
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
 }
 
 .form-error {

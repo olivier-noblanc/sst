@@ -88,11 +88,16 @@ class AccessServiceTest extends TestCase
         $this->assertTrue($this->service->canAccessReport($report, $user));
     }
 
-    public function testChsctCannotAccessReportWithoutConsentSyndicat(): void
+    /**
+     * Décision métier (Oracle) — un membre CSA/CHSCT voit toujours le
+     * signalement : `consent_syndicat` est une consigne pour le superviseur,
+     * jamais une condition d'accès.
+     */
+    public function testChsctAlwaysAccessesReportWithoutConsentSyndicat(): void
     {
         $report = $this->makeReport(['siteId' => 1, 'declarantId' => 99, 'consentSyndicat' => 0]);
         $user = $this->makeUser(['id' => 1, 'role' => ROLE_CHSCT, 'site_id' => 1]);
-        $this->assertFalse($this->service->canAccessReport($report, $user));
+        $this->assertTrue($this->service->canAccessReport($report, $user));
     }
 
     public function testAgentCanAccessReportOnSameSitePublicVisibility(): void

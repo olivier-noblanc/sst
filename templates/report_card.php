@@ -294,7 +294,7 @@ if (!isset($csrfToken)) {
         <form method="post" action="<?php echo new \App\Services\HttpService()->url('report_transmit'); ?>" class="report-transmit">
             <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
             <input type="hidden" name="uuid" value="<?php echo $fmt->e($report->uuid); ?>">
-            <button type="submit" class="btn btn--outline">Transmettre aux organisations syndicales</button>
+            <button type="submit" class="btn btn--transmit">Transmettre aux organisations syndicales</button>
             <small class="help-text">Envoie ce signalement par e-mail aux membres du rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». Aucune transmission n'est automatique.</small>
         </form>
     <?php endif; ?>

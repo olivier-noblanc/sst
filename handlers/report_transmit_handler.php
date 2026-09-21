@@ -6,7 +6,7 @@
  * Action MANUELLE du superviseur : transmettre un signalement aux membres
  * CSA/CHSCT par e-mail, via l'outbox transactionnelle. Décision métier
  * (Oracle) : aucune transmission automatique à la création — consent_syndicat
- * est une consigne pour le superviseur, qui décide seul de déclencher l'envoi.
+ * est une consigne que le superviseur exécute en déclenchant lui-même l'envoi.
  *
  * Déduplication garantie par l'outbox (signalement × destinataire) : rejouer
  * l'action ne crée pas de doublon. L'action est auditée (catégorie 'report',

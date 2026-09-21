@@ -50,19 +50,6 @@ class PurgeRepository
         private readonly PDO $pdo
     ) {}
 
-    public static function instance(): self
-    {
-        static $instance = null;
-        if ($instance === null) {
-            if (function_exists('getContainer') && getContainer()->has(self::class)) {
-                $instance = getContainer()->get(self::class);
-            } else {
-                $instance = new self(getDB());
-            }
-        }
-        return $instance;
-    }
-
     /**
      * Purge transactionnelle : signalements + données liées + audit_log,
      * puis outbox e-mail et sessions. Conservés : users, sites, config_app,

@@ -8,16 +8,17 @@
  * Two independent mechanisms are involved:
  *   - `registries.notify_chsct` decides WHO receives the CSA/CHSCT
  *     notification e-mail when a report is created (per-registry, Registres tab).
- *   - `app_chsct_report_scope` decides WHICH reports the CSA/CHSCT may consult
- *     (consent_only | all, app tab).
+ *   - `app_chsct_report_scope` bounds the CSA/CHSCT STATISTICS counters and
+ *     exports (consent_only | all, app tab). It no longer bounds access.
  *
- * Because they are independent, `consent_only` can notify the CSA/CHSCT about
- * a report they cannot open. The app tab must therefore separate the two notions
- * and surface a warning when that mismatch is active.
+ * Access to a report is ALWAYS granted to a CSA/CHSCT member (décision métier,
+ * cf. AccessService::canAccessReport): `consent_syndicat` is a manual
+ * transmission instruction for the supervisor, never an access condition.
+ * The app tab must therefore NOT claim that `consent_only` prevents the
+ * CSA/CHSCT from opening a notified report.
  *
  * Scope is deliberately UI-only: no sending logic and no default business rule
- * is modified here. The warning states it is a local business choice and makes
- * no legal-compliance claim.
+ * is modified here.
  */
 
 use PHPUnit\Framework\TestCase;
@@ -157,30 +158,47 @@ class ChsctNotificationScopeUiTest extends TestCase
         );
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Conflict warning
+    // ══════════════════════════════════════════════════════════════════════════
+    // Accès indépendant du consentement (plus de faux avertissement)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    public function testWarningWhenConsentOnlyScopeBlocksNotifiedReports(): void
+    /**
+     * Décision métier (Oracle) — l'accès du CSA/CHSCT est indépendant du
+     * consentement syndical : l'onglet ne doit plus présenter le réglage
+     * « Consentement uniquement » comme empêchant d'ouvrir un signalement
+     * notifié. Il doit expliquer que `consent_syndicat` est une consigne de
+     * transmission manuelle, jamais une condition d'accès.
+     */
+    public function testTabStatesAccessIsIndependentOfConsent(): void
     {
         $this->setDgiNotification(1, 1);
 
         $html = $this->renderAppTab();
 
-        $this->assertStringContainsString(
+        $this->assertStringNotContainsString(
             'Notification possiblement inaccessible',
             $html,
-            'A notified-but-unopenable report must be flagged'
+            'Le CSA/CHSCT peut ouvrir tout signalement notifié : plus de faux avertissement.'
+        );
+        $this->assertStringNotContainsString(
+            'ne peut pas ouvrir un signalement',
+            $html,
+            'Aucun texte ne doit affirmer que le CSA/CHSCT ne peut pas ouvrir un signalement.'
         );
         $this->assertStringContainsString(
-            'choix métier à valider localement',
+            'consigne de transmission manuelle',
             $html,
-            'The mismatch must be presented as a local business choice to validate'
+            'La case consentement doit être présentée comme une consigne de transmission manuelle.'
         );
         $this->assertStringContainsString(
-            'conformité juridique',
+            'indépendant du consentement syndical',
             $html,
-            'The warning must not claim legal compliance'
+            'L\'onglet doit expliquer que l\'accès du CSA/CHSCT est indépendant du consentement.'
+        );
+        $this->assertStringContainsString(
+            'Qui reçoit la notification ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value),
+            $html,
+            'Le récapitulatif des destinataires de notification doit rester présent.'
         );
     }
 

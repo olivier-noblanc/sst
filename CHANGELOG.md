@@ -14,6 +14,18 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - **Notifications** — Écritures de notifications regroupées dans une transaction atomique afin d'éviter les états partiels.
 - **Export des réponses** — Chargement des réponses par chunks bornés pour rester sous la limite SQLite des variables SQL, y compris pour les exports volumineux.
 
+### Transmission CSA/CHSCT manuelle
+
+- **`consent_syndicat` est une consigne, pas un déclencheur** — Sur le formulaire de signalement, la case est présentée comme une instruction exécutée par le superviseur (tooltip accessible `role="tooltip"` relié par `aria-describedby`, stylé dans `public/css/style.css`) : « La transmission n'est jamais automatique : le superviseur la déclenche manuellement. » Aucun e-mail n'est envoyé à la création.
+- **Action superviseur `report_transmit`** — Bouton « Transmettre aux organisations syndicales » sur la fiche du signalement (`templates/report_card.php`), route POST réservée au rôle Superviseur (CSRF + `RoleMiddleware`), handler `handlers/report_transmit_handler.php`. La mise en file passe par l'outbox transactionnelle (`OutboxEvent::ReportTransmitted`, dédupliquée par signalement × destinataire) et l'action est auditée (catégorie `report`, action `transmit`).
+- **Accès CSA/CHSCT indépendant du consentement** — `AccessService` autorise tout membre CSA/CHSCT à consulter un signalement, indépendamment de `consent_syndicat` et de la confidentialité : la case n'est qu'une consigne, jamais une condition d'accès. La notification CSA/CHSCT automatique à la création (issue de `registries.notify_chsct`) est supprimée (`src/mail_notifications.php`).
+
+### Maintenance — purge supervisée des signalements
+
+- **Onglet « Maintenance » réservé au superviseur** — `pages/settings/tab_maintenance.php` : le bouton « Purger les signalements » est **toujours visible** ; la sentinelle n'est jamais testée au rendu. Confirmation explicite (`confirm_purge`) + CSRF exigés au POST (route `purge_reports`, `handlers/purge_reports_handler.php`).
+- **Sentinelle `erase.txt`** — La purge n'est possible que si un technicien a déposé `erase.txt` à la racine de l'application (vérifié au dernier moment par `PurgeService`). Le fichier est supprimé **uniquement après un succès complet** ; en son absence la purge est refusée et rien n'est supprimé, en cas d'échec il est conservé. `.gitignore` ignore `/erase.txt`.
+- **Périmètre de la purge** — `PurgeRepository` supprime, dans une transaction FK-safe, les signalements et leurs données liées (`report_agent_invites`, `report_access_log`, `report_state_history`, `report_agents`, `registry_field_values`, `report_responses`, `reports`, `report_sequence`, `audit_log`) **plus** la file d'attente `email_outbox` et les `sessions`. Utilisateurs, sites, configuration, registres et définitions de champs sont conservés. Séquence factorisée et partagée avec `nuclear-reset.php`. Action auditée (catégorie `maintenance`, action `purge_reports`). **Sauvegarde préalable de `data/sst.db` recommandée** (voir `DEPLOY.md`).
+
 ### Métriques
 
 - Tests : **1912** (4870 assertions)

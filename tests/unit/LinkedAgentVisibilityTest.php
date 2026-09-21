@@ -420,9 +420,13 @@ class LinkedAgentVisibilityTest extends TestCase
         $this->assertSame($older, $result->next);
     }
 
-    public function testGetAdjacentUuidsHonoursChsctConsentScope(): void
+    /**
+     * Décision métier (Oracle) — la navigation CSA/CHSCT n'est plus bornée par
+     * le consentement : `chsctConsentOnly` est sans effet, un signalement non
+     * consenti reste proposé, comme dans la liste.
+     */
+    public function testGetAdjacentUuidsIgnoresChsctConsentScope(): void
     {
-        // Non-régression CHSCT : périmètre « consentement seul » identique à la liste.
         $consentOlder = $this->createReport($this->agentId1, 'Consentement ancien');
         $notConsent = $this->createReport($this->agentId1, 'Sans consentement');
         $consentCurrent = $this->createReport($this->agentId1, 'Consentement courant');
@@ -435,7 +439,11 @@ class LinkedAgentVisibilityTest extends TestCase
         $filter = new ReportFilter(type: ReportType::Rsst->value, chsctConsentOnly: true);
         $result = $this->repo->getAdjacentUuids($filter, '2026-03-01 10:00:00', $consentCurrent);
 
-        $this->assertNull($result->prev, 'Sans consentement exclu du périmètre CHSCT');
-        $this->assertSame($consentOlder, $result->next);
+        $this->assertNull($result->prev);
+        $this->assertSame(
+            $notConsent,
+            $result->next,
+            'Le signalement sans consentement reste dans le périmètre de navigation CSA/CHSCT'
+        );
     }
 }

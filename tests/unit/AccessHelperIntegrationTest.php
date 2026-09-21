@@ -125,11 +125,16 @@ class AccessHelperIntegrationTest extends TestCase
         $this->assertTrue(canAccessReport($report, $user));
     }
 
-    public function testChsctCannotAccessReportWithoutConsent(): void
+    /**
+     * Décision métier (Oracle) — l'accès CSA/CHSCT ne dépend pas du
+     * consentement syndical : `consent_syndicat` est une consigne pour le
+     * superviseur, jamais une condition d'accès.
+     */
+public function testChsctAlwaysAccessesReportWithoutConsent(): void
     {
         $user = $this->makeUser(['id' => $this->chsctId, 'role' => 'chsct']);
         $report = $this->makeReport(['consent_syndicat' => 0]);
-        $this->assertFalse(canAccessReport($report, $user));
+        $this->assertTrue(canAccessReport($report, $user));
     }
 
     public function testChsctCanAccessOtherSiteReportWithConsent(): void

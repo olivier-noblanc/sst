@@ -285,7 +285,7 @@ class PageRenderingTest extends TestCase
     {
         $pagesDir = __DIR__ . '/../../pages';
         // These pages are handled by index.php or handlers, not by a page file
-        $exceptions = ['logout', 'impersonate', 'user_create', 'user_delete', 'user_reactivate', 'smtp_test', 'outbox_retry', 'report_transmit'];
+        $exceptions = ['logout', 'impersonate', 'user_create', 'user_delete', 'user_reactivate', 'smtp_test', 'outbox_retry', 'report_transmit', 'purge_reports'];
         $missing = [];
 
         $router = getRouter();
@@ -461,8 +461,9 @@ class PageRenderingTest extends TestCase
 
     /**
      * Décision métier (Oracle) — `consent_syndicat` est une CONSIGNE pour le
-     * superviseur, pas un consentement déclenchant un envoi : le formulaire
-     * doit exposer cette nature (aria-describedby + texte « pas automatique »).
+     * superviseur : il ne « décide » pas, il déclenche l'envoi conformément à
+     * l'instruction portée par la case. Le formulaire doit exposer cette nature
+     * (aria-describedby + texte « jamais automatique » + déclenchement manuel).
      */
     public function testReportCreateFormFramesConsentAsAdvisoryConsigne(): void
     {
@@ -485,17 +486,114 @@ class PageRenderingTest extends TestCase
             $output,
             'La consigne doit porter l\'identifiant ciblé par aria-describedby.'
         );
-        $this->assertStringContainsString('consigne pour le superviseur', $output);
         $this->assertStringContainsString(
-            "n'est pas automatique",
+            'Cette case indique au superviseur que ce signalement doit être transmis par e-mail aux organisations syndicales.',
             $output,
-            'La consigne doit indiquer explicitement qu\'aucune transmission n\'est automatique.'
+            'La consigne doit présenter la case comme une instruction exécutée par le superviseur.'
+        );
+        $this->assertStringContainsString(
+            "La transmission n'est jamais automatique : le superviseur la déclenche manuellement.",
+            $output,
+            'La consigne doit préciser que le superviseur déclenche seul l\'envoi.'
+        );
+        $this->assertStringNotContainsString(
+            'le superviseur décide',
+            $output,
+            'Le superviseur ne décide pas : il déclenche l\'envoi conformément à la consigne.'
+        );
+    }
+
+    /**
+     * L'explication de la case est un tooltip accessible : role="tooltip" relié
+     * par aria-describedby, sans style inline ni attribut alt/title sur la case.
+     */
+    public function testReportCreateConsentHintIsAccessibleTooltip(): void
+    {
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_create';
+        $_GET['type'] = 'rsst';
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_create', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertMatchesRegularExpression(
+            '/<span\b[^>]*\bid="consent_syndicat_hint"[^>]*\brole="tooltip"[^>]*>/',
+            $output,
+            'L\'élément d\'aide doit porter role="tooltip".'
+        );
+        $this->assertMatchesRegularExpression(
+            '/<input\b[^>]*\bid="consent_syndicat"[^>]*>/',
+            $output,
+            'La case de consentement doit être rendue.'
+        );
+
+        $inputTag = '';
+        if (preg_match('/<input\b[^>]*\bid="consent_syndicat"[^>]*>/', $output, $matches) === 1) {
+            $inputTag = $matches[0];
+        }
+        $this->assertStringNotContainsString('alt=', $inputTag, 'La case ne porte pas d\'attribut alt.');
+        $this->assertStringNotContainsString('title=', $inputTag, 'La case ne porte pas d\'attribut title.');
+        $this->assertStringNotContainsString('style=', $inputTag, 'La case ne porte pas de style inline.');
+
+        $block = '';
+        if (preg_match(
+            '/<div class="form-group form-grid__full consent-consigne">.*?<\/div>/s',
+            $output,
+            $blockMatches
+        ) === 1) {
+            $block = $blockMatches[0];
+        }
+        $this->assertNotSame('', $block, 'La consigne doit être encapsulée dans le conteneur tooltip.');
+        $this->assertStringNotContainsString('style="', $block, 'Aucun style inline dans le bloc consigne.');
+    }
+
+    /**
+     * Décision métier (Oracle) — l'accès du CSA/CHSCT est indépendant du
+     * consentement, y compris pour un signalement confidentiel : le formulaire
+     * de création ne doit plus affirmer que le CSA/CHSCT ne verra le
+     * signalement que si le déclarant coche la case de consentement.
+     */
+    public function testReportCreateConfidentialHintDoesNotGateCsaAccessOnConsent(): void
+    {
+        $configService = getConfigService();
+        $previous = (string) $configService->get('app_report_visibility_rsst', '');
+        $configService->set('app_report_visibility_rsst', \App\Enum\VisibilityMode::AgentChoice->value);
+        clearConfigCache();
+
+        try {
+            $this->loginAsAgent();
+            $_GET['page'] = 'report_create';
+            $_GET['type'] = 'rsst';
+
+            ob_start();
+            renderPageWithLayout(getRouter(), 'report_create', 'test-csrf-token');
+            $output = (string) ob_get_clean();
+        } finally {
+            $configService->set('app_report_visibility_rsst', $previous);
+            clearConfigCache();
+        }
+
+        $this->assertStringContainsString(
+            'les membres du rôle « ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' »',
+            $output,
+            'Le signalement confidentiel reste visible par les membres CSA/CHSCT.'
+        );
+        $this->assertStringNotContainsString(
+            'ne le verront que si vous cochez',
+            $output,
+            'L\'accès du CSA/CHSCT ne dépend pas de la case de consentement.'
         );
     }
 
     /**
      * La transmission CSA/CHSCT est une action MANUELLE du superviseur, exposée
      * sur la fiche du signalement ; elle ne doit jamais apparaître pour un agent.
+     *
+     * Diagnostic CSRF (route/token/formulaire/session) : le formulaire doit
+     * poster le jeton de la page (celui que le CsrfMiddleware valide), jamais un
+     * jeton régénéré hors session. C'est ce que verrouille l'assertion ci-dessous
+     * avec le jeton `test-csrf-token` passé à renderPageWithLayout().
      */
     public function testReportViewShowsCsaTransmissionActionForSupervisor(): void
     {
@@ -509,6 +607,28 @@ class PageRenderingTest extends TestCase
 
         $this->assertStringContainsString('page=report_transmit', $output);
         $this->assertStringContainsString('Transmettre aux organisations syndicales', $output);
+
+        $form = '';
+        if (preg_match('/<form[^>]*page=report_transmit[^>]*>.*?<\/form>/s', $output, $matches) === 1) {
+            $form = $matches[0];
+        }
+        $this->assertNotSame('', $form, 'La fiche doit rendre le formulaire de transmission.');
+
+        $this->assertMatchesRegularExpression(
+            '/name="csrf_token"\s+value="test-csrf-token"/',
+            $form,
+            'Le formulaire de transmission doit poster le jeton CSRF de la page (session), sinon « Erreur de sécurité » au clic.'
+        );
+        $this->assertStringContainsString(
+            'name="uuid" value="' . self::$reportUuid . '"',
+            $form,
+            'Le formulaire de transmission doit cibler le signalement affiché.'
+        );
+        $this->assertStringContainsString(
+            'class="btn btn--transmit"',
+            $form,
+            'Le bouton de transmission porte sa classe CSS dédiée (action active).'
+        );
     }
 
     public function testReportViewHidesCsaTransmissionActionForAgent(): void

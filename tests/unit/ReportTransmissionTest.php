@@ -79,6 +79,7 @@ class ReportTransmissionTest extends TestCase
         $this->pdo->exec("UPDATE registries SET notify_chsct = 0 WHERE code = 'rsst'");
         $this->pdo->exec('DELETE FROM email_outbox');
         getConfigService()->set('app_chsct_report_scope', 'consent_only');
+        getConfigService()->set('app_role_label_chsct', '');
         clearConfigCache();
         cleanupAllForTest($this->pdo);
     }
@@ -140,7 +141,32 @@ class ReportTransmissionTest extends TestCase
         $this->assertSame(1, $this->csaOutboxCount(), 'Déduplication par (signalement × destinataire)');
     }
 
-    // ═══ 4. Accès CSA indépendant du consentement ══════════════════════════
+    // ═══ 4. Résolution des destinataires : rôle interne, jamais le libellé ═══
+
+    /**
+     * La résolution des destinataires s'appuie sur le rôle INTERNE `chsct`,
+     * jamais sur le libellé configurable (app_role_label_chsct) : renommer le
+     * rôle ne doit ni vider ni déplacer la liste des destinataires.
+     */
+    public function testTransmissionResolvesRecipientsByInternalRoleNotLabel(): void
+    {
+        getConfigService()->set('app_role_label_chsct', 'Délégué local');
+        clearConfigCache();
+
+        $enqueued = notifyReportTransmitted($this->pdo, $this->reportUuid);
+
+        $this->assertSame(
+            1,
+            $enqueued,
+            'Le membre portant le rôle interne chsct reste destinataire malgré un libellé personnalisé.'
+        );
+
+        $stmt = $this->pdo->prepare('SELECT recipient FROM email_outbox WHERE dedup_key = :k');
+        $stmt->execute([':k' => $this->transmittedDedupKey()]);
+        $this->assertSame(self::CSA_EMAIL, (string) $stmt->fetchColumn());
+    }
+
+    // ══ 5. Accès CSA indépendant du consentement ══════════════════════════
 
     public function testCsaMemberSeesReportRegardlessOfConsentScopeAndValue(): void
     {

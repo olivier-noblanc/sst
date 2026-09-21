@@ -272,11 +272,10 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     Signalement confidentiel
                 </label>
                 <div class="confidential-toggle__details">
-                    <?php if (new \App\Services\AccessService()->getChsctReportScope() === 'all'): ?>
-                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du rôle « <?php echo e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>.</span>
-                    <?php else: ?>
-                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous et les superviseurs. Les membres du rôle « <?php echo e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> » ne le verront que si vous cochez également la case de consentement ci-dessous. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>.</span>
-                    <?php endif; ?>
+                    <!-- Décision métier (Oracle) — l'accès du CSA/CHSCT est
+                         indépendant du consentement syndical : le texte est le
+                         même quel que soit app_chsct_report_scope. -->
+                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du rôle « <?php echo e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». L'accès des membres du rôle ne dépend jamais du consentement syndical. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>.</span>
                     <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                     <div class="confidential-warning">
                         &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
@@ -287,27 +286,30 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             <input type="hidden" name="is_confidential" value="1">
             <div class="form-group form-grid__full">
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
-                <?php if (new \App\Services\AccessService()->getChsctReportScope() === 'all'): ?>
-                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du rôle « <?php echo e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ».</span>
-                <?php else: ?>
-                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous et les superviseurs. Les membres du rôle « <?php echo e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> » ne le verront que si vous cochez la case de consentement lors de la création.</span>
-                <?php endif; ?>
+                <!-- Décision métier (Oracle) — l'accès du CSA/CHSCT est
+                     indépendant du consentement syndical : le texte est le
+                     même quel que soit app_chsct_report_scope. -->
+                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du rôle « <?php echo e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». L'accès des membres du rôle ne dépend jamais du consentement syndical.</span>
             </div>
             <?php elseif (reportVisibilityIsPublic($type)): ?>
             <input type="hidden" name="is_confidential" value="0">
             <?php endif; ?>
-            <!-- Consent: transmission to union representatives -->
-            <div class="form-group form-grid__full">
+            <!-- Consent: transmission to union representatives.
+                 La case est une CONSIGNE pour le superviseur : elle ne déclenche
+                 rien automatiquement, il exécute l'instruction en lançant l'envoi.
+                 L'explication est un tooltip accessible (role="tooltip" relié par
+                 aria-describedby), stylé dans public/css/style.css — aucun style
+                 inline, aucun attribut alt/title sur la case. -->
+            <div class="form-group form-grid__full consent-consigne">
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
                            aria-describedby="consent_syndicat_hint"
                            <?php echo $consentSyndicatSticky ? 'checked' : ''; ?>>
                     J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS')); ?>
                 </label>
-                <span id="consent_syndicat_hint" class="form-hint">
-                    Cette case est une consigne pour le superviseur : elle l'informe de votre accord.
-                    La transmission n'est pas automatique — le superviseur décide et déclenche lui-même
-                    l'envoi de ce signalement aux organisations syndicales.
+                <span id="consent_syndicat_hint" class="tooltip" role="tooltip">
+                    Cette case indique au superviseur que ce signalement doit être transmis par e-mail aux organisations syndicales.
+                    La transmission n'est jamais automatique : le superviseur la déclenche manuellement.
                 </span>
             </div>
             <div class="form-group">

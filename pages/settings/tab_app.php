@@ -293,29 +293,25 @@ $chsctRoleLabel = getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsc
 // Clarification CSA/CHSCT — deux notions indépendantes :
 //   * `registries.notify_chsct` = QUI reçoit l'e-mail de notification
 //     (configuré par registre dans l'onglet « Registres ») ;
-//   * `app_chsct_report_scope`  = QUELS signalements peuvent être consultés.
+//   * `app_chsct_report_scope`  = périmètre des COMPTEURS et EXPORTS du
+//     CSA/CHSCT. Il ne borne PAS l'accès : un membre CSA/CHSCT peut toujours
+//     ouvrir un signalement, indépendamment du consentement syndical
+//     (décision métier, cf. AccessService::canAccessReport).
 // Récapitulatif en LECTURE SEULE : on ne modifie ni la logique d'envoi
 // ni les valeurs par défaut (DGI reste notifié par défaut, RSST/RAMI non forcés).
 /** @var list<array{code: string, short_label: string, label: string, is_enabled: int, notify_chsct: int}> $notifyChsctRegistries */
 $notifyChsctRegistries = [];
-$notifyChsctEnabledCount = 0;
 foreach (\App\Repository\RegistryRepository::instance()->findAll() as $registry) {
     if ((int) $registry['notify_chsct'] !== 1) {
         continue;
     }
     $notifyChsctRegistries[] = $registry;
-    if ((int) $registry['is_enabled'] === 1) {
-        $notifyChsctEnabledCount++;
-    }
 }
 
 $chsctScopeValue = getConfigService()->get('app_chsct_report_scope', 'consent_only');
 $chsctScopeValue = new \App\Services\AccessService()->normalizeChsctScope($chsctScopeValue);
 $chsctScopeIsConsentOnly = $chsctScopeValue === 'consent_only';
 $chsctScopeLabel = $chsctScopeIsConsentOnly ? 'Consentement uniquement' : 'Tous les signalements';
-// Alerte seulement si un registre ACTIF notifie : un registre désactivé
-// ne peut pas générer de notification.
-$chsctNotifyConsultConflict = $chsctScopeIsConsentOnly && $notifyChsctEnabledCount > 0;
 $registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'registres']);
 ?>
             <h4 class="card__subtitle">&#x1F465; Portée des signalements pour le <?php echo $fmt->e($chsctRoleLabel); ?></h4>
@@ -355,16 +351,12 @@ $registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'regi
                 </div>
             </div>
 
-            <?php if ($chsctNotifyConsultConflict): ?>
-            <div class="info-panel info-panel--warning scope-summary__warning" role="note">
-                &#x26A0;&#xFE0F; <strong>Notification possiblement inaccessible :</strong>
-                au moins un registre actif notifie le <?php echo $fmt->e($chsctRoleLabel); ?>, mais avec le réglage « Consentement uniquement »,
-                le <?php echo $fmt->e($chsctRoleLabel); ?> ne peut pas ouvrir un signalement notifié tant que le déclarant n'a pas coché la case
-                de consentement de transmission syndicale. La notification peut donc annoncer un signalement
-                inaccessible dans l'application. Il s'agit d'un choix métier à valider localement avec le pilotage :
-                ce message ne préjuge pas de sa conformité juridique.
+            <div class="info-panel info-panel--info scope-summary__scope-note" role="note">
+                &#x2139;&#xFE0F; <strong>Accès indépendant du consentement syndical :</strong>
+                un membre <?php echo $fmt->e($chsctRoleLabel); ?> peut toujours ouvrir un signalement, même si le déclarant n'a pas coché la case.
+                La case de consentement est une <strong>consigne de transmission manuelle</strong> exécutée par le superviseur :
+                elle ne conditionne jamais l'accès. Le réglage « Consentement uniquement » ne borne que les compteurs et les exports.
             </div>
-            <?php endif; ?>
             <fieldset class="form-group visibility-radios">
                 <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></legend>
                 <div class="visibility-radios">
@@ -373,7 +365,7 @@ $registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'regi
                                <?php echo $chsctScopeValue === 'consent_only' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Consentement uniquement</strong> <span class="text-muted text-small">(par défaut)</span>
-                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ne voit que les signalements dont le déclarant a coché la case de consentement de transmission syndicale.</div>
+                            <div class="text-muted text-small mt-2px">Les compteurs et exports du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> se limitent aux signalements dont le déclarant a coché la case de consentement de transmission syndicale. L'accès reste indépendant du consentement.</div>
                         </div>
                     </label>
                     <label class="visibility-radio-label">
@@ -381,7 +373,7 @@ $registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'regi
                                <?php echo $chsctScopeValue === 'all' ? 'checked' : ''; ?>>
                         <div>
                             <strong>Tous les signalements</strong>
-                            <div class="text-muted text-small mt-2px">Le <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> voit l'intégralité des signalements de tous les sites, y compris les signalements confidentiels non consentis (nom, prénom, objet inclus).</div>
+                            <div class="text-muted text-small mt-2px">Les compteurs et exports du <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> couvrent l'intégralité des signalements de tous les sites, y compris les signalements confidentiels non consentis (nom, prénom, objet inclus).</div>
                         </div>
                     </label>
                 </div>

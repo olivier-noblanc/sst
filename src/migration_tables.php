@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/migration_lock.php';
+
 /**
  * Migration — Table Creation
  *
@@ -150,7 +152,7 @@ function migrateTables(PDO $pdo): void
             }
             $indexesToRecreate[] = $definition;
         }
-        $pdo->beginTransaction();
+        migrationBeginImmediate($pdo);
         try {
             $legacyTable = 'registry_field_values_legacy_' . bin2hex(random_bytes(6));
             $pdo->exec('ALTER TABLE registry_field_values RENAME TO ' . $legacyTable);

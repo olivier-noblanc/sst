@@ -365,4 +365,97 @@ class PageRenderingTest extends TestCase
             'carries declarantId through to toArray().'
         );
     }
+
+    /**
+     * Feature — création d'un signalement : une action locale « Supprimer la
+     * pièce jointe » doit retirer le fichier sélectionné côté navigateur
+     * (reset ciblé de l'<input type="file">), sans réinitialiser le reste du
+     * formulaire et sans le soumettre.
+     *
+     * En création, la pièce jointe n'est qu'un fichier temporaire côté
+     * navigateur : rien n'est envoyé au serveur tant que le formulaire n'est
+     * pas soumis. La suppression est donc purement client (JS), et le
+     * marqueur serveur d'édition (name="remove_attachment") ne doit PAS
+     * apparaître en création.
+     */
+    public function testReportCreateFormHasTargetedAttachmentRemoveControl(): void
+    {
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_create';
+        $_GET['type'] = 'rsst';
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_create', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        // Le contrôle est un vrai bouton local, jamais un submit : la
+        // suppression ne doit pas déclencher l'envoi du formulaire.
+        $this->assertSame(
+            1,
+            preg_match('/<button\b[^>]*\bid="attachment_remove"[^>]*>/', $output, $matches),
+            'Le formulaire de création doit contenir un bouton id="attachment_remove".'
+        );
+        $buttonTag = $matches[0];
+        $this->assertStringContainsString(
+            'type="button"',
+            $buttonTag,
+            'Le bouton de suppression ciblée doit être un <button type="button"> (pas de submit).'
+        );
+        $this->assertMatchesRegularExpression(
+            '/\shidden(\s|>)/',
+            $buttonTag,
+            'Le bouton de suppression doit être masqué tant qu\'aucun fichier n\'est sélectionné.'
+        );
+        $this->assertStringContainsString(
+            'Supprimer la pièce jointe',
+            $output,
+            'Le libellé « Supprimer la pièce jointe » doit être visible.'
+        );
+
+        // Câblage JS : reset ciblé de l'input file uniquement.
+        $this->assertStringContainsString(
+            "input.value = ''",
+            $output,
+            'Le JS doit vider uniquement la valeur de l\'input file sélectionné.'
+        );
+        $this->assertStringContainsString(
+            "getElementById('attachment_remove')",
+            $output,
+            'Le JS doit câbler le bouton de suppression ciblée.'
+        );
+
+        // Pas de marqueur serveur d'édition, pas de reset global.
+        $this->assertStringNotContainsString(
+            'name="remove_attachment"',
+            $output,
+            'La suppression à la création est purement client : aucun marqueur remove_attachment ne doit être soumis.'
+        );
+        $this->assertStringNotContainsString(
+            'type="reset"',
+            $output,
+            'Aucun bouton reset global ne doit être présent (le reset doit rester ciblé sur l\'input file).'
+        );
+    }
+
+    /**
+     * Périmètre : l'édition conserve sa propre logique de suppression (case à
+     * cocher name="remove_attachment" traitée au submit). Le nouveau contrôle
+     * de suppression ciblée, réservé à la création, ne doit pas s'y ajouter.
+     */
+    public function testReportEditFormDoesNotGainCreateOnlyRemoveControl(): void
+    {
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_edit';
+        $_GET['uuid'] = self::$reportUuid;
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_edit', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringNotContainsString(
+            'id="attachment_remove"',
+            $output,
+            'Le bouton de suppression ciblée est réservé à la création : l\'édition doit rester inchangée.'
+        );
+    }
 }

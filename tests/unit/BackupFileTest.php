@@ -12,6 +12,7 @@
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../src/backup.php';
+require_once __DIR__ . '/../../src/backup_protection.php';
 
 class BackupFileTest extends TestCase
 {
@@ -130,6 +131,36 @@ class BackupFileTest extends TestCase
         $this->assertFileExists($otherFile);
         $remaining = glob($this->tmpDir . '/sst_*.db');
         $this->assertCount(10, $remaining);
+    }
+
+    /**
+     * Rotation concurrente : glob() liste un fichier que le rotateBackups()
+     * d'un autre worker IIS a supprimé avant le tri → filemtime() émet
+     * « stat failed » (backup.php:211). Le tri doit ignorer sans broncher tout
+     * fichier disparu, et n'ordonner que ceux qui existent réellement.
+     *
+     * (failOnWarning=true dans phpunit.xml : le warning non toléré ferait
+     * échouer ce test avant même les assertions.)
+     */
+    public function testRotateBackupsSkipsVanishedFileWithoutWarning(): void
+    {
+        $old = $this->tmpDir . '/sst_2025-0101_120000.db';
+        $new = $this->tmpDir . '/sst_2025-0103_120000.db';
+        file_put_contents($old, 'old backup');
+        file_put_contents($new, 'new backup');
+        touch($old, strtotime('2025-01-01 12:00:00'));
+        touch($new, strtotime('2025-01-03 12:00:00'));
+
+        // Jamais créé : simule le fichier vu par glob() puis supprimé en amont.
+        $vanished = $this->tmpDir . '/sst_2025-0102_120000.db';
+
+        $sorted = sortBackupsOldestFirst([$new, $vanished, $old]);
+
+        $this->assertSame(
+            [$old, $new],
+            $sorted,
+            'Le fichier disparu est ignoré (aucun warning), les autres triés du plus ancien au plus récent'
+        );
     }
 
     // ─── listBackups ───────────────────────────────────────────────────────

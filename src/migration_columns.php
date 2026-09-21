@@ -2,6 +2,8 @@
 
 use App\Repository\AnonymizationPolicy;
 
+require_once __DIR__ . '/migration_lock.php';
+
 /**
  * Migration — Column Additions & Data Fixes
  *
@@ -59,7 +61,7 @@ function rebuildReportsTable(PDO $pdo, Closure $buildColumnDefs, string $logMess
     $fkWasEnabled = (bool) $fkStmt->fetchColumn();
     $pdo->exec('PRAGMA foreign_keys = OFF');
     try {
-        $pdo->beginTransaction();
+        migrationBeginImmediate($pdo);
         try {
             // Audit #55 — Drop any leftover reports_new from a previously failed migration.
             $pdo->exec('DROP TABLE IF EXISTS reports_new');
@@ -350,7 +352,7 @@ function migrateColumns(PDO $pdo): void
         $allDefs = array_merge($colDefs, $fkClauses);
         $createSql = 'CREATE TABLE IF NOT EXISTS report_responses_new (' . implode(', ', $allDefs) . ')';
         backupBeforeMigration($pdo);
-        $pdo->beginTransaction();
+        migrationBeginImmediate($pdo);
         try {
             // Audit #55 — Drop any leftover report_responses_new from a previously failed migration.
             $pdo->exec('DROP TABLE IF EXISTS report_responses_new');
@@ -439,7 +441,32 @@ function migrateColumns(PDO $pdo): void
         $pdo->exec('UPDATE users SET site_id = NULL WHERE site_id = 0');
         $pdo->exec('UPDATE notification_settings SET site_id = NULL WHERE site_id = 0');
 
-        // Rebuild users table with CHECK constraint
+        // Rebuild users table with CHECK constraint.
+        // Le DDL est régénéré depuis PRAGMA table_info : PRAGMA ne transporte
+        // ni les CHECK, ni AUTOINCREMENT, ni UNIQUE — il faut donc les
+        // ré-émettre explicitement. Sinon ce rebuild efface les invariants
+        // posés par migrateUsersEmailNotNull() (CHECK email, AUTOINCREMENT,
+        // username UNIQUE) et la migration reboucle au passage suivant.
+        $usersSqlStmt = $pdo->query("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'");
+        $usersSql = ($usersSqlStmt !== false) ? (string) $usersSqlStmt->fetchColumn() : '';
+        $usersSqlStmt = null;
+        $usersHadAutoincrement = str_contains($usersSql, 'AUTOINCREMENT');
+        $usersHasEmailCheck = str_contains($usersSql, "CHECK (email <> '')");
+        $usersUsernameHasUnique = false;
+        $usersIndexStmt = $pdo->query('PRAGMA index_list(users)');
+        foreach (($usersIndexStmt !== false) ? $usersIndexStmt->fetchAll() : [] as $usersIndex) {
+            if (!is_array($usersIndex) || (int) ($usersIndex['unique'] ?? 0) !== 1) {
+                continue;
+            }
+            $usersIndexColStmt = $pdo->query("PRAGMA index_info('" . str_replace("'", "''", (string) ($usersIndex['name'] ?? '')) . "')");
+            $usersIndexCols = ($usersIndexColStmt !== false) ? array_column($usersIndexColStmt->fetchAll(), 'name') : [];
+            $usersIndexColStmt = null;
+            if ($usersIndexCols === ['username']) {
+                $usersUsernameHasUnique = true;
+            }
+        }
+        $usersIndexStmt = null;
+
         $colStmt = $pdo->query('PRAGMA table_info(users)');
         $columns = ($colStmt !== false) ? $colStmt->fetchAll() : [];
         $colStmt = null;
@@ -449,9 +476,10 @@ function migrateColumns(PDO $pdo): void
                 continue;
             }
             /** @var array{name: string, type: string, notnull: int, dflt_value: mixed, pk: int} $col */
-            $def = $col['name'] . ' ' . $col['type'];
+            $name = (string) $col['name'];
+            $def = $name . ' ' . $col['type'];
             if ($col['pk']) {
-                $def .= ' PRIMARY KEY';
+                $def .= ' PRIMARY KEY' . ($usersHadAutoincrement ? ' AUTOINCREMENT' : '');
             }
             if ($col['notnull'] && !$col['pk']) {
                 $def .= ' NOT NULL';
@@ -462,9 +490,15 @@ function migrateColumns(PDO $pdo): void
                 $isLiteral = is_numeric($dfltValue) || str_starts_with($dfltValue, "'");
                 $def .= $isLiteral ? ' DEFAULT ' . $dfltValue : ' DEFAULT (' . $dfltValue . ')';
             }
+            if ($name === 'username' && $usersUsernameHasUnique) {
+                $def .= ' UNIQUE';
+            }
             $colDefs[] = $def;
         }
         $colDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
+        if ($usersHasEmailCheck) {
+            $colDefs[] = "CHECK (email <> '')";
+        }
         $fkStmt = $pdo->query('PRAGMA foreign_key_list(users)');
         $fks = ($fkStmt !== false) ? $fkStmt->fetchAll() : [];
         $fkStmt = null;
@@ -486,7 +520,7 @@ function migrateColumns(PDO $pdo): void
         $fkWasEnabled = (bool) $fkStmt->fetchColumn();
         $pdo->exec('PRAGMA foreign_keys = OFF');
         try {
-            $pdo->beginTransaction();
+            migrationBeginImmediate($pdo);
             try {
                 $pdo->exec('DROP TABLE IF EXISTS users_new');
                 $pdo->exec($createSql);
@@ -561,7 +595,7 @@ function migrateColumns(PDO $pdo): void
         $fkWasEnabled = (bool) $fkStmt->fetchColumn();
         $pdo->exec('PRAGMA foreign_keys = OFF');
         try {
-            $pdo->beginTransaction();
+            migrationBeginImmediate($pdo);
             try {
                 $pdo->exec('DROP TABLE IF EXISTS notification_settings_new');
                 $pdo->exec($createSql);
@@ -722,7 +756,6 @@ function rebuildUsersTableEmailNotNull(PDO $pdo): void
     }
     $legacySql = (string) $legacySqlRaw;
     $hadAutoincrement = str_contains($legacySql, 'AUTOINCREMENT');
-    $hasSiteIdCheck = str_contains($legacySql, 'CHECK (site_id IS NULL OR site_id > 0)');
 
     // Préflight — refus explicite (crash) d'une contrainte UNIQUE inattendue
     // sur email : la sentinelle est partagée par tous les comptes anonymisés.
@@ -813,9 +846,12 @@ function rebuildUsersTableEmailNotNull(PDO $pdo): void
         }
         $columnDefs[] = $def;
     }
-    if (!$hasSiteIdCheck) {
-        $columnDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
-    }
+    // PRAGMA table_info ne transporte JAMAIS les CHECK : le CHECK site_id doit
+    // donc TOUJOURS être ré-émis. L'omettre quand le legacy le porte déjà
+    // (ancien `if (!$hasSiteIdCheck)`) effaçait la contrainte à chaque rebuild
+    // email → migrateColumns() la ré-ajoutait au passage suivant → boucle de
+    // migration infinie + contention de verrou entre workers IIS.
+    $columnDefs[] = 'CHECK (site_id IS NULL OR site_id > 0)';
     $fkStmt = $pdo->query('PRAGMA foreign_key_list(users)');
     if ($fkStmt === false) {
         throw new RuntimeException('PRAGMA foreign_key_list(users) query failed unexpectedly.');
@@ -844,7 +880,7 @@ function rebuildUsersTableEmailNotNull(PDO $pdo): void
     $pdo->exec('PRAGMA foreign_keys = OFF');
     $backfilled = 0;
     try {
-        $pdo->beginTransaction();
+        migrationBeginImmediate($pdo);
         try {
             $countBeforeStmt = $pdo->query('SELECT COUNT(*) FROM users');
             if ($countBeforeStmt === false) {

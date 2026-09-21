@@ -387,6 +387,53 @@ class ReportCreateHandlerTest extends TestCase
         $this->assertEquals(0, $result['queries']['report_count']);
     }
 
+    /**
+     * Distinction création/édition — le marqueur serveur « remove_attachment »
+     * n'a de sens qu'à l'édition (suppression d'une pièce jointe déjà
+     * persistée, traitée par UpdateReportCommand/report_edit_handler).
+     *
+     * À la création, la suppression ciblée est purement client (reset de
+     * l'input file avant soumission) : si un marqueur remove_attachment
+     * arrivait malgré tout dans le POST, le handler de création doit
+     * l'ignorer et créer le signalement normalement, sans pièce jointe.
+     */
+    public function testCreateIgnoresEditOnlyRemoveAttachmentMarker(): void
+    {
+        $this->createTestDb();
+
+        $token = bin2hex(random_bytes(32));
+        $session = array_merge(
+            $this->makeAgentSession(1, 1),
+            ['csrf_tokens' => [$token => time()]]
+        );
+
+        $result = $this->runHandler([
+            'handler' => 'report_create_handler.php',
+            'session' => $session,
+            'post' => [
+                'csrf_token' => $token,
+                'type' => 'rsst',
+                'objet' => 'Creation avec marqueur edition',
+                'description' => 'Description du test',
+                'date_evenement' => '2026-01-15',
+                'lieu' => 'Bureau test',
+                'site_id' => '1',
+                'remove_attachment' => '1',
+            ],
+            'db_seed' => "INSERT INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote d Or', 1);\nINSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('jean.martin', 'Martin', 'Jean', 'agent', 1, 1, 'jean.martin@dreets-bfc.gouv.fr');",
+            'assertions' => [
+                'report_count' => "SELECT COUNT(*) FROM reports WHERE objet = 'Creation avec marqueur edition'",
+                'attachment_count' => "SELECT COUNT(*) FROM reports WHERE attachment_blob IS NOT NULL",
+            ],
+        ]);
+
+        // Le marqueur d'édition est ignoré : la création aboutit normalement.
+        $this->assertNotNull($result['redirect']);
+        $this->assertStringContainsString('page=report_view', $result['redirect']);
+        $this->assertEquals(1, $result['queries']['report_count']);
+        $this->assertEquals(0, $result['queries']['attachment_count']);
+    }
+
     protected function tearDown(): void
     {
         if (file_exists($this->dbPath)) {

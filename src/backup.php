@@ -197,6 +197,35 @@ function backupBeforeMigration(PDO $pdo): bool
 }
 
 /**
+ * Sort backup paths oldest-first by mtime, skipping files that vanished
+ * between glob() and the stat — a concurrent rotateBackups()/backup in
+ * another IIS worker can delete a file in that window, and calling
+ * filemtime() on it then emits "stat failed" (the backup.php:211 warning on
+ * an `sst_pre_migration_*` file).
+ *
+ * @param list<string> $files Candidate backup paths.
+ * @return list<string> Existing files, oldest first.
+ */
+function sortBackupsOldestFirst(array $files): array
+{
+    $dated = [];
+    foreach ($files as $file) {
+        // The file is known to be racing a concurrent rotation; a vanished
+        // entry is skipped explicitly (return false), not swallowed as an
+        // application error.
+        $mtime = @filemtime($file);
+        if ($mtime === false) {
+            continue;
+        }
+        $dated[$file] = $mtime;
+    }
+
+    asort($dated);
+
+    return array_keys($dated);
+}
+
+/**
  * Rotate backup files: keep only the N most recent, delete the rest.
  * Counts both regular backups (sst_*.db) and pre-migration backups.
  */
@@ -207,11 +236,14 @@ function rotateBackups(): void
         return;
     }
 
-    // Sort by modification time, oldest first
-    usort($files, fn($a, $b) => (int) filemtime($a) - (int) filemtime($b));
+    // Sort by modification time, oldest first (vanished files skipped).
+    $sorted = sortBackupsOldestFirst($files);
+    if (count($sorted) <= BACKUP_MAX_FILES) {
+        return;
+    }
 
     // Delete the oldest files beyond the limit
-    $toDelete = array_slice($files, 0, count($files) - BACKUP_MAX_FILES);
+    $toDelete = array_slice($sorted, 0, count($sorted) - BACKUP_MAX_FILES);
     foreach ($toDelete as $file) {
         @unlink($file);
     }

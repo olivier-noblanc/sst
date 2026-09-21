@@ -195,6 +195,20 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                         📎 Joindre un document (optionnel)
                     </label>
                     <span class="file-upload-wrapper__filename" id="file_chosen_name">Aucun fichier sélectionné</span>
+                    <?php if (!$isEdit): ?>
+                    <?php
+                    // Création : le fichier n'existe que côté navigateur tant que
+                    // le formulaire n'est pas soumis. Cette action locale retire
+                    // uniquement l'input file sélectionné via JS (reset ciblé),
+                    // sans soumettre le formulaire ni toucher aux autres champs.
+                    ?>
+                    <button type="button" id="attachment_remove"
+                            class="btn btn--danger btn--sm file-upload-wrapper__remove"
+                            hidden
+                            aria-controls="attachment">
+                        Supprimer la pièce jointe
+                    </button>
+                    <?php endif; ?>
                 </div>
                 <span class="form-hint" id="hint_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max.</span>
                 <?php if ($isEdit && !empty($report->attachmentName)): ?>
@@ -394,14 +408,28 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
         </div>
     </form>
 
-    <!-- File upload: update displayed filename when a file is chosen -->
+    <!-- File upload: update displayed filename when a file is chosen, and
+         support a targeted removal of the selected file (create form). -->
     <script>
     (function() {
         var input = document.getElementById('attachment'), nameEl = document.getElementById('file_chosen_name');
-        if (input && nameEl) input.addEventListener('change', function() {
-            if (this.files && this.files.length > 0) {
-                nameEl.textContent = this.files[0].name; nameEl.classList.add('file-upload-wrapper__filename--selected');
-            } else { nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.classList.remove('file-upload-wrapper__filename--selected'); }
+        if (!input || !nameEl) return;
+        var removeBtn = document.getElementById('attachment_remove');
+        function refresh() {
+            if (input.files && input.files.length > 0) {
+                nameEl.textContent = input.files[0].name; nameEl.classList.add('file-upload-wrapper__filename--selected');
+                if (removeBtn) removeBtn.hidden = false;
+            } else {
+                nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.classList.remove('file-upload-wrapper__filename--selected');
+                if (removeBtn) removeBtn.hidden = true;
+            }
+        }
+        input.addEventListener('change', refresh);
+        if (removeBtn) removeBtn.addEventListener('click', function() {
+            // Reset ciblé : seule la pièce jointe sélectionnée est retirée.
+            // Aucun form.reset() — les autres champs restent intacts.
+            input.value = '';
+            refresh();
         });
     })();
     </script>

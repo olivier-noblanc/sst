@@ -1579,6 +1579,13 @@ img { max-width: 100%; height: auto; display: block; }
     font-style: italic;
 }
 
+/* Targeted attachment removal (create form) — the `hidden` attribute must
+   win over .btn's `display: inline-block`, which otherwise overrides the
+   user-agent `[hidden] { display: none }` rule. */
+.file-upload-wrapper__remove[hidden] {
+    display: none;
+}
+
 /* Attachment preview */
 .attachment-preview {
     margin-top: 6px;

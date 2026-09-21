@@ -189,15 +189,23 @@ function seedDefaultData(PDO $pdo): void
  */
 function migrateSchema(PDO $pdo): void
 {
+    require_once __DIR__ . '/migration_lock.php';
     require_once __DIR__ . '/migration_tables.php';
     require_once __DIR__ . '/migration_columns.php';
     require_once __DIR__ . '/migration_indexes.php';
     require_once __DIR__ . '/migration_config.php';
 
-    migrateTables($pdo);
-    migrateColumns($pdo);
-    migrateUsersEmailNotNull($pdo);
-    migrateIndexes($pdo);
-    migrateConfigKeys($pdo);
-    migrateEncryptSmtpPass($pdo);
+    // One migrator at a time across IIS worker processes. Without this,
+    // several workers booting together each ran the destructive rebuilds
+    // concurrently and collided on SQLite's single writer ("database is
+    // locked"). Bounded wait, then a loud failure — never a silent
+    // concurrent migration.
+    withMigrationLock(static function () use ($pdo): void {
+        migrateTables($pdo);
+        migrateColumns($pdo);
+        migrateUsersEmailNotNull($pdo);
+        migrateIndexes($pdo);
+        migrateConfigKeys($pdo);
+        migrateEncryptSmtpPass($pdo);
+    });
 }

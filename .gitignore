@@ -5,6 +5,7 @@
 /data/*.db
 /data/*.sqlite
 /data/*.log
+/data/.migration.lock
 /data/backups/
 /data/sessions/
 

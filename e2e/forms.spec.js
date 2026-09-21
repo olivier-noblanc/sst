@@ -258,6 +258,51 @@ test.describe('Character Counter', () => {
 
 });
 
+test.describe('Report Form — Targeted Attachment Removal', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await loginAs(page);
+  });
+
+  test('should remove only the selected file without resetting the form', async ({ page }) => {
+    await page.goto('/index.php?page=report_create&type=rsst');
+
+    // Fill other fields first: they must survive the targeted removal.
+    await page.locator('#objet').fill('Objet à conserver');
+    await page.locator('#description').fill('Description à conserver');
+    await page.locator('#lieu').fill('Lieu à conserver');
+
+    // Select a temporary file (browser-side only, never submitted here).
+    await page.locator('#attachment').setInputFiles({
+      name: 'preuve.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.from('%PDF-1.4 test'),
+    });
+
+    const removeButton = page.locator('#attachment_remove');
+    await expect(removeButton).toBeVisible();
+    await expect(page.locator('#file_chosen_name')).toHaveText('preuve.pdf');
+
+    // Remove the selected file only.
+    await removeButton.click();
+
+    // The file input is cleared and the button is hidden again.
+    const selectedFiles = await page.locator('#attachment').evaluate((el) => el.files.length);
+    expect(selectedFiles).toBe(0);
+    await expect(page.locator('#file_chosen_name')).toHaveText('Aucun fichier sélectionné');
+    await expect(removeButton).toBeHidden();
+
+    // No other field was reset.
+    await expect(page.locator('#objet')).toHaveValue('Objet à conserver');
+    await expect(page.locator('#description')).toHaveValue('Description à conserver');
+    await expect(page.locator('#lieu')).toHaveValue('Lieu à conserver');
+
+    // The form was not submitted (no navigation away from the form).
+    expect(page.url()).toContain('page=report_create');
+  });
+
+});
+
 test.describe('Login Form Validation', () => {
 
   test.use({ storageState: { cookies: [], origins: [] } });

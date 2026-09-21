@@ -23,9 +23,12 @@ requireReportRespondable($report, $uuid, 'répondu');
 
 // Options d'état dérivées de la machine à états (source unique de vérité) —
 // plus aucune liste d'états codée en dur dans l'UI. Pour un signalement déjà
-// « En cours », seule la transition disponible (Traité) est proposée :
-// l'ancien formulaire proposait « En cours » → EnCours→EnCours absent de la
-// matrice → InvalidArgumentException fatale à la soumission.
+// « En cours », le superviseur peut soit poursuivre les échanges en restant
+// « En cours » (self-transition explicite EnCours→EnCours/Superviseur), soit
+// clore le signalement (« Traité »). L'ancien formulaire proposait « En cours »
+// alors que la matrice ne connaissait pas EnCours→EnCours → InvalidArgumentException
+// fatale à la soumission ; la correction rend la transition valide plutôt que
+// de retirer l'option.
 $respondStateMachine = new \App\Services\ReportStateMachine();
 // Réserve R1 (revue Oracle) — alignement du GET sur le pattern sûr du handler
 // POST (report_respond_handler.php) : ::from() est interdit sur une valeur non

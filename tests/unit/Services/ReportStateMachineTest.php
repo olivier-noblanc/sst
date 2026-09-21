@@ -106,13 +106,46 @@ class ReportStateMachineTest extends TestCase
         );
     }
 
+    public function testEnCoursCanSelfTransitionOnlyForSuperviseur(): void
+    {
+        // Un superviseur qui répond à un signalement déjà « En cours » peut
+        // conserver cet état pour poursuivre les échanges (self-transition
+        // explicite) — sinon l'option « En cours » n'est jamais offerte et le
+        // POST associé était rejeté.
+        $this->assertTrue(
+            $this->stateMachine->canTransition(
+                ReportState::EnCours,
+                ReportState::EnCours,
+                UserRole::Superviseur
+            )
+        );
+
+        // Aucun élargissement abusif : les autres rôles ne peuvent pas rester
+        // « En cours » (ce n'est pas une transition générique « même état »).
+        $this->assertFalse(
+            $this->stateMachine->canTransition(
+                ReportState::EnCours,
+                ReportState::EnCours,
+                UserRole::Agent
+            )
+        );
+        $this->assertFalse(
+            $this->stateMachine->canTransition(
+                ReportState::EnCours,
+                ReportState::EnCours,
+                UserRole::Chsct
+            )
+        );
+    }
+
     public function testInvalidTransitionReturnsFalse(): void
     {
-        // Transition qui n'existe pas dans la matrice
+        // Transition qui n'existe pas dans la matrice (self-transition Nouveau→Nouveau
+        // reste interdite : seule EnCours→EnCours/Superviseur est explicite).
         $this->assertFalse(
             $this->stateMachine->canTransition(
                 ReportState::Nouveau,
-                ReportState::Nouveau, // rester dans le même état n'est pas une transition valide
+                ReportState::Nouveau,
                 UserRole::Superviseur
             )
         );
@@ -155,6 +188,24 @@ class ReportStateMachineTest extends TestCase
         // Superviseur peut seulement réouvrir depuis Traite (pas abandonner)
         $this->assertCount(1, $transitions);
         $this->assertContains(ReportState::Reouvert, $transitions);
+    }
+
+    public function testGetAvailableTransitionsForSuperviseurFromEnCoursIncludesSelfAndTraite(): void
+    {
+        // Scénario du bug : un signalement déjà « En cours » doit permettre au
+        // superviseur de répondre en restant « En cours » (poursuivre les
+        // échanges) OU de le clore (« Traité »). L'option « En cours » manquait.
+        $transitions = $this->stateMachine->getAvailableTransitions(
+            ReportState::EnCours,
+            UserRole::Superviseur
+        );
+
+        $this->assertCount(2, $transitions);
+        $this->assertContains(ReportState::EnCours, $transitions);
+        $this->assertContains(ReportState::Traite, $transitions);
+
+        // L'état courant est proposé en premier — l'ordre reflète la matrice.
+        $this->assertSame(ReportState::EnCours, $transitions[0]);
     }
 
     public function testGetAvailableTransitionsEmptyForInvalidState(): void
@@ -272,6 +323,7 @@ class ReportStateMachineTest extends TestCase
                 ReportState::Abandonne->value => [UserRole::Agent],
             ],
             ReportState::EnCours->value => [
+                ReportState::EnCours->value => [UserRole::Superviseur],
                 ReportState::Traite->value => [UserRole::Superviseur],
                 ReportState::Abandonne->value => [UserRole::Agent],
             ],

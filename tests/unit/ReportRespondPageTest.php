@@ -109,6 +109,32 @@ class ReportRespondPageTest extends TestCase
         $this->assertSame('nouveau', $result['queries']['report_etat']);
     }
 
+    public function testPageRendersEnCoursOptionForSuperviseurOnEnCoursReport(): void
+    {
+        // Bug : sur un signalement déjà « en_cours », le formulaire ne
+        // proposait QUE « traite ». Une nouvelle réponse doit pouvoir rester
+        // « en_cours » (poursuite des échanges) : l'option doit être offerte.
+        $reportUuid = '99999999-5555-4777-8999-aaaaaaaaaaaa';
+
+        $result = $this->runPage([
+            'page' => 'report_respond.php',
+            'session' => $this->makeSuperviseurSession(),
+            'get' => ['uuid' => $reportUuid],
+            'server' => ['REQUEST_METHOD' => 'GET'],
+            'db_seed' => $this->seedWithReport($reportUuid, 'en_cours'),
+            'assertions' => [
+                'report_etat' => "SELECT etat FROM reports WHERE uuid = '$reportUuid'",
+            ],
+        ]);
+
+        $this->assertSame(0, $result['exit_code']);
+        $this->assertNull($result['redirect']);
+        $this->assertStringContainsString('Formuler une réponse', $result['output']);
+        $this->assertStringContainsString('value="en_cours"', $result['output']);
+        $this->assertStringContainsString('value="traite"', $result['output']);
+        $this->assertSame('en_cours', $result['queries']['report_etat']);
+    }
+
     public function testUnknownSessionRoleIsRefusedWithoutFatalError(): void
     {
         // Rôle de session hors UserRole (session corrompue/legacy) :

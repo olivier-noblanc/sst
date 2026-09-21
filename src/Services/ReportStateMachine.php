@@ -34,6 +34,12 @@ final class ReportStateMachine
             ReportState::Abandonne->value => [UserRole::Agent],
         ],
         ReportState::EnCours->value => [
+            // Self-transition explicite : un superviseur qui répond à un
+            // signalement déjà « En cours » peut conserver cet état pour
+            // poursuivre les échanges (plusieurs réponses successives). Ce
+            // n'est PAS une règle « même état » générique : elle n'existe que
+            // pour EnCours→EnCours/Superviseur (Nouveau→Nouveau reste refusé).
+            ReportState::EnCours->value => [UserRole::Superviseur],
             ReportState::Traite->value => [UserRole::Superviseur],
             ReportState::Abandonne->value => [UserRole::Agent],
         ],

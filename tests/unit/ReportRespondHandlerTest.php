@@ -200,14 +200,13 @@ class ReportRespondHandlerTest extends TestCase
         $this->assertEquals('nouveau', $result['queries']['report_etat']);
     }
 
-    public function testRespondToEnCoursWithSameStateShowsControlledError(): void
+    public function testRespondToEnCoursWithSameStateAppendsResponse(): void
     {
-        // Fiabilisation — avant ce fix, un POST nouvel_etat=en_cours sur un
-        // signalement déjà en_cours levait une InvalidArgumentException non
-        // interceptée par le catch(RuntimeException) du handler (EnCours→EnCours
-        // n'existe pas dans la matrice ReportStateMachine::TRANSITIONS) → fatal
-        // 500, saisie de la réponse perdue, e-mail d'alerte admin.
-        // Attendu : redirection contrôlée + flash error + état inchangé.
+        // Bug corrigé : un signalement déjà « en_cours » n'offrait plus que
+        // « traite », alors qu'une nouvelle réponse peut rester « en_cours »
+        // pour poursuivre les échanges (EnCours→EnCours désormais valide dans
+        // la matrice pour le superviseur). Attendu : réponse enregistrée,
+        // état inchangé, historique incrémenté.
         $reportUuid = '77777777-8888-4999-baaa-bbbbbbbbbbbb';
         $token = bin2hex(random_bytes(32));
         $session = array_merge($this->makeSuperviseurSession(), ['csrf_tokens' => [$token => time()]]);
@@ -224,14 +223,59 @@ class ReportRespondHandlerTest extends TestCase
             'db_seed' => $this->seedWithReport($reportUuid, 1, 1, 'en_cours'),
             'assertions' => [
                 'report_etat' => "SELECT etat FROM reports WHERE uuid = '$reportUuid'",
+                'report_reponse' => "SELECT reponse FROM reports WHERE uuid = '$reportUuid'",
                 'response_count' => "SELECT COUNT(*) FROM report_responses WHERE report_uuid = '$reportUuid'",
             ],
         ]);
 
-        $this->assertNotNull($result['redirect'], 'Une redirection contrôlée doit être émise (pas d\'erreur fatale)');
-        $this->assertEquals('error', $result['flash']['type'] ?? null);
+        $this->assertNotNull($result['redirect']);
+        $this->assertStringContainsString('page=report_view', $result['redirect']);
+        $this->assertEquals('success', $result['flash']['type'] ?? null);
         $this->assertEquals('en_cours', $result['queries']['report_etat']);
-        $this->assertEquals(0, $result['queries']['response_count']);
+        $this->assertEquals('Mise a jour sans changement d etat.', $result['queries']['report_reponse']);
+        $this->assertEquals(1, $result['queries']['response_count']);
+    }
+
+    public function testMultipleResponsesOnEnCoursAreArchivedAndKeepLastStateConsistent(): void
+    {
+        // Scénario « poursuite des échanges » : le signalement a déjà une
+        // première réponse (colonne reports.reponse + ligne report_responses),
+        // et un superviseur en ajoute une seconde en restant « en_cours ».
+        // Attendu : les DEUX réponses sont archivées, la colonne reponse
+        // reflète la dernière, l'état reste en_cours (pas d'écrasement).
+        $reportUuid = '99999999-aaaa-4bbb-8ccc-dddddddddddd';
+        $token = bin2hex(random_bytes(32));
+        $session = array_merge($this->makeSuperviseurSession(), ['csrf_tokens' => [$token => time()]]);
+
+        $seed = $this->seedWithReport($reportUuid, 1, 1, 'en_cours')
+            . "\nUPDATE reports SET reponse = 'Premiere reponse', repondant_id = 2, date_reponse = datetime('now') WHERE uuid = '$reportUuid';"
+            . "\nINSERT INTO report_responses (report_uuid, user_id, reponse, nouvel_etat) VALUES ('$reportUuid', 2, 'Premiere reponse', 'en_cours');";
+
+        $result = $this->runHandler([
+            'handler' => 'report_respond_handler.php',
+            'session' => $session,
+            'post' => [
+                'csrf_token' => $token,
+                'report_uuid' => $reportUuid,
+                'nouvel_etat' => 'en_cours',
+                'reponse' => 'Deuxieme reponse de poursuite.',
+            ],
+            'db_seed' => $seed,
+            'assertions' => [
+                'report_etat' => "SELECT etat FROM reports WHERE uuid = '$reportUuid'",
+                'report_reponse' => "SELECT reponse FROM reports WHERE uuid = '$reportUuid'",
+                'response_count' => "SELECT COUNT(*) FROM report_responses WHERE report_uuid = '$reportUuid'",
+                'archived_content' => "SELECT group_concat(reponse, '|') FROM report_responses WHERE report_uuid = '$reportUuid' ORDER BY id",
+            ],
+        ]);
+
+        $this->assertNotNull($result['redirect']);
+        $this->assertEquals('success', $result['flash']['type'] ?? null);
+        $this->assertEquals('en_cours', $result['queries']['report_etat']);
+        $this->assertEquals('Deuxieme reponse de poursuite.', $result['queries']['report_reponse']);
+        $this->assertEquals(2, $result['queries']['response_count']);
+        $this->assertStringContainsString('Premiere reponse', (string) $result['queries']['archived_content']);
+        $this->assertStringContainsString('Deuxieme reponse de poursuite.', (string) $result['queries']['archived_content']);
     }
 
     public function testRejectsUnknownSessionRoleWithControlledError(): void

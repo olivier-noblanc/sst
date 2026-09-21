@@ -828,4 +828,87 @@ class PageRenderingTest extends TestCase
             'Seul le superviseur peut déclencher la transmission CSA/CHSCT.'
         );
     }
+
+    /**
+     * L'aide d'envoi est un tooltip CSS-only (révélé au survol/focus via
+     * public/css/style.css), hors du flux flex : role="tooltip" +
+     * aria-describedby, pas de <small> en flux, pas de JS inline, pas de title.
+     * C'est ce qui empêche l'aide d'étirer le bloc et de désaligner les boutons
+     * de la rangée (Réouvrir / Transmettre).
+     */
+    public function testReportViewTransmitHelpIsCssOnlyTooltip(): void
+    {
+        $this->clearTransmittedOutboxRow(self::$reportUuid);
+
+        $this->loginAsSuperviseur();
+        $_GET['page'] = 'report_view';
+        $_GET['uuid'] = self::$reportUuid;
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertMatchesRegularExpression(
+            '/<span\b[^>]*\bid="report-transmit-help"[^>]*\bclass="tooltip"[^>]*\brole="tooltip"[^>]*>/',
+            $output,
+            'L\'aide d\'envoi doit être un tooltip (role="tooltip", classe .tooltip).'
+        );
+        $this->assertStringNotContainsString(
+            'report-transmit__help',
+            $output,
+            'L\'ancienne aide en flux (.report-transmit__help) ne doit plus être rendue.'
+        );
+        $this->assertStringNotContainsString(
+            '<small id="report-transmit-help"',
+            $output,
+            'L\'aide ne doit plus être un <small> qui participe au flux flex.'
+        );
+
+        $helpTag = '';
+        if (preg_match('/<span\b[^>]*\bid="report-transmit-help"[^>]*>/', $output, $matches) === 1) {
+            $helpTag = $matches[0];
+        }
+        $this->assertNotSame('', $helpTag, 'L\'élément d\'aide doit être rendu.');
+        $this->assertStringNotContainsString('style=', $helpTag, 'Le tooltip ne porte pas de style inline.');
+        $this->assertStringNotContainsString('title=', $helpTag, 'Le tooltip n\'utilise pas title (aria-describedby suffit).');
+        $this->assertStringNotContainsString('onmouseover', $helpTag, 'Le tooltip ne doit pas embarquer de JS inline.');
+
+        $buttonTag = '';
+        if (preg_match('/<button\b[^>]*\bclass="btn btn--transmit"[^>]*>/', $output, $matches) === 1) {
+            $buttonTag = $matches[0];
+        }
+        $this->assertNotSame('', $buttonTag, 'Le bouton de transmission doit être rendu.');
+        $this->assertStringContainsString('aria-describedby="report-transmit-help"', $buttonTag);
+        $this->assertStringNotContainsString('onmouseover', $buttonTag, 'La révélation doit être purement CSS, sans JS inline.');
+        $this->assertStringNotContainsString('onfocus', $buttonTag, 'La révélation doit être purement CSS, sans JS inline.');
+    }
+
+    /**
+     * Sur report_list, le bouton « Filtrer » doit s'aligner sur le bas des
+     * contrôles (label au-dessus du champ), comme sur statistics/synthesis, et
+     * non rester centré dans le flux — ce qui le faisait « flotter » au-dessus
+     * des inputs.
+     */
+    public function testReportListFilterButtonAlignsWithControls(): void
+    {
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_list';
+        $_GET['type'] = 'rsst';
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_list', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringContainsString('class="filter-bar"', $output);
+        $this->assertMatchesRegularExpression(
+            '/<form\b[^>]*\bclass="flex flex-wrap gap-4 items-center w-full"[^>]*>/',
+            $output,
+            'Le formulaire de filtre conserve sa structure de contrôles.'
+        );
+        $this->assertMatchesRegularExpression(
+            '/<button\b[^>]*\bclass="btn btn--primary align-self-end"[^>]*>\s*Filtrer\s*<\/button>/',
+            $output,
+            'Le bouton Filtrer doit être aligné sur le bas des contrôles (.align-self-end), comme sur les autres pages.'
+        );
+    }
 }

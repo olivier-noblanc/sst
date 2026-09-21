@@ -310,8 +310,15 @@ $transmittedAt = $isSuperviseur ? reportTransmissionDate($report->uuid) : null;
                 <form method="post" action="<?php echo new \App\Services\HttpService()->url('report_transmit'); ?>" class="report-transmit">
                     <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
                     <input type="hidden" name="uuid" value="<?php echo $fmt->e($report->uuid); ?>">
+                    <?php
+                    // Aide d'envoi rattachée au bouton : tooltip CSS-only
+                    // (role="tooltip" + aria-describedby, révélé au survol/focus
+                    // via public/css/style.css), positionné en absolute pour
+                    // sortir du flux flex — les boutons de la rangée restent
+                    // alignés sur une seule hauteur. Aucun JS, aucun title.
+                    ?>
                     <button type="submit" class="btn btn--transmit" aria-describedby="report-transmit-help">Transmettre aux agents du <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></button>
-                    <small id="report-transmit-help" class="help-text report-transmit__help">Ce bouton déclenche l'envoi manuel de ce signalement par e-mail aux agents du <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?>. Aucune transmission n'est automatique.</small>
+                    <span id="report-transmit-help" class="tooltip" role="tooltip">Ce bouton déclenche l'envoi manuel de ce signalement par e-mail aux agents du <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?>. Aucune transmission n'est automatique.</span>
                 </form>
             <?php endif; ?>
         <?php endif; ?>

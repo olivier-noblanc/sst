@@ -1264,13 +1264,16 @@ img { max-width: 100%; height: auto; display: block; }
    Accessible tooltip — CSS-only (hover / keyboard focus), no JS.
    The tooltip stays in the accessibility tree (role="tooltip",
    referenced by aria-describedby) and is revealed on hover or
-   focus-within. All styling lives here — no inline style.
+   focus-within of its host. It is absolutely positioned, i.e. out
+   of the flex flow, so it never distorts the host's height or the
+   alignment of the surrounding buttons. All styling lives here —
+   no inline style, no title attribute.
    ============================================================ */
 .consent-consigne {
     position: relative;
 }
 
-.consent-consigne .tooltip {
+.tooltip {
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
@@ -1295,7 +1298,9 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .consent-consigne:hover .tooltip,
-.consent-consigne:focus-within .tooltip {
+.consent-consigne:focus-within .tooltip,
+.report-transmit:hover .tooltip,
+.report-transmit:focus-within .tooltip {
     width: auto;
     height: auto;
     margin: 0;
@@ -1407,11 +1412,11 @@ img { max-width: 100%; height: auto; display: block; }
 /* Paired primary actions on the report card (reopen + manual transmission).
    Both stay in one flex group so they always share the same row, even when the
    admin-configured CSA/CHSCT role label is long enough to wrap the transmission
-   button onto two lines. `flex-start` keeps Réouvrir at its natural height now
-   that the transmission block also carries its explanatory note below. */
+   button onto two lines. The explanatory note is now an out-of-flow tooltip, so
+   `center` keeps Réouvrir and the transmission button on the same line. */
 .form-actions__group {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
     flex-wrap: wrap;
 }
@@ -1423,23 +1428,13 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* Manual CSA/CHSCT transmission (supervisor action on a report card).
-   The button and its explanatory note form a single visual action block; the
-   note is programmatically tied to the button via aria-describedby. */
+   The explanatory note is a CSS-only tooltip (role="tooltip", referenced by
+   aria-describedby) anchored on this block and positioned out of flow, so the
+   row keeps the height of a plain button and the surrounding buttons stay
+   aligned. */
 .report-transmit {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    position: relative;
     margin: 0;
-}
-
-.report-transmit .btn {
-    width: 100%;
-}
-
-.report-transmit__help {
-    margin-top: 0;
 }
 
 /* Once transmitted, the active action is replaced by a non-actionable status:

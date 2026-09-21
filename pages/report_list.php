@@ -144,7 +144,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
             <input type="text" id="q" name="q" value="<?php echo $fmt->e($filters['q']); ?>" placeholder="Rechercher dans l'objet ou la description...">
         </div>
 
-        <button type="submit" class="btn btn--primary">Filtrer</button>
+        <button type="submit" class="btn btn--primary align-self-end">Filtrer</button>
     </form>
 </div>
 

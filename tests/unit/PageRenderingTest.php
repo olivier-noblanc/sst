@@ -635,7 +635,7 @@ class PageRenderingTest extends TestCase
 
         $this->assertStringContainsString('page=report_transmit', $output);
         $this->assertStringContainsString(
-            'Transmettre au rôle « ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' »',
+            'Transmettre aux agents du ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value),
             $output,
             'Le libellé du bouton suit le nom de rôle configurable, jamais un texte figé.'
         );
@@ -648,6 +648,21 @@ class PageRenderingTest extends TestCase
             'aria-describedby="report-transmit-help"',
             $output,
             'Le bouton de transmission référence explicitement son texte d\'aide.'
+        );
+        $this->assertStringContainsString(
+            'id="report-transmit-help"',
+            $output,
+            'Le texte d\'aide associé au bouton est bien rendu.'
+        );
+        $this->assertStringContainsString(
+            'envoi manuel',
+            $output,
+            'L\'explication indique clairement que le clic déclenche un envoi manuel aux agents du rôle.'
+        );
+        $this->assertMatchesRegularExpression(
+            '/<form[^>]*page=report_transmit[^>]*>.*?aria-describedby="report-transmit-help".*?id="report-transmit-help".*?<\/form>/s',
+            $output,
+            'Bouton et explication sont regroupés dans le même bloc action (le formulaire de transmission).'
         );
 
         $form = '';
@@ -703,7 +718,7 @@ class PageRenderingTest extends TestCase
         }
 
         $this->assertStringContainsString(
-            'Transmettre au rôle « ' . $longLabel . ' »',
+            'Transmettre aux agents du ' . $longLabel,
             $output,
             'Le libellé long configurable est rendu tel quel dans le bouton.'
         );
@@ -747,7 +762,7 @@ class PageRenderingTest extends TestCase
             'L\'indicateur porte une case cochée et désactivée (jamais actionnable).'
         );
         $this->assertStringContainsString(
-            'Transmis au ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' le 15/03/2025',
+            'Transmis aux agents du ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' le 15/03/2025',
             $output,
             'Le texte affiche le rôle configurable et la date SANS heure (JJ/MM/AAAA).'
         );

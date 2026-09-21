@@ -2,8 +2,8 @@
 /**
  * Report Transmit Handler Integration Test — Application SST DREETS BFC
  *
- * L'action « Transmettre au rôle … » (superviseur, libellé dérivé du rôle
- * CSA/CHSCT configurable) met en file les messages CSA/CHSCT via l'outbox et
+ * L'action « Transmettre aux agents du rôle … » (superviseur, libellé dérivé du
+ * rôle CSA/CHSCT configurable) met en file les messages CSA/CHSCT via l'outbox et
  * trace l'action dans l'audit.
  * Le contrôle de rôle/CSRF est porté par les middlewares de route (testés dans
  * RouterRoleMappingTest) ; ce test exerce le handler en subprocess.

@@ -304,13 +304,14 @@ $transmittedAt = $isSuperviseur ? reportTransmissionDate($report->uuid) : null;
             <?php if ($transmittedAt !== null): ?>
                 <span class="transmit-status">
                     <input type="checkbox" checked disabled aria-hidden="true">
-                    <span>Transmis au <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> le <?php echo $fmt->e($fmt->formatDateOnlyFR($transmittedAt)); ?></span>
+                    <span>Transmis aux agents du <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> le <?php echo $fmt->e($fmt->formatDateOnlyFR($transmittedAt)); ?></span>
                 </span>
             <?php else: ?>
                 <form method="post" action="<?php echo new \App\Services\HttpService()->url('report_transmit'); ?>" class="report-transmit">
                     <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
                     <input type="hidden" name="uuid" value="<?php echo $fmt->e($report->uuid); ?>">
-                    <button type="submit" class="btn btn--transmit" aria-describedby="report-transmit-help">Transmettre au rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> »</button>
+                    <button type="submit" class="btn btn--transmit" aria-describedby="report-transmit-help">Transmettre aux agents du <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></button>
+                    <small id="report-transmit-help" class="help-text report-transmit__help">Ce bouton déclenche l'envoi manuel de ce signalement par e-mail aux agents du <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?>. Aucune transmission n'est automatique.</small>
                 </form>
             <?php endif; ?>
         <?php endif; ?>
@@ -319,8 +320,4 @@ $transmittedAt = $isSuperviseur ? reportTransmissionDate($report->uuid) : null;
 
     <a href="<?php echo new \App\Services\HttpService()->url('report_print', ['uuid' => $report->uuid]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Imprimer ou enregistrer en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
     <a href="<?php echo new \App\Services\HttpService()->url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
-
-    <?php if ($isSuperviseur && $transmittedAt === null): ?>
-        <small id="report-transmit-help" class="help-text form-actions__help">Envoie ce signalement par e-mail aux membres du rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». Aucune transmission n'est automatique.</small>
-    <?php endif; ?>
 </div>

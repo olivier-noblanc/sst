@@ -210,6 +210,16 @@ class NotificationService
     }
 
     /**
+     * Date (UTC, 'Y-m-d H:i:s') de la transmission CSA/CHSCT d'un signalement,
+     * ou null si elle n'a jamais été mise en file. Délègue à l'outbox
+     * (EmailOutboxRepository) : aucune logique de transmission dupliquée ici.
+     */
+    public function findReportTransmissionDate(string $reportUuid): ?string
+    {
+        return EmailOutboxRepository::instance()->findReportTransmissionDate($reportUuid);
+    }
+
+    /**
      * Drain opportuniste post-enqueue.
      *
      * En SAPI web uniquement (jamais en CLI — tests et scripts s'appuient sur

@@ -1404,17 +1404,64 @@ img { max-width: 100%; height: auto; display: block; }
     flex-wrap: wrap;
 }
 
+/* Paired primary actions on the report card (reopen + manual transmission).
+   Both stay in one flex group so they always share the same row and the same
+   height, even when the admin-configured CSA/CHSCT role label is long enough
+   to wrap the transmission button onto two lines. */
+.form-actions__group {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.form-actions__group .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-actions__help {
+    flex-basis: 100%;
+    margin-top: 0;
+}
+
 /* Manual CSA/CHSCT transmission (supervisor action on a report card) */
 .report-transmit {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
     margin: 0;
 }
 
-.report-transmit .help-text {
-    flex-basis: 100%;
+.report-transmit .btn {
+    flex: 1;
+}
+
+/* Once transmitted, the active action is replaced by a non-actionable status:
+   checked + disabled checkbox and the transmission date (d/m/Y, no time). It
+   lives in the same flex group as Réouvrir and mirrors the button height so the
+   row stays aligned whether the action is still available or already done. */
+.transmit-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    background: var(--grey-50);
+    color: var(--grey-700);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.transmit-status input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    flex-shrink: 0;
+    accent-color: var(--state-traite);
+    cursor: not-allowed;
 }
 
 /* Inline form (for button groups in tables) */
@@ -3356,6 +3403,11 @@ tr:hover td {
 
     .form-actions {
         flex-direction: column;
+    }
+
+    .form-actions__group {
+        flex-direction: column;
+        width: 100%;
     }
 
     .form-actions .btn {

@@ -25,6 +25,7 @@
 namespace App\Repository;
 
 use App\DTO\OutboxMessage;
+use App\Enum\OutboxEvent;
 use App\Enum\OutboxStatus;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -502,6 +503,39 @@ final readonly class EmailOutboxRepository
         $seconds = self::BASE_BACKOFF_SECONDS * (2 ** ($attempts - 1));
 
         return (int) min($seconds, self::MAX_BACKOFF_SECONDS);
+    }
+
+    /**
+     * Date (UTC, 'Y-m-d H:i:s') de la première mise en file d'une
+     * transmission CSA/CHSCT pour un signalement, ou null si aucune.
+     *
+     * S'appuie sur l'outbox (source de vérité d'une transmission
+     * effectivement enregistrée, jamais purgée en fonctionnement normal) plutôt
+     * que sur l'audit, qui trace aussi les tentatives sans mise en file
+     * (aucun destinataire joignable). Le dedup_key est préfixé par
+     * OutboxEvent::ReportTransmitted suivi de l'uuid du signalement : la
+     * comparaison exacte de préfixe évite tout faux positif de LIKE (_ / %).
+     *
+     * @return string|null date UTC, ou null si le signalement n'a jamais été transmis
+     */
+    public function findReportTransmissionDate(string $reportUuid): ?string
+    {
+        $prefix = OutboxEvent::ReportTransmitted->value . ':' . $reportUuid . ':';
+        $stmt = $this->pdo->prepare(
+            'SELECT MIN(created_at) FROM email_outbox WHERE substr(dedup_key, 1, :prefixLen) = :prefix'
+        );
+        $stmt->execute([
+            ':prefixLen' => strlen($prefix),
+            ':prefix'    => $prefix,
+        ]);
+        $value = $stmt->fetchColumn();
+        $stmt->closeCursor();
+
+        if ($value === false || $value === null || $value === '') {
+            return null;
+        }
+
+        return (string) $value;
     }
 
     private static function nowUtc(): string

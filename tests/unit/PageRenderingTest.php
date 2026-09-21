@@ -111,6 +111,34 @@ class PageRenderingTest extends TestCase
         ]));
     }
 
+    /**
+     * Seed a durable CSA/CHSCT transmission proof in the outbox — same
+     * dedup_key shape as OutboxEvent::ReportTransmitted::dedupKey()
+     * ("report_transmitted:{uuid}:{recipient}"). The template reads it back via
+     * reportTransmissionDate() / EmailOutboxRepository::findReportTransmissionDate().
+     */
+    private function seedTransmittedOutboxRow(string $reportUuid, string $createdAtUtc): void
+    {
+        $stmt = getDB()->prepare(
+            'INSERT INTO email_outbox (dedup_key, recipient, subject, body, created_at)
+             VALUES (:dedup_key, :recipient, :subject, :body, :created_at)'
+        );
+        $stmt->execute([
+            ':dedup_key'  => 'report_transmitted:' . $reportUuid . ':csa.transmission@dreets-bfc.gouv.fr',
+            ':recipient'  => 'csa.transmission@dreets-bfc.gouv.fr',
+            ':subject'    => 'Signalement transmis',
+            ':body'       => '<p>Transmis</p>',
+            ':created_at' => $createdAtUtc,
+        ]);
+    }
+
+    private function clearTransmittedOutboxRow(string $reportUuid): void
+    {
+        $prefix = 'report_transmitted:' . $reportUuid . ':';
+        $stmt = getDB()->prepare('DELETE FROM email_outbox WHERE substr(dedup_key, 1, :len) = :prefix');
+        $stmt->execute([':len' => strlen($prefix), ':prefix' => $prefix]);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // Data providers
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -606,7 +634,21 @@ class PageRenderingTest extends TestCase
         $output = (string) ob_get_clean();
 
         $this->assertStringContainsString('page=report_transmit', $output);
-        $this->assertStringContainsString('Transmettre aux organisations syndicales', $output);
+        $this->assertStringContainsString(
+            'Transmettre au rôle « ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' »',
+            $output,
+            'Le libellé du bouton suit le nom de rôle configurable, jamais un texte figé.'
+        );
+        $this->assertStringContainsString(
+            'class="form-actions__group"',
+            $output,
+            'Réouvrir et Transmettre partagent le même groupe flex (même ligne, même hauteur).'
+        );
+        $this->assertStringContainsString(
+            'aria-describedby="report-transmit-help"',
+            $output,
+            'Le bouton de transmission référence explicitement son texte d\'aide.'
+        );
 
         $form = '';
         if (preg_match('/<form[^>]*page=report_transmit[^>]*>.*?<\/form>/s', $output, $matches) === 1) {
@@ -628,6 +670,130 @@ class PageRenderingTest extends TestCase
             'class="btn btn--transmit"',
             $form,
             'Le bouton de transmission porte sa classe CSS dédiée (action active).'
+        );
+    }
+
+    /**
+     * Le libellé du bouton de transmission doit suivre le nom de rôle
+     * configurable (app_role_label_chsct), même long : aucun texte figé
+     * « organisations syndicales » ni « CHSCT » en dur. C'est ce libellé qui
+     * peut forcer le bouton à passer sur deux lignes — d'où le groupe flex
+     * `form-actions__group` qui garde Réouvrir et Transmettre alignés et de
+     * même hauteur.
+     */
+    public function testReportViewTransmissionButtonFollowsCustomLongRoleLabel(): void
+    {
+        $configService = getConfigService();
+        $previous = (string) $configService->get('app_role_label_chsct', '');
+        $longLabel = 'Délégué interprofessionnel FS/CSA';
+        $configService->set('app_role_label_chsct', $longLabel);
+        clearConfigCache();
+
+        try {
+            $this->loginAsSuperviseur();
+            $_GET['page'] = 'report_view';
+            $_GET['uuid'] = self::$reportUuid;
+
+            ob_start();
+            renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+            $output = (string) ob_get_clean();
+        } finally {
+            $configService->set('app_role_label_chsct', $previous);
+            clearConfigCache();
+        }
+
+        $this->assertStringContainsString(
+            'Transmettre au rôle « ' . $longLabel . ' »',
+            $output,
+            'Le libellé long configurable est rendu tel quel dans le bouton.'
+        );
+        $this->assertStringContainsString(
+            'class="form-actions__group"',
+            $output,
+            'L\'alignement reste assuré par le groupe flex même avec un libellé long.'
+        );
+    }
+
+    /**
+     * Après une transmission réussie, le bouton actif disparaît au profit d'un
+     * indicateur non-actionnable : case cochée + désactivée et date de
+     * transmission SANS heure (JJ/MM/AAAA), aligné avec Réouvrir via le groupe
+     * flex. Aucune seconde transmission ne doit être proposée.
+     */
+    public function testReportViewShowsTransmittedIndicatorWhenAlreadyTransmitted(): void
+    {
+        $this->seedTransmittedOutboxRow(self::$reportUuid, '2025-03-15 10:00:00');
+
+        try {
+            $this->loginAsSuperviseur();
+            $_GET['page'] = 'report_view';
+            $_GET['uuid'] = self::$reportUuid;
+
+            ob_start();
+            renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+            $output = (string) ob_get_clean();
+        } finally {
+            $this->clearTransmittedOutboxRow(self::$reportUuid);
+        }
+
+        $this->assertStringContainsString(
+            'class="transmit-status"',
+            $output,
+            'Une fois transmis, le bouton actif est remplacé par un indicateur non-actionnable.'
+        );
+        $this->assertMatchesRegularExpression(
+            '/<input type="checkbox" checked disabled/',
+            $output,
+            'L\'indicateur porte une case cochée et désactivée (jamais actionnable).'
+        );
+        $this->assertStringContainsString(
+            'Transmis au ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' le 15/03/2025',
+            $output,
+            'Le texte affiche le rôle configurable et la date SANS heure (JJ/MM/AAAA).'
+        );
+        $this->assertStringNotContainsString(
+            'page=report_transmit',
+            $output,
+            'Aucune seconde transmission n\'est proposée après une transmission réussie.'
+        );
+        $this->assertStringNotContainsString(
+            'report-transmit-help',
+            $output,
+            'L\'aide « envoie ce signalement » disparaît une fois la transmission faite.'
+        );
+    }
+
+    /**
+     * Tant qu'aucune transmission n'est enregistrée, l'action reste active :
+     * le formulaire/bouton est rendu, l'indicateur non-actionnable est absent.
+     */
+    public function testReportViewShowsActiveTransmitButtonWhenNotTransmitted(): void
+    {
+        $this->clearTransmittedOutboxRow(self::$reportUuid);
+
+        $this->loginAsSuperviseur();
+        $_GET['page'] = 'report_view';
+        $_GET['uuid'] = self::$reportUuid;
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringContainsString(
+            'page=report_transmit',
+            $output,
+            'Sans transmission enregistrée, l\'action de transmission reste disponible.'
+        );
+        $this->assertStringContainsString('class="btn btn--transmit"', $output);
+        $this->assertStringNotContainsString(
+            'class="transmit-status"',
+            $output,
+            'L\'indicateur non-actionnable n\'apparaît que si une transmission existe.'
+        );
+        $this->assertStringContainsString(
+            'report-transmit-help',
+            $output,
+            'L\'aide contextuelle reste affichée tant que l\'action est disponible.'
         );
     }
 

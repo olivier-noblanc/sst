@@ -47,6 +47,29 @@ class FormattingService
     }
 
     /**
+     * Format an ISO datetime to a French date WITHOUT the time (d/m/Y).
+     * Assumes the input is in UTC (from SQLite datetime('now')) and converts to
+     * Europe/Paris — same convention as formatDateTimeFR(), so the displayed day
+     * matches the rest of the app near midnight.
+     */
+    public function formatDateOnlyFR(mixed $datetime): string
+    {
+        if (empty($datetime)) {
+            return '—';
+        }
+        $datetime = $datetime;
+        $dt = DateTime::createFromFormat('Y-m-d H:i:s', $datetime, new DateTimeZone('UTC'));
+        if ($dt === false) {
+            $dt = DateTime::createFromFormat('Y-m-d\TH:i:s', $datetime, new DateTimeZone('UTC'));
+        }
+        if ($dt !== false) {
+            $dt->setTimezone(new DateTimeZone('Europe/Paris'));
+            return $dt->format('d/m/Y');
+        }
+        return $this->e($datetime);
+    }
+
+    /**
      * Format an ISO datetime to French format (d/m/Y à H:i).
      * Assumes the input is in UTC (from SQLite datetime('now')) and converts to Europe/Paris.
      */

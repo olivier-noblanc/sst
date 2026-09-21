@@ -272,6 +272,14 @@ if (!isset($csrfToken)) {
 </div>
 <?php endif; ?>
 
+    <?php
+$isSuperviseur = $userRole === \App\Enum\UserRole::Superviseur->value;
+// Transmission CSA/CHSCT : preuve durable dans l'outbox (jamais purgée en
+// fonctionnement normal). Une fois transmise, l'action est remplacée par un
+// indicateur non-actionnable — aucune seconde transmission proposée tant
+// qu'aucune décision explicite ne la rouvre.
+$transmittedAt = $isSuperviseur ? reportTransmissionDate($report->uuid) : null;
+?>
 <div class="form-actions">
     <?php if ($canEdit): ?>
         <a href="<?php echo new \App\Services\HttpService()->url('report_edit', ['uuid' => $report->uuid]); ?>" class="btn btn--secondary">Modifier</a>
@@ -286,19 +294,33 @@ if (!isset($csrfToken)) {
         <small class="help-text help-text--danger">(Le signalement est marqué comme abandonné mais reste consultable)</small>
     <?php endif; ?>
 
-    <?php if ($canReopen): ?>
-        <a href="<?php echo new \App\Services\HttpService()->url('report_reopen', ['uuid' => $report->uuid]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
-    <?php endif; ?>
+    <?php if ($canReopen || $isSuperviseur): ?>
+    <div class="form-actions__group">
+        <?php if ($canReopen): ?>
+            <a href="<?php echo new \App\Services\HttpService()->url('report_reopen', ['uuid' => $report->uuid]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
+        <?php endif; ?>
 
-    <?php if ($userRole === \App\Enum\UserRole::Superviseur->value): ?>
-        <form method="post" action="<?php echo new \App\Services\HttpService()->url('report_transmit'); ?>" class="report-transmit">
-            <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
-            <input type="hidden" name="uuid" value="<?php echo $fmt->e($report->uuid); ?>">
-            <button type="submit" class="btn btn--transmit">Transmettre aux organisations syndicales</button>
-            <small class="help-text">Envoie ce signalement par e-mail aux membres du rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». Aucune transmission n'est automatique.</small>
-        </form>
+        <?php if ($isSuperviseur): ?>
+            <?php if ($transmittedAt !== null): ?>
+                <span class="transmit-status">
+                    <input type="checkbox" checked disabled aria-hidden="true">
+                    <span>Transmis au <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> le <?php echo $fmt->e($fmt->formatDateOnlyFR($transmittedAt)); ?></span>
+                </span>
+            <?php else: ?>
+                <form method="post" action="<?php echo new \App\Services\HttpService()->url('report_transmit'); ?>" class="report-transmit">
+                    <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
+                    <input type="hidden" name="uuid" value="<?php echo $fmt->e($report->uuid); ?>">
+                    <button type="submit" class="btn btn--transmit" aria-describedby="report-transmit-help">Transmettre au rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> »</button>
+                </form>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
     <?php endif; ?>
 
     <a href="<?php echo new \App\Services\HttpService()->url('report_print', ['uuid' => $report->uuid]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Imprimer ou enregistrer en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
     <a href="<?php echo new \App\Services\HttpService()->url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
+
+    <?php if ($isSuperviseur && $transmittedAt === null): ?>
+        <small id="report-transmit-help" class="help-text form-actions__help">Envoie ce signalement par e-mail aux membres du rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». Aucune transmission n'est automatique.</small>
+    <?php endif; ?>
 </div>

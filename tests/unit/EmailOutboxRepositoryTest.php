@@ -337,7 +337,52 @@ class EmailOutboxRepositoryTest extends TestCase
         $this->assertFalse($this->repo->scheduleRetry($id, 'erreur'), 'Seule une ligne processing peut être reprogrammée');
     }
 
-    // ═══ Schéma (phase 0) ═══════════════════════════════════════════════════
+    // ═══ Transmission CSA/CHSCT — date de mise en file ═══════════════════════
+
+    public function testFindReportTransmissionDateReturnsNullWhenNeverTransmitted(): void
+    {
+        $this->assertNull(
+            $this->repo->findReportTransmissionDate('11111111-1111-1111-1111-111111111111')
+        );
+    }
+
+    public function testFindReportTransmissionDateReturnsEarliestTransmission(): void
+    {
+        $uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+        $this->pdo->exec("INSERT INTO email_outbox (dedup_key, recipient, subject, body, created_at) VALUES ('report_transmitted:$uuid:csa2@dreets-bfc.gouv.fr', 'csa2@dreets-bfc.gouv.fr', 's', 'b', '2025-03-15 12:00:00')");
+        $this->pdo->exec("INSERT INTO email_outbox (dedup_key, recipient, subject, body, created_at) VALUES ('report_transmitted:$uuid:csa1@dreets-bfc.gouv.fr', 'csa1@dreets-bfc.gouv.fr', 's', 'b', '2025-03-15 10:00:00')");
+
+        $this->assertSame(
+            '2025-03-15 10:00:00',
+            $this->repo->findReportTransmissionDate($uuid),
+            'La date retenue est la première transmission (MIN) parmi les destinataires.'
+        );
+    }
+
+    public function testFindReportTransmissionDateIgnoresOtherOutboxEvents(): void
+    {
+        $uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+        $this->pdo->exec("INSERT INTO email_outbox (dedup_key, recipient, subject, body, created_at) VALUES ('report_created:$uuid:agent@dreets-bfc.gouv.fr', 'agent@dreets-bfc.gouv.fr', 's', 'b', '2025-03-15 10:00:00')");
+
+        $this->assertNull(
+            $this->repo->findReportTransmissionDate($uuid),
+            'Un autre événement outbox du même signalement ne compte pas comme une transmission.'
+        );
+    }
+
+    public function testFindReportTransmissionDateIgnoresOtherReportsPrefix(): void
+    {
+        $uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+        // Préfixe partagé sans le ':' séparateur : ne doit PAS matcher.
+        $this->pdo->exec("INSERT INTO email_outbox (dedup_key, recipient, subject, body, created_at) VALUES ('report_transmitted:{$uuid}X:csa@dreets-bfc.gouv.fr', 'csa@dreets-bfc.gouv.fr', 's', 'b', '2025-03-15 10:00:00')");
+
+        $this->assertNull(
+            $this->repo->findReportTransmissionDate($uuid),
+            'La comparaison de préfixe est exacte (pas de faux positif de préfixe partagé).'
+        );
+    }
+
+    // ══ Schéma (phase 0) ══════════════════════════════════════════════════
 
     public function testSchemaDeclaresOutboxContract(): void
     {

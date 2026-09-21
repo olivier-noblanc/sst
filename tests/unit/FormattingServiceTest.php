@@ -121,6 +121,38 @@ class FormattingServiceTest extends TestCase
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // formatDateOnlyFR()
+    // ══════════════════════════════════════════════════════════════════════════════
+
+    public function testFormatDateOnlyFRConvertsUtcToFrenchDateWithoutTime(): void
+    {
+        $this->assertSame('15/03/2025', $this->service->formatDateOnlyFR('2025-03-15 14:30:00'));
+    }
+
+    public function testFormatDateOnlyFRNeverRendersTime(): void
+    {
+        $this->assertStringNotContainsString(':', $this->service->formatDateOnlyFR('2025-03-15 14:30:00'));
+    }
+
+    public function testFormatDateOnlyFRUsesParisDayNearMidnight(): void
+    {
+        // 2025-03-15 23:30:00 UTC → 2025-03-16 00:30 CET (winter, +1h) : même
+        // convention que formatDateTimeFR() pour que le jour affiché soit juste.
+        $this->assertSame('16/03/2025', $this->service->formatDateOnlyFR('2025-03-15 23:30:00'));
+    }
+
+    public function testFormatDateOnlyFRHandlesTFormat(): void
+    {
+        $this->assertSame('01/01/2025', $this->service->formatDateOnlyFR('2025-01-01T00:00:00'));
+    }
+
+    public function testFormatDateOnlyFRReturnsDashForEmpty(): void
+    {
+        $this->assertSame('—', $this->service->formatDateOnlyFR(''));
+        $this->assertSame('—', $this->service->formatDateOnlyFR(null));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // generateReference()
     // ═══════════════════════════════════════════════════════════════════════════════
 

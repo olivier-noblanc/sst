@@ -8,8 +8,6 @@ use App\Repository\ReportAgentRepository;
 use App\Repository\ReportRepository;
 use App\Repository\UserRepository;
 use App\Enum\UserRole;
-use App\Enum\ReportType;
-use App\Repository\RegistryRepository;
 use App\Repository\NotificationRepository;
 
 /**
@@ -111,44 +109,59 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
         // aucun envoi direct, le worker outbox transporte.
         enqueueNotification($pdo, OutboxEvent::ReportCreated, $reportUuid, $email, $subject, $body);
     }
-    // Modular-audit P1.3 — DGI notification au CSA/CHSCT n'était déclenchée
-    // qu'en checkant `$type === ReportType::Dgi->value`. Or la colonne
-    // `registries.notify_chsct` existe déjà (persistée par le handler
-    // settings_handler_registres.php:172) et permet à l'admin de configurer
-    // n'importe quel registre (custom inclus) pour notifier le CSA à la création.
-    // On lit maintenant notify_chsct depuis la DB. Fallback: si colonne absente
-    // ou registre introuvable, on garde la compatibilité arrière (DGI only).
-    $notifyChsct = false;
-    try {
-        $registry = RegistryRepository::instance()->findByCode($type);
-        if ($registry !== null && (int) $registry['notify_chsct'] === 1) {
-            $notifyChsct = true;
-        } elseif ($registry === null && $type === ReportType::Dgi->value) {
-            // Compatibilité : registre custom DGI sans ligne en DB (edge case)
-            $notifyChsct = getConfigService()->get('app_dgi_notify_csa', '1') === '1';
-        }
-    } catch (Throwable) {
-        // @silent-ok: pre-migration (colonne notify_chsct absente) — fallback ancien comportement
-        $notifyChsct = ($type === ReportType::Dgi->value && getConfigService()->get('app_dgi_notify_csa', '1') === '1');
+    // Décision métier (Oracle) — AUCUNE notification CSA/CHSCT automatique à la
+    // création : `consent_syndicat` est une consigne pour le superviseur, qui
+    // déclenche lui-même la transmission via notifyReportTransmitted()
+    // (action manuelle, auditée, dédupliquée par signalement × destinataire).
+}
+
+/**
+ * Transmet MANUELLEMENT un signalement aux membres CSA/CHSCT (action
+ * superviseur). Chaque membre actif portant le rôle Chsct et un email valide
+ * est mis en file dans l'outbox, dédupliqué par (signalement × destinataire) :
+ * rejouer la transmission ne crée jamais de doublon, tandis qu'un nouveau
+ * membre reçoit bien sa propre ligne.
+ *
+ * @return int Nombre de lignes réellement mises en file
+ */
+function notifyReportTransmitted(PDO $pdo, string $reportUuid): int
+{
+    $report = ReportRepository::instance()->findById($reportUuid);
+    if ($report === null) {
+        return 0;
     }
-    if ($notifyChsct) {
-        $csaUsers = UserRepository::instance()->findByRole(UserRole::Chsct->value);
-        foreach ($csaUsers as $csaUser) {
-            if (!empty($csaUser->email) && !in_array($csaUser->email, $recipients, true)) {
-                $registryLabel = getRegistryShortLabel($type);
-                $csaSubject = 'Signalement ' . $registryLabel . ' — Notification ' . getRoleLabelShort(UserRole::Chsct->value) . " — {$report->reference}";
-                $csaBody = '<html><body>';
-                $csaBody .= '<h2>Notification ' . $registryLabel . ' — Article L4131-2 du Code du travail</h2>';
-                $csaBody .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la création d\'un signalement relatif à un danger grave et imminent.</p>';
-                $csaBody .= renderEmailField('Référence', $report->reference);
-                $csaBody .= renderEmailField('Objet', $report->objet);
-                $csaBody .= renderEmailField('Déclarant', $report->declarantPrenom . ' ' . $report->declarantNom);
-                $csaBody .= renderEmailLink($reportUrl, 'Consulter le signalement');
-                $csaBody .= '</body></html>';
-                enqueueNotification($pdo, OutboxEvent::ReportCreated, $reportUuid, $csaUser->email, $csaSubject, $csaBody);
-            }
+
+    $registryLabel = getRegistryShortLabel($report->type);
+    $reportUrl = absoluteUrl('report_view', ['uuid' => $reportUuid]);
+
+    $enqueued = 0;
+    $csaUsers = UserRepository::instance()->findByRole(UserRole::Chsct->value);
+    foreach ($csaUsers as $csaUser) {
+        if (empty($csaUser->email) || AnonymizationPolicy::isAnonymizedEmail($csaUser->email)) {
+            continue;
+        }
+        $subject = 'Signalement ' . $registryLabel . ' — Notification ' . getRoleLabelShort(UserRole::Chsct->value) . " — {$report->reference}";
+        $body = '<html><body>';
+        $body .= '<h2>Notification ' . $registryLabel . ' — Article L4131-2 du Code du travail</h2>';
+        $body .= '<p>Conformément à l\'article L4131-2 du Code du travail, vous êtes informé(e) de la transmission d\'un signalement relatif à un danger grave et imminent.</p>';
+        $body .= renderEmailField('Référence', $report->reference);
+        $body .= renderEmailField('Objet', $report->objet);
+        $body .= renderEmailField('Déclarant', $report->declarantPrenom . ' ' . $report->declarantNom);
+        $body .= renderEmailLink($reportUrl, 'Consulter le signalement');
+        $body .= '</body></html>';
+        if (enqueueNotification(
+            $pdo,
+            OutboxEvent::ReportTransmitted,
+            $reportUuid,
+            (string) $csaUser->email,
+            $subject,
+            $body,
+        )) {
+            $enqueued++;
         }
     }
+
+    return $enqueued;
 }
 /**
  * Sélectionne les destinataires de la notification de réponse (oracle).

@@ -17,6 +17,7 @@ use App\Repository\AuditRepository;
 use App\Repository\SessionRepository;
 use App\Repository\ConfigRepository;
 use App\Repository\EmailOutboxRepository;
+use App\Repository\PurgeRepository;
 use App\Services\ReportService;
 use App\Services\UserService;
 use App\Services\AuthService;
@@ -38,6 +39,7 @@ use App\Services\CustomFieldsService;
 use App\Services\ReportStateMachine;
 use App\Services\CronService;
 use App\Services\EmailOutboxWorker;
+use App\Services\PurgeService;
 use App\Services\ExportService;
 use App\Event\EventDispatcher;
 
@@ -104,6 +106,9 @@ function createContainer(): Container
     });
     $container->set(EmailOutboxRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
         return new EmailOutboxRepository($pdo);
+    });
+    $container->set(PurgeRepository::class, function (Container $c) { /** @var PDO $pdo */ $pdo = $c->get(PDO::class);
+        return new PurgeRepository($pdo);
     });
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -180,6 +185,11 @@ function createContainer(): Container
     $container->set(ExportService::class, function (Container $c) {
         /** @var ConfigService $config */ $config = $c->get(ConfigService::class);
         return new ExportService($config);
+    });
+    $container->set(PurgeService::class, function (Container $c) {
+        /** @var PurgeRepository $repository */ $repository = $c->get(PurgeRepository::class);
+        /** @var AuditRepository $audit */ $audit = $c->get(AuditRepository::class);
+        return new PurgeService($repository, $audit);
     });
 
     return $container;

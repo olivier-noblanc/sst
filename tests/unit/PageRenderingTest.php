@@ -285,7 +285,7 @@ class PageRenderingTest extends TestCase
     {
         $pagesDir = __DIR__ . '/../../pages';
         // These pages are handled by index.php or handlers, not by a page file
-        $exceptions = ['logout', 'impersonate', 'user_create', 'user_delete', 'user_reactivate', 'smtp_test', 'outbox_retry'];
+        $exceptions = ['logout', 'impersonate', 'user_create', 'user_delete', 'user_reactivate', 'smtp_test', 'outbox_retry', 'report_transmit'];
         $missing = [];
 
         $router = getRouter();
@@ -456,6 +456,75 @@ class PageRenderingTest extends TestCase
             'id="attachment_remove"',
             $output,
             'Le bouton de suppression ciblée est réservé à la création : l\'édition doit rester inchangée.'
+        );
+    }
+
+    /**
+     * Décision métier (Oracle) — `consent_syndicat` est une CONSIGNE pour le
+     * superviseur, pas un consentement déclenchant un envoi : le formulaire
+     * doit exposer cette nature (aria-describedby + texte « pas automatique »).
+     */
+    public function testReportCreateFormFramesConsentAsAdvisoryConsigne(): void
+    {
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_create';
+        $_GET['type'] = 'rsst';
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_create', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringContainsString('id="consent_syndicat"', $output);
+        $this->assertStringContainsString(
+            'aria-describedby="consent_syndicat_hint"',
+            $output,
+            'La case de consentement doit être reliée à sa consigne via aria-describedby.'
+        );
+        $this->assertStringContainsString(
+            'id="consent_syndicat_hint"',
+            $output,
+            'La consigne doit porter l\'identifiant ciblé par aria-describedby.'
+        );
+        $this->assertStringContainsString('consigne pour le superviseur', $output);
+        $this->assertStringContainsString(
+            "n'est pas automatique",
+            $output,
+            'La consigne doit indiquer explicitement qu\'aucune transmission n\'est automatique.'
+        );
+    }
+
+    /**
+     * La transmission CSA/CHSCT est une action MANUELLE du superviseur, exposée
+     * sur la fiche du signalement ; elle ne doit jamais apparaître pour un agent.
+     */
+    public function testReportViewShowsCsaTransmissionActionForSupervisor(): void
+    {
+        $this->loginAsSuperviseur();
+        $_GET['page'] = 'report_view';
+        $_GET['uuid'] = self::$reportUuid;
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringContainsString('page=report_transmit', $output);
+        $this->assertStringContainsString('Transmettre aux organisations syndicales', $output);
+    }
+
+    public function testReportViewHidesCsaTransmissionActionForAgent(): void
+    {
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_view';
+        $_GET['uuid'] = self::$reportUuid;
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringNotContainsString(
+            'page=report_transmit',
+            $output,
+            'Seul le superviseur peut déclencher la transmission CSA/CHSCT.'
         );
     }
 }

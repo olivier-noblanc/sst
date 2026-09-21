@@ -21,6 +21,7 @@ enum OutboxEvent: string
     case ReportAbandoned = 'report_abandoned';
     case RoleChanged     = 'role_changed';
     case AgentInvite     = 'agent_invite';
+    case ReportTransmitted = 'report_transmitted';
 
     /**
      * Clé de déduplication d'un message : événement + identité logique de

@@ -194,6 +194,22 @@ class NotificationService
     }
 
     /**
+     * Transmet manuellement un signalement aux membres CSA/CHSCT (superviseur).
+     *
+     * Décision métier (Oracle) : aucune transmission automatique à la création.
+     * L'action est mise en file dans l'outbox, dédupliquée par signalement ×
+     * destinataire. Retourne le nombre de messages réellement enqueue (0 si
+     * doublons ou aucun membre CSA/CHSCT joignable).
+     */
+    public function notifyReportTransmitted(string $reportUuid): int
+    {
+        $enqueued = notifyReportTransmitted($this->pdo, $reportUuid);
+        $this->flushOutbox();
+
+        return $enqueued;
+    }
+
+    /**
      * Drain opportuniste post-enqueue.
      *
      * En SAPI web uniquement (jamais en CLI — tests et scripts s'appuient sur

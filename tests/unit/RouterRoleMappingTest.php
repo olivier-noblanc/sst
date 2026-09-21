@@ -42,6 +42,41 @@ class RouterRoleMappingTest extends TestCase
     }
 
     /**
+     * Transmission CSA/CHSCT — action manuelle réservée au Superviseur, derrière
+     * CSRF comme tout POST. Le handler lui-même ne porte pas le contrôle de
+     * rôle (middleware) ; ce test verrouille le câblage de la route.
+     */
+    public function testTransmitRouteRequiresSuperviseurAndCsrf(): void
+    {
+        $router = createRouter();
+        $handlerMap = $router->getHandlerMap();
+        $this->assertArrayHasKey('report_transmit', $handlerMap, 'La route POST report_transmit doit être enregistrée');
+
+        $middlewares = $router->getPostMiddleware('report_transmit');
+        $this->assertNotEmpty($middlewares, 'report_transmit doit avoir des middlewares');
+
+        $roles = null;
+        $hasCsrf = false;
+        foreach ($middlewares as $mw) {
+            if ($mw instanceof \App\Middleware\CsrfMiddleware) {
+                $hasCsrf = true;
+            }
+            if ($mw instanceof \App\Middleware\RoleMiddleware) {
+                $prop = new ReflectionProperty($mw, 'roles');
+                $roles = $prop->getValue($mw);
+            }
+        }
+
+        $this->assertTrue($hasCsrf, 'report_transmit doit être protégé par CsrfMiddleware');
+        $this->assertNotNull($roles, 'report_transmit doit avoir un RoleMiddleware');
+        $this->assertSame(
+            [\App\Enum\UserRole::Superviseur->value],
+            array_values($roles),
+            'Seul le Superviseur peut déclencher une transmission CSA/CHSCT'
+        );
+    }
+
+    /**
      * Test runtime (Beta/B lane) — createRouter() doit démarrer sans erreur :
      * getHandlerMap() a momentanément référencé une propriété inexistante
      * ($handlerMap au lieu de $postHandlers) → TypeError à CHAQUE construction

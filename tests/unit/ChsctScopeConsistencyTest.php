@@ -116,10 +116,12 @@ class ChsctScopeConsistencyTest extends TestCase
     }
 
     /**
-     * When scope is 'consent_only', CHSCT should NOT see reports without consent
-     * in both canAccessReport() and findPaginated().
+     * Décision métier (Oracle) — les membres CSA/CHSCT voient TOUJOURS les
+     * signalements, indépendamment du consentement syndical. `consent_syndicat`
+     * n'est qu'une consigne pour le superviseur : elle ne conditionne plus ni
+     * canAccessReport() ni le filtre de liste findPaginated().
      */
-    public function testConsentOnlyScopeBlocksInBothAccessPaths(): void
+    public function testConsentOnlyScopeNoLongerBlocksCsaAccess(): void
     {
         $this->setChsctScope('consent_only');
 
@@ -133,13 +135,14 @@ class ChsctScopeConsistencyTest extends TestCase
             'site_id' => $this->siteId,
         ]);
 
-        // canAccessReport should block
-        $this->assertFalse(
+        // canAccessReport must always allow the CSA/CHSCT member
+        $this->assertTrue(
             $this->access->canAccessReport($this->rowToReportData($reportRow), $user),
-            'canAccessReport() should block CHSCT when scope is consent_only and consent_syndicat=0'
+            'canAccessReport() doit toujours autoriser le CSA/CHSCT, même consent_syndicat=0'
         );
 
-        // findPaginated should also exclude it
+        // findPaginated must include it even if a caller still passes the
+        // (now ignored) chsct_consent_only flag
         $filter = new ReportFilter(
             type: 'rsst',
             seeAllSites: true,
@@ -148,10 +151,10 @@ class ChsctScopeConsistencyTest extends TestCase
         $result = ReportRepository::instance()->findPaginated($filter, 1, 100);
         $uuids = array_map(fn($r) => $r->uuid, $result->reports);
 
-        $this->assertNotContains(
+        $this->assertContains(
             $this->reportUuid,
             $uuids,
-            'findPaginated() should exclude non-consented reports when chsctConsentOnly=true'
+            'findPaginated() ne doit plus exclure les signalements non consentis pour le CSA/CHSCT'
         );
     }
 

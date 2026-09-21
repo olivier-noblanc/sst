@@ -21,6 +21,10 @@
  * À exécuter en CLI uniquement (pas via navigateur).
  */
 
+use App\Repository\PurgeRepository;
+
+require_once __DIR__ . '/src/Repository/PurgeRepository.php';
+
 echo "\n";
 echo "╔══════════════════════════════════════════════════╗\n";
 echo "║     ☢  NUCLEAR RESET — Purge signalements       ║\n";
@@ -106,35 +110,17 @@ try {
     // Delete in correct order (respect FK constraints)
     echo "\n";
 
-    // Audit #51 — Vidage complet de toutes les tables liées aux signalements.
-    // Avant ce fix, report_agents, report_access_log, report_state_history
-    // et report_agent_invites n'étaient pas vidés → données orphelines.
-    $pdo->exec('DELETE FROM report_agent_invites');
-    echo "  ✓ report_agent_invites vidé\n";
-
-    $pdo->exec('DELETE FROM report_access_log');
-    echo "  ✓ report_access_log vidé\n";
-
-    $pdo->exec('DELETE FROM report_state_history');
-    echo "  ✓ report_state_history vidé\n";
-
-    $pdo->exec('DELETE FROM report_agents');
-    echo "  ✓ report_agents vidé\n";
-
-    $pdo->exec('DELETE FROM report_responses');
-    echo "  ✓ report_responses vidé\n";
-
-    $pdo->exec('DELETE FROM reports');
-    echo "  ✓ reports vidé\n";
-
-    $pdo->exec('DELETE FROM report_sequence');
-    echo "  ✓ report_sequence vidé\n";
-
-    $pdo->exec('DELETE FROM audit_log');
-    echo "  ✓ audit_log vidé\n";
+    // Purge des données de signalement — séquence FK-safe factorisée, partagée
+    // avec la purge supervisée web (PurgeRepository::REPORT_PURGE_TABLES), qui
+    // inclut désormais registry_field_values (orphelines auparavant).
+    foreach (PurgeRepository::REPORT_PURGE_TABLES as $table) {
+        $deleted = $pdo->exec('DELETE FROM ' . $table);
+        $affected = $deleted === false ? 0 : $deleted;
+        echo "  ✓ $table vidé ($affected)\n";
+    }
 
     // Reset auto-increment counters
-    $pdo->exec('DELETE FROM sqlite_sequence WHERE name IN ("reports", "report_responses", "report_sequence", "audit_log", "report_agents", "report_access_log", "report_state_history", "report_agent_invites")');
+    $pdo->exec('DELETE FROM sqlite_sequence WHERE name IN ("reports", "report_responses", "report_sequence", "audit_log", "report_agents", "report_access_log", "report_state_history", "report_agent_invites", "registry_field_values")');
     echo "  ✓ Compteurs auto-increment réinitialisés\n";
 
     // Optimize

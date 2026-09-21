@@ -300,9 +300,15 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             <div class="form-group form-grid__full">
                 <label class="label--checkbox">
                     <input type="checkbox" name="consent_syndicat" id="consent_syndicat" value="1"
+                           aria-describedby="consent_syndicat_hint"
                            <?php echo $consentSyndicatSticky ? 'checked' : ''; ?>>
                     J'accepte que mon signalement soit transmis aux organisations syndicales représentatives au sein de la <?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS')); ?>
                 </label>
+                <span id="consent_syndicat_hint" class="form-hint">
+                    Cette case est une consigne pour le superviseur : elle l'informe de votre accord.
+                    La transmission n'est pas automatique — le superviseur décide et déclenche lui-même
+                    l'envoi de ce signalement aux organisations syndicales.
+                </span>
             </div>
             <div class="form-group">
                 <label for="declarant_nom">Déclarant — Nom</label>

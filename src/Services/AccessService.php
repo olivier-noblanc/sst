@@ -52,10 +52,11 @@ class AccessService
             return true;
         }
         if ($role === UserRole::Chsct->value) {
-            if ($this->getChsctReportScope() === 'all') {
-                return true;
-            }
-            return $report->consentSyndicat === 1;
+            // Décision métier (Oracle) — les membres CSA/CHSCT voient toujours
+            // les signalements, indépendamment du consentement syndical et de la
+            // confidentialité. La case consent_syndicat n'est qu'une CONSIGNE
+            // pour le superviseur : elle ne conditionne jamais l'accès.
+            return true;
         }
 
         $visibility = $forcedVisibility ?? $this->getReportVisibilityMode($report->type);
@@ -210,7 +211,6 @@ class AccessService
         $userSiteId = $user->siteId ?? 0;
         $agentVisibility = $this->getReportVisibility($type, $user->role);
         $seeAllSites = $this->canSeeAllSites($user->role);
-        $chsctScope = $user->role === UserRole::Chsct->value ? $this->getChsctReportScope() : null;
 
         $forceSiteId = null;
         $linkedAgentId = null;
@@ -235,7 +235,6 @@ class AccessService
             forceSiteId: $forceSiteId,
             search: $search,
             seeAllSites: $seeAllSites,
-            chsctConsentOnly: $chsctScope === 'consent_only',
             linkedAgentId: $linkedAgentId,
             linkedAgentVisibility: $linkedAgentVisibility,
         );

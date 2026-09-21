@@ -46,6 +46,20 @@ if (!empty($seedSql)) {
     }
 }
 
+// Purge seam (tests only) — redirige la sentinelle erase.txt du service de
+// purge vers un chemin temporaire au lieu de la racine du dépôt, pour ne
+// jamais toucher un éventuel fichier réel.
+$eraseMarkerPath = $config['erase_marker_path'] ?? null;
+if (is_string($eraseMarkerPath) && $eraseMarkerPath !== '') {
+    $container = getContainer();
+    $purgeRepository = $container->get(\App\Repository\PurgeRepository::class);
+    $auditRepository = $container->get(\App\Repository\AuditRepository::class);
+    $container->set(
+        \App\Services\PurgeService::class,
+        static fn() => new \App\Services\PurgeService($purgeRepository, $auditRepository, $eraseMarkerPath)
+    );
+}
+
 // Suppress errors only during handler execution
 error_reporting(0);
 ini_set('display_errors', '0');
@@ -90,6 +104,14 @@ register_shutdown_function(function () use ($config) {
         }
     }
     $result['queries'] = $results;
+
+    // File existence assertions (e.g. erase.txt sentinel deleted after purge).
+    // Keys are absolute paths; values are the observed existence (bool).
+    $files = [];
+    foreach (($config['file_assertions'] ?? []) as $path => $expected) {
+        $files[$path] = file_exists($path);
+    }
+    $result['files'] = $files;
 
     // Capture rendered output (pages) instead of discarding it — lets page
     // tests assert on visible markers (e.g. access denied). Additive: handler

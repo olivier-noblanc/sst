@@ -9,6 +9,9 @@
 /data/backups/
 /data/sessions/
 
+# Purge sentinel (runtime marker created/deleted by a technician/operator)
+/erase.txt
+
 # Environment
 .env
 .env.*

@@ -27,6 +27,7 @@ function createRouter(): Router
     $router->addPostHandler('report_abandon', "$handlers/report_abandon_handler.php");
     $router->addPostHandler('report_respond', "$handlers/report_respond_handler.php");
     $router->addPostHandler('report_reopen', "$handlers/report_reopen_handler.php");
+    $router->addPostHandler('report_transmit', "$handlers/report_transmit_handler.php");
     $router->addPostHandler('export', "$handlers/export_handler.php");
     $router->addPostHandler('settings', "$handlers/settings_handler.php");
     $router->addPostHandler('site_edit', "$handlers/site_edit_handler.php");
@@ -70,6 +71,8 @@ function createRouter(): Router
     $router->setPostMiddleware('user_reactivate', [$csrf, $superviseur]);
     $router->setPostMiddleware('report_respond', [$csrf, $superviseur]);
     $router->setPostMiddleware('report_reopen', [$csrf, $reopenRoles]);
+    // Transmission CSA/CHSCT : action manuelle réservée au Superviseur.
+    $router->setPostMiddleware('report_transmit', [$csrf, $superviseur]);
 
     // ═══════════════════════════════════════════════════════════════════════════════
     // GET pages (with standard layout)
@@ -132,6 +135,7 @@ function createRouter(): Router
     $router->setPageTitle('report_abandon', 'Abandonner le signalement');
     $router->setPageTitle('report_respond', 'Répondre au signalement');
     $router->setPageTitle('report_reopen', 'Réouvrir le signalement');
+    $router->setPageTitle('report_transmit', 'Transmettre le signalement');
     $router->setPageTitle('synthesis', 'Synthèse des signalements');
     $router->setPageTitle('export', 'Export des données');
     $router->setPageTitle('statistics', 'Statistiques');

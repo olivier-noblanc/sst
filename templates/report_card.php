@@ -290,6 +290,15 @@ if (!isset($csrfToken)) {
         <a href="<?php echo new \App\Services\HttpService()->url('report_reopen', ['uuid' => $report->uuid]); ?>" class="btn btn--warning">Réouvrir ce signalement</a>
     <?php endif; ?>
 
+    <?php if ($userRole === \App\Enum\UserRole::Superviseur->value): ?>
+        <form method="post" action="<?php echo new \App\Services\HttpService()->url('report_transmit'); ?>" class="report-transmit">
+            <input type="hidden" name="csrf_token" value="<?php echo $fmt->e($csrfToken); ?>">
+            <input type="hidden" name="uuid" value="<?php echo $fmt->e($report->uuid); ?>">
+            <button type="submit" class="btn btn--outline">Transmettre aux organisations syndicales</button>
+            <small class="help-text">Envoie ce signalement par e-mail aux membres du rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». Aucune transmission n'est automatique.</small>
+        </form>
+    <?php endif; ?>
+
     <a href="<?php echo new \App\Services\HttpService()->url('report_print', ['uuid' => $report->uuid]); ?>" class="btn btn--outline" target="_blank" rel="noopener noreferrer">Imprimer ou enregistrer en PDF <span class="sr-only">(nouvelle fenêtre)</span></a>
     <a href="<?php echo new \App\Services\HttpService()->url('report_list', ['type' => $type]); ?>" class="btn btn--secondary">Retour à la liste</a>
 </div>

@@ -264,9 +264,9 @@ class ReportQueryRepository
         if (!empty($filters['declarant_id']) && empty($filters['confidential_filter']) && empty($filters['linked_agent_id'])) {
             $builder->addEqual('r.declarant_id', $filters['declarant_id']);
         }
-        if (!empty($filters['chsct_consent_only'])) {
-            $builder->addRaw('r.consent_syndicat = 1');
-        }
+        // Décision métier (Oracle) — plus de filtre consentement pour le
+        // CSA/CHSCT : ces membres voient toujours les signalements. La consigne
+        // consent_syndicat n'est jamais une condition de visibilité de la liste.
 
         ['where' => $where, 'params' => $params] = $builder->build();
 

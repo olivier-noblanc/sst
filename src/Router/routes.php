@@ -33,6 +33,7 @@ function createRouter(): Router
     $router->addPostHandler('site_edit', "$handlers/site_edit_handler.php");
     $router->addPostHandler('smtp_test', "$handlers/smtp_test_handler.php");
     $router->addPostHandler('outbox_retry', "$handlers/outbox_retry_handler.php");
+    $router->addPostHandler('purge_reports', "$handlers/purge_reports_handler.php");
     $router->addPostHandler('user_edit', "$handlers/user_edit_handler.php");
     $router->addPostHandler('user_create', "$handlers/user_create_handler.php");
     $router->addPostHandler('user_delete', "$handlers/user_delete_handler.php");
@@ -65,6 +66,10 @@ function createRouter(): Router
     // Requalification outbox (failed → pending) : action opérateur réservée au
     // Superviseur, comme les autres actions SMTP/paramètres.
     $router->setPostMiddleware('outbox_retry', [$csrf, $superviseur]);
+    // Purge supervisée des signalements : action destructive irréversible,
+    // réservée au Superviseur (comme les autres actions d'administration),
+    // avec confirmation et sentinelle erase.txt vérifiées par le handler.
+    $router->setPostMiddleware('purge_reports', [$csrf, $superviseur]);
     $router->setPostMiddleware('user_edit', [$csrf, $superviseur]);
     $router->setPostMiddleware('user_create', [$csrf, $superviseur]);
     $router->setPostMiddleware('user_delete', [$csrf, $superviseur]);

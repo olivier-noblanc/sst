@@ -188,4 +188,23 @@ final class CssDesignSystemTest extends TestCase
             $this->assertStringStartsWith('clamp(', self::$tokens[$name] ?? '', "$name doit rester fluide (clamp()).");
         }
     }
+
+    public function testCardBaseConsumesTokens(): void
+    {
+        $body = $this->ruleBody('.card');
+        $this->assertStringContainsString('border: 1px solid var(--border)', $body);
+        $this->assertStringContainsString('box-shadow: var(--shadow-sm)', $body);
+        $this->assertStringContainsString('padding: var(--space-4)', $body);
+        $this->assertStringContainsString('margin-bottom: var(--space-4)', $body);
+    }
+
+    public function testCardVariantsConsumeTokens(): void
+    {
+        $this->assertStringContainsString('margin-bottom: var(--space-4)', $this->ruleBody('.card__title'));
+        $this->assertStringContainsString('margin-bottom: var(--space-3)', $this->ruleBody('.card__subtitle'));
+        $this->assertStringContainsString('margin-top: var(--space-4)', $this->ruleBody('.card--danger'));
+        $this->assertStringContainsString('var(--color-danger-text)', $this->ruleBody('.card--danger'));
+        $this->assertStringContainsString('margin-bottom: var(--space-8)', $this->ruleBody('.card--spaced'));
+        $this->assertStringContainsString('var(--border)', $this->ruleBody('.card--dashed'));
+    }
 }

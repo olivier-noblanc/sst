@@ -682,10 +682,11 @@ img { max-width: 100%; height: auto; display: block; }
    ============================================================ */
 .card {
     background: white;
+    border: 1px solid var(--border);
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    padding: 20px;
-    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
 }
 
 .card--rsst { border-top: 4px solid var(--rsst-color); }
@@ -694,19 +695,19 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Card with danger zone */
 .card--danger {
-    margin-top: 20px;
-    border-top: 4px solid var(--dgi-color);
+    margin-top: var(--space-4);
+    border-top: 4px solid var(--color-danger-text);
 }
 
 /* Card title */
 .card__title {
-    margin-bottom: 16px;
-    font-size: 15px;
+    margin-bottom: var(--space-4);
+    font-size: var(--font-size-md);
 }
 
 .card__subtitle {
-    margin-bottom: 12px;
-    font-size: 15px;
+    margin-bottom: var(--space-3);
+    font-size: var(--font-size-md);
 }
 
 /* ============================================================
@@ -2946,7 +2947,7 @@ tr:hover td {
 
 /* Card with bottom spacing */
 .card--spaced {
-    margin-bottom: 36px;
+    margin-bottom: var(--space-8);
 }
 
 /* Card with top spacing */
@@ -4087,7 +4088,7 @@ tr:hover td {
 .color-dot--indigo { background: #4338CA; }
 .color-dot--rose { background: #BE123C; }
 .color-dot--ambre { background: #B45309; }
-.card--dashed { border-top: 4px dashed #ccc; }
+.card--dashed { border-top: 4px dashed var(--border); }
 .whitespace-pre-line { white-space: pre-line; }
 .color-input { width: 80px; height: 36px; padding: 2px; cursor: pointer; }
 .td--flush-top { padding-top: 0; }

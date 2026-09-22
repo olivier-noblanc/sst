@@ -241,4 +241,29 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('var(--font-size-sm)', $this->ruleBody('.form-hint'));
         $this->assertStringContainsString('var(--space-6)', $this->ruleBody('.form-grid'));
     }
+
+    public function testTableWrapperConsumesTokens(): void
+    {
+        $wrapper = $this->ruleBody('.table-wrapper');
+        $this->assertStringContainsString('border: 1px solid var(--border)', $wrapper);
+        $this->assertStringContainsString('border-radius: var(--border-radius)', $wrapper);
+    }
+
+    public function testTableHeadersAreLightAndTokenised(): void
+    {
+        $th = $this->ruleBody('.table-wrapper th');
+        $this->assertNotSame('', $th, 'La règle .table-wrapper th doit exister.');
+        $this->assertStringContainsString('text-transform: uppercase', $th);
+        $this->assertStringContainsString('var(--font-size-xs)', $th);
+        $this->assertStringContainsString('background: var(--grey-50)', $th);
+        $this->assertStringContainsString('border-bottom: 1px solid var(--border)', $th);
+    }
+
+    public function testResponsiveTableStacksWithDataLabel(): void
+    {
+        $tablet = $this->mediaBlocks('(max-width: 768px)');
+        $this->assertStringContainsString('.table-wrapper--responsive td::before', $tablet);
+        $this->assertStringContainsString('attr(data-label)', $tablet);
+        $this->assertStringContainsString('var(--font-size-xs)', $tablet);
+    }
 }

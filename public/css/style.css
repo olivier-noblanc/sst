@@ -1728,7 +1728,23 @@ img { max-width: 100%; height: auto; display: block; }
    ============================================================ */
 .table-wrapper {
     overflow-x: auto;
+    border: 1px solid var(--border);
     border-radius: var(--border-radius);
+}
+
+.table-wrapper th {
+    background: var(--grey-50);
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.3px;
+    color: var(--grey-600);
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-2) var(--space-3);
+}
+
+.table-wrapper td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border);
 }
 
 /* Responsive table card layout — mobile */
@@ -1753,12 +1769,12 @@ img { max-width: 100%; height: auto; display: block; }
         border: 0;
     }
     .table-wrapper--responsive tr {
-        margin-bottom: 12px;
-        border: 1px solid var(--grey-200);
+        margin-bottom: var(--space-3);
+        border: 1px solid var(--border);
         border-radius: var(--border-radius);
         background: white;
-        padding: 12px;
-        box-shadow: var(--shadow);
+        padding: var(--space-3);
+        box-shadow: var(--shadow-sm);
     }
     .table-wrapper--responsive tr:nth-child(even) td {
         background: transparent;
@@ -1770,8 +1786,8 @@ img { max-width: 100%; height: auto; display: block; }
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        padding: 6px 0;
-        border-bottom: 1px solid var(--grey-100);
+        padding: var(--space-1) 0;
+        border-bottom: 1px solid var(--border);
         text-align: right;
     }
     .table-wrapper--responsive td:last-child {
@@ -1780,11 +1796,11 @@ img { max-width: 100%; height: auto; display: block; }
     .table-wrapper--responsive td::before {
         content: attr(data-label);
         font-weight: 600;
-        font-size: 12px;
+        font-size: var(--font-size-xs);
         color: var(--grey-600);
         text-transform: uppercase;
         letter-spacing: 0.3px;
-        margin-right: 12px;
+        margin-right: var(--space-3);
         flex-shrink: 0;
     }
     .table-wrapper--responsive td[data-label] {

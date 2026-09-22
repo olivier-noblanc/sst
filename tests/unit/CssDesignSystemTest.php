@@ -154,6 +154,45 @@ final class CssDesignSystemTest extends TestCase
         return $result;
     }
 
+    /** CSS sans commentaires, pour éviter de confondre exemples et règles réelles. */
+    private static function withoutComments(): string
+    {
+        return (string) preg_replace('~/\*.*?\*/~s', '', self::$css);
+    }
+
+    /**
+     * Extrait les règles « feuilles » (sélecteur => corps), y compris celles
+     * imbriquées dans les media queries, sans se laisser piéger par les accolades.
+     *
+     * @return array<string, string>
+     */
+    private static function leafRules(): array
+    {
+        preg_match_all('/([^{}]+)\{([^{}]*)\}/', self::withoutComments(), $matches, PREG_SET_ORDER);
+        $rules = [];
+        foreach ($matches as $match) {
+            $selector = trim($match[1]);
+            if ($selector === '' || str_starts_with($selector, '@')) {
+                continue;
+            }
+            $rules[$selector] = $match[2];
+        }
+        return $rules;
+    }
+
+    /**
+     * Spécificité CSS (a, b, c) → entier comparable : ids, classes/attributs/
+     * pseudo-classes, éléments/pseudo-éléments.
+     */
+    private static function specificity(string $selector): int
+    {
+        $ids = preg_match_all('/#[\w-]+/', $selector);
+        $classes = preg_match_all('/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+(?:\([^)]*\))?/', $selector);
+        $elements = preg_match_all('/(?:^|[\s>+~])[a-zA-Z][\w-]*/', $selector);
+
+        return ((int) $ids) * 100 + ((int) $classes) * 10 + (int) $elements;
+    }
+
     public function testEveryCanonicalTokenExistsWithExpectedValue(): void
     {
         foreach (self::expectedTokens() as $name => $value) {
@@ -257,6 +296,58 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('var(--font-size-xs)', $th);
         $this->assertStringContainsString('background: var(--grey-50)', $th);
         $this->assertStringContainsString('border-bottom: 1px solid var(--border)', $th);
+    }
+
+    /**
+     * Finding Important F1 (revue Task 4, commit 3c04af7) : `.table-wrapper th`
+     * (0,1,1) écrase `.synthesis-th--<type>` (0,1,0) → en-têtes thématisés rendus
+     * en gris. La règle thématisée doit gagner ET préserver les couleurs de
+     * registre, avec une typographie d'en-tête décidée explicitement.
+     */
+    public function testSynthesisThematicHeadersOutrankTableHeaderDefaults(): void
+    {
+        $rules = self::leafRules();
+        $base = self::specificity('.table-wrapper th');
+
+        $themes = ['rsst', 'rami', 'dgi', 'vert', 'violet', 'orange', 'teal', 'indigo', 'rose', 'ambre'];
+        foreach ($themes as $theme) {
+            $needle = '.synthesis-th--' . $theme;
+            $candidates = array_filter(
+                array_keys($rules),
+                static fn (string $selector): bool => str_contains($selector, $needle)
+            );
+            $this->assertNotEmpty($candidates, "Règle thématisée .synthesis-th--$theme introuvable.");
+
+            foreach ($candidates as $selector) {
+                $this->assertGreaterThan(
+                    $base,
+                    self::specificity($selector),
+                    "Le sélecteur « $selector » doit battre « .table-wrapper th » (0,1,1)."
+                );
+
+                $body = $rules[$selector];
+                $this->assertStringContainsString(
+                    'var(--theme-' . $theme . ')',
+                    $body,
+                    "Couleur de registre $theme non préservée."
+                );
+                $this->assertMatchesRegularExpression(
+                    '/color:\s*white/',
+                    $body,
+                    "Le texte de .synthesis-th--$theme doit rester blanc."
+                );
+                $this->assertStringContainsString(
+                    'text-transform: uppercase',
+                    $body,
+                    "Traitement text-transform explicite attendu pour .synthesis-th--$theme."
+                );
+                $this->assertStringContainsString(
+                    'var(--font-size-xs)',
+                    $body,
+                    "Taille d'en-tête explicite attendue pour .synthesis-th--$theme."
+                );
+            }
+        }
     }
 
     public function testResponsiveTableStacksWithDataLabel(): void

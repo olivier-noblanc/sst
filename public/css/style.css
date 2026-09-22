@@ -760,6 +760,11 @@ img { max-width: 100%; height: auto; display: block; }
  *   .synthesis-th--{theme}      — synthesis table header
  *   .text--{theme}              — text color
  *   .border-left--{theme}       — left border accent
+ *
+ * F1 (revue Task 4) : les en-têtes thématisés sont scopés à `.table-wrapper th`
+ * pour battre la règle de base `.table-wrapper th` (0,1,1) et préserver les
+ * couleurs de registre. La typographie d'en-tête (majuscules, --font-size-xs)
+ * y est réaffirmée explicitement au lieu d'être subie par cascade.
  */
 
 /* --- rsst (Blue) --- */
@@ -768,7 +773,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--rsst { background: var(--theme-rsst); color: white; }
 .registry-card--rsst { background: var(--theme-rsst); }
 .indicateur-card--rsst { border-top-color: var(--theme-rsst); }
-.synthesis-th--rsst { text-align: center; background: var(--theme-rsst); color: white; }
+.table-wrapper th.synthesis-th--rsst {
+    text-align: center;
+    background: var(--theme-rsst);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--rsst { color: var(--theme-rsst); }
 .border-left--rsst { border-left: 4px solid var(--theme-rsst); }
 
@@ -778,7 +789,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--rami { background: var(--theme-rami); color: white; }
 .registry-card--rami { background: var(--theme-rami); }
 .indicateur-card--rami { border-top-color: var(--theme-rami); }
-.synthesis-th--rami { text-align: center; background: var(--theme-rami); color: white; }
+.table-wrapper th.synthesis-th--rami {
+    text-align: center;
+    background: var(--theme-rami);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--rami { color: var(--theme-rami); }
 .border-left--rami { border-left: 4px solid var(--theme-rami); }
 
@@ -792,7 +809,13 @@ img { max-width: 100%; height: auto; display: block; }
 .registry-card--dgi .registry-card__link { color: var(--theme-dgi); }
 .registry-card--dgi .registry-card__desc { color: #991b1b; }
 .indicateur-card--dgi { border-top-color: var(--theme-dgi); }
-.synthesis-th--dgi { text-align: center; background: var(--theme-dgi); color: white; }
+.table-wrapper th.synthesis-th--dgi {
+    text-align: center;
+    background: var(--theme-dgi);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--dgi { color: var(--theme-dgi); }
 .border-left--dgi { border-left: 4px solid var(--theme-dgi); }
 
@@ -802,7 +825,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--vert { background: var(--theme-vert); color: white; }
 .registry-card--vert { background: var(--theme-vert); }
 .indicateur-card--vert { border-top-color: var(--theme-vert); }
-.synthesis-th--vert { text-align: center; background: var(--theme-vert); color: white; }
+.table-wrapper th.synthesis-th--vert {
+    text-align: center;
+    background: var(--theme-vert);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--vert { color: var(--theme-vert); }
 .border-left--vert { border-left: 4px solid var(--theme-vert); }
 
@@ -812,7 +841,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--violet { background: var(--theme-violet); color: white; }
 .registry-card--violet { background: var(--theme-violet); }
 .indicateur-card--violet { border-top-color: var(--theme-violet); }
-.synthesis-th--violet { text-align: center; background: var(--theme-violet); color: white; }
+.table-wrapper th.synthesis-th--violet {
+    text-align: center;
+    background: var(--theme-violet);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--violet { color: var(--theme-violet); }
 .border-left--violet { border-left: 4px solid var(--theme-violet); }
 
@@ -822,7 +857,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--orange { background: var(--theme-orange); color: white; }
 .registry-card--orange { background: var(--theme-orange); }
 .indicateur-card--orange { border-top-color: var(--theme-orange); }
-.synthesis-th--orange { text-align: center; background: var(--theme-orange); color: white; }
+.table-wrapper th.synthesis-th--orange {
+    text-align: center;
+    background: var(--theme-orange);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--orange { color: var(--theme-orange); }
 .border-left--orange { border-left: 4px solid var(--theme-orange); }
 
@@ -832,7 +873,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--teal { background: var(--theme-teal); color: white; }
 .registry-card--teal { background: var(--theme-teal); }
 .indicateur-card--teal { border-top-color: var(--theme-teal); }
-.synthesis-th--teal { text-align: center; background: var(--theme-teal); color: white; }
+.table-wrapper th.synthesis-th--teal {
+    text-align: center;
+    background: var(--theme-teal);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--teal { color: var(--theme-teal); }
 .border-left--teal { border-left: 4px solid var(--theme-teal); }
 
@@ -842,7 +889,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--indigo { background: var(--theme-indigo); color: white; }
 .registry-card--indigo { background: var(--theme-indigo); }
 .indicateur-card--indigo { border-top-color: var(--theme-indigo); }
-.synthesis-th--indigo { text-align: center; background: var(--theme-indigo); color: white; }
+.table-wrapper th.synthesis-th--indigo {
+    text-align: center;
+    background: var(--theme-indigo);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--indigo { color: var(--theme-indigo); }
 .border-left--indigo { border-left: 4px solid var(--theme-indigo); }
 
@@ -852,7 +905,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--rose { background: var(--theme-rose); color: white; }
 .registry-card--rose { background: var(--theme-rose); }
 .indicateur-card--rose { border-top-color: var(--theme-rose); }
-.synthesis-th--rose { text-align: center; background: var(--theme-rose); color: white; }
+.table-wrapper th.synthesis-th--rose {
+    text-align: center;
+    background: var(--theme-rose);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--rose { color: var(--theme-rose); }
 .border-left--rose { border-left: 4px solid var(--theme-rose); }
 
@@ -862,7 +921,13 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--ambre { background: var(--theme-ambre); color: white; }
 .registry-card--ambre { background: var(--theme-ambre); }
 .indicateur-card--ambre { border-top-color: var(--theme-ambre); }
-.synthesis-th--ambre { text-align: center; background: var(--theme-ambre); color: white; }
+.table-wrapper th.synthesis-th--ambre {
+    text-align: center;
+    background: var(--theme-ambre);
+    color: white;
+    text-transform: uppercase;
+    font-size: var(--font-size-xs);
+}
 .text--ambre { color: var(--theme-ambre); }
 .border-left--ambre { border-left: 4px solid var(--theme-ambre); }
 

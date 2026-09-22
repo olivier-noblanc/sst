@@ -207,4 +207,38 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('margin-bottom: var(--space-8)', $this->ruleBody('.card--spaced'));
         $this->assertStringContainsString('var(--border)', $this->ruleBody('.card--dashed'));
     }
+
+    public function testFormControlsConsumeTokens(): void
+    {
+        $this->assertStringContainsString('margin-bottom: var(--space-4)', $this->ruleBody('.form-group'));
+
+        $control = $this->ruleBody('.form-control');
+        $this->assertStringContainsString('border: 1px solid var(--border)', $control);
+        $this->assertStringContainsString('padding: var(--space-2) var(--space-3)', $control);
+        $this->assertStringContainsString('border-radius: var(--border-radius)', $control);
+
+        $this->assertStringContainsString('var(--focus-ring-color)', $this->ruleBody('.form-control:focus'));
+    }
+
+    public function testFormValidationStatesOnlyWhenFilled(): void
+    {
+        $this->assertStringContainsString('.form-control:not(:placeholder-shown):invalid', self::$css);
+        $this->assertStringContainsString('.form-control:not(:placeholder-shown):valid', self::$css);
+        $this->assertStringContainsString(
+            'var(--color-danger-border)',
+            $this->ruleBody('.form-control:not(:placeholder-shown):invalid')
+        );
+        $this->assertStringContainsString(
+            'var(--color-success-border)',
+            $this->ruleBody('.form-control:not(:placeholder-shown):valid')
+        );
+    }
+
+    public function testFormLayoutConsumesTokens(): void
+    {
+        $this->assertStringContainsString('border-top: 1px solid var(--border)', $this->ruleBody('.form-actions'));
+        $this->assertStringContainsString('gap: var(--space-3)', $this->ruleBody('.form-actions__group'));
+        $this->assertStringContainsString('var(--font-size-sm)', $this->ruleBody('.form-hint'));
+        $this->assertStringContainsString('var(--space-6)', $this->ruleBody('.form-grid'));
+    }
 }

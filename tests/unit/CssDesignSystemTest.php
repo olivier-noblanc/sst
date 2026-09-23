@@ -357,4 +357,40 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('attr(data-label)', $tablet);
         $this->assertStringContainsString('var(--font-size-xs)', $tablet);
     }
+
+    public function testHeaderConsumesTokens(): void
+    {
+        $header = $this->ruleBody('.header');
+        $this->assertStringContainsString('height: var(--header-height)', $header);
+        $this->assertStringContainsString('background: var(--color-primary)', $header);
+        $this->assertStringContainsString('z-index: var(--z-header)', $header);
+        $this->assertStringContainsString('padding: 0 var(--space-5)', $header);
+        $this->assertStringContainsString('box-shadow: var(--shadow-md)', $header);
+    }
+
+    public function testSidebarActiveUsesColourAndBorderMarker(): void
+    {
+        $active = $this->ruleBody('.sidebar__item--active');
+        $this->assertStringContainsString('border-left-color: var(--sidebar-active)', $active);
+        $this->assertStringContainsString('background:', $active, 'L’actif ne doit pas reposer sur la couleur seule.');
+        $this->assertStringContainsString('color:', $active);
+    }
+
+    public function testOverlayAndSkipLinkUseDedicatedZTokens(): void
+    {
+        $this->assertStringContainsString('z-index: var(--z-overlay)', $this->ruleBody('.sidebar-overlay'));
+        $this->assertStringContainsString('z-index: var(--z-skip-link)', $this->ruleBody('.skip-link'));
+        $this->assertStringContainsString(
+            'z-index: var(--z-mobile-menu)',
+            $this->mediaBlocks('(max-width: 768px)')
+        );
+    }
+
+    public function testMainContentUsesLayoutTokens(): void
+    {
+        $main = $this->ruleBody('.main');
+        $this->assertStringContainsString('margin-left: var(--sidebar-width)', $main);
+        $this->assertStringContainsString('margin-top: var(--header-height)', $main);
+        $this->assertStringContainsString('padding: var(--content-padding)', $main);
+    }
 }

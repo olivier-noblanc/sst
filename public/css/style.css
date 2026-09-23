@@ -214,19 +214,19 @@ img { max-width: 100%; height: auto; display: block; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 var(--space-5);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: var(--z-header);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-md);
 }
 
 .header__logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-3);
 }
 
 .header__logo-img {
@@ -250,7 +250,7 @@ img { max-width: 100%; height: auto; display: block; }
 .header__user {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--space-4);
     font-size: 13px;
 }
 
@@ -571,7 +571,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .sidebar__nav {
     list-style: none;
-    padding: 8px 0;
+    padding: var(--space-2) 0;
 }
 
 .sidebar__item {
@@ -614,7 +614,7 @@ img { max-width: 100%; height: auto; display: block; }
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.5);
-    z-index: calc(var(--z-sidebar) - 1);
+    z-index: var(--z-overlay);
     cursor: pointer;
 }
 

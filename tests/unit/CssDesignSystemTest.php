@@ -451,4 +451,47 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('min-height: 44px', $tablet);
         $this->assertStringContainsString('.sidebar__item', $tablet);
     }
+
+    /* ---------- Task 8 : Matrice des 10 thèmes + repli neutre ---------- */
+
+    /** @return list<string> */
+    private static function themeKeys(): array
+    {
+        return ['rsst', 'rami', 'dgi', 'vert', 'violet', 'orange', 'teal', 'indigo', 'rose', 'ambre'];
+    }
+
+    /**
+     * Chaque modificateur de thème doit consommer son token `--theme-<clé>`,
+     * et non une couleur littérale ni une variable legacy. Le test est sensible
+     * au doublon : `ruleBody()` renvoie la première règle ancrée, donc une
+     * définition legacy `.card--rsst { … var(--rsst-color) … }` échoue même si
+     * une règle canonique identique existe plus bas.
+     */
+    public function testEveryThemeModifierConsumesItsToken(): void
+    {
+        foreach (self::themeKeys() as $key) {
+            foreach (['.card--', '.badge--', '.btn--'] as $prefix) {
+                $selector = $prefix . $key;
+                $body = $this->ruleBody($selector);
+                $this->assertNotSame('', $body, "Règle manquante : $selector");
+                $this->assertStringContainsString(
+                    "var(--theme-$key)",
+                    $body,
+                    "$selector doit consommer var(--theme-$key)."
+                );
+            }
+        }
+    }
+
+    /**
+     * Un thème inconnu (registre custom avec un `color_theme` non catalogué)
+     * ne doit jamais produire une exception CSS ni un composant invisible :
+     * il dégrade vers le neutre défini par la règle de base.
+     */
+    public function testUnknownThemeFallsBackToNeutral(): void
+    {
+        $this->assertStringContainsString('var(--grey-500)', $this->ruleBody('.badge'));
+        $this->assertStringContainsString('var(--border)', $this->ruleBody('.card'));
+        $this->assertStringContainsString('var(--color-primary)', $this->ruleBody('.btn'));
+    }
 }

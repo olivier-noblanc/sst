@@ -429,4 +429,26 @@ final class CssDesignSystemTest extends TestCase
         );
         $this->assertNotSame('', $this->mediaBlocks('print'), 'La feuille d’impression épurée doit être conservée.');
     }
+
+    /* ---------- Task 7 : Focus visible + cibles tactiles ---------- */
+
+    public function testFocusRingIsTokenised(): void
+    {
+        $ring = $this->ruleBody(':focus-visible');
+        $this->assertStringContainsString('var(--focus-ring-color)', $ring);
+        $this->assertStringContainsString('var(--focus-ring-offset)', $ring);
+    }
+
+    public function testFieldFocusUsesFocusRingToken(): void
+    {
+        $this->assertStringContainsString('var(--focus-ring-color)', $this->ruleBody('.form-control:focus'));
+    }
+
+    public function testTouchTargetsAreComfortableOnMobile(): void
+    {
+        $tablet = $this->mediaBlocks('(max-width: 768px)');
+        $this->assertStringContainsString('.header__menu-btn', $tablet);
+        $this->assertStringContainsString('min-height: 44px', $tablet);
+        $this->assertStringContainsString('.sidebar__item', $tablet);
+    }
 }

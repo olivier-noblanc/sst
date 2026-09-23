@@ -166,6 +166,7 @@ img { max-width: 100%; height: auto; display: block; }
 :focus-visible {
     outline: 3px solid var(--focus-ring-color);
     outline-offset: var(--focus-ring-offset);
+    box-shadow: 0 0 0 var(--focus-ring-offset) var(--focus-ring-color);
 }
 
 /* Remove default focus for mouse users */
@@ -3386,6 +3387,15 @@ tr:hover td {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* Cibles tactiles confortables (≥ 44 px) dans la barre latérale. */
+    .sidebar__item {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
     }
 
     /* Sidebar slides in from left (hidden by default) */

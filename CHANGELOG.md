@@ -32,6 +32,24 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - PHPStan : **0 errors** (level 8)
 
 
+## [3.66.1] — 2026-09-23
+
+### Modernisation visuelle — design piloté par les tokens CSS
+
+- **Périmètre** — Refonte visuelle de l'interface sans changement fonctionnel : `public/css/style.css` et `public/css/login.css` uniquement, aucune modification des pages, handlers ou schémas. Mergé via la branche `omos/css-modernisation-task1` (merge `d1e001b`).
+- **Contrat de tokens `:root`** — Les variables CSS (`:root`) deviennent la source unique du design (couleurs, espacements, rayons, ombres, typographie) ; leur contrat est verrouillé par des tests de contraste.
+- **Composants pilotés par les tokens** — Cartes, formulaires, tableaux et shell (`header`/`sidebar`/`main`) recolorés via les tokens ; les thèmes de registre sont générés par la matrice `--theme-*`.
+- **Accessibilité** — Focus visible renforcé et cibles tactiles portées à 44 px (WCAG 2.5.5).
+- **Responsive** — Consolidation des paliers 768 px et 480 px avec garde-fous ; en-têtes de synthèse thématisés préservés et contraste des fallbacks visuels garanti.
+- **Connexion** — Couche visuelle de la page de connexion pilotée par les tokens, exclue du périmètre de contrôle des captures IIS.
+- **Cache-busting** — La version `CHANGELOG.md` alimente le paramètre `?v=` de `css.php` (`AssetService::cssLink()`), donc le passage à 3.66.1 invalide les feuilles CSS mises en cache.
+
+### Métriques
+
+- Tests : **2252** (6332 assertions)
+- PHPStan : **0 errors** (level 8)
+
+
 ## [3.66.0] — 2026-09-04
 
 ### Fiabilisation — notifications, settings, export, lifecycle, migration email

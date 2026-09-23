@@ -25,7 +25,7 @@
     --theme-vert: #15803D;
     --theme-violet: #7C3AED;
     --theme-orange: #C2410C;
-    --theme-teal: #0D9488;
+    --theme-teal: #0F766E;             /* Teal 700 — ≥ 4.5:1 avec texte blanc */
     --theme-indigo: #4338CA;
     --theme-rose: #BE123C;
     --theme-ambre: #B45309;
@@ -4187,7 +4187,7 @@ tr:hover td {
 .color-dot--vert { background: #15803D; }
 .color-dot--violet { background: #7C3AED; }
 .color-dot--orange { background: #C2410C; }
-.color-dot--teal { background: #0D9488; }
+.color-dot--teal { background: var(--theme-teal); }
 .color-dot--indigo { background: #4338CA; }
 .color-dot--rose { background: #BE123C; }
 .color-dot--ambre { background: #B45309; }

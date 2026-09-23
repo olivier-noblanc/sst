@@ -103,7 +103,7 @@ final class CssDesignSystemTest extends TestCase
             'vert' => '#15803D',
             'violet' => '#7C3AED',
             'orange' => '#C2410C',
-            'teal' => '#0D9488',
+            'teal' => '#0F766E',
             'indigo' => '#4338CA',
             'rose' => '#BE123C',
             'ambre' => '#B45309',

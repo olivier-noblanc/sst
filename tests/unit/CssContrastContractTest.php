@@ -25,6 +25,9 @@ final class CssContrastContractTest extends TestCase
     private const MIN_CONTRAST = 4.5;
     private const WHITE = '#ffffff';
 
+    /** Les 10 clés de thème de registre (cf. `RegistryRepository::themeClasses`). */
+    private const THEME_KEYS = ['rsst', 'rami', 'dgi', 'vert', 'violet', 'orange', 'teal', 'indigo', 'rose', 'ambre'];
+
     private static string $styleCss = '';
 
     /** @var array<string, string> */
@@ -125,5 +128,59 @@ final class CssContrastContractTest extends TestCase
             $ratio,
             sprintf('.badge (texte blanc sur %s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $background, $ratio)
         );
+    }
+
+    /**
+     * Les 10 thèmes de registre portent du texte blanc sur trois surfaces :
+     * le fond des badges (`--theme-<clé>` hérite du `color: white` de `.badge`),
+     * le fond des boutons (`.btn--<clé>`, `color: white` explicite) et le fond
+     * des en-têtes de synthèse (`.synthesis-th--<clé>`, `color: white` explicite).
+     * Chacune doit offrir ≥ 4.5:1.
+     */
+    public function testEveryThemeSurfaceWithWhiteTextMeetsContrast(): void
+    {
+        $badgeBase = self::ruleBody(self::$styleCss, '.badge');
+        $this->assertStringContainsString(
+            'color: white',
+            $badgeBase,
+            'La base .badge porte le texte blanc hérité par les modificateurs .badge--<clé>.'
+        );
+
+        foreach (self::THEME_KEYS as $key) {
+            $explicitWhite = [
+                '.btn--' . $key,
+                '.table-wrapper th.synthesis-th--' . $key,
+            ];
+            $surfaces = array_merge(['.badge--' . $key], $explicitWhite);
+
+            foreach ($surfaces as $selector) {
+                $body = self::ruleBody(self::$styleCss, $selector);
+                $this->assertNotSame('', $body, sprintf('Règle manquante : %s.', $selector));
+
+                if (in_array($selector, $explicitWhite, true)) {
+                    $this->assertStringContainsString(
+                        'color: white',
+                        $body,
+                        sprintf('%s doit porter un texte blanc.', $selector)
+                    );
+                }
+
+                $declaration = self::declaration($body, 'background');
+                $this->assertMatchesRegularExpression(
+                    '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+                    $declaration,
+                    sprintf('%s doit consommer un token de fond.', $selector)
+                );
+
+                $background = self::resolveToken($declaration);
+                $ratio = self::contrastRatio(self::WHITE, $background);
+
+                $this->assertGreaterThanOrEqual(
+                    self::MIN_CONTRAST,
+                    $ratio,
+                    sprintf('%s (texte blanc sur %s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $selector, $background, $ratio)
+                );
+            }
+        }
     }
 }

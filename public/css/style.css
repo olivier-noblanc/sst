@@ -1995,7 +1995,7 @@ tr:hover td {
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
-    background: var(--grey-500);
+    background: var(--grey-700);
     color: white;
     white-space: nowrap;
 }

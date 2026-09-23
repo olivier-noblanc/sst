@@ -490,7 +490,9 @@ final class CssDesignSystemTest extends TestCase
      */
     public function testUnknownThemeFallsBackToNeutral(): void
     {
-        $this->assertStringContainsString('var(--grey-500)', $this->ruleBody('.badge'));
+        // Repli neutre lisible : le fond porte du texte blanc, il doit donc
+        // offrir ≥ 4.5:1 (cf. CssContrastContractTest), d'où --grey-700.
+        $this->assertStringContainsString('var(--grey-700)', $this->ruleBody('.badge'));
         $this->assertStringContainsString('var(--border)', $this->ruleBody('.card'));
         $this->assertStringContainsString('var(--color-primary)', $this->ruleBody('.btn'));
     }

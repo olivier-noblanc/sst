@@ -49,7 +49,7 @@
 .login-btn-desc {
     display: block;
     font-size: var(--font-size-sm);
-    color: var(--grey-500);
+    color: var(--grey-600);
     margin-top: var(--space-1);
     font-style: italic;
 }

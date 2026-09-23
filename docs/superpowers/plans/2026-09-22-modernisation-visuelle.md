@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Refondre la couche de présentation de l'application SST (tokens CSS canoniques, shell header/sidebar/main, cartes/tableaux/formulaires, responsive 768/480, accessibilité AA, connexion, captures) dans `public/css/style.css` et `public/css/login.css`, **sans modifier un seul template, handler, route ou fichier PHP métier**, en conservant tous les noms de classes et la structure HTML existants.
+**Goal:** Refondre la couche de présentation de l'application SST (tokens CSS canoniques, shell header/sidebar/main, cartes/tableaux/formulaires, responsive 768/480, accessibilité AA, captures) dans `public/css/style.css`, **sans modifier un seul template, handler, route ou fichier PHP métier**, en conservant tous les noms de classes et la structure HTML existants. **La page de connexion (Task 9) est hors périmètre** : en production l'application est authentifiée directement par IIS ; `pages/login.php` / `public/css/login.css` ne sont qu'un mode dev hors production et ne font pas partie de la couche visuelle servie.
 
 **Architecture:** Le CSS est l'unique source de vérité visuelle. On consolide le bloc `:root` existant (82 tokens attendus par la spec, `--space-7` manquant) comme contrat unique, puis on réécrit les composants du périmètre pour **consommer exclusivement ces tokens** (aucune valeur littérale en dur dans les règles ciblées). La refactorisation est pilotée par TDD : une classe PHPUnit `CssDesignSystemTest` lit `public/css/style.css` et asserte les contrats (tokens exacts, propriétés tokenisées, présence des blocs `@media`) ; chaque tâche fait échouer un test avant d'implémenter. Aucune dépendance, aucun bundler : le CSS reste un fichier statique servi par `css.php`.
 
@@ -12,7 +12,8 @@
 
 ## Global Constraints
 
-- **Périmètre serré** : cette étape modifie **uniquement** `public/css/style.css` (+ `public/css/login.css` pour la connexion), les tests PHPUnit de contrat CSS, et `tools/` pour la capture. **Aucun** template, handler, service, route ou fichier PHP métier n'est touché (spec §Périmètre).
+- **Périmètre serré** : cette étape modifie **uniquement** `public/css/style.css`, les tests PHPUnit de contrat CSS, et `tools/` pour la capture. **Aucun** template, handler, service, route ou fichier PHP métier n'est touché (spec §Périmètre).
+- **Connexion hors périmètre (décision 2026-09-23)** : l'application de production est authentifiée directement par IIS. `pages/login.php` et `public/css/login.css` ne sont qu'un **mode dev hors production** ; la section « 22. Login Page » de `style.css` et `login.css` ne sont pas servies en production. Aucune tokenisation ni contrat de test ne doit porter sur ces styles — Task 9 annulée, `LoginCssTest` supprimé, couverture de contraste restreinte à `.badge`.
 - **Noms de classes figés** : les tests existants assertent les classes (`btn--danger`, `badge--*`, `card--*`, `form-actions__group`, `btn--transmit`…) : **aucun renommage de classe** n'est autorisé.
 - **Tokens = source de vérité** : `--color-primary` `#0056A3`, `--color-primary-dark` `#003D75`, `--color-primary-light` `#3498DB` ; échelle de gris `--grey-50` `#FAFAFA` → `--grey-900` `#212121` ; `--border` `var(--grey-300)` ; `--hover-highlight` `#E8F0FE`.
 - **Sémantique figée** : `--color-success/-danger/-warning/-info` en triplets `-bg/-border/-text` ; `--state-nouveau/-en-cours/-traite/-abandonne` = `#2E5C8A`/`#E67E22`/`#27AE60`/`#7B8D8E` ; `--role-agent/-superviseur/-chsct` = `#2E5C8A`/`#B22222`/`#8E44AD` ; `--visibility-confidential/-public` = `#6b7280`/`#22c55e`.
@@ -39,7 +40,7 @@ Constats à connaître pour lire le plan :
 - Les 10 tokens `--theme-*` et les 10 modificateurs `.card--*` / `.badge--*` / `.btn--*` existent déjà, **mais `.card--rsst` / `.card--rami` / `.card--dgi` consomment `--rsst-color` / `--rami-color` / `--dgi-color` au lieu de `--theme-*`** (incohérence à corriger, Task 8).
 - Les règles du périmètre codent encore des valeurs littérales : `.card` (`padding: 20px`, `box-shadow: var(--shadow)`, pas de bordure), `.header` (`padding: 0 20px`, ombre `rgba(0,0,0,0.2)`), `.sidebar-overlay` (`z-index: calc(var(--z-sidebar) - 1)` au lieu de `var(--z-overlay)`), `.form-group` (`margin-bottom: 16px`), `.form-control` (`padding: 8px 12px`), `.form-group input:focus` (`box-shadow: 0 0 0 3px rgba(0,86,163,0.15)`), `th`/`td` (paddings `px`), etc.
 - Le CSS contient **145 couleurs hexadécimales hors `:root`** (dont des doublons exacts de tokens). Le périmètre de ce plan tokenise les composants listés, pas les 145.
-- `public/css/login.css` (dev quick-login) code des littéraux (`#555`, `#1e40af`, `#1e3a5f`, `#3b82f6`, `#6b7280`) avec `!important`.
+- `public/css/login.css` (dev quick-login) code des littéraux (`#555`, `#1e40af`, `#1e3a5f`, `#3b82f6`, `#6b7280`) avec `!important`. **Hors périmètre** (mode dev non servi en production, cf. Global Constraints) : ces littéraux sont laissés en l'état.
 - `:focus-visible` existe déjà (outline `3px solid var(--focus-ring-color)`, offset token). `prefers-reduced-motion`, `prefers-contrast`, `@media print` existent.
 - `tests/unit/UiLayoutCssTest.php` est le précédent de test CSS lisant `style.css` (helper `ruleBody()` ancré ligne) : ce plan le généralise dans un nouveau `CssDesignSystemTest`.
 - `docs/screenshots/*.html` (17 fichiers) sont des **snapshots autonomes** : chacun embarque un `<style>` de **60 084 octets** (copie gelée d'une ancienne CSS, identique pour les 17, contenant 15 sélecteurs absents du CSS live, ex. `.sidebar--open`, `.sidebar-overlay--visible`). Ils **ne référencent pas** `style.css` : régénérer les PNG sans resynchroniser ne reflète donc aucun changement (voir Task 10, décision documentée).
@@ -51,10 +52,10 @@ Constats à connaître pour lire le plan :
 
 | Fichier | Rôle | Tâches |
 |---|---|---|
-| `public/css/style.css` | Unique feuille de style applicative ; propriété de tous les tokens et composants du périmètre | 1–9 |
-| `public/css/login.css` | Styles de la page de connexion (dev quick-login), consommateur des tokens | 9 |
+| `public/css/style.css` | Unique feuille de style applicative ; propriété de tous les tokens et composants du périmètre | 1–8 |
+| `public/css/login.css` | Styles de la page de connexion (dev quick-login) — **hors périmètre** : mode dev, non servi en production | — |
 | `tests/unit/CssDesignSystemTest.php` | **Créé** — contrat CSS : tokens, composants tokenisés, matrices responsive/thèmes. Lit `style.css` | 1–8 |
-| `tests/unit/LoginCssTest.php` | **Créé** — contrat CSS de la connexion (`login.css` + section 22 de `style.css`) | 9 |
+| `tests/unit/LoginCssTest.php` | **Supprimé** — la connexion est hors périmètre (Task 9 annulée) | — |
 | `tools/check_screenshot_css.js` | **Créé** — détecte si le `<style>` embarqué dans les snapshots diverge de `style.css` (mode `--check`, CI-friendly) | 10 |
 | `docs/screenshots/*.html`, `docs/screenshots/*.png`, `public/screenshots/*.png` | Artefacts de capture : baseline + régénération | 10 |
 
@@ -807,7 +808,7 @@ Dans le bloc `@media (max-width: 768px)` de la section « 34. Responsive », ajo
     }
 ```
 
-Adapter le bloc `@media (max-width: 480px)` pour utiliser les tokens d'espacement (`--space-3`) sur les paddings réduits (`.header`, `.login-container`, etc.) au lieu de `12px`.
+Adapter le bloc `@media (max-width: 480px)` pour utiliser les tokens d'espacement (`--space-3`) sur les paddings réduits (`.header`, etc.) au lieu de `12px`. (Les styles de la page de connexion — `.login-container` — sont hors périmètre : mode dev non servi en production.)
 
 Dans `@media (prefers-contrast: high)`, ajouter sous `:root` un renforcement explicite des bordures via token :
 
@@ -996,9 +997,11 @@ git commit -m "style(css): matrice des thèmes de registres pilotée par --theme
 
 ---
 
-## Phase 6 — Connexion
+## Phase 6 — Connexion (HORS PÉRIMÈTRE — annulée le 2026-09-23)
 
-### Task 9 : Couche visuelle de la page de connexion (`login.css` + section 22)
+> **Décision 2026-09-23 : Task 9 annulée.** L'application de production est authentifiée directement par IIS ; `pages/login.php` / `public/css/login.css` sont un **mode dev hors production**, et la section « 22. Login Page » de `style.css` n'est pas servie en production. Les changements de Task 9 (`login.css` tokenisé, §22 tokenisée, `LoginCssTest`) ont été retirés. Le correctif de contraste du repli `.badge` (Task 8) et le reste du design sont conservés. Le contenu ci-dessous est gardé comme **référence historique** et **ne doit pas être ré-appliqué**.
+
+### Task 9 (annulée) : Couche visuelle de la page de connexion (`login.css` + section 22)
 
 **Files:**
 - Modify: `public/css/login.css` (littéraux → tokens)
@@ -1338,7 +1341,7 @@ Sinon, aucun commit : la validation est une preuve, pas un livrable.
 | Responsive (768 / 480 / reduced-motion / contrast / print) | Task 6 |
 | Accessibilité (focus visible, cibles 44 px, contrastes AA, clavier, ordre z, sémantique) | Task 7 |
 | Compatibilité thèmes registres (10 clés, 3 modificateurs, repli neutre) | Task 8 |
-| Connexion (page de login, `login.css`, §22) | Task 9 |
+| Connexion (page de login, `login.css`, §22) | **Hors périmètre** — mode dev, non servi en production (Task 9 annulée) |
 | Stratégie de validation — non-régression, CSP, contrat visuel, matrice thèmes, responsive, a11y, E2E | Task 11 |
 | Stratégie de validation — captures avant/après | Task 10 |
 | Périmètre serré / noms de classes / pas de style inline / terminologie / pas de manuel | Global Constraints |
@@ -1350,7 +1353,8 @@ Sinon, aucun commit : la validation est une preuve, pas un livrable.
 - **Snapshots de capture gelés** (Task 10) : les `docs/screenshots/*.html` embarquent une copie figée du CSS et contiennent 15 sélecteurs absents du CSS live. Une synchronisation verbatim casserait leur rendu. Décision : contrôle de dérive uniquement, validation visuelle sur l'application live. À rouvrir si l'équipe veut régénérer les snapshots depuis l'app.
 - **Ordre z (Task 5)** : la prose de la spec contredit la table des valeurs. La table fait foi (overlay 150 > header 100 ; panneau 200 ; skip-link 9999) ; le panneau démarre sous le header via `top: var(--header-height)`.
 - **`:invalid`/`:valid` (Task 3)** : conditionnés à `:not(:placeholder-shown)` pour éviter les faux positifs — les champs sans attribut `placeholder` ne seront donc jamais marqués invalides en direct. Si un formulaire doit exposer l'état d'erreur, il continue de s'appuyer sur `.form-error-summary` (déjà en place).
-- **Changements visuels assumés** : `.card` gagne une bordure et passe `--shadow` → `--shadow-sm` ; `.card` padding 20 px → 16 px (`--space-4`) ; en-têtes de tableaux passent en majuscules ; boutons de connexion prennent les couleurs de rôle. Ces écarts sont conformes à la spec et doivent être confirmés sur l'app live.
+- **Changements visuels assumés** : `.card` gagne une bordure et passe `--shadow` → `--shadow-sm` ; `.card` padding 20 px → 16 px (`--space-4`) ; en-têtes de tableaux passent en majuscules. Ces écarts sont conformes à la spec et doivent être confirmés sur l'app live.
+- **Connexion hors périmètre (2026-09-23)** : les styles de la page de connexion (mode dev, non servis en production) sont sortis du périmètre ; Task 9 et `LoginCssTest` sont annulés, `login.css` et la §22 de `style.css` restaurés à l'état pré-Task 9. Seul le correctif de contraste du repli `.badge` est conservé.
 - **Pas de refonte globale des 145 hex hors `:root`** : le périmètre tokenise les composants listés par la spec. Une passe ultérieure pourra étendre la tokenisation aux pages utilitaires (statistiques, journaux, aide).
 
 ---
@@ -1362,7 +1366,7 @@ Sinon, aucun commit : la validation est une preuve, pas un livrable.
 3. **Responsive** : repli 1 colonne + actions pleine largeur sous 768 ; densité réduite en 480 ; `reduced-motion`/`contrast`/`print` conservés.
 4. **Accessibilité** : focus visible tokenisé, cibles ≥ 44 px, contrastes AA, ordre de tabulation inchangé, contrôles CSS-only activables au clavier.
 5. **Thèmes** : 30 modificateurs consomment `--theme-*` ; repli neutre pour un thème inconnu.
-6. **Connexion** : `login.css` sans hex littéral, tokens consommés, boutons ≥ 48 px.
+6. **Connexion (hors périmètre)** : `login.css` / §22 restent dans leur état d'origine (mode dev non servi en production) ; aucune assertion de contrat ne les couvre.
 7. **Zéro renommage de classe** : suite PHPUnit complète verte (2225+ tests), PHPStan 0 erreur.
 8. **CSP** : `check_inline_styles.php` et `check_css_classes.php --missing` sans erreur ; CSS confiné à `public/css/`.
 9. **E2E** : shards Playwright Firefox verts.

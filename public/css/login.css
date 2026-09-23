@@ -1,25 +1,25 @@
-/* Login Page — Dev mode quick-login styles (tokens du design system) */
+/* Login Page — Dev mode quick-login styles */
 
 .login-choose-profile {
     text-align: center;
-    font-size: var(--font-size-lg);
-    margin: var(--space-5) 0 var(--space-2);
-    color: var(--grey-700);
+    font-size: 18px;
+    margin: 20px 0 8px 0;
+    color: #555;
 }
 
 .login-choose-hint {
     text-align: center;
-    font-size: var(--font-size-md);
-    color: var(--color-primary-dark);
-    margin: 0 0 var(--space-4);
+    font-size: 15px;
+    color: #1e40af;
+    margin: 0 0 16px 0;
     font-weight: 600;
 }
 
 .login-quick-buttons {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
-    margin-top: var(--space-3);
+    gap: 12px;
+    margin-top: 12px;
 }
 
 .login-btn-wrapper {
@@ -28,33 +28,33 @@
 
 .login-quick-buttons .btn {
     justify-content: center;
-    font-size: var(--font-size-lg);
-    min-height: 48px;
-    padding: var(--space-3) var(--space-6);
+    font-size: 18px;
+    min-height: 56px;
+    padding: 14px 28px;
     width: 100%;
 }
 
 .login-btn--superviseur {
-    background: var(--role-superviseur) !important;
+    background: #1e3a5f !important;
 }
 
 .login-btn--agent {
-    background: var(--role-agent) !important;
+    background: #3b82f6 !important;
 }
 
 .login-btn--chsct {
-    background: var(--role-chsct) !important;
+    background: #6b7280 !important;
 }
 
 .login-btn-desc {
     display: block;
-    font-size: var(--font-size-sm);
-    color: var(--grey-600);
-    margin-top: var(--space-1);
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 4px;
     font-style: italic;
 }
 
 .login-dev-notice {
     text-align: center;
-    margin-top: var(--space-3);
+    margin-top: 12px;
 }

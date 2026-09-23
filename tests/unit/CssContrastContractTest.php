@@ -5,11 +5,13 @@ declare(strict_types=1);
 /**
  * CssContrastContractTest — les replis visuels restent lisibles (WCAG AA ≥ 4.5:1).
  *
- * Findings Important de la revue Tasks 8/9 :
- *   1. `.login-btn-desc` (login.css) s'affiche sur la carte blanche de connexion :
- *      sa couleur doit offrir ≥ 4.5:1 sur fond blanc.
- *   2. Le repli neutre `.badge` (thème de registre inconnu) porte du texte blanc :
- *      son fond doit offrir ≥ 4.5:1 sur blanc.
+ * Finding Important de la revue Task 8 : le repli neutre `.badge` (thème de
+ * registre inconnu) porte du texte blanc ; son fond doit offrir ≥ 4.5:1.
+ *
+ * Périmètre : uniquement les éléments réellement servis par l'application
+ * (`style.css`). La page de connexion `login.css` est un mode dev hors
+ * production, l'authentification applicative étant assurée par IIS : elle est
+ * hors périmètre visuel.
  *
  * Le ratio est calculé depuis les tokens `:root` de style.css (source de vérité),
  * sans dépendance externe et sans couleur hexadécimale en dur dans les règles.
@@ -24,7 +26,6 @@ final class CssContrastContractTest extends TestCase
     private const WHITE = '#ffffff';
 
     private static string $styleCss = '';
-    private static string $loginCss = '';
 
     /** @var array<string, string> */
     private static array $tokens = [];
@@ -32,9 +33,7 @@ final class CssContrastContractTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         $style = file_get_contents(__DIR__ . '/../../public/css/style.css');
-        $login = file_get_contents(__DIR__ . '/../../public/css/login.css');
         self::$styleCss = is_string($style) ? $style : '';
-        self::$loginCss = is_string($login) ? $login : '';
         self::$tokens = self::rootTokens(self::$styleCss);
     }
 
@@ -103,28 +102,6 @@ final class CssContrastContractTest extends TestCase
         $darker = min($luminance);
 
         return ($lighter + 0.05) / ($darker + 0.05);
-    }
-
-    public function testLoginBtnDescColourMeetsContrastAAOnWhite(): void
-    {
-        $body = self::ruleBody(self::$loginCss, '.login-btn-desc');
-        $this->assertNotSame('', $body, 'Règle .login-btn-desc introuvable dans login.css.');
-
-        $declaration = self::declaration($body, 'color');
-        $this->assertMatchesRegularExpression(
-            '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
-            $declaration,
-            '.login-btn-desc doit consommer un token de couleur, pas une valeur littérale.'
-        );
-
-        $colour = self::resolveToken($declaration);
-        $ratio = self::contrastRatio($colour, self::WHITE);
-
-        $this->assertGreaterThanOrEqual(
-            self::MIN_CONTRAST,
-            $ratio,
-            sprintf('.login-btn-desc (%s) doit offrir ≥ 4.5:1 sur blanc, mesuré %.2f:1.', $colour, $ratio)
-        );
     }
 
     public function testBadgeFallbackBackgroundMeetsContrastWithWhiteText(): void

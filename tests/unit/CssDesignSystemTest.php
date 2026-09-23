@@ -393,4 +393,40 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('margin-top: var(--header-height)', $main);
         $this->assertStringContainsString('padding: var(--content-padding)', $main);
     }
+
+    /* ---------- Task 6 : Responsive 768 / 480 + garde-fous ---------- */
+
+    public function testFormsCollapseToSingleColumnUnder768(): void
+    {
+        $tablet = $this->mediaBlocks('(max-width: 768px)');
+        $this->assertStringContainsString('.form-grid--3', $tablet);
+        $this->assertStringContainsString('grid-template-columns: 1fr', $tablet);
+    }
+
+    public function testActionsStackFullWidthUnder768(): void
+    {
+        $tablet = $this->mediaBlocks('(max-width: 768px)');
+        $this->assertStringContainsString('.form-actions__group', $tablet);
+        $this->assertStringContainsString('flex-direction: column', $tablet);
+    }
+
+    public function testSmallPhonesReduceDensityWithTokens(): void
+    {
+        $phone = $this->mediaBlocks('(max-width: 480px)');
+        $this->assertStringContainsString('var(--space-3)', $phone);
+    }
+
+    public function testMotionContrastAndPrintGuardsExist(): void
+    {
+        $this->assertStringContainsString(
+            'transition-duration',
+            $this->mediaBlocks('(prefers-reduced-motion: reduce)')
+        );
+        $this->assertStringContainsString(
+            '--border',
+            $this->mediaBlocks('(prefers-contrast: high)'),
+            'Le mode contraste élevé doit renforcer les bordures via un token.'
+        );
+        $this->assertNotSame('', $this->mediaBlocks('print'), 'La feuille d’impression épurée doit être conservée.');
+    }
 }

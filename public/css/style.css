@@ -193,6 +193,7 @@ img { max-width: 100%; height: auto; display: block; }
         --grey-300: #bbb;
         --grey-400: #999;
         --grey-500: #777;
+        --border: #000;
         --shadow: 0 2px 4px rgba(0,0,0,0.3);
         --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
     }
@@ -3509,6 +3510,25 @@ tr:hover td {
         width: 100%;
     }
 
+    /* Formulaires : une seule colonne. Les variantes sont composées avec
+       .form-grid pour battre leurs définitions .form-grid--N déclarées plus
+       bas dans la feuille (même spécificité, source plus tardive — cf. §36). */
+    .form-grid,
+    .form-grid.form-grid--2,
+    .form-grid.form-grid--3,
+    .form-grid.form-grid--4 {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions__group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-actions__group .btn {
+        width: 100%;
+    }
+
     .tab-bar {
         overflow-x: auto;
         flex-wrap: nowrap;
@@ -3566,7 +3586,7 @@ tr:hover td {
     }
 
     .header {
-        padding: 0 12px;
+        padding: 0 var(--space-3);
     }
 
     .header__logo-text {
@@ -3582,7 +3602,7 @@ tr:hover td {
     }
 
     .login-container {
-        padding: 12px;
+        padding: var(--space-3);
     }
 
     .login-card {
@@ -3606,7 +3626,7 @@ tr:hover td {
     }
 
     .filter-bar {
-        padding: 12px;
+        padding: var(--space-3);
     }
 
     .btn--sm {
@@ -3622,8 +3642,9 @@ tr:hover td {
         font-size: 11px;
     }
 
+    /* Densité des tableaux : padding piloté par les tokens (finding F2). */
     th, td {
-        padding: 6px 8px;
+        padding: var(--space-2) var(--space-3);
     }
 
     .back-to-top {

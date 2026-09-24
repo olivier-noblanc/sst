@@ -247,8 +247,8 @@ img { max-width: 100%; height: auto; display: block; }
    ============================================================ */
 .header {
     height: var(--header-height);
-    background: var(--color-primary);
-    color: white;
+    background: var(--header-surface);
+    color: var(--grey-900);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -258,7 +258,8 @@ img { max-width: 100%; height: auto; display: block; }
     left: 0;
     right: 0;
     z-index: var(--z-header);
-    box-shadow: var(--shadow-md);
+    border-bottom: 1px solid var(--header-border);
+    box-shadow: var(--shadow-sm);
 }
 
 .header__logo {
@@ -272,7 +273,8 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .header__logo-text {
-    background: rgba(255,255,255,0.2);
+    background: var(--color-primary);
+    color: #FFFFFF;
     padding: 4px 12px;
     border-radius: var(--border-radius);
     font-weight: 700;
@@ -282,7 +284,8 @@ img { max-width: 100%; height: auto; display: block; }
 
 .header__title {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
+    color: var(--grey-900);
 }
 
 .header__user {
@@ -290,6 +293,7 @@ img { max-width: 100%; height: auto; display: block; }
     align-items: center;
     gap: var(--space-4);
     font-size: 13px;
+    color: var(--grey-700);
 }
 
 .header__username {
@@ -299,16 +303,15 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .header__logout {
-    color: white;
+    color: var(--grey-700);
     text-decoration: none;
-    opacity: 0.8;
     padding: 6px 12px;
     border-radius: var(--border-radius);
-    transition: opacity var(--transition-base), background var(--transition-base);
+    transition: color var(--transition-base), background var(--transition-base);
 }
 .header__logout:hover {
-    opacity: 1;
-    background: rgba(255,255,255,0.15);
+    color: var(--color-primary);
+    background: var(--surface-sunken);
     text-decoration: none;
 }
 
@@ -331,9 +334,9 @@ img { max-width: 100%; height: auto; display: block; }
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    color: white;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.4);
+    color: var(--color-primary);
+    background: var(--hover-highlight);
+    border: 1px solid var(--card-border);
     border-radius: var(--border-radius);
     padding: 4px 10px;
     font-size: 0.85em;
@@ -357,34 +360,34 @@ img { max-width: 100%; height: auto; display: block; }
     top: 0;
     width: 9px;
     height: 12px;
-    border: 1.5px solid white;
+    border: 1.5px solid var(--color-primary);
     border-radius: 50% 50% 50% 50% / 35% 35% 65% 65%;
 }
 /* Left mask (happy — comedy) */
 .impersonate-icon::before {
     left: 0;
-    background: rgba(255,255,255,0.2);
+    background: var(--hover-highlight);
 }
 /* Right mask (sad — tragedy), slightly offset */
 .impersonate-icon::after {
     right: 0;
     top: 2px;
-    background: rgba(255,255,255,0.12);
+    background: transparent;
     border-style: dashed;
 }
 
 .impersonate-btn:hover,
 .impersonate-btn:focus-visible {
-    background: rgba(255,255,255,0.3);
+    background: var(--surface-sunken);
     outline: none;
 }
 .impersonate-btn:hover .impersonate-icon::before,
 .impersonate-btn:focus-visible .impersonate-icon::before {
-    background: rgba(255,255,255,0.35);
+    background: var(--color-primary-light);
 }
 .impersonate-btn:hover .impersonate-icon::after,
 .impersonate-btn:focus-visible .impersonate-icon::after {
-    background: rgba(255,255,255,0.25);
+    background: var(--hover-highlight);
 }
 .impersonate-menu {
     display: none;
@@ -557,20 +560,21 @@ img { max-width: 100%; height: auto; display: block; }
 .header__menu-btn {
     display: none;
     background: none;
-    border: 2px solid rgba(255,255,255,0.6);
+    border: 2px solid var(--border);
     border-radius: var(--border-radius);
-    color: white;
+    color: var(--grey-700);
     padding: 6px 10px;
     font-size: 20px;
     cursor: pointer;
     line-height: 1;
-    transition: background var(--transition-fast);
+    transition: background var(--transition-fast), border-color var(--transition-fast);
     -webkit-user-select: none;
     user-select: none;
 }
 .header__menu-btn:hover,
 .header__menu-btn:focus-visible {
-    background: rgba(255,255,255,0.15);
+    background: var(--surface-sunken);
+    border-color: var(--color-primary);
 }
 
 /* ============================================================

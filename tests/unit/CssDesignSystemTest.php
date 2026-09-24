@@ -398,10 +398,11 @@ final class CssDesignSystemTest extends TestCase
     {
         $header = $this->ruleBody('.header');
         $this->assertStringContainsString('height: var(--header-height)', $header);
-        $this->assertStringContainsString('background: var(--color-primary)', $header);
+        $this->assertStringContainsString('background: var(--header-surface)', $header);
+        $this->assertStringContainsString('border-bottom: 1px solid var(--header-border)', $header);
         $this->assertStringContainsString('z-index: var(--z-header)', $header);
         $this->assertStringContainsString('padding: 0 var(--space-5)', $header);
-        $this->assertStringContainsString('box-shadow: var(--shadow-md)', $header);
+        $this->assertStringContainsString('box-shadow: var(--shadow-sm)', $header);
     }
 
     public function testSidebarActiveUsesColourAndBorderMarker(): void

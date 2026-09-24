@@ -139,6 +139,26 @@ class PageRenderingTest extends TestCase
         $stmt->execute([':len' => strlen($prefix), ':prefix' => $prefix]);
     }
 
+    /**
+     * Link a user to a report as a "agent rattaché" (report_agents). The caller
+     * is responsible for clearing the link afterwards (fixture isolation).
+     */
+    private function linkAgentToReport(string $reportUuid, int $userId): void
+    {
+        $stmt = getDB()->prepare('INSERT INTO report_agents (report_uuid, user_id) VALUES (:uuid, :user_id)');
+        $stmt->execute([':uuid' => $reportUuid, ':user_id' => $userId]);
+    }
+
+    /**
+     * Remove every "agent rattaché" link for a report — keeps the shared
+     * fixture deterministic regardless of test execution order.
+     */
+    private function clearLinkedAgents(string $reportUuid): void
+    {
+        $stmt = getDB()->prepare('DELETE FROM report_agents WHERE report_uuid = :uuid');
+        $stmt->execute([':uuid' => $reportUuid]);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // Data providers
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -365,13 +385,20 @@ class PageRenderingTest extends TestCase
     /**
      * L'information de confidentialité de la fiche signalement doit refléter
      * la politique réelle d'AccessService::canAccessReport() : un signalement
-     * confidentiel est visible par le déclarant, les superviseurs, les agents
-     * rattachés (linked agents) et les membres CSA/CHSCT — pas seulement par
-     * les superviseurs. Le libellé du rôle reste configurable (jamais « CHSCT »
-     * en dur).
+     * confidentiel est visible par le déclarant, les superviseurs et les
+     * membres CSA/CHSCT — pas seulement par les superviseurs.
+     *
+     * Sans aucun agent rattaché ($linkedAgents vide), la phrase reste complète
+     * mais ne doit PAS mentionner « les agents rattachés » : annoncer une
+     * audience inexistante est faux. Le libellé du rôle reste configurable
+     * (jamais « CHSCT » en dur).
      */
-    public function testReportCardConfidentialHintMatchesActualAccessPolicy(): void
+    public function testReportCardConfidentialHintOmitsLinkedAgentsWhenNone(): void
     {
+        // Isolation de la fixture : le signalement ne doit porter aucun agent
+        // rattaché, quel que soit l'ordre d'exécution des tests.
+        $this->clearLinkedAgents(self::$reportUuid);
+
         // self::$agentUserId (1) est le déclarant du signalement confidentiel.
         $this->loginAsAgent();
         $_GET['page'] = 'report_view';
@@ -381,30 +408,54 @@ class PageRenderingTest extends TestCase
         renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
         $output = (string) ob_get_clean();
 
+        $roleLabel = getRoleLabelShort(\App\Enum\UserRole::Chsct->value);
+
         $this->assertStringNotContainsString(
             'Seuls les superviseurs peuvent voir ce signalement',
             $output,
             'Le texte faux « Seuls les superviseurs peuvent voir ce signalement » ne doit plus être rendu.'
         );
         $this->assertStringContainsString(
-            'le déclarant',
+            '(Visible uniquement par le déclarant, les superviseurs et les membres du rôle « ' . $roleLabel . ' »)',
             $output,
-            'L\'information doit nommer le déclarant, qui conserve l\'accès.'
+            'Sans agent rattaché, la phrase de confidentialité est complète mais sans mention des agents rattachés.'
         );
-        $this->assertStringContainsString(
-            'les superviseurs',
-            $output,
-            'L\'information doit nommer les superviseurs.'
-        );
-        $this->assertStringContainsString(
+        $this->assertStringNotContainsString(
             'les agents rattachés',
             $output,
-            'L\'information doit nommer les agents rattachés (linked agents).'
+            'Sans agent rattaché, la mention « les agents rattachés » doit être omise.'
         );
+    }
+
+    /**
+     * Avec au moins un agent rattaché ($linkedAgents non vide), la phrase de
+     * confidentialité doit nommer « les agents rattachés » — l'accès réel de
+     * ces agents doit être reflété. Le lien est inséré puis retiré (try/finally)
+     * pour ne pas contaminer les autres tests.
+     */
+    public function testReportCardConfidentialHintMentionsLinkedAgentsWhenPresent(): void
+    {
+        $this->clearLinkedAgents(self::$reportUuid);
+        $this->linkAgentToReport(self::$reportUuid, self::$superviseurUserId);
+
+        try {
+            $this->loginAsAgent();
+            $_GET['page'] = 'report_view';
+            $_GET['uuid'] = self::$reportUuid;
+
+            ob_start();
+            renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+            $output = (string) ob_get_clean();
+        } finally {
+            $this->clearLinkedAgents(self::$reportUuid);
+        }
+
+        $roleLabel = getRoleLabelShort(\App\Enum\UserRole::Chsct->value);
+
         $this->assertStringContainsString(
-            'les membres du rôle « ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' »',
+            '(Visible uniquement par le déclarant, les superviseurs, les agents rattachés et les membres du rôle « ' . $roleLabel . ' »)',
             $output,
-            'L\'information doit nommer les membres CSA/CHSCT via leur libellé configurable.'
+            'Avec au moins un agent rattaché, la phrase complète nomme « les agents rattachés ».'
         );
     }
 

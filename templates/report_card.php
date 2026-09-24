@@ -66,7 +66,20 @@ if (!isset($csrfToken)) {
                 <span class="badge <?php echo e($fmt->getEtatBadgeClass($report->etat)); ?>"><?php echo $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat); ?></span>
                 <?php if (!empty($report->isConfidential)): ?>
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
-                <small class="help-text">(Visible uniquement par le déclarant, les superviseurs, les agents rattachés et les membres du rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> »)</small>
+                <?php
+                // Audiences réelles d'un signalement confidentiel (aligné sur
+                // AccessService::canAccessReport) : le déclarant et les
+                // superviseurs sont toujours concernés ; « les agents
+                // rattachés » n'est mentionné que s'il en existe au moins un.
+                // $linkedAgents est fourni par pages/report_view.php — aucune
+                // requête SQL dans ce template.
+                $confidentialAudience = 'le déclarant, les superviseurs';
+                if (!empty($linkedAgents)) {
+                    $confidentialAudience .= ', les agents rattachés';
+                }
+                $confidentialAudience .= ' et les membres du rôle « ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' »';
+                ?>
+                <small class="help-text">(Visible uniquement par <?php echo $fmt->e($confidentialAudience); ?>)</small>
                 <?php endif; ?>
             </div>
         </div>

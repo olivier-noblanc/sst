@@ -66,7 +66,7 @@ if (!isset($csrfToken)) {
                 <span class="badge <?php echo e($fmt->getEtatBadgeClass($report->etat)); ?>"><?php echo $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat); ?></span>
                 <?php if (!empty($report->isConfidential)): ?>
                 <span class="badge badge--confidential">&#128274; Confidentiel</span>
-                <small class="help-text">(Seuls les superviseurs peuvent voir ce signalement)</small>
+                <small class="help-text">(Visible uniquement par le déclarant, les superviseurs, les agents rattachés et les membres du rôle « <?php echo $fmt->e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> »)</small>
                 <?php endif; ?>
             </div>
         </div>

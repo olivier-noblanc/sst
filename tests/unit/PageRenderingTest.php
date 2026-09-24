@@ -363,6 +363,52 @@ class PageRenderingTest extends TestCase
     }
 
     /**
+     * L'information de confidentialité de la fiche signalement doit refléter
+     * la politique réelle d'AccessService::canAccessReport() : un signalement
+     * confidentiel est visible par le déclarant, les superviseurs, les agents
+     * rattachés (linked agents) et les membres CSA/CHSCT — pas seulement par
+     * les superviseurs. Le libellé du rôle reste configurable (jamais « CHSCT »
+     * en dur).
+     */
+    public function testReportCardConfidentialHintMatchesActualAccessPolicy(): void
+    {
+        // self::$agentUserId (1) est le déclarant du signalement confidentiel.
+        $this->loginAsAgent();
+        $_GET['page'] = 'report_view';
+        $_GET['uuid'] = self::$reportUuid;
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        $this->assertStringNotContainsString(
+            'Seuls les superviseurs peuvent voir ce signalement',
+            $output,
+            'Le texte faux « Seuls les superviseurs peuvent voir ce signalement » ne doit plus être rendu.'
+        );
+        $this->assertStringContainsString(
+            'le déclarant',
+            $output,
+            'L\'information doit nommer le déclarant, qui conserve l\'accès.'
+        );
+        $this->assertStringContainsString(
+            'les superviseurs',
+            $output,
+            'L\'information doit nommer les superviseurs.'
+        );
+        $this->assertStringContainsString(
+            'les agents rattachés',
+            $output,
+            'L\'information doit nommer les agents rattachés (linked agents).'
+        );
+        $this->assertStringContainsString(
+            'les membres du rôle « ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' »',
+            $output,
+            'L\'information doit nommer les membres CSA/CHSCT via leur libellé configurable.'
+        );
+    }
+
+    /**
      * Regression test — Audit #79. Same user-facing symptom as
      * testReportViewShowsEditButtonForDeclarant above (declarant never sees
      * "Modifier"), different root cause: ReportListItem — the lighter DTO

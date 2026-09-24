@@ -574,7 +574,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* ============================================================
-   7. Sidebar — Dark grey (#2C3E50), fixed
+   7. Sidebar — Bleu nuit premium (--sidebar-bg), fixed
    ============================================================ */
 .sidebar {
     width: var(--sidebar-width);
@@ -614,7 +614,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .sidebar__item {
     display: block;
-    padding: 14px 20px;
+    padding: var(--space-3) var(--space-5);
     color: var(--sidebar-text);
     text-decoration: none;
     font-size: 15px;
@@ -624,18 +624,19 @@ img { max-width: 100%; height: auto; display: block; }
 
 .sidebar__item:hover {
     background: var(--sidebar-hover);
+    color: #FFFFFF;
     text-decoration: none;
 }
 
 .sidebar__item--active {
-    background: var(--sidebar-hover);
+    background: var(--sidebar-active-tint);
     border-left-color: var(--sidebar-active);
-    color: white;
+    color: #FFFFFF;
     font-weight: 600;
 }
 
 .sidebar__icon {
-    margin-right: 10px;
+    margin-right: var(--space-3);
     width: 18px;
     text-align: center;
     display: inline-block;
@@ -643,7 +644,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .sidebar__footer {
     padding: 8px 0;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid var(--sidebar-hover);
 }
 
 /* Mobile overlay (label for checkbox — clicking closes) */

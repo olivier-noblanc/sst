@@ -408,8 +408,35 @@ final class CssDesignSystemTest extends TestCase
     {
         $active = $this->ruleBody('.sidebar__item--active');
         $this->assertStringContainsString('border-left-color: var(--sidebar-active)', $active);
-        $this->assertStringContainsString('background:', $active, 'L’actif ne doit pas reposer sur la couleur seule.');
+        $this->assertStringContainsString('background: var(--sidebar-active-tint)', $active);
         $this->assertStringContainsString('color:', $active);
+    }
+
+    public function testSidebarItemsUseSpacingTokensAndHoverLift(): void
+    {
+        $item = $this->ruleBody('.sidebar__item');
+        $this->assertStringContainsString('padding: var(--space-3) var(--space-5)', $item);
+        $this->assertStringContainsString('transition: background', $item);
+
+        $hover = $this->ruleBody('.sidebar__item:hover');
+        $this->assertStringContainsString('background: var(--sidebar-hover)', $hover);
+        $this->assertStringContainsString('color: #FFFFFF', $hover);
+
+        $icon = $this->ruleBody('.sidebar__icon');
+        $this->assertStringContainsString('margin-right: var(--space-3)', $icon);
+
+        $footer = $this->ruleBody('.sidebar__footer');
+        $this->assertStringContainsString('border-top: 1px solid var(--sidebar-hover)', $footer);
+    }
+
+    public function testSidebarSectionCommentReflectsNavyToken(): void
+    {
+        $this->assertStringNotContainsString(
+            '#2C3E50',
+            self::$css,
+            'Couleur legacy de la sidebar encore référencée dans style.css.'
+        );
+        $this->assertStringContainsString('Bleu nuit premium', self::$css);
     }
 
     public function testOverlayAndSkipLinkUseDedicatedZTokens(): void

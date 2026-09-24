@@ -30,6 +30,18 @@
     --theme-rose: #BE123C;
     --theme-ambre: #B45309;
 
+    /* Accents par registre — fonds clairs et encres lisibles (≥ 4.5:1 sur leur tint) */
+    --theme-rsst-tint: #EDF2F8;    --theme-rsst-ink: #24486D;
+    --theme-rami-tint: #F2F2F2;    --theme-rami-ink: #4F4F4F;
+    --theme-dgi-tint: #FDF0F0;     --theme-dgi-ink: #8F1616;
+    --theme-vert-tint: #EDF7F0;    --theme-vert-ink: #116032;
+    --theme-violet-tint: #F3EFFD;  --theme-violet-ink: #5F2DB5;
+    --theme-orange-tint: #FDF1EB;  --theme-orange-ink: #93320A;
+    --theme-teal-tint: #EAF6F4;    --theme-teal-ink: #0B5A54;
+    --theme-indigo-tint: #EFEEFB;  --theme-indigo-ink: #342CA0;
+    --theme-rose-tint: #FCEEF2;    --theme-rose-ink: #92102E;
+    --theme-ambre-tint: #FCF4E9;   --theme-ambre-ink: #87400B;
+
     /* Sémantique — états de signalement */
     --state-nouveau: #2E5C8A;          /* Blue */
     --state-en-cours: #E67E22;         /* Orange */
@@ -75,7 +87,7 @@
     --hover-highlight: #E8F0FE;
 
     /* Bordures */
-    --border: var(--grey-300);
+    --border: #E4E9F0;
 
     /* Mise en page */
     --sidebar-width: 220px;
@@ -83,10 +95,11 @@
     --content-padding: 24px;
 
     /* Barre latérale */
-    --sidebar-bg: #2C3E50;
-    --sidebar-text: #CCCCCC;
-    --sidebar-hover: #34495E;
-    --sidebar-active: var(--color-primary-light);
+    --sidebar-bg: #0F1D33;
+    --sidebar-text: #C7D2E0;
+    --sidebar-hover: rgba(255,255,255,0.06);
+    --sidebar-active: #4A9EE8;
+    --sidebar-active-tint: rgba(74,158,232,0.16);
 
     /* Typographie */
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -132,6 +145,29 @@
     /* Focus */
     --focus-ring-color: rgba(0,86,163,0.4);
     --focus-ring-offset: 2px;
+
+    /* Surfaces premium */
+    --surface: #FFFFFF;
+    --surface-muted: #F7F9FC;
+    --surface-sunken: #EEF2F7;
+    --card-border: #E1E7EF;
+    --card-shadow: 0 1px 2px rgba(15,29,51,0.04), 0 1px 3px rgba(15,29,51,0.06);
+    --card-shadow-hover: 0 2px 4px rgba(15,29,51,0.06), 0 6px 16px rgba(15,29,51,0.08);
+    --radius-xl: 12px;
+    --radius-pill: 999px;
+    --header-surface: var(--surface);
+    --header-border: var(--card-border);
+
+    /* Bornes laptop */
+    --laptop-min: 1024px;
+    --content-max-width: 1240px;
+
+    /* Typographie premium */
+    --stat-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+
+    /* Nuage de mots */
+    --word-cloud-min: 0.8rem;
+    --word-cloud-max: 1.5rem;
 }
 
 

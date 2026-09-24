@@ -56,7 +56,7 @@ final class CssDesignSystemTest extends TestCase
             '--grey-700' => '#616161',
             '--grey-800' => '#424242',
             '--grey-900' => '#212121',
-            '--border' => 'var(--grey-300)',
+            '--border' => '#E4E9F0',
             '--hover-highlight' => '#E8F0FE',
             '--color-success-bg' => '#d4edda',
             '--color-success-border' => '#c3e6cb',
@@ -94,6 +94,26 @@ final class CssDesignSystemTest extends TestCase
             '--z-skip-link' => '9999',
             '--focus-ring-color' => 'rgba(0,86,163,0.4)',
             '--focus-ring-offset' => '2px',
+            '--sidebar-bg' => '#0F1D33',
+            '--sidebar-text' => '#C7D2E0',
+            '--sidebar-hover' => 'rgba(255,255,255,0.06)',
+            '--sidebar-active' => '#4A9EE8',
+            '--sidebar-active-tint' => 'rgba(74,158,232,0.16)',
+            '--surface' => '#FFFFFF',
+            '--surface-muted' => '#F7F9FC',
+            '--surface-sunken' => '#EEF2F7',
+            '--card-border' => '#E1E7EF',
+            '--card-shadow' => '0 1px 2px rgba(15,29,51,0.04), 0 1px 3px rgba(15,29,51,0.06)',
+            '--card-shadow-hover' => '0 2px 4px rgba(15,29,51,0.06), 0 6px 16px rgba(15,29,51,0.08)',
+            '--radius-xl' => '12px',
+            '--radius-pill' => '999px',
+            '--header-surface' => 'var(--surface)',
+            '--header-border' => 'var(--card-border)',
+            '--stat-size' => 'clamp(1.5rem, 1.2rem + 1vw, 2rem)',
+            '--laptop-min' => '1024px',
+            '--content-max-width' => '1240px',
+            '--word-cloud-min' => '0.8rem',
+            '--word-cloud-max' => '1.5rem',
         ];
 
         foreach ([
@@ -109,6 +129,22 @@ final class CssDesignSystemTest extends TestCase
             'ambre' => '#B45309',
         ] as $key => $value) {
             $tokens['--theme-' . $key] = $value;
+        }
+
+        foreach ([
+            'rsst' => ['#EDF2F8', '#24486D'],
+            'rami' => ['#F2F2F2', '#4F4F4F'],
+            'dgi' => ['#FDF0F0', '#8F1616'],
+            'vert' => ['#EDF7F0', '#116032'],
+            'violet' => ['#F3EFFD', '#5F2DB5'],
+            'orange' => ['#FDF1EB', '#93320A'],
+            'teal' => ['#EAF6F4', '#0B5A54'],
+            'indigo' => ['#EFEEFB', '#342CA0'],
+            'rose' => ['#FCEEF2', '#92102E'],
+            'ambre' => ['#FCF4E9', '#87400B'],
+        ] as $key => [$tint, $ink]) {
+            $tokens['--theme-' . $key . '-tint'] = $tint;
+            $tokens['--theme-' . $key . '-ink'] = $ink;
         }
 
         return $tokens;

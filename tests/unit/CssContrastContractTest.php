@@ -635,6 +635,205 @@ final class CssContrastContractTest extends TestCase
     }
 
     /**
+     * Retour UI : les en-têtes de tableau doivent être visuellement distincts
+     * des lignes en projection. Le fond d'en-tête consomme un token dédié,
+     * différent du zébrage (`--grey-50`) et de la surface blanche, et plus
+     * marqué (luminance relative inférieure) que le zébrage.
+     */
+    public function testTableHeaderSurfaceIsDistinctFromDataRows(): void
+    {
+        $zebraBody = self::ruleBody(self::$styleCss, 'tr:nth-child(even) td');
+        $this->assertNotSame('', $zebraBody, 'Règle de zébrage introuvable.');
+        $zebraBg = self::resolveToken(self::declaration($zebraBody, 'background'));
+        $this->assertMatchesRegularExpression('/^#[0-9a-f]{6}$/i', $zebraBg, 'Le zébrage doit résoudre une couleur.');
+
+        $surface = self::resolveToken(self::$tokens['--surface'] ?? '');
+        $this->assertNotSame('', $surface, 'Token --surface introuvable.');
+
+        foreach (['.table-wrapper th', 'th'] as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle %s introuvable.', $selector));
+
+            $declaration = self::declaration($body, 'background');
+            $this->assertMatchesRegularExpression(
+                '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+                $declaration,
+                sprintf('%s doit consommer un token de fond, pas un littéral.', $selector)
+            );
+
+            $headerBg = self::resolveToken($declaration);
+            $this->assertNotSame($headerBg, $zebraBg, sprintf('%s ne doit pas partager le fond du zébrage.', $selector));
+            $this->assertNotSame($headerBg, $surface, sprintf('%s ne doit pas partager le fond blanc des lignes.', $selector));
+            $this->assertLessThan(
+                self::relativeLuminance($zebraBg),
+                self::relativeLuminance($headerBg),
+                sprintf('%s doit être plus marqué (plus sombre) que le zébrage.', $selector)
+            );
+        }
+    }
+
+    /**
+     * Retour UI : le texte d'en-tête reste contrasté (WCAG AA ≥ 4.5:1) sur la
+     * nouvelle surface d'en-tête.
+     */
+    public function testTableHeaderTextMeetsContrastOnHeaderSurface(): void
+    {
+        foreach (['.table-wrapper th', 'th'] as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle %s introuvable.', $selector));
+
+            $backgroundDeclaration = self::declaration($body, 'background');
+            $this->assertMatchesRegularExpression('/^var\(\s*--[a-z0-9-]+\s*\)$/i', $backgroundDeclaration);
+            $headerBg = self::resolveToken($backgroundDeclaration);
+
+            $colorDeclaration = self::declaration($body, 'color');
+            $this->assertMatchesRegularExpression(
+                '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+                $colorDeclaration,
+                sprintf('%s doit consommer un token de couleur.', $selector)
+            );
+            $color = self::resolveToken($colorDeclaration);
+
+            $ratio = self::contrastRatio($color, $headerBg);
+            $this->assertGreaterThanOrEqual(
+                self::MIN_CONTRAST,
+                $ratio,
+                sprintf('%s : texte %s sur %s doit offrir ≥ 4.5:1, mesuré %.2f:1.', $selector, $color, $headerBg, $ratio)
+            );
+        }
+    }
+
+    /**
+     * Retour UI : la règle basse d'en-tête doit être perceptible (WCAG 1.4.11,
+     * ≥ 3:1) et épaisse d'au moins 2px pour séparer nettement l'en-tête des
+     * lignes.
+     */
+    public function testTableHeaderBottomBorderIsPerceptible(): void
+    {
+        foreach (['.table-wrapper th', 'th'] as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle %s introuvable.', $selector));
+
+            $border = self::declaration($body, 'border-bottom');
+            $this->assertMatchesRegularExpression(
+                '/^\d+(\.\d+)?px\s+solid\s+var\(\s*--[a-z0-9-]+\s*\)$/i',
+                $border,
+                sprintf('%s : bordure basse tokenisée attendue, reçu « %s ».', $selector, $border)
+            );
+
+            preg_match('/^([\d.]+)px/i', $border, $widthMatch);
+            $this->assertGreaterThanOrEqual(
+                2.0,
+                (float) ($widthMatch[1] ?? 0),
+                sprintf('%s : la règle basse doit faire au moins 2px.', $selector)
+            );
+
+            preg_match('/var\(\s*(--[a-z0-9-]+)\s*\)/i', $border, $tokenMatch);
+            $borderColor = self::resolveToken('var(' . ($tokenMatch[1] ?? '') . ')');
+            $headerBg = self::resolveToken(self::declaration($body, 'background'));
+
+            $ratio = self::contrastRatio($borderColor, $headerBg);
+            $this->assertGreaterThanOrEqual(
+                self::MIN_NON_TEXT_CONTRAST,
+                $ratio,
+                sprintf('%s : bordure %s sur fond %s doit offrir ≥ 3:1, mesuré %.2f:1.', $selector, $borderColor, $headerBg, $ratio)
+            );
+        }
+    }
+
+    /**
+     * Retour UI : le bouton de pièce jointe (`.file-upload-wrapper__label`,
+     * « Joindre un document ») ne doit plus s'atténuer via `opacity: 0.85` au
+     * survol/focus — ce qui dégrade le contraste — mais passer par un fond
+     * solide tokenisé qui conserve AA (texte blanc ≥ 4.5:1).
+     */
+    public function testAttachmentUploadButtonHoverIsSolidAndKeepsAa(): void
+    {
+        $bodies = self::ruleBodiesFor('.file-upload-wrapper__label:hover');
+        $this->assertNotEmpty($bodies, 'Règle .file-upload-wrapper__label:hover introuvable.');
+
+        $body = implode("\n", $bodies);
+        $declarations = (string) preg_replace('~/\*.*?\*/~s', '', $body);
+        $this->assertStringNotContainsString(
+            'opacity: 0.85',
+            $declarations,
+            'Le survol ne doit plus atténuer le bouton via opacity: 0.85.'
+        );
+
+        if (preg_match('/opacity\s*:\s*([^;]+);/i', $declarations, $match) === 1) {
+            $this->assertSame('1', trim((string) ($match[1] ?? '')), 'Si une opacité subsiste, elle doit valoir 1 (état solide).');
+        }
+
+        $backgroundDeclaration = self::declaration($body, 'background');
+        $this->assertMatchesRegularExpression(
+            '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+            $backgroundDeclaration,
+            'Le survol doit poser un fond solide tokenisé.'
+        );
+
+        $hoverBg = self::resolveToken($backgroundDeclaration);
+        $ratio = self::contrastRatio(self::WHITE, $hoverBg);
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            $ratio,
+            sprintf('Bouton pièce jointe au survol : blanc sur %s doit offrir ≥ 4.5:1, mesuré %.2f:1.', $hoverBg, $ratio)
+        );
+    }
+
+    /**
+     * Retour UI (suite) : le focus clavier du contrôle de pièce jointe doit
+     * rester perceptible. L'input `file` étant visuellement masqué, l'anneau
+     * est porté par le label sur `:focus-within`.
+     */
+    public function testAttachmentUploadButtonFocusIsVisible(): void
+    {
+        $bodies = self::ruleBodiesFor('.file-upload-wrapper__label:focus-within');
+        $this->assertNotEmpty($bodies, 'Règle .file-upload-wrapper__label:focus-within introuvable.');
+
+        $visible = false;
+        foreach ($bodies as $body) {
+            if (preg_match('/outline\s*:\s*[^;]*var\(\s*--focus-ring-color\s*\)/i', $body) === 1) {
+                $visible = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($visible, 'Le label de pièce jointe doit porter un anneau de focus tokenisé sur :focus-within.');
+    }
+
+    /**
+     * Le renforcement des en-têtes ne doit pas casser le zébrage ni le survol
+     * des lignes.
+     */
+    public function testZebraAndHoverRowBackgroundsArePreserved(): void
+    {
+        $this->assertStringContainsString(
+            'background: var(--grey-50)',
+            self::ruleBody(self::$styleCss, 'tr:nth-child(even) td'),
+            'Le zébrage des lignes paires doit rester --grey-50.'
+        );
+        $this->assertStringContainsString(
+            'background: var(--hover-highlight)',
+            self::ruleBody(self::$styleCss, 'tr:hover td'),
+            'Le survol de ligne doit rester --hover-highlight.'
+        );
+    }
+
+    /**
+     * Le renforcement des en-têtes globaux ne doit pas transformer la colonne
+     * de libellés de `report-detail__table` (fond transparent, colonne de
+     * gauche) en bandeau d'en-tête.
+     */
+    public function testReportDetailLabelsKeepTransparentBackground(): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\.report-detail__table th\s*\{[^}]*background:\s*transparent/s',
+            self::$styleCss,
+            'Les libellés de report-detail__table doivent rester à fond transparent.'
+        );
+    }
+
+    /**
      * Extrait les règles « feuilles » (sélecteur => corps), y compris celles
      * imbriquées dans les media queries, sans se laisser piéger par les accolades.
      *
@@ -654,5 +853,26 @@ final class CssContrastContractTest extends TestCase
         }
 
         return $rules;
+    }
+
+    /**
+     * Corps de toutes les règles dont la liste de sélecteurs contient
+     * `$selector` (une règle multi-sélecteurs compte pour chacun d'eux).
+     *
+     * @return list<string>
+     */
+    private static function ruleBodiesFor(string $selector): array
+    {
+        $bodies = [];
+        foreach (self::leafRules() as $candidate => $body) {
+            foreach (array_map('trim', explode(',', $candidate)) as $part) {
+                if ($part === $selector) {
+                    $bodies[] = $body;
+                    break;
+                }
+            }
+        }
+
+        return $bodies;
     }
 }

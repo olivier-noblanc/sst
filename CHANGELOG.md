@@ -32,6 +32,21 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - PHPStan : **0 errors** (level 8)
 
 
+## [3.66.2] — 2026-09-28
+
+### Refonte visuelle premium — seconde passe (laptop)
+
+- **Périmètre** — Seconde passe visuelle sans changement fonctionnel : `public/css/style.css`, `public/js/wordcloud.js`, une retouche markup dans `src/helpers/registry_card_renderer.php`. Aucune modification des routes, handlers, services, repositories, base de données ni de l'authentification IIS.
+- **Tokens premium** — Nouvelles surfaces (`--surface`, `--surface-muted`, `--surface-sunken`, `--card-border`, `--card-shadow*`, `--radius-xl`, `--radius-pill`, `--header-surface`, `--header-border`), accents par registre `--theme-<clé>-tint` / `--theme-<clé>-ink` (10 clés) et bornes laptop `--laptop-min` / `--content-max-width`.
+- **Sidebar et header** — Sidebar bleu nuit (`--sidebar-bg #0F1D33`) avec item actif à double signal (remplissage teinté + barre d'accent) ; header contemporain sur surface claire à bordure basse fine.
+- **Cartes de registre** — Cartes sur surface teintée avec accent par registre (barre latérale, pastille d'icône) et compteur dominant (`.registry-card__stat-value` / `.registry-card__stat-label`) ; carte DGI alignée sur le tronc commun avec marqueur de priorité décoratif ; légende de workflow compacte (≤ 44 px sur une ligne à 1280/1440).
+- **Grille laptop** — `.registry-cards` en grille 3 colonnes ≥ 1024 px, 4 colonnes ≥ 1440 px (plafonnée à 4), 1 colonne ≤ 768 px ; `.main` sur `--surface-muted` avec contenus bornés à `--content-max-width`.
+- **Nuage de mots** — Encre sombre adaptée au fond teinté (`--word-cloud-ink`), taille bornée `[0.8rem, 1.5rem]`, collisions élargies et étapes de placement augmentées.
+- **Contraste et accessibilité** — Contrastes AA vérifiés par contrat PHPUnit (`--theme-<clé>-ink` sur `-tint`, sidebar) ; états actifs doublés d'un marqueur non chromatique ; `prefers-reduced-motion` / `prefers-contrast` conservés.
+- **Validations laptop** — Matrice priorité 1280×800, contrôle 1440×900, plancher 1024×768 verrouillés par `e2e/visual-premium.spec.js` (viewport Playwright par défaut porté à 1280×800) ; contrats de contraste, design system et rendu des cartes couverts par `CssContrastContractTest`, `CssDesignSystemTest`, `CssRegistryCardPremiumTest`, `RegistryCardRendererTest` et `WordCloudRegressionTest`.
+- **Cache-busting** — La version `CHANGELOG.md` (`3.66.2`) alimente `?v=` de `css.php` (`css/style.css`) **et** de `js.php` (`js/wordcloud.js`) via `getAppVersion()` : les deux ressources sont invalidées d'un coup. Aucune modification de `web.config`, des en-têtes de cache, de la CSP ni de la configuration IIS ; rollback = commit précédent (`?v=3.66.1`).
+
+
 ## [3.66.1] — 2026-09-23
 
 ### Modernisation visuelle — design piloté par les tokens CSS

@@ -123,7 +123,7 @@ module.exports = defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:8850',
     headless: true,
-    viewport: { width: 1280, height: 720 },
+    viewport: { width: 1280, height: 800 },
     ignoreHTTPSErrors: true,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',

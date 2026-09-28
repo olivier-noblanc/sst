@@ -1265,11 +1265,14 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .workflow-legend__item--muted {
-    opacity: 0.6;
+    /* Pas d'opacité : la mise en retrait de l'état « abandonné » est portée par
+       le badge --state-abandonne. `opacity: 0.6` ferait chuter le libellé à
+       ~2.15:1 ; on garde un token ≥ 4.5:1 sur --surface-sunken. */
+    color: var(--grey-700);
 }
 
 .workflow-legend__text {
-    color: var(--grey-600);
+    color: var(--grey-700);
     font-size: var(--font-size-xs);
 }
 

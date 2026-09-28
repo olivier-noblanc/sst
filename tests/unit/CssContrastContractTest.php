@@ -220,4 +220,89 @@ final class CssContrastContractTest extends TestCase
             }
         }
     }
+
+    /**
+     * Finding Important I1 : les libellés `.workflow-legend__text` sont posés
+     * sur `--surface-sunken` ; `--grey-600` n'y offre que ~4.10:1. Le token
+     * doit être `--grey-700` (≥ 4.5:1). Couvre aussi le libellé « Non
+     * poursuivi » de l'item `--muted`, qui reprend cette couleur.
+     */
+    public function testWorkflowLegendTextMeetsContrastOnSunkenSurface(): void
+    {
+        $surface = self::resolveToken(self::$tokens['--surface-sunken'] ?? '');
+        $this->assertNotSame('', $surface, 'Token --surface-sunken introuvable dans :root.');
+
+        $legendBody = self::ruleBody(self::$styleCss, '.workflow-legend');
+        $this->assertNotSame('', $legendBody, 'Règle .workflow-legend introuvable dans style.css.');
+
+        $backgroundDeclaration = self::declaration($legendBody, 'background');
+        $this->assertMatchesRegularExpression(
+            '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+            $backgroundDeclaration,
+            '.workflow-legend doit consommer un token de fond, pas une valeur littérale.'
+        );
+        $this->assertSame(
+            $surface,
+            self::resolveToken($backgroundDeclaration),
+            'La légende doit reposer sur --surface-sunken, la surface mesurée.'
+        );
+
+        $textBody = self::ruleBody(self::$styleCss, '.workflow-legend__text');
+        $this->assertNotSame('', $textBody, 'Règle .workflow-legend__text introuvable dans style.css.');
+
+        $colorDeclaration = self::declaration($textBody, 'color');
+        $this->assertMatchesRegularExpression(
+            '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+            $colorDeclaration,
+            '.workflow-legend__text doit consommer un token de couleur, pas une valeur littérale.'
+        );
+
+        $color = self::resolveToken($colorDeclaration);
+        $ratio = self::contrastRatio($color, $surface);
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            $ratio,
+            sprintf('.workflow-legend__text (%s) sur --surface-sunken (%s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $color, $surface, $ratio)
+        );
+    }
+
+    /**
+     * Finding Important I1 (suite) : la mise en retrait du libellé
+     * « Abandonné » ne doit pas passer par une opacité — `opacity: 0.6`
+     * composée avec `--grey-600` fait chuter le contraste à ~2.15:1. La
+     * désaturation de l'état est portée par le badge `--state-abandonne` et
+     * la couleur de l'item muted reste un token ≥ 4.5:1 sur sunken.
+     */
+    public function testMutedWorkflowLegendItemDoesNotFadeTextWithOpacity(): void
+    {
+        $mutedBody = self::ruleBody(self::$styleCss, '.workflow-legend__item--muted');
+        $this->assertNotSame('', $mutedBody, 'Règle .workflow-legend__item--muted introuvable dans style.css.');
+
+        // Seules les déclarations comptent : les commentaires CSS sont retirés
+        // avant de vérifier l'absence de la propriété `opacity`.
+        $declarations = (string) preg_replace('~/\*.*?\*/~s', '', $mutedBody);
+        $this->assertStringNotContainsString(
+            'opacity',
+            $declarations,
+            '.workflow-legend__item--muted ne doit pas dégrader la lisibilité via opacity.'
+        );
+
+        $surface = self::resolveToken(self::$tokens['--surface-sunken'] ?? '');
+        $this->assertNotSame('', $surface, 'Token --surface-sunken introuvable dans :root.');
+
+        $colorDeclaration = self::declaration($mutedBody, 'color');
+        $this->assertMatchesRegularExpression(
+            '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+            $colorDeclaration,
+            '.workflow-legend__item--muted doit porter une couleur de token, pas une valeur littérale.'
+        );
+
+        $color = self::resolveToken($colorDeclaration);
+        $ratio = self::contrastRatio($color, $surface);
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            $ratio,
+            sprintf('.workflow-legend__item--muted (%s) sur --surface-sunken (%s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $color, $surface, $ratio)
+        );
+    }
 }

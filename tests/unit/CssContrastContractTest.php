@@ -17,6 +17,7 @@ declare(strict_types=1);
  * sans dépendance externe et sans couleur hexadécimale en dur dans les règles.
  */
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CssContrastContractTest extends TestCase
@@ -25,6 +26,12 @@ final class CssContrastContractTest extends TestCase
     private const MIN_CONTRAST = 4.5;
     /** Seuil WCAG 1.4.11 / 2.4.11 pour les éléments non textuels (bordures, focus). */
     private const MIN_NON_TEXT_CONTRAST = 3.0;
+    /**
+     * Épaisseur minimale admissible de l'anneau de focus du bouton de pièce
+     * jointe. La règle servie utilise 3px ; le plancher verrouillé est 2px, en
+     * deçà le focus n'est plus suffisamment perceptible.
+     */
+    private const MIN_ATTACHMENT_FOCUS_OUTLINE_WIDTH = 2;
     private const WHITE = '#ffffff';
 
     /** Les 10 clés de thème de registre (cf. `RegistryRepository::themeClasses`). */
@@ -80,6 +87,60 @@ final class CssContrastContractTest extends TestCase
         }
 
         return $value;
+    }
+
+    /**
+     * Vérifie qu'un corps de règle matérialise un anneau de focus conforme pour
+     * le bouton de pièce jointe : `outline` d'au moins 2px, style `solid`,
+     * couleur `var(--focus-ring-color)`, et un `outline-offset` valide (≥ 0).
+     *
+     * Méthode pure extraite pour démontrer, via un test dédié, que le contrat
+     * rejette réellement des variantes invalides (largeur trop fine, style
+     * pointillé, couleur non tokenisée, offset négatif ou absent).
+     */
+    private static function attachmentFocusRingBodyIsValid(string $body): bool
+    {
+        $outline = self::declaration($body, 'outline');
+        if ($outline === '') {
+            return false;
+        }
+
+        $width = null;
+        $isSolid = false;
+        $usesFocusRingColor = false;
+
+        foreach (preg_split('/\s+/', trim($outline)) ?: [] as $token) {
+            if (preg_match('/^(\d+(?:\.\d+)?)px$/i', $token, $match) === 1) {
+                $width = (float) ($match[1] ?? 0);
+            } elseif (strcasecmp($token, 'solid') === 0) {
+                $isSolid = true;
+            } elseif (preg_match('/^var\(\s*--focus-ring-color\s*\)$/i', $token) === 1) {
+                $usesFocusRingColor = true;
+            }
+        }
+
+        if ($width === null
+            || $width < self::MIN_ATTACHMENT_FOCUS_OUTLINE_WIDTH
+            || !$isSolid
+            || !$usesFocusRingColor
+        ) {
+            return false;
+        }
+
+        $offset = self::resolveToken(self::declaration($body, 'outline-offset'));
+        if (preg_match('/^(\d+(?:\.\d+)?)px$/i', $offset, $match) !== 1) {
+            return false;
+        }
+
+        return (float) ($match[1] ?? 0) >= 0;
+    }
+
+    /** Valeur d'un attribut HTML dans une balise déjà extraite (chaîne vide si absent). */
+    private static function attributeValue(string $tag, string $attribute): string
+    {
+        $pattern = '/\b' . preg_quote($attribute, '/') . '="([^"]*)"/i';
+
+        return preg_match($pattern, $tag, $match) === 1 ? (string) ($match[1] ?? '') : '';
     }
 
     private static function relativeLuminance(string $hex): float
@@ -787,9 +848,11 @@ final class CssContrastContractTest extends TestCase
      * peut donc jamais s'activer. L'anneau est porté par le label via le
      * combinateur frère adjacent `input:focus-visible + label`.
      *
-     * Le contrat lie le sélecteur CSS à la relation DOM réellement servie par
-     * les deux formulaires (création/édition et réponse), pour qu'une
-     * régression de markup (label déplacé/imbriqué) fasse échouer le test.
+     * Contrat verrouillé : l'anneau doit être au moins 2px, `solid`, de couleur
+     * `var(--focus-ring-color)`, avec un `outline-offset` valide (≥ 0) ; et le
+     * `for` du label doit pointer vers l'`id` de l'input adjacent dans les deux
+     * formulaires (création/édition et réponse). Une régression CSS ou de markup
+     * (label déplacé, id/for désynchronisés) fait échouer le test.
      */
     public function testAttachmentUploadFocusRingMatchesRealDomSiblingRelation(): void
     {
@@ -797,14 +860,14 @@ final class CssContrastContractTest extends TestCase
         $bodies = self::ruleBodiesFor($selector);
         $this->assertNotEmpty($bodies, sprintf('Sélecteur frère adjacent « %s » introuvable.', $selector));
 
-        $visible = false;
-        foreach ($bodies as $body) {
-            if (preg_match('/outline\s*:\s*[^;]*var\(\s*--focus-ring-color\s*\)/i', $body) === 1) {
-                $visible = true;
-                break;
-            }
-        }
-        $this->assertTrue($visible, 'Le label doit porter un anneau de focus tokenisé via le frère adjacent.');
+        $validBodies = array_filter(
+            $bodies,
+            static fn(string $body): bool => self::attachmentFocusRingBodyIsValid($body)
+        );
+        $this->assertNotEmpty(
+            $validBodies,
+            'Le label doit porter un anneau de focus conforme : outline ≥ 2px solid var(--focus-ring-color) + outline-offset ≥ 0.'
+        );
 
         // Garde-fou : plus aucune règle de focus basée sur :focus-within sur le
         // label — elle ne peut pas matérialiser le focus d'un input frère.
@@ -815,20 +878,91 @@ final class CssContrastContractTest extends TestCase
         );
 
         // Relation DOM réelle : l'input précède immédiatement le label dans les
-        // deux formulaires. Aucune modification de markup n'est donc requise.
-        // Les balises PHP inline sont neutralisées pour que la fermeture de
-        // script du template ne soit pas confondue avec la fin du tag input.
+        // deux formulaires, et le `for` du label pointe vers l'`id` de l'input.
+        // Aucune modification de markup n'est donc requise. Les balises PHP
+        // inline sont neutralisées pour que la fermeture de script du template
+        // ne soit pas confondue avec la fin du tag input.
         foreach (['templates/report_form.php', 'pages/report_respond.php'] as $file) {
             $markup = file_get_contents(__DIR__ . '/../../' . $file);
             $this->assertIsString($markup, sprintf('%s introuvable.', $file));
 
             $html = (string) preg_replace('/<\?(?:php|=).*?\?>/s', '', $markup);
             $this->assertMatchesRegularExpression(
-                '/class="file-upload-wrapper__input"[^>]*>\s*<label[^>]*class="file-upload-wrapper__label/s',
+                '/<input\b[^>]*class="file-upload-wrapper__input"[^>]*>\s*<label\b[^>]*class="file-upload-wrapper__label/s',
                 $html,
                 sprintf('%s : l\'input file doit précéder immédiatement le label (frère adjacent, pour `+`).', $file)
             );
+
+            $this->assertSame(
+                1,
+                preg_match('/<input\b[^>]*class="file-upload-wrapper__input"[^>]*>/s', $html, $inputMatch),
+                sprintf('%s : la balise input file est introuvable.', $file)
+            );
+            $this->assertSame(
+                1,
+                preg_match('/<label\b[^>]*class="file-upload-wrapper__label(?=[\s"])[^>]*>/s', $html, $labelMatch),
+                sprintf('%s : la balise label de pièce jointe est introuvable.', $file)
+            );
+
+            $inputId = self::attributeValue((string) ($inputMatch[0] ?? ''), 'id');
+            $labelFor = self::attributeValue((string) ($labelMatch[0] ?? ''), 'for');
+
+            $this->assertNotSame('', $inputId, sprintf('%s : l\'input file doit porter un id.', $file));
+            $this->assertSame(
+                $inputId,
+                $labelFor,
+                sprintf('%s : le `for` du label doit pointer vers l\'id de l\'input adjacent.', $file)
+            );
         }
+    }
+
+    /**
+     * Démonstration « rouge » : le contrat de focus ci-dessus doit réellement
+     * discriminer. Chaque variante invalide (largeur trop fine, style non
+     * solide, couleur non tokenisée, offset négatif/absent) est rejetée par le
+     * validateur — sans quoi le test principal serait un faux positif.
+     *
+     * @param non-empty-string $body
+     */
+    #[DataProvider('provideInvalidAttachmentFocusRingBodies')]
+    public function testAttachmentFocusRingContractRejectsInvalidVariants(string $body): void
+    {
+        $this->assertFalse(
+            self::attachmentFocusRingBodyIsValid($body),
+            sprintf('Variante invalide non rejetée par le contrat : « %s ».', $body)
+        );
+    }
+
+    /** @return array<string, array{non-empty-string}> */
+    public static function provideInvalidAttachmentFocusRingBodies(): array
+    {
+        $offset = 'outline-offset: var(--focus-ring-offset);';
+
+        return [
+            'sans outline' => [$offset],
+            'largeur trop fine (1px)' => ['outline: 1px solid var(--focus-ring-color); ' . $offset],
+            'style non solide (dashed)' => ['outline: 3px dashed var(--focus-ring-color); ' . $offset],
+            'style non solide (dotted)' => ['outline: 3px dotted var(--focus-ring-color); ' . $offset],
+            'couleur non tokenisée' => ['outline: 3px solid #0056a3; ' . $offset],
+            'couleur hors focus-ring' => ['outline: 3px solid var(--sidebar-focus-ring); ' . $offset],
+            'offset négatif' => ['outline: 3px solid var(--focus-ring-color); outline-offset: -2px;'],
+            'offset absent' => ['outline: 3px solid var(--focus-ring-color);'],
+            'offset non résolu' => ['outline: 3px solid var(--focus-ring-color); outline-offset: var(--inconnu);'],
+        ];
+    }
+
+    /**
+     * Contrepartie « verte » : la variante réellement servie par style.css est
+     * acceptée par le validateur.
+     */
+    public function testAttachmentFocusRingContractAcceptsServedVariant(): void
+    {
+        $this->assertTrue(
+            self::attachmentFocusRingBodyIsValid(
+                'outline: 3px solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset);'
+            ),
+            'La variante servie (3px solid var(--focus-ring-color), offset tokenisé ≥ 0) doit être acceptée.'
+        );
     }
 
     /**

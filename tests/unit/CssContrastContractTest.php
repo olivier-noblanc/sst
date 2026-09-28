@@ -465,6 +465,76 @@ final class CssContrastContractTest extends TestCase
     }
 
     /**
+     * Finding Important « focus sidebar sombre » : l'anneau global
+     * `--focus-ring-color` (#0056A3) n'atteint que ~2.30:1 sur le fond bleu nuit
+     * `--sidebar-bg`. La navigation doit porter un focus spécifique
+     * (`.sidebar__item:focus-visible`) dont l'anneau consomme un token adapté au
+     * fond sombre et offre ≥ 3:1 (WCAG 1.4.11 / 2.4.11), sans casser le focus
+     * global ni les états hover / active de la sidebar.
+     */
+    public function testSidebarFocusRingMeetsNonTextContrastOnDarkBackground(): void
+    {
+        $bg = self::resolveToken(self::$tokens['--sidebar-bg'] ?? '');
+        $this->assertNotSame('', $bg, '--sidebar-bg manquant.');
+
+        // Le focus global reste inchangé pour les surfaces claires.
+        $global = self::ruleBody(self::$styleCss, ':focus-visible');
+        $this->assertStringContainsString(
+            'var(--focus-ring-color)',
+            $global,
+            'Le focus global :focus-visible doit conserver --focus-ring-color.'
+        );
+
+        // Les états hover / active de la navigation restent intacts.
+        $this->assertStringContainsString(
+            'background: var(--sidebar-hover)',
+            self::ruleBody(self::$styleCss, '.sidebar__item:hover'),
+            '.sidebar__item:hover doit conserver son fond --sidebar-hover.'
+        );
+        $this->assertStringContainsString(
+            'border-left-color: var(--sidebar-active)',
+            self::ruleBody(self::$styleCss, '.sidebar__item--active'),
+            '.sidebar__item--active doit conserver sa barre --sidebar-active.'
+        );
+
+        $body = self::ruleBody(self::$styleCss, '.sidebar__item:focus-visible');
+        $this->assertNotSame('', $body, 'Règle .sidebar__item:focus-visible introuvable dans style.css.');
+
+        // L'anneau spécifique ne doit pas réutiliser le token global, non
+        // contrasté sur le fond sombre.
+        $this->assertStringNotContainsString(
+            'var(--focus-ring-color)',
+            $body,
+            '.sidebar__item:focus-visible ne doit pas réutiliser --focus-ring-color sur le fond sombre.'
+        );
+
+        $outline = self::declaration($body, 'outline');
+        $this->assertMatchesRegularExpression(
+            '/var\(\s*--[a-z0-9-]+\s*\)/i',
+            $outline,
+            sprintf('.sidebar__item:focus-visible doit consommer un token pour son anneau, reçu « %s ».', $outline)
+        );
+
+        preg_match('/var\(\s*(--[a-z0-9-]+)\s*\)/i', $outline, $match);
+        $token = $match[1] ?? '';
+        $this->assertNotSame('', $token, 'Token de focus sidebar introuvable dans la déclaration outline.');
+
+        $color = self::resolveToken('var(' . $token . ')');
+        $this->assertMatchesRegularExpression(
+            '/^#[0-9a-f]{6}$/i',
+            $color,
+            sprintf('Le token de focus sidebar (%s) doit être opaque (#rrggbb).', $token)
+        );
+
+        $ratio = self::contrastRatio($color, $bg);
+        $this->assertGreaterThanOrEqual(
+            self::MIN_NON_TEXT_CONTRAST,
+            $ratio,
+            sprintf('.sidebar__item:focus-visible (%s) sur --sidebar-bg (%s) doit offrir ≥ 3:1, mesuré %.2f:1.', $color, $bg, $ratio)
+        );
+    }
+
+    /**
      * Finding « bordures perceptibles » : les bordures de cartes, de tableaux
      * et des boutons outline étaient quasi invisibles (~1.2:1). Les tokens
      * `--border` / `--card-border` doivent offrir ≥ 3:1 sur les surfaces claires

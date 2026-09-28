@@ -101,6 +101,8 @@
     --sidebar-hover: rgba(255,255,255,0.06);
     --sidebar-active: #4A9EE8;
     --sidebar-active-tint: rgba(74,158,232,0.16);
+    /* Focus de la navigation sur fond sombre (≥ 3:1 sur --sidebar-bg) */
+    --sidebar-focus-ring: #7FC2FF;
 
     /* Typographie */
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -638,6 +640,15 @@ img { max-width: 100%; height: auto; display: block; }
     border-left-color: var(--sidebar-active);
     color: #FFFFFF;
     font-weight: 600;
+}
+
+/* Focus clavier adapté au fond bleu nuit : l'anneau global (#0056A3) ne tient
+   que ~2.30:1 ici. L'anneau est dessiné vers l'intérieur pour rester dans le
+   conteneur défilant et ne pas déborder sur les items voisins. */
+.sidebar__item:focus-visible {
+    outline: 3px solid var(--sidebar-focus-ring);
+    outline-offset: -3px;
+    box-shadow: none;
 }
 
 .sidebar__icon {

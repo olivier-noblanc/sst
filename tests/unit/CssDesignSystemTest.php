@@ -587,4 +587,36 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('border-top: 1px solid var(--card-border)', $extra);
         $this->assertStringNotContainsString('rgba(255,255,255', $extra);
     }
+
+    /* ---------- Refonte premium — Task 6 : légende de workflow compacte ---------- */
+
+    /**
+     * O6 : la légende de workflow tient sur une ligne à 1280/1440 et sa hauteur
+     * reste ≤ 44 px. Statiquement, on verrouille les garants de cette compacité :
+     * rembourrage vertical `--space-2` (8 px), typographie `--font-size-xs`,
+     * surface en creux sans ombre portée (aucune épaisseur ajoutée) et rayon
+     * résolu (`--border-radius-lg`). Le repli ≤ 1024 px reste porté par
+     * `flex-wrap: wrap`. La hauteur rendue réelle est mesurée par Playwright (Task 11).
+     */
+    public function testWorkflowLegendIsCompact(): void
+    {
+        $legend = $this->ruleBody('.workflow-legend');
+        $this->assertStringContainsString('padding: var(--space-2) var(--space-4)', $legend);
+        $this->assertStringContainsString('background: var(--surface-sunken)', $legend);
+        $this->assertStringContainsString('border: 1px solid var(--card-border)', $legend);
+        $this->assertStringContainsString('border-radius: var(--border-radius-lg)', $legend);
+        $this->assertStringContainsString('font-size: var(--font-size-xs)', $legend);
+        $this->assertStringContainsString('flex-wrap: wrap', $legend);
+        $this->assertStringNotContainsString('box-shadow', $legend);
+
+        // Les libellés de la légende restent visibles et lisibles.
+        $text = $this->ruleBody('.workflow-legend__text');
+        $this->assertStringNotContainsString('display: none', $text);
+        $this->assertStringContainsString('font-size: var(--font-size-xs)', $text);
+
+        // Repli propre : la densité mobile est conservée sous 768 px.
+        $tablet = $this->mediaBlocks('(max-width: 768px)');
+        $this->assertStringContainsString('gap: var(--space-1)', $tablet);
+        $this->assertStringContainsString('padding: var(--space-2) var(--space-3)', $tablet);
+    }
 }

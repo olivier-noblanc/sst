@@ -23,6 +23,8 @@ final class CssContrastContractTest extends TestCase
 {
     /** Seuil WCAG AA pour le texte de taille normale. */
     private const MIN_CONTRAST = 4.5;
+    /** Seuil WCAG 1.4.11 / 2.4.11 pour les éléments non textuels (bordures, focus). */
+    private const MIN_NON_TEXT_CONTRAST = 3.0;
     private const WHITE = '#ffffff';
 
     /** Les 10 clés de thème de registre (cf. `RegistryRepository::themeClasses`). */
@@ -357,5 +359,230 @@ final class CssContrastContractTest extends TestCase
             self::contrastRatio($active, $bg),
             sprintf('--sidebar-active (%s) sur --sidebar-bg (%s) doit offrir ≥ 4.5:1.', $active, $bg)
         );
+    }
+
+    /**
+     * Passe d'accessibilité AA — Finding « tokens d'état assombris » : les
+     * badges d'état (`--state-*`) et de visibilité (`--visibility-*`) posent un
+     * texte blanc sur un fond tokenisé. Chaque paire doit offrir ≥ 4.5:1. En
+     * particulier `--state-en-cours`, `--state-traite`, `--state-abandonne`,
+     * `--state-reouvert` (nouveau) et `--visibility-public` doivent être
+     * assombris, et `.badge--reouvert` doit consommer son token au lieu du
+     * littéral `#8B5CF6`.
+     */
+    public function testStateAndVisibilityBadgesMeetContrastWithWhiteText(): void
+    {
+        $base = self::ruleBody(self::$styleCss, '.badge');
+        $this->assertStringContainsString(
+            'color: white',
+            $base,
+            'La base .badge porte le texte blanc hérité par tous ses modificateurs.'
+        );
+
+        $selectors = [
+            '.badge--nouveau',
+            '.badge--en-cours',
+            '.badge--traite',
+            '.badge--abandonne',
+            '.badge--reouvert',
+            '.badge--confidential',
+            '.badge--public',
+        ];
+
+        foreach ($selectors as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle manquante : %s.', $selector));
+
+            $declaration = self::declaration($body, 'background');
+            $this->assertMatchesRegularExpression(
+                '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+                $declaration,
+                sprintf('%s doit consommer un token de fond, pas une couleur littérale.', $selector)
+            );
+
+            $background = self::resolveToken($declaration);
+            $ratio = self::contrastRatio(self::WHITE, $background);
+            $this->assertGreaterThanOrEqual(
+                self::MIN_CONTRAST,
+                $ratio,
+                sprintf('%s (texte blanc sur %s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $selector, $background, $ratio)
+            );
+        }
+    }
+
+    /**
+     * Finding « bouton secondary » : `.btn--secondary` porte un texte blanc sur
+     * un gris tokenisé (`--grey-500` offrait ~2.68:1). Il doit consommer un
+     * token ≥ 4.5:1.
+     */
+    public function testSecondaryButtonMeetsContrastWithWhiteText(): void
+    {
+        $body = self::ruleBody(self::$styleCss, '.btn--secondary');
+        $this->assertNotSame('', $body, 'Règle .btn--secondary introuvable dans style.css.');
+        $this->assertStringContainsString('color: white', $body, '.btn--secondary conserve un texte blanc.');
+
+        $declaration = self::declaration($body, 'background');
+        $this->assertMatchesRegularExpression(
+            '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+            $declaration,
+            '.btn--secondary doit consommer un token de fond, pas une couleur littérale.'
+        );
+
+        $background = self::resolveToken($declaration);
+        $ratio = self::contrastRatio(self::WHITE, $background);
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            $ratio,
+            sprintf('.btn--secondary (texte blanc sur %s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $background, $ratio)
+        );
+    }
+
+    /**
+     * Finding « focus ring opaque AA » : `--focus-ring-color` était
+     * `rgba(0,86,163,0.4)` (~2.93:1 sur blanc). Il doit être opaque et offrir
+     * ≥ 3:1 sur toutes les surfaces claires (WCAG 1.4.11 / 2.4.11).
+     */
+    public function testFocusRingIsOpaqueAndMeetsNonTextContrast(): void
+    {
+        $raw = self::$tokens['--focus-ring-color'] ?? '';
+        $this->assertMatchesRegularExpression(
+            '/^#[0-9a-f]{6}$/i',
+            $raw,
+            sprintf('--focus-ring-color doit être opaque (format #rrggbb), reçu « %s ».', $raw)
+        );
+
+        foreach (['--surface', '--surface-sunken', '--grey-100'] as $token) {
+            $surface = self::resolveToken(self::$tokens[$token] ?? '');
+            $this->assertNotSame('', $surface, sprintf('Token %s introuvable dans :root.', $token));
+
+            $ratio = self::contrastRatio($raw, $surface);
+            $this->assertGreaterThanOrEqual(
+                self::MIN_NON_TEXT_CONTRAST,
+                $ratio,
+                sprintf('--focus-ring-color (%s) sur %s (%s) doit offrir ≥ 3:1, mesuré %.2f:1.', $raw, $token, $surface, $ratio)
+            );
+        }
+    }
+
+    /**
+     * Finding « bordures perceptibles » : les bordures de cartes, de tableaux
+     * et des boutons outline étaient quasi invisibles (~1.2:1). Les tokens
+     * `--border` / `--card-border` doivent offrir ≥ 3:1 sur les surfaces claires
+     * (fond de page `--grey-100` et `--surface`).
+     */
+    public function testBordersArePerceptibleAgainstLightSurfaces(): void
+    {
+        $surfaces = [
+            '--surface' => self::resolveToken(self::$tokens['--surface'] ?? ''),
+            '--grey-100' => self::resolveToken(self::$tokens['--grey-100'] ?? ''),
+            '--surface-sunken' => self::resolveToken(self::$tokens['--surface-sunken'] ?? ''),
+        ];
+
+        foreach (['--border', '--card-border'] as $token) {
+            $border = self::resolveToken(self::$tokens[$token] ?? '');
+            $this->assertNotSame('', $border, sprintf('Token %s introuvable dans :root.', $token));
+
+            foreach ($surfaces as $name => $surface) {
+                $this->assertNotSame('', $surface, sprintf('Token %s introuvable.', $name));
+                $ratio = self::contrastRatio($border, $surface);
+                $this->assertGreaterThanOrEqual(
+                    self::MIN_NON_TEXT_CONTRAST,
+                    $ratio,
+                    sprintf('%s (%s) sur %s (%s) doit offrir ≥ 3:1, mesuré %.2f:1.', $token, $border, $name, $surface, $ratio)
+                );
+            }
+        }
+
+        foreach (['.card', '.table-wrapper', '.btn--outline'] as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle %s introuvable dans style.css.', $selector));
+            $this->assertMatchesRegularExpression(
+                '/border(-color)?:\s*(1px solid )?var\(\s*--[a-z0-9-]+\s*\)/i',
+                $body,
+                sprintf('%s doit consommer un token de bordure perceptible.', $selector)
+            );
+        }
+    }
+
+    /**
+     * Finding « textes gris < 14px en grey-700 » : aucun texte ne doit
+     * consommer `--grey-500`/`--grey-600`, qui tombent sous 4.5:1 sur la
+     * surface la plus sombre (`--surface-sunken`, `--grey-600` ≈ 4.10:1).
+     *
+     * Hors périmètre — la page de connexion (`login.css` / `.login-*`) est un
+     * mode dev non servi en production (authentification IIS), et la vue
+     * d'impression `print` n'est pas dans le périmètre de la passe.
+     */
+    public function testGreyTextUsesAaCompliantToken(): void
+    {
+        $surface = self::resolveToken(self::$tokens['--surface-sunken'] ?? '');
+        $this->assertNotSame('', $surface, 'Token --surface-sunken introuvable dans :root.');
+
+        $offenders = [];
+        foreach (self::leafRules() as $selector => $body) {
+            if (stripos($selector, 'login') !== false || stripos($selector, 'print') !== false) {
+                continue;
+            }
+            if (preg_match('/color:\s*var\(\s*(--grey-(?:500|600))\b/i', $body, $match) !== 1) {
+                continue;
+            }
+
+            $token = $match[1] ?? '';
+            $color = self::resolveToken('var(' . $token . ')');
+            $ratio = self::contrastRatio($color, $surface);
+            if ($ratio < self::MIN_CONTRAST) {
+                $offenders[] = sprintf('%s (%s, %.2f:1)', trim($selector), $token, $ratio);
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $offenders,
+            sprintf("Textes gris < 4.5:1 sur --surface-sunken (%s) :\n%s", $surface, implode("\n", $offenders))
+        );
+    }
+
+    /**
+     * Finding « plancher font xs raisonnable » : le token `--font-size-xs`
+     * descendait à 0.625rem (10px). Son plancher doit rester ≥ 0.75rem (12px).
+     */
+    public function testFontXsHasReasonableFloor(): void
+    {
+        $raw = self::$tokens['--font-size-xs'] ?? '';
+        $this->assertMatchesRegularExpression(
+            '/clamp\(\s*([0-9.]+)rem/',
+            $raw,
+            sprintf('--font-size-xs doit rester fluide (clamp rem), reçu « %s ».', $raw)
+        );
+
+        preg_match('/clamp\(\s*([0-9.]+)rem/', $raw, $match);
+        $min = (float) ($match[1] ?? 0);
+        $this->assertGreaterThanOrEqual(
+            0.75,
+            $min,
+            sprintf('--font-size-xs : plancher %.3frem < 0.75rem (12px).', $min)
+        );
+    }
+
+    /**
+     * Extrait les règles « feuilles » (sélecteur => corps), y compris celles
+     * imbriquées dans les media queries, sans se laisser piéger par les accolades.
+     *
+     * @return array<string, string>
+     */
+    private static function leafRules(): array
+    {
+        $css = (string) preg_replace('~/\*.*?\*/~s', '', self::$styleCss);
+        preg_match_all('/([^{}]+)\{([^{}]*)\}/', $css, $matches, PREG_SET_ORDER);
+        $rules = [];
+        foreach ($matches as $match) {
+            $selector = trim((string) ($match[1] ?? ''));
+            if ($selector === '' || str_starts_with($selector, '@')) {
+                continue;
+            }
+            $rules[$selector] = (string) ($match[2] ?? '');
+        }
+
+        return $rules;
     }
 }

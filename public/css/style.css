@@ -43,10 +43,11 @@
     --theme-ambre-tint: #FCF4E9;   --theme-ambre-ink: #87400B;
 
     /* Sémantique — états de signalement */
-    --state-nouveau: #2E5C8A;          /* Blue */
-    --state-en-cours: #E67E22;         /* Orange */
-    --state-traite: #27AE60;           /* Green */
-    --state-abandonne: #7B8D8E;        /* Grey (WCAG AA compliant) */
+    --state-nouveau: #2E5C8A;          /* Blue — ≥ 4.5:1 sur blanc */
+    --state-en-cours: #C2410C;         /* Orange 700 — ≥ 4.5:1 sur blanc */
+    --state-traite: #15803D;           /* Green 700 — ≥ 4.5:1 sur blanc */
+    --state-reouvert: #6D28D9;         /* Violet 700 — ≥ 4.5:1 sur blanc */
+    --state-abandonne: #5F6B6C;        /* Grey — ≥ 4.5:1 sur blanc */
 
     /* Sémantique — rôles */
     --role-agent: #2E5C8A;
@@ -55,7 +56,7 @@
 
     /* Sémantique — visibilité */
     --visibility-confidential: #6b7280;
-    --visibility-public: #22c55e;
+    --visibility-public: #0E7A45;      /* Green 700 — ≥ 4.5:1 sur blanc */
 
     /* Sémantique — alertes */
     --color-success-bg: #d4edda;
@@ -86,8 +87,8 @@
     /* Surlignage au survol (lignes de tableau) */
     --hover-highlight: #E8F0FE;
 
-    /* Bordures */
-    --border: #E4E9F0;
+    /* Bordures — perceptibles (≥ 3:1, WCAG 1.4.11) */
+    --border: #7C8798;
 
     /* Mise en page */
     --sidebar-width: 220px;
@@ -103,7 +104,7 @@
 
     /* Typographie */
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --font-size-xs: clamp(0.625rem, 0.58rem + 0.2vw, 0.75rem);
+    --font-size-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
     --font-size-sm: clamp(0.75rem, 0.7rem + 0.25vw, 0.8125rem);
     --font-size-base: clamp(0.8125rem, 0.77rem + 0.2vw, 0.875rem);
     --font-size-md: clamp(0.875rem, 0.82rem + 0.25vw, 0.9375rem);
@@ -142,15 +143,15 @@
     --z-overlay: 150;
     --z-skip-link: 9999;
 
-    /* Focus */
-    --focus-ring-color: rgba(0,86,163,0.4);
+    /* Focus — anneau opaque (≥ 3:1 sur les surfaces claires) */
+    --focus-ring-color: #0056A3;
     --focus-ring-offset: 2px;
 
     /* Surfaces premium */
     --surface: #FFFFFF;
     --surface-muted: #F7F9FC;
     --surface-sunken: #EEF2F7;
-    --card-border: #E1E7EF;
+    --card-border: #7C8798;
     --card-shadow: 0 1px 2px rgba(15,29,51,0.04), 0 1px 3px rgba(15,29,51,0.06);
     --card-shadow-hover: 0 2px 4px rgba(15,29,51,0.06), 0 6px 16px rgba(15,29,51,0.08);
     --radius-xl: 12px;
@@ -435,7 +436,7 @@ img { max-width: 100%; height: auto; display: block; }
 /* Close button inside impersonate dropdown (keyboard-accessible, CSS-only) */
 .impersonate-menu__close {
     border-top: 1px solid var(--grey-200);
-    color: var(--grey-500);
+    color: var(--grey-700);
     font-size: 0.85em;
     cursor: pointer;
 }
@@ -691,7 +692,7 @@ img { max-width: 100%; height: auto; display: block; }
     margin-top: auto;
     padding: 16px 0;
     text-align: center;
-    color: var(--grey-500);
+    color: var(--grey-700);
     font-size: 12px;
     border-top: 1px solid var(--grey-200);
 }
@@ -1144,7 +1145,7 @@ img { max-width: 100%; height: auto; display: block; }
 .home-welcome-subtitle {
     font-size: 1.15rem;
     font-weight: 400;
-    color: var(--grey-600);
+    color: var(--grey-700);
     margin-bottom: 24px;
     margin-top: 0;
 }
@@ -1230,7 +1231,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .welcome-banner__legend-text {
     font-size: 12px;
-    color: var(--grey-600);
+    color: var(--grey-700);
     margin-right: 12px;
 }
 
@@ -1296,12 +1297,12 @@ img { max-width: 100%; height: auto; display: block; }
     align-items: center;
     margin-bottom: 12px;
     font-size: 12px;
-    color: var(--grey-500);
+    color: var(--grey-700);
     flex-wrap: wrap;
 }
 
 .breadcrumb__item {
-    color: var(--grey-500);
+    color: var(--grey-700);
     text-decoration: none;
     transition: color var(--transition-fast);
 }
@@ -1350,8 +1351,8 @@ img { max-width: 100%; height: auto; display: block; }
 .btn--success   { background: var(--state-traite); color: white; }
 .btn--warning   { background: var(--state-en-cours); color: white; }
 .btn--danger    { background: var(--dgi-color); color: white; }
-.btn--secondary { background: var(--grey-500); color: white; }
-.btn--outline   { background: transparent; border: 1px solid var(--grey-400); color: var(--grey-700); }
+.btn--secondary { background: var(--grey-700); color: white; }
+.btn--outline   { background: transparent; border: 1px solid var(--border); color: var(--grey-700); }
 /* Dedicated class for the manual CSA/CHSCT transmission action — it must read
    as the active action on the report card, not as a generic outline button. */
 .btn--transmit  { background: var(--color-primary); color: white; }
@@ -1425,7 +1426,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .form-group input[readonly] {
     background: var(--grey-100);
-    color: var(--grey-600);
+    color: var(--grey-700);
     cursor: not-allowed;
 }
 
@@ -1472,14 +1473,14 @@ img { max-width: 100%; height: auto; display: block; }
 .form-hint {
     display: block;
     font-size: var(--font-size-sm);
-    color: var(--grey-600);
+    color: var(--grey-700);
     margin-top: var(--space-1);
     line-height: 1.5;
 }
 .form-hint--lg {
     display: block;
     font-size: 14px;
-    color: var(--grey-600);
+    color: var(--grey-700);
     margin-top: 4px;
     line-height: 1.5;
 }
@@ -1906,7 +1907,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .file-upload-wrapper__filename {
     font-size: 14px;
-    color: var(--grey-600);
+    color: var(--grey-700);
     font-style: italic;
 }
 
@@ -1952,7 +1953,7 @@ img { max-width: 100%; height: auto; display: block; }
     text-transform: uppercase;
     font-size: var(--font-size-xs);
     letter-spacing: 0.3px;
-    color: var(--grey-600);
+    color: var(--grey-700);
     border-bottom: 1px solid var(--border);
     padding: var(--space-2) var(--space-3);
 }
@@ -2012,7 +2013,7 @@ img { max-width: 100%; height: auto; display: block; }
         content: attr(data-label);
         font-weight: 600;
         font-size: var(--font-size-xs);
-        color: var(--grey-600);
+        color: var(--grey-700);
         text-transform: uppercase;
         letter-spacing: 0.3px;
         margin-right: var(--space-3);
@@ -2096,7 +2097,7 @@ tr:hover td {
         width: auto;
         padding-bottom: 2px;
         font-size: 12px;
-        color: var(--grey-500);
+        color: var(--grey-700);
     }
     .report-detail__table td {
         padding-top: 2px;
@@ -2154,6 +2155,8 @@ tr:hover td {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 12px;
+    /* Repère de forme : le badge ne repose pas sur la couleur seule. */
+    border: 1px solid rgba(0,0,0,0.2);
     font-size: 12px;
     font-weight: 600;
     background: var(--grey-700);
@@ -2165,7 +2168,7 @@ tr:hover td {
 .badge--en-cours   { background: var(--state-en-cours); }
 .badge--traite     { background: var(--state-traite); }
 .badge--abandonne  { background: var(--state-abandonne); }
-.badge--reouvert   { background: #8B5CF6; }
+.badge--reouvert   { background: var(--state-reouvert); }
 .badge--agent      { background: var(--role-agent); }
 .badge--superviseur{ background: var(--role-superviseur); }
 .badge--chsct      { background: var(--role-chsct); }
@@ -2181,7 +2184,7 @@ tr:hover td {
 .help-text {
     display: block;
     font-size: 12px;
-    color: var(--grey-500, #6b7280);
+    color: var(--grey-700);
     margin-top: 4px;
     line-height: 1.4;
 }
@@ -2249,13 +2252,13 @@ tr:hover td {
 
 .indicateur-card__label {
     font-size: 13px;
-    color: var(--grey-600);
+    color: var(--grey-700);
     margin-top: 4px;
 }
 
 .indicateur-card__detail {
     font-size: 11px;
-    color: var(--grey-500);
+    color: var(--grey-700);
     margin-top: 8px;
 }
 
@@ -2358,7 +2361,7 @@ tr:hover td {
 .pagination__ellipsis {
     display: inline-block;
     padding: 6px 8px;
-    color: var(--grey-500);
+    color: var(--grey-700);
 }
 
 /* ============================================================
@@ -2406,7 +2409,7 @@ tr:hover td {
 .filter-bar__label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--grey-600);
+    color: var(--grey-700);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -2597,7 +2600,7 @@ tr:hover td {
 
 .warning-panel__hint {
     font-size: 13px;
-    color: var(--grey-600);
+    color: var(--grey-700);
 }
 
 /* Danger panel (DGI reports) */
@@ -2651,7 +2654,7 @@ tr:hover td {
 .tag-input-remove {
     background: none;
     border: none;
-    color: var(--grey-500);
+    color: var(--grey-700);
     cursor: pointer;
     font-size: 16px;
     line-height: 1;
@@ -2682,7 +2685,7 @@ tr:hover td {
     padding: 10px 20px;
     font-size: 14px;
     font-weight: 500;
-    color: var(--grey-600);
+    color: var(--grey-700);
     text-decoration: none;
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
@@ -2886,12 +2889,12 @@ tr:hover td {
 }
 
 .scope-summary__empty {
-    color: var(--grey-500);
+    color: var(--grey-700);
 }
 
 .scope-summary__hint {
     margin: 0;
-    color: var(--grey-500);
+    color: var(--grey-700);
     font-size: 12px;
 }
 
@@ -2901,7 +2904,7 @@ tr:hover td {
     padding: 1px 6px;
     background: var(--grey-200);
     border-radius: 10px;
-    color: var(--grey-600);
+    color: var(--grey-700);
     font-size: 11px;
 }
 
@@ -2942,7 +2945,7 @@ tr:hover td {
 /* ============================================================
    30. Utility Classes
    ============================================================ */
-.text-muted  { color: var(--grey-500); }
+.text-muted  { color: var(--grey-700); }
 .text-small  { font-size: 12px; }
 .mt-0 { margin-top: 0; }
 .mt-2 { margin-top: 8px; }
@@ -3000,7 +3003,7 @@ tr:hover td {
 /* User count info */
 .result-count {
     margin-top: 12px;
-    color: var(--grey-500);
+    color: var(--grey-700);
     font-size: 12px;
 }
 
@@ -3015,7 +3018,7 @@ tr:hover td {
 }
 
 .rgpd-section__desc {
-    color: var(--grey-500);
+    color: var(--grey-700);
     font-size: 13px;
     margin-bottom: 16px;
 }
@@ -3030,7 +3033,7 @@ tr:hover td {
 /* Empty state */
 .empty-state {
     text-align: center;
-    color: var(--grey-500);
+    color: var(--grey-700);
     padding: 24px;
 }
 
@@ -3055,7 +3058,7 @@ tr:hover td {
 .char-counter {
     display: block;
     font-size: 12px;
-    color: var(--grey-500);
+    color: var(--grey-700);
     margin-top: 4px;
     text-align: right;
 }
@@ -3110,7 +3113,7 @@ tr:hover td {
 }
 
 .date-range span {
-    color: var(--grey-500);
+    color: var(--grey-700);
     flex-shrink: 0;
 }
 
@@ -3220,7 +3223,7 @@ tr:hover td {
 }
 .help-contact-banner__text small {
     font-size: 14px;
-    color: var(--grey-500, #6b7280);
+    color: var(--grey-700);
 }
 
 .help-profile-card--superviseur {
@@ -3233,7 +3236,7 @@ tr:hover td {
 
 .help-note {
     font-size: 13px;
-    color: var(--grey-500);
+    color: var(--grey-700);
     margin-top: 14px;
     border-top: 1px solid var(--grey-100);
     padding-top: 10px;
@@ -3247,7 +3250,7 @@ tr:hover td {
 
 .help-description {
     font-size: 15px;
-    color: var(--grey-600);
+    color: var(--grey-700);
     margin-bottom: 16px;
     line-height: 1.7;
 }
@@ -3966,7 +3969,7 @@ tr:hover td {
     padding: 6px 12px;
     font-size: 13px;
     font-weight: 500;
-    color: var(--grey-600);
+    color: var(--grey-700);
     text-decoration: none;
     border: 1px solid transparent;
     border-bottom: none;
@@ -4142,7 +4145,7 @@ tr:hover td {
 .changelog-details {
     margin-top: 0.5rem;
     font-size: 0.85em;
-    color: var(--grey-600);
+    color: var(--grey-700);
 }
 
 /* Card with extra top margin — replaces inline style in statistics.php */

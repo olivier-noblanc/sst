@@ -619,4 +619,26 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('gap: var(--space-1)', $tablet);
         $this->assertStringContainsString('padding: var(--space-2) var(--space-3)', $tablet);
     }
+
+    /* ---------- Refonte premium — Task 9 : grille 3/4 colonnes et borne de lecture ---------- */
+
+    public function testRegistryGridIsLaptopBounded(): void
+    {
+        $grid = $this->ruleBody('.registry-cards');
+        $this->assertStringContainsString('display: grid', $grid);
+        $this->assertStringContainsString('grid-template-columns: repeat(3, minmax(0, 1fr))', $grid);
+        $this->assertStringContainsString('gap: var(--space-4)', $grid);
+
+        $desktop = $this->mediaBlocks('(min-width: 1440px)');
+        $this->assertStringContainsString('grid-template-columns: repeat(4, minmax(0, 1fr))', $desktop);
+
+        $tablet = $this->mediaBlocks('(max-width: 768px)');
+        $this->assertStringContainsString('grid-template-columns: 1fr', $tablet);
+
+        $main = $this->ruleBody('.main');
+        $this->assertStringContainsString('background: var(--surface-muted)', $main);
+
+        $children = $this->ruleBody('.main > *');
+        $this->assertStringContainsString('max-width: var(--content-max-width)', $children);
+    }
 }

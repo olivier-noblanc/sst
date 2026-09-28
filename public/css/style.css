@@ -671,10 +671,16 @@ img { max-width: 100%; height: auto; display: block; }
     min-height: calc(100vh - var(--header-height));
     display: flex;
     flex-direction: column;
+    background: var(--surface-muted);
 }
 
 .main > :last-child {
     flex: 1;
+}
+
+.main > * {
+    width: 100%;
+    max-width: var(--content-max-width);
 }
 
 /* ============================================================
@@ -753,14 +759,13 @@ img { max-width: 100%; height: auto; display: block; }
    12. Home Page — Registry Cards
    ============================================================ */
 .registry-cards {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
 }
 
-.registry-cards > * {
-    flex: 1;
-    min-width: 250px;
+.registry-cards--large {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .registry-card {
@@ -3555,8 +3560,9 @@ tr:hover td {
         margin-left: 0;
     }
 
-    .registry-cards {
-        flex-direction: column;
+    .registry-cards,
+    .registry-cards--large {
+        grid-template-columns: 1fr;
     }
 
     .home-welcome-heading {
@@ -3722,6 +3728,16 @@ tr:hover td {
         gap: 6px;
         font-size: 0.85em;
         padding: 8px 12px;
+    }
+}
+
+/* ============================================================
+   34bis. Large laptops — registres sur 4 colonnes (plafonné)
+   ============================================================ */
+@media (min-width: 1440px) {
+    .registry-cards,
+    .registry-cards--large {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 

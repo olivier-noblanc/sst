@@ -560,4 +560,31 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('var(--border)', $this->ruleBody('.card'));
         $this->assertStringContainsString('var(--color-primary)', $this->ruleBody('.btn'));
     }
+
+    /**
+     * Le nuage de mots repose désormais sur une surface claire teintée : l'encre
+     * doit venir du thème (`--word-cloud-ink` posé par la carte) et la taille
+     * rester bornée par le plancher O5 (0.8rem).
+     */
+    public function testWordCloudConsumesInkAndBounds(): void
+    {
+        $word = $this->ruleBody('.word-cloud__word');
+        $this->assertStringContainsString('color: var(--word-cloud-ink, var(--grey-800))', $word);
+        $this->assertStringNotContainsString('rgba(255,255,255', $word);
+
+        $cloud = $this->ruleBody('.word-cloud');
+        $this->assertStringContainsString('min-height: 160px', $cloud);
+
+        // Aucune classe de taille sous 0.8rem (plancher O5)
+        foreach (['wc-s1', 'wc-s2', 'wc-s3', 'wc-s4', 'wc-s5', 'wc-s6'] as $cls) {
+            $body = $this->ruleBody('.' . $cls);
+            $this->assertStringNotContainsString('font-size: 0.6rem', $body, "$cls sous le plancher de 0.8rem.");
+            $this->assertStringNotContainsString('font-size: 0.7rem', $body, "$cls sous le plancher de 0.8rem.");
+        }
+
+        // Le séparateur du nuage suit la surface claire (plus de blanc translucide).
+        $extra = $this->ruleBody('.registry-card__extra');
+        $this->assertStringContainsString('border-top: 1px solid var(--card-border)', $extra);
+        $this->assertStringNotContainsString('rgba(255,255,255', $extra);
+    }
 }

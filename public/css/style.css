@@ -1067,7 +1067,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .registry-card__desc {
     font-size: var(--font-size-sm);
-    color: var(--grey-600);
+    color: var(--grey-700);
     margin-top: var(--space-1);
     line-height: 1.5;
 }
@@ -1088,7 +1088,7 @@ img { max-width: 100%; height: auto; display: block; }
     display: block;
     margin-top: var(--space-1);
     font-size: var(--font-size-xs);
-    color: var(--grey-600);
+    color: var(--grey-700);
 }
 
 .registry-card__btn {
@@ -4275,28 +4275,27 @@ tr:hover td {
    38. Word Cloud
    ============================================================ */
 .registry-card__extra {
-    border-top: 1px solid rgba(255,255,255,0.2);
-    margin-top: 12px;
-    padding-top: 12px;
+    border-top: 1px solid var(--card-border);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
     width: 100%;
 }
 
 .word-cloud {
     position: relative;
     width: 100%;
-    min-height: 180px;
+    min-height: 160px;
     overflow: hidden;
 }
 
 .word-cloud__word {
     position: absolute;
     display: inline-block;
-    color: rgba(255,255,255,0.85);
+    color: var(--word-cloud-ink, var(--grey-800));
     font-weight: 600;
     cursor: default;
-    transition: transform 0.2s, text-shadow 0.2s;
+    transition: transform 0.2s, color 0.2s;
     white-space: nowrap;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .word-cloud__word--noscript {
@@ -4304,16 +4303,15 @@ tr:hover td {
 }
 
 .word-cloud__word:hover {
-    transform: scale(1.2) !important;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    color: #fff;
+    transform: scale(1.15) !important;
+    color: var(--word-cloud-ink, var(--grey-900));
 }
 
-/* Word cloud font sizes by weight class */
-.wc-s1 { font-size: 0.6rem; font-weight: 400; }
-.wc-s2 { font-size: 0.7rem; font-weight: 450; }
-.wc-s3 { font-size: 0.8rem; font-weight: 500; }
-.wc-s4 { font-size: 0.9rem; font-weight: 500; }
+/* Word cloud font sizes by weight class — bornées [0.8rem, 1.5rem] */
+.wc-s1 { font-size: 0.8rem; font-weight: 400; }
+.wc-s2 { font-size: 0.85rem; font-weight: 450; }
+.wc-s3 { font-size: 0.9rem; font-weight: 500; }
+.wc-s4 { font-size: 0.95rem; font-weight: 500; }
 .wc-s5 { font-size: 1rem; font-weight: 550; }
 .wc-s6 { font-size: 1.1rem; font-weight: 600; }
 .wc-s7 { font-size: 1.2rem; font-weight: 600; }
@@ -4321,13 +4319,13 @@ tr:hover td {
 .wc-s9 { font-size: 1.4rem; font-weight: 700; }
 .wc-s10 { font-size: 1.5rem; font-weight: 700; }
 
-/* Word cloud color variations */
-.wc-c1 { color: #ffffff; }
-.wc-c2 { color: #e8eeff; }
-.wc-c3 { color: #d6e4ff; }
-.wc-c4 { color: #c5d5f5; }
-.wc-c5 { color: #bdd0f0; }
-.wc-c6 { color: #f0f4ff; }
+/* Word cloud color variations — encres neutres lisibles sur surface claire */
+.wc-c1 { color: var(--grey-900); }
+.wc-c2 { color: var(--grey-800); }
+.wc-c3 { color: var(--grey-700); }
+.wc-c4 { color: var(--grey-800); }
+.wc-c5 { color: var(--grey-700); }
+.wc-c6 { color: var(--grey-900); }
 
 /* Color picker for registry settings */
 .color-picker { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }

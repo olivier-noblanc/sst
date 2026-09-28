@@ -183,4 +183,41 @@ final class CssContrastContractTest extends TestCase
             }
         }
     }
+
+    /**
+     * Finding de revue Task 5 : la carte de registre n'a plus un fond saturé
+     * mais un tint clair ; son texte secondaire (`.registry-card__desc`,
+     * `.registry-card__stat-label`) doit rester ≥ 4.5:1 sur les 10 tints — et
+     * sur le repli neutre `--surface` — ce qui exclut `--grey-600`.
+     */
+    public function testCardSecondaryTextMeetsContrastOnThemeTints(): void
+    {
+        $backgrounds = ['surface' => self::resolveToken(self::$tokens['--surface'] ?? '')];
+        foreach (self::THEME_KEYS as $key) {
+            $backgrounds[$key] = self::resolveToken(self::$tokens['--theme-' . $key . '-tint'] ?? '');
+        }
+
+        foreach (['.registry-card__desc', '.registry-card__stat-label'] as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle %s introuvable dans style.css.', $selector));
+
+            $declaration = self::declaration($body, 'color');
+            $this->assertMatchesRegularExpression(
+                '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+                $declaration,
+                sprintf('%s doit consommer un token de couleur, pas une valeur littérale.', $selector)
+            );
+
+            $color = self::resolveToken($declaration);
+            foreach ($backgrounds as $name => $background) {
+                $this->assertNotSame('', $background, "Fond $name manquant.");
+                $ratio = self::contrastRatio($color, $background);
+                $this->assertGreaterThanOrEqual(
+                    self::MIN_CONTRAST,
+                    $ratio,
+                    sprintf('%s (%s) sur %s (%s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $selector, $color, $name, $background, $ratio)
+                );
+            }
+        }
+    }
 }

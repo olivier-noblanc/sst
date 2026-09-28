@@ -73,6 +73,21 @@ final class CssRegistryCardPremiumTest extends TestCase
         $this->assertStringContainsString('font-size: var(--font-size-sm)', $desc);
     }
 
+    /**
+     * Le texte secondaire repose sur un tint clair : il doit consommer
+     * `--grey-700` (≥ 4.5:1 sur tous les tints), pas `--grey-600`.
+     * Cf. `CssContrastContractTest::testCardSecondaryTextMeetsContrastOnThemeTints`.
+     */
+    public function testSecondaryTextConsumesHighContrastInk(): void
+    {
+        foreach (['.registry-card__desc', '.registry-card__stat-label'] as $selector) {
+            $body = $this->ruleBody($selector);
+            $this->assertNotSame('', $body, "Règle $selector manquante.");
+            $this->assertStringContainsString('color: var(--grey-700)', $body, "$selector doit consommer --grey-700.");
+            $this->assertStringNotContainsString('color: var(--grey-600)', $body, "$selector ne doit pas consommer --grey-600 (contraste < 4.5:1 sur tint).");
+        }
+    }
+
     public function testUnknownThemeFallsBackToNeutral(): void
     {
         $body = $this->ruleBody('.registry-card');

@@ -305,4 +305,57 @@ final class CssContrastContractTest extends TestCase
             sprintf('.workflow-legend__item--muted (%s) sur --surface-sunken (%s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $color, $surface, $ratio)
         );
     }
+
+    /**
+     * Les cartes de registre premium posent le texte `--theme-<clé>-ink` sur le
+     * tint clair `--theme-<clé>-tint` ; les 10 paires doivent offrir ≥ 4.5:1.
+     */
+    public function testThemeTintInkPairsMeetContrast(): void
+    {
+        foreach (self::THEME_KEYS as $key) {
+            $ink = self::resolveToken(self::$tokens['--theme-' . $key . '-ink'] ?? '');
+            $tint = self::resolveToken(self::$tokens['--theme-' . $key . '-tint'] ?? '');
+
+            $this->assertNotSame('', $ink, "--theme-$key-ink manquant dans :root.");
+            $this->assertNotSame('', $tint, "--theme-$key-tint manquant dans :root.");
+
+            $ratio = self::contrastRatio($ink, $tint);
+            $this->assertGreaterThanOrEqual(
+                self::MIN_CONTRAST,
+                $ratio,
+                sprintf('--theme-%s-ink (%s) sur --theme-%s-tint (%s) doit offrir ≥ 4.5:1, mesuré %.2f:1.', $key, $ink, $key, $tint, $ratio)
+            );
+        }
+    }
+
+    /**
+     * La sidebar premium bleu nuit porte `--sidebar-text` au repos, un libellé
+     * actif blanc et la barre d'accent `--sidebar-active` ; chacune de ces trois
+     * couches doit offrir ≥ 4.5:1 sur `--sidebar-bg`.
+     */
+    public function testSidebarPairsMeetContrast(): void
+    {
+        $bg = self::resolveToken(self::$tokens['--sidebar-bg'] ?? '');
+        $text = self::resolveToken(self::$tokens['--sidebar-text'] ?? '');
+        $active = self::resolveToken(self::$tokens['--sidebar-active'] ?? '');
+
+        $this->assertNotSame('', $bg, '--sidebar-bg manquant.');
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            self::contrastRatio($text, $bg),
+            sprintf('--sidebar-text (%s) sur --sidebar-bg (%s) doit offrir ≥ 4.5:1.', $text, $bg)
+        );
+        // Libellé actif rendu en blanc sur le fond bleu nuit.
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            self::contrastRatio(self::WHITE, $bg),
+            sprintf('Libellé actif (blanc) sur --sidebar-bg (%s) doit offrir ≥ 4.5:1.', $bg)
+        );
+        // Barre d'accent active, doublure non chromatique de l'état actif.
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            self::contrastRatio($active, $bg),
+            sprintf('--sidebar-active (%s) sur --sidebar-bg (%s) doit offrir ≥ 4.5:1.', $active, $bg)
+        );
+    }
 }

@@ -19,6 +19,27 @@ const VIEWPORTS = [
 
 const PREMIUM_DIR = path.join(process.cwd(), 'docs', 'screenshots', 'premium');
 
+/**
+ * Deterministic prerequisite for the O5 readability test: configure at least
+ * one word for the RSST registry so the home page actually renders a
+ * `.word-cloud[data-words]`.
+ *
+ * Without this, a fresh E2E database has no words → the home page contains no
+ * cloud → the old O5 loop iterated zero times and passed vacuously, which
+ * masked the real regression (`public/router.php` did not route `/js.php`, so
+ * `wordcloud.js` never loaded and never rendered a single word).
+ */
+async function ensureWordCloudConfigured(page) {
+  await page.goto('/index.php?page=settings&tab=wordcloud&registry=rsst');
+  const row = page.locator('.wordcloud-row').first();
+  await row.locator('input[type="text"]').fill('Chantier');
+  await row.locator('input[type="number"]').fill('15');
+  await page
+    .locator('form:has(input[name="tab"][value="wordcloud"]) button[type="submit"]')
+    .click();
+  await page.waitForLoadState('networkidle');
+}
+
 for (const vp of VIEWPORTS) {
   test.describe(`Refonte premium — ${vp.label}`, () => {
     test.use({ viewport: { width: vp.width, height: vp.height } });
@@ -59,13 +80,50 @@ for (const vp of VIEWPORTS) {
     });
 
     test('accueil — nuage de mots lisible (O5)', async ({ page }) => {
+      // Guarantee a configured cloud exists before asserting anything, so this
+      // test can never pass because there is nothing to render.
+      await ensureWordCloudConfigured(page);
       await page.goto('/index.php?page=home');
-      const words = page.locator('.word-cloud__word');
-      const count = await words.count();
-      for (let i = 0; i < count; i++) {
-        const size = await words.nth(i).evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-        expect(size).toBeGreaterThanOrEqual(12.8);
+
+      const clouds = page.locator('.word-cloud[data-words]');
+      const cloudCount = await clouds.count();
+      expect(cloudCount).toBeGreaterThan(0);
+
+      let cloudsWithConfiguredWords = 0;
+
+      for (let c = 0; c < cloudCount; c++) {
+        const raw = await clouds.nth(c).getAttribute('data-words');
+        let configured = null;
+        try {
+          configured = JSON.parse(raw);
+        } catch {
+          configured = null;
+        }
+        // Only clouds that carry actual words are held to the contract.
+        if (!Array.isArray(configured) || configured.length === 0) continue;
+
+        cloudsWithConfiguredWords++;
+
+        // Hardened: a cloud with a non-empty data-words payload MUST render at
+        // least one placed word. Zero words means the `wordcloud.js` script was
+        // not executed (e.g. not served by the dev router) — a silent failure
+        // the previous `count === 0` loop happily ignored.
+        const rendered = clouds.nth(c).locator('.word-cloud__word');
+        const count = await rendered.count();
+        expect(
+          count,
+          `nuage #${c} : ${configured.length} mot(s) configuré(s) mais aucun mot rendu `
+            + `— wordcloud.js n'a pas été exécuté (servi par le router ?).`
+        ).toBeGreaterThan(0);
+
+        for (let i = 0; i < count; i++) {
+          const size = await rendered.nth(i).evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+          expect(size).toBeGreaterThanOrEqual(12.8);
+        }
       }
+
+      // At least one cloud with configured words must have been exercised.
+      expect(cloudsWithConfiguredWords).toBeGreaterThan(0);
     });
 
     test('accueil — légende compacte (O6)', async ({ page }) => {

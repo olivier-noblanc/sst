@@ -248,6 +248,81 @@ class RegistryCardRendererTest extends TestCase
         $this->assertStringNotContainsString('registry-card--incident-electrique', $html);
     }
 
+    /**
+     * Le rôle Agent ne voit pas le compteur « signalements enregistrés » :
+     * inutile sur son accueil car il est déjà filtré par sa propre visibilité.
+     * Le bloc stat complet (valeur + libellé) doit disparaître, sans casser
+     * le reste de la carte.
+     */
+    public function testRenderRegistryCardHidesStatWhenShowStatIsFalse(): void
+    {
+        $card = RegistryCardData::create(
+            type: 'rsst',
+            title: 'Registre RSST',
+            subtitle: 'RSST',
+            desc: 'Description test',
+            count: 5,
+            btnLabel: 'Déposer',
+            btnUrl: '/create',
+            listUrl: '/list',
+            listLabel: 'Voir mes signalements',
+            showStat: false,
+        );
+
+        $html = renderRegistryCard($card);
+
+        $this->assertStringNotContainsString('registry-card__stat-value', $html);
+        $this->assertStringNotContainsString('registry-card__stat-label', $html);
+        $this->assertStringNotContainsString('signalements enregistrés', $html);
+        // La carte reste entière : classes, titre, action et lien de liste.
+        $this->assertStringContainsString('registry-card registry-card--rsst', $html);
+        $this->assertStringContainsString('Registre RSST', $html);
+        $this->assertStringContainsString('href="/create"', $html);
+        $this->assertStringContainsString('href="/list"', $html);
+    }
+
+    // ─── Rôle Agent : compteur masqué dans l'accueil ────────────────────────
+
+    public function testAgentHomeCardsHideStatCounter(): void
+    {
+        $_SESSION['user'] = ['id' => 9001, 'role' => ROLE_AGENT, 'siteId' => 9001];
+        $this->seedReports('rsst', 3);
+
+        $html = renderRegistryCards(buildRegistryCards(), 'compact');
+
+        $this->assertStringNotContainsString('registry-card__stat-value', $html, "L'agent ne doit voir aucune valeur de compteur sur les cartes de registre.");
+        $this->assertStringNotContainsString('registry-card__stat-label', $html, "L'agent ne doit voir aucun libellé « signalements enregistrés ».");
+        $this->assertStringNotContainsString('enregistrés', $html);
+        // Les cartes restent complètes et cliquables.
+        $this->assertStringContainsString('registry-card__title', $html);
+        $this->assertStringContainsString('registry-card__btn', $html);
+        $this->assertStringContainsString('registry-card__link', $html);
+    }
+
+    public function testSuperviseurHomeCardsKeepStatCounter(): void
+    {
+        $_SESSION['user'] = ['id' => 9001, 'role' => ROLE_SUPERVISEUR, 'siteId' => 9001];
+        $this->seedReports('rsst', 3);
+
+        $html = renderRegistryCards(buildRegistryCards(), 'compact');
+
+        $this->assertStringContainsString('registry-card__stat-value', $html, 'Un superviseur conserve le compteur.');
+        $this->assertStringContainsString('registry-card__stat-label', $html);
+        $this->assertStringContainsString('signalements enregistrés', $html);
+    }
+
+    public function testChsctHomeCardsKeepStatCounter(): void
+    {
+        $_SESSION['user'] = ['id' => 9100, 'role' => ROLE_CHSCT, 'siteId' => 9001];
+        $this->seedReportWithConsent('rsst', 1);
+
+        $html = renderRegistryCards(buildRegistryCards(), 'compact');
+
+        $this->assertStringContainsString('registry-card__stat-value', $html, 'Un membre FS/CSA conserve le compteur.');
+        $this->assertStringContainsString('registry-card__stat-label', $html);
+        $this->assertStringContainsString('signalement enregistré', $html);
+    }
+
     public function testRenderRegistryCardEscapesHtml(): void
     {
         $card = RegistryCardData::create(

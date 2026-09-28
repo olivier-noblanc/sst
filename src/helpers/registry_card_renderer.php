@@ -21,9 +21,6 @@ function renderRegistryCard(RegistryCardData $card, string $extraClass = '', str
     if ($extraClass !== '') {
         $cssClass .= ' ' . e($extraClass);
     }
-    $count = $card->count;
-    $countLabel = 'signalement' . ($count !== 1 ? 's' : '')
-                . ' enregistré' . ($count !== 1 ? 's' : '');
     $html = '<div class="' . $cssClass . '">';
     $html .= '<div>';
     $html .= '<div class="registry-card__icon">' . getRegistryIcon($card->type) . '</div>';
@@ -34,10 +31,15 @@ function renderRegistryCard(RegistryCardData $card, string $extraClass = '', str
     $html .= '<div>';
     $html .= '<a href="' . e($card->btnUrl) . '" class="registry-card__btn">' . e($card->btnLabel) . '</a>';
     $html .= '<a href="' . e($card->listUrl) . '" class="registry-card__link">' . e($card->listLabel) . '</a>';
-    $html .= '<div class="registry-card__stat">';
-    $html .= '<span class="registry-card__stat-value">' . e((string) $count) . '</span>';
-    $html .= ' <span class="registry-card__stat-label">' . e($countLabel) . '</span>';
-    $html .= '</div>';
+    if ($card->showStat) {
+        $count = $card->count;
+        $countLabel = 'signalement' . ($count !== 1 ? 's' : '')
+                    . ' enregistré' . ($count !== 1 ? 's' : '');
+        $html .= '<div class="registry-card__stat">';
+        $html .= '<span class="registry-card__stat-value">' . e((string) $count) . '</span>';
+        $html .= ' <span class="registry-card__stat-label">' . e($countLabel) . '</span>';
+        $html .= '</div>';
+    }
     $html .= '</div>';
     if ($extraContent !== '') {
         $html .= '<div class="registry-card__extra">' . $extraContent . '</div>';

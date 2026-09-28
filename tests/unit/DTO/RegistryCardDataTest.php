@@ -28,4 +28,16 @@ class RegistryCardDataTest extends TestCase
         $card = RegistryCardData::create('rsst', cardClass: 'custom-card');
         $this->assertSame('custom-card', $card->cardClass);
     }
+
+    public function testCreateShowsStatByDefault(): void
+    {
+        $card = RegistryCardData::create('rsst');
+        $this->assertTrue($card->showStat);
+    }
+
+    public function testCreateWithExplicitShowStatFalsePreservesIt(): void
+    {
+        $card = RegistryCardData::create('rsst', showStat: false);
+        $this->assertFalse($card->showStat);
+    }
 }

@@ -16,6 +16,7 @@ final readonly class RegistryCardData
         public string $btnUrl,
         public string $listUrl,
         public string $listLabel,
+        public bool $showStat = true,
     ) {}
 
     public static function create(
@@ -29,6 +30,7 @@ final readonly class RegistryCardData
         string $btnUrl = '',
         string $listUrl = '',
         string $listLabel = '',
+        bool $showStat = true,
     ): self {
         if ($cardClass === '') {
             $cardClass = 'registry-card--' . $type;
@@ -44,6 +46,7 @@ final readonly class RegistryCardData
             btnUrl: $btnUrl,
             listUrl: $listUrl,
             listLabel: $listLabel,
+            showStat: $showStat,
         );
     }
 

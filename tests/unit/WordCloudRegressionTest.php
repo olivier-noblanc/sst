@@ -317,4 +317,34 @@ class WordCloudRegressionTest extends TestCase
         // Must accept registry_code from POST to save per-registry
         $this->assertStringContainsString('registry_code', $content, 'Handler must accept registry_code parameter');
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // Script — encre du thème et taille bornée (surface claire)
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Finding de revue Task 7 : le script injectait une palette claire (pensée
+     * pour l'ancien fond foncé) en style inline, rendant le nuage invisible sur
+     * les cartes claires. Il doit lire l'encre du thème et les bornes de taille.
+     * Le rendu `<noscript>` (markup de FormattingService) reste inchangé.
+     */
+    public function testWordCloudScriptConsumesThemeInkAndBounds(): void
+    {
+        $scriptFile = __DIR__ . '/../../public/js/wordcloud.js';
+        $this->assertFileExists($scriptFile);
+        $script = (string) file_get_contents($scriptFile);
+
+        $this->assertStringContainsString('--word-cloud-ink', $script, "Le script doit consommer l'encre --word-cloud-ink.");
+        $this->assertStringContainsString('--word-cloud-min', $script, 'Le script doit lire --word-cloud-min.');
+        $this->assertStringContainsString('--word-cloud-max', $script, 'Le script doit lire --word-cloud-max.');
+        $this->assertStringContainsString('getComputedStyle', $script, 'Le script doit résoudre les tokens calculés.');
+
+        foreach (['#ffffff', '#f0f4ff', '#d6e4ff', '#e0eaff', '#c8d8ff'] as $lightColor) {
+            $this->assertStringNotContainsString(
+                $lightColor,
+                $script,
+                "Couleur claire $lightColor interdite : illisible sur une surface claire."
+            );
+        }
+    }
 }

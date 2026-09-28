@@ -56,7 +56,7 @@ final class CssDesignSystemTest extends TestCase
             '--grey-700' => '#616161',
             '--grey-800' => '#424242',
             '--grey-900' => '#212121',
-            '--border' => 'var(--grey-300)',
+            '--border' => '#E4E9F0',
             '--hover-highlight' => '#E8F0FE',
             '--color-success-bg' => '#d4edda',
             '--color-success-border' => '#c3e6cb',
@@ -94,6 +94,26 @@ final class CssDesignSystemTest extends TestCase
             '--z-skip-link' => '9999',
             '--focus-ring-color' => 'rgba(0,86,163,0.4)',
             '--focus-ring-offset' => '2px',
+            '--sidebar-bg' => '#0F1D33',
+            '--sidebar-text' => '#C7D2E0',
+            '--sidebar-hover' => 'rgba(255,255,255,0.06)',
+            '--sidebar-active' => '#4A9EE8',
+            '--sidebar-active-tint' => 'rgba(74,158,232,0.16)',
+            '--surface' => '#FFFFFF',
+            '--surface-muted' => '#F7F9FC',
+            '--surface-sunken' => '#EEF2F7',
+            '--card-border' => '#E1E7EF',
+            '--card-shadow' => '0 1px 2px rgba(15,29,51,0.04), 0 1px 3px rgba(15,29,51,0.06)',
+            '--card-shadow-hover' => '0 2px 4px rgba(15,29,51,0.06), 0 6px 16px rgba(15,29,51,0.08)',
+            '--radius-xl' => '12px',
+            '--radius-pill' => '999px',
+            '--header-surface' => 'var(--surface)',
+            '--header-border' => 'var(--card-border)',
+            '--stat-size' => 'clamp(1.5rem, 1.2rem + 1vw, 2rem)',
+            '--laptop-min' => '1024px',
+            '--content-max-width' => '1240px',
+            '--word-cloud-min' => '0.8rem',
+            '--word-cloud-max' => '1.5rem',
         ];
 
         foreach ([
@@ -109,6 +129,22 @@ final class CssDesignSystemTest extends TestCase
             'ambre' => '#B45309',
         ] as $key => $value) {
             $tokens['--theme-' . $key] = $value;
+        }
+
+        foreach ([
+            'rsst' => ['#EDF2F8', '#24486D'],
+            'rami' => ['#F2F2F2', '#4F4F4F'],
+            'dgi' => ['#FDF0F0', '#8F1616'],
+            'vert' => ['#EDF7F0', '#116032'],
+            'violet' => ['#F3EFFD', '#5F2DB5'],
+            'orange' => ['#FDF1EB', '#93320A'],
+            'teal' => ['#EAF6F4', '#0B5A54'],
+            'indigo' => ['#EFEEFB', '#342CA0'],
+            'rose' => ['#FCEEF2', '#92102E'],
+            'ambre' => ['#FCF4E9', '#87400B'],
+        ] as $key => [$tint, $ink]) {
+            $tokens['--theme-' . $key . '-tint'] = $tint;
+            $tokens['--theme-' . $key . '-ink'] = $ink;
         }
 
         return $tokens;
@@ -152,6 +188,27 @@ final class CssDesignSystemTest extends TestCase
             }
         }
         return $result;
+    }
+
+    /**
+     * Corps de la règle `$selector` à l'intérieur des blocs `@media <query>`.
+     *
+     * `mediaBlocks()` agrège *tous* les blocs d'une même requête (huit blocs
+     * `(max-width: 768px)` dans la feuille) : une assertion « contient » non
+     * scopée peut donc être satisfaite par le `1fr` d'une grille étrangère.
+     * On isole ici la règle ciblée pour scoper l'assertion au bloc concerné.
+     */
+    private function mediaRuleBody(string $query, string $selector): string
+    {
+        $block = (string) preg_replace('~/\*.*?\*/~s', '', $this->mediaBlocks($query));
+        preg_match_all('/([^{}]+)\{([^{}]*)\}/', $block, $matches, PREG_SET_ORDER);
+        foreach ($matches as $match) {
+            $selectors = array_map('trim', explode(',', (string) $match[1]));
+            if (in_array($selector, $selectors, true)) {
+                return (string) $match[2];
+            }
+        }
+        return '';
     }
 
     /** CSS sans commentaires, pour éviter de confondre exemples et règles réelles. */
@@ -362,18 +419,46 @@ final class CssDesignSystemTest extends TestCase
     {
         $header = $this->ruleBody('.header');
         $this->assertStringContainsString('height: var(--header-height)', $header);
-        $this->assertStringContainsString('background: var(--color-primary)', $header);
+        $this->assertStringContainsString('background: var(--header-surface)', $header);
+        $this->assertStringContainsString('border-bottom: 1px solid var(--header-border)', $header);
         $this->assertStringContainsString('z-index: var(--z-header)', $header);
         $this->assertStringContainsString('padding: 0 var(--space-5)', $header);
-        $this->assertStringContainsString('box-shadow: var(--shadow-md)', $header);
+        $this->assertStringContainsString('box-shadow: var(--shadow-sm)', $header);
     }
 
     public function testSidebarActiveUsesColourAndBorderMarker(): void
     {
         $active = $this->ruleBody('.sidebar__item--active');
         $this->assertStringContainsString('border-left-color: var(--sidebar-active)', $active);
-        $this->assertStringContainsString('background:', $active, 'L’actif ne doit pas reposer sur la couleur seule.');
+        $this->assertStringContainsString('background: var(--sidebar-active-tint)', $active);
         $this->assertStringContainsString('color:', $active);
+    }
+
+    public function testSidebarItemsUseSpacingTokensAndHoverLift(): void
+    {
+        $item = $this->ruleBody('.sidebar__item');
+        $this->assertStringContainsString('padding: var(--space-3) var(--space-5)', $item);
+        $this->assertStringContainsString('transition: background', $item);
+
+        $hover = $this->ruleBody('.sidebar__item:hover');
+        $this->assertStringContainsString('background: var(--sidebar-hover)', $hover);
+        $this->assertStringContainsString('color: #FFFFFF', $hover);
+
+        $icon = $this->ruleBody('.sidebar__icon');
+        $this->assertStringContainsString('margin-right: var(--space-3)', $icon);
+
+        $footer = $this->ruleBody('.sidebar__footer');
+        $this->assertStringContainsString('border-top: 1px solid var(--sidebar-hover)', $footer);
+    }
+
+    public function testSidebarSectionCommentReflectsNavyToken(): void
+    {
+        $this->assertStringNotContainsString(
+            '#2C3E50',
+            self::$css,
+            'Couleur legacy de la sidebar encore référencée dans style.css.'
+        );
+        $this->assertStringContainsString('Bleu nuit premium', self::$css);
     }
 
     public function testOverlayAndSkipLinkUseDedicatedZTokens(): void
@@ -495,5 +580,100 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('var(--grey-700)', $this->ruleBody('.badge'));
         $this->assertStringContainsString('var(--border)', $this->ruleBody('.card'));
         $this->assertStringContainsString('var(--color-primary)', $this->ruleBody('.btn'));
+    }
+
+    /**
+     * Le nuage de mots repose désormais sur une surface claire teintée : l'encre
+     * doit venir du thème (`--word-cloud-ink` posé par la carte) et la taille
+     * rester bornée par le plancher O5 (0.8rem).
+     */
+    public function testWordCloudConsumesInkAndBounds(): void
+    {
+        $word = $this->ruleBody('.word-cloud__word');
+        $this->assertStringContainsString('color: var(--word-cloud-ink, var(--grey-800))', $word);
+        $this->assertStringNotContainsString('rgba(255,255,255', $word);
+
+        $cloud = $this->ruleBody('.word-cloud');
+        $this->assertStringContainsString('min-height: 160px', $cloud);
+
+        // Aucune classe de taille sous 0.8rem (plancher O5)
+        foreach (['wc-s1', 'wc-s2', 'wc-s3', 'wc-s4', 'wc-s5', 'wc-s6'] as $cls) {
+            $body = $this->ruleBody('.' . $cls);
+            $this->assertStringNotContainsString('font-size: 0.6rem', $body, "$cls sous le plancher de 0.8rem.");
+            $this->assertStringNotContainsString('font-size: 0.7rem', $body, "$cls sous le plancher de 0.8rem.");
+        }
+
+        // Le séparateur du nuage suit la surface claire (plus de blanc translucide).
+        $extra = $this->ruleBody('.registry-card__extra');
+        $this->assertStringContainsString('border-top: 1px solid var(--card-border)', $extra);
+        $this->assertStringNotContainsString('rgba(255,255,255', $extra);
+    }
+
+    /* ---------- Refonte premium — Task 6 : légende de workflow compacte ---------- */
+
+    /**
+     * O6 : la légende de workflow tient sur une ligne à 1280/1440 et sa hauteur
+     * reste ≤ 44 px. Statiquement, on verrouille les garants de cette compacité :
+     * rembourrage vertical `--space-2` (8 px), typographie `--font-size-xs`,
+     * surface en creux sans ombre portée (aucune épaisseur ajoutée) et rayon
+     * résolu (`--border-radius-lg`). Le repli ≤ 1024 px reste porté par
+     * `flex-wrap: wrap`. La hauteur rendue réelle est mesurée par Playwright (Task 11).
+     */
+    public function testWorkflowLegendIsCompact(): void
+    {
+        $legend = $this->ruleBody('.workflow-legend');
+        $this->assertStringContainsString('padding: var(--space-2) var(--space-4)', $legend);
+        $this->assertStringContainsString('background: var(--surface-sunken)', $legend);
+        $this->assertStringContainsString('border: 1px solid var(--card-border)', $legend);
+        $this->assertStringContainsString('border-radius: var(--border-radius-lg)', $legend);
+        $this->assertStringContainsString('font-size: var(--font-size-xs)', $legend);
+        $this->assertStringContainsString('flex-wrap: wrap', $legend);
+        $this->assertStringNotContainsString('box-shadow', $legend);
+
+        // Les libellés de la légende restent visibles et lisibles.
+        $text = $this->ruleBody('.workflow-legend__text');
+        $this->assertStringNotContainsString('display: none', $text);
+        $this->assertStringContainsString('font-size: var(--font-size-xs)', $text);
+
+        // Repli propre : la densité mobile est conservée sous 768 px.
+        $tablet = $this->mediaBlocks('(max-width: 768px)');
+        $this->assertStringContainsString('gap: var(--space-1)', $tablet);
+        $this->assertStringContainsString('padding: var(--space-2) var(--space-3)', $tablet);
+    }
+
+    /* ---------- Refonte premium — Task 9 : grille 3/4 colonnes et borne de lecture ---------- */
+
+    public function testRegistryGridIsLaptopBounded(): void
+    {
+        $grid = $this->ruleBody('.registry-cards');
+        $this->assertStringContainsString('display: grid', $grid);
+        $this->assertStringContainsString('grid-template-columns: repeat(3, minmax(0, 1fr))', $grid);
+        $this->assertStringContainsString('gap: var(--space-4)', $grid);
+
+        // Palier laptop étroit (769–1023 px, sous --laptop-min: 1024px) :
+        // deux colonnes pour ne pas comprimer les cartes avant le seuil laptop.
+        $narrow = $this->mediaRuleBody('(min-width: 769px) and (max-width: 1023px)', '.registry-cards');
+        $this->assertStringContainsString(
+            'grid-template-columns: repeat(2, minmax(0, 1fr))',
+            $narrow,
+            'Le palier 769–1023 px doit borner les registres à 2 colonnes.'
+        );
+
+        // Assertions scopées au corps de la règle registre dans la media query
+        // visée : `mediaBlocks('(max-width: 768px)')` agrège huit blocs, donc un
+        // « 1fr » étranger validerait le test à tort sans ce scope.
+        $desktop = $this->mediaRuleBody('(min-width: 1440px)', '.registry-cards');
+        $this->assertStringContainsString('grid-template-columns: repeat(4, minmax(0, 1fr))', $desktop);
+
+        $tablet = $this->mediaRuleBody('(max-width: 768px)', '.registry-cards');
+        $this->assertStringContainsString('grid-template-columns: 1fr', $tablet);
+
+        $main = $this->ruleBody('.main');
+        $this->assertStringContainsString('background: var(--surface-muted)', $main);
+
+        $children = $this->ruleBody('.main > *');
+        $this->assertStringContainsString('width: 100%', $children);
+        $this->assertStringContainsString('max-width: var(--content-max-width)', $children);
+        $this->assertStringContainsString('margin-inline: auto', $children);
     }
 }

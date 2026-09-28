@@ -6,7 +6,8 @@
  * This router file prevents the built-in server from crashing
  * by handling static files and routing PHP requests properly.
  *
- * CSS and favicons are inlined in HTML — no separate requests needed.
+ * CSS and JS are served through their PHP endpoints (css.php / js.php) with
+ * proper Content-Type and caching; favicons are inlined in HTML.
  * asset.php is kept for attachment downloads and exports only.
  *
  * Gzip: enabled for PHP output only (not for already-compressed static files).
@@ -36,6 +37,12 @@ if ($uri === '/asset.php') {
 // CSS server: css.php?f=css/style.css&v=... (proper Content-Type + caching)
 if ($uri === '/css.php') {
     require $publicPath . '/css.php';
+    return true;
+}
+
+// JS server: js.php?f=js/wordcloud.js&v=... (proper Content-Type + caching)
+if ($uri === '/js.php') {
+    require $publicPath . '/js.php';
     return true;
 }
 

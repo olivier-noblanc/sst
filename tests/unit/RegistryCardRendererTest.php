@@ -170,7 +170,8 @@ class RegistryCardRendererTest extends TestCase
         $this->assertStringContainsString('registry-card__icon', $html);
         $this->assertStringContainsString('📋', $html);
         $this->assertStringContainsString('Registre RSST', $html);
-        $this->assertStringContainsString('5 signalements enregistrés', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-value">5</span>', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-label">signalements enregistrés</span>', $html);
         $this->assertStringContainsString('href="/create"', $html);
         $this->assertStringContainsString('href="/list"', $html);
     }
@@ -191,7 +192,8 @@ class RegistryCardRendererTest extends TestCase
 
         $html = renderRegistryCard($card);
 
-        $this->assertStringContainsString('1 signalement enregistré', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-value">1</span>', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-label">signalement enregistré</span>', $html);
         // No plural 's' on count label
         $this->assertStringNotContainsString('1 signalements', $html);
         $this->assertStringNotContainsString('1 enregistrés', $html);
@@ -586,8 +588,10 @@ class RegistryCardRendererTest extends TestCase
         $html = renderRegistryCards($cards, 'large');
 
         $this->assertStringContainsString('registry-cards--large', $html);
-        $this->assertStringContainsString('5 signalements enregistrés', $html);
-        $this->assertStringContainsString('3 signalements enregistrés', $html);
-        $this->assertStringContainsString('1 signalement enregistré', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-value">5</span>', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-value">3</span>', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-value">1</span>', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-label">signalements enregistrés</span>', $html);
+        $this->assertStringContainsString('<span class="registry-card__stat-label">signalement enregistré</span>', $html);
     }
 }

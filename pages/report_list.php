@@ -215,7 +215,7 @@ $baseUrl = 'index.php?' . http_build_query($baseUrlParams, '', '&');
                             <?php if ($report->isConfidential): ?>
                             <span class="badge badge--confidential">&#128274; Confidentiel</span>
                             <?php else: ?>
-                            <span class="badge badge--public">Public</span>
+                            <span class="badge badge--public">&#10003; Public</span>
                             <?php endif; ?>
                         </td>
                         <td data-label="Actions">

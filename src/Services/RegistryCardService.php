@@ -89,6 +89,11 @@ class RegistryCardService
                 btnUrl: url('report_create', ['type' => $code]),
                 listUrl: url('report_list', ['type' => $code]),
                 listLabel: $listLabel($code),
+                // Un agent ne voit pas le compteur « signalements enregistrés »
+                // sur son accueil : inutile puisqu'il est déjà restreint à sa
+                // propre visibilité. Les autres rôles le conservent. Aucun
+                // impact sur le calcul (le count reste calculé pour tous).
+                showStat: !\isAgent(),
             );
         }
         return $cards;

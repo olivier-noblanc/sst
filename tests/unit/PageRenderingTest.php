@@ -492,6 +492,45 @@ class PageRenderingTest extends TestCase
     }
 
     /**
+     * Passe d'accessibilité AA — « ne plus dépendre de la couleur seule » : sur
+     * la liste, l'état et la visibilité sont portés par un libellé textuel et un
+     * glyphe non chromatique, jamais par la seule couleur de fond du badge.
+     */
+    public function testReportListBadgesConveyStateAndVisibilityWithoutColourAlone(): void
+    {
+        $this->loginAsSuperviseur();
+        $_GET['page'] = 'report_list';
+        $_GET['type'] = 'rsst';
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_list', 'test-csrf-token');
+        $output = (string) ob_get_clean();
+
+        // Visibilité confidentielle : glyphe (cadenas) + libellé.
+        $this->assertMatchesRegularExpression(
+            '/badge--confidential"[^>]*>&#128274;/',
+            $output,
+            'Le badge de visibilité confidentielle doit porter un glyphe + un libellé.'
+        );
+
+        // État : le libellé textuel accompagne la couleur de fond.
+        $this->assertMatchesRegularExpression(
+            '/badge--(?:nouveau|traite)"[^>]*>\s*(?:Nouveau|Traité)/u',
+            $output,
+            'Le badge d\'état doit porter son libellé, pas seulement sa couleur.'
+        );
+
+        // Le repli « public » (absent du jeu de données) porte lui aussi un
+        // glyphe non chromatique dans le template.
+        $source = (string) file_get_contents(__DIR__ . '/../../pages/report_list.php');
+        $this->assertMatchesRegularExpression(
+            '/badge--public"\s*>&#10003;\s*Public/',
+            $source,
+            'Le badge de visibilité publique doit porter un glyphe + un libellé.'
+        );
+    }
+
+    /**
      * Feature — création d'un signalement : une action locale « Supprimer la
      * pièce jointe » doit retirer le fichier sélectionné côté navigateur
      * (reset ciblé de l'<input type="file">), sans réinitialiser le reste du

@@ -56,7 +56,7 @@ final class CssDesignSystemTest extends TestCase
             '--grey-700' => '#616161',
             '--grey-800' => '#424242',
             '--grey-900' => '#212121',
-            '--border' => '#E4E9F0',
+            '--border' => '#7C8798',
             '--hover-highlight' => '#E8F0FE',
             '--color-success-bg' => '#d4edda',
             '--color-success-border' => '#c3e6cb',
@@ -71,14 +71,15 @@ final class CssDesignSystemTest extends TestCase
             '--color-info-border' => '#bee5eb',
             '--color-info-text' => '#0c5460',
             '--state-nouveau' => '#2E5C8A',
-            '--state-en-cours' => '#E67E22',
-            '--state-traite' => '#27AE60',
-            '--state-abandonne' => '#7B8D8E',
+            '--state-en-cours' => '#C2410C',
+            '--state-traite' => '#15803D',
+            '--state-abandonne' => '#5F6B6C',
+            '--state-reouvert' => '#6D28D9',
             '--role-agent' => '#2E5C8A',
             '--role-superviseur' => '#B22222',
             '--role-chsct' => '#8E44AD',
             '--visibility-confidential' => '#6b7280',
-            '--visibility-public' => '#22c55e',
+            '--visibility-public' => '#0E7A45',
             '--font-family' => "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
             '--border-radius' => '4px',
             '--border-radius-lg' => '8px',
@@ -92,7 +93,7 @@ final class CssDesignSystemTest extends TestCase
             '--z-mobile-menu' => '200',
             '--z-overlay' => '150',
             '--z-skip-link' => '9999',
-            '--focus-ring-color' => 'rgba(0,86,163,0.4)',
+            '--focus-ring-color' => '#0056A3',
             '--focus-ring-offset' => '2px',
             '--sidebar-bg' => '#0F1D33',
             '--sidebar-text' => '#C7D2E0',
@@ -102,7 +103,7 @@ final class CssDesignSystemTest extends TestCase
             '--surface' => '#FFFFFF',
             '--surface-muted' => '#F7F9FC',
             '--surface-sunken' => '#EEF2F7',
-            '--card-border' => '#E1E7EF',
+            '--card-border' => '#7C8798',
             '--card-shadow' => '0 1px 2px rgba(15,29,51,0.04), 0 1px 3px rgba(15,29,51,0.06)',
             '--card-shadow-hover' => '0 2px 4px rgba(15,29,51,0.06), 0 6px 16px rgba(15,29,51,0.08)',
             '--radius-xl' => '12px',
@@ -283,6 +284,22 @@ final class CssDesignSystemTest extends TestCase
         ] as $name) {
             $this->assertStringStartsWith('clamp(', self::$tokens[$name] ?? '', "$name doit rester fluide (clamp()).");
         }
+    }
+
+    /**
+     * Finding « ne plus dépendre de la couleur seule » : le badge porte un
+     * repère de forme (bordure) en plus de sa couleur de fond, afin que la
+     * distinction reste lisible quelle que soit la perception chromatique.
+     */
+    public function testBadgesCarryShapeCueBeyondFillColour(): void
+    {
+        $body = $this->ruleBody('.badge');
+        $this->assertNotSame('', $body, 'Règle .badge introuvable dans style.css.');
+        $this->assertMatchesRegularExpression(
+            '/border:\s*1px solid/',
+            $body,
+            'Le badge doit porter une bordure (repère de forme), pas seulement une couleur de fond.'
+        );
     }
 
     public function testCardBaseConsumesTokens(): void

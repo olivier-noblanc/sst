@@ -782,13 +782,20 @@ final class CssContrastContractTest extends TestCase
 
     /**
      * Retour UI (suite) : le focus clavier du contrôle de pièce jointe doit
-     * rester perceptible. L'input `file` étant visuellement masqué, l'anneau
-     * est porté par le label sur `:focus-within`.
+     * rester perceptible. L'input `file` est visuellement masqué ET placé
+     * AVANT le label (frère, pas ancêtre) : `:focus-within` sur le label ne
+     * peut donc jamais s'activer. L'anneau est porté par le label via le
+     * combinateur frère adjacent `input:focus-visible + label`.
+     *
+     * Le contrat lie le sélecteur CSS à la relation DOM réellement servie par
+     * les deux formulaires (création/édition et réponse), pour qu'une
+     * régression de markup (label déplacé/imbriqué) fasse échouer le test.
      */
-    public function testAttachmentUploadButtonFocusIsVisible(): void
+    public function testAttachmentUploadFocusRingMatchesRealDomSiblingRelation(): void
     {
-        $bodies = self::ruleBodiesFor('.file-upload-wrapper__label:focus-within');
-        $this->assertNotEmpty($bodies, 'Règle .file-upload-wrapper__label:focus-within introuvable.');
+        $selector = '.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label';
+        $bodies = self::ruleBodiesFor($selector);
+        $this->assertNotEmpty($bodies, sprintf('Sélecteur frère adjacent « %s » introuvable.', $selector));
 
         $visible = false;
         foreach ($bodies as $body) {
@@ -797,8 +804,31 @@ final class CssContrastContractTest extends TestCase
                 break;
             }
         }
+        $this->assertTrue($visible, 'Le label doit porter un anneau de focus tokenisé via le frère adjacent.');
 
-        $this->assertTrue($visible, 'Le label de pièce jointe doit porter un anneau de focus tokenisé sur :focus-within.');
+        // Garde-fou : plus aucune règle de focus basée sur :focus-within sur le
+        // label — elle ne peut pas matérialiser le focus d'un input frère.
+        $this->assertSame(
+            [],
+            self::ruleBodiesFor('.file-upload-wrapper__label:focus-within'),
+            ':focus-within est inopérant ici (input frère, non descendant du label).'
+        );
+
+        // Relation DOM réelle : l'input précède immédiatement le label dans les
+        // deux formulaires. Aucune modification de markup n'est donc requise.
+        // Les balises PHP inline sont neutralisées pour que la fermeture de
+        // script du template ne soit pas confondue avec la fin du tag input.
+        foreach (['templates/report_form.php', 'pages/report_respond.php'] as $file) {
+            $markup = file_get_contents(__DIR__ . '/../../' . $file);
+            $this->assertIsString($markup, sprintf('%s introuvable.', $file));
+
+            $html = (string) preg_replace('/<\?(?:php|=).*?\?>/s', '', $markup);
+            $this->assertMatchesRegularExpression(
+                '/class="file-upload-wrapper__input"[^>]*>\s*<label[^>]*class="file-upload-wrapper__label/s',
+                $html,
+                sprintf('%s : l\'input file doit précéder immédiatement le label (frère adjacent, pour `+`).', $file)
+            );
+        }
     }
 
     /**

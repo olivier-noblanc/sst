@@ -190,6 +190,27 @@ final class CssDesignSystemTest extends TestCase
         return $result;
     }
 
+    /**
+     * Corps de la règle `$selector` à l'intérieur des blocs `@media <query>`.
+     *
+     * `mediaBlocks()` agrège *tous* les blocs d'une même requête (huit blocs
+     * `(max-width: 768px)` dans la feuille) : une assertion « contient » non
+     * scopée peut donc être satisfaite par le `1fr` d'une grille étrangère.
+     * On isole ici la règle ciblée pour scoper l'assertion au bloc concerné.
+     */
+    private function mediaRuleBody(string $query, string $selector): string
+    {
+        $block = (string) preg_replace('~/\*.*?\*/~s', '', $this->mediaBlocks($query));
+        preg_match_all('/([^{}]+)\{([^{}]*)\}/', $block, $matches, PREG_SET_ORDER);
+        foreach ($matches as $match) {
+            $selectors = array_map('trim', explode(',', (string) $match[1]));
+            if (in_array($selector, $selectors, true)) {
+                return (string) $match[2];
+            }
+        }
+        return '';
+    }
+
     /** CSS sans commentaires, pour éviter de confondre exemples et règles réelles. */
     private static function withoutComments(): string
     {
@@ -629,16 +650,30 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('grid-template-columns: repeat(3, minmax(0, 1fr))', $grid);
         $this->assertStringContainsString('gap: var(--space-4)', $grid);
 
-        $desktop = $this->mediaBlocks('(min-width: 1440px)');
+        // Palier laptop étroit (769–1023 px, sous --laptop-min: 1024px) :
+        // deux colonnes pour ne pas comprimer les cartes avant le seuil laptop.
+        $narrow = $this->mediaRuleBody('(min-width: 769px) and (max-width: 1023px)', '.registry-cards');
+        $this->assertStringContainsString(
+            'grid-template-columns: repeat(2, minmax(0, 1fr))',
+            $narrow,
+            'Le palier 769–1023 px doit borner les registres à 2 colonnes.'
+        );
+
+        // Assertions scopées au corps de la règle registre dans la media query
+        // visée : `mediaBlocks('(max-width: 768px)')` agrège huit blocs, donc un
+        // « 1fr » étranger validerait le test à tort sans ce scope.
+        $desktop = $this->mediaRuleBody('(min-width: 1440px)', '.registry-cards');
         $this->assertStringContainsString('grid-template-columns: repeat(4, minmax(0, 1fr))', $desktop);
 
-        $tablet = $this->mediaBlocks('(max-width: 768px)');
+        $tablet = $this->mediaRuleBody('(max-width: 768px)', '.registry-cards');
         $this->assertStringContainsString('grid-template-columns: 1fr', $tablet);
 
         $main = $this->ruleBody('.main');
         $this->assertStringContainsString('background: var(--surface-muted)', $main);
 
         $children = $this->ruleBody('.main > *');
+        $this->assertStringContainsString('width: 100%', $children);
         $this->assertStringContainsString('max-width: var(--content-max-width)', $children);
+        $this->assertStringContainsString('margin-inline: auto', $children);
     }
 }

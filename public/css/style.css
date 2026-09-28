@@ -681,6 +681,7 @@ img { max-width: 100%; height: auto; display: block; }
 .main > * {
     width: 100%;
     max-width: var(--content-max-width);
+    margin-inline: auto;
 }
 
 /* ============================================================
@@ -764,9 +765,9 @@ img { max-width: 100%; height: auto; display: block; }
     gap: var(--space-4);
 }
 
-.registry-cards--large {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
+/* `.registry-cards--large` n'ajoute plus de grille propre (il est toujours
+   associé à `.registry-cards` par registry_card_renderer.php) : seul le
+   modificateur historique de gap/marge subsiste. */
 
 .registry-card {
     position: relative;
@@ -3732,7 +3733,17 @@ tr:hover td {
 }
 
 /* ============================================================
-   34bis. Large laptops — registres sur 4 colonnes (plafonné)
+   34bis. Narrow laptops — registres sur 2 colonnes (sous --laptop-min)
+   ============================================================ */
+@media (min-width: 769px) and (max-width: 1023px) {
+    .registry-cards,
+    .registry-cards--large {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ============================================================
+   34ter. Large laptops — registres sur 4 colonnes (plafonné)
    ============================================================ */
 @media (min-width: 1440px) {
     .registry-cards,

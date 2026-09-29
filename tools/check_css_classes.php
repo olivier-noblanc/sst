@@ -68,6 +68,12 @@ $excludedStrings = [
     'username', 'site_code', 'site_nom', 'site_id', 'site_chosen_at', 'site_text',
     'word_cloud_words', 'report_uuid', 'report_created', 'report_abandoned',
     'logCount', 'logFileSize', 'errorFilter', 'error_log', 'echo',
+    // Faux positif : `'status'` (pages/logs.php — onglet outbox e-mail) est une
+    // clé de tableau / paramètre GET ($_GET['status'], ['status' => ...]), pas
+    // une classe CSS. Le mot commence par le préfixe `stat` de l'heuristique de
+    // détection des chaînes PHP et était compté à tort comme classe HTML sans
+    // définition CSS (MISSING CSS: .status).
+    'status',
     // PHP constants/values
     'agent', 'superviseur', 'chsct', 'admin', 'nouveau', 'en_cours', 'traite', 'abandonne',
     'reouvert', 'confidentiel', 'rsst', 'rami', 'dgi',

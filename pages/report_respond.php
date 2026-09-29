@@ -100,7 +100,7 @@ $etat = $report->etat;
             <td><span class="badge <?php echo $fmt->getRegistryBadgeClass($registryType); ?>"><?php echo $fmt->e($registryLabel); ?></span></td>
         </tr>
         <tr>
-            <th>Date de l'événement</th>
+            <th>Date de dépôt</th>
             <td><?php echo $fmt->e($fmt->formatDateFR($report->dateEvenement)); ?></td>
         </tr>
         <tr>
@@ -113,10 +113,6 @@ $etat = $report->etat;
             <td><?php echo $fmt->e($report->siteNom ?: '—'); ?></td>
         </tr>
         <?php endif; ?>
-        <tr>
-            <th><?php echo e(new \App\Services\RegistryPolicy()->getLieuLabel($registryType)); ?></th>
-            <td><?php echo $fmt->e($report->lieu ?: '—'); ?></td>
-        </tr>
         <?php if (!empty($report->pole)): ?>
         <tr>
             <th>Pôle</th>

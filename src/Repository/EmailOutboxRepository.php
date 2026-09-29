@@ -538,6 +538,82 @@ final readonly class EmailOutboxRepository
         return (string) $value;
     }
 
+    /**
+     * Liste paginée en LECTURE SEULE des messages de l'outbox, pour l'onglet
+     * « E-mails » du Journal (traçabilité des notifications).
+     *
+     * Ne sélectionne JAMAIS subject/body/headers : le contenu d'un message est
+     * potentiellement sensible (objet/description d'un signalement) et n'a rien
+     * à faire dans l'interface d'administration. Seules les métadonnées de
+     * transport sont exposées : date, destinataire, statut, tentatives, erreur.
+     *
+     * La référence du signalement est dérivée de la dedup_key
+     * (« event:identity:recipient », identity = uuid) par jointure LEFT sur
+     * reports — la jointure est faite en SQL (aucune donnée sensible remontée).
+     *
+     * @param array{status?: string} $filters
+     * @return array{entries: list<array<string, int|string|null>>, total: int}
+     *
+     * @phpstan-ignore shipmonk.deadMethod
+     */
+    public function findPaginated(array $filters = [], int $page = 1, int $perPage = 50): array
+    {
+        $where = '1=1';
+        $params = [];
+        if (!empty($filters['status'])) {
+            $where .= ' AND e.status = :status';
+            $params[':status'] = $filters['status'];
+        }
+
+        $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM email_outbox e WHERE $where");
+        $countStmt->execute($params);
+        $total = (int) $countStmt->fetchColumn();
+
+        $offset = ($page - 1) * $perPage;
+        $sql = "
+            SELECT e.id, e.dedup_key, e.recipient, e.status, e.attempts,
+                   e.last_error, e.created_at, e.sent_at, e.failed_at,
+                   r.reference AS report_reference
+            FROM email_outbox e
+            LEFT JOIN reports r
+              ON r.uuid = substr(
+                   e.dedup_key,
+                   instr(e.dedup_key, ':') + 1,
+                   instr(substr(e.dedup_key, instr(e.dedup_key, ':') + 1), ':') - 1
+                 )
+            WHERE $where
+            ORDER BY e.created_at DESC, e.id DESC
+            LIMIT :limit OFFSET :offset
+        ";
+        $params[':limit'] = $perPage;
+        $params[':offset'] = $offset;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        $entries = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $entries[] = [
+                'id'               => (int) ($row['id'] ?? 0),
+                'dedup_key'        => (string) ($row['dedup_key'] ?? ''),
+                'recipient'        => (string) ($row['recipient'] ?? ''),
+                'status'           => (string) ($row['status'] ?? ''),
+                'attempts'         => (int) ($row['attempts'] ?? 0),
+                'last_error'       => isset($row['last_error']) ? (string) $row['last_error'] : null,
+                'created_at'       => (string) ($row['created_at'] ?? ''),
+                'sent_at'          => isset($row['sent_at']) ? (string) $row['sent_at'] : null,
+                'failed_at'        => isset($row['failed_at']) ? (string) $row['failed_at'] : null,
+                'report_reference' => isset($row['report_reference']) ? (string) $row['report_reference'] : null,
+            ];
+        }
+        $stmt->closeCursor();
+
+        return ['entries' => $entries, 'total' => $total];
+    }
+
     private static function nowUtc(): string
     {
         return gmdate('Y-m-d H:i:s');

@@ -270,7 +270,6 @@ test.describe('Report Form — Targeted Attachment Removal', () => {
     // Fill other fields first: they must survive the targeted removal.
     await page.locator('#objet').fill('Objet à conserver');
     await page.locator('#description').fill('Description à conserver');
-    await page.locator('#lieu').fill('Lieu à conserver');
 
     // Select a temporary file (browser-side only, never submitted here).
     await page.locator('#attachment').setInputFiles({
@@ -295,7 +294,6 @@ test.describe('Report Form — Targeted Attachment Removal', () => {
     // No other field was reset.
     await expect(page.locator('#objet')).toHaveValue('Objet à conserver');
     await expect(page.locator('#description')).toHaveValue('Description à conserver');
-    await expect(page.locator('#lieu')).toHaveValue('Lieu à conserver');
 
     // The form was not submitted (no navigation away from the form).
     expect(page.url()).toContain('page=report_create');

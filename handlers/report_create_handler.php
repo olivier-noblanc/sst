@@ -101,6 +101,11 @@ try {
     /** @var array<string, mixed> $cmdData */
     $cmdData = array_merge($cmd->toArray(), [
         'type' => $cmd->type,
+        // Champ « Date de dépôt » (readonly côté UI) : la date est estampillée
+        // côté SERVEUR à la date du jour. Le POST n'est pas digne de confiance
+        // (un readonly est trivialement contournable) — la valeur soumise est
+        // donc ignorée au profit de la date serveur.
+        'dateEvenement' => todayISO(),
         'attachmentBlob' => $attachment['blob'],
         'attachmentName' => $attachment['name'],
         'attachmentMime' => $attachment['mime'],

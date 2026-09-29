@@ -410,4 +410,49 @@ class EmailOutboxRepositoryTest extends TestCase
         }
         $this->assertTrue($hasDedupUnique, 'dedup_key doit porter une contrainte UNIQUE (enqueue idempotent)');
     }
+
+    // ══ findPaginated — onglet « E-mails » du Journal ═════════════════════
+
+    public function testFindPaginatedExposesSafeMetadataAndReportReference(): void
+    {
+        $uuid = 'journal-emails-1111-2222-333333333333';
+        $reference = 'RSST-JOURNAL-001';
+        $this->pdo->exec("DELETE FROM users WHERE username = 'journal.test.user'");
+        $this->pdo->exec("INSERT INTO users (nom, prenom, username, role, site_id, is_active, email) VALUES ('N', 'P', 'journal.test.user', 'agent', NULL, 1, 'journal.test@dreets-bfc.gouv.fr')");
+        $declarantId = (int) $this->pdo->lastInsertId();
+
+        $this->pdo->prepare(
+            "INSERT OR REPLACE INTO reports (uuid, reference, type, objet, description, date_evenement, declarant_id, declarant_nom, declarant_prenom, site_id, etat, is_confidential)
+             VALUES (:uuid, :reference, 'rsst', 'Journal', 'Desc', '2026-01-01', :declarant_id, 'N', 'P', NULL, 'nouveau', 0)"
+        )->execute([':uuid' => $uuid, ':reference' => $reference, ':declarant_id' => $declarantId]);
+
+        $this->repo->enqueue($this->message('report_created:' . $uuid . ':dest1@dreets-bfc.gouv.fr', 'dest1@dreets-bfc.gouv.fr'));
+        $this->repo->enqueue($this->message('agent_invite:identity-2:dest2@dreets-bfc.gouv.fr', 'dest2@dreets-bfc.gouv.fr'));
+
+        try {
+            $result = $this->repo->findPaginated([], 1, 50);
+            $this->assertSame(2, $result['total']);
+            $this->assertCount(2, $result['entries']);
+
+            $byRecipient = [];
+            foreach ($result['entries'] as $entry) {
+                // Aucun contenu sensible ne doit être exposé (ni corps, ni objet, ni en-têtes).
+                $this->assertArrayNotHasKey('body', $entry);
+                $this->assertArrayNotHasKey('subject', $entry);
+                $this->assertArrayNotHasKey('headers', $entry);
+                $byRecipient[(string) $entry['recipient']] = $entry;
+            }
+
+            $this->assertSame($reference, $byRecipient['dest1@dreets-bfc.gouv.fr']['report_reference'], 'La référence signalement est résolue depuis la dedup_key');
+            $this->assertNull($byRecipient['dest2@dreets-bfc.gouv.fr']['report_reference'], 'Un message hors signalement n\'a pas de référence');
+            $this->assertSame(OutboxStatus::Pending->value, $byRecipient['dest1@dreets-bfc.gouv.fr']['status']);
+
+            // Filtre statut : aucun message envoyé ici.
+            $filtered = $this->repo->findPaginated(['status' => OutboxStatus::Sent->value], 1, 50);
+            $this->assertSame(0, $filtered['total']);
+        } finally {
+            $this->pdo->prepare('DELETE FROM reports WHERE uuid = :uuid')->execute([':uuid' => $uuid]);
+            $this->pdo->exec("DELETE FROM users WHERE username = 'journal.test.user'");
+        }
+    }
 }

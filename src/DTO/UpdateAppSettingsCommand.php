@@ -20,6 +20,7 @@ final readonly class UpdateAppSettingsCommand
         public readonly string $appHotlineNumber,
         public readonly string $appDpoContact,
         public readonly string $appReportPreamble,
+        public readonly string $appReportFormEncouragement,
         public readonly string $appRsstDescription,
         public readonly string $appReportCreateLabel,
         public readonly string $appLinkedAgentsLabel,
@@ -53,6 +54,10 @@ final readonly class UpdateAppSettingsCommand
         $appHotlineNumber = trim((string) ($post['app_hotline_number'] ?? ''));
         $appDpoContact = trim((string) ($post['app_dpo_contact'] ?? ''));
         $appReportPreamble = trim((string) ($post['app_report_preamble'] ?? ''));
+        $appReportFormEncouragement = trim((string) ($post['app_report_form_encouragement'] ?? ''));
+        if ($appReportFormEncouragement === '') {
+            $appReportFormEncouragement = 'Remplissez les champs marqués d\'une étoile *, les autres sont optionnels.';
+        }
         $appRsstDescription = trim((string) ($post['app_rsst_description'] ?? ''));
 
         $appReportCreateLabel = trim((string) ($post['app_report_create_label'] ?? ''));
@@ -117,6 +122,7 @@ final readonly class UpdateAppSettingsCommand
             appHotlineNumber: $appHotlineNumber,
             appDpoContact: $appDpoContact,
             appReportPreamble: $appReportPreamble,
+            appReportFormEncouragement: $appReportFormEncouragement,
             appRsstDescription: $appRsstDescription,
             appReportCreateLabel: $appReportCreateLabel,
             appLinkedAgentsLabel: $appLinkedAgentsLabel,

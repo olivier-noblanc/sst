@@ -65,4 +65,17 @@ class ReportFilterMutationTest extends TestCase
         $f = new ReportFilter(type: 'rsst', seeAllSites: false);
         $this->assertFalse($f->seeAllSites);
     }
+
+    public function testIncludeAbandonneDefaultsFalseAndPropagates(): void
+    {
+        // Filtre « Tous » de report_list : le flag est false par défaut
+        // (navigation report_view / BUG-3) et remonte tel quel dans toArray().
+        $default = new ReportFilter(type: 'rsst');
+        $this->assertFalse($default->includeAbandonne, 'includeAbandonne must default to false');
+        $this->assertFalse($default->toArray()['include_abandonne']);
+
+        $tous = new ReportFilter(type: 'rsst', includeAbandonne: true);
+        $this->assertTrue($tous->includeAbandonne);
+        $this->assertTrue($tous->toArray()['include_abandonne']);
+    }
 }

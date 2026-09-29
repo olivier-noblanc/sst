@@ -90,11 +90,18 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
     <div class="alert alert--info whitespace-pre-line" role="note"><?php echo e($preamble); ?></div>
     <?php endif; ?>
     <div class="alert alert--info form-encouragement" role="note">
-        💡 <strong>Remplissez les champs marqués d'une étoile <span class="required">*</span>, les autres sont optionnels.</strong>
+        💡 <strong><?php echo e(getConfigService()->get('app_report_form_encouragement', 'Remplissez les champs marqués d\'une étoile *, les autres sont optionnels.')); ?></strong>
     </div>
     <form method="POST" action="<?php echo e($action); ?>" enctype="multipart/form-data">
         <input type="hidden" name="type" value="<?php echo e($type); ?>">
         <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
+        <?php
+        // Champ « Lieu » retiré de l'interface (exigence produit) : la donnée
+        // reste en base et le handler continue de lire $_POST['lieu']. Ce champ
+        // caché préserve la valeur existante en édition (aucune perte de
+        // donnée) et reste vide en création — compatibilité POST conservée.
+        ?>
+        <input type="hidden" name="lieu" value="<?php echo e($val('lieu')); ?>">
         <?php if ($isEdit && $report !== null): ?>
             <input type="hidden" name="report_uuid" value="<?php echo e($report->uuid); ?>">
         <?php endif; ?>
@@ -103,12 +110,14 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
         <?php endif; ?>
         <div class="form-grid">
             <div class="form-group">
-                <label for="date_evenement">Date de l'événement <span class="required">*</span></label>
+                <label for="date_evenement">Date de dépôt <span class="required">*</span></label>
                 <input type="date" id="date_evenement" name="date_evenement"
-                       value="<?php echo e($val('date_evenement', todayISO())); ?>"
+                       value="<?php echo e($isEdit ? $val('date_evenement', todayISO()) : todayISO()); ?>"
                        required max="<?php echo todayISO(); ?>"
                        autocomplete="off"
+                       <?php echo $isEdit ? '' : 'readonly aria-readonly="true"'; ?>
                        <?php echo isset($formErrors['date_evenement']) ? 'aria-describedby="err_date_evenement" aria-invalid="true"' : ''; ?>>
+                <span class="form-hint"><?php echo $isEdit ? 'Date enregistrée lors du dépôt.' : 'Remplie automatiquement à la date du jour.'; ?></span>
                 <?php if (isset($formErrors['date_evenement'])): ?>
                     <span class="form-error" id="err_date_evenement"><?php echo e($formErrors['date_evenement']); ?></span>
                 <?php endif; ?>
@@ -120,16 +129,6 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                        readonly
                        autocomplete="off">
                 <span class="form-hint">Rempli automatiquement au moment du dépôt.</span>
-            </div>
-            <div class="form-group">
-                <label for="lieu"><?php echo e(new \App\Services\RegistryPolicy()->getLieuLabel($type)); ?></label>
-                <input type="text" id="lieu" name="lieu"
-                       value="<?php echo e($val('lieu')); ?>"
-                       maxlength="200"
-                       autocomplete="off"
-                       placeholder="Ex : Bâtiment B, 2e étage, couloir principal"
-                       aria-describedby="hint_lieu">
-                <span class="form-hint" id="hint_lieu">200 caractères max.<?php echo new \App\Services\RegistryPolicy()->hasDgiWarningPanel($type) ? ' Indiquez le lieu et les mesures de protection mises en place.' : ''; ?></span>
             </div>
             <div class="form-group">
                 <label for="pole">Pôle <span class="required">*</span></label>

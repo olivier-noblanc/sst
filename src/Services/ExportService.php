@@ -25,7 +25,7 @@ class ExportService
     private const array BASE_COLUMNS = [
         'Référence',
         'Registre',
-        'Date événement',
+        'Date de dépôt',
         'Heure dépôt',
         'Lieu',
         'Pôle',

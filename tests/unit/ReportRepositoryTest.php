@@ -131,6 +131,38 @@ class ReportRepositoryTest extends TestCase
         $this->assertContains($uuid, array_map(fn($r) => $r->uuid, $default->reports));
     }
 
+    /**
+     * Filtre « Tous » de report_list — inclut les abandonnés ; les autres
+     * filtres (défaut navigation, état explicite) gardent leur comportement.
+     */
+    public function testFindPaginatedTousIncludesAbandonedOthersUnchanged(): void
+    {
+        $visible = $this->repo->create($this->makeCommand('Visible Tous'));
+        $abandoned = $this->repo->create($this->makeCommand('Abandonné Tous'));
+        $this->pdo->prepare('UPDATE reports SET etat = :etat WHERE uuid = :uuid')
+            ->execute([':etat' => \App\Enum\ReportState::Abandonne->value, ':uuid' => $abandoned]);
+
+        // « Tous » (includeAbandonne=true, état vide) → l'abandonné est visible.
+        $tous = $this->repo->findPaginated(new \App\DTO\ReportFilter(type: 'rsst', includeAbandonne: true), 1, 100);
+        $tousUuids = array_map(fn($r) => $r->uuid, $tous->reports);
+        $this->assertContains($abandoned, $tousUuids, '« Tous » doit inclure les signalements abandonnés');
+        $this->assertContains($visible, $tousUuids);
+
+        // Défaut (navigation report_view) → exclusion conservée (BUG-3).
+        $default = $this->repo->findPaginated(new \App\DTO\ReportFilter(type: 'rsst'), 1, 100);
+        $defaultUuids = array_map(fn($r) => $r->uuid, $default->reports);
+        $this->assertNotContains($abandoned, $defaultUuids, 'Le défaut exclut toujours les abandonnés (BUG-3)');
+        $this->assertContains($visible, $defaultUuids);
+
+        // État explicite « nouveau » → l'abandonné reste exclu.
+        $nouveau = $this->repo->findPaginated(new \App\DTO\ReportFilter(type: 'rsst', etat: \App\Enum\ReportState::Nouveau->value), 1, 100);
+        $this->assertNotContains($abandoned, array_map(fn($r) => $r->uuid, $nouveau->reports));
+
+        // État explicite « abandonne » → seul l'abandonné est renvoyé.
+        $abandonneOnly = $this->repo->findPaginated(new \App\DTO\ReportFilter(type: 'rsst', etat: \App\Enum\ReportState::Abandonne->value), 1, 100);
+        $this->assertSame([$abandoned], array_map(fn($r) => $r->uuid, $abandonneOnly->reports));
+    }
+
     /** @param array<string, mixed> $overrides */
     private function makeCommand(string $objet, array $overrides = []): CreateReportCommand
     {

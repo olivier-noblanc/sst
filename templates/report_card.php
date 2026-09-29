@@ -91,16 +91,12 @@ if (!isset($csrfToken)) {
                     <td><?php echo $fmt->e($report->reference); ?></td>
                 </tr>
                 <tr>
-                    <th>Date de l'événement</th>
+                    <th>Date de dépôt</th>
                     <td><?php echo $fmt->e($fmt->formatDateFR($report->dateEvenement)); ?></td>
                 </tr>
                 <tr>
                     <th>Heure du dépôt</th>
                     <td><?php echo $fmt->e($report->heureEvenement ?: '—'); ?></td>
-                </tr>
-                <tr>
-                    <th><?php echo e(new \App\Services\RegistryPolicy()->getLieuLabel($type)); ?></th>
-                    <td><?php echo $fmt->e($report->lieu ?: '—'); ?></td>
                 </tr>
                 <?php if (!empty($report->pole)): ?>
                 <tr>

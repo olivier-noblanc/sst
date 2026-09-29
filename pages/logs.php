@@ -82,6 +82,29 @@ if ($activeTab === 'audit') {
     $auditTotal = $result['total'];
 }
 
+// ============================================================
+// Tab 3: Email outbox (traçabilité des notifications envoyées)
+// ============================================================
+// Source fiable = table email_outbox (file d'envoi transactionnelle, jamais
+// purgée en fonctionnement normal). Lecture seule, métadonnées uniquement —
+// aucun contenu de message (subject/body/headers) n'est sélectionné ni affiché.
+$outboxEntries = [];
+$outboxTotal = 0;
+$outboxPerPage = 50;
+/** @var string */
+$outboxStatusFilter = (string) ($_GET['status'] ?? '');
+$outboxPage = max(1, (int) ($_GET['p'] ?? 1));
+
+if ($activeTab === 'emails') {
+    $outboxResult = \App\Repository\EmailOutboxRepository::instance()->findPaginated(
+        $outboxStatusFilter !== '' ? ['status' => $outboxStatusFilter] : [],
+        $outboxPage,
+        $outboxPerPage,
+    );
+    $outboxEntries = $outboxResult['entries'];
+    $outboxTotal = $outboxResult['total'];
+}
+
 // Category labels for audit log display
 $auditCategoryLabels = [
     'auth' => 'Authentification', 'report' => 'Signalement',
@@ -105,6 +128,32 @@ $auditActionLabels = [
     'data_export' => 'Export de données', 'anonymize' => 'Anonymisation',
     'outbox_retry' => 'Reprogrammation outbox',
 ];
+
+// Labels de l'onglet « E-mails » — l'événement est le préfixe de la dedup_key
+// (valeur de OutboxEvent), jamais une chaîne ad hoc.
+$outboxEventLabels = [
+    \App\Enum\OutboxEvent::ReportCreated->value     => 'Création de signalement',
+    \App\Enum\OutboxEvent::ReportResponded->value   => 'Réponse à un signalement',
+    \App\Enum\OutboxEvent::ReportReopened->value    => 'Réouverture de signalement',
+    \App\Enum\OutboxEvent::ReportAbandoned->value   => 'Abandon de signalement',
+    \App\Enum\OutboxEvent::RoleChanged->value       => 'Changement de rôle',
+    \App\Enum\OutboxEvent::AgentInvite->value       => 'Invitation d\'agent',
+    \App\Enum\OutboxEvent::ReportTransmitted->value => 'Transmission CSA/CHSCT',
+];
+
+$outboxStatusLabels = [
+    \App\Enum\OutboxStatus::Pending->value    => 'En attente',
+    \App\Enum\OutboxStatus::Processing->value => 'En cours d\'envoi',
+    \App\Enum\OutboxStatus::Sent->value       => 'Envoyé',
+    \App\Enum\OutboxStatus::Failed->value     => 'Échec',
+];
+
+$outboxStatusBadges = [
+    \App\Enum\OutboxStatus::Pending->value    => 'badge--info',
+    \App\Enum\OutboxStatus::Processing->value => 'badge--warning',
+    \App\Enum\OutboxStatus::Sent->value       => 'badge--vert',
+    \App\Enum\OutboxStatus::Failed->value     => 'badge--fatal',
+];
 ?>
 
 <h1 class="page-title">Journal</h1>
@@ -117,6 +166,7 @@ $auditActionLabels = [
 <!-- Main tab bar: Audit / Erreurs -->
 <div class="tab-bar tab-bar--flush">
     <a href="<?php echo $http->url('logs', ['tab' => 'audit']); ?>" class="tab<?php echo $activeTab === 'audit' ? ' tab--active' : ''; ?>">Journal d'audit</a>
+    <a href="<?php echo $http->url('logs', ['tab' => 'emails']); ?>" class="tab<?php echo $activeTab === 'emails' ? ' tab--active' : ''; ?>">E-mails</a>
     <a href="<?php echo $http->url('logs', ['tab' => 'errors']); ?>" class="tab<?php echo $activeTab === 'errors' ? ' tab--active' : ''; ?>">Erreurs PHP</a>
 </div>
 
@@ -163,7 +213,7 @@ $auditActionLabels = [
     <?php endif; ?>
 </div>
 
-<?php else: ?>
+<?php elseif ($activeTab === 'audit'): ?>
 <!-- Tab: Journal d'audit -->
 <div class="card card--flush-top">
     <div class="card__title-row">
@@ -271,6 +321,105 @@ $auditActionLabels = [
 
             <?php if ($auditPage < $totalPages): ?>
                 <a href="<?php echo $http->url('logs', array_merge($paginationParams, ['p' => $auditPage + 1])); ?>" class="btn btn--sm btn--outline">Suivant &rarr;</a>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>
+<?php else: ?>
+<!-- Tab: E-mails — traçabilité des notifications (lecture seule, métadonnées) -->
+<div class="card card--flush-top">
+    <div class="card__title-row">
+        <h2 class="card__subtitle">
+            Envois d'e-mails
+            <span class="text-muted text-small">(<?php echo number_format($outboxTotal, 0, ',', ' '); ?> messages)</span>
+        </h2>
+    </div>
+
+    <form method="GET" action="<?php echo $http->url('logs'); ?>" class="filter-bar filter-bar--spaced">
+        <input type="hidden" name="page" value="logs">
+        <input type="hidden" name="tab" value="emails">
+        <div class="filter-bar__group">
+            <label for="outbox-status" class="filter-bar__label">Statut</label>
+            <select id="outbox-status" name="status" class="form-control form-control--auto">
+                <option value="">Tous</option>
+                <?php foreach ($outboxStatusLabels as $key => $label): ?>
+                    <option value="<?php echo $fmt->e($key); ?>"<?php echo $outboxStatusFilter === $key ? ' selected' : ''; ?>><?php echo $fmt->e($label); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="filter-bar__group">
+            <button type="submit" class="btn btn--sm btn--primary">Filtrer</button>
+            <a href="<?php echo $http->url('logs', ['tab' => 'emails']); ?>" class="btn btn--sm btn--outline">Réinitialiser</a>
+        </div>
+    </form>
+
+    <?php if (empty($outboxEntries)): ?>
+        <div class="empty-state">
+            <p class="text-muted">Aucun message dans l'outbox<?php echo $outboxStatusFilter !== '' ? ' pour ce filtre' : ''; ?>.</p>
+        </div>
+    <?php else: ?>
+        <div class="table-wrapper">
+            <table class="table table--compact" aria-label="Traçabilité des e-mails">
+                <thead>
+                    <tr>
+                        <th class="th--date">Date</th>
+                        <th>Événement</th>
+                        <th>Destinataire</th>
+                        <th>Statut</th>
+                        <th>Référence signalement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($outboxEntries as $entry): ?>
+                        <?php
+                        $dedupKey = (string) ($entry['dedup_key'] ?? '');
+                        $eventCode = explode(':', $dedupKey, 2)[0];
+                        $eventLabel = $outboxEventLabels[$eventCode] ?? 'Notification';
+                        $statusCode = (string) ($entry['status'] ?? '');
+                        $statusLabel = $outboxStatusLabels[$statusCode] ?? $statusCode;
+                        $statusBadge = $outboxStatusBadges[$statusCode] ?? 'badge--info';
+                        ?>
+                        <tr>
+                            <td class="text-small text-muted"><?php echo $fmt->e((string) ($entry['created_at'] ?? '')); ?></td>
+                            <td class="text-small"><?php echo $fmt->e($eventLabel); ?></td>
+                            <td class="text-small"><?php echo $fmt->e((string) ($entry['recipient'] ?? '')); ?></td>
+                            <td>
+                                <span class="badge <?php echo $fmt->e($statusBadge); ?>"><?php echo $fmt->e($statusLabel); ?></span>
+                            </td>
+                            <td class="text-small">
+                                <?php if (!empty($entry['report_reference'])): ?>
+                                    <?php echo $fmt->e((string) $entry['report_reference']); ?>
+                                <?php else: ?>
+                                    <span class="text-muted">&mdash;</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <?php
+        $outboxTotalPages = (int) ceil($outboxTotal / $outboxPerPage);
+        if ($outboxTotalPages > 1):
+            $outboxPaginationParams = array_filter([
+                'tab'    => 'emails',
+                'status' => $outboxStatusFilter,
+            ], fn($v) => $v !== '');
+            ?>
+        <div class="pagination pagination--flex">
+            <?php if ($outboxPage > 1): ?>
+                <a href="<?php echo $http->url('logs', array_merge($outboxPaginationParams, ['p' => $outboxPage - 1])); ?>" class="btn btn--sm btn--outline">&larr; Précédent</a>
+            <?php endif; ?>
+
+            <span class="text-small text-muted">
+                Page <?php echo $outboxPage; ?> / <?php echo $outboxTotalPages; ?>
+                &mdash; <?php echo number_format($outboxTotal, 0, ',', ' '); ?> messages
+            </span>
+
+            <?php if ($outboxPage < $outboxTotalPages): ?>
+                <a href="<?php echo $http->url('logs', array_merge($outboxPaginationParams, ['p' => $outboxPage + 1])); ?>" class="btn btn--sm btn--outline">Suivant &rarr;</a>
             <?php endif; ?>
         </div>
         <?php endif; ?>

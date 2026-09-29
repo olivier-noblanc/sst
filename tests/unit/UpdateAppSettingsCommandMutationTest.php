@@ -30,6 +30,7 @@ class UpdateAppSettingsCommandMutationTest extends TestCase
         $this->assertSame('', $cmd->appHotlineNumber);
         $this->assertSame('', $cmd->appDpoContact);
         $this->assertSame('', $cmd->appReportPreamble);
+        $this->assertSame('Remplissez les champs marqués d\'une étoile *, les autres sont optionnels.', $cmd->appReportFormEncouragement, 'default form encouragement');
         $this->assertSame('', $cmd->appRsstDescription);
         $this->assertSame('Signaler un événement', $cmd->appReportCreateLabel, 'default create label');
         $this->assertSame('Rattacher des collègues au signalement', $cmd->appLinkedAgentsLabel, 'default linked agents label');
@@ -58,6 +59,7 @@ class UpdateAppSettingsCommandMutationTest extends TestCase
             'app_hotline_number' => '  01 02 03  ',
             'app_dpo_contact' => '  dpo@gouv.fr  ',
             'app_report_preamble' => '  Preamble text  ',
+            'app_report_form_encouragement' => '  Custom phrase  ',
             'app_rsst_description' => '  RSST desc  ',
             'app_base_url' => '  https://example.com/  ',
             'app_admin_email' => '  admin@gouv.fr  ',
@@ -70,6 +72,7 @@ class UpdateAppSettingsCommandMutationTest extends TestCase
         $this->assertSame('01 02 03', $cmd->appHotlineNumber);
         $this->assertSame('dpo@gouv.fr', $cmd->appDpoContact);
         $this->assertSame('Preamble text', $cmd->appReportPreamble);
+        $this->assertSame('Custom phrase', $cmd->appReportFormEncouragement);
         $this->assertSame('RSST desc', $cmd->appRsstDescription);
         $this->assertSame('https://example.com', $cmd->appBaseUrl, 'trailing / must be stripped');
         $this->assertSame('admin@gouv.fr', $cmd->appAdminEmail);

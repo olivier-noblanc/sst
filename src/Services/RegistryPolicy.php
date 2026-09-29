@@ -56,6 +56,12 @@ class RegistryPolicy
     /**
      * The label to use for the "lieu" field. DGI uses "Lieu / Mesures de protection".
      * Custom registries can override via registries.lieu_label_override.
+     *
+     * Le champ « Lieu » a été retiré de l'interface (exigence produit) : ce
+     * libellé n'est donc plus référencé par les pages, mais reste la source de
+     * vérité testée (RegistryPolicyTest) et disponible pour un futur usage.
+     *
+     * @phpstan-ignore shipmonk.deadMethod
      */
     public function getLieuLabel(string $type): string
     {

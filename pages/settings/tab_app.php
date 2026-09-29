@@ -181,6 +181,20 @@ use App\Enum\VisibilityMode;
         <div class="separator">
             <h4 class="card__subtitle">&#x1F4DD; Textes du formulaire</h4>
             <p class="text-muted text-small mb-3">Configurez les textes affichés dans le formulaire de signalement.</p>
+            <div class="info-panel info-panel--info" role="note">
+                &#x1F4A1; <strong>Phrase explicative mise en avant dans le formulaire :</strong>
+                le texte ci-dessous s'affiche dans l'encart bleu, en tête du formulaire de signalement
+                (au-dessus des champs).
+            </div>
+            <div class="form-group">
+                <label for="app_report_form_encouragement">Phrase explicative du formulaire</label>
+                <input type="text" id="app_report_form_encouragement" name="app_report_form_encouragement" class="form-control"
+                       value="<?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_report_form_encouragement', 'Remplissez les champs marqués d\'une étoile *, les autres sont optionnels.')); ?>"
+                       placeholder="Remplissez les champs marqués d'une étoile *, les autres sont optionnels." required>
+                <small class="text-muted block mt-1">
+                    Texte affiché en tête du formulaire de signalement. Laissez vide pour revenir à la phrase par défaut.
+                </small>
+            </div>
             <div class="form-group">
                 <label for="app_report_preamble">Préambule du formulaire (zone readonly)</label>
                 <textarea id="app_report_preamble" name="app_report_preamble" class="form-control" rows="3"

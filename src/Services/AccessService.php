@@ -206,6 +206,7 @@ class AccessService
         string $etat = '',
         int $siteId = 0,
         ?string $search = null,
+        bool $includeAbandonne = false,
     ): ReportFilter {
         $userId = $user->id;
         $userSiteId = $user->siteId ?? 0;
@@ -237,6 +238,7 @@ class AccessService
             seeAllSites: $seeAllSites,
             linkedAgentId: $linkedAgentId,
             linkedAgentVisibility: $linkedAgentVisibility,
+            includeAbandonne: $includeAbandonne,
         );
     }
 

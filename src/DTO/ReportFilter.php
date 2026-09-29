@@ -18,6 +18,13 @@ class ReportFilter
         public readonly bool $chsctConsentOnly = false,
         public readonly ?int $linkedAgentId = null,
         public readonly ?string $linkedAgentVisibility = null,
+        /**
+         * Filtre « Tous » de la liste (report_list) : quand true ET que $etat est
+         * vide, aucun filtre d'état n'est appliqué → les signalements abandonnés
+         * sont visibles. La navigation report_view laisse ce flag à false et
+         * conserve donc l'exclusion par défaut des abandonnés (BUG-3).
+         */
+        public readonly bool $includeAbandonne = false,
     ) {}
 
     /**
@@ -31,7 +38,8 @@ class ReportFilter
      *     declarant_id: ?int,
      *     chsct_consent_only: bool,
      *     linked_agent_id: ?int,
-     *     linked_agent_visibility: ?string
+     *     linked_agent_visibility: ?string,
+     *     include_abandonne: bool
      * }
      */
     public function toArray(): array
@@ -47,6 +55,7 @@ class ReportFilter
             'chsct_consent_only' => $this->chsctConsentOnly,
             'linked_agent_id' => $this->linkedAgentId,
             'linked_agent_visibility' => $this->linkedAgentVisibility,
+            'include_abandonne' => $this->includeAbandonne,
         ];
     }
 }

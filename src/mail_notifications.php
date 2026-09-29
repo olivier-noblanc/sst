@@ -99,7 +99,7 @@ function notifyNewReport(PDO $pdo, string $reportUuid, string $type, int $siteId
     $body .= renderEmailField('Registre', $registryLabel);
     $body .= renderEmailField('Objet', $report->objet);
     $body .= renderEmailField('Déclarant', $report->declarantPrenom . ' ' . $report->declarantNom);
-    $body .= renderEmailField('Date de l\'événement', formatDateFR($report->dateEvenement));
+    $body .= renderEmailField('Date de dépôt', formatDateFR($report->dateEvenement));
     $body .= renderEmailLink($reportUrl, 'Consulter le signalement');
     $body .= '</body></html>';
     // Collect recipients: per-site + global

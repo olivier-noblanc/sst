@@ -198,7 +198,7 @@ class ReportCreateHandlerTest extends TestCase
         $this->assertEquals(0, $result['queries']['report_count']);
     }
 
-    public function testRejectsMissingDate(): void
+    public function testStampsServerDepositDateAndIgnoresPostedValue(): void
     {
         $this->createTestDb();
 
@@ -214,24 +214,27 @@ class ReportCreateHandlerTest extends TestCase
             'post' => [
                 'csrf_token' => $token,
                 'type' => 'rsst',
-                'objet' => 'Test sans date',
+                'objet' => 'Test date serveur',
                 'description' => 'Description',
-                'date_evenement' => '',
+                // Valeur volontairement falsifiée : le champ « Date de dépôt »
+                // est readonly côté UI, mais un POST reste falsifiable — le
+                // serveur doit l'écraser par la date du jour.
+                'date_evenement' => '2000-01-01',
                 'site_id' => '1',
             ],
             'db_seed' => "INSERT INTO sites (code, nom, is_active) VALUES ('UD21', 'Cote d Or', 1);\nINSERT INTO users (username, nom, prenom, role, site_id, is_active, email) VALUES ('jean.martin', 'Martin', 'Jean', 'agent', 1, 1, 'jean.martin@dreets-bfc.gouv.fr');",
             'assertions' => [
-                'report_count' => "SELECT COUNT(*) FROM reports",
+                'report_count' => "SELECT COUNT(*) FROM reports WHERE objet = 'Test date serveur'",
+                'report_date' => "SELECT date_evenement FROM reports WHERE objet = 'Test date serveur'",
             ],
         ]);
 
-        // Should redirect to report_create with form errors
+        // Le signalement est créé (une date vide/invalide n'est plus bloquante :
+        // elle est remplacée par la date du jour).
         $this->assertNotNull($result['redirect']);
-        $this->assertStringContainsString('page=report_create', $result['redirect']);
-        $this->assertNotEmpty($result['form_errors'], 'Expected form validation errors for missing date');
-
-        // No report created
-        $this->assertEquals(0, $result['queries']['report_count']);
+        $this->assertStringContainsString('page=report_view', $result['redirect']);
+        $this->assertEquals(1, $result['queries']['report_count']);
+        $this->assertSame(date('Y-m-d'), $result['queries']['report_date'], 'La date de dépôt est estampillée côté serveur');
     }
 
     // Note: CSRF token and non-POST request validation are now handled by

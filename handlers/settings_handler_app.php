@@ -67,6 +67,7 @@ function handleSettingsAppTab(PDO $pdo, UpdateAppSettingsCommand $cmd): void
         'app_hotline_number' => $cmd->appHotlineNumber,
         'app_dpo_contact' => $cmd->appDpoContact,
         'app_report_preamble' => $cmd->appReportPreamble,
+        'app_report_form_encouragement' => $cmd->appReportFormEncouragement,
         'app_rsst_description' => $cmd->appRsstDescription,
         'app_report_create_label' => $cmd->appReportCreateLabel,
         'app_linked_agents_label' => $cmd->appLinkedAgentsLabel,

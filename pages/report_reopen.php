@@ -63,7 +63,7 @@ $flash = new \App\Services\SessionService()->getFlash();
                 <td><?php echo $fmt->e($report->objet); ?></td>
             </tr>
             <tr>
-                <th>Date de l'événement</th>
+                <th>Date de dépôt</th>
                 <td><?php echo $fmt->e($fmt->formatDateFR($report->dateEvenement)); ?></td>
             </tr>
             <tr>

@@ -64,7 +64,15 @@ $filterSiteId = (int) $filterSiteIdStr;
 /** @var string $filterSearch */
 $filterSearch = $filters['q'] ?? '';
 $pager = \App\Repository\ReportRepository::instance()->findPaginated(
-    $access->buildListFilter($user, $type, (string) ($filters['etat'] ?? ''), $filterSiteId, $filterSearch === '' ? null : $filterSearch),
+    $access->buildListFilter(
+        $user,
+        $type,
+        (string) ($filters['etat'] ?? ''),
+        $filterSiteId,
+        $filterSearch === '' ? null : $filterSearch,
+        // Filtre « Tous » (aucun état sélectionné) : inclut les abandonnés.
+        includeAbandonne: (string) ($filters['etat'] ?? '') === '',
+    ),
     $pageNum,
     $perPage,
 );

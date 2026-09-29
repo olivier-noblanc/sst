@@ -5,7 +5,9 @@
  *
  * Shows a confirmation form before abandoning a report (soft delete).
  * URL: index.php?page=report_abandon&uuid={report_uuid}
- * Access: Only the declarant, and only if etat is nouveau or en_cours.
+ * Access: Only the declarant. The current state must allow a transition to
+ * Abandonne for the user's role (ReportStateMachine is the authority) —
+ * i.e. Nouveau/EnCours/Traite/Reouvert for the Agent role.
  * No JavaScript — pure PHP inline confirmation.
  */
 $uuid = $_GET['uuid'] ?? '';
@@ -21,7 +23,21 @@ $user = new \App\Services\SessionService()->getUserSession();
 $userId = $user->id ?? 0;
 
 requireReportOwnership($report, $userId, $uuid, 'abandonner');
-requireReportEditable($report, $uuid, 'abandonné');
+
+// Fiabilisation (audit lifecycle) — la page GET s'ALIGNE sur la matrice
+// (autorité) et sur report_abandon_handler.php : Abandonne est atteignable
+// depuis Nouveau/EnCours/Traite/Reouvert pour le rôle Agent. L'ancien
+// requireReportEditable ([Nouveau, EnCours]) refusait à tort Traite/Reouvert,
+// alors que la matrice, le bouton et le handler les autorisaient.
+$abandonStateMachine = new \App\Services\ReportStateMachine();
+$abandonCurrentState = \App\Enum\ReportState::tryFrom($report->etat);
+$abandonRole = \App\Enum\UserRole::tryFrom((string) currentUserRole());
+if ($abandonCurrentState === null || $abandonRole === null
+    || !$abandonStateMachine->canTransition($abandonCurrentState, \App\Enum\ReportState::Abandonne, $abandonRole)) {
+    new \App\Services\SessionService()->setFlash('error', 'Ce signalement ne peut pas être abandonné (état : '
+        . $fmt->e(ETAT_LABELS[$report->etat] ?? $report->etat) . ').');
+    $http->redirect($http->url('report_view', ['uuid' => $uuid]));
+}
 
 $pageTitle = 'Abandonner le signalement — ' . $report->reference;
 /** @var string */
@@ -49,7 +65,7 @@ $csrfToken = new \App\Services\SessionService()->generateCsrfToken();
                 <td><?php echo $fmt->e($report->objet); ?></td>
             </tr>
             <tr>
-                <th>Date de l'événement</th>
+                <th>Date de dépôt</th>
                 <td><?php echo $fmt->e($fmt->formatDateFR($report->dateEvenement)); ?></td>
             </tr>
             <tr>

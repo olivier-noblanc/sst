@@ -560,6 +560,52 @@ final class CssContrastContractTest extends TestCase
     }
 
     /**
+     * Retour prod (v3.66.2) : le libellé-bouton « Joindre un document »
+     * (`.file-upload-wrapper__label btn btn--secondary`, dans `.form-group`)
+     * était rendu gris sur gris — donc invisible. Cause : `.form-group label`
+     * (0,1,1) l'emporte sur `.btn--secondary` (0,1,0) et lui impose
+     * `color: var(--grey-700)` ; la passe AA ayant porté le fond du bouton à
+     * `--grey-700`, texte et fond deviennent identiques.
+     *
+     * Contrat : la règle des libellés de formulaire doit exclure les
+     * libellés-boutons (`:not(.btn)`), et le label pièce jointe doit résoudre
+     * en texte blanc sur fond gris tokenisé (≥ 4.5:1).
+     */
+    public function testFormLabelRuleDoesNotOverrideAttachmentButtonColours(): void
+    {
+        // Aucune règle nue `.form-group label` ne doit subsister : sa
+        // spécificité (0,1,1) l'emporterait sur `.btn--secondary` (0,1,0).
+        $this->assertSame(
+            '',
+            self::ruleBody(self::$styleCss, '.form-group label'),
+            '`.form-group label` (0,1,1) écrase `.btn--secondary` (0,1,0) et rend le libellé-bouton pièce jointe invisible.'
+        );
+
+        // Le style des libellés de formulaire reste porté, mais exclut les
+        // libellés-boutons.
+        $this->assertNotSame(
+            '',
+            self::ruleBody(self::$styleCss, '.form-group label:not(.btn)'),
+            'La règle des libellés de formulaire doit être scopée `.form-group label:not(.btn)`.'
+        );
+
+        // Cascade effective sur le label `.btn--secondary` : texte blanc.
+        $secondary = self::ruleBody(self::$styleCss, '.btn--secondary');
+        $this->assertStringContainsString(
+            'color: white',
+            $secondary,
+            '.btn--secondary doit conserver `color: white`.'
+        );
+
+        $background = self::resolveToken(self::declaration($secondary, 'background'));
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            self::contrastRatio(self::WHITE, $background),
+            sprintf('Le libellé-bouton pièce jointe (blanc sur %s) doit offrir ≥ 4.5:1.', $background)
+        );
+    }
+
+    /**
      * Finding « focus ring opaque AA » : `--focus-ring-color` était
      * `rgba(0,86,163,0.4)` (~2.93:1 sur blanc). Il doit être opaque et offrir
      * ≥ 3:1 sur toutes les surfaces claires (WCAG 1.4.11 / 2.4.11).

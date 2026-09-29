@@ -1407,7 +1407,12 @@ img { max-width: 100%; height: auto; display: block; }
     margin-bottom: var(--space-4);
 }
 
-.form-group label {
+/* Libellés de formulaire — scopés aux libellés « texte » : un libellé portant
+   `.btn` (ex. le bouton pièce jointe `.file-upload-wrapper__label.btn`) doit
+   conserver les couleurs de `.btn--*` (blanc sur fond tokenisé). Sans
+   `:not(.btn)`, ce sélecteur (0,1,1) écrasait `.btn--secondary` (0,1,0) et
+   peignait le texte en `--grey-700` sur un fond `--grey-700` → invisible. */
+.form-group label:not(.btn) {
     display: block;
     margin-bottom: var(--space-1);
     font-weight: 500;

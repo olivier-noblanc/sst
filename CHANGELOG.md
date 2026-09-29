@@ -32,6 +32,16 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - PHPStan : **0 errors** (level 8)
 
 
+## [3.66.3] — 2026-09-29
+
+### Correctif — bouton « Pièce jointe » invisible (gris sur gris)
+
+- **Cause** — Sur les formulaires de création/édition et de réponse, le libellé-bouton `.file-upload-wrapper__label.btn.btn--secondary` (« 📎 Joindre un document ») était rendu gris sur gris, donc illisible. `.form-group label` (spécificité 0,1,1) écrasait la couleur blanche de `.btn--secondary` (0,1,0) en imposant `--grey-700` ; la passe d'accessibilité AA ayant porté le fond du bouton à `--grey-700`, texte et fond devenaient identiques. Le bouton restait gris après `fc5ed27`/`d15f1e7` faute d'avoir traité ce conflit de cascade.
+- **Correctif** — La règle des libellés de formulaire est scopée `.form-group label:not(.btn)` : les libellés-boutons conservent `color: white` sur fond `--grey-700` (survol/focus `--grey-800`), contraste AA ≥ 4.5:1. Aucune modification de markup (l'input file précède toujours le label, combinateur frère `+` préservé).
+- **Cache-busting** — Bump `3.66.3` : le footer (`getAppVersion()` lit le premier titre `[X.Y.Z]` de ce fichier) et l'URL `css.php?f=…&v=` passent de `3.66.2` à `3.66.3`, forçant le rechargement de `public/css/style.css` là où la production servait encore la feuille en `304`.
+- **Tests** — Contrat de cascade ajouté (`CssContrastContractTest::testFormLabelRuleDoesNotOverrideAttachmentButtonColours`) : verrouille l'absence de règle nue `.form-group label` et le contraste blanc/gris du libellé-bouton.
+
+
 ## [3.66.2] — 2026-09-28
 
 ### Refonte visuelle premium — seconde passe (laptop)

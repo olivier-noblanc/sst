@@ -138,6 +138,22 @@ class ConfigService
     }
 
     /**
+     * Indique si la case de consentement de transmission syndicale
+     * (« J'accepte que mon signalement soit transmis aux organisations
+     * syndicales représentatives ») doit être affichée dans l'application.
+     *
+     * Clé `app_consent_syndicat_enabled` : '1' (défaut, rétrocompatible) ou
+     * '0'. Lorsqu'elle est désactivée, la case du formulaire de dépôt, la
+     * ligne de transmission de la fiche (et du PDF) ainsi que la colonne
+     * correspondante des exports CSV disparaissent. La valeur déjà
+     * enregistrée en base reste conservée (elle n'est jamais réinitialisée).
+     */
+    public function isConsentSyndicatEnabled(): bool
+    {
+        return $this->get('app_consent_syndicat_enabled', '1') === '1';
+    }
+
+    /**
      * Check if there are any active sites in the system.
      */
     public function hasActiveSites(): bool

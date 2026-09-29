@@ -1047,4 +1047,115 @@ class PageRenderingTest extends TestCase
             'Le bouton Filtrer doit être aligné sur le bas des contrôles (.align-self-end), comme sur les autres pages.'
         );
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Consentement transmission syndicale — paramètre d'affichage
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Renseigne la clé d'affichage du consentement. `null` remet l'état par
+     * défaut (clé absente → activé, rétrocompatible).
+     */
+    private function setConsentSyndicatEnabled(?bool $enabled): void
+    {
+        $pdo = getDB();
+        if ($enabled === null) {
+            $pdo->exec("DELETE FROM config_app WHERE cle = 'app_consent_syndicat_enabled'");
+        } else {
+            $pdo->exec(
+                "INSERT OR REPLACE INTO config_app (cle, valeur, type, categorie, libelle, modifiable) "
+                . "VALUES ('app_consent_syndicat_enabled', '" . ($enabled ? '1' : '0') . "', 'text', 'app', '', 1)"
+            );
+        }
+        clearConfigCache();
+    }
+
+    public function testConsentSyndicatConfigDefaultIsEnabled(): void
+    {
+        $this->setConsentSyndicatEnabled(null);
+        $this->assertTrue(
+            getConfigService()->isConsentSyndicatEnabled(),
+            'Sans clé config, le consentement syndical est affiché (rétrocompatible).'
+        );
+
+        $this->setConsentSyndicatEnabled(false);
+        try {
+            $this->assertFalse(getConfigService()->isConsentSyndicatEnabled());
+        } finally {
+            $this->setConsentSyndicatEnabled(null);
+        }
+    }
+
+    public function testConsentSyndicatDisabledHidesFormCheckboxButKeepsStoredValue(): void
+    {
+        $this->setConsentSyndicatEnabled(false);
+        try {
+            $this->loginAsAgent();
+            $_GET['page'] = 'report_create';
+            $_GET['type'] = 'rsst';
+
+            ob_start();
+            renderPageWithLayout(getRouter(), 'report_create', 'test-csrf-token');
+            $output = (string) ob_get_clean();
+        } finally {
+            $this->setConsentSyndicatEnabled(null);
+        }
+
+        $this->assertStringNotContainsString('id="consent_syndicat"', $output, 'La case est masquée quand le réglage est désactivé.');
+        $this->assertStringNotContainsString('consent_syndicat_hint', $output, 'Le libellé/tooltip de consentement est masqué.');
+        $this->assertStringNotContainsString("J'accepte que mon signalement soit transmis", $output, 'Le texte de la case est masqué.');
+        $this->assertStringContainsString('name="consent_syndicat"', $output, 'Un champ caché préserve la valeur (jamais réinitialisée en silence).');
+    }
+
+    public function testConsentSyndicatDisabledHidesTransmissionRowOnReportView(): void
+    {
+        // Activé (défaut) : la ligne de transmission est rendue.
+        $this->setConsentSyndicatEnabled(null);
+        $this->loginAsSuperviseur();
+        $_GET['page'] = 'report_view';
+        $_GET['uuid'] = self::$reportUuid;
+
+        ob_start();
+        renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+        $enabled = (string) ob_get_clean();
+
+        $this->assertStringContainsString(transmissionLabel(), $enabled, 'La ligne « Transmission » est affichée par défaut.');
+
+        // Désactivé : la ligne disparaît de la fiche.
+        $this->setConsentSyndicatEnabled(false);
+        try {
+            ob_start();
+            renderPageWithLayout(getRouter(), 'report_view', 'test-csrf-token');
+            $disabled = (string) ob_get_clean();
+        } finally {
+            $this->setConsentSyndicatEnabled(null);
+        }
+
+        $this->assertStringNotContainsString(transmissionLabel(), $disabled, 'La ligne « Transmission » est masquée quand le réglage est désactivé.');
+        $this->assertStringNotContainsString('❌ Refusée', $disabled);
+        $this->assertStringNotContainsString('✅ Acceptée', $disabled);
+    }
+
+    public function testConsentSyndicatDisabledHidesExportColumn(): void
+    {
+        $service = new \App\Services\ExportService(getConfigService());
+
+        $this->setConsentSyndicatEnabled(null);
+        $enabledHeaders = $service->buildHeaders(false);
+        $this->assertContains(transmissionLabel(), $enabledHeaders, 'La colonne d\'export est présente par défaut.');
+
+        $this->setConsentSyndicatEnabled(false);
+        try {
+            $disabledHeaders = $service->buildHeaders(false);
+        } finally {
+            $this->setConsentSyndicatEnabled(null);
+        }
+
+        $this->assertNotContains(transmissionLabel(), $disabledHeaders, 'La colonne d\'export est masquée quand le réglage est désactivé.');
+        $this->assertCount(
+            count($enabledHeaders) - 1,
+            $disabledHeaders,
+            'Seule la colonne « Transmission » est retirée (alignement en-têtes/valeurs conservé).'
+        );
+    }
 }

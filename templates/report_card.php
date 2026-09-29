@@ -189,10 +189,12 @@ if (!isset($csrfToken)) {
                     </td>
                 </tr>
                 <?php endif; ?>
+                <?php if (getConfigService()->isConsentSyndicatEnabled()): ?>
                 <tr>
                     <th><?php echo $fmt->e(transmissionLabel()); ?></th>
                     <td><?php echo (bool) $report->consentSyndicat ? '✅ Acceptée' : '❌ Refusée'; ?></td>
                 </tr>
+                <?php endif; ?>
                 <tr>
                     <th>Date de création</th>
                     <td><?php echo $fmt->e($fmt->formatDateTimeFR($report->createdAt)); ?></td>

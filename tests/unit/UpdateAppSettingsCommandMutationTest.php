@@ -40,6 +40,7 @@ class UpdateAppSettingsCommandMutationTest extends TestCase
         $this->assertFalse($cmd->appRegistryRamiEnabled);
         $this->assertFalse($cmd->appRegistryDgiEnabled);
         $this->assertFalse($cmd->appDgiNotifyCsa);
+        $this->assertFalse($cmd->appConsentSyndicatEnabled);
         $this->assertSame('Agent', $cmd->roleLabelAgent, 'default role label');
         $this->assertSame('Superviseur', $cmd->roleLabelSuperviseur);
         $this->assertSame('Membre FS/CSA', $cmd->roleLabelChsct);
@@ -171,6 +172,7 @@ class UpdateAppSettingsCommandMutationTest extends TestCase
             'app_registry_rami_enabled' => 'appRegistryRamiEnabled',
             'app_registry_dgi_enabled' => 'appRegistryDgiEnabled',
             'app_dgi_notify_csa' => 'appDgiNotifyCsa',
+            'app_consent_syndicat_enabled' => 'appConsentSyndicatEnabled',
         ];
         foreach ($flags as $key => $prop) {
             $cmd = UpdateAppSettingsCommand::fromPost([$key => '1']);

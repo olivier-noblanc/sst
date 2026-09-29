@@ -282,8 +282,12 @@ class ExportService
 
         $headers = array_merge($headers, self::FOOTER_COLUMNS_BEFORE_TRANSMISSION);
         // Colonne « Transmission » dynamique (libellé de rôle configurable),
-        // insérée à sa position historique.
-        $headers[] = $this->config->transmissionLabel();
+        // insérée à sa position historique. Masquée partout (en-tête + valeur)
+        // quand le consentement syndical est désactivé dans les paramètres, pour
+        // conserver l'alignement en-têtes/valeurs.
+        if ($this->config->isConsentSyndicatEnabled()) {
+            $headers[] = $this->config->transmissionLabel();
+        }
         $headers = array_merge($headers, self::FOOTER_COLUMNS_AFTER_TRANSMISSION);
 
         // Colonnes dynamiques du registre (champs custom, même liste et
@@ -345,10 +349,17 @@ class ExportService
         }
 
         // Colonnes de fin
-        $csvRow = array_merge($csvRow, [
+        $footerColumns = [
             $this->escapeCsvField($this->getEtatLabel($row['etat'] ?? '')),
             !empty($row['is_confidential']) ? 'Oui' : 'Non',
-            !empty($row['consent_syndicat']) ? 'Acceptée' : 'Refusée',
+        ];
+        // Valeur de la colonne « Transmission » — omise avec son en-tête quand
+        // le consentement syndical est désactivé (cf. buildHeaders), pour un
+        // alignement strict en-têtes/valeurs dans le CSV.
+        if ($this->config->isConsentSyndicatEnabled()) {
+            $footerColumns[] = !empty($row['consent_syndicat']) ? 'Acceptée' : 'Refusée';
+        }
+        $csvRow = array_merge($csvRow, $footerColumns, [
             $this->escapeCsvField($row['created_at'] ?? ''),
             $this->escapeCsvField($pourCompte),
             $this->escapeCsvField($natureAuteurLabel),

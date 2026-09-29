@@ -30,6 +30,7 @@ final readonly class UpdateAppSettingsCommand
         public readonly bool $appRegistryRamiEnabled,
         public readonly bool $appRegistryDgiEnabled,
         public readonly bool $appDgiNotifyCsa,
+        public readonly bool $appConsentSyndicatEnabled,
         public readonly string $roleLabelAgent,
         public readonly string $roleLabelSuperviseur,
         public readonly string $roleLabelChsct,
@@ -77,6 +78,7 @@ final readonly class UpdateAppSettingsCommand
         $appRegistryRamiEnabled = !empty($post['app_registry_rami_enabled']);
         $appRegistryDgiEnabled = !empty($post['app_registry_dgi_enabled']);
         $appDgiNotifyCsa = !empty($post['app_dgi_notify_csa']);
+        $appConsentSyndicatEnabled = !empty($post['app_consent_syndicat_enabled']);
 
         $roleLabelAgent = trim((string) ($post['app_role_label_agent'] ?? 'Agent'));
         if ($roleLabelAgent === '') {
@@ -132,6 +134,7 @@ final readonly class UpdateAppSettingsCommand
             appRegistryRamiEnabled: $appRegistryRamiEnabled,
             appRegistryDgiEnabled: $appRegistryDgiEnabled,
             appDgiNotifyCsa: $appDgiNotifyCsa,
+            appConsentSyndicatEnabled: $appConsentSyndicatEnabled,
             roleLabelAgent: $roleLabelAgent,
             roleLabelSuperviseur: $roleLabelSuperviseur,
             roleLabelChsct: $roleLabelChsct,

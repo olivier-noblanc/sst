@@ -371,6 +371,21 @@ $registresUrl = new \App\Services\HttpService()->url('settings', ['tab' => 'regi
                 La case de consentement est une <strong>consigne de transmission manuelle</strong> exécutée par le superviseur :
                 elle ne conditionne jamais l'accès. Le réglage « Consentement uniquement » ne borne que les compteurs et les exports.
             </div>
+            <div class="form-group">
+                <label class="toggle-switch-label">
+                    <input type="checkbox" name="app_consent_syndicat_enabled" id="app_consent_syndicat_enabled" value="1"
+                           class="toggle-switch__input"
+                           <?php echo getConfigService()->isConsentSyndicatEnabled() ? 'checked' : ''; ?>>
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                    <span>Afficher la case de consentement à la transmission syndicale</span>
+                </label>
+                <small class="text-muted block mt-1" id="hint_consent_syndicat_enabled">
+                    Case « J'accepte que mon signalement soit transmis aux organisations syndicales représentatives ».
+                    Lorsqu'elle est désactivée, la case du formulaire de dépôt, la ligne de transmission de la fiche
+                    du signalement (et du PDF) ainsi que la colonne correspondante des exports CSV disparaissent.
+                    Les valeurs déjà enregistrées sont conservées. <strong>Activée par défaut.</strong>
+                </small>
+            </div>
             <fieldset class="form-group visibility-radios">
                 <legend class="visibility-legend">Portée des signalements — <?php echo new \App\Services\FormattingService()->e(getConfigService()->getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?></legend>
                 <div class="visibility-radios">

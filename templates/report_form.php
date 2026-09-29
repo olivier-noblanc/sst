@@ -293,6 +293,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
             <?php elseif (reportVisibilityIsPublic($type)): ?>
             <input type="hidden" name="is_confidential" value="0">
             <?php endif; ?>
+            <?php if (getConfigService()->isConsentSyndicatEnabled()): ?>
             <!-- Consent: transmission to union representatives.
                  La case est une CONSIGNE pour le superviseur : elle ne déclenche
                  rien automatiquement, il exécute l'instruction en lançant l'envoi.
@@ -311,6 +312,13 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     La transmission n'est jamais automatique : le superviseur la déclenche manuellement.
                 </span>
             </div>
+            <?php else: ?>
+            <?php // Case masquée par le réglage admin (app_consent_syndicat_enabled) :
+                  // on ne collecte aucune nouvelle réponse mais on préserve la
+                  // valeur déjà enregistrée (édition) via un champ caché, jamais
+                  // réinitialisée en silence. ?>
+            <input type="hidden" name="consent_syndicat" value="<?php echo $consentSyndicatSticky ? '1' : '0'; ?>">
+            <?php endif; ?>
             <div class="form-group">
                 <label for="declarant_nom">Déclarant — Nom</label>
                 <input type="text" id="declarant_nom" value="<?php echo e($sessionUser->nom ?? ''); ?>" readonly tabindex="-1" aria-readonly="true">

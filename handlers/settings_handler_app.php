@@ -78,6 +78,9 @@ function handleSettingsAppTab(PDO $pdo, UpdateAppSettingsCommand $cmd): void
         'app_registry_dgi_enabled' => $cmd->appRegistryDgiEnabled ? '1' : '0',
         // DGI: notify CSA/CHSCT (article L4131-2 Code du travail)
         'app_dgi_notify_csa' => $cmd->appDgiNotifyCsa ? '1' : '0',
+        // Consentement transmission syndicale : afficher/masquer la case et le
+        // libellé partout (formulaire, fiche/PDF, colonne d'export).
+        'app_consent_syndicat_enabled' => $cmd->appConsentSyndicatEnabled ? '1' : '0',
         // Customizable role labels
         'app_role_label_agent' => $cmd->roleLabelAgent,
         'app_role_label_superviseur' => $cmd->roleLabelSuperviseur,

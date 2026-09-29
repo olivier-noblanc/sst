@@ -123,8 +123,10 @@ $fields = [
     'Heure du dépôt'        => $reportHeureEvenement,
     'Lieu'                  => $reportLieu,
     'Objet'                 => $reportObjet,
-    transmissionLabel() => $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée',
 ];
+if (getConfigService()->isConsentSyndicatEnabled()) {
+    $fields[transmissionLabel()] = $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée';
+}
 
 foreach ($fields as $label => $value) {
     drawField($pdf, $label, $value);

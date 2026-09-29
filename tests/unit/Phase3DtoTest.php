@@ -88,6 +88,7 @@ class Phase3DtoTest extends TestCase
             'app_registry_rami_enabled' => '1',
             'app_registry_dgi_enabled' => '0',
             'app_dgi_notify_csa' => '1',
+            'app_consent_syndicat_enabled' => '1',
             'app_role_label_agent' => ' Agent ',
             'app_role_label_superviseur' => ' Superviseur ',
             'app_role_label_chsct' => ' Membre CSA ',
@@ -117,6 +118,7 @@ class Phase3DtoTest extends TestCase
         $this->assertTrue($cmd->appRegistryRamiEnabled);
         $this->assertFalse($cmd->appRegistryDgiEnabled);
         $this->assertTrue($cmd->appDgiNotifyCsa);
+        $this->assertTrue($cmd->appConsentSyndicatEnabled);
         $this->assertSame('Agent', $cmd->roleLabelAgent);
         $this->assertSame('Superviseur', $cmd->roleLabelSuperviseur);
         $this->assertSame('Membre CSA', $cmd->roleLabelChsct);
@@ -150,6 +152,7 @@ class Phase3DtoTest extends TestCase
         $this->assertFalse($cmd->appRegistryRamiEnabled);
         $this->assertFalse($cmd->appRegistryDgiEnabled);
         $this->assertFalse($cmd->appDgiNotifyCsa);
+        $this->assertFalse($cmd->appConsentSyndicatEnabled);
         $this->assertSame('Agent', $cmd->roleLabelAgent);
         $this->assertSame('Superviseur', $cmd->roleLabelSuperviseur);
         $this->assertSame('Membre FS/CSA', $cmd->roleLabelChsct);

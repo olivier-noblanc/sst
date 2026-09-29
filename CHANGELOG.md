@@ -32,6 +32,17 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - PHPStan : **0 errors** (level 8)
 
 
+## [3.66.4] — 2026-09-29
+
+### Correctif — flash messages dans le shell sans header
+
+- **Cause** — Depuis le regroupement de la navigation et du profil dans la sidebar (`016285b`, merge `3970f8f`), `templates/alert.php` était requis par `src/Router/Renderer.php` **avant** l'ouverture de `<main id="main-content">`, donc en enfant direct de `<body>`. Sans barre supérieure autonome pour l'occuper, les flash messages atterrissaient en haut à gauche du document : sous la sidebar fixe (largeur `--sidebar-width`) et sur l'offset `--header-height` fantôme de l'ancienne barre. Le message de sécurité CSRF (« Erreur de sécurité. ») était donc invisible malgré un HTTP 200.
+- **Correctif** — Le flash est désormais requis **dans** `<main>` : il hérite du décalage sidebar (`margin-left`), du padding de contenu (`--content-padding`) et de la largeur bornée (`--content-max-width`), et s'affiche en haut du contenu principal. Aucun changement de robustesse : ni exception masquée, ni CSP/sécurité affaiblie.
+- **`index.php?page=home&result=error`** — Diagnostic : c'est la cible de redirection d'un flash (paramètre de debug **inerte** ajouté par `HttpService::redirect()`, « aucune route ne lit ce paramètre », commit `6f5438e`). Vérifié en local : cette URL répond **HTTP 200** (avec ou sans flash en attente) et n'est **pas** un chemin d'erreur supporté. Les seuls `500` du code sont les pages de misconfiguration IIS volontaires (`AuthService::handleNotAuthenticated()` / `handleLoginPage()`), laissées intactes.
+- **Tests** — `e2e/flash-shell.spec.js` : le flash doit être visible dans `#main-content` (et non derrière la sidebar, bord gauche ≥ bord droit de la sidebar) et `?page=home&result=error` doit répondre 200 sans page d'erreur fatale. Le test échoue avant le correctif, passe après.
+- **Déploiement** — Aucune règle CSS ni JS modifiée : aucune invalidation de cache n'est requise. Le bump `3.66.4` ne sert qu'à documenter la release et à actualiser la version affichée (footer) ; `?v=` de `css.php`/`js.php` suit la convention. Seul `src/Router/Renderer.php` change le rendu HTML — un simple redéploiement des fichiers suffit, pas de migration ni de redémarrage serveur.
+
+
 ## [3.66.3] — 2026-09-29
 
 ### Correctif — bouton « Pièce jointe » invisible (gris sur gris)

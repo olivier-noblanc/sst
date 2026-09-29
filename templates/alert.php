@@ -3,7 +3,9 @@
  * Alert Template — Application SST DREETS BFC
  * 
  * Displays flash messages (success, error, warning, info).
- * Call this template in the main layout after the sidebar.
+ * Called by the layout from inside <main id="main-content">, so the alert
+ * inherits the content area's sidebar offset and padding instead of being
+ * hidden underneath the fixed sidebar.
  */
 $flash = getFlash();
 if ($flash !== null):

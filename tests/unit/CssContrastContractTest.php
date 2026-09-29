@@ -90,17 +90,78 @@ final class CssContrastContractTest extends TestCase
     }
 
     /**
+     * Dernière déclaration `$property` rencontrée dans les corps de règles.
+     *
+     * La cascade CSS retient la dernière valeur d'une propriété donnée : c'est
+     * elle qui gagne. Inspecter la dernière déclaration (le dernier bloc) évite
+     * qu'un premier corps valide masque une neutralisation ultérieure.
+     */
+    private static function declarationLast(string $body, string $property): string
+    {
+        $pattern = '/' . preg_quote($property, '/') . '\s*:\s*([^;]+);/i';
+        if (preg_match_all($pattern, $body, $matches) >= 1) {
+            $values = $matches[1] ?? [];
+
+            return trim((string) end($values));
+        }
+
+        return '';
+    }
+
+    /**
+     * Vrai si l'état effectif neutralise le focus : label masqué
+     * (`opacity: 0`, `visibility: hidden`, `display: none`) ou contour annulé
+     * (`outline: none/0`, `outline-width: 0`). Évalué sur la dernière
+     * déclaration de chaque propriété (valeur gagnante de la cascade).
+     */
+    private static function attachmentFocusRuleNeutralizes(string $body): bool
+    {
+        $opacity = self::declarationLast($body, 'opacity');
+        if ($opacity !== '' && (float) $opacity === 0.0) {
+            return true;
+        }
+
+        $visibility = strtolower(self::declarationLast($body, 'visibility'));
+        if ($visibility === 'hidden' || $visibility === 'collapse') {
+            return true;
+        }
+
+        if (strtolower(self::declarationLast($body, 'display')) === 'none') {
+            return true;
+        }
+
+        foreach (['outline', 'outline-width'] as $property) {
+            $value = strtolower(self::declarationLast($body, $property));
+            if ($value === 'none' || preg_match('/^0(?:\.0+)?(?:px|em|rem)?$/', $value) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Vérifie qu'un corps de règle matérialise un anneau de focus conforme pour
      * le bouton de pièce jointe : `outline` d'au moins 2px, style `solid`,
      * couleur `var(--focus-ring-color)`, et un `outline-offset` valide (≥ 0).
      *
-     * Méthode pure extraite pour démontrer, via un test dédié, que le contrat
-     * rejette réellement des variantes invalides (largeur trop fine, style
-     * pointillé, couleur non tokenisée, offset négatif ou absent).
+     * Le corps peut concaténer plusieurs blocs du même sélecteur : seules les
+     * dernières déclarations comptent (cascade). Une neutralisation finale
+     * (`opacity: 0`, `visibility: hidden`, `display: none`, `outline: none/0`)
+     * invalide le contrat même si un bloc antérieur posait un anneau valide.
+     *
+     * Méthode pure extraite pour démontrer, via des tests dédiés, que le contrat
+     * rejette réellement les variantes invalides.
      */
     private static function attachmentFocusRingBodyIsValid(string $body): bool
     {
-        $outline = self::declaration($body, 'outline');
+        $declarations = (string) preg_replace('~/\*.*?\*/~s', '', $body);
+
+        if (self::attachmentFocusRuleNeutralizes($declarations)) {
+            return false;
+        }
+
+        $outline = self::declarationLast($declarations, 'outline');
         if ($outline === '') {
             return false;
         }
@@ -127,7 +188,7 @@ final class CssContrastContractTest extends TestCase
             return false;
         }
 
-        $offset = self::resolveToken(self::declaration($body, 'outline-offset'));
+        $offset = self::resolveToken(self::declarationLast($declarations, 'outline-offset'));
         if (preg_match('/^(\d+(?:\.\d+)?)px$/i', $offset, $match) !== 1) {
             return false;
         }
@@ -851,8 +912,12 @@ final class CssContrastContractTest extends TestCase
      * Contrat verrouillé : l'anneau doit être au moins 2px, `solid`, de couleur
      * `var(--focus-ring-color)`, avec un `outline-offset` valide (≥ 0) ; et le
      * `for` du label doit pointer vers l'`id` de l'input adjacent dans les deux
-     * formulaires (création/édition et réponse). Une régression CSS ou de markup
-     * (label déplacé, id/for désynchronisés) fait échouer le test.
+     * formulaires (création/édition et réponse). C'est l'état effectif de la
+     * cascade qui est évalué (dernier bloc gagnant) : une règle ultérieure qui
+     * neutralise le contour (`outline: none/0`) ou masque le label
+     * (`opacity: 0`, `visibility: hidden`, `display: none`) fait échouer le
+     * test. Une régression CSS ou de markup (label déplacé, id/for
+     * désynchronisés) fait également échouer le test.
      */
     public function testAttachmentUploadFocusRingMatchesRealDomSiblingRelation(): void
     {
@@ -860,13 +925,13 @@ final class CssContrastContractTest extends TestCase
         $bodies = self::ruleBodiesFor($selector);
         $this->assertNotEmpty($bodies, sprintf('Sélecteur frère adjacent « %s » introuvable.', $selector));
 
-        $validBodies = array_filter(
-            $bodies,
-            static fn(string $body): bool => self::attachmentFocusRingBodyIsValid($body)
-        );
-        $this->assertNotEmpty(
-            $validBodies,
-            'Le label doit porter un anneau de focus conforme : outline ≥ 2px solid var(--focus-ring-color) + outline-offset ≥ 0.'
+        // Cascade : c'est le dernier bloc gagnant qui compte, pas un corps valide
+        // isolé. On concatène les blocs dans l'ordre source et on valide l'état
+        // effectif — une règle ultérieure ne doit jamais neutraliser le focus
+        // (opacity: 0, visibility: hidden, display: none, outline: none/0).
+        $this->assertTrue(
+            self::attachmentFocusRingBodyIsValid(implode("\n", $bodies)),
+            'Le dernier état de focus du label doit rester conforme : outline ≥ 2px solid var(--focus-ring-color) + outline-offset ≥ 0, sans neutralisation finale (opacity: 0, visibility: hidden, display: none, outline: none/0).'
         );
 
         // Garde-fou : plus aucune règle de focus basée sur :focus-within sur le
@@ -962,6 +1027,57 @@ final class CssContrastContractTest extends TestCase
                 'outline: 3px solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset);'
             ),
             'La variante servie (3px solid var(--focus-ring-color), offset tokenisé ≥ 0) doit être acceptée.'
+        );
+    }
+
+    /**
+     * Le contrat ne doit pas se contenter du premier corps valide : dans la
+     * cascade CSS, une règle ultérieure du même sélecteur (dernier bloc
+     * gagnant) peut neutraliser le contour ou masquer le label. Chaque
+     * séquence ci-dessous pose d'abord l'anneau conforme, puis une
+     * neutralisation finale qui doit invalider l'état effectif.
+     *
+     * @param non-empty-string $bodies
+     */
+    #[DataProvider('provideNeutralizedAttachmentFocusSequences')]
+    public function testAttachmentFocusRingContractRejectsFinalNeutralization(string $bodies): void
+    {
+        $this->assertFalse(
+            self::attachmentFocusRingBodyIsValid($bodies),
+            sprintf('Neutralisation finale non rejetée par le contrat : « %s ».', $bodies)
+        );
+    }
+
+    /** @return array<string, array{non-empty-string}> */
+    public static function provideNeutralizedAttachmentFocusSequences(): array
+    {
+        $valid = 'outline: 3px solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset);';
+
+        return [
+            'contour retiré (outline: none)' => [$valid . "\n" . 'outline: none;'],
+            'contour retiré (outline: 0)' => [$valid . "\n" . 'outline: 0;'],
+            'contour retiré (outline-width: 0)' => [$valid . "\n" . 'outline-width: 0;'],
+            'label masqué (opacity: 0)' => [$valid . "\n" . 'opacity: 0;'],
+            'label masqué (visibility: hidden)' => [$valid . "\n" . 'visibility: hidden;'],
+            'label masqué (display: none)' => [$valid . "\n" . 'display: none;'],
+        ];
+    }
+
+    /**
+     * Contrepartie « verte » de la cascade : les blocs réellement servis pour
+     * le sélecteur, concaténés dans l'ordre source, restent acceptés — le bloc
+     * initial ne fait que poser le fond solide (`opacity: 1`), le bloc tardif
+     * porte l'anneau, sans neutralisation.
+     */
+    public function testAttachmentFocusRingContractAcceptsServedCascade(): void
+    {
+        $selector = '.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label';
+        $bodies = self::ruleBodiesFor($selector);
+        $this->assertNotEmpty($bodies, sprintf('Sélecteur frère adjacent « %s » introuvable.', $selector));
+
+        $this->assertTrue(
+            self::attachmentFocusRingBodyIsValid(implode("\n", $bodies)),
+            'La cascade servie (fond solide + anneau, sans neutralisation finale) doit être acceptée.'
         );
     }
 

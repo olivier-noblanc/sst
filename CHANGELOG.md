@@ -32,6 +32,16 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - PHPStan : **0 errors** (level 8)
 
 
+## [3.66.5] — 2026-09-29
+
+### Correctif — bouton « Pièce jointe » non cliquable sous Edge
+
+- **Cause** — Sous Edge, le diagnostic production montrait l'input file et son label présents, `id`/`for` correctement associés, input non `disabled`, label en `pointer-events: auto`, mais **aucun événement click** détecté lors du clic physique sur le label : le clic n'atteint jamais l'input et l'activation native `<label for>` échoue avec le nouveau shell (empilement/positionnement CSS). Le sélecteur de fichiers ne s'ouvrait donc jamais.
+- **Correctif** — Listener JS délégué **non-inline** dans `public/js/attachment-input.js` (servi par `js.php`, donc couvert par `script-src 'self'`, aucun `onclick` inline) : le clic sur `.file-upload-wrapper__label` est intercepté, l'activation native est neutralisée puis l'input associé est déclenché explicitement via `document.getElementById(label.htmlFor).click()`. Le fallback natif sans JavaScript reste inchangé. Câblage global dans `templates/footer.php` (chargé sur les deux formulaires `attachment` et `response_attachment`). L'affichage du nom de fichier et le bouton de suppression ciblée du formulaire de création sont inchangés.
+- **Cache-busting** — Bump `3.66.5` : l'URL `js.php?f=…&v=` (et `css.php?f=…&v=`) passe de `3.66.4` à `3.66.5`, forçant le rechargement du nouveau script là où la production servait encore l'ancienne version.
+- **Vérification** — `tests/unit/AttachmentInputScriptTest.php` : présence du listener délégué, forward `document.getElementById(…).click()`, chargement via `js.php` dans le footer, et présence de la classe cible dans les deux formulaires.
+
+
 ## [3.66.4] — 2026-09-29
 
 ### Correctif — flash messages dans le shell sans header

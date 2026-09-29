@@ -56,13 +56,31 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
             <?php else: ?>
                 <span class="header__logo-text"><?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS BFC')); ?></span>
             <?php endif; ?>
-            <span class="header__title">Application SST</span>
+            <span class="header__brand">
+                <span class="header__brand-org"><?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS BFC')); ?></span>
+                <span class="header__title">Application SST</span>
+            </span>
         </div>
         <?php if (isUserLoggedIn()): ?>
+        <?php
+        // Initials for the header avatar (first letter of up to two name parts).
+        $headerDisplayName = currentUserDisplayName();
+        $headerInitials = '';
+        foreach (preg_split('/\s+/', trim($headerDisplayName)) ?: [] as $headerNamePart) {
+            if ($headerNamePart !== '') {
+                $headerInitials .= mb_substr($headerNamePart, 0, 1);
+            }
+        }
+        $headerInitials = mb_strtoupper(mb_substr($headerInitials, 0, 2));
+        if ($headerInitials === '') {
+            $headerInitials = mb_strtoupper(mb_substr(currentUserUsername(), 0, 2));
+        }
+        ?>
         <div class="header__user">
             <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
             <span class="header__username">
-                <?php echo e(currentUserDisplayName()); ?>
+                <span class="header__avatar" aria-hidden="true"><?php echo e($headerInitials); ?></span>
+                <span class="header__user-name"><?php echo e($headerDisplayName); ?></span>
                 <span class="badge <?php echo getRoleBadgeClass(currentUserRole()); ?> badge--sm"><?php echo e(getRoleLabel(currentUserRole())); ?></span>
             </span>
             <?php

@@ -21,16 +21,16 @@ function renderRegistryCard(RegistryCardData $card, string $extraClass = '', str
     if ($extraClass !== '') {
         $cssClass .= ' ' . e($extraClass);
     }
-    $html = '<div class="' . $cssClass . '">';
-    $html .= '<div>';
-    $html .= '<div class="registry-card__icon">' . getRegistryIcon($card->type) . '</div>';
-    $html .= '<div class="registry-card__title">' . e($card->title) . '</div>';
-    $html .= '<div class="registry-card__subtitle">' . e($card->subtitle) . '</div>';
+    $html = '<article class="' . $cssClass . '">';
+    $html .= '<div class="registry-card__head">';
+    $html .= '<span class="registry-card__icon" aria-hidden="true">' . getRegistryIcon($card->type) . '</span>';
+    $html .= '<span class="registry-card__subtitle">' . e($card->subtitle) . '</span>';
+    $html .= '</div>';
+    $html .= '<div class="registry-card__body">';
+    $html .= '<h3 class="registry-card__title">' . e($card->title) . '</h3>';
     $html .= '<p class="registry-card__desc">' . e($card->desc) . '</p>';
     $html .= '</div>';
-    $html .= '<div>';
-    $html .= '<a href="' . e($card->btnUrl) . '" class="registry-card__btn">' . e($card->btnLabel) . '</a>';
-    $html .= '<a href="' . e($card->listUrl) . '" class="registry-card__link">' . e($card->listLabel) . '</a>';
+    $html .= '<div class="registry-card__footer">';
     if ($card->showStat) {
         $count = $card->count;
         $countLabel = 'signalement' . ($count !== 1 ? 's' : '')
@@ -40,11 +40,15 @@ function renderRegistryCard(RegistryCardData $card, string $extraClass = '', str
         $html .= ' <span class="registry-card__stat-label">' . e($countLabel) . '</span>';
         $html .= '</div>';
     }
+    $html .= '<div class="registry-card__actions">';
+    $html .= '<a href="' . e($card->btnUrl) . '" class="registry-card__btn">' . e($card->btnLabel) . '</a>';
+    $html .= '<a href="' . e($card->listUrl) . '" class="registry-card__link">' . e($card->listLabel) . '</a>';
+    $html .= '</div>';
     $html .= '</div>';
     if ($extraContent !== '') {
         $html .= '<div class="registry-card__extra">' . $extraContent . '</div>';
     }
-    $html .= '</div>';
+    $html .= '</article>';
     return $html;
 }
 

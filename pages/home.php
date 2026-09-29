@@ -28,9 +28,34 @@ foreach ($enabledRegistries as $regCode) {
         $extraContentMap[$regCode] = $wc;
     }
 }
+
+// An agent never sees the “signalements enregistrés” counter on their home
+// (same rule as the registry cards): the hero KPI tiles are therefore hidden
+// for agents, and only the non-agent roles get the dashboard summary.
+$showDashboardStats = !isAgent();
+$displayName = currentUserDisplayName();
+$orgName = $config->get('app_nom_organisation', 'DREETS BFC');
 ?>
 
-<h1 class="page-title page-title--compact">Accueil</h1>
+<section class="home-hero" aria-labelledby="home-hero-title">
+    <div class="home-hero__text">
+        <p class="home-hero__eyebrow"><?php echo e($orgName); ?> &mdash; Tableau de bord SST</p>
+        <h1 class="home-hero__title" id="home-hero-title">Bonjour<?php echo $displayName !== '' ? ', ' . e($displayName) : ''; ?></h1>
+        <p class="home-hero__subtitle">Créez, suivez et clôturez les signalements SST de vos registres depuis cet espace.</p>
+    </div>
+    <?php if ($showDashboardStats): ?>
+    <div class="home-hero__stats">
+        <div class="home-stat">
+            <span class="home-stat__value"><?php echo e((string) $totalReports); ?></span>
+            <span class="home-stat__label">Signalements</span>
+        </div>
+        <div class="home-stat">
+            <span class="home-stat__value"><?php echo e((string) count($cards)); ?></span>
+            <span class="home-stat__label">Registres actifs</span>
+        </div>
+    </div>
+    <?php endif; ?>
+</section>
 
 <?php if ($totalReports === 0): ?>
 <div class="welcome-banner" role="status">
@@ -52,5 +77,7 @@ foreach ($enabledRegistries as $regCode) {
     <span class="workflow-legend__item workflow-legend__item--muted"><span class="badge badge--abandonne">Abandonné</span><span class="workflow-legend__text">Non poursuivi</span></span>
 </div>
 <?php endif; ?>
+
+<h2 class="home-section-title">Vos registres</h2>
 
 <?php echo renderRegistryCards($cards, 'compact', $extraContentMap); ?>

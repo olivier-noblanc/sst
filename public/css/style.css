@@ -176,6 +176,29 @@
     /* Nuage de mots */
     --word-cloud-min: 0.8rem;
     --word-cloud-max: 1.5rem;
+
+    /* ── Modern UI layer (2026) — additive design tokens ─────────────
+       New tokens used by the modern dashboard redesign (section 60+).
+       They do not replace the canonical tokens above; they extend them
+       so the modernization stays purely additive. */
+    --ui-bg-top: #E9EFF8;
+    --ui-bg-bottom: #DFE7F2;
+    --ui-ink: #16243D;
+    --ui-ink-muted: #53617A;
+    --ui-border: #D5DEEB;
+    --ui-border-strong: #C2CDDD;
+    --ui-accent: #0A5BB5;
+    --ui-accent-2: #2F7FD6;
+    --ui-radius-sm: 10px;
+    --ui-radius: 14px;
+    --ui-radius-lg: 18px;
+    --ui-shadow-card: 0 1px 2px rgba(15,29,51,0.05), 0 12px 28px -18px rgba(15,29,51,0.35);
+    --ui-shadow-card-hover: 0 2px 4px rgba(15,29,51,0.06), 0 24px 48px -24px rgba(15,29,51,0.45);
+    --ui-shadow-hero: 0 24px 48px -28px rgba(10,45,90,0.7);
+    --ui-sidebar-from: #0C1A31;
+    --ui-sidebar-to: #0A1426;
+    --ui-sidebar-group: #8296B4;
+    --ui-sidebar-sub: #93A6C2;
 }
 
 
@@ -4441,3 +4464,574 @@ form:has(#pour_compte:checked) .pour-compte-dependent { display: block; }
 .tabs__item { padding: 0.75rem 1.5rem; text-decoration: none; color: #6b7280; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
 .tabs__item:hover { color: #1f2937; background-color: #f9fafb; }
 .tabs__item--active { color: var(--theme-rsst, #2E5C8A); border-bottom-color: var(--theme-rsst, #2E5C8A); font-weight: 600; }
+
+/* ============================================================
+   60. Modern UI — 2026 dashboard redesign (additive layer)
+   ============================================================
+   Modernizes the app shell (background, header, sidebar) and the
+   home dashboard without touching the canonical rules above — they
+   remain the frozen design-system contract read by the CSS tests.
+   This layer only appends:
+
+     - a soft, layered application background;
+     - an elevated, glassy header with a brand lockup and avatar;
+     - a branded, grouped sidebar with pill navigation;
+     - a gradient hero with KPI tiles on the home dashboard;
+     - recomposed registry cards (head / body / footer / actions);
+
+   and is scoped so the 768 px mobile rules (sidebar slide-in,
+   margin-left: 0) still win.
+   ============================================================ */
+
+/* ---------- 60.1 App shell : soft background + elevated header ---------- */
+body {
+    background: linear-gradient(180deg, var(--ui-bg-top) 0%, var(--ui-bg-bottom) 100%);
+    background-attachment: fixed;
+    color: var(--ui-ink);
+}
+
+.main {
+    background: transparent;
+    padding: var(--space-6) var(--content-padding) var(--space-8);
+}
+
+.header {
+    background: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--ui-border);
+    box-shadow: 0 1px 0 rgba(15, 29, 51, 0.03), 0 10px 30px -22px rgba(15, 29, 51, 0.55);
+}
+
+.header__logo {
+    gap: var(--space-3);
+}
+
+.header__logo-img {
+    height: 38px;
+    width: 38px;
+    object-fit: contain;
+}
+
+.header__brand {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.header__brand-org {
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ui-accent);
+}
+
+.header__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ui-ink);
+}
+
+.header__user {
+    gap: var(--space-3);
+}
+
+.header__username {
+    gap: var(--space-2);
+}
+
+.header__user-name {
+    font-weight: 600;
+    color: var(--ui-ink);
+}
+
+.header__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, var(--ui-accent-2) 0%, var(--ui-accent) 100%);
+    color: #FFFFFF;
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 14px -8px rgba(10, 91, 181, 0.9);
+}
+
+.header__logout {
+    font-weight: 600;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--radius-pill);
+    padding: 6px 14px;
+}
+
+.header__logout:hover {
+    border-color: var(--ui-accent);
+    background: rgba(10, 91, 181, 0.06);
+}
+
+/* ---------- 60.2 Sidebar : branded, grouped, pill navigation ---------- */
+.sidebar {
+    background: linear-gradient(180deg, var(--ui-sidebar-from) 0%, var(--ui-sidebar-to) 100%);
+    justify-content: flex-start;
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 12px 0 32px -28px rgba(4, 12, 28, 0.9);
+}
+
+.sidebar__brand {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-4) var(--space-3);
+    background: var(--ui-sidebar-from);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.sidebar__brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--ui-accent-2) 0%, var(--ui-accent) 100%);
+    color: #FFFFFF;
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    box-shadow: 0 8px 18px -8px rgba(47, 127, 214, 0.85);
+}
+
+.sidebar__brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    min-width: 0;
+}
+
+.sidebar__brand-title {
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar__brand-sub {
+    color: var(--ui-sidebar-sub);
+    font-size: 11px;
+}
+
+.sidebar__nav {
+    padding: var(--space-3) var(--space-3) var(--space-2);
+}
+
+.sidebar__group {
+    list-style: none;
+}
+
+.sidebar__group-title {
+    display: block;
+    padding: var(--space-3) var(--space-3) var(--space-1);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ui-sidebar-group);
+}
+
+.sidebar__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 2px 0;
+    padding: 9px var(--space-3);
+    border-left: 3px solid transparent;
+    border-radius: var(--ui-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--sidebar-text);
+}
+
+.sidebar__item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+    transform: translateX(2px);
+}
+
+.sidebar__item--active {
+    background: linear-gradient(90deg, rgba(74, 158, 232, 0.30) 0%, rgba(74, 158, 232, 0.07) 100%);
+    border-left-color: var(--sidebar-active);
+    color: #FFFFFF;
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1px rgba(122, 190, 255, 0.20);
+}
+
+.sidebar__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    margin-right: 0;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.07);
+    font-size: 15px;
+    line-height: 1;
+}
+
+.sidebar__item--active .sidebar__icon {
+    background: rgba(74, 158, 232, 0.38);
+}
+
+.sidebar__footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    color: var(--ui-sidebar-sub);
+    font-size: 11.5px;
+}
+
+.sidebar__footer-app {
+    font-weight: 600;
+}
+
+.sidebar__footer-version {
+    color: var(--ui-sidebar-group);
+    font-weight: 600;
+}
+
+/* ---------- 60.3 Home dashboard : hero + KPI tiles ---------- */
+.home-hero {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-7);
+    margin-bottom: var(--space-5);
+    border-radius: var(--ui-radius-lg);
+    background: linear-gradient(120deg, #0B2A4A 0%, #0A5BB5 58%, #2F7FD6 100%);
+    color: #FFFFFF;
+    box-shadow: var(--ui-shadow-hero);
+}
+
+.home-hero::after {
+    content: "";
+    position: absolute;
+    right: -70px;
+    top: -90px;
+    width: 300px;
+    height: 300px;
+    border-radius: var(--radius-pill);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+    pointer-events: none;
+}
+
+.home-hero__text {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+.home-hero__eyebrow {
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.home-hero__title {
+    margin: 0 0 6px;
+    font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #FFFFFF;
+}
+
+.home-hero__subtitle {
+    margin: 0;
+    max-width: 62ch;
+    font-size: var(--font-size-md);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.home-hero__stats {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: var(--space-4);
+    flex-shrink: 0;
+}
+
+.home-stat {
+    min-width: 112px;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--ui-radius);
+    background: rgba(9, 24, 48, 0.30);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    text-align: center;
+}
+
+.home-stat__value {
+    display: block;
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem);
+    font-weight: 800;
+    line-height: 1;
+    color: #FFFFFF;
+}
+
+.home-stat__label {
+    display: block;
+    margin-top: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.home-section-title {
+    margin: var(--space-2) 0 var(--space-4);
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--ui-ink);
+}
+
+/* ---------- 60.4 Registry cards : premium action tiles ---------- */
+.registry-cards {
+    gap: var(--space-5);
+}
+
+.registry-card {
+    overflow: hidden;
+    padding: var(--space-5);
+    min-height: 250px;
+    border: 1px solid var(--ui-border);
+    border-left-width: 6px;
+    border-left-color: var(--theme-accent, var(--ui-accent));
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow-card);
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0) 42%);
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.registry-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ui-shadow-card-hover);
+}
+
+.registry-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.registry-card__icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0;
+    border-radius: var(--ui-radius-sm);
+    background: var(--theme-accent, var(--ui-accent));
+    font-size: 24px;
+    box-shadow: 0 10px 20px -12px var(--theme-accent, var(--ui-accent));
+}
+
+.registry-card__subtitle {
+    margin-bottom: 0;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid var(--ui-border);
+    color: var(--theme-ink, var(--ui-ink-muted));
+    letter-spacing: 0.08em;
+}
+
+.registry-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.registry-card__title {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--ui-ink);
+    letter-spacing: -0.01em;
+}
+
+.registry-card__desc {
+    margin-top: 0;
+}
+
+.registry-card__footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: var(--space-4);
+}
+
+.registry-card__stat {
+    margin-top: 0;
+    padding: 8px 14px;
+    border-radius: var(--ui-radius);
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid var(--ui-border);
+}
+
+.registry-card__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin-left: auto;
+}
+
+.registry-card__btn {
+    margin-top: 0;
+    padding: 10px var(--space-5);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-sm);
+    box-shadow: 0 10px 20px -12px var(--theme-accent, var(--ui-accent));
+}
+
+.registry-card__btn:hover {
+    filter: brightness(1.06);
+    box-shadow: 0 14px 26px -12px var(--theme-accent, var(--ui-accent));
+}
+
+.registry-card__link {
+    margin-top: 0;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.registry-card__extra {
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-3) var(--space-2);
+    border-radius: var(--ui-radius);
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid var(--ui-border);
+}
+
+/* ---------- 60.5 Legend, welcome banner, badges, word cloud ---------- */
+.workflow-legend {
+    gap: var(--space-3);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.workflow-legend__item {
+    padding: 0;
+    background: none;
+    border: 0;
+}
+
+.workflow-legend__item .badge {
+    border-radius: var(--radius-pill);
+}
+
+.welcome-banner {
+    border-radius: var(--ui-radius-lg);
+    border: 1px solid var(--ui-border);
+    border-left: 6px solid var(--ui-accent);
+    background: linear-gradient(120deg, #EDF4FE 0%, #DCE9FA 100%);
+    box-shadow: var(--ui-shadow-card);
+}
+
+.badge {
+    border-radius: var(--radius-pill);
+    padding: 3px 11px;
+    letter-spacing: 0.01em;
+}
+
+.word-cloud {
+    padding: 6px 2px 2px;
+}
+
+/* ---------- 60.6 Page titles on secondary pages ---------- */
+.page-title {
+    font-size: clamp(1.15rem, 1rem + 0.7vw, 1.5rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ui-ink);
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: var(--space-5);
+}
+
+.page-title--compact {
+    font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.3rem);
+    padding-bottom: 0;
+    border-bottom-width: 0;
+}
+
+/* ---------- 60.7 Desktop sidebar width (scoped token override) ----------
+   Only widens the shell on desktop. Under 768 px the mobile rules
+   (sidebar slide-in + .main { margin-left: 0 }) keep priority. */
+@media (min-width: 769px) {
+    :root {
+        --sidebar-width: 240px;
+    }
+}
+
+/* ---------- 60.8 Responsive refinements ---------- */
+@media (max-width: 900px) {
+    .home-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .home-hero__stats {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-hero {
+        padding: var(--space-5);
+    }
+
+    .home-stat {
+        flex: 1 1 120px;
+    }
+
+    .registry-card__footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .registry-card__actions {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .registry-card__btn {
+        text-align: center;
+    }
+
+    .sidebar__item:hover {
+        transform: none;
+    }
+}

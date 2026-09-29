@@ -25,6 +25,16 @@ class LinkedAgentVisibilityTest extends TestCase
     private int $agentId1;
     private int $agentId2;
 
+    /**
+     * Compteur déterministe des références générées par createReport().
+     *
+     * PHPUnit instancie la classe pour chaque test : ce compteur repart donc de 0
+     * à chaque test et produit RSST-25-0001, RSST-25-0002, … — garanti unique
+     * (UNIQUE reports.reference) et sans aléatoire (remplace mt_rand(), source de
+     * flakiness CI : collision possible dès deux appels dans le même test).
+     */
+    private int $referenceCounter = 0;
+
     protected function setUp(): void
     {
         $this->pdo = getDB();
@@ -67,7 +77,7 @@ class LinkedAgentVisibilityTest extends TestCase
             VALUES (:uuid, :reference, :type, :objet, :description, :date_evenement, :lieu,
                 :declarant_id, :declarant_nom, :declarant_prenom, :site_id, :is_confidential, 0, :etat)
         ')->execute([
-            ':uuid' => $uuid, ':reference' => 'RSST-25-' . mt_rand(100, 999), ':type' => ReportType::Rsst->value,
+            ':uuid' => $uuid, ':reference' => sprintf('RSST-25-%04d', ++$this->referenceCounter), ':type' => ReportType::Rsst->value,
             ':objet' => $objet, ':description' => 'Test',
             ':date_evenement' => '2026-01-15', ':lieu' => 'Bureau',
             ':declarant_id' => $declarantId, ':declarant_nom' => 'Agent',
@@ -98,6 +108,40 @@ class LinkedAgentVisibilityTest extends TestCase
             forceSiteId: $siteId,
             linkedAgentId: $agentId,
             linkedAgentVisibility: VisibilityMode::AgentChoice->value,
+        );
+    }
+
+    // ─── createReport : références déterministes et uniques ───────────
+
+    /**
+     * Non-régression flakiness CI : createReport() doit produire des références
+     * uniques (UNIQUE reports.reference) et sans aléatoire. Avant ce correctif,
+     * `mt_rand(100, 999)` pouvait collisionner dès deux appels dans un même test.
+     */
+    public function testCreateReportGeneratesDeterministicUniqueReferences(): void
+    {
+        $uuids = [
+            $this->createReport($this->agentId1, 'Objet 1'),
+            $this->createReport($this->agentId2, 'Objet 2'),
+            $this->createReport($this->agentId1, 'Objet 3'),
+        ];
+
+        $statement = $this->pdo->prepare('SELECT reference FROM reports WHERE uuid = :uuid');
+        $references = [];
+        foreach ($uuids as $uuid) {
+            $statement->execute([':uuid' => $uuid]);
+            $references[] = $statement->fetchColumn();
+        }
+
+        $this->assertSame(
+            ['RSST-25-0001', 'RSST-25-0002', 'RSST-25-0003'],
+            $references,
+            'Les références doivent être déterministes (compteur séquentiel, pas de mt_rand).'
+        );
+        $this->assertCount(
+            count($references),
+            array_unique($references),
+            'Les références générées doivent être uniques (UNIQUE reports.reference).'
         );
     }
 

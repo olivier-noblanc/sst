@@ -58,6 +58,7 @@ final class CssDesignSystemTest extends TestCase
             '--grey-900' => '#212121',
             '--border' => '#7C8798',
             '--hover-highlight' => '#E8F0FE',
+            '--table-header-bg' => '#DFE6EF',
             '--color-success-bg' => '#d4edda',
             '--color-success-border' => '#c3e6cb',
             '--color-success-text' => '#155724',
@@ -362,14 +363,20 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('border-radius: var(--border-radius)', $wrapper);
     }
 
-    public function testTableHeadersAreLightAndTokenised(): void
+    /**
+     * Retour UI : les en-têtes de tableau ne doivent plus se confondre avec le
+     * zébrage (`--grey-50`). Ils consomment une surface dédiée plus marquée et
+     * une règle basse perceptible (2px) — voir CssContrastContractTest pour le
+     * contraste AA du texte et le seuil 3:1 de la bordure.
+     */
+    public function testTableHeadersAreMarkedAndTokenised(): void
     {
         $th = $this->ruleBody('.table-wrapper th');
         $this->assertNotSame('', $th, 'La règle .table-wrapper th doit exister.');
         $this->assertStringContainsString('text-transform: uppercase', $th);
         $this->assertStringContainsString('var(--font-size-xs)', $th);
-        $this->assertStringContainsString('background: var(--grey-50)', $th);
-        $this->assertStringContainsString('border-bottom: 1px solid var(--border)', $th);
+        $this->assertStringContainsString('background: var(--table-header-bg)', $th);
+        $this->assertStringContainsString('border-bottom: 2px solid var(--grey-700)', $th);
     }
 
     /**

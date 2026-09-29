@@ -17,6 +17,7 @@ declare(strict_types=1);
  * sans dépendance externe et sans couleur hexadécimale en dur dans les règles.
  */
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CssContrastContractTest extends TestCase
@@ -25,6 +26,12 @@ final class CssContrastContractTest extends TestCase
     private const MIN_CONTRAST = 4.5;
     /** Seuil WCAG 1.4.11 / 2.4.11 pour les éléments non textuels (bordures, focus). */
     private const MIN_NON_TEXT_CONTRAST = 3.0;
+    /**
+     * Épaisseur minimale admissible de l'anneau de focus du bouton de pièce
+     * jointe. La règle servie utilise 3px ; le plancher verrouillé est 2px, en
+     * deçà le focus n'est plus suffisamment perceptible.
+     */
+    private const MIN_ATTACHMENT_FOCUS_OUTLINE_WIDTH = 2;
     private const WHITE = '#ffffff';
 
     /** Les 10 clés de thème de registre (cf. `RegistryRepository::themeClasses`). */
@@ -80,6 +87,121 @@ final class CssContrastContractTest extends TestCase
         }
 
         return $value;
+    }
+
+    /**
+     * Dernière déclaration `$property` rencontrée dans les corps de règles.
+     *
+     * La cascade CSS retient la dernière valeur d'une propriété donnée : c'est
+     * elle qui gagne. Inspecter la dernière déclaration (le dernier bloc) évite
+     * qu'un premier corps valide masque une neutralisation ultérieure.
+     */
+    private static function declarationLast(string $body, string $property): string
+    {
+        $pattern = '/' . preg_quote($property, '/') . '\s*:\s*([^;]+);/i';
+        if (preg_match_all($pattern, $body, $matches) >= 1) {
+            $values = $matches[1] ?? [];
+
+            return trim((string) end($values));
+        }
+
+        return '';
+    }
+
+    /**
+     * Vrai si l'état effectif neutralise le focus : label masqué
+     * (`opacity: 0`, `visibility: hidden`, `display: none`) ou contour annulé
+     * (`outline: none/0`, `outline-width: 0`). Évalué sur la dernière
+     * déclaration de chaque propriété (valeur gagnante de la cascade).
+     */
+    private static function attachmentFocusRuleNeutralizes(string $body): bool
+    {
+        $opacity = self::declarationLast($body, 'opacity');
+        if ($opacity !== '' && (float) $opacity === 0.0) {
+            return true;
+        }
+
+        $visibility = strtolower(self::declarationLast($body, 'visibility'));
+        if ($visibility === 'hidden' || $visibility === 'collapse') {
+            return true;
+        }
+
+        if (strtolower(self::declarationLast($body, 'display')) === 'none') {
+            return true;
+        }
+
+        foreach (['outline', 'outline-width'] as $property) {
+            $value = strtolower(self::declarationLast($body, $property));
+            if ($value === 'none' || preg_match('/^0(?:\.0+)?(?:px|em|rem)?$/', $value) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Vérifie qu'un corps de règle matérialise un anneau de focus conforme pour
+     * le bouton de pièce jointe : `outline` d'au moins 2px, style `solid`,
+     * couleur `var(--focus-ring-color)`, et un `outline-offset` valide (≥ 0).
+     *
+     * Le corps peut concaténer plusieurs blocs du même sélecteur : seules les
+     * dernières déclarations comptent (cascade). Une neutralisation finale
+     * (`opacity: 0`, `visibility: hidden`, `display: none`, `outline: none/0`)
+     * invalide le contrat même si un bloc antérieur posait un anneau valide.
+     *
+     * Méthode pure extraite pour démontrer, via des tests dédiés, que le contrat
+     * rejette réellement les variantes invalides.
+     */
+    private static function attachmentFocusRingBodyIsValid(string $body): bool
+    {
+        $declarations = (string) preg_replace('~/\*.*?\*/~s', '', $body);
+
+        if (self::attachmentFocusRuleNeutralizes($declarations)) {
+            return false;
+        }
+
+        $outline = self::declarationLast($declarations, 'outline');
+        if ($outline === '') {
+            return false;
+        }
+
+        $width = null;
+        $isSolid = false;
+        $usesFocusRingColor = false;
+
+        foreach (preg_split('/\s+/', trim($outline)) ?: [] as $token) {
+            if (preg_match('/^(\d+(?:\.\d+)?)px$/i', $token, $match) === 1) {
+                $width = (float) ($match[1] ?? 0);
+            } elseif (strcasecmp($token, 'solid') === 0) {
+                $isSolid = true;
+            } elseif (preg_match('/^var\(\s*--focus-ring-color\s*\)$/i', $token) === 1) {
+                $usesFocusRingColor = true;
+            }
+        }
+
+        if ($width === null
+            || $width < self::MIN_ATTACHMENT_FOCUS_OUTLINE_WIDTH
+            || !$isSolid
+            || !$usesFocusRingColor
+        ) {
+            return false;
+        }
+
+        $offset = self::resolveToken(self::declarationLast($declarations, 'outline-offset'));
+        if (preg_match('/^(\d+(?:\.\d+)?)px$/i', $offset, $match) !== 1) {
+            return false;
+        }
+
+        return (float) ($match[1] ?? 0) >= 0;
+    }
+
+    /** Valeur d'un attribut HTML dans une balise déjà extraite (chaîne vide si absent). */
+    private static function attributeValue(string $tag, string $attribute): string
+    {
+        $pattern = '/\b' . preg_quote($attribute, '/') . '="([^"]*)"/i';
+
+        return preg_match($pattern, $tag, $match) === 1 ? (string) ($match[1] ?? '') : '';
     }
 
     private static function relativeLuminance(string $hex): float
@@ -635,6 +757,363 @@ final class CssContrastContractTest extends TestCase
     }
 
     /**
+     * Retour UI : les en-têtes de tableau doivent être visuellement distincts
+     * des lignes en projection. Le fond d'en-tête consomme un token dédié,
+     * différent du zébrage (`--grey-50`) et de la surface blanche, et plus
+     * marqué (luminance relative inférieure) que le zébrage.
+     */
+    public function testTableHeaderSurfaceIsDistinctFromDataRows(): void
+    {
+        $zebraBody = self::ruleBody(self::$styleCss, 'tr:nth-child(even) td');
+        $this->assertNotSame('', $zebraBody, 'Règle de zébrage introuvable.');
+        $zebraBg = self::resolveToken(self::declaration($zebraBody, 'background'));
+        $this->assertMatchesRegularExpression('/^#[0-9a-f]{6}$/i', $zebraBg, 'Le zébrage doit résoudre une couleur.');
+
+        $surface = self::resolveToken(self::$tokens['--surface'] ?? '');
+        $this->assertNotSame('', $surface, 'Token --surface introuvable.');
+
+        foreach (['.table-wrapper th', 'th'] as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle %s introuvable.', $selector));
+
+            $declaration = self::declaration($body, 'background');
+            $this->assertMatchesRegularExpression(
+                '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+                $declaration,
+                sprintf('%s doit consommer un token de fond, pas un littéral.', $selector)
+            );
+
+            $headerBg = self::resolveToken($declaration);
+            $this->assertNotSame($headerBg, $zebraBg, sprintf('%s ne doit pas partager le fond du zébrage.', $selector));
+            $this->assertNotSame($headerBg, $surface, sprintf('%s ne doit pas partager le fond blanc des lignes.', $selector));
+            $this->assertLessThan(
+                self::relativeLuminance($zebraBg),
+                self::relativeLuminance($headerBg),
+                sprintf('%s doit être plus marqué (plus sombre) que le zébrage.', $selector)
+            );
+        }
+    }
+
+    /**
+     * Retour UI : le texte d'en-tête reste contrasté (WCAG AA ≥ 4.5:1) sur la
+     * nouvelle surface d'en-tête.
+     */
+    public function testTableHeaderTextMeetsContrastOnHeaderSurface(): void
+    {
+        foreach (['.table-wrapper th', 'th'] as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle %s introuvable.', $selector));
+
+            $backgroundDeclaration = self::declaration($body, 'background');
+            $this->assertMatchesRegularExpression('/^var\(\s*--[a-z0-9-]+\s*\)$/i', $backgroundDeclaration);
+            $headerBg = self::resolveToken($backgroundDeclaration);
+
+            $colorDeclaration = self::declaration($body, 'color');
+            $this->assertMatchesRegularExpression(
+                '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+                $colorDeclaration,
+                sprintf('%s doit consommer un token de couleur.', $selector)
+            );
+            $color = self::resolveToken($colorDeclaration);
+
+            $ratio = self::contrastRatio($color, $headerBg);
+            $this->assertGreaterThanOrEqual(
+                self::MIN_CONTRAST,
+                $ratio,
+                sprintf('%s : texte %s sur %s doit offrir ≥ 4.5:1, mesuré %.2f:1.', $selector, $color, $headerBg, $ratio)
+            );
+        }
+    }
+
+    /**
+     * Retour UI : la règle basse d'en-tête doit être perceptible (WCAG 1.4.11,
+     * ≥ 3:1) et épaisse d'au moins 2px pour séparer nettement l'en-tête des
+     * lignes.
+     */
+    public function testTableHeaderBottomBorderIsPerceptible(): void
+    {
+        foreach (['.table-wrapper th', 'th'] as $selector) {
+            $body = self::ruleBody(self::$styleCss, $selector);
+            $this->assertNotSame('', $body, sprintf('Règle %s introuvable.', $selector));
+
+            $border = self::declaration($body, 'border-bottom');
+            $this->assertMatchesRegularExpression(
+                '/^\d+(\.\d+)?px\s+solid\s+var\(\s*--[a-z0-9-]+\s*\)$/i',
+                $border,
+                sprintf('%s : bordure basse tokenisée attendue, reçu « %s ».', $selector, $border)
+            );
+
+            preg_match('/^([\d.]+)px/i', $border, $widthMatch);
+            $this->assertGreaterThanOrEqual(
+                2.0,
+                (float) ($widthMatch[1] ?? 0),
+                sprintf('%s : la règle basse doit faire au moins 2px.', $selector)
+            );
+
+            preg_match('/var\(\s*(--[a-z0-9-]+)\s*\)/i', $border, $tokenMatch);
+            $borderColor = self::resolveToken('var(' . ($tokenMatch[1] ?? '') . ')');
+            $headerBg = self::resolveToken(self::declaration($body, 'background'));
+
+            $ratio = self::contrastRatio($borderColor, $headerBg);
+            $this->assertGreaterThanOrEqual(
+                self::MIN_NON_TEXT_CONTRAST,
+                $ratio,
+                sprintf('%s : bordure %s sur fond %s doit offrir ≥ 3:1, mesuré %.2f:1.', $selector, $borderColor, $headerBg, $ratio)
+            );
+        }
+    }
+
+    /**
+     * Retour UI : le bouton de pièce jointe (`.file-upload-wrapper__label`,
+     * « Joindre un document ») ne doit plus s'atténuer via `opacity: 0.85` au
+     * survol/focus — ce qui dégrade le contraste — mais passer par un fond
+     * solide tokenisé qui conserve AA (texte blanc ≥ 4.5:1).
+     */
+    public function testAttachmentUploadButtonHoverIsSolidAndKeepsAa(): void
+    {
+        $bodies = self::ruleBodiesFor('.file-upload-wrapper__label:hover');
+        $this->assertNotEmpty($bodies, 'Règle .file-upload-wrapper__label:hover introuvable.');
+
+        $body = implode("\n", $bodies);
+        $declarations = (string) preg_replace('~/\*.*?\*/~s', '', $body);
+        $this->assertStringNotContainsString(
+            'opacity: 0.85',
+            $declarations,
+            'Le survol ne doit plus atténuer le bouton via opacity: 0.85.'
+        );
+
+        if (preg_match('/opacity\s*:\s*([^;]+);/i', $declarations, $match) === 1) {
+            $this->assertSame('1', trim((string) ($match[1] ?? '')), 'Si une opacité subsiste, elle doit valoir 1 (état solide).');
+        }
+
+        $backgroundDeclaration = self::declaration($body, 'background');
+        $this->assertMatchesRegularExpression(
+            '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
+            $backgroundDeclaration,
+            'Le survol doit poser un fond solide tokenisé.'
+        );
+
+        $hoverBg = self::resolveToken($backgroundDeclaration);
+        $ratio = self::contrastRatio(self::WHITE, $hoverBg);
+        $this->assertGreaterThanOrEqual(
+            self::MIN_CONTRAST,
+            $ratio,
+            sprintf('Bouton pièce jointe au survol : blanc sur %s doit offrir ≥ 4.5:1, mesuré %.2f:1.', $hoverBg, $ratio)
+        );
+    }
+
+    /**
+     * Retour UI (suite) : le focus clavier du contrôle de pièce jointe doit
+     * rester perceptible. L'input `file` est visuellement masqué ET placé
+     * AVANT le label (frère, pas ancêtre) : `:focus-within` sur le label ne
+     * peut donc jamais s'activer. L'anneau est porté par le label via le
+     * combinateur frère adjacent `input:focus-visible + label`.
+     *
+     * Contrat verrouillé : l'anneau doit être au moins 2px, `solid`, de couleur
+     * `var(--focus-ring-color)`, avec un `outline-offset` valide (≥ 0) ; et le
+     * `for` du label doit pointer vers l'`id` de l'input adjacent dans les deux
+     * formulaires (création/édition et réponse). C'est l'état effectif de la
+     * cascade qui est évalué (dernier bloc gagnant) : une règle ultérieure qui
+     * neutralise le contour (`outline: none/0`) ou masque le label
+     * (`opacity: 0`, `visibility: hidden`, `display: none`) fait échouer le
+     * test. Une régression CSS ou de markup (label déplacé, id/for
+     * désynchronisés) fait également échouer le test.
+     */
+    public function testAttachmentUploadFocusRingMatchesRealDomSiblingRelation(): void
+    {
+        $selector = '.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label';
+        $bodies = self::ruleBodiesFor($selector);
+        $this->assertNotEmpty($bodies, sprintf('Sélecteur frère adjacent « %s » introuvable.', $selector));
+
+        // Cascade : c'est le dernier bloc gagnant qui compte, pas un corps valide
+        // isolé. On concatène les blocs dans l'ordre source et on valide l'état
+        // effectif — une règle ultérieure ne doit jamais neutraliser le focus
+        // (opacity: 0, visibility: hidden, display: none, outline: none/0).
+        $this->assertTrue(
+            self::attachmentFocusRingBodyIsValid(implode("\n", $bodies)),
+            'Le dernier état de focus du label doit rester conforme : outline ≥ 2px solid var(--focus-ring-color) + outline-offset ≥ 0, sans neutralisation finale (opacity: 0, visibility: hidden, display: none, outline: none/0).'
+        );
+
+        // Garde-fou : plus aucune règle de focus basée sur :focus-within sur le
+        // label — elle ne peut pas matérialiser le focus d'un input frère.
+        $this->assertSame(
+            [],
+            self::ruleBodiesFor('.file-upload-wrapper__label:focus-within'),
+            ':focus-within est inopérant ici (input frère, non descendant du label).'
+        );
+
+        // Relation DOM réelle : l'input précède immédiatement le label dans les
+        // deux formulaires, et le `for` du label pointe vers l'`id` de l'input.
+        // Aucune modification de markup n'est donc requise. Les balises PHP
+        // inline sont neutralisées pour que la fermeture de script du template
+        // ne soit pas confondue avec la fin du tag input.
+        foreach (['templates/report_form.php', 'pages/report_respond.php'] as $file) {
+            $markup = file_get_contents(__DIR__ . '/../../' . $file);
+            $this->assertIsString($markup, sprintf('%s introuvable.', $file));
+
+            $html = (string) preg_replace('/<\?(?:php|=).*?\?>/s', '', $markup);
+            $this->assertMatchesRegularExpression(
+                '/<input\b[^>]*class="file-upload-wrapper__input"[^>]*>\s*<label\b[^>]*class="file-upload-wrapper__label/s',
+                $html,
+                sprintf('%s : l\'input file doit précéder immédiatement le label (frère adjacent, pour `+`).', $file)
+            );
+
+            $this->assertSame(
+                1,
+                preg_match('/<input\b[^>]*class="file-upload-wrapper__input"[^>]*>/s', $html, $inputMatch),
+                sprintf('%s : la balise input file est introuvable.', $file)
+            );
+            $this->assertSame(
+                1,
+                preg_match('/<label\b[^>]*class="file-upload-wrapper__label(?=[\s"])[^>]*>/s', $html, $labelMatch),
+                sprintf('%s : la balise label de pièce jointe est introuvable.', $file)
+            );
+
+            $inputId = self::attributeValue((string) ($inputMatch[0] ?? ''), 'id');
+            $labelFor = self::attributeValue((string) ($labelMatch[0] ?? ''), 'for');
+
+            $this->assertNotSame('', $inputId, sprintf('%s : l\'input file doit porter un id.', $file));
+            $this->assertSame(
+                $inputId,
+                $labelFor,
+                sprintf('%s : le `for` du label doit pointer vers l\'id de l\'input adjacent.', $file)
+            );
+        }
+    }
+
+    /**
+     * Démonstration « rouge » : le contrat de focus ci-dessus doit réellement
+     * discriminer. Chaque variante invalide (largeur trop fine, style non
+     * solide, couleur non tokenisée, offset négatif/absent) est rejetée par le
+     * validateur — sans quoi le test principal serait un faux positif.
+     *
+     * @param non-empty-string $body
+     */
+    #[DataProvider('provideInvalidAttachmentFocusRingBodies')]
+    public function testAttachmentFocusRingContractRejectsInvalidVariants(string $body): void
+    {
+        $this->assertFalse(
+            self::attachmentFocusRingBodyIsValid($body),
+            sprintf('Variante invalide non rejetée par le contrat : « %s ».', $body)
+        );
+    }
+
+    /** @return array<string, array{non-empty-string}> */
+    public static function provideInvalidAttachmentFocusRingBodies(): array
+    {
+        $offset = 'outline-offset: var(--focus-ring-offset);';
+
+        return [
+            'sans outline' => [$offset],
+            'largeur trop fine (1px)' => ['outline: 1px solid var(--focus-ring-color); ' . $offset],
+            'style non solide (dashed)' => ['outline: 3px dashed var(--focus-ring-color); ' . $offset],
+            'style non solide (dotted)' => ['outline: 3px dotted var(--focus-ring-color); ' . $offset],
+            'couleur non tokenisée' => ['outline: 3px solid #0056a3; ' . $offset],
+            'couleur hors focus-ring' => ['outline: 3px solid var(--sidebar-focus-ring); ' . $offset],
+            'offset négatif' => ['outline: 3px solid var(--focus-ring-color); outline-offset: -2px;'],
+            'offset absent' => ['outline: 3px solid var(--focus-ring-color);'],
+            'offset non résolu' => ['outline: 3px solid var(--focus-ring-color); outline-offset: var(--inconnu);'],
+        ];
+    }
+
+    /**
+     * Contrepartie « verte » : la variante réellement servie par style.css est
+     * acceptée par le validateur.
+     */
+    public function testAttachmentFocusRingContractAcceptsServedVariant(): void
+    {
+        $this->assertTrue(
+            self::attachmentFocusRingBodyIsValid(
+                'outline: 3px solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset);'
+            ),
+            'La variante servie (3px solid var(--focus-ring-color), offset tokenisé ≥ 0) doit être acceptée.'
+        );
+    }
+
+    /**
+     * Le contrat ne doit pas se contenter du premier corps valide : dans la
+     * cascade CSS, une règle ultérieure du même sélecteur (dernier bloc
+     * gagnant) peut neutraliser le contour ou masquer le label. Chaque
+     * séquence ci-dessous pose d'abord l'anneau conforme, puis une
+     * neutralisation finale qui doit invalider l'état effectif.
+     *
+     * @param non-empty-string $bodies
+     */
+    #[DataProvider('provideNeutralizedAttachmentFocusSequences')]
+    public function testAttachmentFocusRingContractRejectsFinalNeutralization(string $bodies): void
+    {
+        $this->assertFalse(
+            self::attachmentFocusRingBodyIsValid($bodies),
+            sprintf('Neutralisation finale non rejetée par le contrat : « %s ».', $bodies)
+        );
+    }
+
+    /** @return array<string, array{non-empty-string}> */
+    public static function provideNeutralizedAttachmentFocusSequences(): array
+    {
+        $valid = 'outline: 3px solid var(--focus-ring-color); outline-offset: var(--focus-ring-offset);';
+
+        return [
+            'contour retiré (outline: none)' => [$valid . "\n" . 'outline: none;'],
+            'contour retiré (outline: 0)' => [$valid . "\n" . 'outline: 0;'],
+            'contour retiré (outline-width: 0)' => [$valid . "\n" . 'outline-width: 0;'],
+            'label masqué (opacity: 0)' => [$valid . "\n" . 'opacity: 0;'],
+            'label masqué (visibility: hidden)' => [$valid . "\n" . 'visibility: hidden;'],
+            'label masqué (display: none)' => [$valid . "\n" . 'display: none;'],
+        ];
+    }
+
+    /**
+     * Contrepartie « verte » de la cascade : les blocs réellement servis pour
+     * le sélecteur, concaténés dans l'ordre source, restent acceptés — le bloc
+     * initial ne fait que poser le fond solide (`opacity: 1`), le bloc tardif
+     * porte l'anneau, sans neutralisation.
+     */
+    public function testAttachmentFocusRingContractAcceptsServedCascade(): void
+    {
+        $selector = '.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label';
+        $bodies = self::ruleBodiesFor($selector);
+        $this->assertNotEmpty($bodies, sprintf('Sélecteur frère adjacent « %s » introuvable.', $selector));
+
+        $this->assertTrue(
+            self::attachmentFocusRingBodyIsValid(implode("\n", $bodies)),
+            'La cascade servie (fond solide + anneau, sans neutralisation finale) doit être acceptée.'
+        );
+    }
+
+    /**
+     * Le renforcement des en-têtes ne doit pas casser le zébrage ni le survol
+     * des lignes.
+     */
+    public function testZebraAndHoverRowBackgroundsArePreserved(): void
+    {
+        $this->assertStringContainsString(
+            'background: var(--grey-50)',
+            self::ruleBody(self::$styleCss, 'tr:nth-child(even) td'),
+            'Le zébrage des lignes paires doit rester --grey-50.'
+        );
+        $this->assertStringContainsString(
+            'background: var(--hover-highlight)',
+            self::ruleBody(self::$styleCss, 'tr:hover td'),
+            'Le survol de ligne doit rester --hover-highlight.'
+        );
+    }
+
+    /**
+     * Le renforcement des en-têtes globaux ne doit pas transformer la colonne
+     * de libellés de `report-detail__table` (fond transparent, colonne de
+     * gauche) en bandeau d'en-tête.
+     */
+    public function testReportDetailLabelsKeepTransparentBackground(): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\.report-detail__table th\s*\{[^}]*background:\s*transparent/s',
+            self::$styleCss,
+            'Les libellés de report-detail__table doivent rester à fond transparent.'
+        );
+    }
+
+    /**
      * Extrait les règles « feuilles » (sélecteur => corps), y compris celles
      * imbriquées dans les media queries, sans se laisser piéger par les accolades.
      *
@@ -654,5 +1133,26 @@ final class CssContrastContractTest extends TestCase
         }
 
         return $rules;
+    }
+
+    /**
+     * Corps de toutes les règles dont la liste de sélecteurs contient
+     * `$selector` (une règle multi-sélecteurs compte pour chacun d'eux).
+     *
+     * @return list<string>
+     */
+    private static function ruleBodiesFor(string $selector): array
+    {
+        $bodies = [];
+        foreach (self::leafRules() as $candidate => $body) {
+            foreach (array_map('trim', explode(',', $candidate)) as $part) {
+                if ($part === $selector) {
+                    $bodies[] = $body;
+                    break;
+                }
+            }
+        }
+
+        return $bodies;
     }
 }

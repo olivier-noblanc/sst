@@ -87,6 +87,11 @@
     /* Surlignage au survol (lignes de tableau) */
     --hover-highlight: #E8F0FE;
 
+    /* Surface d'en-tête de tableau — plus marquée que le zébrage (--grey-50)
+       et distincte des lignes projetées (blanc/zébrage). Texte --grey-700
+       ≥ 4.5:1 dessus, règle basse --grey-700 ≥ 3:1 (WCAG 1.4.11). */
+    --table-header-bg: #DFE6EF;
+
     /* Bordures — perceptibles (≥ 3:1, WCAG 1.4.11) */
     --border: #7C8798;
 
@@ -1912,9 +1917,20 @@ img { max-width: 100%; height: auto; display: block; }
     gap: 6px;
     white-space: nowrap;
 }
+/* État solide (jamais d'atténuation par opacité) : le fond s'assombrit et
+   conserve le contraste AA du texte blanc. L'input file est visuellement
+   masqué et placé AVANT le label (frère, non descendant) : `:focus-within`
+   sur le label ne peut donc jamais s'activer. Le focus clavier est matérialisé
+   par le combinateur frère adjacent `+` (`input:focus-visible + label`), le
+   label ayant un `for` vers l'input. */
 .file-upload-wrapper__label:hover,
-.file-upload-wrapper__label:focus-within {
-    opacity: 0.85;
+.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label {
+    background: var(--grey-800);
+    opacity: 1;
+}
+.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label {
+    outline: 3px solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
 }
 .file-upload-wrapper__filename {
     font-size: 14px;
@@ -1960,12 +1976,12 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .table-wrapper th {
-    background: var(--grey-50);
+    background: var(--table-header-bg);
     text-transform: uppercase;
     font-size: var(--font-size-xs);
     letter-spacing: 0.3px;
     color: var(--grey-700);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--grey-700);
     padding: var(--space-2) var(--space-3);
 }
 
@@ -2046,13 +2062,13 @@ table {
 }
 
 th {
-    background: var(--grey-100);
+    background: var(--table-header-bg);
     text-align: left;
     padding: 10px 12px;
     font-weight: 600;
     font-size: 13px;
     color: var(--grey-700);
-    border-bottom: 2px solid var(--grey-300);
+    border-bottom: 2px solid var(--grey-700);
     white-space: nowrap;
     cursor: default;
     -webkit-user-select: none;

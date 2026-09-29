@@ -97,7 +97,7 @@
 
     /* Mise en page */
     --sidebar-width: 220px;
-    --header-height: 60px;
+    --header-height: 0px; /* No autonomous top bar — kept as a layout offset sentinel */
     --content-padding: 24px;
 
     /* Barre latérale */
@@ -145,7 +145,6 @@
     --transition-base: 0.2s ease;
 
     --z-sidebar: 90;
-    --z-header: 100;
     --z-mobile-menu: 200;
     --z-overlay: 150;
     --z-skip-link: 9999;
@@ -163,8 +162,6 @@
     --card-shadow-hover: 0 2px 4px rgba(15,29,51,0.06), 0 6px 16px rgba(15,29,51,0.08);
     --radius-xl: 12px;
     --radius-pill: 999px;
-    --header-surface: var(--surface);
-    --header-border: var(--card-border);
 
     /* Bornes laptop */
     --laptop-min: 1024px;
@@ -274,77 +271,12 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* ============================================================
-   6. Header — Blue bar at top (#0056A3)
+   6. Header — removed
+   The autonomous top bar was removed: navigation, identity,
+   impersonation and logout now live in the sidebar (section
+   60.2bis). `--header-height` stays defined at 0 so the layout
+   offsets below collapse without touching their rules.
    ============================================================ */
-.header {
-    height: var(--header-height);
-    background: var(--header-surface);
-    color: var(--grey-900);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 var(--space-5);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: var(--z-header);
-    border-bottom: 1px solid var(--header-border);
-    box-shadow: var(--shadow-sm);
-}
-
-.header__logo {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-.header__logo-img {
-    height: 40px;
-}
-
-.header__logo-text {
-    background: var(--color-primary);
-    color: #FFFFFF;
-    padding: 4px 12px;
-    border-radius: var(--border-radius);
-    font-weight: 700;
-    font-size: 16px;
-    letter-spacing: 1px;
-}
-
-.header__title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--grey-900);
-}
-
-.header__user {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    font-size: 13px;
-    color: var(--grey-700);
-}
-
-.header__username {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.header__logout {
-    color: var(--grey-700);
-    text-decoration: none;
-    padding: 6px 12px;
-    border-radius: var(--border-radius);
-    transition: color var(--transition-base), background var(--transition-base);
-}
-.header__logout:hover {
-    color: var(--color-primary);
-    background: var(--surface-sunken);
-    text-decoration: none;
-}
 
 /* ============================================================
    Impersonation dropdown (CSS-only, zero JavaScript)
@@ -587,23 +519,32 @@ img { max-width: 100%; height: auto; display: block; }
     pointer-events: none;
 }
 
-/* Mobile hamburger button (label for checkbox) */
-.header__menu-btn {
+/* Floating sidebar toggle (mobile only) — the shell has no top bar anymore.
+   Hidden on desktop; revealed inside the `(max-width: 768px)` block below. */
+.sidebar__menu-btn {
     display: none;
-    background: none;
-    border: 2px solid var(--border);
-    border-radius: var(--border-radius);
-    color: var(--grey-700);
-    padding: 6px 10px;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: var(--z-mobile-menu);
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: var(--surface);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-primary);
     font-size: 20px;
-    cursor: pointer;
     line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--card-shadow);
     transition: background var(--transition-fast), border-color var(--transition-fast);
     -webkit-user-select: none;
     user-select: none;
 }
-.header__menu-btn:hover,
-.header__menu-btn:focus-visible {
+.sidebar__menu-btn:hover,
+.sidebar__menu-btn:focus-visible {
     background: var(--surface-sunken);
     border-color: var(--color-primary);
 }
@@ -3544,8 +3485,8 @@ tr:hover td {
    33. Print Styles
    ============================================================ */
 @media print {
-    .header, .sidebar, .sidebar-overlay, .sidebar-toggle-checkbox, .filter-bar, .btn, .pagination, .print-hint,
-    .form-actions, .confirm-box, .footer, .header__menu-btn, .back-to-top,
+    .sidebar, .sidebar-overlay, .sidebar-toggle-checkbox, .sidebar__menu-btn, .filter-bar, .btn, .pagination, .print-hint,
+    .form-actions, .confirm-box, .footer, .back-to-top,
     .welcome-banner, .workflow-legend, .breadcrumb {
         display: none !important;
     }
@@ -3583,11 +3524,9 @@ tr:hover td {
    34. Responsive
    ============================================================ */
 @media (max-width: 768px) {
-    /* Show hamburger button */
-    .header__menu-btn {
+    /* Show floating sidebar toggle */
+    .sidebar__menu-btn {
         display: inline-flex;
-        align-items: center;
-        justify-content: center;
         min-width: 44px;
         min-height: 44px;
     }
@@ -3617,6 +3556,7 @@ tr:hover td {
 
     .main {
         margin-left: 0;
+        padding-top: 68px; /* clears the floating sidebar toggle (top:12px + 44px) */
     }
 
     .registry-cards,
@@ -3687,22 +3627,6 @@ tr:hover td {
     .report-detail__header {
         flex-direction: column;
         align-items: flex-start;
-    }
-
-    .header__title {
-        display: none;
-    }
-
-    .header__user {
-        gap: 8px;
-        font-size: 12px;
-    }
-
-    .header__username {
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     .form-actions {
@@ -3816,22 +3740,6 @@ tr:hover td {
 @media (max-width: 480px) {
     html {
         font-size: 13px;
-    }
-
-    .header {
-        padding: 0 var(--space-3);
-    }
-
-    .header__logo-text {
-        font-size: 13px;
-        padding: 3px 8px;
-    }
-
-    .header__username {
-        max-width: 100px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     .login-container {
@@ -4474,8 +4382,8 @@ form:has(#pour_compte:checked) .pour-compte-dependent { display: block; }
    This layer only appends:
 
      - a soft, layered application background;
-     - an elevated, glassy header with a brand lockup and avatar;
-     - a branded, grouped sidebar with pill navigation;
+     - a branded, grouped sidebar with pill navigation and the
+       identity/profile/logout block at its foot (no top bar);
      - a gradient hero with KPI tiles on the home dashboard;
      - recomposed registry cards (head / body / footer / actions);
 
@@ -4483,7 +4391,7 @@ form:has(#pour_compte:checked) .pour-compte-dependent { display: block; }
    margin-left: 0) still win.
    ============================================================ */
 
-/* ---------- 60.1 App shell : soft background + elevated header ---------- */
+/* ---------- 60.1 App shell : soft background ---------- */
 body {
     background: linear-gradient(180deg, var(--ui-bg-top) 0%, var(--ui-bg-bottom) 100%);
     background-attachment: fixed;
@@ -4495,83 +4403,8 @@ body {
     padding: var(--space-6) var(--content-padding) var(--space-8);
 }
 
-.header {
-    background: rgba(255, 255, 255, 0.9);
-    -webkit-backdrop-filter: saturate(180%) blur(14px);
-    backdrop-filter: saturate(180%) blur(14px);
-    border-bottom: 1px solid var(--ui-border);
-    box-shadow: 0 1px 0 rgba(15, 29, 51, 0.03), 0 10px 30px -22px rgba(15, 29, 51, 0.55);
-}
-
-.header__logo {
-    gap: var(--space-3);
-}
-
-.header__logo-img {
-    height: 38px;
-    width: 38px;
-    object-fit: contain;
-}
-
-.header__brand {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.15;
-}
-
-.header__brand-org {
-    font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ui-accent);
-}
-
-.header__title {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--ui-ink);
-}
-
-.header__user {
-    gap: var(--space-3);
-}
-
-.header__username {
-    gap: var(--space-2);
-}
-
-.header__user-name {
-    font-weight: 600;
-    color: var(--ui-ink);
-}
-
-.header__avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: var(--radius-pill);
-    background: linear-gradient(135deg, var(--ui-accent-2) 0%, var(--ui-accent) 100%);
-    color: #FFFFFF;
-    font-size: 12.5px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    box-shadow: 0 6px 14px -8px rgba(10, 91, 181, 0.9);
-}
-
-.header__logout {
-    font-weight: 600;
-    border: 1px solid var(--ui-border);
-    border-radius: var(--radius-pill);
-    padding: 6px 14px;
-}
-
-.header__logout:hover {
-    border-color: var(--ui-accent);
-    background: rgba(10, 91, 181, 0.06);
-}
+/* The elevated top-bar styling was removed together with the top bar itself;
+   the shell identity/avatar now lives in the sidebar footer (section 60.2bis). */
 
 /* ---------- 60.2 Sidebar : branded, grouped, pill navigation ---------- */
 .sidebar {
@@ -4711,6 +4544,99 @@ body {
 .sidebar__footer-version {
     color: var(--ui-sidebar-group);
     font-weight: 600;
+}
+
+/* ---------- 60.2bis Sidebar footer : identity, impersonation, logout ----------
+   These controls used to live in the autonomous top bar; they now sit at the
+   bottom of the sidebar so the main content starts at the top of the viewport. */
+.sidebar__profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-bottom: var(--space-2);
+    min-width: 0;
+}
+
+.sidebar__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, var(--ui-accent-2) 0%, var(--ui-accent) 100%);
+    color: #FFFFFF;
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 14px -8px rgba(10, 91, 181, 0.9);
+}
+
+.sidebar__identity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sidebar__user-name {
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 600;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar__impersonate {
+    display: block;
+    position: relative;
+    margin-bottom: var(--space-2);
+}
+
+.sidebar__impersonate .impersonate-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* The control sits at the very bottom of the sidebar: open the menu upwards. */
+.sidebar__impersonate .impersonate-menu {
+    top: auto;
+    bottom: 100%;
+    right: 0;
+    margin-top: 0;
+    margin-bottom: 4px;
+}
+
+.sidebar__logout {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+    color: var(--sidebar-text);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.sidebar__logout:hover,
+.sidebar__logout:focus-visible {
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+/* Global banners (outbox / impersonation) are sticky at the top of the
+   document: offset them by the fixed sidebar so they stay fully visible. */
+@media (min-width: 769px) {
+    .impersonate-banner,
+    .outbox-banner {
+        margin-left: var(--sidebar-width);
+    }
 }
 
 /* ---------- 60.3 Home dashboard : hero + KPI tiles ---------- */

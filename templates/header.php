@@ -2,7 +2,13 @@
 /**
  * Header Template — Application SST DREETS BFC
  *
- * Blue header bar with logo, app title, user name, and logout link.
+ * Document head + shell opener. The shell no longer renders an autonomous top
+ * bar: navigation, user identity, impersonation control and logout all live in
+ * the sidebar (templates/sidebar.php), and the main content starts at the very
+ * top of the viewport. This template still owns the HTTP security headers, the
+ * CSP, the document <head>, the <body> opening, the accessibility skip links
+ * and the global banners (outbox / impersonation).
+ *
  * Security headers and cache-control sent as HTTP headers (not meta tags)
  * for maximum browser support.
  *
@@ -47,71 +53,5 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
 <body>
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>
     <a href="#main-nav" class="skip-link">Aller à la navigation</a>
-    <header class="header" role="banner">
-        <div class="header__logo">
-            <?php
-            $logoDataUri = inlineDataUri('img/logo-dreets.png');
-            if ($logoDataUri !== ''): ?>
-                <img src="<?php echo $logoDataUri; ?>" alt="Logo DREETS BFC" class="header__logo-img" width="40" height="40">
-            <?php else: ?>
-                <span class="header__logo-text"><?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS BFC')); ?></span>
-            <?php endif; ?>
-            <span class="header__brand">
-                <span class="header__brand-org"><?php echo e(getConfigService()->get('app_nom_organisation', 'DREETS BFC')); ?></span>
-                <span class="header__title">Application SST</span>
-            </span>
-        </div>
-        <?php if (isUserLoggedIn()): ?>
-        <?php
-        // Initials for the header avatar (first letter of up to two name parts).
-        $headerDisplayName = currentUserDisplayName();
-        $headerInitials = '';
-        foreach (preg_split('/\s+/', trim($headerDisplayName)) ?: [] as $headerNamePart) {
-            if ($headerNamePart !== '') {
-                $headerInitials .= mb_substr($headerNamePart, 0, 1);
-            }
-        }
-        $headerInitials = mb_strtoupper(mb_substr($headerInitials, 0, 2));
-        if ($headerInitials === '') {
-            $headerInitials = mb_strtoupper(mb_substr(currentUserUsername(), 0, 2));
-        }
-        ?>
-        <div class="header__user">
-            <label for="sidebar-toggle" class="header__menu-btn" aria-label="Ouvrir le menu" tabindex="0">&#9776;</label>
-            <span class="header__username">
-                <span class="header__avatar" aria-hidden="true"><?php echo e($headerInitials); ?></span>
-                <span class="header__user-name"><?php echo e($headerDisplayName); ?></span>
-                <span class="badge <?php echo getRoleBadgeClass(currentUserRole()); ?> badge--sm"><?php echo e(getRoleLabel(currentUserRole())); ?></span>
-            </span>
-            <?php
-            // Impersonation dropdown: only for superviseurs who are NOT already impersonating
-            $isImpersonating = isImpersonatingRole();
-            $realRole = getRealRole() ?? currentUserRole();
-            if ($realRole === \App\Enum\UserRole::Superviseur->value && !$isImpersonating):
-            ?>
-            <div class="impersonate-dropdown">
-                <input type="checkbox" id="impersonate-toggle" class="impersonate-toggle" aria-hidden="true">
-                <label for="impersonate-toggle" class="impersonate-btn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" title="Incarner un rôle"><span class="impersonate-icon" aria-hidden="true"></span> Incarner</label>
-                <div class="impersonate-menu" role="menu">
-                    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('impersonate'); ?>">
-                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-                        <input type="hidden" name="action" value="start">
-                        <input type="hidden" name="target_role" value="<?php echo \App\Enum\UserRole::Agent->value; ?>">
-                        <button type="submit" class="impersonate-menu__item" role="menuitem">Agent</button>
-                    </form>
-                    <form method="POST" action="<?php echo new \App\Services\HttpService()->url('impersonate'); ?>">
-                        <input type="hidden" name="csrf_token" value="<?php echo e($csrfToken); ?>">
-                        <input type="hidden" name="action" value="start">
-                        <input type="hidden" name="target_role" value="<?php echo \App\Enum\UserRole::Chsct->value; ?>">
-                        <button type="submit" class="impersonate-menu__item" role="menuitem"><?php echo e(getRoleLabel(\App\Enum\UserRole::Chsct->value)); ?></button>
-                    </form>
-                    <label for="impersonate-toggle" class="impersonate-menu__item impersonate-menu__close" role="menuitem" tabindex="0">&#10005; Fermer</label>
-                </div>
-            </div>
-            <?php endif; ?>
-            <a href="<?php echo new \App\Services\HttpService()->url('logout'); ?>" class="header__logout" title="Déconnexion">&#8677; Déconnexion</a>
-        </div>
-        <?php endif; ?>
-    </header>
     <?php require __DIR__ . '/outbox_banner.php'; ?>
     <?php require __DIR__ . '/impersonate_banner.php'; ?>

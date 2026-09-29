@@ -87,10 +87,9 @@ final class CssDesignSystemTest extends TestCase
             '--transition-fast' => '0.15s ease',
             '--transition-base' => '0.2s ease',
             '--sidebar-width' => '220px',
-            '--header-height' => '60px',
+            '--header-height' => '0px',
             '--content-padding' => '24px',
             '--z-sidebar' => '90',
-            '--z-header' => '100',
             '--z-mobile-menu' => '200',
             '--z-overlay' => '150',
             '--z-skip-link' => '9999',
@@ -109,8 +108,6 @@ final class CssDesignSystemTest extends TestCase
             '--card-shadow-hover' => '0 2px 4px rgba(15,29,51,0.06), 0 6px 16px rgba(15,29,51,0.08)',
             '--radius-xl' => '12px',
             '--radius-pill' => '999px',
-            '--header-surface' => 'var(--surface)',
-            '--header-border' => 'var(--card-border)',
             '--stat-size' => 'clamp(1.5rem, 1.2rem + 1vw, 2rem)',
             '--laptop-min' => '1024px',
             '--content-max-width' => '1240px',
@@ -439,15 +436,22 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('var(--font-size-xs)', $tablet);
     }
 
-    public function testHeaderConsumesTokens(): void
+    public function testSidebarFooterHoldsIdentityProfileAndLogout(): void
     {
-        $header = $this->ruleBody('.header');
-        $this->assertStringContainsString('height: var(--header-height)', $header);
-        $this->assertStringContainsString('background: var(--header-surface)', $header);
-        $this->assertStringContainsString('border-bottom: 1px solid var(--header-border)', $header);
-        $this->assertStringContainsString('z-index: var(--z-header)', $header);
-        $this->assertStringContainsString('padding: 0 var(--space-5)', $header);
-        $this->assertStringContainsString('box-shadow: var(--shadow-sm)', $header);
+        // The autonomous top bar was removed: identity, impersonation control
+        // and logout now live at the bottom of the sidebar.
+        $profile = $this->ruleBody('.sidebar__profile');
+        $this->assertStringContainsString('display: flex', $profile);
+
+        $avatar = $this->ruleBody('.sidebar__avatar');
+        $this->assertStringContainsString('var(--radius-pill)', $avatar);
+        $this->assertStringContainsString('var(--ui-accent)', $avatar);
+
+        $logout = $this->ruleBody('.sidebar__logout');
+        $this->assertStringContainsString('var(--sidebar-text)', $logout);
+
+        // The top bar itself no longer has a rule.
+        $this->assertSame('', $this->ruleBody('.header'));
     }
 
     public function testSidebarActiveUsesColourAndBorderMarker(): void
@@ -556,7 +560,7 @@ final class CssDesignSystemTest extends TestCase
     public function testTouchTargetsAreComfortableOnMobile(): void
     {
         $tablet = $this->mediaBlocks('(max-width: 768px)');
-        $this->assertStringContainsString('.header__menu-btn', $tablet);
+        $this->assertStringContainsString('.sidebar__menu-btn', $tablet);
         $this->assertStringContainsString('min-height: 44px', $tablet);
         $this->assertStringContainsString('.sidebar__item', $tablet);
     }

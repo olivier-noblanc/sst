@@ -73,14 +73,14 @@ test.describe('Page Layout', () => {
     await loginAs(page);
   });
 
-  test('should have consistent header across pages', async ({ page }) => {
+  test('should have a consistent sidebar shell across pages', async ({ page }) => {
     await page.goto('/index.php?page=home');
-    
-    const header = page.locator('.header');
-    await expect(header).toBeVisible();
-    
-    // App name should be visible
-    await expect(page.locator('.header')).toContainText(/SST|DREETS/);
+
+    const brand = page.locator('.sidebar__brand');
+    await expect(brand).toBeVisible();
+
+    // App name should be visible in the sidebar shell (no top bar anymore)
+    await expect(page.locator('.sidebar__brand')).toContainText(/SST|DREETS/);
   });
 
   test('should have footer with version on all pages', async ({ page }) => {

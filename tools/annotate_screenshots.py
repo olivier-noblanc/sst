@@ -408,7 +408,7 @@ def compute_badge_positions(positions, img_width, img_height, font_desc):
 # ──────────────────────────────────────────────────────────────────────
 ELEMENT_ANNOTATIONS = {
     "cu1-accueil.html": [
-        ("header.header", "Barre d'en-tête"),
+        (".sidebar__brand", "En-tête de la barre latérale"),
         ("nav.sidebar", "Menu latéral"),
         (".registry-card--rsst", "Carte RSST"),
         (".registry-card--rami", "Carte RAMI"),

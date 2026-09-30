@@ -1,62 +1,75 @@
 /**
- * Attachment input — robust label activation for Edge.
+ * Attachment field — affichage du nom du fichier choisi et bouton local
+ * « Annuler la sélection ».
  *
- * Diagnostic production (Edge) : l'input file et son label sont présents,
- * `id`/`for` correctement associés, l'input n'est ni `disabled` ni en
- * `pointer-events: none` (le label est en `pointer-events: auto`), mais aucun
- * événement click n'est détecté lors du clic physique sur le label : le clic
- * n'atteint jamais l'input et l'activation native `<label for>` échoue avec le
- * nouveau shell (empilement/positionnement CSS). Le sélecteur de fichiers ne
- * s'ouvre donc jamais.
+ * Le contrôle est un `<input type="file">` HTML5 **visible** : il n'y a plus
+ * aucun faux bouton label à assister, ni neutralisation d'événement, ni
+ * ouverture programmée du sélecteur. Le navigateur fournit nativement le bouton
+ * de sélection, et la soumission du formulaire fonctionne sans JavaScript.
  *
- * Ce script est un filet de sécurité explicitement non-inline (servi par
- * js.php, donc couvert par `script-src 'self'` ; aucun `onclick` inline) : un
- * listener délégué intercepte le clic sur `.file-upload-wrapper__label`,
- * neutralise l'activation native (potentiellement cassée) et déclenche
- * lui-même l'input associé via son `for` →
- * `document.getElementById(label.htmlFor).click()`.
+ * Ce script (servi par `js.php`, donc couvert par `script-src 'self'`, sans
+ * gestionnaire inline) ajoute uniquement :
+ *   — la mise à jour du nom affiché (`.file-upload-wrapper__filename`) ;
+ *   — l'activation du bouton « Annuler la sélection », qui remet
+ *     `input.value = ''` sans jamais toucher au reste du formulaire.
  *
- * Le fallback natif sans JavaScript reste inchangé : le markup
- * `<input>` + `<label for>` continue de fonctionner sur les navigateurs où
- * l'activation native marche.
+ * L'annulation d'une NOUVELLE sélection ne supprime jamais une pièce jointe
+ * déjà stockée : le script ne concentre son action que sur la nouvelle
+ * sélection et ne modifie aucune case de suppression serveur.
  */
 (function () {
     'use strict';
 
-    function forwardLabelClick(event) {
-        var target = event.target;
-        if (!target || typeof target.closest !== 'function') {
+    function refresh(wrapper) {
+        var input = wrapper.querySelector('input[type="file"]');
+        if (!input) {
             return;
         }
 
-        var label = target.closest('label.file-upload-wrapper__label');
-        if (!label) {
-            return;
+        var nameEl = wrapper.querySelector('.file-upload-wrapper__filename');
+        var resetButton = wrapper.querySelector('.file-upload-wrapper__reset');
+        var hasFile = !!(input.files && input.files.length > 0);
+
+        if (nameEl) {
+            if (hasFile) {
+                nameEl.textContent = input.files[0].name;
+                nameEl.classList.add('file-upload-wrapper__filename--selected');
+            } else {
+                nameEl.textContent = 'Aucun fichier sélectionné';
+                nameEl.classList.remove('file-upload-wrapper__filename--selected');
+            }
         }
 
-        // Un clic déjà pris en charge par un autre script garde son
-        // comportement : on ne double pas l'activation.
-        if (event.defaultPrevented) {
-            return;
+        if (resetButton) {
+            resetButton.hidden = !hasFile;
         }
-
-        var inputId = label.htmlFor || label.getAttribute('for');
-        if (!inputId) {
-            return;
-        }
-
-        var input = document.getElementById(inputId);
-        if (!input || input.disabled) {
-            return;
-        }
-
-        // Neutralise l'activation native `<label for>` (qui échoue sous Edge
-        // avec le shell actuel) puis déclenche une activation unique. Le clic
-        // synthétique de l'input ne remonte pas à ce label (l'input est un
-        // frère adjacent, non un descendant), donc pas de récursion.
-        event.preventDefault();
-        input.click();
     }
 
-    document.addEventListener('click', forwardLabelClick, false);
+    function init(wrapper) {
+        var input = wrapper.querySelector('input[type="file"]');
+        if (!input) {
+            return;
+        }
+
+        input.addEventListener('change', function () {
+            refresh(wrapper);
+        });
+
+        var resetButton = wrapper.querySelector('.file-upload-wrapper__reset');
+        if (resetButton) {
+            resetButton.addEventListener('click', function () {
+                // Reset ciblé : seule la sélection en cours est annulée. Aucun
+                // reset global du formulaire, et aucune modification de la case
+                // de suppression serveur — une pièce jointe déjà stockée reste
+                // intacte.
+                input.value = '';
+                refresh(wrapper);
+            });
+        }
+    }
+
+    var wrappers = document.querySelectorAll('.file-upload-wrapper');
+    for (var i = 0; i < wrappers.length; i++) {
+        init(wrappers[i]);
+    }
 })();

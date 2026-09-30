@@ -1372,9 +1372,8 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* Libellés de formulaire — scopés aux libellés « texte » : un libellé portant
-   `.btn` (ex. le bouton pièce jointe `.file-upload-wrapper__label.btn`) doit
-   conserver les couleurs de `.btn--*` (blanc sur fond tokenisé). Sans
-   `:not(.btn)`, ce sélecteur (0,1,1) écrasait `.btn--secondary` (0,1,0) et
+   `.btn` doit conserver les couleurs de `.btn--*` (blanc sur fond tokenisé).
+   Sans `:not(.btn)`, ce sélecteur (0,1,1) écrasait `.btn--secondary` (0,1,0) et
    peignait le texte en `--grey-700` sur un fond `--grey-700` → invisible. */
 .form-group label:not(.btn) {
     display: block;
@@ -1865,39 +1864,28 @@ img { max-width: 100%; height: auto; display: block; }
     }
 }
 
-/* File upload wrapper — custom French button hiding native "Choose File" */
+/* File upload wrapper — native `<input type="file">` VISIBLE (no fake label
+   button) : le contrôle fourni par le navigateur EST le bouton. Le conteneur
+   aligne le contrôle, le nom du fichier choisi et le bouton local de remise à
+   zéro. */
 .file-upload-wrapper {
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
 }
+/* Le champ fichier est pleine largeur comme les autres contrôles du formulaire
+   (`.form-group input` fournit padding, bordure et rayon). */
 .file-upload-wrapper__input {
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    position: absolute;
-    pointer-events: none;
+    width: 100%;
+    box-sizing: border-box;
 }
-.file-upload-wrapper__label {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
+/* Le champ fichier n'a pas de placeholder : `:valid` s'applique d'office et
+   teinterait sa bordure gauche en « état valide ». On le neutralise. */
+.file-upload-wrapper .file-upload-wrapper__input:valid:not(:focus) {
+    border-left-color: var(--border);
 }
-/* État solide (jamais d'atténuation par opacité) : le fond s'assombrit et
-   conserve le contraste AA du texte blanc. L'input file est visuellement
-   masqué et placé AVANT le label (frère, non descendant) : `:focus-within`
-   sur le label ne peut donc jamais s'activer. Le focus clavier est matérialisé
-   par le combinateur frère adjacent `+` (`input:focus-visible + label`), le
-   label ayant un `for` vers l'input. */
-.file-upload-wrapper__label:hover,
-.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label {
-    background: var(--grey-800);
-    opacity: 1;
-}
-.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label {
+.file-upload-wrapper__input:focus-visible {
     outline: 3px solid var(--focus-ring-color);
     outline-offset: var(--focus-ring-offset);
 }
@@ -1907,10 +1895,10 @@ img { max-width: 100%; height: auto; display: block; }
     font-style: italic;
 }
 
-/* Targeted attachment removal (create form) — the `hidden` attribute must
-   win over .btn's `display: inline-block`, which otherwise overrides the
-   user-agent `[hidden] { display: none }` rule. */
-.file-upload-wrapper__remove[hidden] {
+/* Bouton local « Annuler la sélection » — l'attribut `hidden` doit battre le
+   `display: inline-block` de `.btn`, qui sinon écrase la règle `[hidden]` du
+   user-agent. */
+.file-upload-wrapper__reset[hidden] {
     display: none;
 }
 

@@ -196,14 +196,6 @@ final class CssContrastContractTest extends TestCase
         return (float) ($match[1] ?? 0) >= 0;
     }
 
-    /** Valeur d'un attribut HTML dans une balise déjà extraite (chaîne vide si absent). */
-    private static function attributeValue(string $tag, string $attribute): string
-    {
-        $pattern = '/\b' . preg_quote($attribute, '/') . '="([^"]*)"/i';
-
-        return preg_match($pattern, $tag, $match) === 1 ? (string) ($match[1] ?? '') : '';
-    }
-
     private static function relativeLuminance(string $hex): float
     {
         if (preg_match('/^#([0-9a-f]{6})$/i', $hex, $match) !== 1) {
@@ -910,121 +902,82 @@ final class CssContrastContractTest extends TestCase
     }
 
     /**
-     * Retour UI : le bouton de pièce jointe (`.file-upload-wrapper__label`,
-     * « Joindre un document ») ne doit plus s'atténuer via `opacity: 0.85` au
-     * survol/focus — ce qui dégrade le contraste — mais passer par un fond
-     * solide tokenisé qui conserve AA (texte blanc ≥ 4.5:1).
+     * Le champ fichier est désormais un `<input type="file">` natif VISIBLE
+     * (plus de faux bouton label) : la règle servie ne doit ni le masquer
+     * (`width/height: 1px`, `opacity: 0`, `position: absolute`,
+     * `pointer-events: none`) ni s'atténuer en opacité — le contrôle du
+     * navigateur est directement cliquable et soumis sans JavaScript.
      */
-    public function testAttachmentUploadButtonHoverIsSolidAndKeepsAa(): void
+    public function testAttachmentInputIsVisiblyServed(): void
     {
-        $bodies = self::ruleBodiesFor('.file-upload-wrapper__label:hover');
-        $this->assertNotEmpty($bodies, 'Règle .file-upload-wrapper__label:hover introuvable.');
+        $body = self::ruleBody(self::$styleCss, '.file-upload-wrapper__input');
+        $this->assertNotSame('', $body, 'Règle .file-upload-wrapper__input introuvable.');
 
-        $body = implode("\n", $bodies);
         $declarations = (string) preg_replace('~/\*.*?\*/~s', '', $body);
-        $this->assertStringNotContainsString(
-            'opacity: 0.85',
-            $declarations,
-            'Le survol ne doit plus atténuer le bouton via opacity: 0.85.'
-        );
-
-        if (preg_match('/opacity\s*:\s*([^;]+);/i', $declarations, $match) === 1) {
-            $this->assertSame('1', trim((string) ($match[1] ?? '')), 'Si une opacité subsiste, elle doit valoir 1 (état solide).');
+        foreach (['width: 1px', 'height: 1px', 'opacity: 0', 'position: absolute', 'pointer-events: none'] as $hidden) {
+            $this->assertStringNotContainsString(
+                $hidden,
+                $declarations,
+                sprintf('Le champ fichier ne doit plus être masqué par « %s ».', $hidden)
+            );
         }
 
-        $backgroundDeclaration = self::declaration($body, 'background');
-        $this->assertMatchesRegularExpression(
-            '/^var\(\s*--[a-z0-9-]+\s*\)$/i',
-            $backgroundDeclaration,
-            'Le survol doit poser un fond solide tokenisé.'
-        );
-
-        $hoverBg = self::resolveToken($backgroundDeclaration);
-        $ratio = self::contrastRatio(self::WHITE, $hoverBg);
-        $this->assertGreaterThanOrEqual(
-            self::MIN_CONTRAST,
-            $ratio,
-            sprintf('Bouton pièce jointe au survol : blanc sur %s doit offrir ≥ 4.5:1, mesuré %.2f:1.', $hoverBg, $ratio)
+        // Plus aucune règle de faux bouton label.
+        $this->assertSame(
+            '',
+            self::ruleBody(self::$styleCss, '.file-upload-wrapper__label'),
+            'Le faux bouton label (`.file-upload-wrapper__label`) doit être supprimé.'
         );
     }
 
     /**
-     * Retour UI (suite) : le focus clavier du contrôle de pièce jointe doit
-     * rester perceptible. L'input `file` est visuellement masqué ET placé
-     * AVANT le label (frère, pas ancêtre) : `:focus-within` sur le label ne
-     * peut donc jamais s'activer. L'anneau est porté par le label via le
-     * combinateur frère adjacent `input:focus-visible + label`.
+     * Le focus clavier du champ fichier NATIF doit rester perceptible. Le
+     * contrôle étant désormais visible, l'anneau est porté par l'input
+     * lui-même via `:focus-visible`.
      *
      * Contrat verrouillé : l'anneau doit être au moins 2px, `solid`, de couleur
      * `var(--focus-ring-color)`, avec un `outline-offset` valide (≥ 0) ; et le
-     * `for` du label doit pointer vers l'`id` de l'input adjacent dans les deux
-     * formulaires (création/édition et réponse). C'est l'état effectif de la
-     * cascade qui est évalué (dernier bloc gagnant) : une règle ultérieure qui
-     * neutralise le contour (`outline: none/0`) ou masque le label
-     * (`opacity: 0`, `visibility: hidden`, `display: none`) fait échouer le
-     * test. Une régression CSS ou de markup (label déplacé, id/for
-     * désynchronisés) fait également échouer le test.
+     * libellé du composant partagé doit garder un `for` associé à l'`id` de
+     * l'input. C'est l'état effectif de la cascade qui est évalué (dernier bloc
+     * gagnant) : une règle ultérieure qui neutralise le contour (`outline:
+     * none/0`) ou masque le champ (`opacity: 0`, `visibility: hidden`,
+     * `display: none`) fait échouer le test. Une régression CSS ou de markup
+     * (label orphelin, id/for désynchronisés) fait également échouer le test.
      */
-    public function testAttachmentUploadFocusRingMatchesRealDomSiblingRelation(): void
+    public function testAttachmentNativeInputFocusRingAndAccessibleLabel(): void
     {
-        $selector = '.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label';
+        $selector = '.file-upload-wrapper__input:focus-visible';
         $bodies = self::ruleBodiesFor($selector);
-        $this->assertNotEmpty($bodies, sprintf('Sélecteur frère adjacent « %s » introuvable.', $selector));
 
         // Cascade : c'est le dernier bloc gagnant qui compte, pas un corps valide
         // isolé. On concatène les blocs dans l'ordre source et on valide l'état
-        // effectif — une règle ultérieure ne doit jamais neutraliser le focus
-        // (opacity: 0, visibility: hidden, display: none, outline: none/0).
+        // effectif — une règle ultérieure ne doit jamais neutraliser le focus.
         $this->assertTrue(
             self::attachmentFocusRingBodyIsValid(implode("\n", $bodies)),
-            'Le dernier état de focus du label doit rester conforme : outline ≥ 2px solid var(--focus-ring-color) + outline-offset ≥ 0, sans neutralisation finale (opacity: 0, visibility: hidden, display: none, outline: none/0).'
+            'L\'input fichier doit matérialiser son focus clavier : outline ≥ 2px solid var(--focus-ring-color) + outline-offset ≥ 0, sans neutralisation finale.'
         );
 
-        // Garde-fou : plus aucune règle de focus basée sur :focus-within sur le
-        // label — elle ne peut pas matérialiser le focus d'un input frère.
+        // Garde-fou : plus aucune règle de focus basée sur le faux bouton label.
         $this->assertSame(
             [],
-            self::ruleBodiesFor('.file-upload-wrapper__label:focus-within'),
-            ':focus-within est inopérant ici (input frère, non descendant du label).'
+            self::ruleBodiesFor('.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label'),
+            'Le combinateur frère du faux bouton label doit être supprimé.'
         );
 
-        // Relation DOM réelle : l'input précède immédiatement le label dans les
-        // deux formulaires, et le `for` du label pointe vers l'`id` de l'input.
-        // Aucune modification de markup n'est donc requise. Les balises PHP
-        // inline sont neutralisées pour que la fermeture de script du template
-        // ne soit pas confondue avec la fin du tag input.
-        foreach (['templates/report_form.php', 'pages/report_respond.php'] as $file) {
-            $markup = file_get_contents(__DIR__ . '/../../' . $file);
-            $this->assertIsString($markup, sprintf('%s introuvable.', $file));
-
-            $html = (string) preg_replace('/<\?(?:php|=).*?\?>/s', '', $markup);
-            $this->assertMatchesRegularExpression(
-                '/<input\b[^>]*class="file-upload-wrapper__input"[^>]*>\s*<label\b[^>]*class="file-upload-wrapper__label/s',
-                $html,
-                sprintf('%s : l\'input file doit précéder immédiatement le label (frère adjacent, pour `+`).', $file)
-            );
-
-            $this->assertSame(
-                1,
-                preg_match('/<input\b[^>]*class="file-upload-wrapper__input"[^>]*>/s', $html, $inputMatch),
-                sprintf('%s : la balise input file est introuvable.', $file)
-            );
-            $this->assertSame(
-                1,
-                preg_match('/<label\b[^>]*class="file-upload-wrapper__label(?=[\s"])[^>]*>/s', $html, $labelMatch),
-                sprintf('%s : la balise label de pièce jointe est introuvable.', $file)
-            );
-
-            $inputId = self::attributeValue((string) ($inputMatch[0] ?? ''), 'id');
-            $labelFor = self::attributeValue((string) ($labelMatch[0] ?? ''), 'for');
-
-            $this->assertNotSame('', $inputId, sprintf('%s : l\'input file doit porter un id.', $file));
-            $this->assertSame(
-                $inputId,
-                $labelFor,
-                sprintf('%s : le `for` du label doit pointer vers l\'id de l\'input adjacent.', $file)
-            );
-        }
+        // Association label/input dans le composant partagé : le `for` du label
+        // et l'`id` de l'input proviennent de la même variable.
+        $component = file_get_contents(__DIR__ . '/../../templates/attachment_field.php');
+        $this->assertIsString($component, 'templates/attachment_field.php introuvable.');
+        $this->assertStringContainsString(
+            '<label for="<?php echo e($attachmentInputId); ?>">',
+            $component,
+            'Le libellé du champ doit rester associé à l\'input via son `for`.'
+        );
+        $this->assertStringContainsString(
+            'id="<?php echo e($attachmentInputId); ?>"',
+            $component,
+            'L\'input file doit porter un `id` issu de la même variable que le `for` du label.'
+        );
     }
 
     /**
@@ -1117,9 +1070,9 @@ final class CssContrastContractTest extends TestCase
      */
     public function testAttachmentFocusRingContractAcceptsServedCascade(): void
     {
-        $selector = '.file-upload-wrapper__input:focus-visible + .file-upload-wrapper__label';
+        $selector = '.file-upload-wrapper__input:focus-visible';
         $bodies = self::ruleBodiesFor($selector);
-        $this->assertNotEmpty($bodies, sprintf('Sélecteur frère adjacent « %s » introuvable.', $selector));
+        $this->assertNotEmpty($bodies, sprintf('Sélecteur « %s » introuvable.', $selector));
 
         $this->assertTrue(
             self::attachmentFocusRingBodyIsValid(implode("\n", $bodies)),

@@ -205,24 +205,17 @@ $etat = $report->etat;
             <?php endif; ?>
         </div>
 
-        <div class="form-group">
-            <label for="response_attachment">Pièce jointe (optionnel)</label>
-            <div class="file-upload-wrapper">
-                <input type="file" id="response_attachment" name="response_attachment"
-                       accept=".jpg,.jpeg,.png,.gif,.pdf"
-                       title="Joindre un document à la réponse"
-                       class="file-upload-wrapper__input"
-                       aria-describedby="hint_response_attachment">
-                <label for="response_attachment" class="file-upload-wrapper__label btn btn--secondary">
-                    📎 Joindre un document (optionnel)
-                </label>
-                <span class="file-upload-wrapper__filename" id="resp_file_chosen_name">Aucun fichier sélectionné</span>
-            </div>
-            <span class="form-hint" id="hint_response_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max.</span>
-            <?php if (isset($formErrors['response_attachment'])): ?>
-                <span class="form-error"><?php echo $fmt->e($formErrors['response_attachment']); ?></span>
-            <?php endif; ?>
-        </div>
+        <?php
+        $attachmentInputId = 'response_attachment';
+        $attachmentFieldLabel = 'Pièce jointe (optionnel)';
+        $attachmentHintText = 'Image (JPG, PNG, GIF) ou PDF — 10 Mo max.';
+        $attachmentFilenameId = 'resp_file_chosen_name';
+        $attachmentGroupClass = 'form-group';
+        $attachmentError = $formErrors['response_attachment'] ?? '';
+        $attachmentCurrentName = '';
+        $attachmentShowRemoveCurrent = false;
+        require __DIR__ . '/../templates/attachment_field.php';
+        ?>
 
         <div class="form-actions">
             <button type="submit" class="btn btn--primary">Enregistrer les modifications</button>
@@ -230,14 +223,3 @@ $etat = $report->etat;
         </div>
     </form>
 </div>
-
-<script>
-(function() {
-    var input = document.getElementById('response_attachment'), nameEl = document.getElementById('resp_file_chosen_name');
-    if (input && nameEl) input.addEventListener('change', function() {
-        if (this.files && this.files.length > 0) {
-            nameEl.textContent = this.files[0].name; nameEl.classList.add('file-upload-wrapper__filename--selected');
-        } else { nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.classList.remove('file-upload-wrapper__filename--selected'); }
-    });
-})();
-</script>

@@ -31,7 +31,10 @@ header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 // Content-Security-Policy:
 // - CSS served via css.php + some inline styles still required (tab_registres
 //   cards have inline styles for dynamic colors) → style-src 'self' 'unsafe-inline'
-// - script-src 'unsafe-inline' needed for file-upload filename update in report_form.php
+// - script-src 'unsafe-inline' still needed by pages that keep inline handlers
+//   (logs.php confirm, settings tabs) → kept until they migrate to external JS.
+//   The file-upload field no longer uses inline script (external
+//   public/js/attachment-input.js served by js.php).
 // - img-src data: needed for inline data: URIs (favicons, logos via inlineDataUri())
 // - frame-ancestors 'none' : no iframing allowed (screenshots are now <img>, not <iframe>)
 // Audit #79 — comment was misleading (said "no more unsafe-inline" but the header

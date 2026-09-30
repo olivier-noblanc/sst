@@ -32,6 +32,19 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - PHPStan : **0 errors** (level 8)
 
 
+## [3.66.6] — 2026-09-30
+
+### Correctif — champ « Pièce jointe » : input fichier HTML5 natif visible
+
+- **Décision** — Le faux bouton (`<input type="file">` masqué + `<label>` stylé en bouton + script d'assistance `attachment-input.js`) est remplacé par un **`<input type="file">` HTML5 visible et robuste**, rendu par un composant partagé unique `templates/attachment_field.php` utilisé par `templates/report_form.php` (création/édition) et `pages/report_respond.php` (et tout autre usage). Le contrôle natif du navigateur EST le bouton : aucune dépendance à JavaScript pour ouvrir le sélecteur ou soumettre le fichier.
+- **Composant partagé** — `accept=".jpg,.jpeg,.png,.gif,.pdf"`, texte d'aide relié par `aria-describedby`, affichage du nom du fichier (`aria-live="polite"`) et bouton local **« Annuler la sélection »** qui remet `input.value = ''`. Les `id`/`for` restent associés (le `for` du libellé pointe vers l'`id` de l'input, et l'erreur est reliée via `aria-describedby`/`aria-invalid`).
+- **Pièce jointe stockée préservée** — En édition, la case `name="remove_attachment"` (« Supprimer la pièce jointe actuelle ») est conservée ; « Annuler la sélection » ne touche que la nouvelle sélection côté navigateur et ne coche jamais cette case : une pièce jointe déjà stockée n'est donc pas supprimée.
+- **JS externe sans inline** — `public/js/attachment-input.js` ne fait plus que l'affichage du nom et le reset ciblé (`input.value = ''`) via `addEventListener` ; les `<script>` inline des deux formulaires sont retirés, aucun `onclick` ajouté (CSP inchangé, `script-src 'self'`).
+- **CSS** — Suppression des règles de masquage du faux bouton (`.file-upload-wrapper__label`, input 1×1) ; styles du champ natif visible, du nom de fichier et du bouton de reset (`[hidden]` prioritaire sur `.btn`).
+- **Cache-busting** — Bump `3.66.6` : `js.php`/`css.php` passent à `?v=3.66.6`.
+- **Tests** — `AttachmentInputScriptTest`, `CssContrastContractTest` (focus clavier du champ natif) et `PageRenderingTest` adaptés à la nouvelle structure ; vérification syntaxique/ciblée uniquement.
+
+
 ## [3.66.5] — 2026-09-29
 
 ### Correctif — bouton « Pièce jointe » non cliquable sous Edge

@@ -182,46 +182,17 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     <span class="form-error" id="err_description"><?php echo e($formErrors['description']); ?></span>
                 <?php endif; ?>
             </div>
-            <div class="form-group form-grid__full">
-                <label for="attachment">Pièce jointe</label>
-                <div class="file-upload-wrapper">
-                    <input type="file" id="attachment" name="attachment"
-                           accept=".jpg,.jpeg,.png,.gif,.pdf"
-                           title="Joindre un document"
-                           class="file-upload-wrapper__input"
-                           <?php echo isset($formErrors['attachment']) ? 'aria-describedby="err_attachment" aria-invalid="true"' : 'aria-describedby="hint_attachment"'; ?>>
-                    <label for="attachment" class="file-upload-wrapper__label btn btn--secondary">
-                        📎 Joindre un document (optionnel)
-                    </label>
-                    <span class="file-upload-wrapper__filename" id="file_chosen_name">Aucun fichier sélectionné</span>
-                    <?php if (!$isEdit): ?>
-                    <?php
-                    // Création : le fichier n'existe que côté navigateur tant que
-                    // le formulaire n'est pas soumis. Cette action locale retire
-                    // uniquement l'input file sélectionné via JS (reset ciblé),
-                    // sans soumettre le formulaire ni toucher aux autres champs.
-                    ?>
-                    <button type="button" id="attachment_remove"
-                            class="btn btn--danger btn--sm file-upload-wrapper__remove"
-                            hidden
-                            aria-controls="attachment">
-                        Supprimer la pièce jointe
-                    </button>
-                    <?php endif; ?>
-                </div>
-                <span class="form-hint" id="hint_attachment">Image (JPG, PNG, GIF) ou PDF — 10 Mo max.</span>
-                <?php if ($isEdit && !empty($report->attachmentName)): ?>
-                    <div class="attachment-preview">
-                        <span class="badge badge--confidential">&#128206; <?php echo e($report->attachmentName); ?></span>
-                        <label class="attachment-remove-label">
-                            <input type="checkbox" name="remove_attachment" value="1"> Supprimer la pièce jointe actuelle
-                        </label>
-                    </div>
-                <?php endif; ?>
-                <?php if (isset($formErrors['attachment'])): ?>
-                    <span class="form-error" id="err_attachment"><?php echo e($formErrors['attachment']); ?></span>
-                <?php endif; ?>
-            </div>
+            <?php
+            $attachmentInputId = 'attachment';
+            $attachmentFieldLabel = 'Pièce jointe';
+            $attachmentHintText = 'Image (JPG, PNG, GIF) ou PDF — 10 Mo max.';
+            $attachmentFilenameId = 'file_chosen_name';
+            $attachmentGroupClass = 'form-group form-grid__full';
+            $attachmentError = $formErrors['attachment'] ?? '';
+            $attachmentCurrentName = ($isEdit && $report !== null && !empty($report->attachmentName)) ? (string) $report->attachmentName : '';
+            $attachmentShowRemoveCurrent = $isEdit;
+            require __DIR__ . '/attachment_field.php';
+            ?>
             <?php if (!$isEdit && !$noSiteMode): ?>
             <div class="form-group">
                 <label for="site_id">Votre unité de rattachement <span class="required">*</span></label>
@@ -422,30 +393,4 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                class="btn btn--secondary" title="Supprimer le formulaire et revenir à la page précédente">Annuler</a>
         </div>
     </form>
-
-    <!-- File upload: update displayed filename when a file is chosen, and
-         support a targeted removal of the selected file (create form). -->
-    <script>
-    (function() {
-        var input = document.getElementById('attachment'), nameEl = document.getElementById('file_chosen_name');
-        if (!input || !nameEl) return;
-        var removeBtn = document.getElementById('attachment_remove');
-        function refresh() {
-            if (input.files && input.files.length > 0) {
-                nameEl.textContent = input.files[0].name; nameEl.classList.add('file-upload-wrapper__filename--selected');
-                if (removeBtn) removeBtn.hidden = false;
-            } else {
-                nameEl.textContent = 'Aucun fichier sélectionné'; nameEl.classList.remove('file-upload-wrapper__filename--selected');
-                if (removeBtn) removeBtn.hidden = true;
-            }
-        }
-        input.addEventListener('change', refresh);
-        if (removeBtn) removeBtn.addEventListener('click', function() {
-            // Reset ciblé : seule la pièce jointe sélectionnée est retirée.
-            // Aucun form.reset() — les autres champs restent intacts.
-            input.value = '';
-            refresh();
-        });
-    })();
-    </script>
 </div>

@@ -531,18 +531,17 @@ class PageRenderingTest extends TestCase
     }
 
     /**
-     * Feature — création d'un signalement : une action locale « Supprimer la
-     * pièce jointe » doit retirer le fichier sélectionné côté navigateur
-     * (reset ciblé de l'<input type="file">), sans réinitialiser le reste du
-     * formulaire et sans le soumettre.
+     * Feature — création d'un signalement : le composant partagé rend un
+     * `<input type="file">` HTML5 natif VISIBLE, associé à son libellé, et un
+     * bouton local « Annuler la sélection » (reset ciblé de l'input file côté
+     * navigateur), sans faux bouton label.
      *
      * En création, la pièce jointe n'est qu'un fichier temporaire côté
-     * navigateur : rien n'est envoyé au serveur tant que le formulaire n'est
-     * pas soumis. La suppression est donc purement client (JS), et le
-     * marqueur serveur d'édition (name="remove_attachment") ne doit PAS
-     * apparaître en création.
+     * navigateur : rien n'est envoyé au serveur tant que le formulaire n'est pas
+     * soumis. Le marqueur serveur d'édition (name="remove_attachment") ne doit
+     * donc PAS apparaître en création.
      */
-    public function testReportCreateFormHasTargetedAttachmentRemoveControl(): void
+    public function testReportCreateFormRendersVisibleNativeFileInputWithTargetedReset(): void
     {
         $this->loginAsAgent();
         $_GET['page'] = 'report_create';
@@ -552,40 +551,37 @@ class PageRenderingTest extends TestCase
         renderPageWithLayout(getRouter(), 'report_create', 'test-csrf-token');
         $output = (string) ob_get_clean();
 
-        // Le contrôle est un vrai bouton local, jamais un submit : la
-        // suppression ne doit pas déclencher l'envoi du formulaire.
+        // Input fichier natif visible, associé à son libellé.
+        $this->assertStringContainsString('id="attachment"', $output);
+        $this->assertStringContainsString('for="attachment"', $output);
+        $this->assertStringContainsString('class="file-upload-wrapper__input"', $output);
+        $this->assertStringContainsString(
+            'accept=".jpg,.jpeg,.png,.gif,.pdf"',
+            $output,
+            'Le champ fichier doit déclarer les extensions acceptées.'
+        );
+
+        // Le bouton de reset est un vrai bouton local, jamais un submit.
         $this->assertSame(
             1,
-            preg_match('/<button\b[^>]*\bid="attachment_remove"[^>]*>/', $output, $matches),
-            'Le formulaire de création doit contenir un bouton id="attachment_remove".'
+            preg_match('/<button\b[^>]*\bid="attachment_clear"[^>]*>/', $output, $matches),
+            'Le formulaire de création doit contenir le bouton id="attachment_clear".'
         );
         $buttonTag = $matches[0];
         $this->assertStringContainsString(
             'type="button"',
             $buttonTag,
-            'Le bouton de suppression ciblée doit être un <button type="button"> (pas de submit).'
+            'Le bouton « Annuler la sélection » doit être un <button type="button"> (pas de submit).'
         );
         $this->assertMatchesRegularExpression(
             '/\shidden(\s|>)/',
             $buttonTag,
-            'Le bouton de suppression doit être masqué tant qu\'aucun fichier n\'est sélectionné.'
+            'Le bouton de reset doit être masqué tant qu\'aucun fichier n\'est sélectionné.'
         );
         $this->assertStringContainsString(
-            'Supprimer la pièce jointe',
+            'Annuler la sélection',
             $output,
-            'Le libellé « Supprimer la pièce jointe » doit être visible.'
-        );
-
-        // Câblage JS : reset ciblé de l'input file uniquement.
-        $this->assertStringContainsString(
-            "input.value = ''",
-            $output,
-            'Le JS doit vider uniquement la valeur de l\'input file sélectionné.'
-        );
-        $this->assertStringContainsString(
-            "getElementById('attachment_remove')",
-            $output,
-            'Le JS doit câbler le bouton de suppression ciblée.'
+            'Le libellé « Annuler la sélection » doit être visible.'
         );
 
         // Pas de marqueur serveur d'édition, pas de reset global.
@@ -602,24 +598,55 @@ class PageRenderingTest extends TestCase
     }
 
     /**
-     * Périmètre : l'édition conserve sa propre logique de suppression (case à
-     * cocher name="remove_attachment" traitée au submit). Le nouveau contrôle
-     * de suppression ciblée, réservé à la création, ne doit pas s'y ajouter.
+     * Périmètre : l'édition conserve sa propre logique de suppression de la
+     * pièce jointe stockée (case `name="remove_attachment"` traitée au submit).
+     * Le bouton local « Annuler la sélection » du composant partagé ne vise que
+     * la NOUVELLE sélection et ne coche jamais cette case : il n'y a donc aucun
+     * risque de supprimer une pièce jointe déjà stockée en annulant un nouveau
+     * choix.
      */
-    public function testReportEditFormDoesNotGainCreateOnlyRemoveControl(): void
+    public function testReportEditFormKeepsStoredAttachmentRemovalAndSharedReset(): void
     {
         $this->loginAsAgent();
         $_GET['page'] = 'report_edit';
         $_GET['uuid'] = self::$reportUuid;
 
-        ob_start();
-        renderPageWithLayout(getRouter(), 'report_edit', 'test-csrf-token');
-        $output = (string) ob_get_clean();
+        // Le fixture n'a pas de pièce jointe : on en pose une pour exercer le
+        // cas « pièce jointe déjà stockée », puis on restaure.
+        $pdo = getDB();
+        $pdo->exec("UPDATE reports SET attachment_name = 'preuve.pdf', attachment_mime = 'application/pdf' WHERE uuid = '" . self::$reportUuid . "'");
 
-        $this->assertStringNotContainsString(
-            'id="attachment_remove"',
+        $output = '';
+        try {
+            ob_start();
+            renderPageWithLayout(getRouter(), 'report_edit', 'test-csrf-token');
+            $output = (string) ob_get_clean();
+        } finally {
+            $pdo->exec("UPDATE reports SET attachment_name = NULL, attachment_mime = NULL WHERE uuid = '" . self::$reportUuid . "'");
+        }
+
+        // Suppression de la pièce jointe stockée : la case serveur reste.
+        $this->assertStringContainsString(
+            'name="remove_attachment"',
             $output,
-            'Le bouton de suppression ciblée est réservé à la création : l\'édition doit rester inchangée.'
+            'L\'édition doit conserver la case « Supprimer la pièce jointe actuelle ».'
+        );
+        $this->assertStringContainsString(
+            'Supprimer la pièce jointe actuelle',
+            $output,
+            'Le libellé de suppression de la pièce jointe stockée doit être présent.'
+        );
+
+        // Le reset partagé ne touche que la nouvelle sélection.
+        $this->assertStringContainsString(
+            'id="attachment_clear"',
+            $output,
+            'L\'édition doit exposer le même bouton de reset (annuler une nouvelle sélection).'
+        );
+        $this->assertStringContainsString(
+            'Annuler la sélection',
+            $output,
+            'Le libellé « Annuler la sélection » doit être présent en édition.'
         );
     }
 

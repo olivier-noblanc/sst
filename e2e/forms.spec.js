@@ -278,7 +278,7 @@ test.describe('Report Form — Targeted Attachment Removal', () => {
       buffer: Buffer.from('%PDF-1.4 test'),
     });
 
-    const removeButton = page.locator('#attachment_remove');
+    const removeButton = page.locator('#attachment_clear');
     await expect(removeButton).toBeVisible();
     await expect(page.locator('#file_chosen_name')).toHaveText('preuve.pdf');
 

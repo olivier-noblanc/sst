@@ -65,6 +65,14 @@ $registryType = $report->type;
 $registryTypeStr = $registryType;
 $registryLabel = getRegistryShortLabel($registryTypeStr);
 
+// Champs métier configurables par registre (clés app_field_*_<code>) :
+// activation + libellé. Défaut rétrocompatible : champs affichés, libellés actuels.
+$poleEnabled = isReportFieldEnabled($registryTypeStr, \App\Enum\ReportField::Pole);
+$serviceEnabled = isReportFieldEnabled($registryTypeStr, \App\Enum\ReportField::ServiceAffectation);
+$poleLabel = reportFieldLabel($registryTypeStr, \App\Enum\ReportField::Pole);
+$serviceLabel = reportFieldLabel($registryTypeStr, \App\Enum\ReportField::ServiceAffectation);
+$objetLabel = reportFieldLabel($registryTypeStr, \App\Enum\ReportField::Objet);
+
 // Get form errors and data from session
 $formErrors = $session->getFormErrors();
 $formData = $session->getFormData();
@@ -113,20 +121,20 @@ $etat = $report->etat;
             <td><?php echo $fmt->e($report->siteNom ?: '—'); ?></td>
         </tr>
         <?php endif; ?>
-        <?php if (!empty($report->pole)): ?>
+        <?php if ($poleEnabled && !empty($report->pole)): ?>
         <tr>
-            <th>Pôle</th>
+            <th><?php echo $fmt->e($poleLabel); ?></th>
             <td><?php echo $fmt->e($report->pole); ?></td>
         </tr>
         <?php endif; ?>
-        <?php if (!empty($report->serviceAffectation)): ?>
+        <?php if ($serviceEnabled && !empty($report->serviceAffectation)): ?>
         <tr>
-            <th>Service d'affectation</th>
+            <th><?php echo $fmt->e($serviceLabel); ?></th>
             <td><?php echo $fmt->e($report->serviceAffectation); ?></td>
         </tr>
         <?php endif; ?>
         <tr>
-            <th>Objet</th>
+            <th><?php echo $fmt->e($objetLabel); ?></th>
             <td><?php echo $fmt->e($report->objet); ?></td>
         </tr>
         <tr>

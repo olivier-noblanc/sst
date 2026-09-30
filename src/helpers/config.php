@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ReportField;
 use App\Services\ConfigService;
 
 /**
@@ -77,4 +78,36 @@ function countActiveSites(PDO $pdo): int
 function getAppVersion(): string
 {
     return getConfigService()->getAppVersion();
+}
+
+/**
+ * Texte explicatif du niveau de confidentialité d'un registre.
+ *
+ * Renvoie le texte personnalisé par l'admin s'il est défini, sinon le texte
+ * par défaut passé par l'appelant (fallback = phrase actuelle). Le résultat
+ * doit toujours être échappé par l'appelant (e()).
+ */
+function confidentialityNote(string $registryCode, string $default): string
+{
+    $note = getConfigService()->getConfidentialityNote($registryCode);
+    return $note !== '' ? $note : $default;
+}
+
+/**
+ * Activation d'un champ métier du formulaire, configurable par registre
+ * (clé `app_field_<field>_enabled_<code>`, défaut : activé).
+ */
+function isReportFieldEnabled(string $registryCode, ReportField $field): bool
+{
+    return getConfigService()->isReportFieldEnabled($registryCode, $field);
+}
+
+/**
+ * Libellé effectif d'un champ métier : personnalisé par registre, sinon
+ * libellé par défaut actuel. Le résultat doit toujours être échappé par
+ * l'appelant (e() / $fmt->e()).
+ */
+function reportFieldLabel(string $registryCode, ReportField $field): string
+{
+    return getConfigService()->reportFieldLabel($registryCode, $field);
 }

@@ -10,6 +10,7 @@
 use App\DTO\CreateRegistryCommand;
 use App\DTO\CreateRegistryFieldCommand;
 use App\DTO\UpdateRegistryCommand;
+use App\Enum\ReportField;
 use App\Repository\RegistryFieldRepository;
 use App\Services\HttpService;
 use App\Services\SessionService;
@@ -151,6 +152,12 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
     /** @var list<array<string, string|int|bool|null>> $registres */
     $registres = $postData['registres'] ?? [];
 
+    // Réglages par registre stockés en config (pattern settings) — écrits
+    // ATOMIQUEMENT (une transaction) après la boucle, tout ou rien :
+    // texte de confidentialité + activation/libellés des champs métier.
+    /** @var array<string, string> $registryConfig */
+    $registryConfig = [];
+
     foreach ($registres as $regId => $data) {
         $id = (int) $regId;
         if ($id <= 0) {
@@ -190,6 +197,34 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             notifyChsct: !empty($data['notify_chsct']) ? 1 : 0,
             legalNote: trim((string) ($data['legal_note'] ?? '')),
         ));
+
+        // Texte de confidentialité — stocké en config (pattern settings),
+        // jamais en colonne registries. `array_key_exists` : ne pas écraser
+        // une valeur existante si le champ est absent du POST.
+        $regCode = (string) $existing['code'];
+        if (array_key_exists('confidentiality_note', $data)) {
+            $registryConfig['app_confidentiality_note_' . $regCode]
+                = trim((string) $data['confidentiality_note']);
+        }
+
+        // Champs métier configurables par registre (clés `app_field_<field>_*_<code>`).
+        // Le formulaire de l'onglet les soumet toujours : une case décochée est
+        // ABSENTE du POST (`!empty` → '0'), un libellé vidé vaut '' (revient au
+        // libellé par défaut). Même pattern que `is_enabled` ci-dessus.
+        $registryConfig['app_field_' . ReportField::Pole->value . '_enabled_' . $regCode]
+            = !empty($data['field_pole_enabled']) ? '1' : '0';
+        $registryConfig['app_field_' . ReportField::Pole->value . '_label_' . $regCode]
+            = trim((string) ($data['field_pole_label'] ?? ''));
+        $registryConfig['app_field_' . ReportField::ServiceAffectation->value . '_enabled_' . $regCode]
+            = !empty($data['field_service_affectation_enabled']) ? '1' : '0';
+        $registryConfig['app_field_' . ReportField::ServiceAffectation->value . '_label_' . $regCode]
+            = trim((string) ($data['field_service_affectation_label'] ?? ''));
+        $registryConfig['app_field_' . ReportField::Objet->value . '_label_' . $regCode]
+            = trim((string) ($data['field_objet_label'] ?? ''));
+    }
+
+    if ($registryConfig !== []) {
+        getConfigService()->setMany($registryConfig);
     }
 
     $session->setFlash('success', 'Registres mis à jour avec succès.');

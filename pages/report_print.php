@@ -55,6 +55,8 @@ $responses = ReportRepository::instance()->getResponses($uuid);
 $type = $reportType;
 $registryLabel = getRegistryLabel($type);
 $registryShortLabel = getRegistryShortLabel($type);
+// Libellé du champ « Objet » configurable par registre (clé app_field_objet_label_<code>).
+$objetLabel = reportFieldLabel($type, \App\Enum\ReportField::Objet);
 $etatLabel = ETAT_LABELS[$reportEtat] ?? $reportEtat;
 
 // --- Build PDF with FPDF ---
@@ -122,7 +124,7 @@ $fields = [
     'Date de l\'événement'  => new FormattingService()->formatDateFR($reportDateEvenement),
     'Heure du dépôt'        => $reportHeureEvenement,
     'Lieu'                  => $reportLieu,
-    'Objet'                 => $reportObjet,
+    $objetLabel             => $reportObjet,
 ];
 if (getConfigService()->isConsentSyndicatEnabled()) {
     $fields[transmissionLabel()] = $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée';

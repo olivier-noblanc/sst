@@ -66,6 +66,14 @@ $consentSyndicatSticky = $stickySubmitted
 $registryLabel = getRegistryShortLabel($type);
 $registryFullLabel = getRegistryLabel($type);
 
+// Champs métier configurables par registre (clés app_field_*_<code>) :
+// activation + libellé. Défaut rétrocompatible : champs affichés, libellés actuels.
+$poleEnabled = isReportFieldEnabled($type, \App\Enum\ReportField::Pole);
+$serviceEnabled = isReportFieldEnabled($type, \App\Enum\ReportField::ServiceAffectation);
+$poleLabel = reportFieldLabel($type, \App\Enum\ReportField::Pole);
+$serviceLabel = reportFieldLabel($type, \App\Enum\ReportField::ServiceAffectation);
+$objetLabel = reportFieldLabel($type, \App\Enum\ReportField::Objet);
+
 // Determine card accent class from registries.color_theme
 $registryForTheme = \App\Repository\RegistryRepository::instance()->findByCode($type);
 $colorTheme = (string) ($registryForTheme['color_theme'] ?? $type);
@@ -130,22 +138,35 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                        autocomplete="off">
                 <span class="form-hint">Rempli automatiquement au moment du dépôt.</span>
             </div>
+            <?php if ($poleEnabled): ?>
             <div class="form-group">
-                <label for="pole">Pôle <span class="required">*</span></label>
+                <label for="pole"><?php echo e($poleLabel); ?> <span class="required">*</span></label>
                 <input type="text" id="pole" name="pole"
                        value="<?php echo e($val('pole')); ?>"
                        maxlength="200" required
                        autocomplete="off"
                        placeholder="Ex : Pôle Administratif">
             </div>
+            <?php else: ?>
+            <?php // Champ masqué par le réglage admin (app_field_pole_enabled_<code>) :
+                  // aucune nouvelle saisie, mais la valeur déjà enregistrée (édition)
+                  // est préservée via un champ caché — jamais réinitialisée en silence. ?>
+            <input type="hidden" name="pole" value="<?php echo e($val('pole')); ?>">
+            <?php endif; ?>
+            <?php if ($serviceEnabled): ?>
             <div class="form-group">
-                <label for="service_affectation">Service d'affectation</label>
+                <label for="service_affectation"><?php echo e($serviceLabel); ?></label>
                 <input type="text" id="service_affectation" name="service_affectation"
                        value="<?php echo e($val('service_affectation')); ?>"
                        maxlength="200"
                        autocomplete="off"
                        placeholder="Ex : Service juridique">
             </div>
+            <?php else: ?>
+            <?php // Champ masqué par le réglage admin (app_field_service_affectation_enabled_<code>) :
+                  // valeur existante préservée en hidden (aucune perte de donnée). ?>
+            <input type="hidden" name="service_affectation" value="<?php echo e($val('service_affectation')); ?>">
+            <?php endif; ?>
             <div class="form-group">
                 <label for="telephone_mobile">Numéro de téléphone mobile <span class="required">*</span></label>
                 <input type="tel" id="telephone_mobile" name="telephone_mobile"
@@ -155,7 +176,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                        placeholder="Ex : 06 12 34 56 78">
             </div>
             <div class="form-group">
-                <label for="objet">Objet <span class="required">*</span></label>
+                <label for="objet"><?php echo e($objetLabel); ?> <span class="required">*</span></label>
                 <input type="text" id="objet" name="objet"
                        value="<?php echo e($val('objet')); ?>"
                        minlength="3" maxlength="100" required
@@ -245,7 +266,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     <!-- Décision métier (Oracle) — l'accès du CSA/CHSCT est
                          indépendant du consentement syndical : le texte est le
                          même quel que soit app_chsct_report_scope. -->
-                    <span class="form-hint form-hint--lg">Si coché, ce signalement ne sera visible que par vous, les superviseurs et les membres du rôle « <?php echo e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». L'accès des membres du rôle ne dépend jamais du consentement syndical. Décochez pour le rendre visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>.</span>
+                    <span class="form-hint form-hint--lg"><?php echo e(confidentialityNote($type, getConfigService()->confidentialityNoteDefaultAgentChoice())); ?></span>
                     <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                     <div class="confidential-warning">
                         &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
@@ -259,7 +280,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 <!-- Décision métier (Oracle) — l'accès du CSA/CHSCT est
                      indépendant du consentement syndical : le texte est le
                      même quel que soit app_chsct_report_scope. -->
-                <span class="form-hint">Le mode de visibilité est « Confidentiel » : votre signalement n'est visible que par vous, les superviseurs et les membres du rôle « <?php echo e(getRoleLabelShort(\App\Enum\UserRole::Chsct->value)); ?> ». L'accès des membres du rôle ne dépend jamais du consentement syndical.</span>
+                <span class="form-hint"><?php echo e(confidentialityNote($type, getConfigService()->confidentialityNoteDefaultConfidential())); ?></span>
             </div>
             <?php elseif (reportVisibilityIsPublic($type)): ?>
             <input type="hidden" name="is_confidential" value="0">

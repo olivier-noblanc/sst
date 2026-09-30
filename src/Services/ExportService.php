@@ -12,6 +12,7 @@
 
 namespace App\Services;
 
+use App\Enum\ReportField;
 use App\Enum\ReportType;
 use App\Enum\UserRole;
 use App\Repository\RegistryFieldRepository;
@@ -20,23 +21,57 @@ use App\Repository\RegistryRepository;
 class ExportService
 {
     /**
-     * Colonnes CSV de base (toujours présentes)
+     * Colonnes CSV de base, dans l'ordre historique. Les colonnes « Pôle » et
+     * « Service d'affectation » sont retirées quand le champ correspondant est
+     * désactivé pour le registre exporté (clé `app_field_*_enabled_<code>`),
+     * et leur en-tête reflète le libellé personnalisé par registre (fallback :
+     * libellé actuel). En export multi-registres (registryCode null), aucune
+     * personnalisation ni masquage n'est possible : les colonnes restent avec
+     * leurs libellés par défaut.
+     *
+     * @return list<string>
      */
-    private const array BASE_COLUMNS = [
-        'Référence',
-        'Registre',
-        'Date de dépôt',
-        'Heure dépôt',
-        'Lieu',
-        'Pôle',
-        'Service d\'affectation',
-        'Téléphone mobile',
-        'Site (texte)',
-        'Objet',
-        'Description',
-        'Déclarant (nom)',
-        'Déclarant (prénom)',
-    ];
+    private function buildBaseColumns(?string $registryCode): array
+    {
+        $columns = ['Référence', 'Registre', 'Date de dépôt', 'Heure dépôt', 'Lieu'];
+        if ($this->includesReportField($registryCode, ReportField::Pole)) {
+            $columns[] = $this->reportFieldHeader($registryCode, ReportField::Pole);
+        }
+        if ($this->includesReportField($registryCode, ReportField::ServiceAffectation)) {
+            $columns[] = $this->reportFieldHeader($registryCode, ReportField::ServiceAffectation);
+        }
+        $columns[] = 'Téléphone mobile';
+        $columns[] = 'Site (texte)';
+        $columns[] = $this->reportFieldHeader($registryCode, ReportField::Objet);
+        $columns[] = 'Description';
+        $columns[] = 'Déclarant (nom)';
+        $columns[] = 'Déclarant (prénom)';
+        return $columns;
+    }
+
+    /**
+     * Un champ métier est-il émis pour ce registre ? (défaut : oui, et oui en
+     * export multi-registres où le registre n'est pas connu).
+     */
+    private function includesReportField(?string $registryCode, ReportField $field): bool
+    {
+        if ($registryCode === null || $registryCode === '') {
+            return true;
+        }
+        return $this->config->isReportFieldEnabled($registryCode, $field);
+    }
+
+    /**
+     * En-tête CSV d'un champ métier : libellé personnalisé par registre, sinon
+     * libellé par défaut actuel.
+     */
+    private function reportFieldHeader(?string $registryCode, ReportField $field): string
+    {
+        if ($registryCode === null || $registryCode === '') {
+            return $field->defaultLabel();
+        }
+        return $this->config->reportFieldLabel($registryCode, $field);
+    }
 
     /**
      * Colonnes CSV de fin (toujours présentes), AVANT la colonne dynamique
@@ -272,7 +307,7 @@ class ExportService
      */
     public function buildHeaders(bool $noSiteMode, ?string $registryCode = null): array
     {
-        $headers = self::BASE_COLUMNS;
+        $headers = $this->buildBaseColumns($registryCode);
 
         if (!$noSiteMode) {
             $labelUnite = $this->config->get('app_label_unite', 'UR');
@@ -325,22 +360,27 @@ class ExportService
         // Historique des réponses
         $historyText = $this->buildResponseHistory($responses);
 
-        // Ligne CSV de base
+        // Ligne CSV de base (même ordre que buildBaseColumns : Pôle et Service
+        // d'affectation omis quand le champ est désactivé pour le registre).
         $csvRow = [
             $this->escapeCsvField($row['reference'] ?? ''),
             $this->escapeCsvField(strtoupper($row['type'] ?? '')),
             $this->escapeCsvField($row['date_evenement'] ?? ''),
             $this->escapeCsvField($row['heure_evenement'] ?? ''),
             $this->escapeCsvField($row['lieu'] ?? ''),
-            $this->escapeCsvField($row['pole'] ?? ''),
-            $this->escapeCsvField($row['service_affectation'] ?? ''),
-            $this->escapeCsvField($row['telephone_mobile'] ?? ''),
-            $this->escapeCsvField($row['site_text'] ?? ''),
-            $this->escapeCsvField($row['objet'] ?? ''),
-            $this->escapeCsvField($row['description'] ?? ''),
-            $this->escapeCsvField($row['declarant_nom'] ?? ''),
-            $this->escapeCsvField($row['declarant_prenom'] ?? ''),
         ];
+        if ($this->includesReportField($registryCode, ReportField::Pole)) {
+            $csvRow[] = $this->escapeCsvField($row['pole'] ?? '');
+        }
+        if ($this->includesReportField($registryCode, ReportField::ServiceAffectation)) {
+            $csvRow[] = $this->escapeCsvField($row['service_affectation'] ?? '');
+        }
+        $csvRow[] = $this->escapeCsvField($row['telephone_mobile'] ?? '');
+        $csvRow[] = $this->escapeCsvField($row['site_text'] ?? '');
+        $csvRow[] = $this->escapeCsvField($row['objet'] ?? '');
+        $csvRow[] = $this->escapeCsvField($row['description'] ?? '');
+        $csvRow[] = $this->escapeCsvField($row['declarant_nom'] ?? '');
+        $csvRow[] = $this->escapeCsvField($row['declarant_prenom'] ?? '');
 
         // Colonnes conditionnelles (mode avec site)
         if (!$noSiteMode) {

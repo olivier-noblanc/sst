@@ -4,6 +4,7 @@
 
 namespace App\Services;
 
+use App\Enum\ReportField;
 use App\Enum\UserRole;
 use App\Repository\ConfigRepository;
 use App\Repository\RegistryRepository;
@@ -126,6 +127,49 @@ class ConfigService
     }
 
     /**
+     * Texte explicatif du niveau de confidentialité, personnalisable PAR REGISTRE.
+     *
+     * Clé : `app_confidentiality_note_<code>` (code du registre, ex. `rsst`,
+     * `ami`…). La méthode renvoie '' quand rien n'est défini : c'est l'appelant
+     * qui fournit alors le texte par défaut actuel (fallback), afin de ne jamais
+     * figer le défaut ici (il dépend du mode de visibilité et des libellés
+     * configurables de rôle / d'unité).
+     */
+    public function getConfidentialityNote(string $registryCode): string
+    {
+        return $this->get('app_confidentiality_note_' . $registryCode, '');
+    }
+
+    /**
+     * Texte par défaut actuel — mode « Choix de l'agent » (case à cocher).
+     *
+     * Libellé de rôle et libellé d'unité configurables : construits ici pour
+     * ne pas dupliquer la phrase entre le formulaire et l'écran d'admin.
+     */
+    public function confidentialityNoteDefaultAgentChoice(): string
+    {
+        $roleLabel = $this->getRoleLabelShort(UserRole::Chsct->value);
+        $unitLabel = $this->get('app_label_unite', 'UR');
+
+        return 'Si coché, ce signalement ne sera visible que par vous, les superviseurs '
+            . 'et les membres du rôle « ' . $roleLabel . ' ». L\'accès des membres du rôle '
+            . 'ne dépend jamais du consentement syndical. Décochez pour le rendre visible '
+            . 'par tous les agents de votre ' . $unitLabel . '.';
+    }
+
+    /**
+     * Texte par défaut actuel — mode « Confidentiel » (niveau imposé).
+     */
+    public function confidentialityNoteDefaultConfidential(): string
+    {
+        $roleLabel = $this->getRoleLabelShort(UserRole::Chsct->value);
+
+        return 'Le mode de visibilité est « Confidentiel » : votre signalement n\'est visible '
+            . 'que par vous, les superviseurs et les membres du rôle « ' . $roleLabel . ' ». '
+            . 'L\'accès des membres du rôle ne dépend jamais du consentement syndical.';
+    }
+
+    /**
      * Libellé invariable de la ligne/colonne « Transmission » du signalement.
      *
      * Forme figée « Transmission — {libellé du rôle Chsct} » : aucun
@@ -151,6 +195,42 @@ class ConfigService
     public function isConsentSyndicatEnabled(): bool
     {
         return $this->get('app_consent_syndicat_enabled', '1') === '1';
+    }
+
+    /**
+     * Activation d'un champ métier du formulaire, configurable PAR REGISTRE.
+     *
+     * Clé `app_field_<field>_enabled_<code>` : '1' (défaut, rétrocompatible)
+     * ou '0'. Lorsqu'un champ est désactivé, il est masqué dans le dépôt,
+     * l'édition, la lecture et l'export. Les valeurs déjà enregistrées restent
+     * conservées en base (elles ne sont jamais réinitialisées).
+     */
+    public function isReportFieldEnabled(string $registryCode, ReportField $field): bool
+    {
+        return $this->get('app_field_' . $field->value . '_enabled_' . $registryCode, '1') === '1';
+    }
+
+    /**
+     * Valeur brute du libellé personnalisé d'un champ métier ('' si non défini).
+     *
+     * Clé `app_field_<field>_label_<code>` — l'écran d'admin affiche cette
+     * valeur brute (avec le défaut en placeholder) pour qu'un libellé vide
+     * reste vide au lieu d'être figé sur le défaut.
+     */
+    public function reportFieldLabelOverride(string $registryCode, ReportField $field): string
+    {
+        return $this->get('app_field_' . $field->value . '_label_' . $registryCode, '');
+    }
+
+    /**
+     * Libellé effectif d'un champ métier : personnalisé par registre, sinon
+     * libellé par défaut actuel (rétrocompatible — « Pôle », « Service
+     * d'affectation », « Objet »).
+     */
+    public function reportFieldLabel(string $registryCode, ReportField $field): string
+    {
+        $override = $this->reportFieldLabelOverride($registryCode, $field);
+        return $override !== '' ? $override : $field->defaultLabel();
     }
 
     /**

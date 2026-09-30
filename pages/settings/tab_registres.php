@@ -8,6 +8,7 @@
 /** @var string $csrfToken */
 use App\Repository\RegistryRepository;
 use App\Repository\StatsRepository;
+use App\Enum\ReportField;
 use App\Enum\VisibilityMode;
 
 $fmt = new \App\Services\FormattingService();
@@ -190,6 +191,73 @@ $visibilityModes = [
             <textarea id="registres_<?php echo $regId; ?>_legal_note"
                       name="registres[<?php echo $regId; ?>][legal_note]"
                       class="input" rows="2" maxlength="500"><?php echo $fmt->e($legalNote); ?></textarea>
+        </div>
+
+        <!-- Texte de confidentialité (phrase explicative du niveau « Confidentiel ») -->
+        <?php
+        $confNoteValue = getConfigService()->getConfidentialityNote((string) $regCode);
+        $confNoteDefault = getConfigService()->confidentialityNoteDefaultAgentChoice();
+        ?>
+        <div class="form-group">
+            <label for="registres_<?php echo $regId; ?>_confidentiality_note">Texte de confidentialité (affiché près du niveau « Confidentiel »)</label>
+            <textarea id="registres_<?php echo $regId; ?>_confidentiality_note"
+                      name="registres[<?php echo $regId; ?>][confidentiality_note]"
+                      class="input" rows="2" maxlength="500"
+                      placeholder="<?php echo $fmt->e($confNoteDefault); ?>"><?php echo $fmt->e($confNoteValue); ?></textarea>
+            <small class="text-muted block mt-1">
+                Laisser vide pour utiliser le texte par défaut. Ce texte remplace la phrase explicative
+                affichée dans le formulaire de dépôt et sur la fiche du signalement (jamais la politique d'accès).
+            </small>
+        </div>
+
+        <!-- Champs métier configurables (activation + libellé), par registre -->
+        <div class="mb-4">
+            <h4 class="card__subtitle mb-2">Champs du formulaire</h4>
+            <div class="form-grid form-grid--2">
+                <div class="form-group">
+                    <label class="toggle-switch-label">
+                        <input type="checkbox" name="registres[<?php echo $regId; ?>][field_pole_enabled]" value="1"
+                               class="toggle-switch__input"
+                               <?php echo getConfigService()->isReportFieldEnabled((string) $regCode, ReportField::Pole) ? 'checked' : ''; ?>>
+                        <span class="toggle-switch" aria-hidden="true"></span>
+                        <span>Afficher le champ « Pôle »</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="registres_<?php echo $regId; ?>_field_pole_label">Libellé du champ Pôle</label>
+                    <input type="text" id="registres_<?php echo $regId; ?>_field_pole_label"
+                           name="registres[<?php echo $regId; ?>][field_pole_label]"
+                           value="<?php echo $fmt->e(getConfigService()->reportFieldLabelOverride((string) $regCode, ReportField::Pole)); ?>"
+                           class="input" maxlength="100"
+                           placeholder="<?php echo $fmt->e(ReportField::Pole->defaultLabel()); ?>">
+                </div>
+                <div class="form-group">
+                    <label class="toggle-switch-label">
+                        <input type="checkbox" name="registres[<?php echo $regId; ?>][field_service_affectation_enabled]" value="1"
+                               class="toggle-switch__input"
+                               <?php echo getConfigService()->isReportFieldEnabled((string) $regCode, ReportField::ServiceAffectation) ? 'checked' : ''; ?>>
+                        <span class="toggle-switch" aria-hidden="true"></span>
+                        <span>Afficher le champ « Service d'affectation »</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="registres_<?php echo $regId; ?>_field_service_affectation_label">Libellé du champ Service d'affectation</label>
+                    <input type="text" id="registres_<?php echo $regId; ?>_field_service_affectation_label"
+                           name="registres[<?php echo $regId; ?>][field_service_affectation_label]"
+                           value="<?php echo $fmt->e(getConfigService()->reportFieldLabelOverride((string) $regCode, ReportField::ServiceAffectation)); ?>"
+                           class="input" maxlength="100"
+                           placeholder="<?php echo $fmt->e(ReportField::ServiceAffectation->defaultLabel()); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="registres_<?php echo $regId; ?>_field_objet_label">Libellé du champ Objet</label>
+                    <input type="text" id="registres_<?php echo $regId; ?>_field_objet_label"
+                           name="registres[<?php echo $regId; ?>][field_objet_label]"
+                           value="<?php echo $fmt->e(getConfigService()->reportFieldLabelOverride((string) $regCode, ReportField::Objet)); ?>"
+                           class="input" maxlength="100"
+                           placeholder="<?php echo $fmt->e(ReportField::Objet->defaultLabel()); ?>">
+                    <small class="text-muted">Laisser vide pour le libellé actuel (« Objet »). Ex. : « Objet du signalement ».</small>
+                </div>
+            </div>
         </div>
 
         <!-- Hidden fields for unchanged values -->

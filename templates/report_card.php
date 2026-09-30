@@ -27,6 +27,14 @@ $colorTheme = (string) ($registryForTheme['color_theme'] ?? $type);
 $cardClass = 'card--' . $colorTheme;
 
 $registryLabel = getRegistryShortLabel($type);
+
+// Champs métier configurables par registre (clés app_field_*_<code>) :
+// activation + libellé. Défaut rétrocompatible : champs affichés, libellés actuels.
+$poleEnabled = isReportFieldEnabled($type, \App\Enum\ReportField::Pole);
+$serviceEnabled = isReportFieldEnabled($type, \App\Enum\ReportField::ServiceAffectation);
+$poleLabel = reportFieldLabel($type, \App\Enum\ReportField::Pole);
+$serviceLabel = reportFieldLabel($type, \App\Enum\ReportField::ServiceAffectation);
+$objetLabel = reportFieldLabel($type, \App\Enum\ReportField::Objet);
 $sessionUser = new \App\Services\SessionService()->getUserSession();
 $userRole = $sessionUser ? $sessionUser->role : '';
 $userSiteId = $sessionUser ? $sessionUser->siteId ?? 0 : 0;
@@ -78,8 +86,11 @@ if (!isset($csrfToken)) {
                     $confidentialAudience .= ', les agents rattachés';
                 }
                 $confidentialAudience .= ' et les membres du rôle « ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' »';
+                // Texte personnalisable par registre (config app_confidentiality_note_<code>) ;
+                // à défaut, phrase par défaut actuelle construite ci-dessus.
+                $defaultConfidentialNote = '(Visible uniquement par ' . $confidentialAudience . ')';
                 ?>
-                <small class="help-text">(Visible uniquement par <?php echo $fmt->e($confidentialAudience); ?>)</small>
+                <small class="help-text"><?php echo $fmt->e(confidentialityNote($type, $defaultConfidentialNote)); ?></small>
                 <?php endif; ?>
             </div>
         </div>
@@ -98,15 +109,15 @@ if (!isset($csrfToken)) {
                     <th>Heure du dépôt</th>
                     <td><?php echo $fmt->e($report->heureEvenement ?: '—'); ?></td>
                 </tr>
-                <?php if (!empty($report->pole)): ?>
+                <?php if ($poleEnabled && !empty($report->pole)): ?>
                 <tr>
-                    <th>Pôle</th>
+                    <th><?php echo $fmt->e($poleLabel); ?></th>
                     <td><?php echo $fmt->e($report->pole); ?></td>
                 </tr>
                 <?php endif; ?>
-                <?php if (!empty($report->serviceAffectation)): ?>
+                <?php if ($serviceEnabled && !empty($report->serviceAffectation)): ?>
                 <tr>
-                    <th>Service d'affectation</th>
+                    <th><?php echo $fmt->e($serviceLabel); ?></th>
                     <td><?php echo $fmt->e($report->serviceAffectation); ?></td>
                 </tr>
                 <?php endif; ?>
@@ -117,7 +128,7 @@ if (!isset($csrfToken)) {
                 </tr>
                 <?php endif; ?>
                 <tr>
-                    <th>Objet</th>
+                    <th><?php echo $fmt->e($objetLabel); ?></th>
                     <td><?php echo $fmt->e($report->objet); ?></td>
                 </tr>
                 <tr>

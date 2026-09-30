@@ -5,6 +5,14 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 
 ## [Unreleased]
 
+### Réglages par registre — confidentialité et champs du formulaire
+
+- **Texte de confidentialité par registre** — La phrase explicative du niveau de confidentialité (formulaire de dépôt et fiche du signalement) est personnalisable par registre via la clé config `app_confidentiality_note_<code>` ; vide → texte par défaut actuel. Le texte est toujours échappé à l'affichage. Aucune modification des règles d'accès.
+- **Champs « Pôle » et « Service d'affectation » configurables par registre** — Activation (`app_field_pole_enabled_<code>`, `app_field_service_affectation_enabled_<code>`, défaut activé) et libellé (`app_field_*_label_<code>`) indépendants par registre. Désactivés, ils sont masqués dans le dépôt, l'édition, la fiche, la réponse et l'export CSV ; en édition, la valeur existante est préservée par un champ caché (aucune perte, POST/DTO inchangés, colonnes SQL conservées). En export multi-registres, les colonnes Pôle/Service restent avec leurs libellés par défaut.
+- **Libellé « Objet » configurable par registre** — `app_field_objet_label_<code>` (défaut « Objet », ex. « Objet du signalement »), appliqué au formulaire, à la fiche, à la réponse, à l'impression/PDF et à l'en-tête d'export.
+- **Onglet Registres** — Les réglages sont édités par registre dans `pages/settings/tab_registres.php` et persistés atomiquement (`ConfigService::setMany`) par `handlers/settings_handler_registres.php`.
+- **Vérifications** — `tests/unit/ReportFieldSettingsTest.php` et `tests/unit/ConfidentialityNoteTest.php` : défauts rétrocompatibles, surcharge par registre, masquage/affichage, alignement en-têtes/valeurs CSV, persistance du handler.
+
 ### Fiabilisation — champs personnalisés, migration et exports
 
 - **Architecture** — Le contrat des codes de champs réservés est partagé par un composant de repository dédié ; les repositories ne dépendent plus du service métier des champs personnalisés.

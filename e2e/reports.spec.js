@@ -19,8 +19,14 @@ async function createReport(page, type = 'rsst', options = {}) {
   // Verify form is displayed
   await expect(page.locator('#objet')).toBeVisible();
 
+  // #date_evenement est en lecture seule à la création (décision métier) :
+  // pré-remplie à la date du jour, jamais modifiée depuis l'UI.
+  const dateInput = page.locator('#date_evenement');
+  await expect(dateInput).toHaveAttribute('readonly', '');
+  await expect(dateInput).toHaveAttribute('required', '');
+  expect(await dateInput.inputValue()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
   // Fill required fields
-  await page.locator('#date_evenement').fill('2026-06-15');
   await page.locator('#objet').fill(objet);
   await page.locator('#description').fill(description);
   // pole/telephone_mobile became required fields (see templates/report_form.php)
@@ -92,8 +98,8 @@ test.describe('Report Creation', () => {
   test('should show form validation errors for missing required fields', async ({ page }) => {
     await page.goto('/index.php?page=report_create&type=rsst');
 
-    // Clear the date field and objet, leave description empty
-    await page.locator('#date_evenement').fill('');
+    // La date de dépôt est en lecture seule (pré-remplie), donc seule la
+    // validation des autres champs obligatoires est exercée ici.
     await page.locator('#objet').fill('');
     await page.locator('#description').fill('');
 

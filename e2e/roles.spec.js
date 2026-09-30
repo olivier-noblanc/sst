@@ -135,7 +135,6 @@ test.describe('Superviseur Role Access', () => {
   test('should have "Répondre" button on reports', async ({ page }) => {
     // Create a report first
     await page.goto('/index.php?page=report_create&type=rsst');
-    await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Réponse Superviseur');
     await page.locator('#description').fill('Test pour vérifier que le superviseur peut répondre.');
     await page.locator('#pole').fill('Pôle Test E2E');

@@ -13,21 +13,22 @@ test.describe('Report Form Validation', () => {
     await loginAs(page);
   });
 
-  test('should require date_evenement field', async ({ page }) => {
+  test('should expose date_evenement as readonly, pre-filled with today', async ({ page }) => {
     await page.goto('/index.php?page=report_create&type=rsst');
 
-    await page.locator('#date_evenement').fill('');
-    await page.locator('#objet').fill('Test Objet');
-    await page.locator('#description').fill('Test description');
-    await page.locator('.card button[type="submit"]').click();
-
-    await expect(page).toHaveURL(/page=report_create/, { timeout: 10000 });
+    // Décision métier : la date de dépôt est en lecture seule et pré-remplie à
+    // la date du jour. On ne la modifie jamais depuis l'UI (fill() échouerait).
+    const dateInput = page.locator('#date_evenement');
+    await expect(dateInput).toHaveAttribute('readonly', '');
+    await expect(dateInput).toHaveAttribute('aria-readonly', 'true');
+    await expect(dateInput).toHaveAttribute('required', '');
+    expect(await dateInput.isEditable()).toBe(false);
+    expect(await dateInput.inputValue()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   test('should require objet field', async ({ page }) => {
     await page.goto('/index.php?page=report_create&type=rsst');
 
-    await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('');
     await page.locator('#description').fill('Test description');
     await page.locator('.card button[type="submit"]').click();
@@ -38,7 +39,6 @@ test.describe('Report Form Validation', () => {
   test('should require description field', async ({ page }) => {
     await page.goto('/index.php?page=report_create&type=rsst');
 
-    await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Objet');
     await page.locator('#description').fill('');
     await page.locator('.card button[type="submit"]').click();
@@ -46,16 +46,16 @@ test.describe('Report Form Validation', () => {
     await expect(page).toHaveURL(/page=report_create/, { timeout: 10000 });
   });
 
-  test('should reject future dates', async ({ page }) => {
+  test('should forbid future dates via readonly date_evenement', async ({ page }) => {
     await page.goto('/index.php?page=report_create&type=rsst');
 
-    await page.locator('#date_evenement').fill('2099-12-31');
-    await page.locator('#objet').fill('Test Future Date');
-    await page.locator('#description').fill('Test avec date future');
-    await page.locator('.card button[type="submit"]').click();
-
-    const url = page.url();
-    expect(url).not.toMatch(/page=report_view/);
+    // Le champ readonly empêche la saisie : la borne `max` (date du jour)
+    // reste le garde-fou, doublé côté serveur, contre les dates futures.
+    const dateInput = page.locator('#date_evenement');
+    await expect(dateInput).toHaveAttribute('readonly', '');
+    const maxAttr = await dateInput.getAttribute('max');
+    expect(maxAttr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(await dateInput.inputValue()).toBe(maxAttr ?? '');
   });
 
   test('should preserve form data on validation error', async ({ page }) => {

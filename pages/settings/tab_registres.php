@@ -225,7 +225,7 @@ $visibilityModes = [
                 $noteFieldName = 'confidentiality_note_' . $noteMode->value;
                 $noteValue = getConfigService()->getConfidentialityNoteCustom((string) $regCode, $noteMode);
                 $noteDefault = getConfigService()->confidentialityNoteDefault($noteMode);
-            ?>
+                ?>
             <div class="form-group">
                 <label for="registres_<?php echo $regId; ?>_<?php echo $fmt->e($noteFieldName); ?>">
                     Texte explicatif — niveau « <?php echo $fmt->e($visibilityModes[$noteMode->value]); ?> »

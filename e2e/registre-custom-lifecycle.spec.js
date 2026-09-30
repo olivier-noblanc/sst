@@ -91,7 +91,6 @@ test.describe('Registre Custom — Cycle de Vie Complet', () => {
     await expect(page.locator('#objet')).toBeVisible({ timeout: 5000 });
 
     // Remplir les champs obligatoires
-    await page.locator('#date_evenement').fill('2026-07-24');
     await page.locator('#objet').fill('Test E2E — Violence verbale');
     await page.locator('#description').fill('Test E2E complet : cycle de vie d\'un registre custom violences.');
     await page.locator('#pole').fill('Pôle Test');

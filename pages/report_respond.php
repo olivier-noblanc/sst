@@ -215,15 +215,15 @@ $etat = $report->etat;
 
         <?php
         $attachmentInputId = 'response_attachment';
-        $attachmentFieldLabel = 'Pièce jointe (optionnel)';
-        $attachmentHintText = 'Image (JPG, PNG, GIF) ou PDF — 10 Mo max.';
-        $attachmentFilenameId = 'resp_file_chosen_name';
-        $attachmentGroupClass = 'form-group';
-        $attachmentError = $formErrors['response_attachment'] ?? '';
-        $attachmentCurrentName = '';
-        $attachmentShowRemoveCurrent = false;
-        require __DIR__ . '/../templates/attachment_field.php';
-        ?>
+$attachmentFieldLabel = 'Pièce jointe (optionnel)';
+$attachmentHintText = 'Image (JPG, PNG, GIF) ou PDF — 10 Mo max.';
+$attachmentFilenameId = 'resp_file_chosen_name';
+$attachmentGroupClass = 'form-group';
+$attachmentError = $formErrors['response_attachment'] ?? '';
+$attachmentCurrentName = '';
+$attachmentShowRemoveCurrent = false;
+require __DIR__ . '/../templates/attachment_field.php';
+?>
 
         <div class="form-actions">
             <button type="submit" class="btn btn--primary">Enregistrer les modifications</button>

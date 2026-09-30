@@ -17,7 +17,6 @@ test.describe('Report Abandon Flow', () => {
   test('should navigate to abandon page from report_view', async ({ page }) => {
     // Create a report first
     await page.goto('/index.php?page=report_create&type=rsst');
-    await page.fill('#date_evenement', '2026-01-15');
     await page.fill('#objet', 'Test abandon flow');
     await page.fill('#description', 'Description pour test abandon');
     await page.fill('#pole', 'Pôle Test E2E');
@@ -46,7 +45,6 @@ test.describe('Report Abandon Flow', () => {
   test('should display confirmation message on abandon page', async ({ page }) => {
     // Create and navigate to abandon
     await page.goto('/index.php?page=report_create&type=rsst');
-    await page.fill('#date_evenement', '2026-01-15');
     await page.fill('#objet', 'Test abandon confirmation');
     await page.fill('#description', 'Description test');
     await page.fill('#pole', 'Pôle Test E2E');
@@ -108,7 +106,6 @@ test.describe('Report Create and View Cycle', () => {
     await page.goto('/index.php?page=report_create&type=rsst');
 
     // Fill form
-    await page.fill('#date_evenement', '2026-07-10');
     await page.fill('#objet', 'E2E Test RSST Report');
     await page.fill('#description', 'This is a test report created by E2E tests');
     await page.fill('#pole', 'Pôle Test E2E');
@@ -136,7 +133,6 @@ test.describe('Report Create and View Cycle', () => {
     if (page.url().includes('page=home')) return;
 
     // Fill base fields
-    await page.fill('#date_evenement', '2026-07-10');
     await page.fill('#objet', 'E2E Test RAMI Report');
     await page.fill('#description', 'RAMI test report');
     await page.fill('#pole', 'Pôle Test E2E');
@@ -163,7 +159,6 @@ test.describe('Report Create and View Cycle', () => {
   test('should edit an existing report', async ({ page }) => {
     // Create a report first
     await page.goto('/index.php?page=report_create&type=rsst');
-    await page.fill('#date_evenement', '2026-07-10');
     await page.fill('#objet', 'Report to edit');
     await page.fill('#description', 'Original description');
     await page.fill('#pole', 'Pôle Test E2E');

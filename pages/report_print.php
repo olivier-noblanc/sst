@@ -1,5 +1,6 @@
 <?php
 
+use App\Enum\ReportField;
 use App\Enum\ReportType;
 use App\Services\SessionService;
 use App\Services\AccessService;
@@ -56,7 +57,7 @@ $type = $reportType;
 $registryLabel = getRegistryLabel($type);
 $registryShortLabel = getRegistryShortLabel($type);
 // Libellé du champ « Objet » configurable par registre (clé app_field_objet_label_<code>).
-$objetLabel = reportFieldLabel($type, \App\Enum\ReportField::Objet);
+$objetLabel = reportFieldLabel($type, ReportField::Objet);
 $etatLabel = ETAT_LABELS[$reportEtat] ?? $reportEtat;
 
 // --- Build PDF with FPDF ---

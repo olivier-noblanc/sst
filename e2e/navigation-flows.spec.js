@@ -25,7 +25,6 @@ test.describe('Full Report Lifecycle Navigation', () => {
     await expect(page.locator('#objet')).toBeVisible();
 
     // Step 3: Fill and submit the form → report view
-    await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Navigation Flux Complet');
     await page.locator('#description').fill('Test de navigation complète à travers le cycle de vie d\'un signalement.');
     await page.locator('#pole').fill('Pôle Test E2E');
@@ -118,7 +117,6 @@ test.describe('Sidebar Active State', () => {
     // RAMI may be disabled — skip if page redirects to home
     await page.goto('/index.php?page=report_create&type=rami');
     if (page.url().includes('page=home')) return;
-    await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Sidebar Active RAMI');
     await page.locator('#description').fill('Test de l\'état actif du sidebar pour RAMI.');
     // Fix E2E: fill required fields (pole, telephone, site) so submit succeeds
@@ -152,7 +150,6 @@ test.describe('Browser Back/Forward Navigation', () => {
 
     // Create a report so we have one to view
     await page.goto('/index.php?page=report_create&type=rsst');
-    await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Back Navigation');
     await page.locator('#description').fill('Test de navigation avec le bouton retour du navigateur.');
     await page.locator('#pole').fill('Pôle Test E2E');
@@ -304,7 +301,6 @@ test.describe('Breadcrumb Navigation', () => {
   test('should navigate from report view to list via breadcrumb "Accueil"', async ({ page }) => {
     // Create a report
     await page.goto('/index.php?page=report_create&type=rsst');
-    await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Breadcrumb Accueil');
     await page.locator('#description').fill('Test navigation via breadcrumb.');
     await page.locator('#pole').fill('Pôle Test E2E');
@@ -320,7 +316,6 @@ test.describe('Breadcrumb Navigation', () => {
   test('should navigate from report view to list via breadcrumb registry link', async ({ page }) => {
     // Create an RSST report (RSST is always enabled; RAMI/DGI are conditional)
     await page.goto('/index.php?page=report_create&type=rsst');
-    await page.locator('#date_evenement').fill('2026-06-15');
     await page.locator('#objet').fill('Test Breadcrumb RSST');
     await page.locator('#description').fill('Test navigation via breadcrumb RSST.');
     await page.locator('#pole').fill('Pôle Test E2E');

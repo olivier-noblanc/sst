@@ -1,6 +1,7 @@
 <?php
 
 use App\Enum\ReportField;
+use App\Enum\VisibilityMode;
 use App\Services\ConfigService;
 
 /**
@@ -81,16 +82,15 @@ function getAppVersion(): string
 }
 
 /**
- * Texte explicatif du niveau de confidentialité d'un registre.
+ * Texte explicatif d'un niveau de visibilité pour un registre.
  *
- * Renvoie le texte personnalisé par l'admin s'il est défini, sinon le texte
- * par défaut passé par l'appelant (fallback = phrase actuelle). Le résultat
- * doit toujours être échappé par l'appelant (e()).
+ * Renvoie le texte personnalisé (par niveau, ou ancienne clé générique en
+ * repli), sinon le défaut contextuel fourni par l'appelant, sinon le défaut
+ * du niveau. Le résultat doit toujours être échappé par l'appelant (e()).
  */
-function confidentialityNote(string $registryCode, string $default): string
+function confidentialityNote(string $registryCode, VisibilityMode $mode, ?string $default = null): string
 {
-    $note = getConfigService()->getConfidentialityNote($registryCode);
-    return $note !== '' ? $note : $default;
+    return getConfigService()->getConfidentialityNote($registryCode, $mode, $default);
 }
 
 /**

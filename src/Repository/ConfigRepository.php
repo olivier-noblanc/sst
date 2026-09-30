@@ -41,18 +41,24 @@ class ConfigRepository
     }
 
     /**
-     * Écrit plusieurs clés de configuration dans UNE transaction (tout ou rien).
+     * Écrit plusieurs clés de configuration dans UNE transaction (tout ou rien)
+     * et/ou en supprime plusieurs, dans la même transaction.
      *
      * Fiabilisation (council) — les handlers de paramétrage écrivaient clé
      * par clé : une validation placée après N écritures laissait l'application
      * dans un état partiellement modifié. Toute clé invalidée ici invalide
      * l'ensemble (rollback + rethrow — crash hard, jamais d'échec silencieux).
      *
-     * @param array<string, string> $values Clés => valeurs à persister
+     * Les suppressions (`$deletions`) servent notamment à retirer proprement
+     * l'ancienne clé générique `app_confidentiality_note_<code>` après migration
+     * vers les clés par niveau.
+     *
+     * @param array<string, string> $values    Clés => valeurs à persister
+     * @param list<string>          $deletions Clés à supprimer
      */
-    public function setMany(array $values): void
+    public function setMany(array $values, array $deletions = []): void
     {
-        if ($values === []) {
+        if ($values === [] && $deletions === []) {
             return;
         }
         $this->pdo->beginTransaction();
@@ -60,11 +66,23 @@ class ConfigRepository
             foreach ($values as $cle => $valeur) {
                 $this->set((string) $cle, (string) $valeur);
             }
+            foreach ($deletions as $cle) {
+                $this->delete((string) $cle);
+            }
             $this->pdo->commit();
         } catch (Throwable $e) {
             $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Supprime une clé de configuration (no-op si absente).
+     */
+    public function delete(string $cle): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM config_app WHERE cle = :cle');
+        $stmt->execute([':cle' => $cle]);
     }
 
     /**

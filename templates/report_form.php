@@ -266,7 +266,7 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                     <!-- Décision métier (Oracle) — l'accès du CSA/CHSCT est
                          indépendant du consentement syndical : le texte est le
                          même quel que soit app_chsct_report_scope. -->
-                    <span class="form-hint form-hint--lg"><?php echo e(confidentialityNote($type, getConfigService()->confidentialityNoteDefaultAgentChoice())); ?></span>
+                    <span class="form-hint form-hint--lg"><?php echo e(confidentialityNote($type, \App\Enum\VisibilityMode::AgentChoice)); ?></span>
                     <!-- Warning visible uniquement quand la case est décochée — CSS :has(), pas de JavaScript -->
                     <div class="confidential-warning">
                         &#9888; <strong>Attention :</strong> ce signalement sera visible par tous les agents de votre <?php echo e(getConfigService()->get('app_label_unite', 'UR')); ?>, y compris son objet et sa description.
@@ -280,12 +280,15 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 <!-- Décision métier (Oracle) — l'accès du CSA/CHSCT est
                      indépendant du consentement syndical : le texte est le
                      même quel que soit app_chsct_report_scope. -->
-                <span class="form-hint"><?php echo e(confidentialityNote($type, getConfigService()->confidentialityNoteDefaultConfidential())); ?></span>
+                <span class="form-hint"><?php echo e(confidentialityNote($type, \App\Enum\VisibilityMode::Confidential)); ?></span>
             </div>
             <?php elseif (reportVisibilityIsPublic($type)): ?>
             <input type="hidden" name="is_confidential" value="0">
+            <?php // Niveau « Public » : texte explicatif du niveau applicable
+                  // (configurable par registre, repli sur le défaut approprié). ?>
+            <span class="form-hint"><?php echo e(confidentialityNote($type, \App\Enum\VisibilityMode::Public)); ?></span>
             <?php endif; ?>
-            <?php if (getConfigService()->isConsentSyndicatEnabled()): ?>
+            <?php if (getConfigService()->isConsentSyndicatEnabled($type)): ?>
             <!-- Consent: transmission to union representatives.
                  La case est une CONSIGNE pour le superviseur : elle ne déclenche
                  rien automatiquement, il exécute l'instruction en lançant l'envoi.
@@ -305,10 +308,11 @@ $submitBtnClass = $isEdit ? 'btn--' . $colorTheme : 'btn--primary';
                 </span>
             </div>
             <?php else: ?>
-            <?php // Case masquée par le réglage admin (app_consent_syndicat_enabled) :
-                  // on ne collecte aucune nouvelle réponse mais on préserve la
-                  // valeur déjà enregistrée (édition) via un champ caché, jamais
-                  // réinitialisée en silence. ?>
+            <?php // Case masquée par le réglage admin (par registre
+                  // `app_consent_syndicat_enabled_<code>`, repli global
+                  // `app_consent_syndicat_enabled`) : on ne collecte aucune
+                  // nouvelle réponse mais on préserve la valeur déjà enregistrée
+                  // (édition) via un champ caché, jamais réinitialisée en silence. ?>
             <input type="hidden" name="consent_syndicat" value="<?php echo $consentSyndicatSticky ? '1' : '0'; ?>">
             <?php endif; ?>
             <div class="form-group">

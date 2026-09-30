@@ -185,6 +185,24 @@ $visibilityModes = [
             </div>
         </div>
 
+        <!-- Affichage de la case de consentement de transmission syndicale (par registre) -->
+        <div class="form-group">
+            <label class="toggle-switch-label">
+                <input type="checkbox" name="registres[<?php echo $regId; ?>][consent_syndicat_enabled]" value="1"
+                       id="registres_<?php echo $regId; ?>_consent_syndicat_enabled"
+                       class="toggle-switch__input"
+                       <?php echo getConfigService()->isConsentSyndicatEnabled((string) $regCode) ? 'checked' : ''; ?>>
+                <span class="toggle-switch" aria-hidden="true"></span>
+                <span>Afficher la case de consentement de transmission aux organisations syndicales</span>
+            </label>
+            <small class="text-muted block mt-1">
+                Case « J'accepte que mon signalement soit transmis aux organisations syndicales représentatives ».
+                Désactivée, elle est masquée dans le formulaire de dépôt de ce registre, sur la fiche (et le PDF)
+                et dans les exports ; la valeur déjà enregistrée est conservée. Repli sur l'onglet Application
+                si ce registre n'est pas personnalisé.
+            </small>
+        </div>
+
         <!-- Legal note -->
         <div class="form-group">
             <label for="registres_<?php echo $regId; ?>_legal_note">Note légale (affichée dans le formulaire)</label>
@@ -193,21 +211,31 @@ $visibilityModes = [
                       class="input" rows="2" maxlength="500"><?php echo $fmt->e($legalNote); ?></textarea>
         </div>
 
-        <!-- Texte de confidentialité (phrase explicative du niveau « Confidentiel ») -->
-        <?php
-        $confNoteValue = getConfigService()->getConfidentialityNote((string) $regCode);
-        $confNoteDefault = getConfigService()->confidentialityNoteDefaultAgentChoice();
-        ?>
-        <div class="form-group">
-            <label for="registres_<?php echo $regId; ?>_confidentiality_note">Texte de confidentialité (affiché près du niveau « Confidentiel »)</label>
-            <textarea id="registres_<?php echo $regId; ?>_confidentiality_note"
-                      name="registres[<?php echo $regId; ?>][confidentiality_note]"
-                      class="input" rows="2" maxlength="500"
-                      placeholder="<?php echo $fmt->e($confNoteDefault); ?>"><?php echo $fmt->e($confNoteValue); ?></textarea>
-            <small class="text-muted block mt-1">
-                Laisser vide pour utiliser le texte par défaut. Ce texte remplace la phrase explicative
-                affichée dans le formulaire de dépôt et sur la fiche du signalement (jamais la politique d'accès).
+        <!-- Textes explicatifs par niveau de visibilité (configurable par registre) -->
+        <div class="mb-4">
+            <h4 class="card__subtitle mb-2">Textes explicatifs par niveau de visibilité</h4>
+            <small class="text-muted block mb-2">
+                Un texte par niveau réel de visibilité (public, choix de l'agent, confidentiel). Laisser vide
+                pour utiliser le texte par défaut (affiché en gris). Ce texte remplace la phrase explicative du
+                formulaire de dépôt et, pour le niveau Confidentiel, celle de la fiche du signalement — jamais
+                la politique d'accès.
             </small>
+            <?php foreach (VisibilityMode::cases() as $noteMode): ?>
+            <?php
+                $noteFieldName = 'confidentiality_note_' . $noteMode->value;
+                $noteValue = getConfigService()->getConfidentialityNoteCustom((string) $regCode, $noteMode);
+                $noteDefault = getConfigService()->confidentialityNoteDefault($noteMode);
+            ?>
+            <div class="form-group">
+                <label for="registres_<?php echo $regId; ?>_<?php echo $fmt->e($noteFieldName); ?>">
+                    Texte explicatif — niveau « <?php echo $fmt->e($visibilityModes[$noteMode->value]); ?> »
+                </label>
+                <textarea id="registres_<?php echo $regId; ?>_<?php echo $fmt->e($noteFieldName); ?>"
+                          name="registres[<?php echo $regId; ?>][<?php echo $fmt->e($noteFieldName); ?>]"
+                          class="input" rows="2" maxlength="500"
+                          placeholder="<?php echo $fmt->e($noteDefault); ?>"><?php echo $fmt->e($noteValue); ?></textarea>
+            </div>
+            <?php endforeach; ?>
         </div>
 
         <!-- Champs métier configurables (activation + libellé), par registre -->

@@ -157,6 +157,8 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
     // texte de confidentialité + activation/libellés des champs métier.
     /** @var array<string, string> $registryConfig */
     $registryConfig = [];
+    /** @var list<string> $registryConfigDeletes */
+    $registryConfigDeletes = [];
 
     foreach ($registres as $regId => $data) {
         $id = (int) $regId;
@@ -198,14 +200,32 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             legalNote: trim((string) ($data['legal_note'] ?? '')),
         ));
 
-        // Texte de confidentialité — stocké en config (pattern settings),
-        // jamais en colonne registries. `array_key_exists` : ne pas écraser
-        // une valeur existante si le champ est absent du POST.
+        // Textes explicatifs par niveau de visibilité — stockés en config
+        // (pattern settings), jamais en colonne registries. L'onglet soumet les
+        // TROIS zones ; on écrit les trois clés par niveau puis on MIGRE
+        // l'ancienne clé générique (supprimée dans la même transaction). Le
+        // garde `array_key_exists` évite d'écraser si le POST est partiel.
         $regCode = (string) $existing['code'];
-        if (array_key_exists('confidentiality_note', $data)) {
-            $registryConfig['app_confidentiality_note_' . $regCode]
-                = trim((string) $data['confidentiality_note']);
+        $noteFieldsPresent = false;
+        foreach (VisibilityMode::cases() as $mode) {
+            if (array_key_exists('confidentiality_note_' . $mode->value, $data)) {
+                $noteFieldsPresent = true;
+                break;
+            }
         }
+        if ($noteFieldsPresent) {
+            foreach (VisibilityMode::cases() as $mode) {
+                $registryConfig['app_confidentiality_note_' . $mode->value . '_' . $regCode]
+                    = trim((string) ($data['confidentiality_note_' . $mode->value] ?? ''));
+            }
+            $registryConfigDeletes[] = 'app_confidentiality_note_' . $regCode;
+        }
+
+        // Affichage de la case de consentement de transmission syndicale,
+        // configurable PAR REGISTRE (clé `app_consent_syndicat_enabled_<code>`,
+        // repli global rétrocompatible). Case décochée = absente du POST → '0'.
+        $registryConfig['app_consent_syndicat_enabled_' . $regCode]
+            = !empty($data['consent_syndicat_enabled']) ? '1' : '0';
 
         // Champs métier configurables par registre (clés `app_field_<field>_*_<code>`).
         // Le formulaire de l'onglet les soumet toujours : une case décochée est
@@ -223,8 +243,8 @@ function handleSettingsRegistresTab(PDO $pdo, array $postData): void
             = trim((string) ($data['field_objet_label'] ?? ''));
     }
 
-    if ($registryConfig !== []) {
-        getConfigService()->setMany($registryConfig);
+    if ($registryConfig !== [] || $registryConfigDeletes !== []) {
+        getConfigService()->setMany($registryConfig, $registryConfigDeletes);
     }
 
     $session->setFlash('success', 'Registres mis à jour avec succès.');

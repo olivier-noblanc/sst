@@ -320,7 +320,7 @@ class ExportService
         // insérée à sa position historique. Masquée partout (en-tête + valeur)
         // quand le consentement syndical est désactivé dans les paramètres, pour
         // conserver l'alignement en-têtes/valeurs.
-        if ($this->config->isConsentSyndicatEnabled()) {
+        if ($this->config->isConsentSyndicatEnabled($registryCode)) {
             $headers[] = $this->config->transmissionLabel();
         }
         $headers = array_merge($headers, self::FOOTER_COLUMNS_AFTER_TRANSMISSION);
@@ -396,7 +396,7 @@ class ExportService
         // Valeur de la colonne « Transmission » — omise avec son en-tête quand
         // le consentement syndical est désactivé (cf. buildHeaders), pour un
         // alignement strict en-têtes/valeurs dans le CSV.
-        if ($this->config->isConsentSyndicatEnabled()) {
+        if ($this->config->isConsentSyndicatEnabled($registryCode)) {
             $footerColumns[] = !empty($row['consent_syndicat']) ? 'Acceptée' : 'Refusée';
         }
         $csvRow = array_merge($csvRow, $footerColumns, [

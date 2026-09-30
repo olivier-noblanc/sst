@@ -126,7 +126,7 @@ $fields = [
     'Lieu'                  => $reportLieu,
     $objetLabel             => $reportObjet,
 ];
-if (getConfigService()->isConsentSyndicatEnabled()) {
+if (getConfigService()->isConsentSyndicatEnabled($type)) {
     $fields[transmissionLabel()] = $reportConsentSyndicat !== 0 ? 'Acceptée' : 'Refusée';
 }
 

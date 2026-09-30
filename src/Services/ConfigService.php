@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enum\ReportField;
 use App\Enum\UserRole;
+use App\Enum\VisibilityMode;
 use App\Repository\ConfigRepository;
 use App\Repository\RegistryRepository;
 use App\Repository\SiteRepository;
@@ -51,10 +52,11 @@ class ConfigService
      * paramétrage pour empêcher toute persistance partielle.
      *
      * @param array<string, string> $values
+     * @param list<string>          $deletions Clés à supprimer dans la même transaction
      */
-    public function setMany(array $values): void
+    public function setMany(array $values, array $deletions = []): void
     {
-        ConfigRepository::instance()->setMany($values);
+        ConfigRepository::instance()->setMany($values, $deletions);
         $this->clearCache();
     }
 
@@ -127,46 +129,80 @@ class ConfigService
     }
 
     /**
-     * Texte explicatif du niveau de confidentialité, personnalisable PAR REGISTRE.
+     * Clé de configuration du texte explicatif d'un niveau de visibilité pour
+     * un registre donné : `app_confidentiality_note_<niveau>_<code>`.
      *
-     * Clé : `app_confidentiality_note_<code>` (code du registre, ex. `rsst`,
-     * `ami`…). La méthode renvoie '' quand rien n'est défini : c'est l'appelant
-     * qui fournit alors le texte par défaut actuel (fallback), afin de ne jamais
-     * figer le défaut ici (il dépend du mode de visibilité et des libellés
-     * configurables de rôle / d'unité).
+     * Le niveau est la valeur de l'enum VisibilityMode (public, agent_choice,
+     * confidential) : les textes sont donc paramétrables PAR REGISTRE **et**
+     * PAR NIVEAU RÉEL (et non plus rattachés arbitrairement au seul niveau
+     * Confidentiel).
      */
-    public function getConfidentialityNote(string $registryCode): string
+    public function confidentialityNoteKey(string $registryCode, VisibilityMode $mode): string
     {
-        return $this->get('app_confidentiality_note_' . $registryCode, '');
+        return 'app_confidentiality_note_' . $mode->value . '_' . $registryCode;
     }
 
     /**
-     * Texte par défaut actuel — mode « Choix de l'agent » (case à cocher).
-     *
-     * Libellé de rôle et libellé d'unité configurables : construits ici pour
-     * ne pas dupliquer la phrase entre le formulaire et l'écran d'admin.
+     * Ancienne clé générique `app_confidentiality_note_<code>` (un seul texte
+     * pour tous les niveaux). Conservée en LECTURE comme repli rétrocompatible ;
+     * elle est migrée puis supprimée lors de l'enregistrement de l'onglet
+     * Registres.
      */
-    public function confidentialityNoteDefaultAgentChoice(): string
+    public function legacyConfidentialityNoteKey(string $registryCode): string
+    {
+        return 'app_confidentiality_note_' . $registryCode;
+    }
+
+    /**
+     * Texte personnalisé ('' si aucun défini) : spécifique au niveau s'il
+     * existe, sinon ancienne clé générique (rétrocompatibilité). Aucun défaut
+     * ici — le défaut est contextuel (cf. getConfidentialityNote()).
+     */
+    public function getConfidentialityNoteCustom(string $registryCode, VisibilityMode $mode): string
+    {
+        $override = $this->get($this->confidentialityNoteKey($registryCode, $mode), '');
+        if ($override !== '') {
+            return $override;
+        }
+        return $this->get($this->legacyConfidentialityNoteKey($registryCode), '');
+    }
+
+    /**
+     * Texte explicatif effectif d'un niveau de visibilité pour un registre.
+     *
+     * Ordre de résolution : texte personnalisé (niveau puis ancienne clé) →
+     * défaut contextuel fourni par l'appelant → défaut du niveau. Le défaut
+     * dépend de libellés configurables (rôle, unité) : il est construit ici
+     * pour ne jamais être figé en base ni dupliqué entre le formulaire et
+     * l'écran d'administration.
+     */
+    public function getConfidentialityNote(string $registryCode, VisibilityMode $mode, ?string $default = null): string
+    {
+        $custom = $this->getConfidentialityNoteCustom($registryCode, $mode);
+        if ($custom !== '') {
+            return $custom;
+        }
+        return $default ?? $this->confidentialityNoteDefault($mode);
+    }
+
+    /**
+     * Texte par défaut (rétrocompatible ou approprié) d'un niveau de visibilité.
+     */
+    public function confidentialityNoteDefault(VisibilityMode $mode): string
     {
         $roleLabel = $this->getRoleLabelShort(UserRole::Chsct->value);
         $unitLabel = $this->get('app_label_unite', 'UR');
 
-        return 'Si coché, ce signalement ne sera visible que par vous, les superviseurs '
-            . 'et les membres du rôle « ' . $roleLabel . ' ». L\'accès des membres du rôle '
-            . 'ne dépend jamais du consentement syndical. Décochez pour le rendre visible '
-            . 'par tous les agents de votre ' . $unitLabel . '.';
-    }
-
-    /**
-     * Texte par défaut actuel — mode « Confidentiel » (niveau imposé).
-     */
-    public function confidentialityNoteDefaultConfidential(): string
-    {
-        $roleLabel = $this->getRoleLabelShort(UserRole::Chsct->value);
-
-        return 'Le mode de visibilité est « Confidentiel » : votre signalement n\'est visible '
-            . 'que par vous, les superviseurs et les membres du rôle « ' . $roleLabel . ' ». '
-            . 'L\'accès des membres du rôle ne dépend jamais du consentement syndical.';
+        return match ($mode) {
+            VisibilityMode::Confidential => 'Le mode de visibilité est « Confidentiel » : votre signalement n\'est visible '
+                . 'que par vous, les superviseurs et les membres du rôle « ' . $roleLabel . ' ». '
+                . 'L\'accès des membres du rôle ne dépend jamais du consentement syndical.',
+            VisibilityMode::AgentChoice => 'Si coché, ce signalement ne sera visible que par vous, les superviseurs '
+                . 'et les membres du rôle « ' . $roleLabel . ' ». L\'accès des membres du rôle '
+                . 'ne dépend jamais du consentement syndical. Décochez pour le rendre visible '
+                . 'par tous les agents de votre ' . $unitLabel . '.',
+            VisibilityMode::Public => 'Ce signalement est visible par tous les agents de votre ' . $unitLabel . '.',
+        };
     }
 
     /**
@@ -186,14 +222,28 @@ class ConfigService
      * (« J'accepte que mon signalement soit transmis aux organisations
      * syndicales représentatives ») doit être affichée dans l'application.
      *
-     * Clé `app_consent_syndicat_enabled` : '1' (défaut, rétrocompatible) ou
-     * '0'. Lorsqu'elle est désactivée, la case du formulaire de dépôt, la
-     * ligne de transmission de la fiche (et du PDF) ainsi que la colonne
-     * correspondante des exports CSV disparaissent. La valeur déjà
-     * enregistrée en base reste conservée (elle n'est jamais réinitialisée).
+     * Sans argument → interrupteur GLOBAL `app_consent_syndicat_enabled`
+     * (onglet Application) : '1' (défaut, rétrocompatible) ou '0'.
+     *
+     * Avec un code de registre → réglage PAR REGISTRE
+     * `app_consent_syndicat_enabled_<code>` (onglet Registres) ; s'il n'est pas
+     * défini, repli sur l'interrupteur global (rétrocompatibilité : les
+     * registres existants gardent le comportement global tant qu'ils ne sont
+     * pas personnalisés).
+     *
+     * Lorsqu'elle est désactivée, la case du formulaire de dépôt, la ligne de
+     * transmission de la fiche (et du PDF) ainsi que la colonne correspondante
+     * des exports CSV disparaissent. La valeur déjà enregistrée en base reste
+     * conservée (elle n'est jamais réinitialisée).
      */
-    public function isConsentSyndicatEnabled(): bool
+    public function isConsentSyndicatEnabled(?string $registryCode = null): bool
     {
+        if ($registryCode !== null && $registryCode !== '') {
+            $perRegistry = $this->get('app_consent_syndicat_enabled_' . $registryCode, '');
+            if ($perRegistry !== '') {
+                return $perRegistry === '1';
+            }
+        }
         return $this->get('app_consent_syndicat_enabled', '1') === '1';
     }
 

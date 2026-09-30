@@ -2,27 +2,42 @@
 /**
  * Confidentiality Note Test — Application SST DREETS BFC
  *
- * Feature : la phrase explicative du niveau de confidentialité est
- * paramétrable PAR REGISTRE (clé config `app_confidentiality_note_<code>`,
- * stockée dans config_app via ConfigService/ConfigRepository).
+ * Feature : la phrase explicative d'un niveau de confidentialité est
+ * paramétrable PAR REGISTRE **ET PAR NIVEAU DE VISIBILITÉ** (clés config
+ * `app_confidentiality_note_<niveau>_<code>`, stockées dans config_app via
+ * ConfigService/ConfigRepository). Les niveaux sont les valeurs de l'enum
+ * App\Enum\VisibilityMode : public, agent_choice, confidential.
+ *
+ * Rétrocompatibilité : l'ancienne clé générique `app_confidentiality_note_<code>`
+ * reste lue en repli (fallback) tant qu'aucun texte spécifique au niveau n'est
+ * défini ; elle est supprimée lors de l'enregistrement depuis l'onglet Registres
+ * (migration propre, atomique).
  *
  * Couverture ciblée (rapide) :
- *  - ConfigService::getConfidentialityNote() : '' si non défini, valeur si défini
- *  - helper confidentialityNote() : fallback sur le défaut actuel quand vide
- *  - formulaire de dépôt (report_create) : défaut puis texte admin
- *  - fiche signalement (report_card via report_view) : défaut puis texte admin
- *  - handler settings (onglet registres) : persiste la clé par registre
+ *  - ConfigService : défauts par niveau, surcharge par niveau, fallback legacy ;
+ *  - helper confidentialityNote() : défaut contextuel puis texte admin ;
+ *  - formulaire de dépôt : texte du niveau réellement sélectionné ;
+ *  - fiche signalement (report_card) : texte du niveau applicable ;
+ *  - handler settings (onglet registres) : persiste les 3 clés + migre legacy.
  */
 
 use PHPUnit\Framework\TestCase;
 use App\DTO\SessionUser;
+use App\Enum\VisibilityMode;
 use App\Services\ConfigService;
 
 class ConfidentialityNoteTest extends TestCase
 {
-    private const CONFIG_KEY_NOTE = 'app_confidentiality_note_rsst';
+    private const LEGACY_KEY          = 'app_confidentiality_note_rsst';
+    private const KEY_CONFIDENTIAL    = 'app_confidentiality_note_confidential_rsst';
+    private const KEY_AGENT_CHOICE    = 'app_confidentiality_note_agent_choice_rsst';
+    private const KEY_PUBLIC          = 'app_confidentiality_note_public_rsst';
     private const CONFIG_KEY_VISIBILITY = 'app_report_visibility_rsst';
-    private const CUSTOM_NOTE = 'NOTE-PERSO-CONFIDENTIALITE';
+
+    private const CUSTOM_CONFIDENTIAL = 'TEXTE-PERSO-CONFIDENTIEL';
+    private const CUSTOM_AGENT        = 'TEXTE-PERSO-CHOIX-AGENT';
+    private const CUSTOM_PUBLIC       = 'TEXTE-PERSO-PUBLIC';
+    private const LEGACY_TEXT         = 'ANCIEN-TEXTE-GENERIQUE';
 
     private static bool $bootstrapped = false;
     private static int $siteId = 951;
@@ -66,13 +81,19 @@ class ConfidentialityNoteTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         $this->previousVisibility = getConfigService()->get(self::CONFIG_KEY_VISIBILITY, '');
-        $this->deleteConfigKey(self::CONFIG_KEY_NOTE);
+        $this->deleteConfigKey(self::LEGACY_KEY);
+        $this->deleteConfigKey(self::KEY_CONFIDENTIAL);
+        $this->deleteConfigKey(self::KEY_AGENT_CHOICE);
+        $this->deleteConfigKey(self::KEY_PUBLIC);
         $this->deleteConfigKey(self::CONFIG_KEY_VISIBILITY);
     }
 
     protected function tearDown(): void
     {
-        $this->deleteConfigKey(self::CONFIG_KEY_NOTE);
+        $this->deleteConfigKey(self::LEGACY_KEY);
+        $this->deleteConfigKey(self::KEY_CONFIDENTIAL);
+        $this->deleteConfigKey(self::KEY_AGENT_CHOICE);
+        $this->deleteConfigKey(self::KEY_PUBLIC);
         if ($this->previousVisibility !== null && $this->previousVisibility !== '') {
             getConfigService()->set(self::CONFIG_KEY_VISIBILITY, $this->previousVisibility);
         } else {
@@ -126,108 +147,185 @@ class ConfidentialityNoteTest extends TestCase
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // ConfigService::getConfidentialityNote()
+    // ConfigService — clés, défauts, surcharge par niveau, fallback legacy
     // ═══════════════════════════════════════════════════════════════════════════
 
-    public function testGetConfidentialityNoteReturnsEmptyWhenUnset(): void
+    public function testNoteKeyIsScopedByLevelAndRegistry(): void
     {
         $service = new ConfigService();
-        $this->assertSame('', $service->getConfidentialityNote('rsst'));
+        $this->assertSame(
+            'app_confidentiality_note_confidential_rsst',
+            $service->confidentialityNoteKey('rsst', VisibilityMode::Confidential)
+        );
+        $this->assertSame(
+            'app_confidentiality_note_agent_choice_ami',
+            $service->confidentialityNoteKey('ami', VisibilityMode::AgentChoice)
+        );
+        $this->assertSame(
+            'app_confidentiality_note_public_rsst',
+            $service->confidentialityNoteKey('rsst', VisibilityMode::Public)
+        );
+        $this->assertSame('app_confidentiality_note_rsst', $service->legacyConfidentialityNoteKey('rsst'));
     }
 
-    public function testGetConfidentialityNoteReturnsStoredValue(): void
+    public function testDefaultsAreCurrentOrAppropriateTexts(): void
     {
-        getConfigService()->set(self::CONFIG_KEY_NOTE, self::CUSTOM_NOTE);
         $service = new ConfigService();
-        $this->assertSame(self::CUSTOM_NOTE, $service->getConfidentialityNote('rsst'));
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Helper confidentialityNote() — fallback sur le défaut actuel
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    public function testHelperReturnsDefaultWhenUnset(): void
-    {
-        $this->assertSame('DEFAULT-TEXT', confidentialityNote('rsst', 'DEFAULT-TEXT'));
-    }
-
-    public function testHelperReturnsStoredValueOverDefault(): void
-    {
-        getConfigService()->set(self::CONFIG_KEY_NOTE, self::CUSTOM_NOTE);
-        $this->assertSame(self::CUSTOM_NOTE, confidentialityNote('rsst', 'DEFAULT-TEXT'));
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Formulaire de dépôt (report_create)
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    public function testReportFormShowsDefaultConfidentialNoteWhenUnset(): void
-    {
-        getConfigService()->set(self::CONFIG_KEY_VISIBILITY, 'confidential');
-        $output = $this->renderReportCreate();
 
         $this->assertStringContainsString(
             'Le mode de visibilité est « Confidentiel »',
-            $output,
-            'Sans personnalisation, le formulaire affiche la phrase par défaut actuelle.'
+            $service->confidentialityNoteDefault(VisibilityMode::Confidential)
         );
-    }
-
-    public function testReportFormShowsCustomNoteAndHidesDefaultWhenSet(): void
-    {
-        getConfigService()->set(self::CONFIG_KEY_VISIBILITY, 'confidential');
-        getConfigService()->set(self::CONFIG_KEY_NOTE, self::CUSTOM_NOTE);
-
-        $output = $this->renderReportCreate();
-
-        $this->assertStringContainsString(self::CUSTOM_NOTE, $output, 'Le texte admin doit remplacer la phrase par défaut.');
-        $this->assertStringNotContainsString(
-            'Le mode de visibilité est « Confidentiel »',
-            $output,
-            'La phrase par défaut ne doit plus apparaître quand un texte admin est défini.'
-        );
-    }
-
-    public function testReportFormAgentChoiceShowsDefaultNoteWhenUnset(): void
-    {
-        getConfigService()->set(self::CONFIG_KEY_VISIBILITY, 'agent_choice');
-        $output = $this->renderReportCreate();
-
         $this->assertStringContainsString(
             'Si coché, ce signalement ne sera visible que par vous',
-            $output,
-            'En mode « Choix de l\'agent », la phrase par défaut actuelle est affichée près de la case.'
+            $service->confidentialityNoteDefault(VisibilityMode::AgentChoice)
         );
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Fiche signalement (report_card via report_view)
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    public function testReportCardShowsDefaultNoteWhenUnset(): void
-    {
-        $output = $this->renderReportView();
-
         $this->assertStringContainsString(
-            '(Visible uniquement par le déclarant, les superviseurs',
-            $output,
-            'Sans personnalisation, la fiche affiche la phrase de confidentialité par défaut.'
+            'visible par tous les agents',
+            $service->confidentialityNoteDefault(VisibilityMode::Public)
         );
     }
 
-    public function testReportCardShowsCustomNoteWhenSet(): void
+    public function testNoCustomNoteReturnsContextualDefault(): void
     {
-        getConfigService()->set(self::CONFIG_KEY_NOTE, self::CUSTOM_NOTE);
-        $output = $this->renderReportView();
+        $service = new ConfigService();
+        $this->assertSame(
+            $service->confidentialityNoteDefault(VisibilityMode::Confidential),
+            $service->getConfidentialityNote('rsst', VisibilityMode::Confidential)
+        );
+        $this->assertSame(
+            'DEFAULT-CTX',
+            $service->getConfidentialityNote('rsst', VisibilityMode::AgentChoice, 'DEFAULT-CTX')
+        );
+    }
 
-        $this->assertStringContainsString(self::CUSTOM_NOTE, $output, 'La fiche affiche le texte admin pour le registre.');
+    public function testPerLevelOverrideIsIndependent(): void
+    {
+        getConfigService()->set(self::KEY_CONFIDENTIAL, self::CUSTOM_CONFIDENTIAL);
+        getConfigService()->set(self::KEY_AGENT_CHOICE, self::CUSTOM_AGENT);
+
+        $service = new ConfigService();
+        $this->assertSame(self::CUSTOM_CONFIDENTIAL, $service->getConfidentialityNote('rsst', VisibilityMode::Confidential));
+        $this->assertSame(self::CUSTOM_AGENT, $service->getConfidentialityNote('rsst', VisibilityMode::AgentChoice));
+        // Niveau non personnalisé → défaut, pas de contamination inter-niveaux.
+        $this->assertSame(
+            $service->confidentialityNoteDefault(VisibilityMode::Public),
+            $service->getConfidentialityNote('rsst', VisibilityMode::Public)
+        );
+    }
+
+    public function testLegacyKeyIsReadAsFallbackForEveryLevel(): void
+    {
+        getConfigService()->set(self::LEGACY_KEY, self::LEGACY_TEXT);
+        $service = new ConfigService();
+
+        $this->assertSame(self::LEGACY_TEXT, $service->getConfidentialityNote('rsst', VisibilityMode::Confidential));
+        $this->assertSame(self::LEGACY_TEXT, $service->getConfidentialityNote('rsst', VisibilityMode::AgentChoice));
+        $this->assertSame(self::LEGACY_TEXT, $service->getConfidentialityNote('rsst', VisibilityMode::Public));
+        $this->assertSame(self::LEGACY_TEXT, $service->getConfidentialityNoteCustom('rsst', VisibilityMode::Confidential));
+    }
+
+    public function testLevelOverrideShadowsLegacyKey(): void
+    {
+        getConfigService()->set(self::LEGACY_KEY, self::LEGACY_TEXT);
+        getConfigService()->set(self::KEY_CONFIDENTIAL, self::CUSTOM_CONFIDENTIAL);
+        $service = new ConfigService();
+
+        $this->assertSame(self::CUSTOM_CONFIDENTIAL, $service->getConfidentialityNote('rsst', VisibilityMode::Confidential));
+        // Les autres niveaux retombent sur le legacy (rétrocompatibilité).
+        $this->assertSame(self::LEGACY_TEXT, $service->getConfidentialityNote('rsst', VisibilityMode::AgentChoice));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // Handler settings — persistance par registre
+    // Helper confidentialityNote() — défaut contextuel puis texte admin
     // ═══════════════════════════════════════════════════════════════════════════
 
-    public function testSettingsRegistresHandlerPersistsConfidentialityNote(): void
+    public function testHelperUsesDefaultWhenUnset(): void
+    {
+        $this->assertSame('DEFAULT-TEXT', confidentialityNote('rsst', VisibilityMode::Confidential, 'DEFAULT-TEXT'));
+    }
+
+    public function testHelperUsesStoredLevelValue(): void
+    {
+        getConfigService()->set(self::KEY_CONFIDENTIAL, self::CUSTOM_CONFIDENTIAL);
+        $this->assertSame(self::CUSTOM_CONFIDENTIAL, confidentialityNote('rsst', VisibilityMode::Confidential, 'DEFAULT-TEXT'));
+    }
+
+    public function testHelperUsesLegacyValueAsFallback(): void
+    {
+        getConfigService()->set(self::LEGACY_KEY, self::LEGACY_TEXT);
+        $this->assertSame(self::LEGACY_TEXT, confidentialityNote('rsst', VisibilityMode::AgentChoice, 'DEFAULT-TEXT'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Formulaire de dépôt — texte du niveau réellement sélectionné
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public function testConfidentialModeShowsItsDefaultAndCustomText(): void
+    {
+        getConfigService()->set(self::CONFIG_KEY_VISIBILITY, VisibilityMode::Confidential->value);
+        $this->assertStringContainsString('Le mode de visibilité est « Confidentiel »', $this->renderReportCreate());
+
+        getConfigService()->set(self::KEY_CONFIDENTIAL, self::CUSTOM_CONFIDENTIAL);
+        $output = $this->renderReportCreate();
+        $this->assertStringContainsString(self::CUSTOM_CONFIDENTIAL, $output);
+        $this->assertStringNotContainsString('Le mode de visibilité est « Confidentiel »', $output);
+    }
+
+    public function testAgentChoiceModeShowsItsOwnTextOnly(): void
+    {
+        getConfigService()->set(self::CONFIG_KEY_VISIBILITY, VisibilityMode::AgentChoice->value);
+        getConfigService()->set(self::KEY_AGENT_CHOICE, self::CUSTOM_AGENT);
+        getConfigService()->set(self::KEY_CONFIDENTIAL, self::CUSTOM_CONFIDENTIAL);
+
+        $output = $this->renderReportCreate();
+        $this->assertStringContainsString(self::CUSTOM_AGENT, $output, 'Le mode Choix de l\'agent affiche son propre texte.');
+        $this->assertStringNotContainsString(self::CUSTOM_CONFIDENTIAL, $output, 'Le texte Confidentiel ne doit pas fuiter en mode Choix de l\'agent.');
+    }
+
+    public function testPublicModeShowsItsOwnText(): void
+    {
+        getConfigService()->set(self::CONFIG_KEY_VISIBILITY, VisibilityMode::Public->value);
+        $this->assertStringContainsString('visible par tous les agents', $this->renderReportCreate());
+
+        getConfigService()->set(self::KEY_PUBLIC, self::CUSTOM_PUBLIC);
+        $output = $this->renderReportCreate();
+        $this->assertStringContainsString(self::CUSTOM_PUBLIC, $output);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Fiche signalement (report_card via report_view) — niveau applicable
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public function testReportCardShowsDefaultConfidentialNoteWhenUnset(): void
+    {
+        $output = $this->renderReportView();
+        $this->assertStringContainsString('(Visible uniquement par le déclarant, les superviseurs', $output);
+    }
+
+    public function testReportCardUsesConfidentialLevelText(): void
+    {
+        getConfigService()->set(self::KEY_CONFIDENTIAL, self::CUSTOM_CONFIDENTIAL);
+        getConfigService()->set(self::KEY_AGENT_CHOICE, self::CUSTOM_AGENT);
+
+        $output = $this->renderReportView();
+        $this->assertStringContainsString(self::CUSTOM_CONFIDENTIAL, $output, 'La fiche affiche le texte du niveau Confidentiel.');
+        $this->assertStringNotContainsString(self::CUSTOM_AGENT, $output, 'Le texte du niveau Choix de l\'agent ne doit pas apparaître sur la fiche.');
+        $this->assertStringNotContainsString('(Visible uniquement par le déclarant', $output);
+    }
+
+    public function testReportCardFallsBackToLegacyText(): void
+    {
+        getConfigService()->set(self::LEGACY_KEY, self::LEGACY_TEXT);
+        $output = $this->renderReportView();
+        $this->assertStringContainsString(self::LEGACY_TEXT, $output);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Handler settings — persistance par niveau + migration de l'ancienne clé
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    public function testSettingsRegistresHandlerPersistsNotesAndMigratesLegacy(): void
     {
         $token = bin2hex(random_bytes(32));
         $session = [
@@ -254,19 +352,29 @@ class ConfidentialityNoteTest extends TestCase
                         'sort_order' => 50,
                         'default_visibility' => 'agent_choice',
                         'legal_note' => '',
-                        'confidentiality_note' => self::CUSTOM_NOTE,
+                        'confidentiality_note_confidential' => self::CUSTOM_CONFIDENTIAL,
+                        'confidentiality_note_agent_choice' => self::CUSTOM_AGENT,
+                        'confidentiality_note_public' => self::CUSTOM_PUBLIC,
                     ],
                 ],
             ],
             'db_seed' => "INSERT INTO registries (id, code, label, short_label, description, icon, color_theme, is_enabled, is_system, sort_order, default_visibility, notify_chsct) "
-                . "VALUES (600, 'cn_registre', 'Registre test note', 'TCN', '', '📋', 'vert', 1, 0, 50, 'agent_choice', 0);",
+                . "VALUES (600, 'cn_registre', 'Registre test note', 'TCN', '', '📋', 'vert', 1, 0, 50, 'agent_choice', 0);"
+                . "\nINSERT INTO config_app (cle, valeur, type, categorie, libelle, modifiable) "
+                . "VALUES ('app_confidentiality_note_cn_registre', 'ANCIEN', '', '', '', 1);",
             'assertions' => [
-                'note_value' => "SELECT valeur FROM config_app WHERE cle = 'app_confidentiality_note_cn_registre'",
+                'confidential' => "SELECT valeur FROM config_app WHERE cle = 'app_confidentiality_note_confidential_cn_registre'",
+                'agent_choice' => "SELECT valeur FROM config_app WHERE cle = 'app_confidentiality_note_agent_choice_cn_registre'",
+                'public' => "SELECT valeur FROM config_app WHERE cle = 'app_confidentiality_note_public_cn_registre'",
+                'legacy_count' => "SELECT COUNT(*) FROM config_app WHERE cle = 'app_confidentiality_note_cn_registre'",
             ],
         ]);
 
         $this->assertNotNull($result['redirect'], 'Le handler doit rediriger (pas de fatal).');
-        $this->assertSame(self::CUSTOM_NOTE, $result['queries']['note_value'], 'Le texte admin doit être persisté par registre.');
+        $this->assertSame(self::CUSTOM_CONFIDENTIAL, $result['queries']['confidential']);
+        $this->assertSame(self::CUSTOM_AGENT, $result['queries']['agent_choice']);
+        $this->assertSame(self::CUSTOM_PUBLIC, $result['queries']['public']);
+        $this->assertSame('0', (string) $result['queries']['legacy_count'], 'L\'ancienne clé générique doit être migrée puis supprimée.');
     }
 
     /**

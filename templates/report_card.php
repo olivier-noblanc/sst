@@ -86,11 +86,15 @@ if (!isset($csrfToken)) {
                     $confidentialAudience .= ', les agents rattachés';
                 }
                 $confidentialAudience .= ' et les membres du rôle « ' . getRoleLabelShort(\App\Enum\UserRole::Chsct->value) . ' »';
-                // Texte personnalisable par registre (config app_confidentiality_note_<code>) ;
-                // à défaut, phrase par défaut actuelle construite ci-dessus.
+                // Texte personnalisable par registre ET par niveau de visibilité
+                // (config app_confidentiality_note_<niveau>_<code>) ; la fiche
+                // n'affiche une note que pour un signalement confidentiel, donc
+                // le niveau applicable est « Confidentiel ». À défaut de texte
+                // admin, repli sur la phrase par défaut actuelle construite
+                // ci-dessus (audience réelle).
                 $defaultConfidentialNote = '(Visible uniquement par ' . $confidentialAudience . ')';
                 ?>
-                <small class="help-text"><?php echo $fmt->e(confidentialityNote($type, $defaultConfidentialNote)); ?></small>
+                <small class="help-text"><?php echo $fmt->e(confidentialityNote($type, \App\Enum\VisibilityMode::Confidential, $defaultConfidentialNote)); ?></small>
                 <?php endif; ?>
             </div>
         </div>
@@ -200,7 +204,7 @@ if (!isset($csrfToken)) {
                     </td>
                 </tr>
                 <?php endif; ?>
-                <?php if (getConfigService()->isConsentSyndicatEnabled()): ?>
+                <?php if (getConfigService()->isConsentSyndicatEnabled($type)): ?>
                 <tr>
                     <th><?php echo $fmt->e(transmissionLabel()); ?></th>
                     <td><?php echo (bool) $report->consentSyndicat ? '✅ Acceptée' : '❌ Refusée'; ?></td>

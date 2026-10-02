@@ -41,6 +41,20 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 - PHPStan : **0 errors** (level 8)
 
 
+## [3.66.7] — 2026-10-02
+
+### Direction artistique — accueil et cartes de registre (motion CSS pur, connexion hors périmètre)
+
+- **Périmètre** — Signature visuelle portée par `public/css/style.css` uniquement : le seuil d'accueil (`pages/home.php`, `.home-hero`) et les cartes de registre générées par `renderRegistryCards()` (`.registry-cards > .registry-card`). Aucun JavaScript, aucun style inline, aucune modification des routes, handlers, services, schéma de base de données ni de l'authentification. **L'écran de connexion est hors périmètre** : `pages/login.php` et `public/css/login.css` conservent leur feuille dédiée — c'est un mode dev (authentification IIS en production), il n'entre pas dans la signature.
+- **Accueil** — Seuil bleu nuit tokenisé (`--home-threshold-*`, `--home-halo*`, `--home-grid`, `--home-on-dark`) : halos radiaux et trame discrète, règle spectrale `::before` de 5 px (`--ui-accent-2`, `--role-chsct`), KPI principal mis en avant (bordure, ombre, `font-size: clamp(...)`).
+- **Cartes de registre** — Repère spectral `::before` à la couleur du registre (`--theme-accent*`), compteur `.registry-card__stat-value` en `font-size: clamp(...)` coloré à l'accent, action principale `.registry-card__btn` lisible (`inline-flex`, `min-height: 44px`, gras, `var(--font-size-md)`).
+- **Mouvement 100 % CSS** — Entrée échelonnée `animation: registry-rise` sur `.registry-cards > .registry-card` (délais 60/130/200/270/340 ms via `:nth-child`), durée, easing et distance référencés exclusivement par les tokens `--motion-duration-medium`, `--motion-ease-gentle`, `--motion-distance-md`. Aucune animation en JavaScript.
+- **Accessibilité** — `prefers-reduced-motion: reduce` neutralise l'échelonnement (`animation-delay: 0s !important`) ; contrastes AA du seuil et de la bannière de confirmation verrouillés par `CssSignatureTest::testSignatureTextMeetsAaContrast`.
+- **Bannières et alertes** — Accent sémantique gauche sur les alertes (`--color-*-text`) et bannière de confirmation tokenisée (`--confirm-*`), sans modification de la logique métier.
+- **Cache-busting** — Le bump `3.66.7` alimente `?v=` de `css.php` (et `js.php`) via `getAppVersion()` (première entrée `[X.Y.Z]` de ce fichier), forçant le rechargement de `public/css/style.css` en production.
+- **Vérifications** — Contrat visuel `tests/unit/CssSignatureTest.php` et `tests/unit/CssDesignSystemTest.php` ; contrat de version `ConfigServiceTest`/`ConfigServiceMutationTest` (format semver X.Y.Z, version lue depuis le changelog).
+
+
 ## [3.66.6] — 2026-09-30
 
 ### Correctif — champ « Pièce jointe » : input fichier HTML5 natif visible

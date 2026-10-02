@@ -144,6 +144,22 @@
     --transition-fast: 0.15s ease;
     --transition-base: 0.2s ease;
 
+    /* ── Motion design — couche de mouvement globale ────────────────────────
+       Tokens source unique : toute durée/courbe/amplitude de la couche de
+       mouvement (section 61) référence un --motion-*. Aucune valeur ad hoc.
+       La réduction est assurée par la seule media query globale déclarée en
+       section 4 (@media (prefers-reduced-motion: reduce)), qui réécrit ces
+       durées et neutralise les nœuds animés. */
+    --motion-duration-instant: 90ms;   /* feedback immédiat */
+    --motion-duration-fast: 160ms;     /* interactions (survol, focus) */
+    --motion-duration-medium: 260ms;   /* apparition de contenu */
+    --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);   /* entrées/sorties */
+    --motion-ease-gentle: cubic-bezier(0.33, 1, 0.68, 1); /* attention douce */
+    --motion-distance-sm: 4px;         /* amplitudes discrètes, plafonnées */
+    --motion-distance-md: 8px;
+    --motion-opacity-from: 0;          /* opacités nommées */
+    --motion-opacity-to: 1;
+
     --z-sidebar: 90;
     --z-mobile-menu: 200;
     --z-overlay: 150;
@@ -219,8 +235,16 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-a { color: var(--color-primary); text-decoration: none; }
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--motion-duration-fast) var(--motion-ease-standard),
+                text-decoration-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
 a:hover { text-decoration: underline; }
+/* Feedback clavier équivalent au survol, sans reflow (pas de font-weight). */
+a:hover,
+a:focus-visible { text-decoration-color: currentColor; }
 
 img { max-width: 100%; height: auto; display: block; }
 
@@ -240,8 +264,18 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ============================================================
    4. Reduced Motion — Respect user preferences
-   ============================================================ */
+   ============================================================
+   Règle unique, centrale et globale de la couche de mouvement :
+   elle ramène les durées --motion-* à quasi zéro et neutralise tout
+   nœud animé. Les états finaux restent appliqués (fill), donc aucun
+   contenu ne disparaît : couleurs, anneaux de focus et informations
+   restent perceptibles sans transition. */
 @media (prefers-reduced-motion: reduce) {
+    :root {
+        --motion-duration-instant: 0.01ms;
+        --motion-duration-fast: 0.01ms;
+        --motion-duration-medium: 0.01ms;
+    }
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
@@ -342,7 +376,8 @@ img { max-width: 100%; height: auto; display: block; }
 .impersonate-btn:hover,
 .impersonate-btn:focus-visible {
     background: var(--surface-sunken);
-    outline: none;
+    /* Pas d'`outline: none` : l'anneau `:focus-visible` global reste visible
+       et n'est jamais supprimé sans remplacement. */
 }
 .impersonate-btn:hover .impersonate-icon::before,
 .impersonate-btn:focus-visible .impersonate-icon::before {
@@ -1318,14 +1353,33 @@ img { max-width: 100%; height: auto; display: block; }
     cursor: pointer;
     text-decoration: none;
     text-align: center;
-    transition: opacity var(--transition-base), transform var(--transition-fast);
+    transition: transform var(--motion-duration-fast) var(--motion-ease-standard),
+                background-color var(--motion-duration-fast) var(--motion-ease-standard),
+                box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+                opacity var(--motion-duration-fast) var(--motion-ease-standard);
     line-height: 1.4;
     font-family: var(--font-family);
     min-height: 44px;
 }
 
-.btn:hover { opacity: 0.85; text-decoration: none; }
-.btn:active { transform: scale(0.98); }
+.btn:hover {
+    opacity: 0.85;
+    text-decoration: none;
+    transform: translateY(calc(-1 * var(--motion-distance-sm)));
+}
+/* Micro-compression à l'appui, sur la durée immédiate. Le focus clavier n'est
+   jamais animé : l'anneau `:focus-visible` est perçu instantanément. */
+.btn:active {
+    transform: scale(0.98);
+    transition-duration: var(--motion-duration-instant);
+}
+/* Aucun mouvement quand le bouton est inactif. */
+.btn:disabled,
+.btn[aria-disabled="true"] {
+    transition: none;
+    transform: none;
+    cursor: not-allowed;
+}
 
 .btn--primary   { background: var(--color-primary); color: white; }
 .btn--success   { background: var(--state-traite); color: white; }
@@ -1394,7 +1448,8 @@ img { max-width: 100%; height: auto; display: block; }
     font-size: var(--font-size-base);
     font-family: var(--font-family);
     background: white;
-    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+    transition: border-color var(--motion-duration-fast) var(--motion-ease-standard),
+                box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
     min-height: 44px;
     box-sizing: border-box;
 }
@@ -1423,7 +1478,8 @@ img { max-width: 100%; height: auto; display: block; }
     font-size: var(--font-size-base);
     font-family: var(--font-family);
     background: white;
-    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+    transition: border-color var(--motion-duration-fast) var(--motion-ease-standard),
+                box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
 }
 .form-control:focus {
     outline: 2px solid var(--color-primary);
@@ -2038,6 +2094,9 @@ td {
     font-size: 14px;
     vertical-align: middle;
     line-height: 1.5;
+    /* L'apparition du fond de survol de ligne passe par le `td` (c'est lui
+       qui porte la couleur), sans variation de hauteur. */
+    transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
 }
 
 td .badge {
@@ -2275,11 +2334,7 @@ tr:hover td {
     border-radius: 12px;
     padding: 24px 28px;
     margin-bottom: 24px;
-    animation: confirmSlideIn 0.4s ease-out;
-}
-@keyframes confirmSlideIn {
-    from { opacity: 0; transform: translateY(-12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    animation: motion-message-in var(--motion-duration-medium) var(--motion-ease-standard) both;
 }
 .confirmation-banner__icon {
     font-size: 36px;
@@ -4948,4 +5003,105 @@ body {
     .sidebar__item:hover {
         transform: none;
     }
+}
+
+/* ============================================================
+   61. Motion design — couche de mouvement globale
+   ============================================================
+   Contrat : toute durée/courbe/amplitude ci-dessous référence un
+   token --motion-*. Aucune valeur ad hoc. Le mouvement reste sobre,
+   composited-friendly (transform/opacity) et n'induit aucun reflow.
+   La réduction est assurée par la seule media query globale
+   @media (prefers-reduced-motion: reduce) déclarée en section 4.
+   ============================================================ */
+
+/* --- Apparition du contenu principal (une fois au chargement SSR) ---
+   `transform: none` en fin d'animation : un transform résiduel ferait
+   de `.main` le bloc conteneur de ses descendants `position: fixed`. */
+@keyframes motion-page-in {
+    from { opacity: var(--motion-opacity-from); transform: translateY(var(--motion-distance-md)); }
+    to   { opacity: var(--motion-opacity-to);   transform: none; }
+}
+
+.main {
+    animation: motion-page-in var(--motion-duration-medium) var(--motion-ease-standard) both;
+}
+
+/* --- Apparition des alertes et messages SSR (fade-in + translation) ---
+   Pas de disparition animée, pas de clignotement, pas de pulsation :
+   les niveaux partagent la même grammaire, seule la couleur diffère. */
+@keyframes motion-message-in {
+    from { opacity: var(--motion-opacity-from); transform: translateY(var(--motion-distance-sm)); }
+    to   { opacity: var(--motion-opacity-to);   transform: none; }
+}
+
+.alert {
+    animation: motion-message-in var(--motion-duration-medium) var(--motion-ease-standard) both;
+}
+
+/* --- Cartes : survol et focus clavier équivalents ---
+   Translation discrète, sans rotation ni zoom, sans déplacer le voisin. */
+.card {
+    transition: transform var(--motion-duration-fast) var(--motion-ease-standard),
+                box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.card:hover,
+.card:focus-visible {
+    transform: translateY(calc(-1 * var(--motion-distance-sm)));
+    box-shadow: var(--shadow-md);
+}
+
+.registry-card {
+    transition: transform var(--motion-duration-fast) var(--motion-ease-standard),
+                box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+                border-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.registry-card:hover,
+.registry-card:focus-visible {
+    transform: translateY(calc(-1 * var(--motion-distance-sm)));
+    box-shadow: var(--ui-shadow-card-hover);
+}
+
+.help-profile-card {
+    transition: transform var(--motion-duration-fast) var(--motion-ease-standard),
+                box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.help-profile-card:hover,
+.help-profile-card:focus-visible {
+    transform: translateY(calc(-1 * var(--motion-distance-sm)));
+}
+
+/* --- Champs : transition brève d'erreur, aucun mouvement si inactif --- */
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"],
+.form-group input:invalid,
+.form-group select:invalid,
+.form-group textarea:invalid {
+    transition: border-color var(--motion-duration-fast) var(--motion-ease-standard),
+                border-left-color var(--motion-duration-fast) var(--motion-ease-standard),
+                background-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+input:disabled, select:disabled, textarea:disabled,
+input[readonly], textarea[readonly],
+.form-control:disabled, .form-control[readonly] {
+    transition: none;
+}
+
+/* --- Garde-fou focus clavier transversal ---
+   Reprend exactement l'anneau tokenisé global (section 3) pour les
+   interactifs listés : jamais d'`outline: none` sans remplacement. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow: 0 0 0 var(--focus-ring-offset) var(--focus-ring-color);
 }

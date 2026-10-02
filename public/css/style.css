@@ -214,22 +214,17 @@
     --ui-sidebar-group: #8296B4;
     --ui-sidebar-sub: #93A6C2;
 
-    /* ── Signature visuelle (2026) — « seuil bleu nuit » ─────────────
-       Palette de l'écran de connexion (fond profond, halos, trame) et
-       accents sémantiques des confirmations. Consommée par les sections
-       19 et 22 ; aucune valeur ad hoc dans les règles. */
-    --signature-bg-from: #0A1830;
-    --signature-bg-to: #050C18;
-    --signature-halo: rgba(47,127,214,0.30);
-    --signature-halo-2: rgba(142,68,173,0.20);
-    --signature-grid: rgba(148,187,233,0.07);
-    --signature-on-dark: #EAF1FB;
-    --signature-card-shadow: 0 26px 64px -28px rgba(3,10,22,0.85), 0 2px 8px rgba(3,10,22,0.35);
-
-    /* Accents de rôle approfondis — dégradés des boutons de connexion */
-    --role-agent-deep: #1E3E60;
-    --role-superviseur-deep: #7F1818;
-    --role-chsct-deep: #5E2A73;
+    /* ── Signature visuelle (2026) — « seuil bleu nuit » de l'accueil ─────
+       Palette du tableau de bord : seuil profond (héros), halos et trame,
+       et accents sémantiques des confirmations. Consommée par les sections
+       19 et 62 ; aucune valeur ad hoc dans les règles. */
+    --home-threshold-from: #0B2A4A;
+    --home-threshold-mid: #0A5BB5;
+    --home-threshold-to: #2F7FD6;
+    --home-halo: rgba(47,127,214,0.30);
+    --home-halo-2: rgba(142,68,173,0.18);
+    --home-grid: rgba(148,187,233,0.07);
+    --home-on-dark: #EAF1FB;
 
     /* Confirmations — vert signature (encre ≥ 4.5:1 sur les deux fonds) */
     --confirm-bg-from: #E4F4E6;
@@ -307,9 +302,9 @@ img { max-width: 100%; height: auto; display: block; }
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
-    /* L'entrée échelonnée de la connexion ne doit jamais laisser un contenu
-       masqué le temps du délai : on annule aussi les animation-delay. */
-    .login-btn-wrapper { animation-delay: 0s !important; }
+    /* L'entrée échelonnée des cartes de registre ne doit jamais laisser un
+       contenu masqué le temps du délai : on annule aussi les animation-delay. */
+    .registry-cards > .registry-card { animation-delay: 0s !important; }
 }
 
 /* ============================================================
@@ -2519,167 +2514,52 @@ tr:hover td {
 /* ============================================================
    22. Login Page
    ============================================================ */
-/* « Seuil bleu nuit » — fond profond à halos + trame discrète, carte
-   élevée à règle spectrale, entrée échelonnée CSS pure. Aucun JavaScript. */
 .login-body {
-    min-height: 100vh;
+    background: var(--grey-200);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-6);
-    color: var(--signature-on-dark);
-    background-color: var(--signature-bg-to);
-    background-image:
-        radial-gradient(circle at 16% 10%, var(--signature-halo) 0%, transparent 46%),
-        radial-gradient(circle at 84% 92%, var(--signature-halo-2) 0%, transparent 52%),
-        repeating-linear-gradient(135deg, var(--signature-grid) 0, var(--signature-grid) 1px, transparent 1px, transparent 24px),
-        linear-gradient(160deg, var(--signature-bg-from) 0%, var(--signature-bg-to) 100%);
-    background-attachment: fixed;
+    min-height: 100vh;
 }
 
 .login-container {
     width: 100%;
-    max-width: 460px;
-    padding: 0;
+    max-width: 440px;
+    padding: 20px;
 }
 
 .login-card {
-    position: relative;
-    overflow: hidden;
-    background: var(--surface);
-    color: var(--grey-900);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--signature-card-shadow);
-    padding: calc(var(--space-8) + var(--space-1)) var(--space-8) var(--space-6);
-    animation: signature-rise var(--motion-duration-medium) var(--motion-ease-gentle) both;
-}
-
-/* Règle spectrale supérieure : relie les halos du fond à l'identité de marque. */
-.login-card::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(90deg, var(--color-primary) 0%, var(--ui-accent-2) 52%, var(--role-chsct) 100%);
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 40px 32px;
 }
 
 .login-header {
     text-align: center;
-    margin-bottom: var(--space-6);
-}
-
-.login-seal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 58px;
-    height: 58px;
-    margin: 0 auto var(--space-4);
-    border-radius: var(--radius-pill);
-    background: linear-gradient(140deg, var(--color-primary) 0%, var(--ui-accent) 100%);
-    color: #FFFFFF;
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    box-shadow: 0 12px 26px -14px rgba(5,42,84,0.75), 0 0 0 5px rgba(10,91,181,0.10);
+    margin-bottom: 24px;
 }
 
 .login-header h1 {
-    font-size: var(--font-size-2xl);
-    line-height: 1.15;
-    color: var(--ui-ink);
-    margin-bottom: var(--space-2);
-    letter-spacing: -0.01em;
+    font-size: 20px;
+    color: var(--color-primary);
+    margin-bottom: 4px;
 }
 
 .login-subtitle {
-    color: var(--grey-700);
-    font-size: var(--font-size-md);
+    color: var(--grey-600);
+    font-size: 14px;
 }
 
 .login-dev-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-top: var(--space-3);
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--ui-border);
-    border-radius: var(--radius-pill);
-    background: var(--surface-sunken);
-    color: var(--grey-700);
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.login-choose-profile {
-    margin: var(--space-5) 0 var(--space-1);
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: var(--ui-ink);
-    text-align: center;
-}
-
-.login-choose-hint {
-    margin: 0 0 var(--space-5);
-    font-size: var(--font-size-sm);
-    color: var(--grey-700);
-    text-align: center;
-}
-
-.login-quick-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-}
-
-/* Entrée échelonnée : chaque profil apparaît 90ms après le précédent. */
-.login-btn-wrapper {
-    text-align: center;
-    animation: signature-rise var(--motion-duration-medium) var(--motion-ease-gentle) both;
-}
-.login-btn-wrapper:nth-child(1) { animation-delay: 90ms; }
-.login-btn-wrapper:nth-child(2) { animation-delay: 170ms; }
-.login-btn-wrapper:nth-child(3) { animation-delay: 250ms; }
-
-.login-quick-buttons .btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 58px;
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--border-radius-lg);
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    color: #FFFFFF;
-    box-shadow: 0 14px 26px -18px rgba(5,20,40,0.9);
-}
-
-.login-btn--superviseur {
-    background: linear-gradient(135deg, var(--role-superviseur) 0%, var(--role-superviseur-deep) 100%);
-}
-.login-btn--agent {
-    background: linear-gradient(135deg, var(--role-agent) 0%, var(--role-agent-deep) 100%);
-}
-.login-btn--chsct {
-    background: linear-gradient(135deg, var(--role-chsct) 0%, var(--role-chsct-deep) 100%);
-}
-
-.login-btn-desc {
-    display: block;
-    margin-top: var(--space-2);
-    font-size: var(--font-size-sm);
-    color: var(--grey-700);
-}
-
-.login-dev-notice {
-    margin-top: var(--space-4);
-    text-align: center;
+    display: inline-block;
+    background: #fff3cd;
+    color: #856404;
+    padding: 4px 12px;
+    border-radius: var(--border-radius);
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 8px;
 }
 
 .login-form .form-group {
@@ -4866,8 +4746,13 @@ body {
     padding: var(--space-6) var(--space-7);
     margin-bottom: var(--space-5);
     border-radius: var(--ui-radius-lg);
-    background: linear-gradient(120deg, #0B2A4A 0%, #0A5BB5 58%, #2F7FD6 100%);
     color: #FFFFFF;
+    background-color: var(--home-threshold-from);
+    background-image:
+        radial-gradient(circle at 14% 8%, var(--home-halo) 0%, transparent 46%),
+        radial-gradient(circle at 88% 96%, var(--home-halo-2) 0%, transparent 52%),
+        repeating-linear-gradient(135deg, var(--home-grid) 0, var(--home-grid) 1px, transparent 1px, transparent 26px),
+        linear-gradient(120deg, var(--home-threshold-from) 0%, var(--home-threshold-mid) 58%, var(--home-threshold-to) 100%);
     box-shadow: var(--ui-shadow-hero);
 }
 
@@ -4895,7 +4780,7 @@ body {
     font-weight: 800;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--home-on-dark);
 }
 
 .home-hero__title {
@@ -5194,15 +5079,6 @@ body {
     animation: motion-page-in var(--motion-duration-medium) var(--motion-ease-standard) both;
 }
 
-/* --- Entrée signature de la connexion (carte + profils échelonnés) ---
-   Même grammaire que motion-page-in, avec une très légère mise à l'échelle.
-   Les délais échelonnés sont neutralisés par la media query globale de la
-   section 4 (@media (prefers-reduced-motion: reduce)). */
-@keyframes signature-rise {
-    from { opacity: var(--motion-opacity-from); transform: translateY(var(--motion-distance-md)) scale(0.99); }
-    to   { opacity: var(--motion-opacity-to);   transform: none; }
-}
-
 /* --- Apparition des alertes et messages SSR (fade-in + translation) ---
    Pas de disparition animée, pas de clignotement, pas de pulsation :
    les niveaux partagent la même grammaire, seule la couleur diffère. */
@@ -5273,4 +5149,106 @@ input:disabled, select:disabled, textarea:disabled,
 input[readonly], textarea[readonly],
 .form-control:disabled, .form-control[readonly] {
     transition: none;
+}
+
+/* ============================================================
+   62. Signature accueil — seuil bleu nuit & registres premium
+   ============================================================
+   La direction artistique se pose sur les surfaces métier réellement
+   visibles en production : le seuil d'accueil (héros) et les cartes de
+   registre (`.registry-cards > .registry-card`). Pur CSS, aucun
+   JavaScript, aucun style inline. Le mouvement consomme les tokens
+   --motion-* et l'entrée échelonnée est neutralisée par la media query
+   de la section 4 (@media (prefers-reduced-motion: reduce)). */
+
+/* --- 62.1 Seuil : règle spectrale et compteur dominant ---
+   La barre relie le seuil à l'identité de marque ; le premier KPI
+   (total des signalements) porte le poids visuel du tableau de bord. */
+.home-hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--ui-accent-2) 0%, var(--role-chsct) 55%, var(--theme-vert) 100%);
+    pointer-events: none;
+}
+
+.home-hero__stats > .home-stat:first-child {
+    background: rgba(9, 24, 48, 0.44);
+    border-color: rgba(255, 255, 255, 0.42);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 18px 34px -22px rgba(3, 10, 22, 0.85);
+}
+
+.home-hero__stats > .home-stat:first-child .home-stat__value {
+    font-size: clamp(1.9rem, 1.4rem + 1.6vw, 2.75rem);
+}
+
+.home-hero__stats > .home-stat:first-child .home-stat__label {
+    color: #FFFFFF;
+    letter-spacing: 0.1em;
+}
+
+/* --- 62.2 Cartes de registre : repère spectral, compteur et action ---
+   Chaque carte expose en tête une règle couleur de son registre ; le
+   compteur prend l'accent du thème et l'action principale devient une
+   cible pleine hauteur, immédiatement lisible. */
+.registry-cards > .registry-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--theme-accent, var(--ui-accent)) 0%, var(--theme-ink, var(--ui-accent-2)) 100%);
+    pointer-events: none;
+}
+
+.registry-cards > .registry-card .registry-card__stat {
+    border-left: 4px solid var(--theme-accent, var(--ui-accent));
+}
+
+.registry-cards > .registry-card .registry-card__stat-value {
+    font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.35rem);
+    color: var(--theme-accent, var(--ui-accent));
+    letter-spacing: -0.01em;
+}
+
+.registry-cards > .registry-card .registry-card__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    box-shadow: 0 14px 24px -16px var(--theme-accent, var(--ui-accent));
+}
+
+/* --- 62.3 Entrée échelonnée des cartes ---
+   `backwards` applique l'opacité initiale pendant le délai puis rend la
+   main à la cascade : le mouvement de survol (section 61) reste actif. */
+@keyframes registry-rise {
+    from { opacity: var(--motion-opacity-from); transform: translateY(var(--motion-distance-md)); }
+    to   { opacity: var(--motion-opacity-to);   transform: none; }
+}
+
+.registry-cards > .registry-card {
+    animation: registry-rise var(--motion-duration-medium) var(--motion-ease-gentle) backwards;
+}
+
+.registry-cards > .registry-card:nth-child(1) { animation-delay: 60ms; }
+.registry-cards > .registry-card:nth-child(2) { animation-delay: 130ms; }
+.registry-cards > .registry-card:nth-child(3) { animation-delay: 200ms; }
+.registry-cards > .registry-card:nth-child(4) { animation-delay: 270ms; }
+.registry-cards > .registry-card:nth-child(n+5) { animation-delay: 340ms; }
+
+/* Mobile : cartes empilées, on resserre le décalage sans le supprimer. */
+@media (max-width: 768px) {
+    .registry-cards > .registry-card:nth-child(1) { animation-delay: 40ms; }
+    .registry-cards > .registry-card:nth-child(2) { animation-delay: 90ms; }
+    .registry-cards > .registry-card:nth-child(3) { animation-delay: 140ms; }
+    .registry-cards > .registry-card:nth-child(4) { animation-delay: 190ms; }
+    .registry-cards > .registry-card:nth-child(n+5) { animation-delay: 240ms; }
 }

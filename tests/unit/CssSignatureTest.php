@@ -5,13 +5,16 @@ declare(strict_types=1);
 /**
  * CssSignatureTest — contrat de la tranche « direction artistique ».
  *
- * Verrouille le moment signature de l'écran de connexion (fond bleu nuit,
- * carte à règle spectrale, entrée échelonnée) et le traitement des messages
- * de confirmation (barre d'accent sémantique, bannière tokenisée).
+ * La direction est portée par les surfaces métier réellement visibles en
+ * production : le seuil d'accueil (`pages/home.php`, `.home-hero`) et les
+ * cartes de registre générées par `renderRegistryCards()`
+ * (`.registry-cards > .registry-card`). L'écran de connexion, lui, est un
+ * mode dev hors production (authentification IIS) : il conserve sa feuille
+ * `login.css` et n'entre pas dans ce contrat.
  *
- * `public/css/style.css` reste la source unique (aucun JS, aucun style inline).
- * Le mouvement référence exclusivement les tokens `--motion-*` et la réduction
- * est portée par l'unique media query de la section 4.
+ * `public/css/style.css` reste la source unique (aucun JS, aucun style
+ * inline). Le mouvement référence exclusivement les tokens `--motion-*` et
+ * la réduction est portée par l'unique media query de la section 4.
  */
 
 use PHPUnit\Framework\TestCase;
@@ -124,19 +127,16 @@ final class CssSignatureTest extends TestCase
         return (max($la, $lb) + 0.05) / (min($la, $lb) + 0.05);
     }
 
-    public function testSignatureTokensAreDeclared(): void
+    public function testHomeSignatureTokensAreDeclared(): void
     {
         foreach ([
-            '--signature-bg-from',
-            '--signature-bg-to',
-            '--signature-halo',
-            '--signature-halo-2',
-            '--signature-grid',
-            '--signature-on-dark',
-            '--signature-card-shadow',
-            '--role-agent-deep',
-            '--role-superviseur-deep',
-            '--role-chsct-deep',
+            '--home-threshold-from',
+            '--home-threshold-mid',
+            '--home-threshold-to',
+            '--home-halo',
+            '--home-halo-2',
+            '--home-grid',
+            '--home-on-dark',
             '--confirm-bg-from',
             '--confirm-bg-to',
             '--confirm-border',
@@ -147,79 +147,100 @@ final class CssSignatureTest extends TestCase
         }
     }
 
-    public function testLoginStagePaintsLayeredSignatureBackground(): void
+    public function testHeroPaintsLayeredThreshold(): void
     {
-        $body = self::ruleBody('.login-body');
-        $this->assertNotSame('', $body, 'Règle .login-body introuvable.');
+        $hero = self::ruleBody('.home-hero');
+        $this->assertNotSame('', $hero, 'Règle .home-hero introuvable.');
 
-        $this->assertStringContainsString('radial-gradient', $body, 'Le fond doit poser des halos (radial-gradient).');
-        $this->assertStringContainsString('repeating-linear-gradient', $body, 'Le fond doit porter une trame discrète.');
-        $this->assertStringContainsString('var(--signature-halo)', $body);
-        $this->assertStringContainsString('var(--signature-halo-2)', $body);
-        $this->assertStringContainsString('var(--signature-grid)', $body);
-        $this->assertStringContainsString('var(--signature-bg-from)', $body);
-        $this->assertStringContainsString('var(--signature-bg-to)', $body);
-        $this->assertStringContainsString('var(--signature-on-dark)', $body);
+        $this->assertStringContainsString('radial-gradient', $hero, 'Le seuil doit poser des halos (radial-gradient).');
+        $this->assertStringContainsString('repeating-linear-gradient', $hero, 'Le seuil doit porter une trame discrète.');
+        $this->assertStringContainsString('var(--home-halo)', $hero);
+        $this->assertStringContainsString('var(--home-halo-2)', $hero);
+        $this->assertStringContainsString('var(--home-grid)', $hero);
+        $this->assertStringContainsString('var(--home-threshold-from)', $hero);
+        $this->assertStringContainsString('var(--home-threshold-mid)', $hero);
+        $this->assertStringContainsString('var(--home-threshold-to)', $hero);
     }
 
-    public function testLoginCardCarriesSpectralTopRuleAndElevation(): void
+    public function testHeroCarriesSpectralTopRule(): void
     {
-        $card = self::ruleBody('.login-card');
-        $this->assertNotSame('', $card, 'Règle .login-card introuvable.');
-        $this->assertStringContainsString('var(--signature-card-shadow)', $card);
-        $this->assertStringContainsString('background: var(--surface)', $card);
-
-        $rule = self::ruleBody('.login-card::before');
-        $this->assertNotSame('', $rule, 'Règle .login-card::before introuvable.');
+        $rule = self::ruleBody('.home-hero::before');
+        $this->assertNotSame('', $rule, 'Règle .home-hero::before introuvable.');
         $this->assertStringContainsString('position: absolute', $rule);
-        $this->assertStringContainsString('height: 6px', $rule);
+        $this->assertStringContainsString('height: 5px', $rule);
         $this->assertStringContainsString('linear-gradient(90deg', $rule);
-        $this->assertStringContainsString('var(--color-primary)', $rule);
+        $this->assertStringContainsString('var(--ui-accent-2)', $rule);
         $this->assertStringContainsString('var(--role-chsct)', $rule);
     }
 
-    public function testLoginRoleButtonsConsumeRoleAndDeepTokens(): void
+    public function testHeroPrimaryKpiIsEmphasised(): void
     {
-        $roles = [
-            'superviseur' => 'var(--role-superviseur-deep)',
-            'agent' => 'var(--role-agent-deep)',
-            'chsct' => 'var(--role-chsct-deep)',
-        ];
+        $tile = self::ruleBody('.home-hero__stats > .home-stat:first-child');
+        $this->assertNotSame('', $tile, 'Le premier KPI du seuil doit porter une règle dédiée.');
+        $this->assertStringContainsString('border-color:', $tile);
+        $this->assertStringContainsString('box-shadow:', $tile);
 
-        foreach ($roles as $role => $deepToken) {
-            $body = self::ruleBody('.login-btn--' . $role);
-            $this->assertNotSame('', $body, "Règle .login-btn--$role introuvable.");
-            $this->assertStringContainsString('linear-gradient', $body);
-            $this->assertStringContainsString("var(--role-$role)", $body);
-            $this->assertStringContainsString($deepToken, $body);
+        $value = self::ruleBody('.home-hero__stats > .home-stat:first-child .home-stat__value');
+        $this->assertNotSame('', $value, 'Règle du compteur principal introuvable.');
+        $this->assertStringContainsString('font-size: clamp(', $value, 'Le compteur principal doit dominer le seuil.');
+    }
+
+    public function testRegistryCardsCarrySpectralRuleAndEmphasisedStat(): void
+    {
+        $rule = self::ruleBody('.registry-cards > .registry-card::before');
+        $this->assertNotSame('', $rule, 'Repère spectral de carte manquant.');
+        $this->assertStringContainsString('linear-gradient(90deg', $rule);
+        $this->assertStringContainsString('var(--theme-accent', $rule);
+
+        $stat = self::ruleBody('.registry-cards > .registry-card .registry-card__stat-value');
+        $this->assertNotSame('', $stat, 'Compteur de carte mis en avant manquant.');
+        $this->assertStringContainsString('font-size: clamp(', $stat);
+        $this->assertStringContainsString('color: var(--theme-accent', $stat);
+    }
+
+    public function testRegistryPrimaryActionIsReadable(): void
+    {
+        $btn = self::ruleBody('.registry-cards > .registry-card .registry-card__btn');
+        $this->assertNotSame('', $btn, "L'action principale des cartes doit porter une règle dédiée.");
+        $this->assertStringContainsString('display: inline-flex', $btn);
+        $this->assertStringContainsString('min-height: 44px', $btn);
+        $this->assertStringContainsString('font-size: var(--font-size-md)', $btn);
+        $this->assertStringContainsString('font-weight: 700', $btn);
+    }
+
+    public function testRegistryEntranceIsStaggeredAndTokenised(): void
+    {
+        $body = self::ruleBody('.registry-cards > .registry-card');
+        $this->assertNotSame('', $body, "Règle d'entrée des cartes introuvable.");
+        $this->assertStringContainsString('animation: registry-rise', $body);
+        $this->assertStringContainsString('var(--motion-duration-medium)', $body);
+        $this->assertStringContainsString('var(--motion-ease-gentle)', $body);
+
+        $this->assertStringContainsString('@keyframes registry-rise', self::$css);
+        $this->assertStringContainsString('var(--motion-distance-md)', self::$css);
+
+        $delays = [
+            ':nth-child(1)' => '60ms',
+            ':nth-child(2)' => '130ms',
+            ':nth-child(3)' => '200ms',
+            ':nth-child(4)' => '270ms',
+            ':nth-child(n+5)' => '340ms',
+        ];
+        foreach ($delays as $suffix => $delay) {
+            $selector = '.registry-cards > .registry-card' . $suffix;
+            $this->assertStringContainsString(
+                'animation-delay: ' . $delay,
+                self::ruleBody($selector),
+                "Le décalage $delay de $selector est attendu."
+            );
         }
     }
 
-    public function testLoginEntranceIsStaggeredAndTokenised(): void
-    {
-        $card = self::ruleBody('.login-card');
-        $this->assertStringContainsString('animation: signature-rise', $card);
-        $this->assertStringContainsString('var(--motion-duration-medium)', $card);
-        $this->assertStringContainsString('var(--motion-ease-gentle)', $card);
-
-        $this->assertStringContainsString('animation: signature-rise', self::ruleBody('.login-btn-wrapper'));
-        $this->assertStringContainsString('animation-delay: 90ms', self::ruleBody('.login-btn-wrapper:nth-child(1)'));
-        $this->assertStringContainsString('animation-delay: 170ms', self::ruleBody('.login-btn-wrapper:nth-child(2)'));
-        $this->assertStringContainsString('animation-delay: 250ms', self::ruleBody('.login-btn-wrapper:nth-child(3)'));
-
-        // La trame se définit par des tokens de mouvement, jamais en dur.
-        $this->assertStringContainsString(
-            'var(--motion-distance-md)',
-            self::$css,
-            'Les amplitudes de la couche signature doivent consommer --motion-distance-md.'
-        );
-    }
-
-    public function testReducedMotionNeutralisesStaggeredDelays(): void
+    public function testReducedMotionNeutralisesRegistryStaggeredDelays(): void
     {
         $reduced = self::mediaBlocks('(prefers-reduced-motion: reduce)');
         $this->assertNotSame('', $reduced, 'Media query prefers-reduced-motion introuvable.');
-        $this->assertStringContainsString('.login-btn-wrapper', $reduced);
+        $this->assertStringContainsString('.registry-cards > .registry-card', $reduced);
         $this->assertStringContainsString('animation-delay: 0s !important', $reduced);
     }
 
@@ -262,8 +283,11 @@ final class CssSignatureTest extends TestCase
     public function testSignatureTextMeetsAaContrast(): void
     {
         $pairs = [
-            'On-dark sur fond signature haut' => ['--signature-on-dark', '--signature-bg-from'],
-            'On-dark sur fond signature bas' => ['--signature-on-dark', '--signature-bg-to'],
+            // Le texte du seuil est posé à gauche, sur les arrêts profond et
+            // médian du dégradé ; l'arrêt clair ne porte que halos et tuiles
+            // opaques, jamais de texte nu.
+            'On-dark sur seuil profond' => ['--home-on-dark', '--home-threshold-from'],
+            'On-dark sur seuil médian' => ['--home-on-dark', '--home-threshold-mid'],
             'Encre de confirmation sur fond haut' => ['--confirm-ink', '--confirm-bg-from'],
             'Encre de confirmation sur fond bas' => ['--confirm-ink', '--confirm-bg-to'],
         ];
@@ -271,15 +295,6 @@ final class CssSignatureTest extends TestCase
         foreach ($pairs as $label => [$fg, $bg]) {
             $ratio = self::contrastRatio(self::resolveToken($fg), self::resolveToken($bg));
             $this->assertGreaterThanOrEqual(4.5, $ratio, sprintf('%s : %.2f:1, attendu ≥ 4.5:1.', $label, $ratio));
-        }
-
-        foreach (['--role-agent', '--role-superviseur', '--role-chsct', '--color-primary', '--ui-accent'] as $token) {
-            $ratio = self::contrastRatio('#ffffff', self::resolveToken($token));
-            $this->assertGreaterThanOrEqual(
-                4.5,
-                $ratio,
-                sprintf('Texte blanc sur %s : %.2f:1, attendu ≥ 4.5:1.', $token, $ratio)
-            );
         }
     }
 }

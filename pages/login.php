@@ -54,7 +54,6 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <span class="login-seal" aria-hidden="true"><?php echo new \App\Services\FormattingService()->e(mb_substr(APP_NAME, 0, 1)); ?></span>
                 <h1><?php echo new \App\Services\FormattingService()->e(APP_NAME); ?></h1>
                 <p class="login-subtitle"><?php echo new \App\Services\FormattingService()->e(getConfigService()->get('app_nom_complet', 'DREETS Bourgogne-Franche-Comté')); ?></p>
                 <p class="login-dev-badge">
@@ -110,5 +109,6 @@ if (new \App\Services\SessionService()->isUserLoggedIn()) {
         </div>
     </div>
     </main>
+<?php echo new \App\Services\AssetService()->cssLink('css/login.css'); ?>
 </body>
 </html>

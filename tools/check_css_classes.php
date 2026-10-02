@@ -24,6 +24,7 @@ $showAll = !$filterUnused && !$filterMissing;
 
 $cssFiles = [
     $projectDir . '/public/css/style.css',
+    $projectDir . '/public/css/login.css',
 ];
 
 $cssClasses = [];

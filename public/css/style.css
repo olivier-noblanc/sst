@@ -213,6 +213,30 @@
     --ui-sidebar-to: #0A1426;
     --ui-sidebar-group: #8296B4;
     --ui-sidebar-sub: #93A6C2;
+
+    /* ── Signature visuelle (2026) — « seuil bleu nuit » ─────────────
+       Palette de l'écran de connexion (fond profond, halos, trame) et
+       accents sémantiques des confirmations. Consommée par les sections
+       19 et 22 ; aucune valeur ad hoc dans les règles. */
+    --signature-bg-from: #0A1830;
+    --signature-bg-to: #050C18;
+    --signature-halo: rgba(47,127,214,0.30);
+    --signature-halo-2: rgba(142,68,173,0.20);
+    --signature-grid: rgba(148,187,233,0.07);
+    --signature-on-dark: #EAF1FB;
+    --signature-card-shadow: 0 26px 64px -28px rgba(3,10,22,0.85), 0 2px 8px rgba(3,10,22,0.35);
+
+    /* Accents de rôle approfondis — dégradés des boutons de connexion */
+    --role-agent-deep: #1E3E60;
+    --role-superviseur-deep: #7F1818;
+    --role-chsct-deep: #5E2A73;
+
+    /* Confirmations — vert signature (encre ≥ 4.5:1 sur les deux fonds) */
+    --confirm-bg-from: #E4F4E6;
+    --confirm-bg-to: #CDEBD3;
+    --confirm-border: #1E7A3C;
+    --confirm-ink: #12522A;
+    --confirm-seal-bg: #FFFFFF;
 }
 
 
@@ -283,6 +307,9 @@ img { max-width: 100%; height: auto; display: block; }
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+    /* L'entrée échelonnée de la connexion ne doit jamais laisser un contenu
+       masqué le temps du délai : on annule aussi les animation-delay. */
+    .login-btn-wrapper { animation-delay: 0s !important; }
 }
 
 /* ============================================================
@@ -2303,58 +2330,99 @@ tr:hover td {
 /* ============================================================
    19. Alerts / Flash Messages
    ============================================================ */
+/* Message de confirmation — corps partagé.
+   La barre d'accent à gauche (5px) porte le repère sémantique sans dépendre
+   de la couleur de fond ; l'encre reste celle du message. */
 .alert {
-    padding: 12px 16px;
-    border-radius: var(--border-radius);
-    margin-bottom: 16px;
-    font-size: 14px;
     position: relative;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid transparent;
+    border-left: 5px solid transparent;
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--space-4);
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
     z-index: 9999;
 }
 
-.alert--success { background: var(--color-success-bg); color: var(--color-success-text); border: 1px solid var(--color-success-border); }
-.alert--created { background: var(--color-success-bg); color: var(--color-success-text); border: 1px solid var(--color-success-border); }
-.alert--error   { background: var(--color-danger-bg); color: var(--color-danger-text); border: 1px solid var(--color-danger-border); }
-.alert--danger  { background: var(--color-danger-bg); color: var(--color-danger-text); border: 1px solid var(--color-danger-border); }
-.alert--warning { background: var(--color-warning-bg); color: var(--color-warning-text); border: 1px solid var(--color-warning-border); }
-.alert--info    { background: var(--color-info-bg); color: var(--color-info-text); border: 1px solid var(--color-info-border); }
+.alert--success,
+.alert--created {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+    border-color: var(--color-success-border);
+    border-left-color: var(--color-success-text);
+}
+.alert--error,
+.alert--danger {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+    border-color: var(--color-danger-border);
+    border-left-color: var(--color-danger-text);
+}
+.alert--warning {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    border-color: var(--color-warning-border);
+    border-left-color: var(--color-warning-text);
+}
+.alert--info {
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
+    border-color: var(--color-info-border);
+    border-left-color: var(--color-info-text);
+}
 
-/* Confirmation banner — big green success after report creation */
+/* Confirmation banner — moment signature après création d'un signalement.
+   Sceau blanc, dégradé vert tokenisé et barre d'accent latérale. */
 .confirmation-banner {
+    position: relative;
     display: flex;
     align-items: flex-start;
-    gap: 16px;
-    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    border: 2px solid #28a745;
-    border-radius: 12px;
-    padding: 24px 28px;
-    margin-bottom: 24px;
+    gap: var(--space-5);
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--confirm-bg-from) 0%, var(--confirm-bg-to) 100%);
+    border: 1px solid var(--confirm-border);
+    border-left-width: 5px;
+    border-radius: var(--radius-xl);
+    padding: var(--space-6) var(--space-7);
+    margin-bottom: var(--space-6);
+    box-shadow: 0 20px 44px -28px rgba(12,60,30,0.65), var(--shadow-sm);
     animation: motion-message-in var(--motion-duration-medium) var(--motion-ease-standard) both;
 }
 .confirmation-banner__icon {
-    font-size: 36px;
-    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
     flex-shrink: 0;
+    background: var(--confirm-seal-bg);
+    border-radius: var(--radius-pill);
+    font-size: 30px;
+    line-height: 1;
+    box-shadow: 0 0 0 4px rgba(30,122,60,0.14), 0 12px 24px -16px rgba(12,60,30,0.8);
 }
 .confirmation-banner__content {
     flex: 1;
+    min-width: 0;
 }
 .confirmation-banner__title {
-    font-size: 20px;
+    font-size: var(--font-size-xl);
     font-weight: 700;
-    color: #155724;
-    margin: 0 0 8px 0;
+    color: var(--confirm-ink);
+    margin: 0 0 var(--space-2) 0;
 }
 .confirmation-banner__text {
-    font-size: 15px;
-    color: #155724;
-    margin: 0 0 8px 0;
-    line-height: 1.5;
+    font-size: var(--font-size-md);
+    color: var(--confirm-ink);
+    margin: 0 0 var(--space-2) 0;
+    line-height: 1.55;
 }
 .confirmation-banner__actions {
     display: flex;
-    gap: 12px;
-    margin-top: 16px;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
     flex-wrap: wrap;
 }
 
@@ -2451,52 +2519,167 @@ tr:hover td {
 /* ============================================================
    22. Login Page
    ============================================================ */
+/* « Seuil bleu nuit » — fond profond à halos + trame discrète, carte
+   élevée à règle spectrale, entrée échelonnée CSS pure. Aucun JavaScript. */
 .login-body {
-    background: var(--grey-200);
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    padding: var(--space-6);
+    color: var(--signature-on-dark);
+    background-color: var(--signature-bg-to);
+    background-image:
+        radial-gradient(circle at 16% 10%, var(--signature-halo) 0%, transparent 46%),
+        radial-gradient(circle at 84% 92%, var(--signature-halo-2) 0%, transparent 52%),
+        repeating-linear-gradient(135deg, var(--signature-grid) 0, var(--signature-grid) 1px, transparent 1px, transparent 24px),
+        linear-gradient(160deg, var(--signature-bg-from) 0%, var(--signature-bg-to) 100%);
+    background-attachment: fixed;
 }
 
 .login-container {
     width: 100%;
-    max-width: 440px;
-    padding: 20px;
+    max-width: 460px;
+    padding: 0;
 }
 
 .login-card {
-    background: white;
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-lg);
-    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+    color: var(--grey-900);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--signature-card-shadow);
+    padding: calc(var(--space-8) + var(--space-1)) var(--space-8) var(--space-6);
+    animation: signature-rise var(--motion-duration-medium) var(--motion-ease-gentle) both;
+}
+
+/* Règle spectrale supérieure : relie les halos du fond à l'identité de marque. */
+.login-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--ui-accent-2) 52%, var(--role-chsct) 100%);
 }
 
 .login-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
+}
+
+.login-seal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    margin: 0 auto var(--space-4);
+    border-radius: var(--radius-pill);
+    background: linear-gradient(140deg, var(--color-primary) 0%, var(--ui-accent) 100%);
+    color: #FFFFFF;
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 12px 26px -14px rgba(5,42,84,0.75), 0 0 0 5px rgba(10,91,181,0.10);
 }
 
 .login-header h1 {
-    font-size: 20px;
-    color: var(--color-primary);
-    margin-bottom: 4px;
+    font-size: var(--font-size-2xl);
+    line-height: 1.15;
+    color: var(--ui-ink);
+    margin-bottom: var(--space-2);
+    letter-spacing: -0.01em;
 }
 
 .login-subtitle {
-    color: var(--grey-600);
-    font-size: 14px;
+    color: var(--grey-700);
+    font-size: var(--font-size-md);
 }
 
 .login-dev-badge {
-    display: inline-block;
-    background: #fff3cd;
-    color: #856404;
-    padding: 4px 12px;
-    border-radius: var(--border-radius);
-    font-size: 12px;
-    font-weight: 500;
-    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--radius-pill);
+    background: var(--surface-sunken);
+    color: var(--grey-700);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.login-choose-profile {
+    margin: var(--space-5) 0 var(--space-1);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--ui-ink);
+    text-align: center;
+}
+
+.login-choose-hint {
+    margin: 0 0 var(--space-5);
+    font-size: var(--font-size-sm);
+    color: var(--grey-700);
+    text-align: center;
+}
+
+.login-quick-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+/* Entrée échelonnée : chaque profil apparaît 90ms après le précédent. */
+.login-btn-wrapper {
+    text-align: center;
+    animation: signature-rise var(--motion-duration-medium) var(--motion-ease-gentle) both;
+}
+.login-btn-wrapper:nth-child(1) { animation-delay: 90ms; }
+.login-btn-wrapper:nth-child(2) { animation-delay: 170ms; }
+.login-btn-wrapper:nth-child(3) { animation-delay: 250ms; }
+
+.login-quick-buttons .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 58px;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--border-radius-lg);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #FFFFFF;
+    box-shadow: 0 14px 26px -18px rgba(5,20,40,0.9);
+}
+
+.login-btn--superviseur {
+    background: linear-gradient(135deg, var(--role-superviseur) 0%, var(--role-superviseur-deep) 100%);
+}
+.login-btn--agent {
+    background: linear-gradient(135deg, var(--role-agent) 0%, var(--role-agent-deep) 100%);
+}
+.login-btn--chsct {
+    background: linear-gradient(135deg, var(--role-chsct) 0%, var(--role-chsct-deep) 100%);
+}
+
+.login-btn-desc {
+    display: block;
+    margin-top: var(--space-2);
+    font-size: var(--font-size-sm);
+    color: var(--grey-700);
+}
+
+.login-dev-notice {
+    margin-top: var(--space-4);
+    text-align: center;
 }
 
 .login-form .form-group {
@@ -5009,6 +5192,15 @@ body {
 
 .main {
     animation: motion-page-in var(--motion-duration-medium) var(--motion-ease-standard) both;
+}
+
+/* --- Entrée signature de la connexion (carte + profils échelonnés) ---
+   Même grammaire que motion-page-in, avec une très légère mise à l'échelle.
+   Les délais échelonnés sont neutralisés par la media query globale de la
+   section 4 (@media (prefers-reduced-motion: reduce)). */
+@keyframes signature-rise {
+    from { opacity: var(--motion-opacity-from); transform: translateY(var(--motion-distance-md)) scale(0.99); }
+    to   { opacity: var(--motion-opacity-to);   transform: none; }
 }
 
 /* --- Apparition des alertes et messages SSR (fade-in + translation) ---

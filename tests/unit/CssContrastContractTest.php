@@ -9,9 +9,9 @@ declare(strict_types=1);
  * registre inconnu) porte du texte blanc ; son fond doit offrir ≥ 4.5:1.
  *
  * Périmètre : uniquement les éléments réellement servis par l'application
- * (`style.css`). La page de connexion `login.css` est un mode dev hors
- * production, l'authentification applicative étant assurée par IIS : elle est
- * hors périmètre visuel.
+ * (`style.css`). La page de connexion (classes `.login-*`, désormais intégrées
+ * à `style.css`) est un mode dev hors production, l'authentification
+ * applicative étant assurée par IIS : elle est hors périmètre visuel.
  *
  * Le ratio est calculé depuis les tokens `:root` de style.css (source de vérité),
  * sans dépendance externe et sans couleur hexadécimale en dur dans les règles.
@@ -739,8 +739,8 @@ final class CssContrastContractTest extends TestCase
      * consommer `--grey-500`/`--grey-600`, qui tombent sous 4.5:1 sur la
      * surface la plus sombre (`--surface-sunken`, `--grey-600` ≈ 4.10:1).
      *
-     * Hors périmètre — la page de connexion (`login.css` / `.login-*`) est un
-     * mode dev non servi en production (authentification IIS), et la vue
+     * Hors périmètre — la page de connexion (classes `.login-*`) est un mode
+     * dev non servi en production (authentification IIS), et la vue
      * d'impression `print` n'est pas dans le périmètre de la passe.
      */
     public function testGreyTextUsesAaCompliantToken(): void

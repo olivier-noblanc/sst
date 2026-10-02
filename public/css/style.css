@@ -157,6 +157,7 @@
     --motion-ease-gentle: cubic-bezier(0.33, 1, 0.68, 1); /* attention douce */
     --motion-distance-sm: 4px;         /* amplitudes discrètes, plafonnées */
     --motion-distance-md: 8px;
+    --motion-scale-press: 0.98;        /* compression d'appui (boutons) */
     --motion-opacity-from: 0;          /* opacités nommées */
     --motion-opacity-to: 1;
 
@@ -800,12 +801,6 @@ img { max-width: 100%; height: auto; display: block; }
     flex-direction: column;
     justify-content: space-between;
     box-shadow: var(--card-shadow);
-    transition: transform var(--transition-base), box-shadow var(--transition-base);
-}
-
-.registry-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--card-shadow-hover);
 }
 
 /* ═══ Registry theme classes — 10 themes ═══════════════════════════════════════
@@ -1370,7 +1365,7 @@ img { max-width: 100%; height: auto; display: block; }
 /* Micro-compression à l'appui, sur la durée immédiate. Le focus clavier n'est
    jamais animé : l'anneau `:focus-visible` est perçu instantanément. */
 .btn:active {
-    transform: scale(0.98);
+    transform: scale(var(--motion-scale-press));
     transition-duration: var(--motion-duration-instant);
 }
 /* Aucun mouvement quand le bouton est inactif. */
@@ -2816,11 +2811,6 @@ tr:hover td {
     border-left: 4px solid var(--rsst-color);
     background: var(--grey-50, #fafafa);
     box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    transition: box-shadow 0.2s;
-}
-
-.help-profile-card:hover {
-    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
 }
 
 .help-profiles-grid {
@@ -4797,12 +4787,6 @@ body {
     border-radius: var(--ui-radius-lg);
     box-shadow: var(--ui-shadow-card);
     background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0) 42%);
-    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
-}
-
-.registry-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--ui-shadow-card-hover);
 }
 
 .registry-card__head {
@@ -5052,6 +5036,9 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+/* Source unique du mouvement de la carte de registre : les transitions et
+   états hover legacy (sections 12 et 60.4) ont été retirés au profit de ce
+   bloc tokenisé. */
 .registry-card {
     transition: transform var(--motion-duration-fast) var(--motion-ease-standard),
                 box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
@@ -5064,6 +5051,9 @@ body {
     box-shadow: var(--ui-shadow-card-hover);
 }
 
+/* Source unique du mouvement de la carte de profil d'aide : la transition
+   ad hoc `box-shadow 0.2s` et le survol legacy (section 28) ont été retirés ;
+   l'ombre utile au survol est conservée et étendue au focus clavier. */
 .help-profile-card {
     transition: transform var(--motion-duration-fast) var(--motion-ease-standard),
                 box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
@@ -5072,6 +5062,7 @@ body {
 .help-profile-card:hover,
 .help-profile-card:focus-visible {
     transform: translateY(calc(-1 * var(--motion-distance-sm)));
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
 }
 
 /* --- Champs : transition brève d'erreur, aucun mouvement si inactif --- */
@@ -5090,18 +5081,4 @@ input:disabled, select:disabled, textarea:disabled,
 input[readonly], textarea[readonly],
 .form-control:disabled, .form-control[readonly] {
     transition: none;
-}
-
-/* --- Garde-fou focus clavier transversal ---
-   Reprend exactement l'anneau tokenisé global (section 3) pour les
-   interactifs listés : jamais d'`outline: none` sans remplacement. */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-[tabindex]:focus-visible {
-    outline: 3px solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-    box-shadow: 0 0 0 var(--focus-ring-offset) var(--focus-ring-color);
 }

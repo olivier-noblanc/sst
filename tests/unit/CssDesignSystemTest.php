@@ -552,6 +552,51 @@ final class CssDesignSystemTest extends TestCase
         $this->assertStringContainsString('var(--focus-ring-offset)', $ring);
     }
 
+    /**
+     * Finding motion (revue commit 374bdb3) : la compression d'appui des
+     * boutons consomme le token --motion-scale-press, jamais une valeur ad hoc.
+     */
+    public function testButtonPressScaleIsTokenised(): void
+    {
+        $this->assertSame(
+            '0.98',
+            self::$tokens['--motion-scale-press'] ?? null,
+            'Le token --motion-scale-press doit valoir 0.98.'
+        );
+        $active = $this->ruleBody('.btn:active');
+        $this->assertStringContainsString('scale(var(--motion-scale-press))', $active);
+        $this->assertStringNotContainsString('scale(0.98)', self::$css);
+    }
+
+    /**
+     * Finding motion (revue commit 374bdb3) : le mouvement des cartes de
+     * registre et de profil d'aide n'est plus dupliqué par des règles hover
+     * legacy autonomes. La source unique est le bloc tokenisé de la section 61
+     * (sélecteurs combinés `:hover, :focus-visible`).
+     */
+    public function testCardMotionLivesInSingleTokenisedSource(): void
+    {
+        $rules = self::leafRules();
+
+        foreach (['.registry-card', '.help-profile-card'] as $selector) {
+            $body = $rules[$selector] ?? '';
+            $this->assertNotSame('', $body, "Règle motion $selector introuvable.");
+            $this->assertStringContainsString(
+                'var(--motion-duration-fast)',
+                $body,
+                "$selector doit porter une transition tokenisée --motion-*."
+            );
+            $this->assertStringNotContainsString(
+                '--transition-base',
+                $body,
+                "$selector ne doit plus consommer --transition-base."
+            );
+        }
+
+        $this->assertStringNotContainsString('.registry-card:hover {', self::$css);
+        $this->assertStringNotContainsString('.help-profile-card:hover {', self::$css);
+    }
+
     public function testFieldFocusUsesFocusRingToken(): void
     {
         $this->assertStringContainsString('var(--focus-ring-color)', $this->ruleBody('.form-control:focus'));
